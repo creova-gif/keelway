@@ -26,13 +26,27 @@ class ResearchSummaryWorkflow:
     def load_internal_docs_index(self) -> str:
         """Load internal architectural context for comparison."""
         context = []
-        kora_md = self.docs_dir / "KORA.md"
-        if kora_md.exists():
-            context.append(f"=== Kora Philosophy & Tenets ===\n{kora_md.read_text()[:1500]}")
+        kora_candidates = [
+            self.docs_dir / "docs" / "architecture" / "KORA.md",
+            self.docs_dir / "KORA.md",
+            Path("docs/architecture/KORA.md"),
+            Path("KORA.md"),
+        ]
+        for k_path in kora_candidates:
+            if k_path.exists():
+                context.append(f"=== Kora Philosophy & Tenets ===\n{k_path.read_text()[:1500]}")
+                break
 
-        adr = self.docs_dir / "ADR-001-AI-Core-Architecture.md"
-        if adr.exists():
-            context.append(f"=== ADR-001 Shared AI Core ===\n{adr.read_text()[:1500]}")
+        adr_candidates = [
+            self.docs_dir / "docs" / "architecture" / "ADR-001-AI-Core-Architecture.md",
+            self.docs_dir / "ADR-001-AI-Core-Architecture.md",
+            Path("docs/architecture/ADR-001-AI-Core-Architecture.md"),
+            Path("ADR-001-AI-Core-Architecture.md"),
+        ]
+        for a_path in adr_candidates:
+            if a_path.exists():
+                context.append(f"=== ADR-001 Shared AI Core ===\n{a_path.read_text()[:1500]}")
+                break
 
         return "\n\n".join(context)
 

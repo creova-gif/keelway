@@ -26,13 +26,27 @@ class EngineeringBriefWorkflow:
     def load_governance_context(self) -> str:
         """Load KORA.md and ADR-001 principles as grounded context."""
         context_parts = []
-        kora_md = self.docs_dir / "KORA.md"
-        if kora_md.exists():
-            context_parts.append(f"=== KORA.md Principles ===\n{kora_md.read_text()[:2000]}")
+        kora_candidates = [
+            self.docs_dir / "docs" / "architecture" / "KORA.md",
+            self.docs_dir / "KORA.md",
+            Path("docs/architecture/KORA.md"),
+            Path("KORA.md"),
+        ]
+        for k_path in kora_candidates:
+            if k_path.exists():
+                context_parts.append(f"=== KORA.md Principles ===\n{k_path.read_text()[:2000]}")
+                break
 
-        adr_001 = self.docs_dir / "ADR-001-AI-Core-Architecture.md"
-        if adr_001.exists():
-            context_parts.append(f"=== ADR-001 Architecture Principles ===\n{adr_001.read_text()[:2000]}")
+        adr_candidates = [
+            self.docs_dir / "docs" / "architecture" / "ADR-001-AI-Core-Architecture.md",
+            self.docs_dir / "ADR-001-AI-Core-Architecture.md",
+            Path("docs/architecture/ADR-001-AI-Core-Architecture.md"),
+            Path("ADR-001-AI-Core-Architecture.md"),
+        ]
+        for a_path in adr_candidates:
+            if a_path.exists():
+                context_parts.append(f"=== ADR-001 Architecture Principles ===\n{a_path.read_text()[:2000]}")
+                break
 
         return "\n\n".join(context_parts)
 
