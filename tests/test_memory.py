@@ -9,7 +9,9 @@ from httpx import AsyncClient, ASGITransport
 
 from core.main import app
 from core.storage.database import init_db, AsyncSessionLocal
-from core.storage.memory import MemoryService
+from core.storage.memory import MemoryService, EmbeddingProvider, cosine_similarity
+import tempfile
+from pathlib import Path
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -96,3 +98,49 @@ async def test_memory_api_endpoints():
         # Verify 404 after delete
         res_check = await client.get("/v1/memories/eval_rubric_001", params={"scope": "evaluation"})
         assert res_check.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_memory_hybrid_search_and_ingestion():
+    async with AsyncSessionLocal() as db:
+        service = MemoryService(db)
+
+        # 1. Test Embedding Provider
+        v1 = EmbeddingProvider.get_dense_embedding("autonomous coding agent sandbox")
+        v2 = EmbeddingProvider.get_dense_embedding("autonomous coding agent sandbox")
+        v3 = EmbeddingProvider.get_dense_embedding("banana pancake recipe breakfast")
+        assert len(v1) == 128
+        assert cosine_similarity(v1, v2) > 0.99
+        assert cosine_similarity(v1, v3) < cosine_similarity(v1, v2)
+
+        # 2. Test File Ingestion with Provenance
+        with tempfile.NamedTemporaryFile("w+", suffix=".md", delete=False) as tmp:
+            tmp.write(
+                "# Security Architecture Guidelines\n\n"
+                "## Layer 1: Boundary Isolation\n"
+                "All shell executions must be sandboxed.\n\n"
+                "## Layer 2: Approval Gate\n"
+                "Tier 3 tasks require explicit human approval.\n"
+            )
+            tmp_path = Path(tmp.name)
+
+        try:
+            records = await service.ingest_file(tmp_path, scope="security_docs", chunk_lines=5)
+            assert len(records) >= 1
+            assert "file://" in records[0].provenance_uri
+            assert "#L" in records[0].key
+
+            # 3. Test Hybrid Search
+            results = await service.search_hybrid(
+                query_text="sandbox shell boundary",
+                scope="security_docs",
+                alpha=0.5,
+                threshold=0.1,
+            )
+            assert len(results) >= 1
+            top_rec, score = results[0]
+            assert score > 0.1
+            assert "sandboxed" in top_rec.content.lower()
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()

@@ -3,10 +3,13 @@
 Kora AI Developer & Operations CLI Tool.
 Usage:
   kora doctor
+  kora chat [--provider PROVIDER]
   kora brief [--title TITLE]
   kora summarize <path_to_doc> [--store-memory]
   kora test-sandbox <command> [--approve]
   kora eval [--mock]
+  kora memory <store|get|search|ingest|list>
+  kora dataset export [--output PATH] [--format sharegpt|openai]
 """
 
 import argparse
@@ -27,6 +30,7 @@ from core.orchestration.workflows import (
     ResearchSummaryWorkflow,
     SandboxedFailureAnalysisWorkflow,
 )
+from core.orchestration.chat import InteractiveChatSession
 
 
 async def cmd_doctor():
@@ -49,6 +53,68 @@ async def cmd_doctor():
         print(f"    - {prov.value.upper():<10}: {status_str}")
 
     print("\n[+] Diagnostics complete.\n")
+
+
+async def cmd_chat(provider_name: str, system_prompt: str = None):
+    """Run interactive multi-turn agent chat with dynamic memory recall and safety checks."""
+    prov = Provider(provider_name) if provider_name else Provider.LOCAL
+    await init_db()
+
+    session = InteractiveChatSession(gateway=gateway, provider=prov, system_prompt=system_prompt)
+    print("\n" + "=" * 62)
+    print("  KORA AI — Sovereign Agent Interactive Workspace (REPL)")
+    print(f"  Active Provider: {prov.value.upper()} | Type '/help' for commands")
+    print("=" * 62 + "\n")
+
+    while True:
+        try:
+            user_input = input("kora> ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\nExiting Kora session. Goodbye!")
+            break
+
+        if not user_input:
+            continue
+
+        if user_input in ("/exit", "exit", "quit"):
+            print("Session closed.")
+            break
+        elif user_input == "/clear":
+            session.reset()
+            print("[+] Conversation memory cleared.")
+            continue
+        elif user_input == "/help":
+            print("\nAvailable Commands:")
+            print("  /clear                 - Reset dialogue context")
+            print("  /memory <query>        - Search persistent memory")
+            print("  /exit                  - Exit interactive REPL\n")
+            continue
+        elif user_input.startswith("/memory "):
+            query = user_input[8:].strip()
+            async with AsyncSessionLocal() as db:
+                from core.storage.memory import MemoryService
+                service = MemoryService(db)
+                results = await service.search_hybrid(query_text=query, limit=5)
+                print(f"\n[+] Hybrid Memory Search for '{query}':")
+                for rec, score in results:
+                    print(f"  • [{score:.2f}] {rec.key} ({rec.scope}): {rec.content[:80]}...")
+            print()
+            continue
+
+        # Normal dialogue turn
+        print("\nThinking...", end="\r", flush=True)
+        try:
+            resp = await session.step(user_input, use_memory=True)
+            print(" " * 20, end="\r")  # Clear "Thinking..."
+            print(f"\n{resp['content']}\n")
+            if resp.get("memory_citations"):
+                print("  [Citations]")
+                for c in resp["memory_citations"]:
+                    print(f"  ↳ {c['citation']} (relevance: {c['score']:.2f})")
+            if resp["model"] != "security-firewall":
+                print(f"  ↳ [{resp['model']}] {resp['latency_ms']:.1f}ms | ${resp['cost_usd']:.5f}\n")
+        except Exception as e:
+            print(f"\n[!] Error during agent execution: {e}\n")
 
 
 async def cmd_brief(title: str, description: str, files: list, failing_tests: list, provider_name: str):
@@ -151,6 +217,11 @@ def main():
     # doctor
     subparsers.add_parser("doctor", help="Run system and provider diagnostics")
 
+    # chat
+    chat_parser = subparsers.add_parser("chat", help="Start interactive agent REPL session")
+    chat_parser.add_argument("--provider", default="local", choices=["anthropic", "google", "openai", "local"], help="Model provider")
+    chat_parser.add_argument("--system", default=None, help="Custom system prompt")
+
     # brief
     brief_parser = subparsers.add_parser("brief", help="Generate engineering brief from PR/git changes")
     brief_parser.add_argument("--title", default="Add task state machine to agent backend", help="PR Title")
@@ -193,14 +264,33 @@ def main():
     mem_search_parser = mem_subparsers.add_parser("search", help="Search memories")
     mem_search_parser.add_argument("query", help="Search query")
     mem_search_parser.add_argument("--scope", default=None, help="Scope filter")
+    mem_search_parser.add_argument("--hybrid", action="store_true", help="Use hybrid dense vector + lexical scoring")
+    mem_search_parser.add_argument("--threshold", type=float, default=0.15, help="Relevance score threshold")
+
+    mem_ingest_parser = mem_subparsers.add_parser("ingest", help="Ingest file or document into memory chunks")
+    mem_ingest_parser.add_argument("file_path", type=Path, help="Path to document/code file")
+    mem_ingest_parser.add_argument("--scope", default="project", help="Scope namespace")
+    mem_ingest_parser.add_argument("--lines", type=int, default=40, help="Lines per chunk")
 
     mem_list_parser = mem_subparsers.add_parser("list", help="List memories in scope")
     mem_list_parser.add_argument("--scope", default="project", help="Scope")
+
+    # dataset
+    dataset_parser = subparsers.add_parser("dataset", help="Manage fine-tuning datasets and extraction")
+    dataset_subparsers = dataset_parser.add_subparsers(dest="dataset_action", required=True)
+
+    dataset_export_parser = dataset_subparsers.add_parser("export", help="Export verified traces into fine-tuning dataset")
+    dataset_export_parser.add_argument("--output", type=Path, default=Path("research/datasets/seed/v1.jsonl"), help="Output JSONL path")
+    dataset_export_parser.add_argument("--format", default="sharegpt", choices=["sharegpt", "openai"], help="Dataset format")
+    dataset_export_parser.add_argument("--workflow-type", default=None, help="Workflow type filter")
+    dataset_export_parser.add_argument("--limit", type=int, default=100, help="Max samples to export")
 
     args = parser.parse_args()
 
     if args.command == "doctor":
         asyncio.run(cmd_doctor())
+    elif args.command == "chat":
+        asyncio.run(cmd_chat(args.provider, args.system))
     elif args.command == "brief":
         asyncio.run(cmd_brief(args.title, args.desc, args.files, args.failing, args.provider))
     elif args.command == "summarize":
@@ -214,6 +304,7 @@ def main():
     elif args.command == "memory":
         from core.storage.memory import MemoryService
         async def run_memory():
+            await init_db()
             async with AsyncSessionLocal() as db:
                 service = MemoryService(db)
                 if args.mem_action == "store":
@@ -230,16 +321,45 @@ def main():
                     else:
                         print(f"[-] Memory '{args.key}' not found in scope '{args.scope}'.")
                 elif args.mem_action == "search":
-                    results = await service.search(query_text=args.query, scope=args.scope)
-                    print(f"\n[+] Found {len(results)} memory record(s) matching '{args.query}':")
-                    for r in results:
-                        print(f"  • [{r.scope}] {r.key}: {r.content[:100]}...")
+                    if args.hybrid:
+                        results = await service.search_hybrid(query_text=args.query, scope=args.scope, threshold=args.threshold)
+                        print(f"\n[+] Hybrid Search for '{args.query}' (Found {len(results)} matches):")
+                        for r, score in results:
+                            print(f"  • [{score:.2f}] [{r.scope}] {r.key}: {r.content[:100]}...")
+                    else:
+                        results = await service.search(query_text=args.query, scope=args.scope)
+                        print(f"\n[+] Keyword Search for '{args.query}' ({len(results)} matches):")
+                        for r in results:
+                            print(f"  • [{r.scope}] {r.key}: {r.content[:100]}...")
+                elif args.mem_action == "ingest":
+                    recs = await service.ingest_file(args.file_path, scope=args.scope, chunk_lines=args.lines)
+                    await db.commit()
+                    print(f"[+] Ingested {len(recs)} chunk(s) from '{args.file_path}' into scope '{args.scope}'.")
                 elif args.mem_action == "list":
                     results = await service.list_by_scope(scope=args.scope)
                     print(f"\n[+] Scope '{args.scope}' ({len(results)} records):")
                     for r in results:
                         print(f"  • {r.key} (updated: {r.updated_at.strftime('%Y-%m-%d %H:%M:%S')}): {r.content[:80]}...")
         asyncio.run(run_memory())
+    elif args.command == "dataset":
+        from research.datasets.pipeline import TraceDatasetExtractor, ExportFormat
+        async def run_dataset():
+            await init_db()
+            async with AsyncSessionLocal() as db:
+                extractor = TraceDatasetExtractor(db)
+                fmt = ExportFormat(args.format)
+                manifest = await extractor.export_dataset(
+                    output_file=args.output,
+                    format_type=fmt,
+                    workflow_type=args.workflow_type,
+                    limit=args.limit,
+                )
+                print(f"\n[+] Exported dataset to: {args.output}")
+                print(f"    Samples: {manifest['sample_count']}")
+                print(f"    SHA-256: {manifest['sha256']}")
+                print(f"    License: {manifest['license']}")
+                print(f"    DLP Scanned: {manifest['data_governance']['dlp_scanned']}\n")
+        asyncio.run(run_dataset())
 
 
 if __name__ == "__main__":

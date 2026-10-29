@@ -91,5 +91,7 @@ class MemoryRecord(Base):
     key = Column(String(255), nullable=False, index=True)
     content = Column(Text, nullable=False)
     provenance_uri = Column(String(512), nullable=True)
+    vector_embedding = Column(JSON, nullable=True)
+    metadata_json = Column(JSON, default=dict, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)

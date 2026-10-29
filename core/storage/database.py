@@ -57,9 +57,19 @@ async def check_db_health() -> bool:
 
 
 async def init_db() -> None:
-    """Initialize tables in local/test development."""
+    """Initialize tables in local/test development with automatic column migration."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        if is_sqlite:
+            try:
+                res = await conn.execute(text("PRAGMA table_info(kora_memories)"))
+                columns = [row[1] for row in res.fetchall()]
+                if "vector_embedding" not in columns:
+                    await conn.execute(text("ALTER TABLE kora_memories ADD COLUMN vector_embedding JSON"))
+                if "metadata_json" not in columns:
+                    await conn.execute(text("ALTER TABLE kora_memories ADD COLUMN metadata_json JSON DEFAULT '{}'"))
+            except Exception:
+                pass
 
 
 async def close_db() -> None:
