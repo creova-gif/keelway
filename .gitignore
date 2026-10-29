@@ -1,0 +1,57 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+*.nosync
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Environment and sensitive secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+*.p12
+
+# Local Databases & runtime state
+*.db
+*.sqlite
+*.sqlite3
+kora.db
+
+# Logs & temp
+*.log
+*.tmp
+logs/
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# IDE & Editor configs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Investor, Pitch, and Private Walkthrough materials (saved on Desktop)
+LOCAL_DEMO*.md
+PITCH_AND_JUDGE_QA.md
+*YC_*
+*Dossier*

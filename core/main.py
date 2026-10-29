@@ -1,0 +1,72 @@
+"""
+Kora AI Core — FastAPI Application Entrypoint.
+"""
+
+from contextlib import asynccontextmanager
+import logging
+from typing import AsyncGenerator
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from core.config import settings
+from core.api.routes import router
+from core.storage.database import init_db
+
+# Configure logging
+logging.basicConfig(
+    level=settings.log_level.upper(),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("kora.core")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Lifespan event handler for startup and shutdown."""
+    logger.info("Initializing Kora AI Core...")
+    if settings.env in ["development", "test"]:
+        try:
+            logger.info("Auto-initializing local storage tables...")
+            await init_db()
+        except Exception as e:
+            logger.warning(f"Database auto-init warning (Postgres might still be booting): {e}")
+
+    yield
+
+    logger.info("Shutting down Kora AI Core...")
+
+
+app = FastAPI(
+    title="Kora AI Core",
+    version="0.1.0",
+    description="Shared Intelligence Infrastructure & Multi-Provider Model Gateway.",
+    lifespan=lifespan,
+)
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Global zero-silent-failure exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "InternalServerError",
+            "message": str(exc) if settings.env == "development" else "An unexpected internal error occurred.",
+            "path": request.url.path,
+        },
+    )
+
+
+# Mount routes
+app.include_router(router)
