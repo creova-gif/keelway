@@ -61,4 +61,20 @@ def test_fork_rejects_out_of_range_index(client, bad_index):
 
 
 def test_rejects_oversized_task_id(client):
-    assert client.get("/v1/flight/tape/" + "a" * 129).status_code == 400
+    assert client.get("/v1/flight/tape/" + "a" * 244).status_code == 400
+
+
+def test_back_to_back_default_forks_get_unique_ids(client):
+    a = client.post("/v1/flight/fork", json={"task_id": "task_demo", "at_index": 1})
+    b = client.post("/v1/flight/fork", json={"task_id": "task_demo", "at_index": 1})
+    assert a.status_code == b.status_code == 200
+    assert a.json()["forked_task_id"] != b.json()["forked_task_id"]
+
+
+def test_default_fork_of_long_source_id(client, tmp_path):
+    long_id = "t" * 243
+    rec = FlightRecorder(task_id=long_id, recordings_dir=tmp_path)
+    rec.record_event("prompt", {"text": "x"})
+    rec.save_tape()
+    assert client.get(f"/v1/flight/tape/{long_id}").status_code == 200
+    assert client.post("/v1/flight/fork", json={"task_id": long_id, "at_index": 1}).status_code == 200

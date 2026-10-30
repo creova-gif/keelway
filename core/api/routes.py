@@ -425,7 +425,8 @@ async def create_payment_intent(payload: dict):
 
 
 FLIGHT_RECORDINGS_DIR = Path(".kora/recordings")
-_TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")
+# 243 + len(".flight.json") == 255, the common filesystem filename limit.
+_TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,243}$")
 
 
 def _tape_path(task_id: str) -> Path:
@@ -462,7 +463,7 @@ async def fork_flight_tape(payload: dict):
     from core.orchestration.flight_recorder import FlightPlayer
     task_id = payload.get("task_id")
     at_index = int(payload.get("at_index", 0))
-    new_task_id = payload.get("new_task_id") or f"{task_id}_fork_{int(time.time())}"
+    new_task_id = payload.get("new_task_id") or f"{(task_id or '')[:200]}_fork_{time.time_ns()}"
 
     tape_file = _tape_path(task_id)
     if _tape_path(new_task_id).exists():
