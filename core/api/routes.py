@@ -421,6 +421,63 @@ async def create_payment_intent(payload: dict):
     }
 
 
+@router.get("/v1/flight/tapes", tags=["Deterministic Flight Recorder"])
+async def list_flight_tapes():
+    """List all recorded deterministic agent execution tapes."""
+    recordings_dir = Path(".kora/recordings")
+    if not recordings_dir.exists():
+        return {"tapes": []}
+    tapes = []
+    for f in recordings_dir.glob("*.flight.json"):
+        tapes.append({"task_id": f.name.replace(".flight.json", ""), "path": str(f)})
+    return {"tapes": tapes}
+
+
+@router.get("/v1/flight/tape/{task_id}", tags=["Deterministic Flight Recorder"])
+async def get_flight_tape(task_id: str):
+    """Retrieve full execution tape with all chronological step frames."""
+    tape_file = Path(".kora/recordings") / f"{task_id}.flight.json"
+    if not tape_file.exists():
+        raise HTTPException(status_code=404, detail=f"Flight tape for task {task_id} not found.")
+    import json
+    return json.loads(tape_file.read_text(encoding="utf-8"))
+
+
+@router.post("/v1/flight/fork", tags=["Deterministic Flight Recorder"])
+async def fork_flight_tape(payload: dict):
+    """Fork an execution timeline at a specific step index to explore alternative solutions."""
+    from core.orchestration.flight_recorder import FlightPlayer
+    task_id = payload.get("task_id")
+    at_index = int(payload.get("at_index", 0))
+    new_task_id = payload.get("new_task_id") or f"{task_id}_fork_{int(time.time())}"
+
+    tape_file = Path(".kora/recordings") / f"{task_id}.flight.json"
+    if not tape_file.exists():
+        raise HTTPException(status_code=404, detail="Source flight tape not found.")
+
+    player = FlightPlayer(tape_file)
+    forked_recorder = player.fork(at_index=at_index, new_task_id=new_task_id)
+    saved_path = forked_recorder.save_tape()
+    return {
+        "original_task_id": task_id,
+        "forked_task_id": new_task_id,
+        "forked_at_index": at_index,
+        "tape_path": str(saved_path),
+    }
+
+
+@router.get("/v1/mesh/peers", tags=["Local Team Mesh"])
+async def list_mesh_peers():
+    """List peer developer workstations discovered on local Wi-Fi / Tailscale."""
+    from core.orchestration.p2p_mesh import LocalTeamMesh
+    mesh = LocalTeamMesh()
+    return {
+        "local_node": mesh.get_local_advertisement(),
+        "peers": [p.__dict__ for p in mesh.peers.values()],
+    }
+
+
+
 
 
 

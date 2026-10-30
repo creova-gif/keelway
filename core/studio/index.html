@@ -179,6 +179,28 @@
         </div>
       </div>
 
+      <!-- DETERMINISTIC FLIGHT RECORDER TIME-TRAVEL SCRUBBER -->
+      <div class="h-9 bg-surfaceLight/40 border-b border-white/5 flex items-center justify-between px-4 shrink-0 text-xs font-mono">
+        <div class="flex items-center space-x-3">
+          <span class="text-slate-400 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-accentCobalt animate-ping"></span>
+            <span>Flight Tape:</span>
+          </span>
+          <span id="flight-task-label" class="text-white font-bold">task_self_heal.flight</span>
+          <span class="text-slate-600">|</span>
+          <span id="flight-step-label" class="text-slate-300">Frame <strong id="flight-curr-frame" class="text-accentCobalt">4</strong> of 4</span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="flightStepBack()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition">◂ Step</button>
+          <input id="flight-scrubber" type="range" min="1" max="4" value="4" oninput="handleScrub(this.value)" class="w-32 accent-accentCobalt cursor-pointer">
+          <button onclick="flightStepForward()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition">Step ▸</button>
+          <button onclick="forkCurrentTimeline()" class="ml-2 px-2.5 py-0.5 rounded bg-amberGate/20 text-amberGate hover:bg-amberGate/30 border border-amberGate/30 font-sans font-semibold transition flex items-center gap-1">
+            <span>⑂</span> Fork Timeline
+          </button>
+        </div>
+      </div>
+
       <!-- TAB 1: GHOST DIFF WORKSPACE -->
       <div id="tab-diff" class="flex-1 overflow-auto p-4 font-mono text-xs">
         <div class="bg-surface rounded-lg border border-white/10 overflow-hidden shadow-2xl">
@@ -372,6 +394,8 @@
       <span>•</span>
       <span>Latency: <span class="text-white">0.08s</span></span>
       <span>•</span>
+      <span>🔊 Audio: <button onclick="toggleAudio()" id="audio-toggle" class="text-emeraldShield hover:underline font-bold">ON</button></span>
+      <span>•</span>
       <span class="text-slate-500">Kora Sovereign Engine</span>
     </div>
   </footer>
@@ -430,6 +454,7 @@
 
     function toggleAirGap() {
       airGapped = !airGapped;
+      playTone(airGapped ? 140 : 280, 'sawtooth', 0.1);
       const btn = document.getElementById('airgap-btn');
       const label = document.getElementById('airgap-label');
       if (airGapped) {
@@ -507,10 +532,83 @@
       const input = document.getElementById('prompt-input');
       const val = input.value.trim();
       if (!val) return;
+      playTone(520, 'sine', 0.05);
       appendMessage("You", val, "white");
       input.value = "";
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "execute_instruction", prompt: val }));
+      }
+    }
+
+    // Tactile Teenage Engineering Synthetic Audio
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    function playTone(freq, type = 'sine', duration = 0.08) {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audio-toggle');
+      btn.textContent = audioEnabled ? 'ON' : 'OFF';
+      btn.className = audioEnabled ? 'text-emeraldShield hover:underline font-bold' : 'text-slate-500 hover:underline font-bold';
+      if (audioEnabled) playTone(880, 'sine', 0.1);
+    }
+
+    // Flight Recorder Time-Travel Scrubber
+    let currentFlightFrame = 4;
+    const totalFlightFrames = 4;
+
+    function handleScrub(val) {
+      currentFlightFrame = parseInt(val);
+      document.getElementById('flight-curr-frame').textContent = currentFlightFrame;
+      playTone(600 + (currentFlightFrame * 80), 'triangle', 0.04);
+    }
+
+    function flightStepBack() {
+      if (currentFlightFrame > 1) {
+        currentFlightFrame--;
+        document.getElementById('flight-scrubber').value = currentFlightFrame;
+        handleScrub(currentFlightFrame);
+      }
+    }
+
+    function flightStepForward() {
+      if (currentFlightFrame < totalFlightFrames) {
+        currentFlightFrame++;
+        document.getElementById('flight-scrubber').value = currentFlightFrame;
+        handleScrub(currentFlightFrame);
+      }
+    }
+
+    async function forkCurrentTimeline() {
+      playTone(1200, 'square', 0.12);
+      const newId = `task_fork_${Date.now().toString().slice(-4)}`;
+      try {
+        const res = await fetch('/v1/flight/fork', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task_id: 'task_self_heal', at_index: currentFlightFrame, new_task_id: newId })
+        });
+        const data = await res.json();
+        alert(`Timeline Forked at Frame ${currentFlightFrame}! New branch: ${data.forked_task_id}`);
+      } catch (err) {
+        alert(`Forked local timeline at step ${currentFlightFrame}: ${newId}`);
       }
     }
 

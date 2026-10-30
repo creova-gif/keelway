@@ -64,6 +64,45 @@ async def cmd_heal(test_cmd: str, max_attempts: int = 3):
         print(f"    Diagnosis: {result.verification_output}\n")
 
 
+async def cmd_mesh():
+    """List local team mesh nodes and pooled GPU VRAM."""
+    from core.orchestration.p2p_mesh import LocalTeamMesh
+    mesh = LocalTeamMesh()
+    print("\n" + "=" * 65)
+    print("  🌐 KORA PEER-TO-PEER LOCAL TEAM MESH")
+    print("=" * 65)
+    local = mesh.get_local_advertisement()
+    print(f"  Local Node ID: {local['node_id']} ({local['hostname']})")
+    print(f"  mDNS Service:  {local['service_type']}")
+    print(f"  Local VRAM:    {local['vram_mb']} MB")
+    print(f"  Tailscale:     {local['tailscale_ip'] or 'Not Configured (LAN only)'}")
+    print("\n[+] Discovered Peer Workstations:")
+    if not mesh.peers:
+        print("  • No active remote peers broadcasting on local subnet. Local standalone mode.")
+    else:
+        for p in mesh.peers.values():
+            print(f"  • [{p.node_id}] {p.hostname} ({p.lan_ip}:{p.port}) - VRAM: {p.available_vram_mb} MB")
+    print()
+
+
+async def cmd_spec():
+    """Run speculative decoding benchmark comparison."""
+    from core.models.speculative import SpeculativeDecoder
+    print("\n" + "=" * 65)
+    print("  🚀 KORA SPECULATIVE DECODING BENCHMARK (0.5B + 7B Tandem)")
+    print("=" * 65 + "\n")
+    print("[+] Simulating parallel verification pass with K=4 lookahead...")
+    decoder = SpeculativeDecoder(lookahead_k=4)
+    res = decoder.run(prompt="def fast_pipeline():", max_iterations=4)
+    print(f"  • Generated Text:     {res.generated_text}")
+    print(f"  • Tokens Produced:    {res.tokens_generated}")
+    print(f"  • Draft Proposed:     {res.draft_tokens_proposed}")
+    print(f"  • Draft Accepted:     {res.draft_tokens_accepted}")
+    print(f"  • Acceptance Rate:    {res.acceptance_rate * 100:.1f}%")
+    print(f"  • Speedup Multiplier: {res.effective_speedup_ratio}x faster")
+    print(f"  • Latency:            {res.latency_ms:.2f} ms\n")
+
+
 async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, description: str):
     """Create and display a sovereign multi-rail payment intent."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
@@ -366,6 +405,12 @@ def main():
     dataset_export_parser.add_argument("--workflow-type", default=None, help="Workflow type filter")
     dataset_export_parser.add_argument("--limit", type=int, default=100, help="Max samples to export")
 
+    # mesh (Peer-to-peer local team GPU/VRAM mesh)
+    subparsers.add_parser("mesh", help="Discover peer workstations and pooled VRAM on local Wi-Fi")
+
+    # spec (Speculative decoding benchmark)
+    subparsers.add_parser("spec", help="Run speculative decoding tandem acceleration benchmark")
+
     # heal (Autonomous self-healing verification loop)
     heal_parser = subparsers.add_parser("heal", help="Autonomous closed-loop test & repair engine")
     heal_parser.add_argument("--test", required=True, help="Test command to run and verify (e.g. 'pytest tests')")
@@ -381,7 +426,11 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "heal":
+    if args.command == "mesh":
+        asyncio.run(cmd_mesh())
+    elif args.command == "spec":
+        asyncio.run(cmd_spec())
+    elif args.command == "heal":
         asyncio.run(cmd_heal(args.test, args.attempts))
     elif args.command == "pay":
         asyncio.run(cmd_pay(args.rail, args.amount, args.currency, args.to, args.desc))
