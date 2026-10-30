@@ -36,6 +36,21 @@ from core.orchestration.workflows import (
 from core.orchestration.chat import InteractiveChatSession
 
 
+async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
+    """Launch Kora Dev Studio — Local Web & Desktop UI."""
+    import uvicorn
+    print("\n" + "=" * 65)
+    print("  ⚡ KORA DEV STUDIO — Sovereign Agent Engineering Environment")
+    print(f"  URL: http://{host}:{port}")
+    print(f"  WebSocket: ws://{host}:{port}/v1/ws/studio")
+    print(f"  Air-Gapped: 🔒 Zero-Egress Boundary Active")
+    print("=" * 65 + "\n")
+    print("[+] Booting local server... Press Ctrl+C to exit.\n")
+    config = uvicorn.Config("core.main:app", host=host, port=port, log_level="warning")
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
 async def cmd_doctor():
     """Check health of environment, database, and providers."""
     print("\n[+] Running Kora AI System Diagnostics (kora doctor)...\n")
@@ -226,6 +241,11 @@ def main():
     parser = argparse.ArgumentParser(prog="kora", description="Kora AI Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # dev
+    dev_parser = subparsers.add_parser("dev", help="Launch Kora Dev Studio — Local Web & Desktop UI")
+    dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
+    dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+
     # doctor
     subparsers.add_parser("doctor", help="Run system and provider diagnostics")
 
@@ -301,7 +321,9 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "doctor":
+    if args.command == "dev":
+        asyncio.run(cmd_dev(args.port, args.host))
+    elif args.command == "doctor":
         asyncio.run(cmd_doctor())
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))

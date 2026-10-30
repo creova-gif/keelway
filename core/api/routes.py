@@ -3,8 +3,8 @@ FastAPI Routes for Kora AI Core.
 """
 
 from datetime import datetime, timezone
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional, Set
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -295,6 +295,72 @@ async def delete_memory(
     deleted = await service.delete(key=key, scope=scope)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Memory '{key}' not found in scope '{scope}'.")
+
+
+class ConnectionManager:
+    """Manages active WebSocket connections for Kora Dev Studio."""
+    def __init__(self):
+        self.active_connections: Set[WebSocket] = set()
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.add(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.discard(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in list(self.active_connections):
+            try:
+                await connection.send_json(message)
+            except Exception:
+                self.active_connections.discard(connection)
+
+
+ws_manager = ConnectionManager()
+
+
+@router.websocket("/v1/ws/studio")
+async def websocket_studio_endpoint(websocket: WebSocket):
+    """Real-time bidirectional channel for Kora Dev Studio events, diffs, and thought streaming."""
+    await ws_manager.connect(websocket)
+    try:
+        # Send initial connection handshake
+        await websocket.send_json({
+            "type": "handshake",
+            "server": "Kora AI Dev Studio",
+            "version": "2.1.0-alpha",
+            "air_gapped": gateway.air_gap.enabled,
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+        })
+        while True:
+            data = await websocket.receive_json()
+            event_type = data.get("type")
+
+            if event_type == "ping":
+                await websocket.send_json({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()})
+            elif event_type == "toggle_air_gap":
+                new_state = data.get("enabled", True)
+                gateway.air_gap.enabled = new_state
+                await ws_manager.broadcast({
+                    "type": "air_gap_status_changed",
+                    "air_gapped": new_state,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                })
+            elif event_type == "execute_instruction":
+                prompt = data.get("prompt", "")
+                # Broadcast synthetic thinking / processing event
+                await websocket.send_json({
+                    "type": "agent_thinking",
+                    "prompt": prompt,
+                    "state": "EXECUTING",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                })
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+    except Exception:
+        ws_manager.disconnect(websocket)
+
 
 
 

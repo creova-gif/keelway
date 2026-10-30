@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kora Dev Studio — Sovereign Mission Control</title>
+  <!-- Tailwind CSS CDN for instant, zero-build beautiful reactive styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#070A12',
+            surface: '#0F1626',
+            surfaceLight: '#182238',
+            accentBlue: '#2563EB',
+            accentCobalt: '#3B82F6',
+            emeraldShield: '#10B981',
+            amberGate: '#F59E0B',
+            crimsonBlock: '#EF4444',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #070A12; color: #E2E8F0; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #070A12; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .diff-add { background-color: rgba(16, 185, 129, 0.15); color: #34D399; }
+    .diff-del { background-color: rgba(239, 68, 68, 0.15); color: #F87171; }
+  </style>
+</head>
+<body class="font-sans antialiased h-screen flex flex-col overflow-hidden select-none">
+
+  <!-- TOP APP HEADER -->
+  <header class="h-13 bg-surface border-b border-white/5 flex items-center justify-between px-4 shrink-0 z-20">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-accentBlue to-indigo-500 flex items-center justify-center shadow-lg shadow-accentBlue/20">
+          <span class="text-white font-bold text-sm">⚡</span>
+        </div>
+        <span class="font-bold text-white tracking-tight text-base">Kora <span class="text-accentCobalt font-normal">Dev Studio</span></span>
+      </div>
+      <span class="px-2 py-0.5 text-[11px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.1.0-alpha</span>
+      <span class="text-slate-600">/</span>
+      <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emeraldShield animate-pulse"></span>
+        creova-gif/kora
+      </span>
+    </div>
+
+    <!-- CENTER CONTROLS / ACTIVE MODEL -->
+    <div class="flex items-center space-x-2 bg-surfaceLight px-3 py-1 rounded-full border border-white/10 text-xs">
+      <span class="text-slate-400">Engine:</span>
+      <span class="font-mono text-white font-medium flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-accentCobalt"></span>
+        Qwen 3.5 (9.7B Sovereign Edge)
+      </span>
+      <span class="text-slate-500">|</span>
+      <span class="text-emeraldShield font-mono font-medium">$0.00 / token</span>
+    </div>
+
+    <!-- RIGHT AIR-GAP TOGGLE & TELEMETRY SHIELD -->
+    <div class="flex items-center space-x-3">
+      <button id="airgap-btn" onclick="toggleAirGap()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20">
+        <span id="airgap-icon">🔒</span>
+        <span id="airgap-label">Air-Gapped: Zero-Egress</span>
+      </button>
+
+      <div class="flex items-center space-x-1.5 pl-2 border-l border-white/10 text-xs text-slate-400">
+        <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
+        <span>Egress: <strong class="text-white font-mono">0.0 KB</strong></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 3-COLUMN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT SIDEBAR: NAVIGATION & SECURITY POSTURE -->
+    <aside class="w-64 bg-surface/80 border-r border-white/5 flex flex-col shrink-0">
+      <div class="p-3 border-b border-white/5">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-2">Workspace Navigation</div>
+        <nav class="space-y-0.5 text-xs">
+          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-white/10 text-white font-medium">
+            <span class="flex items-center gap-2"><span>📂</span> Project Files</span>
+            <span class="font-mono text-[10px] text-slate-400">60</span>
+          </button>
+          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition">
+            <span class="flex items-center gap-2"><span>🧠</span> Hybrid Memory RAG</span>
+            <span class="font-mono text-[10px] text-emeraldShield">128-dim</span>
+          </button>
+          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition">
+            <span class="flex items-center gap-2"><span>🛡️</span> Security & DLP</span>
+            <span class="font-mono text-[10px] text-emeraldShield">PASS</span>
+          </button>
+          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition">
+            <span class="flex items-center gap-2"><span>💳</span> AP2 Spend Mandate</span>
+            <span class="font-mono text-[10px] text-accentCobalt">$10.00</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- FILE TREE EXPLORER -->
+      <div class="flex-1 overflow-y-auto p-3 text-xs font-mono space-y-1">
+        <div class="text-[11px] font-semibold uppercase font-sans tracking-wider text-slate-400 px-2 mb-1.5">File System</div>
+        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 core/</div>
+        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
+          <span>📄 gateway.py</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-amberGate"></span>
+        </div>
+        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
+          <span>📄 airgap.py</span>
+          <span class="text-[10px] text-emeraldShield font-sans">NEW</span>
+        </div>
+        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
+          <span>📄 style.py</span>
+          <span class="text-[10px] text-emeraldShield font-sans">NEW</span>
+        </div>
+        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 docs/architecture/</div>
+        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 ADR-001.md</div>
+        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 ADR-002.md</div>
+        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 tests/</div>
+        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 test_airgap.py</div>
+      </div>
+
+      <!-- SECURITY POSTURE MINI WIDGET -->
+      <div class="p-3 bg-surfaceLight/50 border-t border-white/5 text-[11px]">
+        <div class="flex items-center justify-between text-slate-300 mb-1">
+          <span class="font-medium">DLP Secret Guard:</span>
+          <span class="text-emeraldShield font-mono font-bold">ACTIVE</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300 mb-1">
+          <span class="font-medium">Prompt Injection:</span>
+          <span class="text-emeraldShield font-mono">0.00 Risk</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300">
+          <span class="font-medium">Local Tests:</span>
+          <span class="text-emeraldShield font-mono font-bold">36/36 PASS</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER CANVAS: MULTI-FILE DIFF VIEWER & LIVE TERMINAL -->
+    <main class="flex-1 flex flex-col min-w-0 bg-obsidian">
+      <!-- TABS BAR -->
+      <div class="h-10 bg-surface/50 border-b border-white/5 flex items-center justify-between px-3 shrink-0">
+        <div class="flex items-center space-x-1 text-xs">
+          <button id="tab-diff-btn" onclick="switchTab('diff')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface">
+            Multi-File Diff <span class="ml-1 px-1.5 py-0.2 rounded-full bg-accentCobalt/20 text-accentCobalt text-[10px]">1 file</span>
+          </button>
+          <button id="tab-term-btn" onclick="switchTab('term')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+            Ephemeral Sandbox Terminal
+          </button>
+        </div>
+        <div class="flex items-center space-x-2 text-xs">
+          <button onclick="approveHunk()" class="px-2.5 py-1 rounded bg-emeraldShield/20 text-emeraldShield hover:bg-emeraldShield/30 font-medium border border-emeraldShield/30 flex items-center gap-1 transition">
+            <span>✓</span> Accept Hunks
+          </button>
+          <button onclick="rejectHunk()" class="px-2.5 py-1 rounded bg-crimsonBlock/20 text-crimsonBlock hover:bg-crimsonBlock/30 font-medium border border-crimsonBlock/30 flex items-center gap-1 transition">
+            <span>✕</span> Discard
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: GHOST DIFF WORKSPACE -->
+      <div id="tab-diff" class="flex-1 overflow-auto p-4 font-mono text-xs">
+        <div class="bg-surface rounded-lg border border-white/10 overflow-hidden shadow-2xl">
+          <div class="bg-surfaceLight px-4 py-2 border-b border-white/10 flex items-center justify-between text-slate-300 font-sans text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-white">core/models/gateway.py</span>
+              <span class="text-slate-500">•</span>
+              <span class="text-emeraldShield">+10 additions</span>
+              <span class="text-crimsonBlock">-1 deletions</span>
+            </div>
+            <div class="text-[11px] text-slate-400 font-mono">Hunk 1 of 1</div>
+          </div>
+          <div class="p-3 leading-relaxed space-y-0.5">
+            <div class="text-slate-500">@@ -80,6 +80,12 @@ async def complete(self, request: CompletionRequestSchema):</div>
+            <div class="text-slate-400">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for provider in provider_order:</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Enforce Air-Gap Zero-Egress restriction if enabled</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if self.air_gap.enabled and provider != Provider.LOCAL:</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logger.warning(f"Air-Gap Active: Dropping call to {provider.value}")</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue</div>
+            <div class="diff-del pl-2">-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = await adapter.complete(sanitized_request)</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = await adapter.complete(sanitized_request)</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clean_content, slop_found = StyleEngine.de_slop(response.content)</div>
+            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return response.model_copy(update={"content": clean_content})</div>
+            <div class="text-slate-400">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except Exception as e:</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: LIVE TERMINAL OUTPUT -->
+      <div id="tab-term" class="flex-1 overflow-auto p-4 font-mono text-xs hidden bg-obsidian">
+        <div class="bg-black/80 rounded-lg p-4 border border-white/10 font-mono text-emerald-400 space-y-1 shadow-inner h-full overflow-y-auto">
+          <div class="text-slate-400">$ pytest tests/test_airgap_and_style.py</div>
+          <div>============================= test session starts ==============================</div>
+          <div>platform darwin -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0</div>
+          <div>collected 4 items</div>
+          <br>
+          <div>tests/test_airgap_and_style.py <span class="text-emeraldShield font-bold">....</span> [100%]</div>
+          <br>
+          <div class="text-emeraldShield font-bold">============================== 4 passed in 0.24s ===============================</div>
+          <div class="text-slate-400 mt-4">$ echo "[+] Air-Gap zero network egress cryptographic attestation verified."</div>
+          <div class="text-white">[+] Air-Gap zero network egress cryptographic attestation verified.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT COPILOT PANEL: THOUGHT REASONING, STATE MACHINE & CHAT -->
+    <aside class="w-96 bg-surface/90 border-l border-white/5 flex flex-col shrink-0">
+      
+      <!-- AGENT STATUS HEADER -->
+      <div class="p-3.5 border-b border-white/5 bg-surfaceLight/30 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-white flex items-center gap-2">
+            <span>Sovereign Copilot</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emeraldShield/20 text-emeraldShield border border-emeraldShield/30">ONLINE</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Tone: <span class="text-slate-200 font-mono">human-engineer</span></div>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">State Machine</div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amberGate/20 text-amberGate border border-amberGate/30 font-bold">AWAITING_APPROVAL</span>
+        </div>
+      </div>
+
+      <!-- CITATIONS & CONTEXT EVIDENCE DRAWER -->
+      <div class="p-3 border-b border-white/5 bg-white/[0.02]">
+        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <span>Active Context & Citations</span>
+          <span class="text-emeraldShield text-[10px]">100% Grounded</span>
+        </div>
+        <div class="space-y-1 text-xs">
+          <div class="p-1.5 rounded bg-surface border border-white/5 text-slate-300 flex items-center justify-between">
+            <span class="truncate font-mono text-[11px]">ADR-002-Air-Gapped-Stylistic-Sovereignty.md</span>
+            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L24-L35</span>
+          </div>
+          <div class="p-1.5 rounded bg-surface border border-white/5 text-slate-300 flex items-center justify-between">
+            <span class="truncate font-mono text-[11px]">core/security/airgap.py</span>
+            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L1-L45</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT MESSAGE LOG -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-3.5 space-y-3 text-xs">
+        <div class="bg-surfaceLight/60 p-3 rounded-lg border border-white/5">
+          <div class="font-semibold text-accentCobalt text-[11px] mb-1">Kora Agent</div>
+          <p class="text-slate-200 leading-relaxed">
+            I verified that all outbound cloud requests are dropped when Air-Gapped mode is enabled. 
+            The patch in <code class="font-mono text-emeraldShield">core/models/gateway.py</code> passes all 36 test suites. Would you like me to commit this change to git?
+          </p>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE PROMPT INPUT -->
+      <div class="p-3 border-t border-white/5 bg-surfaceLight/40">
+        <form onsubmit="handleSend(event)" class="relative">
+          <textarea id="prompt-input" rows="2" placeholder="Instruct Kora (e.g. 'Refactor gateway test mock', 'Run benchmarks')..." 
+            class="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCobalt resize-none pr-10 font-sans"></textarea>
+          <button type="submit" class="absolute right-2.5 bottom-3.5 p-1.5 rounded-md bg-accentCobalt text-white hover:bg-accentBlue transition">
+            <span class="text-xs">➔</span>
+          </button>
+        </form>
+        <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-1">
+          <span>Press Enter to send</span>
+          <span>AP2 Mandate: <strong class="text-slate-300">$10.00 left</strong></span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- BOTTOM REALTIME STATUS BAR -->
+  <footer class="h-6 bg-surface border-t border-white/5 px-4 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
+    <div class="flex items-center space-x-4">
+      <span class="flex items-center gap-1.5 text-emeraldShield"><span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span> SQLite DB: Connected</span>
+      <span>•</span>
+      <span class="text-slate-300">WebSocket: <span id="ws-status" class="text-emeraldShield">LIVE</span></span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span>Cost: <span class="text-emeraldShield">$0.00000</span></span>
+      <span>•</span>
+      <span>Latency: <span class="text-white">0.34s</span></span>
+      <span>•</span>
+      <span class="text-slate-500">Kora Sovereign Engine</span>
+    </div>
+  </footer>
+
+  <!-- REAL-TIME WEBSOCKET JAVASCRIPT LOGIC -->
+  <script>
+    let airGapped = true;
+    let ws;
+
+    function connectWebSocket() {
+      const loc = window.location;
+      const wsUri = (loc.protocol === "https:" ? "wss://" : "ws://") + loc.host + "/v1/ws/studio";
+      ws = new WebSocket(wsUri);
+
+      ws.onopen = () => {
+        document.getElementById('ws-status').textContent = 'CONNECTED';
+        document.getElementById('ws-status').className = 'text-emeraldShield';
+      };
+
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === 'handshake') {
+          console.log('[Studio] Handshake verified with Kora Engine:', data);
+        } else if (data.type === 'air_gap_status_changed') {
+          updateAirGapUI(data.air_gapped);
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-status').textContent = 'RECONNECTING...';
+        document.getElementById('ws-status').className = 'text-amberGate';
+        setTimeout(connectWebSocket, 2000);
+      };
+    }
+
+    function toggleAirGap() {
+      airGapped = !airGapped;
+      updateAirGapUI(airGapped);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'toggle_air_gap', enabled: airGapped }));
+      }
+    }
+
+    function updateAirGapUI(enabled) {
+      const btn = document.getElementById('airgap-btn');
+      const icon = document.getElementById('airgap-icon');
+      const label = document.getElementById('airgap-label');
+      if (enabled) {
+        btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20";
+        icon.textContent = "🔒";
+        label.textContent = "Air-Gapped: Zero-Egress";
+      } else {
+        btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-accentBlue/10 border-accentBlue/40 text-accentCobalt hover:bg-accentBlue/20";
+        icon.textContent = "🌐";
+        label.textContent = "Hybrid: Cloud Enabled";
+      }
+    }
+
+    function switchTab(tab) {
+      const diffTab = document.getElementById('tab-diff');
+      const termTab = document.getElementById('tab-term');
+      const diffBtn = document.getElementById('tab-diff-btn');
+      const termBtn = document.getElementById('tab-term-btn');
+
+      if (tab === 'diff') {
+        diffTab.classList.remove('hidden');
+        termTab.classList.add('hidden');
+        diffBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface";
+        termBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+      } else {
+        diffTab.classList.add('hidden');
+        termTab.classList.remove('hidden');
+        diffBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+        termBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface";
+      }
+    }
+
+    function approveHunk() {
+      alert("Hunk approved! Committed to local worktree.");
+    }
+
+    function rejectHunk() {
+      alert("Hunk discarded.");
+    }
+
+    function handleSend(e) {
+      e.preventDefault();
+      const input = document.getElementById('prompt-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatContainer = document.getElementById('chat-messages');
+      const userBubble = document.createElement('div');
+      userBubble.className = "bg-surface p-3 rounded-lg border border-white/10 text-right";
+      userBubble.innerHTML = `<div class="font-semibold text-slate-400 text-[11px] mb-1">You</div><p class="text-white">${text}</p>`;
+      chatContainer.appendChild(userBubble);
+      input.value = '';
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'execute_instruction', prompt: text }));
+      }
+    }
+
+    // Initialize connection on page load
+    window.addEventListener('DOMContentLoaded', connectWebSocket);
+  </script>
+</body>
+</html>

@@ -7,7 +7,9 @@ import logging
 from typing import AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from pathlib import Path
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from core.config import settings
 from core.api.routes import router
@@ -70,3 +72,13 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # Mount routes
 app.include_router(router)
+
+# Mount Kora Dev Studio Web UI
+studio_dir = Path(__file__).parent / "studio"
+if studio_dir.exists():
+    @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
+    @app.get("/", response_class=HTMLResponse, tags=["Studio"])
+    async def serve_studio():
+        index_file = studio_dir / "index.html"
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+
