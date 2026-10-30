@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = Field(
-        default="sqlite+aiosqlite:////tmp/kora.db",
+        default=f"sqlite+aiosqlite:///{Path.home() / '.kora' / 'kora.db'}",
         description="Async database connection string (SQLite for local dev, PostgreSQL for prod)"
     )
 
