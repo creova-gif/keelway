@@ -356,10 +356,70 @@ async def websocket_studio_endpoint(websocket: WebSocket):
                     "state": "EXECUTING",
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
+            elif event_type == "run_self_healing":
+                from core.orchestration.self_healing import SelfHealingLoop
+                test_cmd = data.get("test_command", "python3 -m unittest")
+                loop = SelfHealingLoop()
+                result = await loop.run_repair_cycle(test_cmd=test_cmd, max_attempts=data.get("max_attempts", 3))
+                await websocket.send_json({
+                    "type": "self_healing_result",
+                    "success": result.success,
+                    "attempts": result.attempts,
+                    "verification": result.verification_output,
+                    "diff": result.diff,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                })
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
     except Exception:
         ws_manager.disconnect(websocket)
+
+
+@router.post("/v1/healing/repair", tags=["Autonomous Self-Healing"])
+async def trigger_self_healing(payload: dict):
+    """Trigger autonomous AST fault localization and closed-loop test repair."""
+    from core.orchestration.self_healing import SelfHealingLoop
+    test_cmd = payload.get("test_command")
+    if not test_cmd:
+        raise HTTPException(status_code=400, detail="Missing required field: test_command")
+    max_attempts = payload.get("max_attempts", 3)
+    loop = SelfHealingLoop()
+    result = await loop.run_repair_cycle(test_cmd=test_cmd, max_attempts=max_attempts)
+    return {
+        "success": result.success,
+        "attempts": result.attempts,
+        "verification_output": result.verification_output,
+        "diff": result.diff,
+    }
+
+
+@router.post("/v1/payments/intent", tags=["Global Sovereign Settlement"])
+async def create_payment_intent(payload: dict):
+    """Generate sovereign multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher)."""
+    from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
+    try:
+        rail = GlobalRail(payload.get("rail", "mpesa"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payment rail")
+    
+    amount = float(payload.get("amount", 0.0))
+    currency = payload.get("currency", "USD")
+    recipient = payload.get("recipient", "")
+    description = payload.get("description", "Kora Agent Service")
+
+    broker = GlobalPaymentBroker()
+    intent = broker.create_intent(rail=rail, amount=amount, currency=currency, recipient=recipient, description=description)
+    return {
+        "intent_id": intent.intent_id,
+        "rail": intent.rail.value,
+        "amount": intent.amount,
+        "currency": intent.currency,
+        "recipient": intent.recipient,
+        "status": intent.status,
+        "payment_payload": intent.payment_payload,
+        "expires_at": intent.expires_at,
+    }
+
 
 
 

@@ -1,12 +1,24 @@
 from pathlib import Path
 from typing import Optional
-from dotenv import load_dotenv
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+try:
+    from dotenv import load_dotenv
+    _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+    if _ENV_PATH.exists():
+        load_dotenv(_ENV_PATH)
+except ImportError:
+    pass
 
-_ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
-if _ENV_PATH.exists():
-    load_dotenv(_ENV_PATH)
+try:
+    from pydantic import Field
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+except ImportError:
+    # Minimal fallback dataclass when pydantic is not installed
+    def Field(default=None, description=""):
+        return default
+    class BaseSettings:
+        pass
+    class SettingsConfigDict:
+        def __init__(self, **kwargs): pass
 
 
 class Settings(BaseSettings):

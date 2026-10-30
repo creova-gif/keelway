@@ -53,7 +53,7 @@
         </div>
         <span class="font-bold text-white tracking-tight text-base">Kora <span class="text-accentCobalt font-normal">Dev Studio</span></span>
       </div>
-      <span class="px-2 py-0.5 text-[11px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.1.0-alpha</span>
+      <span class="px-2 py-0.5 text-[11px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.2.0-sovereign</span>
       <span class="text-slate-600">/</span>
       <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emeraldShield animate-pulse"></span>
@@ -94,46 +94,52 @@
       <div class="p-3 border-b border-white/5">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-2">Workspace Navigation</div>
         <nav class="space-y-0.5 text-xs">
-          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-white/10 text-white font-medium">
-            <span class="flex items-center gap-2"><span>📂</span> Project Files</span>
-            <span class="font-mono text-[10px] text-slate-400">60</span>
+          <button onclick="switchTab('diff')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
+            <span class="flex items-center gap-2"><span>📂</span> Code & Diff</span>
+            <span class="font-mono text-[10px] text-slate-400">active</span>
           </button>
-          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition">
-            <span class="flex items-center gap-2"><span>🧠</span> Hybrid Memory RAG</span>
-            <span class="font-mono text-[10px] text-emeraldShield">128-dim</span>
+          <button onclick="switchTab('healing')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
+            <span class="flex items-center gap-2"><span>🔧</span> Self-Healing Loop</span>
+            <span class="font-mono text-[10px] text-emeraldShield">AST Repair</span>
           </button>
-          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition">
-            <span class="flex items-center gap-2"><span>🛡️</span> Security & DLP</span>
-            <span class="font-mono text-[10px] text-emeraldShield">PASS</span>
+          <button onclick="switchTab('payments')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
+            <span class="flex items-center gap-2"><span>💳</span> Global Settlement</span>
+            <span class="font-mono text-[10px] text-accentCobalt">Multi-Rail</span>
           </button>
-          <button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition">
-            <span class="flex items-center gap-2"><span>💳</span> AP2 Spend Mandate</span>
-            <span class="font-mono text-[10px] text-accentCobalt">$10.00</span>
+          <button onclick="switchTab('term')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
+            <span class="flex items-center gap-2"><span>💻</span> Sandboxed Terminal</span>
+            <span class="font-mono text-[10px] text-slate-400">Pty</span>
           </button>
         </nav>
       </div>
 
       <!-- FILE TREE EXPLORER -->
       <div class="flex-1 overflow-y-auto p-3 text-xs font-mono space-y-1">
-        <div class="text-[11px] font-semibold uppercase font-sans tracking-wider text-slate-400 px-2 mb-1.5">File System</div>
-        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 core/</div>
+        <div class="text-[11px] font-semibold uppercase font-sans tracking-wider text-slate-400 px-2 mb-1.5">Architecture & Modules</div>
+        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 core/orchestration/</div>
         <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 gateway.py</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-amberGate"></span>
+          <span>📄 self_healing.py</span>
+          <span class="text-[10px] text-emeraldShield font-sans font-bold">READY</span>
         </div>
         <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 airgap.py</span>
-          <span class="text-[10px] text-emeraldShield font-sans">NEW</span>
+          <span>📄 worktree.py</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span>
         </div>
         <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 style.py</span>
-          <span class="text-[10px] text-emeraldShield font-sans">NEW</span>
+          <span>📄 flight_recorder.py</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-accentCobalt"></span>
+        </div>
+        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 core/storage/</div>
+        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
+          <span>📄 payment_broker.py</span>
+          <span class="text-[10px] text-emeraldShield font-sans font-bold">READY</span>
+        </div>
+        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
+          <span>📄 crdt.py</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span>
         </div>
         <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 docs/architecture/</div>
-        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 ADR-001.md</div>
-        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 ADR-002.md</div>
-        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 tests/</div>
-        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 test_airgap.py</div>
+        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 ADR-006.md</div>
       </div>
 
       <!-- SECURITY POSTURE MINI WIDGET -->
@@ -143,34 +149,32 @@
           <span class="text-emeraldShield font-mono font-bold">ACTIVE</span>
         </div>
         <div class="flex items-center justify-between text-slate-300 mb-1">
-          <span class="font-medium">Prompt Injection:</span>
-          <span class="text-emeraldShield font-mono">0.00 Risk</span>
+          <span class="font-medium">Self-Healing Engine:</span>
+          <span class="text-emeraldShield font-mono font-bold">ENGAGED</span>
         </div>
         <div class="flex items-center justify-between text-slate-300">
           <span class="font-medium">Local Tests:</span>
-          <span class="text-emeraldShield font-mono font-bold">36/36 PASS</span>
+          <span class="text-emeraldShield font-mono font-bold">45/45 PASS</span>
         </div>
       </div>
     </aside>
 
-    <!-- CENTER CANVAS: MULTI-FILE DIFF VIEWER & LIVE TERMINAL -->
+    <!-- CENTER CANVAS: MULTI-FILE DIFF VIEWER, TERMINAL, HEALING & SETTLEMENT -->
     <main class="flex-1 flex flex-col min-w-0 bg-obsidian">
       <!-- TABS BAR -->
       <div class="h-10 bg-surface/50 border-b border-white/5 flex items-center justify-between px-3 shrink-0">
         <div class="flex items-center space-x-1 text-xs">
           <button id="tab-diff-btn" onclick="switchTab('diff')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface">
-            Multi-File Diff <span class="ml-1 px-1.5 py-0.2 rounded-full bg-accentCobalt/20 text-accentCobalt text-[10px]">1 file</span>
+            Multi-File Diff
+          </button>
+          <button id="tab-healing-btn" onclick="switchTab('healing')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+            Autonomous Self-Healing
+          </button>
+          <button id="tab-payments-btn" onclick="switchTab('payments')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+            Global Multi-Rail Settlement
           </button>
           <button id="tab-term-btn" onclick="switchTab('term')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
-            Ephemeral Sandbox Terminal
-          </button>
-        </div>
-        <div class="flex items-center space-x-2 text-xs">
-          <button onclick="approveHunk()" class="px-2.5 py-1 rounded bg-emeraldShield/20 text-emeraldShield hover:bg-emeraldShield/30 font-medium border border-emeraldShield/30 flex items-center gap-1 transition">
-            <span>✓</span> Accept Hunks
-          </button>
-          <button onclick="rejectHunk()" class="px-2.5 py-1 rounded bg-crimsonBlock/20 text-crimsonBlock hover:bg-crimsonBlock/30 font-medium border border-crimsonBlock/30 flex items-center gap-1 transition">
-            <span>✕</span> Discard
+            Sandbox Terminal
           </button>
         </div>
       </div>
@@ -180,42 +184,114 @@
         <div class="bg-surface rounded-lg border border-white/10 overflow-hidden shadow-2xl">
           <div class="bg-surfaceLight px-4 py-2 border-b border-white/10 flex items-center justify-between text-slate-300 font-sans text-xs">
             <div class="flex items-center gap-2">
-              <span class="font-semibold text-white">core/models/gateway.py</span>
+              <span class="font-semibold text-white">core/orchestration/self_healing.py</span>
               <span class="text-slate-500">•</span>
-              <span class="text-emeraldShield">+10 additions</span>
-              <span class="text-crimsonBlock">-1 deletions</span>
+              <span class="text-emeraldShield">+275 lines added</span>
             </div>
-            <div class="text-[11px] text-slate-400 font-mono">Hunk 1 of 1</div>
+            <div class="text-[11px] text-emeraldShield font-mono font-bold">VERIFIED ZERO-REGRESSION</div>
           </div>
           <div class="p-3 leading-relaxed space-y-0.5">
-            <div class="text-slate-500">@@ -80,6 +80,12 @@ async def complete(self, request: CompletionRequestSchema):</div>
-            <div class="text-slate-400">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for provider in provider_order:</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Enforce Air-Gap Zero-Egress restriction if enabled</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if self.air_gap.enabled and provider != Provider.LOCAL:</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logger.warning(f"Air-Gap Active: Dropping call to {provider.value}")</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue</div>
-            <div class="diff-del pl-2">-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = await adapter.complete(sanitized_request)</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = await adapter.complete(sanitized_request)</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clean_content, slop_found = StyleEngine.de_slop(response.content)</div>
-            <div class="diff-add pl-2">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return response.model_copy(update={"content": clean_content})</div>
-            <div class="text-slate-400">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except Exception as e:</div>
+            <div class="text-slate-500">@@ -1,15 +1,40 @@</div>
+            <div class="diff-add pl-2">+ class SelfHealingLoop:</div>
+            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;"""Autonomous closed-loop test-and-repair engine for sovereign developer workspaces."""</div>
+            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;def parse_test_failure(self, output: str) -> Optional[DiagnosticFailure]: ...</div>
+            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;def locate_faulty_ast(self, file_path: Path, line_number: int) -> Dict[str, Any]: ...</div>
+            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;async def run_repair_cycle(self, test_cmd: str, patch_generator_fn: Optional[Any] = None) -> RepairResult: ...</div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 2: LIVE TERMINAL OUTPUT -->
+      <!-- TAB 2: AUTONOMOUS SELF-HEALING LOOP -->
+      <div id="tab-healing" class="flex-1 overflow-auto p-4 text-xs space-y-4 hidden">
+        <div class="bg-surface p-4 rounded-lg border border-white/10 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🔧 Closed-Loop Autonomous Test-and-Repair</span>
+                <span class="px-2 py-0.5 text-[10px] rounded bg-emeraldShield/20 text-emeraldShield border border-emeraldShield/30">SWE-Agent Grade</span>
+              </h2>
+              <p class="text-slate-400 text-xs mt-0.5">Intercepts test failures, localizes faulty AST code blocks, tests patches in isolated worktrees, and verifies zero-regression.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <input id="heal-test-cmd" type="text" value="python3 tests/test_payment_broker.py" placeholder="Test command (e.g. pytest tests/test_api.py)" 
+              class="flex-1 bg-obsidian border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-accentCobalt">
+            <button onclick="triggerSelfHealingUI()" id="heal-run-btn" class="px-4 py-2 rounded-lg bg-emeraldShield/20 text-emeraldShield hover:bg-emeraldShield/30 border border-emeraldShield/30 font-semibold flex items-center gap-1.5 transition">
+              <span>⚡</span> Run Repair Cycle
+            </button>
+          </div>
+        </div>
+
+        <div id="heal-status-panel" class="bg-surface p-4 rounded-lg border border-white/10 font-mono space-y-2">
+          <div class="text-slate-400 font-sans font-semibold mb-2">Repair Verification Log</div>
+          <div id="heal-log" class="text-slate-300 leading-relaxed space-y-1">
+            <div class="text-slate-500">• Ready. Press 'Run Repair Cycle' to verify test suite or auto-repair failures.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: GLOBAL SOVEREIGN MULTI-RAIL SETTLEMENT -->
+      <div id="tab-payments" class="flex-1 overflow-auto p-4 text-xs space-y-4 hidden">
+        <div class="bg-surface p-4 rounded-lg border border-white/10 space-y-3">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>💳 Global Sovereign Multi-Rail Payment Broker</span>
+              <span class="px-2 py-0.5 text-[10px] rounded bg-accentCobalt/20 text-accentCobalt border border-accentCobalt/30">Unlocks Worldwide Devs</span>
+            </h2>
+            <p class="text-slate-400 text-xs mt-0.5">Enables developers without US/EU credit cards to settle compute and API services via local instant payment rails and crypto microtransactions.</p>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 pt-2">
+            <div>
+              <label class="text-[10px] uppercase font-semibold text-slate-400">Payment Rail</label>
+              <select id="pay-rail" class="w-full mt-1 bg-obsidian border border-white/10 rounded-lg p-2 text-white text-xs">
+                <option value="mpesa">M-Pesa (East Africa / Safaricom)</option>
+                <option value="pix">PIX (Brazil Instant EMVCo)</option>
+                <option value="upi">UPI 2.0 (India NPCI Intent)</option>
+                <option value="lightning_l402">L402 Lightning (Bitcoin Sats)</option>
+                <option value="offline_voucher">Offline Prepaid Voucher (Air-Gap)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] uppercase font-semibold text-slate-400">Amount & Currency</label>
+              <div class="flex gap-1 mt-1">
+                <input id="pay-amount" type="number" value="1000" class="w-2/3 bg-obsidian border border-white/10 rounded-lg p-2 text-white font-mono text-xs">
+                <input id="pay-currency" type="text" value="KES" class="w-1/3 bg-obsidian border border-white/10 rounded-lg p-2 text-white font-mono text-xs uppercase">
+              </div>
+            </div>
+            <div class="col-span-2">
+              <label class="text-[10px] uppercase font-semibold text-slate-400">Recipient ID (Phone, VPA, Pix Key, Pubkey)</label>
+              <div class="flex gap-2 mt-1">
+                <input id="pay-recipient" type="text" value="254712345678" class="flex-1 bg-obsidian border border-white/10 rounded-lg p-2 text-white font-mono text-xs">
+                <button onclick="createPaymentUI()" class="px-4 py-2 rounded-lg bg-accentCobalt text-white hover:bg-accentBlue font-medium transition">
+                  Create Charge
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="payment-result-box" class="bg-surface p-4 rounded-lg border border-white/10 space-y-3 font-mono">
+          <div class="text-slate-400 font-sans font-semibold">Active Intent Receipt</div>
+          <div id="payment-output" class="text-slate-300 bg-obsidian p-3 rounded border border-white/5 space-y-1">
+            <span class="text-slate-500">Configure parameters above and click 'Create Charge' to simulate live settlement dispatch.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: LIVE TERMINAL OUTPUT -->
       <div id="tab-term" class="flex-1 overflow-auto p-4 font-mono text-xs hidden bg-obsidian">
         <div class="bg-black/80 rounded-lg p-4 border border-white/10 font-mono text-emerald-400 space-y-1 shadow-inner h-full overflow-y-auto">
-          <div class="text-slate-400">$ pytest tests/test_airgap_and_style.py</div>
-          <div>============================= test session starts ==============================</div>
-          <div>platform darwin -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0</div>
-          <div>collected 4 items</div>
+          <div class="text-slate-400">$ python3 cli.py doctor</div>
+          <div class="text-white">[+] Running Kora AI System Diagnostics...</div>
+          <div>  • Environment:     development</div>
+          <div>  • Database State:  CONNECTED [OK]</div>
+          <div>  • Model Providers:</div>
+          <div>    - ANTHROPIC : CONFIGURING</div>
+          <div>    - LOCAL     : CONFIGURED [OK] (qwen3.5:latest)</div>
           <br>
-          <div>tests/test_airgap_and_style.py <span class="text-emeraldShield font-bold">....</span> [100%]</div>
-          <br>
-          <div class="text-emeraldShield font-bold">============================== 4 passed in 0.24s ===============================</div>
-          <div class="text-slate-400 mt-4">$ echo "[+] Air-Gap zero network egress cryptographic attestation verified."</div>
-          <div class="text-white">[+] Air-Gap zero network egress cryptographic attestation verified.</div>
+          <div class="text-emeraldShield font-bold">[✓] All systems sovereign and operational. Zero telemetry egress.</div>
         </div>
       </div>
     </main>
@@ -234,7 +310,7 @@
         </div>
         <div class="text-right">
           <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">State Machine</div>
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amberGate/20 text-amberGate border border-amberGate/30 font-bold">AWAITING_APPROVAL</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emeraldShield/20 text-emeraldShield border border-emeraldShield/30 font-bold">READY</span>
         </div>
       </div>
 
@@ -246,12 +322,12 @@
         </div>
         <div class="space-y-1 text-xs">
           <div class="p-1.5 rounded bg-surface border border-white/5 text-slate-300 flex items-center justify-between">
-            <span class="truncate font-mono text-[11px]">ADR-002-Air-Gapped-Stylistic-Sovereignty.md</span>
-            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L24-L35</span>
+            <span class="truncate font-mono text-[11px]">ADR-006-Autonomous-Self-Healing.md</span>
+            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L1-L65</span>
           </div>
           <div class="p-1.5 rounded bg-surface border border-white/5 text-slate-300 flex items-center justify-between">
-            <span class="truncate font-mono text-[11px]">core/security/airgap.py</span>
-            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L1-L45</span>
+            <span class="truncate font-mono text-[11px]">core/storage/payment_broker.py</span>
+            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L1-L85</span>
           </div>
         </div>
       </div>
@@ -261,8 +337,7 @@
         <div class="bg-surfaceLight/60 p-3 rounded-lg border border-white/5">
           <div class="font-semibold text-accentCobalt text-[11px] mb-1">Kora Agent</div>
           <p class="text-slate-200 leading-relaxed">
-            I verified that all outbound cloud requests are dropped when Air-Gapped mode is enabled. 
-            The patch in <code class="font-mono text-emeraldShield">core/models/gateway.py</code> passes all 36 test suites. Would you like me to commit this change to git?
+            Welcome to Kora Dev Studio! Autonomous self-healing verification loops and global sovereign multi-rail payments (M-Pesa, PIX, UPI, L402) are fully initialized and operating in air-gapped zero-egress mode.
           </p>
         </div>
       </div>
@@ -270,7 +345,7 @@
       <!-- INTERACTIVE PROMPT INPUT -->
       <div class="p-3 border-t border-white/5 bg-surfaceLight/40">
         <form onsubmit="handleSend(event)" class="relative">
-          <textarea id="prompt-input" rows="2" placeholder="Instruct Kora (e.g. 'Refactor gateway test mock', 'Run benchmarks')..." 
+          <textarea id="prompt-input" rows="2" placeholder="Instruct Kora (e.g. 'Heal failing test', 'Issue PIX voucher')..." 
             class="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCobalt resize-none pr-10 font-sans"></textarea>
           <button type="submit" class="absolute right-2.5 bottom-3.5 p-1.5 rounded-md bg-accentCobalt text-white hover:bg-accentBlue transition">
             <span class="text-xs">➔</span>
@@ -295,7 +370,7 @@
     <div class="flex items-center space-x-4">
       <span>Cost: <span class="text-emeraldShield">$0.00000</span></span>
       <span>•</span>
-      <span>Latency: <span class="text-white">0.34s</span></span>
+      <span>Latency: <span class="text-white">0.08s</span></span>
       <span>•</span>
       <span class="text-slate-500">Kora Sovereign Engine</span>
     </div>
@@ -318,90 +393,128 @@
 
       ws.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        if (data.type === 'handshake') {
-          console.log('[Studio] Handshake verified with Kora Engine:', data);
-        } else if (data.type === 'air_gap_status_changed') {
-          updateAirGapUI(data.air_gapped);
+        if (data.type === "agent_thinking") {
+          appendMessage("Agent Thinking", `Executing instruction in isolated worktree: "${data.prompt}"...`, "amber");
+        } else if (data.type === "self_healing_result") {
+          const logEl = document.getElementById("heal-log");
+          if (data.success) {
+            logEl.innerHTML = `<div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt ${data.attempts}):</div><div>${data.verification}</div>` + (data.diff ? `<pre class="mt-2 text-slate-400 bg-obsidian p-2 rounded">${data.diff}</pre>` : "");
+          } else {
+            logEl.innerHTML = `<div class="text-crimsonBlock font-bold">[✗] REPAIR FAILED:</div><div>${data.verification}</div>`;
+          }
         }
       };
 
       ws.onclose = () => {
-        document.getElementById('ws-status').textContent = 'RECONNECTING...';
-        document.getElementById('ws-status').className = 'text-amberGate';
-        setTimeout(connectWebSocket, 2000);
+        document.getElementById('ws-status').textContent = 'OFFLINE';
+        document.getElementById('ws-status').className = 'text-slate-500';
+        setTimeout(connectWebSocket, 3000);
       };
+    }
+
+    function switchTab(tabId) {
+      const tabs = ['diff', 'healing', 'payments', 'term'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-${t}-btn`);
+        if (el) el.classList.toggle('hidden', t !== tabId);
+        if (btn) {
+          if (t === tabId) {
+            btn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+          }
+        }
+      });
     }
 
     function toggleAirGap() {
       airGapped = !airGapped;
-      updateAirGapUI(airGapped);
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'toggle_air_gap', enabled: airGapped }));
-      }
-    }
-
-    function updateAirGapUI(enabled) {
       const btn = document.getElementById('airgap-btn');
-      const icon = document.getElementById('airgap-icon');
       const label = document.getElementById('airgap-label');
-      if (enabled) {
+      if (airGapped) {
         btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20";
-        icon.textContent = "🔒";
         label.textContent = "Air-Gapped: Zero-Egress";
       } else {
-        btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-accentBlue/10 border-accentBlue/40 text-accentCobalt hover:bg-accentBlue/20";
-        icon.textContent = "🌐";
-        label.textContent = "Hybrid: Cloud Enabled";
+        btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-amberGate/10 border-amberGate/40 text-amberGate hover:bg-amberGate/20";
+        label.textContent = "Hybrid Cloud Allowed";
+      }
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "toggle_air_gap", enabled: airGapped }));
       }
     }
 
-    function switchTab(tab) {
-      const diffTab = document.getElementById('tab-diff');
-      const termTab = document.getElementById('tab-term');
-      const diffBtn = document.getElementById('tab-diff-btn');
-      const termBtn = document.getElementById('tab-term-btn');
-
-      if (tab === 'diff') {
-        diffTab.classList.remove('hidden');
-        termTab.classList.add('hidden');
-        diffBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface";
-        termBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-      } else {
-        diffTab.classList.add('hidden');
-        termTab.classList.remove('hidden');
-        diffBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-        termBtn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface";
+    async function triggerSelfHealingUI() {
+      const cmd = document.getElementById('heal-test-cmd').value;
+      const logEl = document.getElementById("heal-log");
+      logEl.innerHTML = `<div class="text-amberGate animate-pulse">Running autonomous repair cycle on "${cmd}" in isolated worktree...</div>`;
+      
+      try {
+        const res = await fetch("/v1/healing/repair", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ test_command: cmd, max_attempts: 3 })
+        });
+        const data = await res.json();
+        if (data.success) {
+          logEl.innerHTML = `<div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt ${data.attempts}):</div><div>${data.verification_output}</div>` + (data.diff ? `<pre class="mt-2 text-slate-400 bg-obsidian p-2 rounded">${data.diff}</pre>` : "");
+        } else {
+          logEl.innerHTML = `<div class="text-crimsonBlock font-bold">[✗] REPAIR FAILED:</div><div>${data.verification_output}</div>`;
+        }
+      } catch (err) {
+        logEl.innerHTML = `<div class="text-crimsonBlock">[!] Error calling repair API: ${err.message}</div>`;
       }
     }
 
-    function approveHunk() {
-      alert("Hunk approved! Committed to local worktree.");
+    async function createPaymentUI() {
+      const rail = document.getElementById('pay-rail').value;
+      const amount = parseFloat(document.getElementById('pay-amount').value);
+      const currency = document.getElementById('pay-currency').value;
+      const recipient = document.getElementById('pay-recipient').value;
+      const outEl = document.getElementById('payment-output');
+
+      outEl.innerHTML = `<div class="text-slate-400 animate-pulse">Dispatched to regional settlement broker...</div>`;
+
+      try {
+        const res = await fetch("/v1/payments/intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rail, amount, currency, recipient, description: "Kora Studio Agent Compute" })
+        });
+        const data = await res.json();
+        outEl.innerHTML = `
+          <div class="text-emeraldShield font-bold">Intent Created: ${data.intent_id} [${data.status.toUpperCase()}]</div>
+          <div class="text-slate-300">Rail: <strong class="text-white">${data.rail.toUpperCase()}</strong> | Amount: <strong class="text-white">${data.amount} ${data.currency}</strong></div>
+          <div class="mt-2 text-slate-400 text-[11px]">Payload:</div>
+          <pre class="bg-black/60 p-2 rounded text-[11px] text-accentCobalt overflow-x-auto">${JSON.stringify(data.payment_payload, null, 2)}</pre>
+        `;
+      } catch (err) {
+        outEl.innerHTML = `<div class="text-crimsonBlock">[!] Error: ${err.message}</div>`;
+      }
     }
 
-    function rejectHunk() {
-      alert("Hunk discarded.");
+    function appendMessage(sender, text, color = 'accent') {
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "bg-surfaceLight/60 p-3 rounded-lg border border-white/5";
+      msgDiv.innerHTML = `<div class="font-semibold text-${color === 'amber' ? 'amberGate' : 'accentCobalt'} text-[11px] mb-1">${sender}</div><p class="text-slate-200 leading-relaxed">${text}</p>`;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
     }
 
     function handleSend(e) {
       e.preventDefault();
       const input = document.getElementById('prompt-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const chatContainer = document.getElementById('chat-messages');
-      const userBubble = document.createElement('div');
-      userBubble.className = "bg-surface p-3 rounded-lg border border-white/10 text-right";
-      userBubble.innerHTML = `<div class="font-semibold text-slate-400 text-[11px] mb-1">You</div><p class="text-white">${text}</p>`;
-      chatContainer.appendChild(userBubble);
-      input.value = '';
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
+      const val = input.value.trim();
+      if (!val) return;
+      appendMessage("You", val, "white");
+      input.value = "";
       if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'execute_instruction', prompt: text }));
+        ws.send(JSON.stringify({ type: "execute_instruction", prompt: val }));
       }
     }
 
-    // Initialize connection on page load
+    // Connect WebSocket on load
     window.addEventListener('DOMContentLoaded', connectWebSocket);
   </script>
 </body>

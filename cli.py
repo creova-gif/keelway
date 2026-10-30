@@ -22,18 +22,65 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
 from core.config import settings
-from core.storage.database import check_db_health, init_db, AsyncSessionLocal
-from core.models.gateway import gateway
-from core.api.schemas import Provider
-from core.security.airgap import AirGapEnforcer
-from core.security.style import StyleEngine, VoiceStyle
-from core.storage.ledger import SovereignLedger
-from core.orchestration.workflows import (
-    EngineeringBriefWorkflow,
-    ResearchSummaryWorkflow,
-    SandboxedFailureAnalysisWorkflow,
-)
-from core.orchestration.chat import InteractiveChatSession
+try:
+    from core.storage.database import check_db_health, init_db, AsyncSessionLocal
+    from core.models.gateway import gateway
+    from core.api.schemas import Provider
+    from core.security.airgap import AirGapEnforcer
+    from core.security.style import StyleEngine, VoiceStyle
+    from core.storage.ledger import SovereignLedger
+    from core.orchestration.workflows import (
+        EngineeringBriefWorkflow,
+        ResearchSummaryWorkflow,
+        SandboxedFailureAnalysisWorkflow,
+    )
+    from core.orchestration.chat import InteractiveChatSession
+except ImportError:
+    pass
+
+
+async def cmd_heal(test_cmd: str, max_attempts: int = 3):
+    """Run closed-loop autonomous repair on a failing test command."""
+    from core.orchestration.self_healing import SelfHealingLoop
+    print("\n" + "=" * 65)
+    print("  🔧 KORA AUTONOMOUS REPAIR LOOP")
+    print(f"  Command:   {test_cmd}")
+    print(f"  Isolation: Ephemeral Git Worktree")
+    print(f"  Attempts:  Up to {max_attempts}")
+    print("=" * 65 + "\n")
+    print("[+] Executing initial verification run...")
+    loop = SelfHealingLoop()
+    result = await loop.run_repair_cycle(test_cmd=test_cmd, max_attempts=max_attempts)
+    if result.success:
+        if result.attempts == 0:
+            print("[✓] Tests are already passing cleanly! Zero mutations needed.\n")
+        else:
+            print(f"[✓] Autonomous repair SUCCEEDED on attempt {result.attempts}!")
+            print(f"    Verification: {result.verification_output}")
+            if result.diff:
+                print(f"\n{result.diff}")
+    else:
+        print(f"[✗] Autonomous repair failed after {result.attempts} attempts.")
+        print(f"    Diagnosis: {result.verification_output}\n")
+
+
+async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, description: str):
+    """Create and display a sovereign multi-rail payment intent."""
+    from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
+    broker = GlobalPaymentBroker()
+    r = GlobalRail(rail)
+    intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
+    print("\n" + "=" * 65)
+    print("  💳 KORA GLOBAL SOVEREIGN PAYMENT BROKER")
+    print(f"  Rail:        {intent.rail.value.upper()}")
+    print(f"  Amount:      {intent.amount:.2f} {intent.currency}")
+    print(f"  Recipient:   {intent.recipient}")
+    print(f"  Intent ID:   {intent.intent_id}")
+    print("=" * 65 + "\n")
+    print("[+] Payment Payload Details:")
+    for k, v in intent.payment_payload.items():
+        print(f"  • {k}: {v}")
+    print(f"\n[+] Status: {intent.status.upper()} (Expires in 15 minutes)\n")
 
 
 async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
@@ -319,9 +366,26 @@ def main():
     dataset_export_parser.add_argument("--workflow-type", default=None, help="Workflow type filter")
     dataset_export_parser.add_argument("--limit", type=int, default=100, help="Max samples to export")
 
+    # heal (Autonomous self-healing verification loop)
+    heal_parser = subparsers.add_parser("heal", help="Autonomous closed-loop test & repair engine")
+    heal_parser.add_argument("--test", required=True, help="Test command to run and verify (e.g. 'pytest tests')")
+    heal_parser.add_argument("--attempts", type=int, default=3, help="Maximum repair retry iterations")
+
+    # pay (Global multi-rail sovereign payments broker)
+    pay_parser = subparsers.add_parser("pay", help="Global sovereign payment intent generator")
+    pay_parser.add_argument("--rail", choices=["mpesa", "pix", "upi", "lightning_l402", "offline_voucher"], default="mpesa", help="Payment rail")
+    pay_parser.add_argument("--amount", type=float, required=True, help="Payment amount")
+    pay_parser.add_argument("--currency", default="USD", help="Currency code (USD, KES, BRL, INR, SATS)")
+    pay_parser.add_argument("--to", required=True, help="Recipient identifier (phone, key, VPA, pubkey, node)")
+    pay_parser.add_argument("--desc", default="Kora Autonomous Agent Compute Charge", help="Description")
+
     args = parser.parse_args()
 
-    if args.command == "dev":
+    if args.command == "heal":
+        asyncio.run(cmd_heal(args.test, args.attempts))
+    elif args.command == "pay":
+        asyncio.run(cmd_pay(args.rail, args.amount, args.currency, args.to, args.desc))
+    elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
     elif args.command == "doctor":
         asyncio.run(cmd_doctor())

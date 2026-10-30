@@ -24,9 +24,18 @@ class WorktreeSession:
 
     async def run_command(self, cmd: str) -> Tuple[int, str, str]:
         """Runs a shell command isolated inside the agent's dedicated worktree directory."""
+        import sys
+        if cmd.startswith("python3 ") or cmd.startswith("python "):
+            parts = cmd.split(" ", 1)
+            cmd = f"{sys.executable} {parts[1]}"
+
+        sub_env = dict(os.environ)
+        sub_env["PYTHONPATH"] = f"{self.worktree_dir}:{sub_env.get('PYTHONPATH', '')}"
+
         proc = await asyncio.create_subprocess_shell(
             cmd,
             cwd=str(self.worktree_dir),
+            env=sub_env,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -67,6 +76,14 @@ class EphemeralWorktreeManager:
         if proc.returncode != 0:
             # Fallback for mock/test environments without active git branches
             worktree_path.mkdir(parents=True, exist_ok=True)
+            for item in self.repo_root.iterdir():
+                if item.name == ".kora":
+                    continue
+                dst = worktree_path / item.name
+                if item.is_dir():
+                    shutil.copytree(item, dst, dirs_exist_ok=True)
+                elif item.is_file():
+                    shutil.copy2(item, dst)
 
         return WorktreeSession(
             task_id=task_id,
@@ -74,6 +91,10 @@ class EphemeralWorktreeManager:
             worktree_dir=worktree_path,
             branch_name=branch_name,
         )
+
+    async def cleanup_worktree(self, session: WorktreeSession, delete_branch: bool = True) -> bool:
+        """Alias for remove_worktree."""
+        return await self.remove_worktree(session, delete_branch=delete_branch)
 
     async def remove_worktree(self, session: WorktreeSession, delete_branch: bool = True) -> bool:
         """Safely detaches and prunes the worktree directory and branch."""
