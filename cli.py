@@ -124,12 +124,24 @@ async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, descr
 
 async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
     """Launch Kora Dev Studio — Local Web & Desktop UI."""
+    import webbrowser
+    import threading
+
     print("\n" + "=" * 65)
     print("  ⚡ KORA DEV STUDIO — Sovereign Agent Engineering Environment")
     print(f"  URL: http://{host}:{port}")
     print(f"  Studio Interface: http://{host}:{port}/studio")
     print("  Air-Gap: off (cloud providers allowed; use `kora chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
+
+    def auto_open_browser():
+        try:
+            webbrowser.open(f"http://{host}:{port}")
+        except Exception:
+            pass
+
+    # Launch browser automatically after 0.4s
+    threading.Timer(0.4, auto_open_browser).start()
 
     try:
         import uvicorn
