@@ -1052,7 +1052,7 @@
       case 'pong':
         break;
       case 'agent_state_changed':
-        activity(`${ev.title}: ${ev.previous_state ? `${humanState(ev.previous_state)} → ` : 'created as '}${humanState(ev.new_state)}`, ev.new_state === 'failed' ? 'err' : ev.new_state === 'completed' ? 'ok' : 'live');
+        activity(ev.previous_state ? `${ev.title}: ${humanState(ev.previous_state)} → ${humanState(ev.new_state)}` : `New task: ${ev.title}`, ev.new_state === 'failed' ? 'err' : ev.new_state === 'completed' ? 'ok' : 'live');
         tone(ev.new_state === 'failed' ? 'err' : 'tick');
         loadTasks();
         loadStatus();
