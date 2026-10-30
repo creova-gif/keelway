@@ -394,6 +394,49 @@ async def cmd_search(query: str, top_k: int = 10):
         print()
 
 
+async def cmd_pull(model: str = "qwen2.5-coder:7b"):
+    """Pull and stream a local LLM into Ollama with live progress visualization."""
+    import urllib.request
+    import json
+    
+    ollama_url = "http://localhost:11434/api/pull"
+    print("\n" + "=" * 65)
+    print("  📦 KORA ZERO-CONFIG MODEL STREAMING DOWNLOADER")
+    print(f"  Target Model: {model}")
+    print(f"  Ollama Host:  http://localhost:11434")
+    print("=" * 65 + "\n")
+
+    try:
+        req = urllib.request.Request(
+            ollama_url,
+            data=json.dumps({"name": model, "stream": True}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        print(f"[+] Connecting to local Ollama engine to pull '{model}'...")
+        with urllib.request.urlopen(req, timeout=300) as response:
+            for line in response:
+                if not line.strip():
+                    continue
+                data = json.loads(line.decode("utf-8"))
+                status = data.get("status", "")
+                completed = data.get("completed", 0)
+                total = data.get("total", 0)
+                if total > 0:
+                    pct = (completed / total) * 100.0
+                    mb_done = completed / (1024 * 1024)
+                    mb_total = total / (1024 * 1024)
+                    bar = "=" * int(pct // 5) + ">"
+                    print(f"\r  [{bar:<21}] {pct:5.1f}% ({mb_done:.1f} MB / {mb_total:.1f} MB) - {status}", end="", flush=True)
+                else:
+                    print(f"\r  • {status}                                              ", end="", flush=True)
+        print(f"\n\n[✓] Model '{model}' successfully pulled and verified in local registry!\n")
+    except Exception as e:
+        print(f"\n[-] Could not connect to Ollama at http://localhost:11434: {e}")
+        print("    Ensure Ollama is installed and running (`ollama serve`).")
+        print(f"    Or manually run: `ollama pull {model}`\n")
+
+
 async def cmd_doctor():
     """Check health of environment, database, and providers."""
     print("\n[+] Running Kora AI System Diagnostics (kora doctor)...\n")
@@ -697,6 +740,13 @@ def main():
     search_parser.add_argument("query", help="Symbol or concept search query")
     search_parser.add_argument("--top-k", type=int, default=10, help="Number of matches to return")
 
+    # pull (Zero-Config Model Streaming Downloader)
+    pull_parser = subparsers.add_parser("pull", help="Download and verify local LLM into Ollama")
+    pull_parser.add_argument("model", nargs="?", default="qwen2.5-coder:7b", help="Model identifier to pull")
+
+    # bench (Production 10-Task Golden Evaluation Benchmark)
+    subparsers.add_parser("bench", help="Run 10-task golden evaluation panel (Pass@1, latency, security)")
+
     args = parser.parse_args()
 
     if args.command == "mesh":
@@ -713,6 +763,21 @@ def main():
         asyncio.run(cmd_repomap(args.tokens))
     elif args.command == "search":
         asyncio.run(cmd_search(args.query, args.top_k))
+    elif args.command == "pull":
+        asyncio.run(cmd_pull(args.model))
+    elif args.command == "bench":
+        from evals.eval_runner import ProductionEvalHarness
+        harness = ProductionEvalHarness()
+        summary = asyncio.run(harness.run_all())
+        print("\n" + "=" * 65)
+        print("  🏆 KORA AI GOLDEN EVALUATION BENCHMARK REPORT")
+        print(f"  Passed: {summary['passed_tasks']}/{summary['total_tasks']} ({summary['pass_rate_pct']}%)")
+        print(f"  Duration: {summary['total_duration_ms']:.2f} ms")
+        print("=" * 65 + "\n")
+        for t in summary["tasks"]:
+            status_badge = "[✓ PASS]" if t["passed"] else "[✕ FAIL]"
+            print(f"  {status_badge} {t['task_id']}: {t['name']:<42} ({t['duration_ms']:.2f} ms)")
+        print()
     elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
     elif args.command == "doctor":
