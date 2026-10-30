@@ -425,7 +425,7 @@ async def create_payment_intent(payload: dict):
 
 
 FLIGHT_RECORDINGS_DIR = Path(".kora/recordings")
-_TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+$")
+_TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")
 
 
 def _tape_path(task_id: str) -> Path:
@@ -465,11 +465,14 @@ async def fork_flight_tape(payload: dict):
     new_task_id = payload.get("new_task_id") or f"{task_id}_fork_{int(time.time())}"
 
     tape_file = _tape_path(task_id)
-    _tape_path(new_task_id)
+    if _tape_path(new_task_id).exists():
+        raise HTTPException(status_code=409, detail=f"Flight tape {new_task_id} already exists.")
     if not tape_file.exists():
         raise HTTPException(status_code=404, detail="Source flight tape not found.")
 
     player = FlightPlayer(tape_file)
+    if not 0 <= at_index <= len(player.events):
+        raise HTTPException(status_code=400, detail=f"at_index must be between 0 and {len(player.events)}.")
     forked_recorder = player.fork(at_index=at_index, new_task_id=new_task_id)
     forked_recorder.recordings_dir = FLIGHT_RECORDINGS_DIR
     saved_path = forked_recorder.save_tape()

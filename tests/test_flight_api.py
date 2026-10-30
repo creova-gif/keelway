@@ -47,3 +47,18 @@ def test_fork_flight_tape(client, tmp_path):
 def test_fork_rejects_path_traversal(client, bad_id):
     resp = client.post("/v1/flight/fork", json={"task_id": "task_demo", "new_task_id": bad_id})
     assert resp.status_code in (400, 404)
+
+
+def test_fork_rejects_existing_destination(client):
+    resp = client.post("/v1/flight/fork", json={"task_id": "task_demo", "new_task_id": "task_demo"})
+    assert resp.status_code == 409
+
+
+@pytest.mark.parametrize("bad_index", [-1, 4])
+def test_fork_rejects_out_of_range_index(client, bad_index):
+    resp = client.post("/v1/flight/fork", json={"task_id": "task_demo", "at_index": bad_index})
+    assert resp.status_code == 400
+
+
+def test_rejects_oversized_task_id(client):
+    assert client.get("/v1/flight/tape/" + "a" * 129).status_code == 400
