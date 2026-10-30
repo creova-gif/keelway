@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Set
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, WebSocketException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -326,6 +326,9 @@ ws_manager = ConnectionManager()
 @router.websocket("/v1/ws/studio")
 async def websocket_studio_endpoint(websocket: WebSocket):
     """Real-time bidirectional channel for Kora Dev Studio events, diffs, and thought streaming."""
+    origin = websocket.headers.get("origin")
+    if origin is not None and not re.fullmatch(settings.cors_origin_regex, origin):
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Origin not allowed.")
     await ws_manager.connect(websocket)
     try:
         # Send initial connection handshake

@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     env: str = Field(default="development", description="Environment: development, staging, production")
     port: int = Field(default=8000, description="Service HTTP port")
     log_level: str = Field(default="INFO", description="Log level: DEBUG, INFO, WARNING, ERROR")
+    cors_origin_regex: str = Field(
+        default=r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$",
+        description="Browser origins allowed to call the API and open the Studio WebSocket",
+    )
 
     # Database
     database_url: str = Field(
