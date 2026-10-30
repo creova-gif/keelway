@@ -1,0 +1,18 @@
+[project]
+name = "kora"
+version = "0.1.0"
+description = "Sovereign AI Agent Runtime Infrastructure"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
+    "sqlalchemy",
+    "aiosqlite",
+    "httpx",
+    "python-dotenv",
+]
+
+[tool.vercel]
+entrypoint = "core.main:app"
