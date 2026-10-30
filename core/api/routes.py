@@ -85,7 +85,9 @@ async def create_task(
     db.add(task)
     await db.flush()
     await db.refresh(task)
-    return TaskResponse.model_validate(task)
+    response = TaskResponse.model_validate(task)
+    await _broadcast_task_state(response, previous_state=None)
+    return response
 
 
 @router.get("/v1/tasks", response_model=List[TaskResponse], tags=["Tasks"])
@@ -133,10 +135,13 @@ async def transition_task(
     except InvalidStateTransitionError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
+    previous_state = task.state
     task.state = request.target_state
     await db.flush()
     await db.refresh(task)
-    return TaskResponse.model_validate(task)
+    response = TaskResponse.model_validate(task)
+    await _broadcast_task_state(response, previous_state=previous_state)
+    return response
 
 
 @router.post(
@@ -322,6 +327,17 @@ class ConnectionManager:
 
 
 ws_manager = ConnectionManager()
+
+
+async def _broadcast_task_state(task: TaskResponse, previous_state) -> None:
+    await ws_manager.broadcast({
+        "type": "agent_state_changed",
+        "task_id": task.id,
+        "title": task.title,
+        "previous_state": getattr(previous_state, "value", previous_state),
+        "new_state": task.state.value,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 @router.websocket("/v1/ws/studio")

@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from core.config import settings
 from core.security.origin import extra_origins, origin_allowed
 from core.api.routes import router
+from core.api.studio import router as studio_router
 from core.storage.database import init_db
 
 # Configure logging
@@ -80,6 +81,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # Mount routes
 app.include_router(router)
+app.include_router(studio_router)
 
 # Mount Kora Dev Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
