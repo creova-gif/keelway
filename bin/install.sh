@@ -49,7 +49,7 @@ say "[+] Creating virtual environment and installing dependencies..."
 "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet --upgrade pip
 "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "$INSTALL_DIR"
 
-ln -sf "${INSTALL_DIR}/bin/kora" "${BIN_DIR}/kora"
+ln -sf "${INSTALL_DIR}/.venv/bin/kora" "${BIN_DIR}/kora"
 
 case ":${PATH}:" in
     *":${BIN_DIR}:"*) ;;
