@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kora AI — Sovereign Developer Runtime & Autonomous Engineering Grid</title>
+  <meta name="description" content="Kora AI is the air-gapped, sovereign autonomous software engineering grid. 100% local execution, AST self-healing, P2P GPU pooling, and global multi-rail settlement.">
+  <meta property="og:title" content="Kora AI — Sovereign Developer Runtime">
+  <meta property="og:description" content="Local-first autonomous AI developer built for engineers who demand absolute privacy and zero cloud egress.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,9 +58,9 @@
     <div class="flex items-center space-x-4">
       <a href="https://github.com/creova-gif/kora" target="_blank" class="text-xs font-mono text-slate-400 hover:text-white transition flex items-center gap-1.5">
         <span>GitHub</span>
-        <span class="text-emeraldShield">★ v0.1.0</span>
+        <span class="text-emeraldShield font-bold">★ Sovereign</span>
       </a>
-      <a href="#quickstart" class="px-3.5 py-1.5 rounded-lg bg-accentCobalt text-white hover:bg-accentBlue text-xs font-semibold transition shadow-lg shadow-accentCobalt/20">
+      <a href="#quickstart" class="px-3.5 py-1.5 rounded-lg bg-accentCobalt text-white hover:bg-accentBlue text-xs font-semibold transition shadow-lg shadow-accentCobalt/20 active:scale-95">
         Install CLI
       </a>
     </div>
@@ -77,12 +83,12 @@
     </p>
 
     <!-- QUICKSTART COMMAND BOX -->
-    <div class="mt-8 flex justify-center">
+    <div class="mt-8 flex justify-center" id="quickstart">
       <div class="bg-surface border border-white/10 rounded-xl p-3 px-5 flex items-center gap-4 font-mono text-xs shadow-2xl max-w-md w-full justify-between">
         <span class="text-slate-400 select-none">$</span>
-        <span class="text-white font-medium select-all">curl -fsSL https://get.kora.ai | sh</span>
-        <button onclick="navigator.clipboard.writeText('curl -fsSL https://get.kora.ai | sh'); alert('Copied to clipboard!')" class="text-slate-400 hover:text-white transition">
-          📋
+        <span class="text-white font-medium select-all" id="install-cmd">curl -fsSL https://get.kora.ai | sh</span>
+        <button onclick="copyInstallCmd()" class="text-slate-400 hover:text-white transition active:scale-95" title="Copy to clipboard">
+          <span id="copy-icon">📋</span>
         </button>
       </div>
     </div>
@@ -102,7 +108,7 @@
         </div>
 
         <div class="flex items-center space-x-3">
-          <button id="web-airgap-btn" onclick="toggleWebAirGap()" class="px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-emeraldShield/15 text-emeraldShield border-emeraldShield/40 flex items-center gap-1.5">
+          <button id="web-airgap-btn" onclick="toggleWebAirGap()" class="px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-emeraldShield/15 text-emeraldShield border-emeraldShield/40 flex items-center gap-1.5 active:scale-95">
             <span id="web-airgap-icon">🔒</span>
             <span id="web-airgap-label">AIR-GAP KILL SWITCH: ACTIVE</span>
           </button>
@@ -121,7 +127,7 @@
             <div class="text-slate-500 mt-2">Locating AST frame: verify_settlement() in core/broker.py:42</div>
           </div>
           
-          <button onclick="runWebRepairDemo()" id="web-repair-btn" class="mt-4 w-full py-2.5 rounded-lg bg-emeraldShield/20 hover:bg-emeraldShield/30 border border-emeraldShield/40 text-emeraldShield font-bold font-sans transition">
+          <button onclick="runWebRepairDemo()" id="web-repair-btn" class="mt-4 w-full py-2.5 rounded-lg bg-emeraldShield/20 hover:bg-emeraldShield/30 border border-emeraldShield/40 text-emeraldShield font-bold font-sans transition active:scale-95">
             ⚡ Run Closed-Loop Self-Healing
           </button>
         </div>
@@ -136,7 +142,51 @@
     </div>
   </section>
 
-  <!-- INTERACTIVE PLAYGROUND 2: GLOBAL MULTI-RAIL PURCHASING POWER SETTLEMENT -->
+  <!-- INTERACTIVE PLAYGROUND 2: SPECULATIVE DECODING SPEED SIMULATOR -->
+  <section class="max-w-5xl mx-auto px-6 pb-20">
+    <div class="bg-surface rounded-2xl border border-white/10 p-6 md:p-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">Speculative Decoding Tandem Velocity</h2>
+          <p class="text-slate-400 text-xs mt-1">0.5B Draft Model + 7B Target Model tandem inference.</p>
+        </div>
+        <div class="flex items-center space-x-2 font-mono text-xs">
+          <span class="text-slate-400">Measured Speedup:</span>
+          <span id="spec-speedup-label" class="text-emeraldShield font-bold text-lg">2.58x</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+        <div class="bg-obsidian p-4 rounded-xl border border-white/5 space-y-3">
+          <div class="text-slate-400 font-bold uppercase text-[11px]">Draft Speculation Lookahead (k-tokens):</div>
+          <div class="flex items-center space-x-3">
+            <input id="spec-k-slider" type="range" min="1" max="8" value="4" oninput="updateSpecVelocity(this.value)" class="flex-1 accent-accentCobalt cursor-pointer">
+            <span id="spec-k-val" class="text-accentCobalt font-bold text-sm w-8 text-center">4</span>
+          </div>
+          <div class="text-[11px] text-slate-400 leading-relaxed">
+            Draft generates k tokens in a single lightweight forward pass; the 7B target model verifies all candidate tokens in parallel with 100% output equivalence.
+          </div>
+        </div>
+
+        <div class="bg-obsidian p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+          <div>
+            <div class="text-slate-400 font-bold uppercase text-[11px] mb-2">Simulated Throughput:</div>
+            <div class="flex items-baseline space-x-2">
+              <span id="spec-tok-speed" class="text-3xl font-extrabold text-white">68.4</span>
+              <span class="text-slate-400">tokens / sec</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">vs 26.5 tok/s unaccelerated target model</div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/5 flex justify-between text-[11px] text-slate-400">
+            <span>VRAM Overhead: <strong class="text-white">+850 MB</strong></span>
+            <span>Latency Drop: <strong class="text-emeraldShield">-61.2%</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE PLAYGROUND 3: GLOBAL MULTI-RAIL PURCHASING POWER SETTLEMENT -->
   <section class="max-w-5xl mx-auto px-6 pb-24">
     <div class="text-center mb-10">
       <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Sovereignty Beyond US Credit Cards</h2>
@@ -149,19 +199,19 @@
       
       <!-- RAIL TABS -->
       <div class="md:col-span-2 space-y-2 font-mono text-xs">
-        <button onclick="selectRail('mpesa')" id="rail-mpesa" class="w-full text-left p-3 rounded-xl border bg-accentCobalt/15 border-accentCobalt text-white font-semibold transition">
+        <button onclick="selectRail('mpesa')" id="rail-mpesa" class="w-full text-left p-3 rounded-xl border bg-accentCobalt/15 border-accentCobalt text-white font-semibold transition active:scale-95">
           🇰🇪 M-Pesa (East Africa)
           <div class="text-[10px] text-slate-400 font-normal mt-0.5">Safaricom Daraja STK Push</div>
         </button>
-        <button onclick="selectRail('pix')" id="rail-pix" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition">
+        <button onclick="selectRail('pix')" id="rail-pix" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition active:scale-95">
           🇧🇷 PIX (Brazil)
           <div class="text-[10px] text-slate-400 font-normal mt-0.5">Instant EMVCo QR Clearing</div>
         </button>
-        <button onclick="selectRail('upi')" id="rail-upi" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition">
+        <button onclick="selectRail('upi')" id="rail-upi" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition active:scale-95">
           🇮🇳 UPI 2.0 (India)
           <div class="text-[10px] text-slate-400 font-normal mt-0.5">NPCI AutoPay & Virtual Private Address</div>
         </button>
-        <button onclick="selectRail('l402')" id="rail-l402" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition">
+        <button onclick="selectRail('l402')" id="rail-l402" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition active:scale-95">
           ⚡ L402 Lightning Network
           <div class="text-[10px] text-slate-400 font-normal mt-0.5">Global Bitcoin Satoshi Streaming</div>
         </button>
@@ -202,10 +252,10 @@
       const btn = document.getElementById('web-airgap-btn');
       const label = document.getElementById('web-airgap-label');
       if (webAirGapped) {
-        btn.className = "px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-emeraldShield/15 text-emeraldShield border-emeraldShield/40 flex items-center gap-1.5";
+        btn.className = "px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-emeraldShield/15 text-emeraldShield border-emeraldShield/40 flex items-center gap-1.5 active:scale-95";
         label.textContent = "AIR-GAP KILL SWITCH: ACTIVE";
       } else {
-        btn.className = "px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-amberGate/15 text-amberGate border-amberGate/40 flex items-center gap-1.5";
+        btn.className = "px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-amberGate/15 text-amberGate border-amberGate/40 flex items-center gap-1.5 active:scale-95";
         label.textContent = "HYBRID CLOUD: ALLOWED";
       }
     }
@@ -221,14 +271,31 @@
       `;
     }
 
+    function updateSpecVelocity(k) {
+      document.getElementById('spec-k-val').textContent = k;
+      const multipliers = { '1': '1.45x', '2': '1.88x', '3': '2.24x', '4': '2.58x', '5': '2.84x', '6': '3.02x', '7': '3.15x', '8': '3.22x' };
+      const speeds = { '1': '38.4', '2': '49.8', '3': '59.3', '4': '68.4', '5': '75.2', '6': '80.0', '7': '83.5', '8': '85.3' };
+      document.getElementById('spec-speedup-label').textContent = multipliers[k] || '2.58x';
+      document.getElementById('spec-tok-speed').textContent = speeds[k] || '68.4';
+    }
+
+    function copyInstallCmd() {
+      const text = document.getElementById('install-cmd').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const icon = document.getElementById('copy-icon');
+        icon.textContent = '✓';
+        setTimeout(() => { icon.textContent = '📋'; }, 2000);
+      });
+    }
+
     function selectRail(rail) {
       const rails = ['mpesa', 'pix', 'upi', 'l402'];
       rails.forEach(r => {
         const el = document.getElementById(`rail-${r}`);
         if (el) {
           el.className = r === rail 
-            ? "w-full text-left p-3 rounded-xl border bg-accentCobalt/15 border-accentCobalt text-white font-semibold transition"
-            : "w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition";
+            ? "w-full text-left p-3 rounded-xl border bg-accentCobalt/15 border-accentCobalt text-white font-semibold transition active:scale-95"
+            : "w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition active:scale-95";
         }
       });
 

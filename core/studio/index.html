@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kora Dev Studio — Sovereign Developer Runtime</title>
-  <!-- Tailwind CSS CDN for instant, zero-build beautiful reactive styling -->
+  <!-- Tailwind CSS CDN for instant, zero-build reactive styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,6 +43,7 @@
     .diff-add { background-color: rgba(16, 185, 129, 0.12); color: #34D399; }
     .diff-del { background-color: rgba(239, 68, 68, 0.12); color: #F87171; }
     .tabular-nums { font-variant-numeric: tabular-nums; }
+    .code-line:hover { background-color: rgba(255, 255, 255, 0.03); }
   </style>
 </head>
 <body class="font-sans antialiased h-screen flex flex-col overflow-hidden select-none text-slate-200">
@@ -59,13 +60,19 @@
       </div>
 
       <div class="hidden sm:flex items-center space-x-1 text-xs">
-        <span class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.4-martian</span>
+        <span class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.5-audit</span>
         <span class="text-slate-600">/</span>
         <button onclick="copyToClipboard('git checkout main', 'Copied Git branch command')" title="Click to copy branch" class="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-white/5 transition">
           <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
           <span>main</span>
-          <span class="text-[10px] text-slate-500">#f05b0b9</span>
+          <span class="text-[10px] text-slate-500">#b0f1f4f</span>
         </button>
+      </div>
+
+      <!-- WS STATUS BADGE -->
+      <div class="hidden lg:flex items-center space-x-1 text-[11px] font-mono bg-surfaceLight/50 px-2 py-0.5 rounded border border-white/5">
+        <span id="ws-status-indicator" class="w-2 h-2 rounded-full bg-emeraldShield"></span>
+        <span id="ws-status-text" class="text-slate-400">SOVEREIGN LOCAL</span>
       </div>
     </div>
 
@@ -112,7 +119,7 @@
     </div>
   </header>
 
-  <!-- MAIN THREE-COLUMN WORKSPACE WITH EVIL MARTIANS DIRECTIONAL FLOW (LEFT TO RIGHT, TOP TO BOTTOM) -->
+  <!-- MAIN THREE-COLUMN WORKSPACE WITH EVIL MARTIANS DIRECTIONAL FLOW -->
   <div class="flex-1 flex overflow-hidden relative">
 
     <!-- LEFT SIDEBAR: WORKSPACE EXPLORER & SECURITY (INTERMEDIATE CONTEXT) -->
@@ -128,42 +135,38 @@
       </div>
 
       <!-- FILE TREE EXPLORER (LEFT CONTROLS RIGHT) -->
-      <div class="flex-1 overflow-y-auto p-2 text-xs font-mono space-y-0.5">
+      <div class="flex-1 overflow-y-auto p-2 text-xs font-mono space-y-0.5" id="file-tree-container">
         <div class="text-[10px] font-semibold uppercase text-slate-500 px-2 pt-1 pb-0.5">Core Runtime Modules</div>
         
-        <div onclick="selectFile('core/agent/self_healing.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l-2 border-accentCobalt">
+        <div onclick="selectFile('core/agent/self_healing.py')" id="file-item-core-agent-self_healing-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l-2 border-accentCobalt">
           <span class="truncate flex items-center gap-1.5"><span>📄</span> self_healing.py</span>
           <span class="text-[9px] font-bold px-1 rounded bg-amberGate/20 text-amberGate">MODIFIED</span>
         </div>
 
-        <div onclick="selectFile('core/models/speculative.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+        <div onclick="selectFile('core/models/speculative.py')" id="file-item-core-models-speculative-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
           <span class="truncate flex items-center gap-1.5"><span>📄</span> speculative.py</span>
           <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">VERIFIED</span>
         </div>
 
-        <div onclick="selectFile('core/orchestration/p2p_mesh.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+        <div onclick="selectFile('core/orchestration/p2p_mesh.py')" id="file-item-core-orchestration-p2p_mesh-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
           <span class="truncate flex items-center gap-1.5"><span>📄</span> p2p_mesh.py</span>
           <span class="text-[9px] font-bold px-1 rounded bg-accentCobalt/20 text-accentCobalt">READY</span>
         </div>
 
-        <div onclick="selectFile('core/storage/payment_broker.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+        <div onclick="selectFile('core/storage/payment_broker.py')" id="file-item-core-storage-payment_broker-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
           <span class="truncate flex items-center gap-1.5"><span>📄</span> payment_broker.py</span>
           <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">READY</span>
         </div>
 
-        <div onclick="selectFile('core/api/messaging.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+        <div onclick="selectFile('core/api/messaging.py')" id="file-item-core-api-messaging-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
           <span class="truncate flex items-center gap-1.5"><span>📄</span> messaging.py</span>
           <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">READY</span>
         </div>
 
         <div class="text-[10px] font-semibold uppercase text-slate-500 px-2 pt-3 pb-0.5">Test Suites & Specs</div>
-        <div onclick="selectFile('tests/test_self_healing.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white">
+        <div onclick="selectFile('tests/test_self_healing.py')" id="file-item-tests-test_self_healing-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white border-l-2 border-transparent">
           <span class="truncate flex items-center gap-1.5"><span>🧪</span> test_self_healing.py</span>
           <span class="text-[9px] text-emeraldShield font-bold">22 PASS</span>
-        </div>
-        <div onclick="selectFile('docs/architecture/ADR-007.md')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white">
-          <span class="truncate flex items-center gap-1.5"><span>📜</span> ADR-007.md</span>
-          <span class="text-[9px] text-slate-500">SPEC</span>
         </div>
       </div>
 
@@ -179,7 +182,7 @@
         </div>
         <div class="flex items-center justify-between text-slate-300">
           <span class="font-sans text-slate-400">Zero-Dep Tests:</span>
-          <span class="text-emeraldShield font-bold">22/22 (0.11s)</span>
+          <span class="text-emeraldShield font-bold">22/22 (0.10s)</span>
         </div>
       </div>
     </aside>
@@ -221,14 +224,18 @@
             <span class="w-1.5 h-1.5 rounded-full bg-accentCobalt animate-ping"></span>
             <span class="hidden sm:inline">Flight Tape:</span>
           </span>
-          <span class="text-white font-bold truncate">task_self_heal.flight</span>
+          <span class="text-white font-bold truncate" id="flight-tape-name">task_self_heal.flight</span>
           <span class="text-slate-600">|</span>
           
-          <!-- EVIL MARTIANS PRINCIPLE: DUAL SLIDER + EXACT TEXT INPUT -->
+          <!-- DUAL SLIDER + EXACT TEXT INPUT -->
           <span class="text-slate-300 flex items-center gap-1">
             <span>Frame</span>
             <input id="flight-frame-input" type="number" min="1" max="4" value="4" onchange="handleDirectFrameInput(this.value)" class="w-10 bg-black/60 border border-white/20 rounded px-1 py-0.5 text-center text-accentCobalt font-bold focus:outline-none focus:border-accentCobalt">
             <span>of 4</span>
+          </span>
+
+          <span id="flight-status-badge" class="hidden md:inline-block px-1.5 py-0.2 rounded text-[10px] font-bold bg-emeraldShield/20 text-emeraldShield">
+            VERIFIED GREEN
           </span>
         </div>
 
@@ -246,56 +253,56 @@
       <!-- TAB CONTENT AREA (CONTAINED SCROLLING & PERSISTENT STATES) -->
       <div class="flex-1 flex flex-col min-h-0 relative">
         
-        <!-- 1. MULTI-FILE DIFF VIEWER -->
+        <!-- 1. MULTI-FILE DIFF VIEWER (SUPPORTS UNIFIED & SPLIT 2-COLUMN) -->
         <div id="tab-diff" class="flex-1 flex flex-col min-h-0">
-          <!-- TOP PANEL CONTROL (TOP-DOWN FLOW) -->
-          <div class="px-4 py-2 bg-surfaceLight/20 border-b border-borderSubtle flex items-center justify-between text-xs font-mono">
+          <!-- TOP PANEL CONTROL -->
+          <div class="px-4 py-2 bg-surfaceLight/20 border-b border-borderSubtle flex items-center justify-between text-xs font-mono shrink-0">
             <div class="flex items-center space-x-2">
               <span class="text-slate-400">File:</span>
               <span id="active-file-title" class="text-accentCobalt font-bold">core/agent/self_healing.py</span>
               <span class="text-slate-600">|</span>
-              <span class="text-emeraldShield">+14 lines</span>
-              <span class="text-crimsonKill">-3 lines</span>
+              <span id="active-file-additions" class="text-emeraldShield">+14 lines</span>
+              <span id="active-file-deletions" class="text-crimsonKill">-3 lines</span>
             </div>
             <div class="flex items-center space-x-2">
-              <button onclick="copyToClipboard(document.getElementById('diff-code-block').innerText, 'Diff copied to clipboard')" class="px-2 py-0.5 rounded hover:bg-white/5 text-slate-400 hover:text-white transition flex items-center gap-1">
+              <button onclick="copyActiveDiff()" class="px-2 py-0.5 rounded hover:bg-white/5 text-slate-400 hover:text-white transition flex items-center gap-1">
                 <span>📋</span> Copy Diff
               </button>
             </div>
           </div>
 
-          <!-- DIFF CODE AREA -->
-          <div class="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5" id="diff-code-block">
-            <div class="text-slate-500 font-semibold mb-2">@@ -84,12 +84,23 @@ class AutonomousSelfHealingEngine:</div>
-            <div class="text-slate-400 pl-4">     def execute_repair(self, failure_signature: str) -> ASTRepairResult:</div>
-            <div class="text-slate-400 pl-4">         tree = ast.parse(self.source_code)</div>
-            <div class="diff-del px-2 py-0.5 rounded font-medium">-        # Legacy naive regex line patch</div>
-            <div class="diff-del px-2 py-0.5 rounded font-medium">-        patched_code = re.sub(failure_signature, '', self.source_code)</div>
-            <div class="diff-del px-2 py-0.5 rounded font-medium">-        return ASTRepairResult(success=False, ast_diff="regex_failed")</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        # AST-driven syntax rewriting with zero regex drift</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        transformer = SyntaxErrorHealingTransformer(failure_signature)</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        repaired_tree = transformer.visit(tree)</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        ast.fix_missing_locations(repaired_tree)</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        patched_code = ast.unparse(repaired_tree)</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        </div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        # Execute test probe in isolated ephemeral worktree</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        verify_result = self.worktree.run_verification(patched_code)</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        return ASTRepairResult(</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+            success=verify_result.exit_code == 0,</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+            ast_diff=transformer.get_diff_summary(),</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+            verification_output=verify_result.output</div>
-            <div class="diff-add px-2 py-0.5 rounded font-medium">+        )</div>
-            <div class="text-slate-400 pl-4 mt-2">     def rollback(self) -> None:</div>
-            <div class="text-slate-400 pl-4">         self.worktree.restore_snapshot()</div>
+          <!-- UNIFIED DIFF CONTAINER -->
+          <div id="diff-unified-view" class="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5">
+            <!-- Rendered dynamically by renderActiveDiff() -->
+          </div>
+
+          <!-- SPLIT 2-COLUMN DIFF CONTAINER -->
+          <div id="diff-split-view" class="hidden flex-1 overflow-hidden grid grid-cols-2 divide-x divide-borderSubtle font-mono text-xs leading-relaxed">
+            <div class="flex flex-col min-h-0 bg-black/40">
+              <div class="p-2 border-b border-borderSubtle text-[11px] font-bold text-crimsonKill uppercase bg-surface/50">
+                Original (Base Revision)
+              </div>
+              <div id="split-left-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
+                <!-- Left Original Lines -->
+              </div>
+            </div>
+            <div class="flex flex-col min-h-0 bg-black/20">
+              <div class="p-2 border-b border-borderSubtle text-[11px] font-bold text-emeraldShield uppercase bg-surface/50">
+                Patched (AST Synthesis)
+              </div>
+              <div id="split-right-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
+                <!-- Right Patched Lines -->
+              </div>
+            </div>
           </div>
 
           <!-- PANEL FOOTER (EVIL MARTIANS IMMEDIATE CONTEXT ACTION BAR) -->
           <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs">
             <div class="flex items-center space-x-2 text-slate-400">
               <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
-              <span>Syntax validated (AST clean)</span>
+              <span id="diff-footer-status">Syntax validated (AST clean)</span>
               <span class="text-slate-600">|</span>
-              <span class="font-mono text-slate-300">1 File • +14 / -3</span>
+              <span id="diff-footer-summary" class="font-mono text-slate-300">1 File • +14 / -3</span>
             </div>
             <div class="flex items-center space-x-2">
               <button onclick="triggerSelfHealingUI()" class="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95 font-medium">
@@ -355,12 +362,12 @@
             <div class="text-xs font-semibold text-slate-300 mb-2">Global Sovereign Settlement Broker (Zero-Custody)</div>
             
             <!-- EXPLICIT SEGMENTED CONTROLS (NO HIDDEN DROPDOWNS) -->
-            <div class="flex items-center space-x-1.5 mb-3">
+            <div class="flex items-center space-x-1.5 mb-3 flex-wrap gap-y-1">
               <button onclick="selectRail('mpesa')" id="rail-btn-mpesa" class="px-3 py-1 rounded border text-xs font-medium transition bg-accentCobalt text-white border-accentCobalt">M-Pesa (East Africa)</button>
               <button onclick="selectRail('pix')" id="rail-btn-pix" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Pix (Brazil)</button>
               <button onclick="selectRail('upi')" id="rail-btn-upi" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">UPI (India)</button>
-              <button onclick="selectRail('lightning_l402')" id="rail-btn-lightning" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Lightning L402</button>
-              <button onclick="selectRail('offline_voucher')" id="rail-btn-offline" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Offline Voucher</button>
+              <button onclick="selectRail('lightning')" id="rail-btn-lightning" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Lightning L402</button>
+              <button onclick="selectRail('offline')" id="rail-btn-offline" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Offline Voucher</button>
             </div>
 
             <!-- FORM ROW -->
@@ -422,7 +429,7 @@
             <div class="text-emeraldShield">[+] Omnichannel dispatch delivered [200 OK]. Biometric verification token generated.</div>
             <div class="flex items-center gap-1 text-white mt-2">
               <span class="text-emeraldShield">kora@sandbox:~$</span>
-              <input type="text" placeholder="Type CLI command..." onkeydown="handleTerminalEnter(event, this)" class="flex-1 bg-transparent border-none outline-none text-white font-mono">
+              <input id="term-input" type="text" placeholder="Type CLI command..." onkeydown="handleTerminalEnter(event, this)" class="flex-1 bg-transparent border-none outline-none text-white font-mono">
             </div>
           </div>
           <div class="p-2 bg-surface border-t border-borderSubtle text-[11px] text-slate-400 flex items-center justify-between">
@@ -476,7 +483,7 @@
             <span>Kora Planner Agent</span>
             <span class="text-[10px] text-slate-500 font-mono">15:20:04</span>
           </div>
-          <p class="text-slate-300 leading-relaxed">
+          <p class="text-slate-300 leading-relaxed" id="agent-current-thought">
             Identified AST syntax failure in line 88. Formulating safe node transformation to rewrite <code class="text-emeraldShield">ast.unparse</code> without regex instability.
           </p>
         </div>
@@ -563,7 +570,9 @@
     let airGapped = true;
     let currentRail = 'mpesa';
     let currentTab = 'diff';
+    let diffMode = 'unified';
     let activeFile = 'core/agent/self_healing.py';
+    let currentFrame = 4;
     let audioEnabled = true;
     let audioCtx = null;
     let leftSidebarOpen = true;
@@ -571,13 +580,195 @@
 
     // LOCAL STORAGE KEYS FOR PERSISTENT CONTEXT
     const STORAGE_KEY_TAB = 'kora_studio_active_tab';
+    const STORAGE_KEY_DIFF_MODE = 'kora_studio_diff_mode';
     const STORAGE_KEY_AIRGAP = 'kora_studio_airgap';
     const STORAGE_KEY_AUDIO = 'kora_studio_audio';
     const STORAGE_KEY_SIDEBAR = 'kora_studio_left_open';
     const STORAGE_KEY_TELEMETRY = 'kora_studio_right_open';
+    const STORAGE_KEY_FILE = 'kora_studio_active_file';
 
-    // 1. Tactile Web Audio Synthesizer (Teenage Engineering Inspired)
-    function playTone(freq, type = 'sine', duration = 0.06) {
+    // 1. Dynamic File Catalog with Real Diffs (Unified & Split)
+    const FILE_CATALOG = {
+      'core/agent/self_healing.py': {
+        additions: 14,
+        deletions: 3,
+        unifiedLines: [
+          { type: 'info', text: '@@ -84,12 +84,23 @@ class AutonomousSelfHealingEngine:' },
+          { type: 'context', text: '     def execute_repair(self, failure_signature: str) -> ASTRepairResult:' },
+          { type: 'context', text: '         tree = ast.parse(self.source_code)' },
+          { type: 'del', text: '-        # Legacy naive regex line patch' },
+          { type: 'del', text: '-        patched_code = re.sub(failure_signature, "", self.source_code)' },
+          { type: 'del', text: '-        return ASTRepairResult(success=False, ast_diff="regex_failed")' },
+          { type: 'add', text: '+        # AST-driven syntax rewriting with zero regex drift' },
+          { type: 'add', text: '+        transformer = SyntaxErrorHealingTransformer(failure_signature)' },
+          { type: 'add', text: '+        repaired_tree = transformer.visit(tree)' },
+          { type: 'add', text: '+        ast.fix_missing_locations(repaired_tree)' },
+          { type: 'add', text: '+        patched_code = ast.unparse(repaired_tree)' },
+          { type: 'add', text: '+        ' },
+          { type: 'add', text: '+        # Execute test probe in isolated ephemeral worktree' },
+          { type: 'add', text: '+        verify_result = self.worktree.run_verification(patched_code)' },
+          { type: 'add', text: '+        return ASTRepairResult(' },
+          { type: 'add', text: '+            success=verify_result.exit_code == 0,' },
+          { type: 'add', text: '+            ast_diff=transformer.get_diff_summary(),' },
+          { type: 'add', text: '+            verification_output=verify_result.output' },
+          { type: 'add', text: '+        )' },
+          { type: 'context', text: '     def rollback(self) -> None:' },
+          { type: 'context', text: '         self.worktree.restore_snapshot()' }
+        ],
+        splitLeft: [
+          { type: 'info', text: '@@ Original Class Definition' },
+          { type: 'context', text: 'def execute_repair(self, failure_signature):' },
+          { type: 'context', text: '    tree = ast.parse(self.source_code)' },
+          { type: 'del', text: '-   # Legacy naive regex line patch' },
+          { type: 'del', text: '-   patched_code = re.sub(sig, "", src)' },
+          { type: 'del', text: '-   return ASTRepairResult(success=False)' },
+          { type: 'context', text: 'def rollback(self):' },
+          { type: 'context', text: '    self.worktree.restore_snapshot()' }
+        ],
+        splitRight: [
+          { type: 'info', text: '@@ Patched AST Method' },
+          { type: 'context', text: 'def execute_repair(self, failure_signature):' },
+          { type: 'context', text: '    tree = ast.parse(self.source_code)' },
+          { type: 'add', text: '+   # AST-driven syntax rewriting' },
+          { type: 'add', text: '+   transformer = SyntaxErrorTransformer()' },
+          { type: 'add', text: '+   repaired_tree = transformer.visit(tree)' },
+          { type: 'add', text: '+   ast.fix_missing_locations(repaired_tree)' },
+          { type: 'add', text: '+   patched_code = ast.unparse(repaired_tree)' },
+          { type: 'context', text: 'def rollback(self):' },
+          { type: 'context', text: '    self.worktree.restore_snapshot()' }
+        ]
+      },
+      'core/models/speculative.py': {
+        additions: 28,
+        deletions: 6,
+        unifiedLines: [
+          { type: 'info', text: '@@ -42,8 +42,30 @@ class SpeculativeEngine:' },
+          { type: 'context', text: '     async def generate_tandem(self, prompt: str) -> GenerationResult:' },
+          { type: 'del', text: '-        # Unaccelerated target-only generation' },
+          { type: 'del', text: '-        return await self.target_model.generate(prompt)' },
+          { type: 'add', text: '+        # 0.5B draft forward pass' },
+          { type: 'add', text: '+        draft_tokens = await self.draft_model.generate_k(prompt, k=4)' },
+          { type: 'add', text: '+        # Single parallel verification pass on 7B target' },
+          { type: 'add', text: '+        accepted, bonus = await self.target_model.verify(draft_tokens)' },
+          { type: 'add', text: '+        speedup = (len(accepted) + 1) / target_forward_cost' },
+          { type: 'add', text: '+        return GenerationResult(tokens=accepted + [bonus], speedup_factor=2.58)' }
+        ],
+        splitLeft: [
+          { type: 'del', text: '- return await self.target_model.generate(prompt)' }
+        ],
+        splitRight: [
+          { type: 'add', text: '+ draft_tokens = await self.draft_model.generate_k(prompt, k=4)' },
+          { type: 'add', text: '+ accepted, bonus = await self.target_model.verify(draft_tokens)' },
+          { type: 'add', text: '+ return GenerationResult(speedup_factor=2.58)' }
+        ]
+      },
+      'core/orchestration/p2p_mesh.py': {
+        additions: 45,
+        deletions: 12,
+        unifiedLines: [
+          { type: 'info', text: '@@ -18,6 +18,39 @@ class LocalMeshDiscovery:' },
+          { type: 'del', text: '-    def discover_peers(self): return []' },
+          { type: 'add', text: '+    def broadcast_mdns(self):' },
+          { type: 'add', text: '+        zeroconf.register_service("_kora-agent._tcp.local.", 7420)' },
+          { type: 'add', text: '+    def pool_vram(self, peers):' },
+          { type: 'add', text: '+        return sum(p.available_vram_mb for p in peers)' }
+        ],
+        splitLeft: [
+          { type: 'del', text: '- def discover_peers(self): return []' }
+        ],
+        splitRight: [
+          { type: 'add', text: '+ def broadcast_mdns(self): register_service()' },
+          { type: 'add', text: '+ def pool_vram(self, peers): return sum(p.vram)' }
+        ]
+      },
+      'core/storage/payment_broker.py': {
+        additions: 32,
+        deletions: 4,
+        unifiedLines: [
+          { type: 'info', text: '@@ -55,4 +55,32 @@ class PaymentBroker:' },
+          { type: 'del', text: '-    # Stripe credit-card only' },
+          { type: 'add', text: '+    # Multi-rail sovereign clearing engine' },
+          { type: 'add', text: '+    RAILS = ["mpesa", "pix", "upi", "lightning_l402", "offline_voucher"]' }
+        ],
+        splitLeft: [
+          { type: 'del', text: '- # Stripe credit-card only' }
+        ],
+        splitRight: [
+          { type: 'add', text: '+ RAILS = ["mpesa", "pix", "upi", "lightning_l402"]' }
+        ]
+      },
+      'core/api/messaging.py': {
+        additions: 52,
+        deletions: 8,
+        unifiedLines: [
+          { type: 'info', text: '@@ -110,6 +110,50 @@ class OmnichannelDispatcher:' },
+          { type: 'del', text: '-    def notify(self): pass' },
+          { type: 'add', text: '+    def dispatch(self, approval, pref):' },
+          { type: 'add', text: '+        if pref.primary_channel == MessagingChannel.TELEGRAM:' },
+          { type: 'add', text: '+            return self.format_telegram_payload(approval)' },
+          { type: 'add', text: '+        elif pref.primary_channel == MessagingChannel.WHATSAPP:' },
+          { type: 'add', text: '+            return self.format_whatsapp_payload(approval)' }
+        ],
+        splitLeft: [
+          { type: 'del', text: '- def notify(self): pass' }
+        ],
+        splitRight: [
+          { type: 'add', text: '+ def dispatch(self, approval, pref):' },
+          { type: 'add', text: '+     if pref.primary_channel == TELEGRAM: ...' }
+        ]
+      },
+      'tests/test_self_healing.py': {
+        additions: 18,
+        deletions: 0,
+        unifiedLines: [
+          { type: 'info', text: '@@ -1,5 +1,23 @@ import unittest' },
+          { type: 'add', text: '+class TestSelfHealingAST(unittest.TestCase):' },
+          { type: 'add', text: '+    def test_syntax_repair_verified(self):' },
+          { type: 'add', text: '+        self.assertTrue(engine.verify_patch())' }
+        ],
+        splitLeft: [
+          { type: 'context', text: '# Clean new test file' }
+        ],
+        splitRight: [
+          { type: 'add', text: '+ class TestSelfHealingAST(unittest.TestCase): ...' }
+        ]
+      }
+    };
+
+    // 2. Flight Recorder Frames (4 Discrete States)
+    const FLIGHT_FRAMES = {
+      1: {
+        badge: "FAILURE DETECTED",
+        badgeColor: "bg-crimsonKill/20 text-crimsonKill",
+        thought: "Frame 1 (15:20:01): SyntaxError intercepted at line 88 in core/agent/self_healing.py. Exit code 1.",
+        activeStatus: "Syntax error intercepted at line 88",
+        file: 'core/agent/self_healing.py'
+      },
+      2: {
+        badge: "AST TRANSFORMING",
+        badgeColor: "bg-amberGate/20 text-amberGate",
+        thought: "Frame 2 (15:20:02): Synthesizing localized AST visitor SyntaxErrorHealingTransformer to rewrite invalid node.",
+        activeStatus: "AST node visitor analyzing syntax tree",
+        file: 'core/agent/self_healing.py'
+      },
+      3: {
+        badge: "VERIFICATION PROBE",
+        badgeColor: "bg-accentCobalt/20 text-accentCobalt",
+        thought: "Frame 3 (15:20:03): Executing verification probe in ephemeral worktree (/tmp/kora-scratch-wt).",
+        activeStatus: "Running tests in ephemeral worktree",
+        file: 'core/agent/self_healing.py'
+      },
+      4: {
+        badge: "VERIFIED GREEN",
+        badgeColor: "bg-emeraldShield/20 text-emeraldShield",
+        thought: "Frame 4 (15:20:04): All 22 unit tests green in 0.10s. Zero syntax regression. Ready for one-click commit.",
+        activeStatus: "Syntax validated (AST clean)",
+        file: 'core/agent/self_healing.py'
+      }
+    };
+
+    // 3. Tactile Teenage Engineering Synthetic Audio
+    function playTone(freq, type = 'sine', duration = 0.05) {
       if (!audioEnabled) return;
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -592,9 +783,7 @@
         gain.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {
-        // Audio suspended or blocked by user gesture
-      }
+      } catch (e) {}
     }
 
     function toggleAudio() {
@@ -603,14 +792,14 @@
       const icon = document.getElementById('audio-icon');
       icon.textContent = audioEnabled ? '🔊' : '🔇';
       showToast(audioEnabled ? 'Audio feedback enabled' : 'Audio feedback muted', '🔊');
-      if (audioEnabled) playTone(587, 'sine', 0.1);
+      if (audioEnabled) playTone(587, 'sine', 0.08);
     }
 
-    // 2. Tab Switching with State Persistence
+    // 4. Tab Switching with State Persistence
     function switchTab(tabId) {
       currentTab = tabId;
       localStorage.setItem(STORAGE_KEY_TAB, tabId);
-      playTone(440, 'sine', 0.05);
+      playTone(440, 'sine', 0.04);
 
       const tabs = ['diff', 'healing', 'payments', 'term'];
       tabs.forEach(t => {
@@ -627,7 +816,7 @@
       });
     }
 
-    // 3. Layout Toggles (Intermediate Context Customization)
+    // 5. Layout Toggles (Intermediate Context Customization)
     function toggleSidebar() {
       leftSidebarOpen = !leftSidebarOpen;
       localStorage.setItem(STORAGE_KEY_SIDEBAR, leftSidebarOpen ? 'true' : 'false');
@@ -644,7 +833,7 @@
       playTone(rightTelemetryOpen ? 520 : 380, 'sine', 0.04);
     }
 
-    // 4. Air-Gap Shield Toggle
+    // 6. Air-Gap Shield Toggle
     function toggleAirGap() {
       airGapped = !airGapped;
       localStorage.setItem(STORAGE_KEY_AIRGAP, airGapped ? 'true' : 'false');
@@ -662,48 +851,113 @@
       }
     }
 
-    // 5. Dual-Control Scrubber (Evil Martians Principle: Slider + Direct Input)
-    function handleScrub(val) {
-      document.getElementById('flight-frame-input').value = val;
-      playTone(400 + val * 40, 'sine', 0.03);
+    // 7. Render Diff (Unified vs Split 2-Column)
+    function renderActiveDiff() {
+      const data = FILE_CATALOG[activeFile] || FILE_CATALOG['core/agent/self_healing.py'];
+      
+      // Update top header badges
+      document.getElementById('active-file-title').textContent = activeFile;
+      document.getElementById('active-file-additions').textContent = `+${data.additions} lines`;
+      document.getElementById('active-file-deletions').textContent = `-${data.deletions} lines`;
+      document.getElementById('diff-footer-summary').textContent = `1 File • +${data.additions} / -${data.deletions}`;
+
+      // Render Unified View
+      const unifiedContainer = document.getElementById('diff-unified-view');
+      unifiedContainer.innerHTML = '';
+      data.unifiedLines.forEach((line, idx) => {
+        const div = document.createElement('div');
+        div.className = `code-line flex items-center px-2 py-0.5 rounded font-mono text-xs ${line.type === 'add' ? 'diff-add font-medium' : line.type === 'del' ? 'diff-del font-medium' : line.type === 'info' ? 'text-slate-500 font-semibold mb-1' : 'text-slate-400'}`;
+        div.innerHTML = `<span class="w-8 select-none text-[10px] text-slate-600 font-mono">${idx + 1}</span><span>${escapeHtml(line.text)}</span>`;
+        unifiedContainer.appendChild(div);
+      });
+
+      // Render Split View
+      const splitLeft = document.getElementById('split-left-pane');
+      const splitRight = document.getElementById('split-right-pane');
+      splitLeft.innerHTML = '';
+      splitRight.innerHTML = '';
+
+      (data.splitLeft || data.unifiedLines).forEach((line, idx) => {
+        const div = document.createElement('div');
+        div.className = `code-line px-2 py-0.5 rounded text-xs font-mono ${line.type === 'del' ? 'diff-del font-medium' : 'text-slate-400'}`;
+        div.textContent = line.text;
+        splitLeft.appendChild(div);
+      });
+
+      (data.splitRight || data.unifiedLines).forEach((line, idx) => {
+        const div = document.createElement('div');
+        div.className = `code-line px-2 py-0.5 rounded text-xs font-mono ${line.type === 'add' ? 'diff-add font-medium' : 'text-slate-400'}`;
+        div.textContent = line.text;
+        splitRight.appendChild(div);
+      });
     }
 
-    function handleDirectFrameInput(val) {
-      val = Math.max(1, Math.min(4, parseInt(val) || 1));
-      document.getElementById('flight-scrubber').value = val;
-      document.getElementById('flight-frame-input').value = val;
-      playTone(400 + val * 40, 'sine', 0.03);
-    }
-
-    function flightStepBack() {
-      let val = parseInt(document.getElementById('flight-scrubber').value) - 1;
-      if (val >= 1) handleScrub(val);
-    }
-
-    function flightStepForward() {
-      let val = parseInt(document.getElementById('flight-scrubber').value) + 1;
-      if (val <= 4) handleScrub(val);
-    }
-
-    function forkCurrentTimeline() {
-      playTone(659, 'triangle', 0.15);
-      showToast("Timeline forked to task_self_heal_branch_1.flight", "⑂");
-    }
-
-    // 6. Diff Modes
     function setDiffMode(mode) {
+      diffMode = mode;
+      localStorage.setItem(STORAGE_KEY_DIFF_MODE, mode);
       playTone(480, 'sine', 0.04);
+
       document.getElementById('btn-view-unified').className = mode === 'unified' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
       document.getElementById('btn-view-split').className = mode === 'split' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+
+      document.getElementById('diff-unified-view').classList.toggle('hidden', mode !== 'unified');
+      document.getElementById('diff-split-view').classList.toggle('hidden', mode !== 'split');
+
       showToast(`Switched to ${mode} diff mode`, '📄');
     }
 
     function selectFile(filename) {
       activeFile = filename;
-      document.getElementById('active-file-title').textContent = filename;
+      localStorage.setItem(STORAGE_KEY_FILE, filename);
       playTone(520, 'sine', 0.04);
+
+      // Highlight active file in tree
+      document.querySelectorAll('.file-tree-item').forEach(el => {
+        el.className = 'file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent';
+      });
+      const activeEl = document.getElementById(`file-item-${filename.replace(/[/.]/g, '-')}`);
+      if (activeEl) {
+        activeEl.className = 'file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l-2 border-accentCobalt';
+      }
+
+      renderActiveDiff();
       switchTab('diff');
-      showToast(`Loaded diff for ${filename}`, '📄');
+      showToast(`Loaded diff: ${filename}`, '📄');
+    }
+
+    // 8. Flight Recorder Frame Time-Travel Engine
+    function handleScrub(val) {
+      currentFrame = parseInt(val);
+      document.getElementById('flight-frame-input').value = currentFrame;
+      document.getElementById('flight-scrubber').value = currentFrame;
+      playTone(400 + currentFrame * 40, 'sine', 0.03);
+
+      const frameData = FLIGHT_FRAMES[currentFrame];
+      if (frameData) {
+        const badge = document.getElementById('flight-status-badge');
+        badge.textContent = frameData.badge;
+        badge.className = `hidden md:inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${frameData.badgeColor}`;
+        document.getElementById('diff-footer-status').textContent = frameData.activeStatus;
+        appendAgentThought("Flight Recorder", frameData.thought);
+      }
+    }
+
+    function handleDirectFrameInput(val) {
+      val = Math.max(1, Math.min(4, parseInt(val) || 1));
+      handleScrub(val);
+    }
+
+    function flightStepBack() {
+      if (currentFrame > 1) handleScrub(currentFrame - 1);
+    }
+
+    function flightStepForward() {
+      if (currentFrame < 4) handleScrub(currentFrame + 1);
+    }
+
+    function forkCurrentTimeline() {
+      playTone(659, 'triangle', 0.12);
+      showToast("Timeline forked to task_self_heal_branch_1.flight", "⑂");
     }
 
     function acceptDiffAndCommit() {
@@ -711,7 +965,13 @@
       showToast("Diff accepted & AST committed into main branch!", "✓");
     }
 
-    // 7. Payment Rail Selector (Segmented Radio Buttons)
+    function copyActiveDiff() {
+      const data = FILE_CATALOG[activeFile] || FILE_CATALOG['core/agent/self_healing.py'];
+      const text = data.unifiedLines.map(l => l.text).join('\n');
+      copyToClipboard(text, 'Diff copied to clipboard');
+    }
+
+    // 9. Payment Rail Selector (Segmented Radio Buttons)
     function selectRail(rail) {
       currentRail = rail;
       playTone(500, 'sine', 0.04);
@@ -719,7 +979,7 @@
       rails.forEach(r => {
         const btn = document.getElementById(`rail-btn-${r}`);
         if (btn) {
-          if (r === rail || (rail === 'lightning_l402' && r === 'lightning') || (rail === 'offline_voucher' && r === 'offline')) {
+          if (r === rail) {
             btn.className = "px-3 py-1 rounded border text-xs font-medium transition bg-accentCobalt text-white border-accentCobalt";
           } else {
             btn.className = "px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white";
@@ -762,7 +1022,7 @@
         playTone(880, 'triangle', 0.15);
         logEl.innerHTML = `
           <div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt 1 of 3):</div>
-          <div class="text-slate-300">Ran: 22 tests in 0.110s — OK (Zero syntax errors).</div>
+          <div class="text-slate-300">Ran: 22 tests in 0.102s — OK (Zero syntax errors).</div>
           <div class="mt-2 text-slate-400 text-[11px]">Applied AST Diff:</div>
           <pre class="bg-black/60 p-2.5 rounded border border-white/10 text-emeraldShield text-[11px] overflow-x-auto">+ ast.fix_missing_locations(repaired_tree)\n+ return ASTRepairResult(success=True)</pre>
         `;
@@ -770,7 +1030,7 @@
       }, 700);
     }
 
-    // 8. Terminal Mock Enter
+    // 10. Terminal Mock Command Parser
     function handleTerminalEnter(e, input) {
       if (e.key === 'Enter') {
         const cmd = input.value.trim();
@@ -778,18 +1038,37 @@
         playTone(550, 'sine', 0.04);
         const canvas = document.getElementById('term-canvas');
         const line = document.createElement('div');
-        line.innerHTML = `<span class="text-emeraldShield">kora@sandbox:~$</span> ${cmd}`;
+        line.innerHTML = `<span class="text-emeraldShield">kora@sandbox:~$</span> ${escapeHtml(cmd)}`;
         canvas.appendChild(line);
 
         const resp = document.createElement('div');
         resp.className = "text-slate-400";
         if (cmd === 'clear') {
           canvas.innerHTML = '';
+        } else if (cmd === 'help') {
+          resp.innerHTML = `Available commands: <span class="text-accentCobalt">kora doctor, kora spec, kora mesh, kora heal, kora notify, kora pay, git status, clear</span>`;
         } else if (cmd.includes('doctor')) {
           resp.className = "text-emeraldShield";
-          resp.textContent = "[+] Kora Diagnostics: Database connected, DLP guard armed, tests green.";
+          resp.textContent = "[+] Kora Diagnostics: Database connected, DLP guard armed, 22/22 unit tests green.";
+        } else if (cmd.includes('spec')) {
+          resp.className = "text-accentCobalt";
+          resp.textContent = "[+] Speculative Decoding: 2.58x measured speedup (0.5B draft + 7B target).";
+        } else if (cmd.includes('mesh')) {
+          resp.className = "text-accentCobalt";
+          resp.textContent = "[+] P2P Mesh: 3 peer workstations discovered via mDNS (Pooled VRAM: 32 GB).";
+        } else if (cmd.includes('heal')) {
+          resp.className = "text-emeraldShield";
+          resp.textContent = "[+] Autonomous Self-Healing: AST repair verified in ephemeral worktree (0 syntax errors).";
+        } else if (cmd.includes('notify')) {
+          resp.className = "text-emeraldShield";
+          resp.textContent = "[+] Omnichannel Dispatch: Alert delivered via Telegram inline keyboard [200 OK].";
+        } else if (cmd.includes('pay')) {
+          resp.className = "text-emeraldShield";
+          resp.textContent = "[+] Sovereign Payment: Settlement intent generated via local L402 broker.";
+        } else if (cmd === 'git status') {
+          resp.textContent = "On branch main. Your branch is up to date with 'origin/main'. Working tree clean.";
         } else {
-          resp.textContent = `Executed in ephemeral worktree (exit code 0).`;
+          resp.textContent = `Executed in isolated sandbox worktree (exit code 0).`;
         }
         if (cmd !== 'clear') canvas.appendChild(resp);
         input.value = '';
@@ -797,7 +1076,7 @@
       }
     }
 
-    // 9. Command Palette Modal (Cmd+K)
+    // 11. Command Palette Modal (Cmd+K)
     function openCommandPalette() {
       playTone(600, 'sine', 0.05);
       const modal = document.getElementById('cmd-palette-modal');
@@ -830,7 +1109,7 @@
       else if (action === 'run-tests') triggerSelfHealingUI();
     }
 
-    // 10. Non-blocking Toast Feedback
+    // 12. Non-blocking Toast Feedback
     function showToast(msg, icon = '✓') {
       const toast = document.getElementById('toast');
       document.getElementById('toast-message').textContent = msg;
@@ -850,6 +1129,15 @@
       });
     }
 
+    function appendAgentThought(sender, text) {
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
+      msgDiv.innerHTML = `<div class="font-bold text-accentCobalt text-[11px] flex justify-between"><span>${escapeHtml(sender)}</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-300 leading-relaxed">${escapeHtml(text)}</p>`;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
     function handleSend(e) {
       e.preventDefault();
       const input = document.getElementById('prompt-input');
@@ -860,22 +1148,65 @@
       const container = document.getElementById('chat-messages');
       const msgDiv = document.createElement('div');
       msgDiv.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
-      msgDiv.innerHTML = `<div class="font-bold text-white text-[11px] flex justify-between"><span>User</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-200 leading-relaxed">${val}</p>`;
+      msgDiv.innerHTML = `<div class="font-bold text-white text-[11px] flex justify-between"><span>User</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-200 leading-relaxed">${escapeHtml(val)}</p>`;
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
       input.value = '';
 
       setTimeout(() => {
         playTone(700, 'triangle', 0.08);
-        const reply = document.createElement('div');
-        reply.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
-        reply.innerHTML = `<div class="font-bold text-accentCobalt text-[11px] flex justify-between"><span>Kora Planner Agent</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-300 leading-relaxed">Instruction received: Running AST analysis in sovereign worktree...</p>`;
-        container.appendChild(reply);
-        container.scrollTop = container.scrollHeight;
+        appendAgentThought("Kora Planner Agent", `Instruction received: Running AST analysis in sovereign worktree for "${val}"...`);
       }, 500);
     }
 
-    // 11. Global Keyboard Listeners
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 13. WebSocket Connector with Graceful Standalone Fallback
+    function initWebSocket() {
+      const wsStatus = document.getElementById('ws-status-indicator');
+      const wsText = document.getElementById('ws-status-text');
+      try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/v1/ws/studio`;
+        const ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-emeraldShield';
+          if (wsText) wsText.textContent = 'LIVE WS CONNECTED';
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'agent_thought') {
+              appendAgentThought(msg.sender || 'Kora Agent', msg.content);
+            } else if (msg.type === 'file_selected') {
+              selectFile(msg.file);
+            }
+          } catch (e) {}
+        };
+
+        ws.onerror = () => {
+          if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-accentCobalt';
+          if (wsText) wsText.textContent = 'SOVEREIGN LOCAL';
+        };
+
+        ws.onclose = () => {
+          if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-accentCobalt';
+          if (wsText) wsText.textContent = 'SOVEREIGN LOCAL';
+          setTimeout(initWebSocket, 6000);
+        };
+      } catch (e) {
+        if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-accentCobalt';
+        if (wsText) wsText.textContent = 'SOVEREIGN LOCAL';
+      }
+    }
+
+    // 14. Global Keyboard Listeners
     window.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -900,10 +1231,13 @@
       }
     });
 
-    // 12. Context Restoration on Mount
+    // 15. Context Restoration on Mount
     window.addEventListener('DOMContentLoaded', () => {
       const savedTab = localStorage.getItem(STORAGE_KEY_TAB);
       if (savedTab) switchTab(savedTab);
+
+      const savedDiffMode = localStorage.getItem(STORAGE_KEY_DIFF_MODE);
+      if (savedDiffMode) setDiffMode(savedDiffMode);
 
       const savedAirgap = localStorage.getItem(STORAGE_KEY_AIRGAP);
       if (savedAirgap !== null && savedAirgap === 'false') toggleAirGap();
@@ -916,6 +1250,12 @@
 
       const savedTelemetry = localStorage.getItem(STORAGE_KEY_TELEMETRY);
       if (savedTelemetry === 'false') toggleTelemetry();
+
+      const savedFile = localStorage.getItem(STORAGE_KEY_FILE);
+      if (savedFile && FILE_CATALOG[savedFile]) activeFile = savedFile;
+
+      renderActiveDiff();
+      initWebSocket();
     });
   </script>
 </body>
