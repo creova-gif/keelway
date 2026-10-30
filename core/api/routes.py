@@ -2,7 +2,10 @@
 FastAPI Routes for Kora AI Core.
 """
 
+import re
+import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import List, Optional, Set
 from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -421,10 +424,21 @@ async def create_payment_intent(payload: dict):
     }
 
 
+FLIGHT_RECORDINGS_DIR = Path(".kora/recordings")
+# 243 + len(".flight.json") == 255, the common filesystem filename limit.
+_TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,243}$")
+
+
+def _tape_path(task_id: str) -> Path:
+    if not task_id or not _TAPE_ID_PATTERN.fullmatch(task_id) or ".." in task_id:
+        raise HTTPException(status_code=400, detail="Invalid flight tape task_id.")
+    return FLIGHT_RECORDINGS_DIR / f"{task_id}.flight.json"
+
+
 @router.get("/v1/flight/tapes", tags=["Deterministic Flight Recorder"])
 async def list_flight_tapes():
     """List all recorded deterministic agent execution tapes."""
-    recordings_dir = Path(".kora/recordings")
+    recordings_dir = FLIGHT_RECORDINGS_DIR
     if not recordings_dir.exists():
         return {"tapes": []}
     tapes = []
@@ -436,7 +450,7 @@ async def list_flight_tapes():
 @router.get("/v1/flight/tape/{task_id}", tags=["Deterministic Flight Recorder"])
 async def get_flight_tape(task_id: str):
     """Retrieve full execution tape with all chronological step frames."""
-    tape_file = Path(".kora/recordings") / f"{task_id}.flight.json"
+    tape_file = _tape_path(task_id)
     if not tape_file.exists():
         raise HTTPException(status_code=404, detail=f"Flight tape for task {task_id} not found.")
     import json
@@ -449,14 +463,19 @@ async def fork_flight_tape(payload: dict):
     from core.orchestration.flight_recorder import FlightPlayer
     task_id = payload.get("task_id")
     at_index = int(payload.get("at_index", 0))
-    new_task_id = payload.get("new_task_id") or f"{task_id}_fork_{int(time.time())}"
+    new_task_id = payload.get("new_task_id") or f"{(task_id or '')[:200]}_fork_{time.time_ns()}"
 
-    tape_file = Path(".kora/recordings") / f"{task_id}.flight.json"
+    tape_file = _tape_path(task_id)
+    if _tape_path(new_task_id).exists():
+        raise HTTPException(status_code=409, detail=f"Flight tape {new_task_id} already exists.")
     if not tape_file.exists():
         raise HTTPException(status_code=404, detail="Source flight tape not found.")
 
     player = FlightPlayer(tape_file)
+    if not 0 <= at_index <= len(player.events):
+        raise HTTPException(status_code=400, detail=f"at_index must be between 0 and {len(player.events)}.")
     forked_recorder = player.fork(at_index=at_index, new_task_id=new_task_id)
+    forked_recorder.recordings_dir = FLIGHT_RECORDINGS_DIR
     saved_path = forked_recorder.save_tape()
     return {
         "original_task_id": task_id,

@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "kora"
 version = "0.1.0"
@@ -8,8 +12,28 @@ dependencies = [
     "uvicorn[standard]",
     "pydantic",
     "pydantic-settings",
-    "sqlalchemy",
+    "sqlalchemy[asyncio]",
     "aiosqlite",
+    "greenlet",
     "httpx",
     "python-dotenv",
 ]
+
+[project.optional-dependencies]
+postgres = ["asyncpg"]
+dev = ["pytest", "pytest-asyncio", "ruff"]
+
+[project.scripts]
+kora = "cli:main"
+
+[tool.setuptools]
+py-modules = ["cli"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "research*", "evaluations*"]
+
+[tool.setuptools.package-data]
+core = ["studio/*.html"]
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]

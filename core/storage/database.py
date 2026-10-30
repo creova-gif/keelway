@@ -4,7 +4,9 @@ Database connection and session lifecycle for Kora AI Core.
 
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from pathlib import Path
 from sqlalchemy import text
+from sqlalchemy.engine import make_url
 
 from core.config import settings
 from core.storage.models import Base
@@ -17,6 +19,9 @@ engine_kwargs = {
 }
 
 if is_sqlite:
+    sqlite_path = make_url(settings.database_url).database
+    if sqlite_path and sqlite_path != ":memory:" and not sqlite_path.startswith("file:"):
+        Path(sqlite_path).expanduser().parent.mkdir(parents=True, exist_ok=True)
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 else:
     engine_kwargs["pool_pre_ping"] = True

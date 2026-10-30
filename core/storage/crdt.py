@@ -8,7 +8,7 @@ import time
 import json
 import hashlib
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 
 @dataclass

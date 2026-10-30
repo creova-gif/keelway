@@ -1,54 +1,66 @@
-#!/usr/bin/env bash
-# Kora AI — Single-Line Sovereign Agent Installer
+#!/bin/sh
+# Kora AI installer (POSIX sh)
 # Usage: curl -fsSL https://get.kora.ai | sh
 
-set -e
+set -eu
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+say() { printf '%s\n' "$*"; }
+die() { printf '[x] %s\n' "$*" >&2; exit 1; }
 
-echo -e "\n${BLUE}=================================================================${NC}"
-echo -e "  ⚡ Installing Kora AI — Sovereign Agent Engineering Runtime"
-echo -e "${BLUE}=================================================================${NC}\n"
+say ""
+say "================================================================="
+say "  Installing Kora AI - Sovereign Agent Engineering Runtime"
+say "================================================================="
+say ""
 
-# 1. Detect Architecture and OS
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
-echo -e "[+] System Detected: ${GREEN}${OS} (${ARCH})${NC}"
+say "[+] System detected: ${OS} (${ARCH})"
 
-# 2. Check Python 3.11+
-if ! command -v python3 >/dev/null 2>&1; then
-    echo -e "${RED}[✗] Python 3 is required but was not found. Please install Python 3.11+.${NC}"
-    exit 1
+command -v git >/dev/null 2>&1 || die "git is required but was not found."
+
+PYTHON="${KORA_PYTHON:-}"
+if [ -z "$PYTHON" ]; then
+    for candidate in python3.13 python3.12 python3.11 python3; do
+        if command -v "$candidate" >/dev/null 2>&1 && \
+           "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+            PYTHON="$candidate"
+            break
+        fi
+    done
 fi
-PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-echo -e "[+] Python Runtime:  ${GREEN}${PY_VERSION}${NC}"
+[ -n "$PYTHON" ] || die "Python 3.11+ is required. Install it or set KORA_PYTHON=/path/to/python3.11."
+say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-# 3. Determine Installation Path
-INSTALL_DIR="${HOME}/.kora/app"
+INSTALL_DIR="${KORA_INSTALL_DIR:-${HOME}/.kora/app}"
 BIN_DIR="${HOME}/.local/bin"
-mkdir -p "${INSTALL_DIR}" "${BIN_DIR}"
+mkdir -p "$(dirname "$INSTALL_DIR")" "$BIN_DIR"
 
-# 4. Clone or update repository
 if [ -d "${INSTALL_DIR}/.git" ]; then
-    echo -e "[+] Updating existing Kora installation..."
-    git -C "${INSTALL_DIR}" pull --quiet origin main
+    say "[+] Updating existing Kora installation..."
+    git -C "$INSTALL_DIR" pull --quiet origin main
 else
-    echo -e "[+] Downloading Kora AI Sovereign Core..."
-    git clone --depth 1 --quiet https://github.com/creova-gif/kora.git "${INSTALL_DIR}"
+    say "[+] Downloading Kora AI core..."
+    git clone --depth 1 --quiet https://github.com/creova-gif/kora.git "$INSTALL_DIR"
 fi
 
-# 5. Link executable binary
-ln -sf "${INSTALL_DIR}/bin/kora" "${BIN_DIR}/kora"
+say "[+] Creating virtual environment and installing dependencies..."
+"$PYTHON" -m venv "${INSTALL_DIR}/.venv"
+"${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet --upgrade pip
+"${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "$INSTALL_DIR"
 
-# 6. Verify PATH
-if [[ ":$PATH:" != *":${BIN_DIR}:"* ]]; then
-    echo -e "\n${BLUE}[!] Note: Add ${BIN_DIR} to your PATH in ~/.bashrc or ~/.zshrc:${NC}"
-    echo -e "    export PATH=\"\${HOME}/.local/bin:\$PATH\"\n"
-fi
+ln -sf "${INSTALL_DIR}/.venv/bin/kora" "${BIN_DIR}/kora"
 
-echo -e "${GREEN}[✓] Installation Complete!${NC}"
-echo -e "Run '${GREEN}kora dev${NC}' to launch Kora Dev Studio at http://localhost:7420"
-echo -e "Run '${GREEN}kora doctor${NC}' to run system diagnostic checks.\n"
+case ":${PATH}:" in
+    *":${BIN_DIR}:"*) ;;
+    *)
+        say ""
+        say "[!] Add ${BIN_DIR} to your PATH in ~/.bashrc or ~/.zshrc:"
+        say "    export PATH=\"\${HOME}/.local/bin:\$PATH\""
+        say ""
+        ;;
+esac
+
+say "[ok] Installation complete."
+say "Run 'kora dev' to launch Kora Dev Studio at http://localhost:7420"
+say "Run 'kora doctor' to run system diagnostic checks."

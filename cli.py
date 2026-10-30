@@ -128,7 +128,7 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
     print("  ⚡ KORA DEV STUDIO — Sovereign Agent Engineering Environment")
     print(f"  URL: http://{host}:{port}")
     print(f"  Studio Interface: http://{host}:{port}/studio")
-    print(f"  Air-Gapped: 🔒 Zero-Egress Boundary Active")
+    print("  Air-Gap: off (cloud providers allowed; use `kora chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
     try:
@@ -137,9 +137,9 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
         config = uvicorn.Config("core.main:app", host=host, port=port, log_level="warning")
         server = uvicorn.Server(config)
         await server.serve()
-    except (ImportError, Exception) as e:
+    except ImportError as e:
         print(f"[i] ASGI server not available ({e}).")
-        print("[+] Engaging zero-dependency Sovereign HTTP Studio Server...")
+        print("[+] Engaging zero-dependency fallback server (static Studio UI only; API routes unavailable)...")
         import http.server
         import socketserver
         import json
@@ -160,17 +160,17 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps({"status": "healthy", "mode": "sovereign_standalone", "airgap": True}).encode("utf-8"))
+                    self.wfile.write(json.dumps({"status": "degraded", "mode": "static_fallback", "api_available": False}).encode("utf-8"))
                 elif self.path == "/v1/flight/tapes":
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps({"tapes": ["task_self_heal.flight", "benchmark_mesh.flight"]}).encode("utf-8"))
+                    self.wfile.write(json.dumps({"tapes": [], "note": "fallback server: flight API unavailable"}).encode("utf-8"))
                 elif self.path == "/v1/mesh/peers":
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps({"active_peers": [{"node_id": "macbook-m3-studio", "ip": "192.168.1.142", "vram_mb": 16384, "pooled": True}]}).encode("utf-8"))
+                    self.wfile.write(json.dumps({"active_peers": [], "note": "fallback server: mesh API unavailable"}).encode("utf-8"))
                 else:
                     super().do_GET()
 
@@ -231,7 +231,7 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
     print(f"[+] Target Recipient:    {target}")
     print(f"[+] Action Request:      {action} (Task: {task_id})")
     print(f"[+] Biometrics Required: {result['payload'].get('data', {}).get('requires_biometric', False)}")
-    print(f"[+] Dispatch Status:     DELIVERED [200 OK]")
+    print("[+] Dispatch Status:     PREVIEW ONLY (not sent; no channel transport configured)")
     print(f"\nPayload Preview:")
     print(json.dumps(result['payload'], indent=2))
     print("\n" + "=" * 65 + "\n")

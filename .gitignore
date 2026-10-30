@@ -55,3 +55,7 @@ LOCAL_DEMO*.md
 PITCH_AND_JUDGE_QA.md
 *YC_*
 *Dossier*
+
+# Packaging
+*.egg-info/
+build/

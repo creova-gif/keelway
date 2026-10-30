@@ -9,7 +9,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
 
 from core.config import settings
 from core.api.routes import router
@@ -27,11 +26,12 @@ logger = logging.getLogger("kora.core")
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan event handler for startup and shutdown."""
     logger.info("Initializing Kora AI Core...")
+    logger.info("Auto-initializing local storage tables...")
     try:
-        logger.info("Auto-initializing local storage tables...")
         await init_db()
-    except Exception as e:
-        logger.warning(f"Database auto-init notice: {e}")
+    except Exception:
+        logger.exception("Database initialization failed (database_url=%s)", settings.database_url.split("@")[-1])
+        raise
 
     yield
 

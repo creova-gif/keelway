@@ -3,8 +3,8 @@
 # ⚡ Kora AI
 ### Sovereign, Deterministic Runtime Infrastructure for Autonomous AI Agents
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
-[![Tests Passing](https://img.shields.io/badge/tests-29%2F29%20passed-brightgreen.svg)](tests/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
 [![Security Firewall](https://img.shields.io/badge/security-DLP%20%2B%20Prompt%20Guard-orange.svg)](core/security/)
 [![Architecture](https://img.shields.io/badge/architecture-Sovereign%20AI%20Core-purple.svg)](docs/architecture/)
 [![License: Proprietary](https://img.shields.io/badge/license-Kora%20Proprietary-red.svg)](LICENSE)
@@ -97,6 +97,28 @@ Modern AI agent frameworks suffer from three systemic engineering flaws:
 
 ---
 
+## 🧪 Experimental / Simulated Modules
+
+The following modules are prototypes: they have data models and unit tests, but are not yet wired to real transports, models, or providers. Their outputs are simulated or in-memory only.
+
+| Module | Current state |
+|---|---|
+| `core/orchestration/mesh.py` (multi-agent mesh) | Returns fixed review results; no agents are invoked |
+| `core/orchestration/p2p_mesh.py` (team mesh) | Peer registry only; no network discovery or task dispatch |
+| `core/models/speculative.py` | Simulated draft/verify loop; no model calls |
+| `core/models/edge_loader.py` | Hardware/Ollama probe; not used by the local adapter |
+| `core/storage/ap2.py`, `ledger.py`, `payment_broker.py` | Payload builders only; no live payment rails, not for real funds |
+| `core/api/messaging.py`, `kora notify` | Builds Telegram/WhatsApp/push/SMS payloads; nothing is sent |
+| `core/api/telephony.py` | USSD formatting helpers; no webhook route |
+| `core/storage/crdt.py` | In-memory LWW register; no persistence or transport |
+| `core/orchestration/mcp.py` | In-process JSON-RPC dispatcher; no stdio/SSE transport |
+| `core/security/telemetry.py` | In-memory spans; no OpenTelemetry exporter |
+| `core/security/rbac.py` | Permission matrix; not enforced by the API |
+| `core/studio/index.html` panels | Client-side demos; not yet connected to the API/WebSocket |
+| `mobile/` | Expo scaffold; not runnable yet |
+
+---
+
 ## ⚡ Quickstart
 
 ### 1. Installation & Environment Setup
@@ -110,8 +132,8 @@ cd kora
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install Kora and its dependencies (add ",postgres" for PostgreSQL)
+pip install -e ".[dev]"
 
 # Configure environment variables
 cp env.example .env
@@ -220,25 +242,10 @@ Evaluated on local Apple Silicon hardware with zero cloud dependencies:
 The test suite enforces 100% verification before code is merged:
 
 ```bash
-PYTHONPATH=. pytest tests/
+pytest
 ```
 
-```text
-============================= test session starts ==============================
-collected 29 items
-
-tests/test_api.py ...                                                    [ 10%]
-tests/test_chat.py .                                                     [ 13%]
-tests/test_dataset_pipeline.py .                                         [ 17%]
-tests/test_gateway.py ...                                                [ 27%]
-tests/test_memory.py ...                                                 [ 37%]
-tests/test_security.py .....                                             [ 55%]
-tests/test_state_machine.py ....                                         [ 68%]
-tests/test_state_machine_unittest.py ....                                [ 82%]
-tests/test_workflows.py .....                                            [100%]
-
-============================== 29 passed in 0.41s ==============================
-```
+CI runs `ruff check .` and `pytest` on Python 3.11 and 3.12 for every push and pull request.
 
 ---
 
@@ -276,10 +283,10 @@ kora/
 │   └── run_compare.py                  # Multi-model evaluation benchmark runner
 ├── research/
 │   └── datasets/                       # Trace extraction, formatting, and JSONL seeds
-├── tests/                              # Pytest test suite (29 unit & integration tests)
+├── tests/                              # Pytest test suite
 ├── env.example                         # Sanitized environment configuration template
 ├── pytest.ini                          # Pytest configuration
-└── requirements.txt                    # Pinned Python package dependencies
+└── requirements.txt                    # Points to pyproject.toml (pip install -e .)
 ```
 
 ---
