@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Kora Mobile",
+    "slug": "kora-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "kora",
+    "splash": {
+      "backgroundColor": "#070A12"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.kora.mobile",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Kora requires FaceID to cryptographically authorize agent code commits and spend mandates."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#070A12"
+      },
+      "package": "ai.kora.mobile",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "INTERNET"
+      ]
+    }
+  }
+}

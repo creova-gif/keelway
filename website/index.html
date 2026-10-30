@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kora AI — Sovereign Developer Runtime & Autonomous Engineering Grid</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#05070D',
+            surface: '#0C101D',
+            surfaceLight: '#141B2D',
+            accentBlue: '#2563EB',
+            accentCobalt: '#3B82F6',
+            emeraldShield: '#10B981',
+            amberGate: '#F59E0B',
+            crimsonKill: '#EF4444',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #05070D; color: #E2E8F0; }
+    .glow-cobalt { box-shadow: 0 0 40px rgba(59, 130, 246, 0.15); }
+    .glow-emerald { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+  </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden selection:bg-accentCobalt selection:text-white">
+
+  <!-- TOP NAV -->
+  <nav class="h-16 border-b border-white/5 bg-obsidian/80 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6 md:px-12">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-accentBlue to-indigo-500 flex items-center justify-center shadow-lg shadow-accentBlue/30">
+        <span class="text-white font-bold text-base">⚡</span>
+      </div>
+      <span class="font-extrabold text-white text-lg tracking-tight">Kora <span class="text-accentCobalt font-normal">AI</span></span>
+      <span class="hidden md:inline-block px-2 py-0.5 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">SOVEREIGN AGENT RUNTIME</span>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <a href="https://github.com/creova-gif/kora" target="_blank" class="text-xs font-mono text-slate-400 hover:text-white transition flex items-center gap-1.5">
+        <span>GitHub</span>
+        <span class="text-emeraldShield">★ v0.1.0</span>
+      </a>
+      <a href="#quickstart" class="px-3.5 py-1.5 rounded-lg bg-accentCobalt text-white hover:bg-accentBlue text-xs font-semibold transition shadow-lg shadow-accentCobalt/20">
+        Install CLI
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="py-20 md:py-28 px-6 max-w-6xl mx-auto text-center relative">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emeraldShield/10 border border-emeraldShield/30 text-emeraldShield text-xs font-mono font-medium mb-6">
+      <span class="w-2 h-2 rounded-full bg-emeraldShield animate-pulse"></span>
+      <span>Air-Gapped Zero-Egress • $0.00 Token Cost</span>
+    </div>
+
+    <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight md:leading-none max-w-4xl mx-auto">
+      The Autonomous AI Developer Built for <span class="text-transparent bg-clip-text bg-gradient-to-r from-accentCobalt via-indigo-400 to-emeraldShield">Sovereign Engineers</span>.
+    </h1>
+
+    <p class="text-slate-400 text-base md:text-lg max-w-2xl mx-auto mt-6 leading-relaxed">
+      Silicon Valley developer tools upload your private code to cloud APIs and bill via US credit cards. 
+      <strong>Kora runs 100% locally on your laptop</strong> with closed-loop AST self-healing, deterministic time-travel tapes, and global multi-rail settlement.
+    </p>
+
+    <!-- QUICKSTART COMMAND BOX -->
+    <div class="mt-8 flex justify-center">
+      <div class="bg-surface border border-white/10 rounded-xl p-3 px-5 flex items-center gap-4 font-mono text-xs shadow-2xl max-w-md w-full justify-between">
+        <span class="text-slate-400 select-none">$</span>
+        <span class="text-white font-medium select-all">curl -fsSL https://get.kora.ai | sh</span>
+        <button onclick="navigator.clipboard.writeText('curl -fsSL https://get.kora.ai | sh'); alert('Copied to clipboard!')" class="text-slate-400 hover:text-white transition">
+          📋
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE PLAYGROUND 1: IN-BROWSER WEBGPU / AIR-GAP SIMULATOR -->
+  <section class="max-w-5xl mx-auto px-6 pb-20">
+    <div class="bg-surface rounded-2xl border border-white/10 overflow-hidden shadow-2xl glow-cobalt">
+      
+      <!-- SIMULATOR CONTROLS HEADER -->
+      <div class="bg-surfaceLight/80 px-5 py-3 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full bg-crimsonKill/80"></div>
+          <div class="w-3 h-3 rounded-full bg-amberGate/80"></div>
+          <div class="w-3 h-3 rounded-full bg-emeraldShield/80"></div>
+          <span class="ml-2 font-mono text-xs text-slate-300 font-medium">Kora Edge Engine Simulator</span>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button id="web-airgap-btn" onclick="toggleWebAirGap()" class="px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-emeraldShield/15 text-emeraldShield border-emeraldShield/40 flex items-center gap-1.5">
+            <span id="web-airgap-icon">🔒</span>
+            <span id="web-airgap-label">AIR-GAP KILL SWITCH: ACTIVE</span>
+          </button>
+          <span class="text-[11px] font-mono text-slate-400">Tokens: <strong class="text-emeraldShield">$0.00</strong></span>
+        </div>
+      </div>
+
+      <!-- WORKSPACE DEMO BODY -->
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+        <div>
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Failing Test Intercepted:</div>
+          <div class="bg-obsidian p-4 rounded-lg border border-white/5 text-slate-300 space-y-1">
+            <div class="text-crimsonKill">FAIL tests/test_payment.py::test_mpesa_daraja</div>
+            <div class="text-slate-400">&gt; assert response.status == 'settled'</div>
+            <div class="text-crimsonKill font-bold">E AssertionError: assert 'pending' == 'settled'</div>
+            <div class="text-slate-500 mt-2">Locating AST frame: verify_settlement() in core/broker.py:42</div>
+          </div>
+          
+          <button onclick="runWebRepairDemo()" id="web-repair-btn" class="mt-4 w-full py-2.5 rounded-lg bg-emeraldShield/20 hover:bg-emeraldShield/30 border border-emeraldShield/40 text-emeraldShield font-bold font-sans transition">
+            ⚡ Run Closed-Loop Self-Healing
+          </button>
+        </div>
+
+        <div>
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Automated AST Patch & Worktree:</div>
+          <div id="web-patch-output" class="bg-obsidian p-4 rounded-lg border border-white/5 text-slate-400 min-h-[160px] leading-relaxed">
+            <span class="text-slate-500">// Press 'Run Closed-Loop Self-Healing' to simulate edge AST repair.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE PLAYGROUND 2: GLOBAL MULTI-RAIL PURCHASING POWER SETTLEMENT -->
+  <section class="max-w-5xl mx-auto px-6 pb-24">
+    <div class="text-center mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Sovereignty Beyond US Credit Cards</h2>
+      <p class="text-slate-400 text-xs md:text-sm mt-2 max-w-xl mx-auto">
+        Over 70% of developers worldwide are excluded from Stripe and USD cards. Kora natively settles compute, licenses, and agent bounties via regional rails.
+      </p>
+    </div>
+
+    <div class="bg-surface rounded-2xl border border-white/10 p-6 md:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
+      
+      <!-- RAIL TABS -->
+      <div class="md:col-span-2 space-y-2 font-mono text-xs">
+        <button onclick="selectRail('mpesa')" id="rail-mpesa" class="w-full text-left p-3 rounded-xl border bg-accentCobalt/15 border-accentCobalt text-white font-semibold transition">
+          🇰🇪 M-Pesa (East Africa)
+          <div class="text-[10px] text-slate-400 font-normal mt-0.5">Safaricom Daraja STK Push</div>
+        </button>
+        <button onclick="selectRail('pix')" id="rail-pix" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition">
+          🇧🇷 PIX (Brazil)
+          <div class="text-[10px] text-slate-400 font-normal mt-0.5">Instant EMVCo QR Clearing</div>
+        </button>
+        <button onclick="selectRail('upi')" id="rail-upi" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition">
+          🇮🇳 UPI 2.0 (India)
+          <div class="text-[10px] text-slate-400 font-normal mt-0.5">NPCI AutoPay & Virtual Private Address</div>
+        </button>
+        <button onclick="selectRail('l402')" id="rail-l402" class="w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition">
+          ⚡ L402 Lightning Network
+          <div class="text-[10px] text-slate-400 font-normal mt-0.5">Global Bitcoin Satoshi Streaming</div>
+        </button>
+      </div>
+
+      <!-- RAIL DISPLAY -->
+      <div class="md:col-span-3 bg-obsidian rounded-xl p-5 border border-white/10 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+            <span id="rail-title" class="font-bold text-white text-sm">M-Pesa STK Push Simulation</span>
+            <span id="rail-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emeraldShield/20 text-emeraldShield">LIVE RAIL</span>
+          </div>
+          <div id="rail-details" class="font-mono text-xs text-slate-300 leading-relaxed space-y-1.5">
+            <div>• Provider: <span class="text-white">Safaricom Daraja API</span></div>
+            <div>• Typical Amount: <span class="text-emeraldShield font-bold">1,000 KES (~$7.70 USD)</span></div>
+            <div>• Frictionless: <span class="text-slate-300">Direct mobile prompt on user's handset</span></div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
+          <span>Cloud Token Bill: <strong class="line-through text-crimsonKill">$50.00</strong></span>
+          <span>Kora Edge Cost: <strong class="text-emeraldShield font-bold">$0.00</strong></span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 py-8 text-center text-xs font-mono text-slate-500">
+    <p>Kora AI — Sovereign Agent Runtime &copy; 2026. All source code 100% air-gappable.</p>
+  </footer>
+
+  <script>
+    let webAirGapped = true;
+    function toggleWebAirGap() {
+      webAirGapped = !webAirGapped;
+      const btn = document.getElementById('web-airgap-btn');
+      const label = document.getElementById('web-airgap-label');
+      if (webAirGapped) {
+        btn.className = "px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-emeraldShield/15 text-emeraldShield border-emeraldShield/40 flex items-center gap-1.5";
+        label.textContent = "AIR-GAP KILL SWITCH: ACTIVE";
+      } else {
+        btn.className = "px-3 py-1 rounded-md text-xs font-mono font-semibold border transition bg-amberGate/15 text-amberGate border-amberGate/40 flex items-center gap-1.5";
+        label.textContent = "HYBRID CLOUD: ALLOWED";
+      }
+    }
+
+    function runWebRepairDemo() {
+      const output = document.getElementById('web-patch-output');
+      output.innerHTML = `
+        <div class="text-amberGate animate-pulse">1. Slicing AST target: core/broker.py:42...</div>
+        <div class="text-slate-400 mt-1">2. Spawning isolated ephemeral Git worktree...</div>
+        <div class="text-slate-400 mt-1">3. Executing local Qwen 2.5 Coder mutation...</div>
+        <div class="text-emeraldShield font-bold mt-2">[✓] VERIFIED: 1 passed in 0.08s (Zero Regression)</div>
+        <pre class="text-emeraldShield mt-2 text-[10px] bg-surface p-2 rounded border border-white/5">+ if settlement_proof: return True</pre>
+      `;
+    }
+
+    function selectRail(rail) {
+      const rails = ['mpesa', 'pix', 'upi', 'l402'];
+      rails.forEach(r => {
+        const el = document.getElementById(`rail-${r}`);
+        if (el) {
+          el.className = r === rail 
+            ? "w-full text-left p-3 rounded-xl border bg-accentCobalt/15 border-accentCobalt text-white font-semibold transition"
+            : "w-full text-left p-3 rounded-xl border bg-obsidian border-white/10 text-slate-300 hover:text-white transition";
+        }
+      });
+
+      const title = document.getElementById('rail-title');
+      const details = document.getElementById('rail-details');
+
+      if (rail === 'mpesa') {
+        title.textContent = "M-Pesa STK Push Simulation";
+        details.innerHTML = `
+          <div>• Provider: <span class="text-white">Safaricom Daraja API</span></div>
+          <div>• Typical Amount: <span class="text-emeraldShield font-bold">1,000 KES (~$7.70 USD)</span></div>
+          <div>• Protocol: <span class="text-slate-300">Instant STK handset push on phone number</span></div>
+        `;
+      } else if (rail === 'pix') {
+        title.textContent = "PIX Instant EMVCo Clearing";
+        details.innerHTML = `
+          <div>• Provider: <span class="text-white">Banco Central do Brasil</span></div>
+          <div>• Typical Amount: <span class="text-emeraldShield font-bold">R$ 25.00 BRL (~$4.50 USD)</span></div>
+          <div>• Protocol: <span class="text-slate-300">Dynamic EMVCo QR & Copia-e-Cola token</span></div>
+        `;
+      } else if (rail === 'upi') {
+        title.textContent = "UPI 2.0 National Payments";
+        details.innerHTML = `
+          <div>• Provider: <span class="text-white">NPCI (India)</span></div>
+          <div>• Typical Amount: <span class="text-emeraldShield font-bold">₹150 INR (~$1.80 USD)</span></div>
+          <div>• Protocol: <span class="text-slate-300">upi://pay?pa=kora@axis deep-link intent</span></div>
+        `;
+      } else if (rail === 'l402') {
+        title.textContent = "L402 Lightning Protocol";
+        details.innerHTML = `
+          <div>• Protocol: <span class="text-white">HTTP 402 + BOLT11 Invoice</span></div>
+          <div>• Typical Amount: <span class="text-emeraldShield font-bold">1,000 Satoshis (~$0.65 USD)</span></div>
+          <div>• Security: <span class="text-slate-300">HMAC SHA-256 Macaroon cryptographic challenge</span></div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
