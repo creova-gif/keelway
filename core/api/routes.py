@@ -29,6 +29,7 @@ from core.api.schemas import (
 )
 from core.config import settings
 from core.models.gateway import gateway
+from core.security.origin import origin_allowed
 from core.orchestration.state import validate_transition, InvalidStateTransitionError
 from core.orchestration.workflows import (
     EngineeringBriefWorkflow,
@@ -326,8 +327,7 @@ ws_manager = ConnectionManager()
 @router.websocket("/v1/ws/studio")
 async def websocket_studio_endpoint(websocket: WebSocket):
     """Real-time bidirectional channel for Kora Dev Studio events, diffs, and thought streaming."""
-    origin = websocket.headers.get("origin")
-    if origin is not None and not re.fullmatch(settings.cors_origin_regex, origin):
+    if not origin_allowed(websocket.headers.get("origin"), websocket.headers.get("host")):
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Origin not allowed.")
     await ws_manager.connect(websocket)
     try:

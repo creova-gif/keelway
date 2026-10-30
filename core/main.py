@@ -11,6 +11,7 @@ from pathlib import Path
 from fastapi.responses import JSONResponse, HTMLResponse
 
 from core.config import settings
+from core.security.origin import extra_origins, origin_allowed
 from core.api.routes import router
 from core.storage.database import init_db
 
@@ -48,11 +49,19 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=settings.cors_origin_regex,
+    allow_origins=extra_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def reject_foreign_origins(request: Request, call_next):
+    # CORS only hides responses from foreign pages; this stops the request from executing at all.
+    if not origin_allowed(request.headers.get("origin"), request.headers.get("host")):
+        return JSONResponse(status_code=403, content={"detail": "Origin not allowed."})
+    return await call_next(request)
 
 
 # Global zero-silent-failure exception handler
