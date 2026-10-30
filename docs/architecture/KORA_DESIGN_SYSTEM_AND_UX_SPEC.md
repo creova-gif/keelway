@@ -20,6 +20,36 @@
 
 ---
 
+## 0.1 Evil Martians Framework for Developer Tool Interfaces
+
+Implemented directly from Evil Martians' research (*"Devs in mind: how to design interfaces for developer tools"*):
+
+### A. The Three Operational Contexts of Developer Work
+1. **Immediate Context (The Panel):**
+   - *Self-Contained Controls:* Every panel (Diff, Self-Healing, Settlement, Terminal) holds all tools required to finish a unit of work without leaving the view.
+   - *Panel Footers:* Sticky action bars at the bottom of panels contain primary action buttons (`Accept & Commit ⌘⏎`, `Generate Intent`, `Test in Isolated Worktree`) and status summaries, removing the need for hunt-and-peck scrolling.
+   - *Minimal Scrolling:* Critical telemetry and control buttons are pinned to viewport boundaries.
+
+2. **Intermediate Context (The Application Scope):**
+   - *Context Restoration & State Persistence:* Panel layout (`[`, `]`), active tab, audio mute toggle, air-gap state, and scrub positions are automatically persisted to `localStorage` so a reload or tab switch never destroys developer state.
+   - *Collapsible Ergonomics:* Left sidebar and right telemetry inspector are collapsible via keyboard (`[` and `]`) or header icons to grant 100% canvas focus when inspecting large unified AST diffs.
+   - *Quick Command Palette (`⌘K`):* Instant modal search to jump between tabs, toggle the air-gap shield, or trigger self-healing without touching the mouse.
+
+3. **Broad Context (The OS & Tool Ecosystem):**
+   - *Multi-Tool Harmony:* Designed to sit seamlessly alongside VS Code, Neovim, and terminal split windows (supports 50% screen snapping down to 768px without horizontal clipping).
+   - *1-Click CLI Interoperability:* Every state (git branch `#f05b0b9`, CLI commands `kora dev`, `kora notify`) has a 1-click copy button with instant toast feedback.
+
+### B. Directional Flow Rules
+- **The Top-Down Rule:** Elements positioned *above* strictly control elements *below* (e.g., Tab bar controls the center workspace; file view mode `Unified | Split` controls the diff canvas; Flight scrubber controls the historical frames below it).
+- **The Left-to-Right Rule:** Elements on the *left* strictly dictate elements on the *right* (e.g., Selecting a file in the Left Tree renders its diff in the Center Panel; selecting an AST line in the Center Panel updates the Right Telemetry Inspector).
+
+### C. Form Controls & High Data Density
+- **No Hidden Dropdowns:** All core state selectors (payment rails, diff views, preset test suites) use **explicit segmented button controls** visible at a single glance.
+- **Dual Range Slider + Direct Numeric Input:** The Flight Recorder scrubber pairs a smooth scrub slider with an exact numerical input (`Frame [ 4 ] of 4`), letting developers scrub roughly or jump to an exact integer.
+- **Tabular Monospace Alignment:** Monospace numbers utilize `tabular-nums` (`font-variant-numeric: tabular-nums`) to completely eliminate layout jitter during live counter streaming.
+
+---
+
 ## 1. UX Foundation: Target Users & Core User Flows
 
 ### A. User Personas & Core Jobs-to-be-Done (JTBD)

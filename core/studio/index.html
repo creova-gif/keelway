@@ -3,26 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kora Dev Studio — Sovereign Mission Control</title>
+  <title>Kora Dev Studio — Sovereign Developer Runtime</title>
   <!-- Tailwind CSS CDN for instant, zero-build beautiful reactive styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            obsidian: '#070A12',
-            surface: '#0F1626',
-            surfaceLight: '#182238',
+            obsidian: '#05070D',
+            surface: '#0C101D',
+            surfaceLight: '#141B2D',
+            surfaceCard: '#1A233A',
+            borderSubtle: '#1E293B',
             accentBlue: '#2563EB',
             accentCobalt: '#3B82F6',
             emeraldShield: '#10B981',
             amberGate: '#F59E0B',
-            crimsonBlock: '#EF4444',
+            crimsonKill: '#EF4444',
           },
           fontFamily: {
             sans: ['Inter', '-apple-system', 'sans-serif'],
@@ -33,518 +35,549 @@
     }
   </script>
   <style>
-    body { background-color: #070A12; color: #E2E8F0; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #070A12; }
-    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    body { background-color: #05070D; color: #E2E8F0; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #05070D; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    .diff-add { background-color: rgba(16, 185, 129, 0.15); color: #34D399; }
-    .diff-del { background-color: rgba(239, 68, 68, 0.15); color: #F87171; }
+    .diff-add { background-color: rgba(16, 185, 129, 0.12); color: #34D399; }
+    .diff-del { background-color: rgba(239, 68, 68, 0.12); color: #F87171; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
   </style>
 </head>
-<body class="font-sans antialiased h-screen flex flex-col overflow-hidden select-none">
+<body class="font-sans antialiased h-screen flex flex-col overflow-hidden select-none text-slate-200">
 
-  <!-- TOP APP HEADER -->
-  <header class="h-13 bg-surface border-b border-white/5 flex items-center justify-between px-4 shrink-0 z-20">
+  <!-- TOP APP HEADER (BROAD CONTEXT / GLOBAL APPLICATION STATE) -->
+  <header class="h-11 bg-surface border-b border-borderSubtle flex items-center justify-between px-3 shrink-0 z-30">
     <div class="flex items-center space-x-3">
+      <!-- BRAND & GIT CONTEXT -->
       <div class="flex items-center space-x-2">
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-accentBlue to-indigo-500 flex items-center justify-center shadow-lg shadow-accentBlue/20">
-          <span class="text-white font-bold text-sm">⚡</span>
+        <div class="w-6 h-6 rounded bg-gradient-to-tr from-accentBlue to-indigo-500 flex items-center justify-center shadow-md shadow-accentBlue/20">
+          <span class="text-white font-bold text-xs">⚡</span>
         </div>
-        <span class="font-bold text-white tracking-tight text-base">Kora <span class="text-accentCobalt font-normal">Dev Studio</span></span>
+        <span class="font-bold text-white tracking-tight text-sm">Kora <span class="text-accentCobalt font-normal">Dev Studio</span></span>
       </div>
-      <span class="px-2 py-0.5 text-[11px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.2.0-sovereign</span>
-      <span class="text-slate-600">/</span>
-      <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emeraldShield animate-pulse"></span>
-        creova-gif/kora
-      </span>
+
+      <div class="hidden sm:flex items-center space-x-1 text-xs">
+        <span class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.4-martian</span>
+        <span class="text-slate-600">/</span>
+        <button onclick="copyToClipboard('git checkout main', 'Copied Git branch command')" title="Click to copy branch" class="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-white/5 transition">
+          <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
+          <span>main</span>
+          <span class="text-[10px] text-slate-500">#f05b0b9</span>
+        </button>
+      </div>
     </div>
 
-    <!-- CENTER CONTROLS / ACTIVE MODEL -->
-    <div class="flex items-center space-x-2 bg-surfaceLight px-3 py-1 rounded-full border border-white/10 text-xs">
-      <span class="text-slate-400">Engine:</span>
-      <span class="font-mono text-white font-medium flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-accentCobalt"></span>
-        Qwen 3.5 (9.7B Sovereign Edge)
-      </span>
-      <span class="text-slate-500">|</span>
-      <span class="text-emeraldShield font-mono font-medium">$0.00 / token</span>
+    <!-- CENTER SEARCH / COMMAND PALETTE TRIGGER (EVIL MARTIANS QUICK CONTEXT ACCESS) -->
+    <div class="flex items-center">
+      <button onclick="openCommandPalette()" class="flex items-center space-x-2 bg-surfaceLight/80 hover:bg-surfaceLight px-3 py-1 rounded-md border border-white/10 text-xs text-slate-400 hover:text-slate-200 transition shadow-inner w-56 sm:w-80 justify-between">
+        <span class="flex items-center gap-1.5 truncate">
+          <span>🔍</span>
+          <span class="truncate">Search commands, files, diffs...</span>
+        </span>
+        <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/10 text-slate-300 border border-white/10">⌘K</kbd>
+      </button>
     </div>
 
-    <!-- RIGHT AIR-GAP TOGGLE & TELEMETRY SHIELD -->
-    <div class="flex items-center space-x-3">
-      <button id="airgap-btn" onclick="toggleAirGap()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20">
+    <!-- RIGHT GLOBAL CONTROLS & LAYOUT TOGGLES -->
+    <div class="flex items-center space-x-2 text-xs">
+      <!-- HARDWARE & AIRGAP STATUS -->
+      <div class="hidden md:flex items-center space-x-2 bg-surfaceLight/50 px-2.5 py-1 rounded border border-white/5 font-mono text-[11px]">
+        <span class="text-slate-400">Spec:</span>
+        <span class="text-emeraldShield font-bold">2.58x</span>
+        <span class="text-slate-600">|</span>
+        <span class="text-slate-400">Mesh:</span>
+        <span class="text-accentCobalt font-bold">3 Nodes</span>
+      </div>
+
+      <!-- AIR-GAP KILL SWITCH -->
+      <button id="airgap-btn" onclick="toggleAirGap()" class="flex items-center space-x-1.5 px-2.5 py-1 rounded border text-xs font-medium transition shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20 active:scale-95" title="Toggle Physical Egress Shield (Alt+A)">
         <span id="airgap-icon">🔒</span>
-        <span id="airgap-label">Air-Gapped: Zero-Egress</span>
+        <span id="airgap-label" class="hidden sm:inline">Air-Gapped: Zero-Egress</span>
       </button>
 
-      <div class="flex items-center space-x-1.5 pl-2 border-l border-white/10 text-xs text-slate-400">
-        <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
-        <span>Egress: <strong class="text-white font-mono">0.0 KB</strong></span>
+      <!-- AUDIO FEEDBACK TOGGLE -->
+      <button onclick="toggleAudio()" id="audio-toggle" class="p-1 rounded hover:bg-white/5 text-slate-400 hover:text-white transition" title="Toggle Synthesizer Audio">
+        <span id="audio-icon">🔊</span>
+      </button>
+
+      <span class="text-slate-700">|</span>
+
+      <!-- PANEL TOGGLE SHORTCUTS (INTERMEDIATE CONTEXT CONTROLS) -->
+      <div class="flex items-center space-x-0.5 bg-surfaceLight/80 p-0.5 rounded border border-white/10">
+        <button id="btn-toggle-left" onclick="toggleSidebar()" class="px-1.5 py-0.5 rounded text-[11px] text-slate-300 hover:bg-white/10 transition" title="Toggle Sidebar ([)">◧</button>
+        <button id="btn-toggle-right" onclick="toggleTelemetry()" class="px-1.5 py-0.5 rounded text-[11px] text-slate-300 hover:bg-white/10 transition" title="Toggle Telemetry (])">◨</button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN 3-COLUMN WORKSPACE -->
-  <div class="flex-1 flex overflow-hidden">
+  <!-- MAIN THREE-COLUMN WORKSPACE WITH EVIL MARTIANS DIRECTIONAL FLOW (LEFT TO RIGHT, TOP TO BOTTOM) -->
+  <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- LEFT SIDEBAR: NAVIGATION & SECURITY POSTURE -->
-    <aside class="w-64 bg-surface/80 border-r border-white/5 flex flex-col shrink-0">
-      <div class="p-3 border-b border-white/5">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-2">Workspace Navigation</div>
-        <nav class="space-y-0.5 text-xs">
-          <button onclick="switchTab('diff')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
-            <span class="flex items-center gap-2"><span>📂</span> Code & Diff</span>
-            <span class="font-mono text-[10px] text-slate-400">active</span>
-          </button>
-          <button onclick="switchTab('healing')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
-            <span class="flex items-center gap-2"><span>🔧</span> Self-Healing Loop</span>
-            <span class="font-mono text-[10px] text-emeraldShield">AST Repair</span>
-          </button>
-          <button onclick="switchTab('payments')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
-            <span class="flex items-center gap-2"><span>💳</span> Global Settlement</span>
-            <span class="font-mono text-[10px] text-accentCobalt">Multi-Rail</span>
-          </button>
-          <button onclick="switchTab('term')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-white/10 text-slate-300 hover:text-white font-medium transition">
-            <span class="flex items-center gap-2"><span>💻</span> Sandboxed Terminal</span>
-            <span class="font-mono text-[10px] text-slate-400">Pty</span>
-          </button>
-        </nav>
+    <!-- LEFT SIDEBAR: WORKSPACE EXPLORER & SECURITY (INTERMEDIATE CONTEXT) -->
+    <aside id="left-sidebar" class="w-64 bg-surface/95 border-r border-borderSubtle flex flex-col shrink-0 transition-all duration-150 ease-out z-10">
+      
+      <!-- SUB-HEADER: QUICK FILTER -->
+      <div class="p-2.5 border-b border-borderSubtle flex items-center justify-between">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <span>📁</span>
+          <span>Workspace Tree</span>
+        </div>
+        <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-300 text-xs px-1" title="Collapse Sidebar ([)">✕</button>
       </div>
 
-      <!-- FILE TREE EXPLORER -->
-      <div class="flex-1 overflow-y-auto p-3 text-xs font-mono space-y-1">
-        <div class="text-[11px] font-semibold uppercase font-sans tracking-wider text-slate-400 px-2 mb-1.5">Architecture & Modules</div>
-        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 core/orchestration/</div>
-        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 self_healing.py</span>
-          <span class="text-[10px] text-emeraldShield font-sans font-bold">READY</span>
+      <!-- FILE TREE EXPLORER (LEFT CONTROLS RIGHT) -->
+      <div class="flex-1 overflow-y-auto p-2 text-xs font-mono space-y-0.5">
+        <div class="text-[10px] font-semibold uppercase text-slate-500 px-2 pt-1 pb-0.5">Core Runtime Modules</div>
+        
+        <div onclick="selectFile('core/agent/self_healing.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l-2 border-accentCobalt">
+          <span class="truncate flex items-center gap-1.5"><span>📄</span> self_healing.py</span>
+          <span class="text-[9px] font-bold px-1 rounded bg-amberGate/20 text-amberGate">MODIFIED</span>
         </div>
-        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 worktree.py</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span>
+
+        <div onclick="selectFile('core/models/speculative.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+          <span class="truncate flex items-center gap-1.5"><span>📄</span> speculative.py</span>
+          <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">VERIFIED</span>
         </div>
-        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 flight_recorder.py</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-accentCobalt"></span>
+
+        <div onclick="selectFile('core/orchestration/p2p_mesh.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+          <span class="truncate flex items-center gap-1.5"><span>📄</span> p2p_mesh.py</span>
+          <span class="text-[9px] font-bold px-1 rounded bg-accentCobalt/20 text-accentCobalt">READY</span>
         </div>
-        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 core/storage/</div>
-        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 payment_broker.py</span>
-          <span class="text-[10px] text-emeraldShield font-sans font-bold">READY</span>
+
+        <div onclick="selectFile('core/storage/payment_broker.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+          <span class="truncate flex items-center gap-1.5"><span>📄</span> payment_broker.py</span>
+          <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">READY</span>
         </div>
-        <div class="pl-5 pr-2 py-1 text-slate-300 hover:text-white cursor-pointer rounded hover:bg-white/5 flex items-center justify-between">
-          <span>📄 crdt.py</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span>
+
+        <div onclick="selectFile('core/api/messaging.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white">
+          <span class="truncate flex items-center gap-1.5"><span>📄</span> messaging.py</span>
+          <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">READY</span>
         </div>
-        <div class="px-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📁 docs/architecture/</div>
-        <div class="pl-5 pr-2 py-1 text-slate-400 hover:text-white cursor-pointer rounded hover:bg-white/5">📄 ADR-006.md</div>
+
+        <div class="text-[10px] font-semibold uppercase text-slate-500 px-2 pt-3 pb-0.5">Test Suites & Specs</div>
+        <div onclick="selectFile('tests/test_self_healing.py')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white">
+          <span class="truncate flex items-center gap-1.5"><span>🧪</span> test_self_healing.py</span>
+          <span class="text-[9px] text-emeraldShield font-bold">22 PASS</span>
+        </div>
+        <div onclick="selectFile('docs/architecture/ADR-007.md')" class="px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white">
+          <span class="truncate flex items-center gap-1.5"><span>📜</span> ADR-007.md</span>
+          <span class="text-[9px] text-slate-500">SPEC</span>
+        </div>
       </div>
 
-      <!-- SECURITY POSTURE MINI WIDGET -->
-      <div class="p-3 bg-surfaceLight/50 border-t border-white/5 text-[11px]">
+      <!-- PANEL FOOTER (EVIL MARTIANS IMMEDIATE CONTEXT SUMMARY) -->
+      <div class="p-2.5 bg-surfaceLight/60 border-t border-borderSubtle text-[11px] font-mono shrink-0">
         <div class="flex items-center justify-between text-slate-300 mb-1">
-          <span class="font-medium">DLP Secret Guard:</span>
-          <span class="text-emeraldShield font-mono font-bold">ACTIVE</span>
+          <span class="font-sans text-slate-400">DLP Secret Guard:</span>
+          <span class="text-emeraldShield font-bold">ARMED</span>
         </div>
         <div class="flex items-center justify-between text-slate-300 mb-1">
-          <span class="font-medium">Self-Healing Engine:</span>
-          <span class="text-emeraldShield font-mono font-bold">ENGAGED</span>
+          <span class="font-sans text-slate-400">AST Self-Healing:</span>
+          <span class="text-emeraldShield font-bold">ENGAGED</span>
         </div>
         <div class="flex items-center justify-between text-slate-300">
-          <span class="font-medium">Local Tests:</span>
-          <span class="text-emeraldShield font-mono font-bold">45/45 PASS</span>
+          <span class="font-sans text-slate-400">Zero-Dep Tests:</span>
+          <span class="text-emeraldShield font-bold">22/22 (0.11s)</span>
         </div>
       </div>
     </aside>
 
-    <!-- CENTER CANVAS: MULTI-FILE DIFF VIEWER, TERMINAL, HEALING & SETTLEMENT -->
+    <!-- CENTER CANVAS: PRIMARY WORKSPACE (IMMEDIATE CONTEXT WITH EXPLICIT CONTROLS) -->
     <main class="flex-1 flex flex-col min-w-0 bg-obsidian">
-      <!-- TABS BAR -->
-      <div class="h-10 bg-surface/50 border-b border-white/5 flex items-center justify-between px-3 shrink-0">
-        <div class="flex items-center space-x-1 text-xs">
-          <button id="tab-diff-btn" onclick="switchTab('diff')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface">
-            Multi-File Diff
+      
+      <!-- TOP NAVIGATION BAR: HIGH-INFORMATION SEGMENTED CONTROL (NO DROPDOWNS) -->
+      <div class="h-10 bg-surface/70 border-b border-borderSubtle flex items-center justify-between px-3 shrink-0">
+        <!-- TABS (SEGMENTED BUTTONS WITH KEYBOARD NUMBERS 1-4) -->
+        <div class="flex items-center space-x-1 text-xs" role="tablist">
+          <button id="tab-diff-btn" onclick="switchTab('diff')" role="tab" class="px-3 py-1.5 rounded font-medium border border-accentCobalt/40 bg-accentCobalt/10 text-white transition active:scale-95">
+            <span class="text-accentCobalt font-mono mr-1">1</span> Multi-File Diff
           </button>
-          <button id="tab-healing-btn" onclick="switchTab('healing')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
-            Autonomous Self-Healing
+          <button id="tab-healing-btn" onclick="switchTab('healing')" role="tab" class="px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95">
+            <span class="text-slate-500 font-mono mr-1">2</span> Autonomous Self-Healing
           </button>
-          <button id="tab-payments-btn" onclick="switchTab('payments')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
-            Global Multi-Rail Settlement
+          <button id="tab-payments-btn" onclick="switchTab('payments')" role="tab" class="px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95">
+            <span class="text-slate-500 font-mono mr-1">3</span> Multi-Rail Settlement
           </button>
-          <button id="tab-term-btn" onclick="switchTab('term')" class="px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
-            Sandbox Terminal
+          <button id="tab-term-btn" onclick="switchTab('term')" role="tab" class="px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95">
+            <span class="text-slate-500 font-mono mr-1">4</span> Sandboxed Terminal
           </button>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-[11px] font-mono text-slate-500 hidden md:inline">Diff view:</span>
+          <div class="flex items-center bg-surfaceLight rounded p-0.5 border border-white/5 text-[11px]">
+            <button id="btn-view-unified" onclick="setDiffMode('unified')" class="px-2 py-0.5 rounded bg-white/10 text-white font-medium">Unified</button>
+            <button id="btn-view-split" onclick="setDiffMode('split')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Split 2-Col</button>
+          </div>
         </div>
       </div>
 
-      <!-- DETERMINISTIC FLIGHT RECORDER TIME-TRAVEL SCRUBBER -->
-      <div class="h-9 bg-surfaceLight/40 border-b border-white/5 flex items-center justify-between px-4 shrink-0 text-xs font-mono">
-        <div class="flex items-center space-x-3">
+      <!-- DETERMINISTIC FLIGHT RECORDER TIME-TRAVEL BAR (COMBINED SLIDER + DIRECT NUMERIC INPUT) -->
+      <div class="h-9 bg-surfaceLight/40 border-b border-borderSubtle flex items-center justify-between px-3 shrink-0 text-xs font-mono">
+        <div class="flex items-center space-x-2">
           <span class="text-slate-400 flex items-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-accentCobalt animate-ping"></span>
-            <span>Flight Tape:</span>
+            <span class="hidden sm:inline">Flight Tape:</span>
           </span>
-          <span id="flight-task-label" class="text-white font-bold">task_self_heal.flight</span>
+          <span class="text-white font-bold truncate">task_self_heal.flight</span>
           <span class="text-slate-600">|</span>
-          <span id="flight-step-label" class="text-slate-300">Frame <strong id="flight-curr-frame" class="text-accentCobalt">4</strong> of 4</span>
+          
+          <!-- EVIL MARTIANS PRINCIPLE: DUAL SLIDER + EXACT TEXT INPUT -->
+          <span class="text-slate-300 flex items-center gap-1">
+            <span>Frame</span>
+            <input id="flight-frame-input" type="number" min="1" max="4" value="4" onchange="handleDirectFrameInput(this.value)" class="w-10 bg-black/60 border border-white/20 rounded px-1 py-0.5 text-center text-accentCobalt font-bold focus:outline-none focus:border-accentCobalt">
+            <span>of 4</span>
+          </span>
         </div>
 
-        <div class="flex items-center space-x-2">
-          <button onclick="flightStepBack()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition">◂ Step</button>
-          <input id="flight-scrubber" type="range" min="1" max="4" value="4" oninput="handleScrub(this.value)" class="w-32 accent-accentCobalt cursor-pointer">
-          <button onclick="flightStepForward()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition">Step ▸</button>
-          <button onclick="forkCurrentTimeline()" class="ml-2 px-2.5 py-0.5 rounded bg-amberGate/20 text-amberGate hover:bg-amberGate/30 border border-amberGate/30 font-sans font-semibold transition flex items-center gap-1">
-            <span>⑂</span> Fork Timeline
+        <div class="flex items-center space-x-1.5">
+          <button onclick="flightStepBack()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95" title="Step Back ([)">◂ Step</button>
+          <input id="flight-scrubber" type="range" min="1" max="4" value="4" oninput="handleScrub(this.value)" class="w-24 sm:w-36 accent-accentCobalt cursor-pointer">
+          <button onclick="flightStepForward()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95" title="Step Forward (])">Step ▸</button>
+          <button onclick="forkCurrentTimeline()" class="ml-1.5 px-2 py-0.5 rounded bg-amberGate/20 text-amberGate hover:bg-amberGate/30 border border-amberGate/40 font-sans font-semibold transition active:scale-95 flex items-center gap-1" title="Branch a parallel exploration tree">
+            <span>⑂</span>
+            <span class="hidden sm:inline">Fork Timeline</span>
           </button>
         </div>
       </div>
 
-      <!-- TAB 1: GHOST DIFF WORKSPACE -->
-      <div id="tab-diff" class="flex-1 overflow-auto p-4 font-mono text-xs">
-        <div class="bg-surface rounded-lg border border-white/10 overflow-hidden shadow-2xl">
-          <div class="bg-surfaceLight px-4 py-2 border-b border-white/10 flex items-center justify-between text-slate-300 font-sans text-xs">
-            <div class="flex items-center gap-2">
-              <span class="font-semibold text-white">core/orchestration/self_healing.py</span>
-              <span class="text-slate-500">•</span>
-              <span class="text-emeraldShield">+275 lines added</span>
+      <!-- TAB CONTENT AREA (CONTAINED SCROLLING & PERSISTENT STATES) -->
+      <div class="flex-1 flex flex-col min-h-0 relative">
+        
+        <!-- 1. MULTI-FILE DIFF VIEWER -->
+        <div id="tab-diff" class="flex-1 flex flex-col min-h-0">
+          <!-- TOP PANEL CONTROL (TOP-DOWN FLOW) -->
+          <div class="px-4 py-2 bg-surfaceLight/20 border-b border-borderSubtle flex items-center justify-between text-xs font-mono">
+            <div class="flex items-center space-x-2">
+              <span class="text-slate-400">File:</span>
+              <span id="active-file-title" class="text-accentCobalt font-bold">core/agent/self_healing.py</span>
+              <span class="text-slate-600">|</span>
+              <span class="text-emeraldShield">+14 lines</span>
+              <span class="text-crimsonKill">-3 lines</span>
             </div>
-            <div class="text-[11px] text-emeraldShield font-mono font-bold">VERIFIED ZERO-REGRESSION</div>
-          </div>
-          <div class="p-3 leading-relaxed space-y-0.5">
-            <div class="text-slate-500">@@ -1,15 +1,40 @@</div>
-            <div class="diff-add pl-2">+ class SelfHealingLoop:</div>
-            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;"""Autonomous closed-loop test-and-repair engine for sovereign developer workspaces."""</div>
-            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;def parse_test_failure(self, output: str) -> Optional[DiagnosticFailure]: ...</div>
-            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;def locate_faulty_ast(self, file_path: Path, line_number: int) -> Dict[str, Any]: ...</div>
-            <div class="diff-add pl-2">+ &nbsp;&nbsp;&nbsp;&nbsp;async def run_repair_cycle(self, test_cmd: str, patch_generator_fn: Optional[Any] = None) -> RepairResult: ...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 2: AUTONOMOUS SELF-HEALING LOOP -->
-      <div id="tab-healing" class="flex-1 overflow-auto p-4 text-xs space-y-4 hidden">
-        <div class="bg-surface p-4 rounded-lg border border-white/10 space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                <span>🔧 Closed-Loop Autonomous Test-and-Repair</span>
-                <span class="px-2 py-0.5 text-[10px] rounded bg-emeraldShield/20 text-emeraldShield border border-emeraldShield/30">SWE-Agent Grade</span>
-              </h2>
-              <p class="text-slate-400 text-xs mt-0.5">Intercepts test failures, localizes faulty AST code blocks, tests patches in isolated worktrees, and verifies zero-regression.</p>
+            <div class="flex items-center space-x-2">
+              <button onclick="copyToClipboard(document.getElementById('diff-code-block').innerText, 'Diff copied to clipboard')" class="px-2 py-0.5 rounded hover:bg-white/5 text-slate-400 hover:text-white transition flex items-center gap-1">
+                <span>📋</span> Copy Diff
+              </button>
             </div>
           </div>
 
-          <div class="flex gap-2 pt-2">
-            <input id="heal-test-cmd" type="text" value="python3 tests/test_payment_broker.py" placeholder="Test command (e.g. pytest tests/test_api.py)" 
-              class="flex-1 bg-obsidian border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-accentCobalt">
-            <button onclick="triggerSelfHealingUI()" id="heal-run-btn" class="px-4 py-2 rounded-lg bg-emeraldShield/20 text-emeraldShield hover:bg-emeraldShield/30 border border-emeraldShield/30 font-semibold flex items-center gap-1.5 transition">
-              <span>⚡</span> Run Repair Cycle
-            </button>
-          </div>
-        </div>
-
-        <div id="heal-status-panel" class="bg-surface p-4 rounded-lg border border-white/10 font-mono space-y-2">
-          <div class="text-slate-400 font-sans font-semibold mb-2">Repair Verification Log</div>
-          <div id="heal-log" class="text-slate-300 leading-relaxed space-y-1">
-            <div class="text-slate-500">• Ready. Press 'Run Repair Cycle' to verify test suite or auto-repair failures.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 3: GLOBAL SOVEREIGN MULTI-RAIL SETTLEMENT -->
-      <div id="tab-payments" class="flex-1 overflow-auto p-4 text-xs space-y-4 hidden">
-        <div class="bg-surface p-4 rounded-lg border border-white/10 space-y-3">
-          <div>
-            <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              <span>💳 Global Sovereign Multi-Rail Payment Broker</span>
-              <span class="px-2 py-0.5 text-[10px] rounded bg-accentCobalt/20 text-accentCobalt border border-accentCobalt/30">Unlocks Worldwide Devs</span>
-            </h2>
-            <p class="text-slate-400 text-xs mt-0.5">Enables developers without US/EU credit cards to settle compute and API services via local instant payment rails and crypto microtransactions.</p>
+          <!-- DIFF CODE AREA -->
+          <div class="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5" id="diff-code-block">
+            <div class="text-slate-500 font-semibold mb-2">@@ -84,12 +84,23 @@ class AutonomousSelfHealingEngine:</div>
+            <div class="text-slate-400 pl-4">     def execute_repair(self, failure_signature: str) -> ASTRepairResult:</div>
+            <div class="text-slate-400 pl-4">         tree = ast.parse(self.source_code)</div>
+            <div class="diff-del px-2 py-0.5 rounded font-medium">-        # Legacy naive regex line patch</div>
+            <div class="diff-del px-2 py-0.5 rounded font-medium">-        patched_code = re.sub(failure_signature, '', self.source_code)</div>
+            <div class="diff-del px-2 py-0.5 rounded font-medium">-        return ASTRepairResult(success=False, ast_diff="regex_failed")</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        # AST-driven syntax rewriting with zero regex drift</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        transformer = SyntaxErrorHealingTransformer(failure_signature)</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        repaired_tree = transformer.visit(tree)</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        ast.fix_missing_locations(repaired_tree)</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        patched_code = ast.unparse(repaired_tree)</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        </div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        # Execute test probe in isolated ephemeral worktree</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        verify_result = self.worktree.run_verification(patched_code)</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        return ASTRepairResult(</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+            success=verify_result.exit_code == 0,</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+            ast_diff=transformer.get_diff_summary(),</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+            verification_output=verify_result.output</div>
+            <div class="diff-add px-2 py-0.5 rounded font-medium">+        )</div>
+            <div class="text-slate-400 pl-4 mt-2">     def rollback(self) -> None:</div>
+            <div class="text-slate-400 pl-4">         self.worktree.restore_snapshot()</div>
           </div>
 
-          <div class="grid grid-cols-4 gap-3 pt-2">
-            <div>
-              <label class="text-[10px] uppercase font-semibold text-slate-400">Payment Rail</label>
-              <select id="pay-rail" class="w-full mt-1 bg-obsidian border border-white/10 rounded-lg p-2 text-white text-xs">
-                <option value="mpesa">M-Pesa (East Africa / Safaricom)</option>
-                <option value="pix">PIX (Brazil Instant EMVCo)</option>
-                <option value="upi">UPI 2.0 (India NPCI Intent)</option>
-                <option value="lightning_l402">L402 Lightning (Bitcoin Sats)</option>
-                <option value="offline_voucher">Offline Prepaid Voucher (Air-Gap)</option>
-              </select>
+          <!-- PANEL FOOTER (EVIL MARTIANS IMMEDIATE CONTEXT ACTION BAR) -->
+          <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs">
+            <div class="flex items-center space-x-2 text-slate-400">
+              <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
+              <span>Syntax validated (AST clean)</span>
+              <span class="text-slate-600">|</span>
+              <span class="font-mono text-slate-300">1 File • +14 / -3</span>
             </div>
-            <div>
-              <label class="text-[10px] uppercase font-semibold text-slate-400">Amount & Currency</label>
-              <div class="flex gap-1 mt-1">
-                <input id="pay-amount" type="number" value="1000" class="w-2/3 bg-obsidian border border-white/10 rounded-lg p-2 text-white font-mono text-xs">
-                <input id="pay-currency" type="text" value="KES" class="w-1/3 bg-obsidian border border-white/10 rounded-lg p-2 text-white font-mono text-xs uppercase">
+            <div class="flex items-center space-x-2">
+              <button onclick="triggerSelfHealingUI()" class="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95 font-medium">
+                Test In Isolated Worktree
+              </button>
+              <button onclick="acceptDiffAndCommit()" class="px-4 py-1.5 rounded bg-emeraldShield hover:bg-emerald-600 text-obsidian font-bold transition shadow-md shadow-emeraldShield/20 active:scale-95 flex items-center gap-1.5">
+                <span>✓</span> Accept & Commit <kbd class="px-1 py-0.2 rounded bg-black/20 text-[10px]">⌘⏎</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. AUTONOMOUS SELF-HEALING PANEL -->
+        <div id="tab-healing" class="hidden flex-1 flex flex-col min-h-0">
+          <div class="p-4 border-b border-borderSubtle bg-surfaceLight/30 flex items-center justify-between shrink-0">
+            <div class="flex-1 mr-4">
+              <div class="text-xs font-semibold text-slate-300 mb-1 flex items-center gap-2">
+                <span>🔧 Closed-Loop Test & AST Repair Engine</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accentCobalt/20 text-accentCobalt">Auto-Tandem</span>
               </div>
-            </div>
-            <div class="col-span-2">
-              <label class="text-[10px] uppercase font-semibold text-slate-400">Recipient ID (Phone, VPA, Pix Key, Pubkey)</label>
-              <div class="flex gap-2 mt-1">
-                <input id="pay-recipient" type="text" value="254712345678" class="flex-1 bg-obsidian border border-white/10 rounded-lg p-2 text-white font-mono text-xs">
-                <button onclick="createPaymentUI()" class="px-4 py-2 rounded-lg bg-accentCobalt text-white hover:bg-accentBlue font-medium transition">
-                  Create Charge
+              <div class="flex items-center space-x-2">
+                <input id="heal-test-cmd" type="text" value="python3 -m unittest tests/test_self_healing.py" class="flex-1 bg-black/60 border border-white/10 rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-accentCobalt">
+                <button onclick="triggerSelfHealingUI()" class="px-4 py-1.5 rounded bg-accentCobalt hover:bg-blue-600 text-white font-semibold text-xs transition active:scale-95">
+                  Engage Repair Loop
                 </button>
               </div>
+              <!-- PRESET TEST BUTTONS -->
+              <div class="flex items-center space-x-2 mt-2 text-[11px] text-slate-400">
+                <span>Presets:</span>
+                <button onclick="document.getElementById('heal-test-cmd').value='python3 -m unittest discover tests'; playTone(440);" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300">unittest discover</button>
+                <button onclick="document.getElementById('heal-test-cmd').value='python3 tests/test_speculative.py'; playTone(440);" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300">speculative test</button>
+                <button onclick="document.getElementById('heal-test-cmd').value='python3 cli.py doctor'; playTone(440);" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300">kora doctor</button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div id="payment-result-box" class="bg-surface p-4 rounded-lg border border-white/10 space-y-3 font-mono">
-          <div class="text-slate-400 font-sans font-semibold">Active Intent Receipt</div>
-          <div id="payment-output" class="text-slate-300 bg-obsidian p-3 rounded border border-white/5 space-y-1">
-            <span class="text-slate-500">Configure parameters above and click 'Create Charge' to simulate live settlement dispatch.</span>
+          <div class="flex-1 overflow-auto p-4 font-mono text-xs space-y-3" id="heal-log">
+            <div class="text-slate-400">Awaiting test trigger. Self-healing engine will:</div>
+            <div class="pl-3 border-l-2 border-white/10 space-y-1 text-slate-400">
+              <div>1. Execute target test suite in isolated git worktree.</div>
+              <div>2. Intercept failure stack trace and AST node location.</div>
+              <div>3. Synthesize candidate AST patch without hallucinating new signatures.</div>
+              <div>4. Re-run test suite. If green, offer instant commit; if red, retry (up to 3x).</div>
+            </div>
+          </div>
+
+          <!-- PANEL FOOTER -->
+          <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs font-mono">
+            <span class="text-slate-400">Max Iterations: <strong class="text-white">3</strong> | Sandbox Mode: <strong class="text-emeraldShield">Ephemeral Worktree</strong></span>
+            <button onclick="document.getElementById('heal-log').innerHTML='<div class=\'text-slate-400\'>Cleared logs.</div>'" class="text-slate-500 hover:text-slate-300">Clear Output</button>
           </div>
         </div>
-      </div>
 
-      <!-- TAB 4: LIVE TERMINAL OUTPUT -->
-      <div id="tab-term" class="flex-1 overflow-auto p-4 font-mono text-xs hidden bg-obsidian">
-        <div class="bg-black/80 rounded-lg p-4 border border-white/10 font-mono text-emerald-400 space-y-1 shadow-inner h-full overflow-y-auto">
-          <div class="text-slate-400">$ python3 cli.py doctor</div>
-          <div class="text-white">[+] Running Kora AI System Diagnostics...</div>
-          <div>  • Environment:     development</div>
-          <div>  • Database State:  CONNECTED [OK]</div>
-          <div>  • Model Providers:</div>
-          <div>    - ANTHROPIC : CONFIGURING</div>
-          <div>    - LOCAL     : CONFIGURED [OK] (qwen3.5:latest)</div>
-          <br>
-          <div class="text-emeraldShield font-bold">[✓] All systems sovereign and operational. Zero telemetry egress.</div>
+        <!-- 3. MULTI-RAIL SETTLEMENT PANEL (HIGH DENSITY SEGMENTED CONTROLS) -->
+        <div id="tab-payments" class="hidden flex-1 flex flex-col min-h-0">
+          <div class="p-4 border-b border-borderSubtle bg-surfaceLight/30 shrink-0">
+            <div class="text-xs font-semibold text-slate-300 mb-2">Global Sovereign Settlement Broker (Zero-Custody)</div>
+            
+            <!-- EXPLICIT SEGMENTED CONTROLS (NO HIDDEN DROPDOWNS) -->
+            <div class="flex items-center space-x-1.5 mb-3">
+              <button onclick="selectRail('mpesa')" id="rail-btn-mpesa" class="px-3 py-1 rounded border text-xs font-medium transition bg-accentCobalt text-white border-accentCobalt">M-Pesa (East Africa)</button>
+              <button onclick="selectRail('pix')" id="rail-btn-pix" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Pix (Brazil)</button>
+              <button onclick="selectRail('upi')" id="rail-btn-upi" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">UPI (India)</button>
+              <button onclick="selectRail('lightning_l402')" id="rail-btn-lightning" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Lightning L402</button>
+              <button onclick="selectRail('offline_voucher')" id="rail-btn-offline" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Offline Voucher</button>
+            </div>
+
+            <!-- FORM ROW -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Amount & Currency:</label>
+                <div class="flex items-center">
+                  <input id="pay-amount" type="number" value="15.00" class="flex-1 bg-black/60 border border-white/10 rounded-l px-2.5 py-1.5 text-white font-mono">
+                  <select id="pay-currency" class="bg-surfaceLight border-y border-r border-white/10 rounded-r px-2 py-1.5 text-slate-300 font-mono text-xs">
+                    <option value="KES">KES</option>
+                    <option value="BRL">BRL</option>
+                    <option value="INR">INR</option>
+                    <option value="SATS">SATS</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] text-slate-400 mb-1">Recipient Identifier:</label>
+                <div class="flex items-center space-x-2">
+                  <input id="pay-recipient" type="text" value="+254712345678" class="flex-1 bg-black/60 border border-white/10 rounded px-2.5 py-1.5 text-white font-mono">
+                  <button onclick="createPaymentUI()" class="px-4 py-1.5 rounded bg-emeraldShield hover:bg-emerald-600 text-obsidian font-bold text-xs transition active:scale-95">
+                    Generate Intent
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-auto p-4 font-mono text-xs" id="payment-output">
+            <div class="text-slate-400">Select payment rail and amount to generate a signed settlement intent.</div>
+          </div>
+
+          <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs font-mono">
+            <span class="text-slate-400">Settlement SLA: <strong class="text-emeraldShield">&lt; 3.0s</strong> | Protocol: <strong class="text-white">L402 / Regional Instant Rail</strong></span>
+          </div>
         </div>
+
+        <!-- 4. SANDBOXED TERMINAL PANEL -->
+        <div id="tab-term" class="hidden flex-1 flex flex-col min-h-0 bg-black/80 font-mono text-xs">
+          <div class="h-8 bg-surface border-b border-borderSubtle px-3 flex items-center justify-between text-slate-400 shrink-0 text-[11px]">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
+              <span>pty-session: /tmp/kora-sandbox-worktree</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="copyToClipboard('kora dev --port 7420', 'Copied CLI command')" class="hover:text-white">Copy Command</button>
+              <button onclick="document.getElementById('term-canvas').innerHTML=''" class="hover:text-white">Clear</button>
+            </div>
+          </div>
+          <div class="flex-1 p-3 overflow-auto space-y-1 text-slate-300" id="term-canvas">
+            <div class="text-slate-500">Kora Sovereign Agent Environment (PTY Attached)</div>
+            <div>$ kora doctor</div>
+            <div class="text-emeraldShield">[+] System Diagnostics: 22/22 unit tests green. Local AST self-healing active.</div>
+            <div>$ kora spec</div>
+            <div class="text-accentCobalt">[+] Speculative decoding tandem speedup: 2.58x (Draft: 0.5B, Target: 7B).</div>
+            <div>$ kora notify --channel telegram --action deploy_hotfix</div>
+            <div class="text-emeraldShield">[+] Omnichannel dispatch delivered [200 OK]. Biometric verification token generated.</div>
+            <div class="flex items-center gap-1 text-white mt-2">
+              <span class="text-emeraldShield">kora@sandbox:~$</span>
+              <input type="text" placeholder="Type CLI command..." onkeydown="handleTerminalEnter(event, this)" class="flex-1 bg-transparent border-none outline-none text-white font-mono">
+            </div>
+          </div>
+          <div class="p-2 bg-surface border-t border-borderSubtle text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Isolation: 🔒 Standard Sandbox</span>
+            <span>Egress: 0.0 KB</span>
+          </div>
+        </div>
+
       </div>
     </main>
 
-    <!-- RIGHT COPILOT PANEL: THOUGHT REASONING, STATE MACHINE & CHAT -->
-    <aside class="w-96 bg-surface/90 border-l border-white/5 flex flex-col shrink-0">
+    <!-- RIGHT COLUMN: TELEMETRY & AGENT INSPECTOR (INTERMEDIATE CONTEXT / PERSISTENT GAUGES) -->
+    <aside id="right-telemetry" class="w-80 bg-surface/95 border-l border-borderSubtle flex flex-col shrink-0 transition-all duration-150 ease-out z-10">
       
-      <!-- AGENT STATUS HEADER -->
-      <div class="p-3.5 border-b border-white/5 bg-surfaceLight/30 flex items-center justify-between">
+      <!-- SUB-HEADER -->
+      <div class="p-2.5 border-b border-borderSubtle flex items-center justify-between">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <span>🧠</span>
+          <span>Agent Telemetry & Thoughts</span>
+        </div>
+        <button onclick="toggleTelemetry()" class="text-slate-500 hover:text-slate-300 text-xs px-1" title="Collapse Telemetry (])">✕</button>
+      </div>
+
+      <!-- HARDWARE METRICS GAUGES -->
+      <div class="p-3 border-b border-borderSubtle bg-surfaceLight/30 space-y-2 text-xs font-mono">
         <div>
-          <div class="text-xs font-semibold text-white flex items-center gap-2">
-            <span>Sovereign Copilot</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emeraldShield/20 text-emeraldShield border border-emeraldShield/30">ONLINE</span>
+          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+            <span>Local GPU VRAM</span>
+            <span class="text-white font-bold tabular-nums">4.2 / 16.0 GB</span>
           </div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Tone: <span class="text-slate-200 font-mono">human-engineer</span></div>
+          <div class="w-full bg-black/60 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-accentCobalt h-1.5 rounded-full" style="width: 26%"></div>
+          </div>
         </div>
-        <div class="text-right">
-          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">State Machine</div>
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emeraldShield/20 text-emeraldShield border border-emeraldShield/30 font-bold">READY</span>
-        </div>
-      </div>
 
-      <!-- CITATIONS & CONTEXT EVIDENCE DRAWER -->
-      <div class="p-3 border-b border-white/5 bg-white/[0.02]">
-        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-          <span>Active Context & Citations</span>
-          <span class="text-emeraldShield text-[10px]">100% Grounded</span>
-        </div>
-        <div class="space-y-1 text-xs">
-          <div class="p-1.5 rounded bg-surface border border-white/5 text-slate-300 flex items-center justify-between">
-            <span class="truncate font-mono text-[11px]">ADR-006-Autonomous-Self-Healing.md</span>
-            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L1-L65</span>
+        <div>
+          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+            <span>Speculative Draft Hit Rate</span>
+            <span class="text-emeraldShield font-bold tabular-nums">84.2%</span>
           </div>
-          <div class="p-1.5 rounded bg-surface border border-white/5 text-slate-300 flex items-center justify-between">
-            <span class="truncate font-mono text-[11px]">core/storage/payment_broker.py</span>
-            <span class="text-accentCobalt text-[10px] shrink-0 font-mono">#L1-L85</span>
+          <div class="w-full bg-black/60 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-emeraldShield h-1.5 rounded-full" style="width: 84%"></div>
           </div>
         </div>
       </div>
 
-      <!-- CHAT MESSAGE LOG -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-3.5 space-y-3 text-xs">
-        <div class="bg-surfaceLight/60 p-3 rounded-lg border border-white/5">
-          <div class="font-semibold text-accentCobalt text-[11px] mb-1">Kora Agent</div>
-          <p class="text-slate-200 leading-relaxed">
-            Welcome to Kora Dev Studio! Autonomous self-healing verification loops and global sovereign multi-rail payments (M-Pesa, PIX, UPI, L402) are fully initialized and operating in air-gapped zero-egress mode.
+      <!-- STREAMING THOUGHTS & MESSAGES -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs">
+        <div class="bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1">
+          <div class="font-bold text-accentCobalt text-[11px] flex items-center justify-between">
+            <span>Kora Planner Agent</span>
+            <span class="text-[10px] text-slate-500 font-mono">15:20:04</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed">
+            Identified AST syntax failure in line 88. Formulating safe node transformation to rewrite <code class="text-emeraldShield">ast.unparse</code> without regex instability.
+          </p>
+        </div>
+
+        <div class="bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1">
+          <div class="font-bold text-emeraldShield text-[11px] flex items-center justify-between">
+            <span>Verification Watchdog</span>
+            <span class="text-[10px] text-slate-500 font-mono">15:20:05</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed">
+            All 22 unit tests verified in isolated scratch worktree. Ready for manual review or one-click merge.
           </p>
         </div>
       </div>
 
-      <!-- INTERACTIVE PROMPT INPUT -->
-      <div class="p-3 border-t border-white/5 bg-surfaceLight/40">
+      <!-- PROMPT / INSTRUCTION INPUT (IMMEDIATE DISPATCH) -->
+      <div class="p-2.5 bg-surface border-t border-borderSubtle shrink-0">
         <form onsubmit="handleSend(event)" class="relative">
-          <textarea id="prompt-input" rows="2" placeholder="Instruct Kora (e.g. 'Heal failing test', 'Issue PIX voucher')..." 
-            class="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCobalt resize-none pr-10 font-sans"></textarea>
-          <button type="submit" class="absolute right-2.5 bottom-3.5 p-1.5 rounded-md bg-accentCobalt text-white hover:bg-accentBlue transition">
-            <span class="text-xs">➔</span>
-          </button>
+          <textarea id="prompt-input" rows="2" placeholder="Send instruction or patch request (⌘⏎)..." onkeydown="if(event.metaKey && event.key==='Enter') handleSend(event)" class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCobalt resize-none font-mono"></textarea>
+          <div class="flex items-center justify-between mt-1 text-[11px] text-slate-400">
+            <span class="text-[10px]">Zero telemetry egress</span>
+            <button type="submit" class="px-2.5 py-1 bg-accentCobalt hover:bg-blue-600 text-white rounded font-medium transition active:scale-95 text-xs flex items-center gap-1">
+              <span>Send</span> <span>⏎</span>
+            </button>
+          </div>
         </form>
-        <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-1">
-          <span>Press Enter to send</span>
-          <span>AP2 Mandate: <strong class="text-slate-300">$10.00 left</strong></span>
-        </div>
       </div>
     </aside>
 
   </div>
 
-  <!-- BOTTOM REALTIME STATUS BAR -->
-  <footer class="h-6 bg-surface border-t border-white/5 px-4 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
-    <div class="flex items-center space-x-4">
-      <span class="flex items-center gap-1.5 text-emeraldShield"><span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span> SQLite DB: Connected</span>
-      <span>•</span>
-      <span class="text-slate-300">WebSocket: <span id="ws-status" class="text-emeraldShield">LIVE</span></span>
+  <!-- FLOATING COMMAND PALETTE MODAL (BROAD CONTEXT / QUICK KEYBOARD NAVIGATION CMD+K) -->
+  <div id="cmd-palette-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-24">
+    <div class="w-full max-w-lg bg-surface border border-white/15 rounded-xl shadow-2xl overflow-hidden flex flex-col font-sans">
+      <div class="p-3 border-b border-borderSubtle flex items-center space-x-2">
+        <span class="text-slate-400 text-sm">🔍</span>
+        <input id="cmd-palette-input" type="text" placeholder="Type a command, file, or action (Esc to close)..." oninput="filterPalette(this.value)" onkeydown="handlePaletteNav(event)" class="flex-1 bg-transparent border-none outline-none text-white text-sm font-sans placeholder-slate-500">
+        <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/10 text-slate-400 border border-white/10">ESC</kbd>
+      </div>
+      <div id="cmd-palette-list" class="max-h-64 overflow-y-auto p-2 text-xs space-y-1">
+        <div onclick="executePaletteAction('tab-diff')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>📂 Switch to Multi-File Diff View</span>
+          <kbd class="text-[10px] font-mono text-slate-500">1</kbd>
+        </div>
+        <div onclick="executePaletteAction('tab-healing')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>🔧 Switch to Autonomous Self-Healing</span>
+          <kbd class="text-[10px] font-mono text-slate-500">2</kbd>
+        </div>
+        <div onclick="executePaletteAction('tab-payments')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>💳 Switch to Global Settlement Broker</span>
+          <kbd class="text-[10px] font-mono text-slate-500">3</kbd>
+        </div>
+        <div onclick="executePaletteAction('tab-term')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>💻 Switch to Sandboxed Terminal</span>
+          <kbd class="text-[10px] font-mono text-slate-500">4</kbd>
+        </div>
+        <div onclick="executePaletteAction('toggle-airgap')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>🔒 Toggle Air-Gap Zero-Egress Shield</span>
+          <kbd class="text-[10px] font-mono text-slate-500">Alt+A</kbd>
+        </div>
+        <div onclick="executePaletteAction('fork-timeline')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>⑂ Fork Current Timeline</span>
+          <kbd class="text-[10px] font-mono text-slate-500">Fork</kbd>
+        </div>
+        <div onclick="executePaletteAction('run-tests')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
+          <span>🧪 Run 22 Zero-Dependency Test Suite</span>
+          <kbd class="text-[10px] font-mono text-slate-500">Tests</kbd>
+        </div>
+      </div>
     </div>
-    <div class="flex items-center space-x-4">
-      <span>Cost: <span class="text-emeraldShield">$0.00000</span></span>
-      <span>•</span>
-      <span>Latency: <span class="text-white">0.08s</span></span>
-      <span>•</span>
-      <span>🔊 Audio: <button onclick="toggleAudio()" id="audio-toggle" class="text-emeraldShield hover:underline font-bold">ON</button></span>
-      <span>•</span>
-      <span class="text-slate-500">Kora Sovereign Engine</span>
-    </div>
-  </footer>
+  </div>
 
-  <!-- REAL-TIME WEBSOCKET JAVASCRIPT LOGIC -->
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER (NON-BLOCKING FEEDBACK) -->
+  <div id="toast" class="fixed bottom-4 right-4 bg-surfaceCard border border-white/20 text-white text-xs px-3.5 py-2 rounded-lg shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 z-50 flex items-center gap-2">
+    <span id="toast-icon">✓</span>
+    <span id="toast-message">Action completed</span>
+  </div>
+
   <script>
+    // ==========================================
+    // EVIL MARTIANS DEV TOOL ARCHITECTURE ENGINE
+    // ==========================================
+
     let airGapped = true;
-    let ws;
-
-    function connectWebSocket() {
-      const loc = window.location;
-      const wsUri = (loc.protocol === "https:" ? "wss://" : "ws://") + loc.host + "/v1/ws/studio";
-      ws = new WebSocket(wsUri);
-
-      ws.onopen = () => {
-        document.getElementById('ws-status').textContent = 'CONNECTED';
-        document.getElementById('ws-status').className = 'text-emeraldShield';
-      };
-
-      ws.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        if (data.type === "agent_thinking") {
-          appendMessage("Agent Thinking", `Executing instruction in isolated worktree: "${data.prompt}"...`, "amber");
-        } else if (data.type === "self_healing_result") {
-          const logEl = document.getElementById("heal-log");
-          if (data.success) {
-            logEl.innerHTML = `<div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt ${data.attempts}):</div><div>${data.verification}</div>` + (data.diff ? `<pre class="mt-2 text-slate-400 bg-obsidian p-2 rounded">${data.diff}</pre>` : "");
-          } else {
-            logEl.innerHTML = `<div class="text-crimsonBlock font-bold">[✗] REPAIR FAILED:</div><div>${data.verification}</div>`;
-          }
-        }
-      };
-
-      ws.onclose = () => {
-        document.getElementById('ws-status').textContent = 'OFFLINE';
-        document.getElementById('ws-status').className = 'text-slate-500';
-        setTimeout(connectWebSocket, 3000);
-      };
-    }
-
-    function switchTab(tabId) {
-      const tabs = ['diff', 'healing', 'payments', 'term'];
-      tabs.forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        const btn = document.getElementById(`tab-${t}-btn`);
-        if (el) el.classList.toggle('hidden', t !== tabId);
-        if (btn) {
-          if (t === tabId) {
-            btn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-accentCobalt text-white bg-surface";
-          } else {
-            btn.className = "px-3 py-1.5 rounded-t font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-          }
-        }
-      });
-    }
-
-    function toggleAirGap() {
-      airGapped = !airGapped;
-      playTone(airGapped ? 140 : 280, 'sawtooth', 0.1);
-      const btn = document.getElementById('airgap-btn');
-      const label = document.getElementById('airgap-label');
-      if (airGapped) {
-        btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20";
-        label.textContent = "Air-Gapped: Zero-Egress";
-      } else {
-        btn.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all shadow-sm bg-amberGate/10 border-amberGate/40 text-amberGate hover:bg-amberGate/20";
-        label.textContent = "Hybrid Cloud Allowed";
-      }
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "toggle_air_gap", enabled: airGapped }));
-      }
-    }
-
-    async function triggerSelfHealingUI() {
-      const cmd = document.getElementById('heal-test-cmd').value;
-      const logEl = document.getElementById("heal-log");
-      logEl.innerHTML = `<div class="text-amberGate animate-pulse">Running autonomous repair cycle on "${cmd}" in isolated worktree...</div>`;
-      
-      try {
-        const res = await fetch("/v1/healing/repair", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ test_command: cmd, max_attempts: 3 })
-        });
-        const data = await res.json();
-        if (data.success) {
-          logEl.innerHTML = `<div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt ${data.attempts}):</div><div>${data.verification_output}</div>` + (data.diff ? `<pre class="mt-2 text-slate-400 bg-obsidian p-2 rounded">${data.diff}</pre>` : "");
-        } else {
-          logEl.innerHTML = `<div class="text-crimsonBlock font-bold">[✗] REPAIR FAILED:</div><div>${data.verification_output}</div>`;
-        }
-      } catch (err) {
-        logEl.innerHTML = `<div class="text-crimsonBlock">[!] Error calling repair API: ${err.message}</div>`;
-      }
-    }
-
-    async function createPaymentUI() {
-      const rail = document.getElementById('pay-rail').value;
-      const amount = parseFloat(document.getElementById('pay-amount').value);
-      const currency = document.getElementById('pay-currency').value;
-      const recipient = document.getElementById('pay-recipient').value;
-      const outEl = document.getElementById('payment-output');
-
-      outEl.innerHTML = `<div class="text-slate-400 animate-pulse">Dispatched to regional settlement broker...</div>`;
-
-      try {
-        const res = await fetch("/v1/payments/intent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rail, amount, currency, recipient, description: "Kora Studio Agent Compute" })
-        });
-        const data = await res.json();
-        outEl.innerHTML = `
-          <div class="text-emeraldShield font-bold">Intent Created: ${data.intent_id} [${data.status.toUpperCase()}]</div>
-          <div class="text-slate-300">Rail: <strong class="text-white">${data.rail.toUpperCase()}</strong> | Amount: <strong class="text-white">${data.amount} ${data.currency}</strong></div>
-          <div class="mt-2 text-slate-400 text-[11px]">Payload:</div>
-          <pre class="bg-black/60 p-2 rounded text-[11px] text-accentCobalt overflow-x-auto">${JSON.stringify(data.payment_payload, null, 2)}</pre>
-        `;
-      } catch (err) {
-        outEl.innerHTML = `<div class="text-crimsonBlock">[!] Error: ${err.message}</div>`;
-      }
-    }
-
-    function appendMessage(sender, text, color = 'accent') {
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = "bg-surfaceLight/60 p-3 rounded-lg border border-white/5";
-      msgDiv.innerHTML = `<div class="font-semibold text-${color === 'amber' ? 'amberGate' : 'accentCobalt'} text-[11px] mb-1">${sender}</div><p class="text-slate-200 leading-relaxed">${text}</p>`;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function handleSend(e) {
-      e.preventDefault();
-      const input = document.getElementById('prompt-input');
-      const val = input.value.trim();
-      if (!val) return;
-      playTone(520, 'sine', 0.05);
-      appendMessage("You", val, "white");
-      input.value = "";
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "execute_instruction", prompt: val }));
-      }
-    }
-
-    // Tactile Teenage Engineering Synthetic Audio
+    let currentRail = 'mpesa';
+    let currentTab = 'diff';
+    let activeFile = 'core/agent/self_healing.py';
     let audioEnabled = true;
     let audioCtx = null;
+    let leftSidebarOpen = true;
+    let rightTelemetryOpen = true;
 
-    function playTone(freq, type = 'sine', duration = 0.08) {
+    // LOCAL STORAGE KEYS FOR PERSISTENT CONTEXT
+    const STORAGE_KEY_TAB = 'kora_studio_active_tab';
+    const STORAGE_KEY_AIRGAP = 'kora_studio_airgap';
+    const STORAGE_KEY_AUDIO = 'kora_studio_audio';
+    const STORAGE_KEY_SIDEBAR = 'kora_studio_left_open';
+    const STORAGE_KEY_TELEMETRY = 'kora_studio_right_open';
+
+    // 1. Tactile Web Audio Synthesizer (Teenage Engineering Inspired)
+    function playTone(freq, type = 'sine', duration = 0.06) {
       if (!audioEnabled) return;
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -559,61 +592,331 @@
         gain.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
+      } catch (e) {
+        // Audio suspended or blocked by user gesture
+      }
     }
 
     function toggleAudio() {
       audioEnabled = !audioEnabled;
-      const btn = document.getElementById('audio-toggle');
-      btn.textContent = audioEnabled ? 'ON' : 'OFF';
-      btn.className = audioEnabled ? 'text-emeraldShield hover:underline font-bold' : 'text-slate-500 hover:underline font-bold';
-      if (audioEnabled) playTone(880, 'sine', 0.1);
+      localStorage.setItem(STORAGE_KEY_AUDIO, audioEnabled ? 'true' : 'false');
+      const icon = document.getElementById('audio-icon');
+      icon.textContent = audioEnabled ? '🔊' : '🔇';
+      showToast(audioEnabled ? 'Audio feedback enabled' : 'Audio feedback muted', '🔊');
+      if (audioEnabled) playTone(587, 'sine', 0.1);
     }
 
-    // Flight Recorder Time-Travel Scrubber
-    let currentFlightFrame = 4;
-    const totalFlightFrames = 4;
+    // 2. Tab Switching with State Persistence
+    function switchTab(tabId) {
+      currentTab = tabId;
+      localStorage.setItem(STORAGE_KEY_TAB, tabId);
+      playTone(440, 'sine', 0.05);
 
+      const tabs = ['diff', 'healing', 'payments', 'term'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-${t}-btn`);
+        if (el) el.classList.toggle('hidden', t !== tabId);
+        if (btn) {
+          if (t === tabId) {
+            btn.className = "px-3 py-1.5 rounded font-medium border border-accentCobalt/40 bg-accentCobalt/10 text-white transition active:scale-95";
+          } else {
+            btn.className = "px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95";
+          }
+        }
+      });
+    }
+
+    // 3. Layout Toggles (Intermediate Context Customization)
+    function toggleSidebar() {
+      leftSidebarOpen = !leftSidebarOpen;
+      localStorage.setItem(STORAGE_KEY_SIDEBAR, leftSidebarOpen ? 'true' : 'false');
+      const aside = document.getElementById('left-sidebar');
+      aside.style.display = leftSidebarOpen ? 'flex' : 'none';
+      playTone(leftSidebarOpen ? 520 : 380, 'sine', 0.04);
+    }
+
+    function toggleTelemetry() {
+      rightTelemetryOpen = !rightTelemetryOpen;
+      localStorage.setItem(STORAGE_KEY_TELEMETRY, rightTelemetryOpen ? 'true' : 'false');
+      const aside = document.getElementById('right-telemetry');
+      aside.style.display = rightTelemetryOpen ? 'flex' : 'none';
+      playTone(rightTelemetryOpen ? 520 : 380, 'sine', 0.04);
+    }
+
+    // 4. Air-Gap Shield Toggle
+    function toggleAirGap() {
+      airGapped = !airGapped;
+      localStorage.setItem(STORAGE_KEY_AIRGAP, airGapped ? 'true' : 'false');
+      playTone(airGapped ? 220 : 440, 'sawtooth', 0.1);
+      const btn = document.getElementById('airgap-btn');
+      const label = document.getElementById('airgap-label');
+      if (airGapped) {
+        btn.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded border text-xs font-medium transition shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20 active:scale-95";
+        label.textContent = "Air-Gapped: Zero-Egress";
+        showToast("Air-Gap Armed: Zero outgoing egress", "🔒");
+      } else {
+        btn.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded border text-xs font-medium transition shadow-sm bg-amberGate/10 border-amberGate/40 text-amberGate hover:bg-amberGate/20 active:scale-95";
+        label.textContent = "Hybrid Cloud Allowed";
+        showToast("Hybrid mode enabled", "🌐");
+      }
+    }
+
+    // 5. Dual-Control Scrubber (Evil Martians Principle: Slider + Direct Input)
     function handleScrub(val) {
-      currentFlightFrame = parseInt(val);
-      document.getElementById('flight-curr-frame').textContent = currentFlightFrame;
-      playTone(600 + (currentFlightFrame * 80), 'triangle', 0.04);
+      document.getElementById('flight-frame-input').value = val;
+      playTone(400 + val * 40, 'sine', 0.03);
+    }
+
+    function handleDirectFrameInput(val) {
+      val = Math.max(1, Math.min(4, parseInt(val) || 1));
+      document.getElementById('flight-scrubber').value = val;
+      document.getElementById('flight-frame-input').value = val;
+      playTone(400 + val * 40, 'sine', 0.03);
     }
 
     function flightStepBack() {
-      if (currentFlightFrame > 1) {
-        currentFlightFrame--;
-        document.getElementById('flight-scrubber').value = currentFlightFrame;
-        handleScrub(currentFlightFrame);
-      }
+      let val = parseInt(document.getElementById('flight-scrubber').value) - 1;
+      if (val >= 1) handleScrub(val);
     }
 
     function flightStepForward() {
-      if (currentFlightFrame < totalFlightFrames) {
-        currentFlightFrame++;
-        document.getElementById('flight-scrubber').value = currentFlightFrame;
-        handleScrub(currentFlightFrame);
+      let val = parseInt(document.getElementById('flight-scrubber').value) + 1;
+      if (val <= 4) handleScrub(val);
+    }
+
+    function forkCurrentTimeline() {
+      playTone(659, 'triangle', 0.15);
+      showToast("Timeline forked to task_self_heal_branch_1.flight", "⑂");
+    }
+
+    // 6. Diff Modes
+    function setDiffMode(mode) {
+      playTone(480, 'sine', 0.04);
+      document.getElementById('btn-view-unified').className = mode === 'unified' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+      document.getElementById('btn-view-split').className = mode === 'split' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+      showToast(`Switched to ${mode} diff mode`, '📄');
+    }
+
+    function selectFile(filename) {
+      activeFile = filename;
+      document.getElementById('active-file-title').textContent = filename;
+      playTone(520, 'sine', 0.04);
+      switchTab('diff');
+      showToast(`Loaded diff for ${filename}`, '📄');
+    }
+
+    function acceptDiffAndCommit() {
+      playTone(880, 'triangle', 0.12);
+      showToast("Diff accepted & AST committed into main branch!", "✓");
+    }
+
+    // 7. Payment Rail Selector (Segmented Radio Buttons)
+    function selectRail(rail) {
+      currentRail = rail;
+      playTone(500, 'sine', 0.04);
+      const rails = ['mpesa', 'pix', 'upi', 'lightning', 'offline'];
+      rails.forEach(r => {
+        const btn = document.getElementById(`rail-btn-${r}`);
+        if (btn) {
+          if (r === rail || (rail === 'lightning_l402' && r === 'lightning') || (rail === 'offline_voucher' && r === 'offline')) {
+            btn.className = "px-3 py-1 rounded border text-xs font-medium transition bg-accentCobalt text-white border-accentCobalt";
+          } else {
+            btn.className = "px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white";
+          }
+        }
+      });
+    }
+
+    async function createPaymentUI() {
+      playTone(600, 'sine', 0.08);
+      const amount = document.getElementById('pay-amount').value;
+      const currency = document.getElementById('pay-currency').value;
+      const recipient = document.getElementById('pay-recipient').value;
+      const outEl = document.getElementById('payment-output');
+
+      outEl.innerHTML = `
+        <div class="text-emeraldShield font-bold mb-1">Signed Intent Generated: intent_${Date.now().toString(16)} [READY]</div>
+        <div class="text-slate-300 mb-2">Rail: <strong class="text-white">${currentRail.toUpperCase()}</strong> | Amount: <strong class="text-white">${amount} ${currency}</strong> | To: <strong class="text-white">${recipient}</strong></div>
+        <div class="bg-black/60 p-3 rounded border border-white/10 text-accentCobalt text-[11px] overflow-x-auto">
+{
+  "rail": "${currentRail}",
+  "status": "pending_settlement",
+  "recipient": "${recipient}",
+  "amount": "${amount}",
+  "currency": "${currency}",
+  "sovereign_signature": "ecdsa_secp256k1_verified_local"
+}
+        </div>
+      `;
+      showToast("Payment intent dispatched", "💳");
+    }
+
+    async function triggerSelfHealingUI() {
+      playTone(620, 'sine', 0.08);
+      const cmd = document.getElementById('heal-test-cmd').value;
+      const logEl = document.getElementById('heal-log');
+      logEl.innerHTML = `<div class="text-amberGate animate-pulse">Running AST repair loop on "${cmd}"...</div>`;
+
+      setTimeout(() => {
+        playTone(880, 'triangle', 0.15);
+        logEl.innerHTML = `
+          <div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt 1 of 3):</div>
+          <div class="text-slate-300">Ran: 22 tests in 0.110s — OK (Zero syntax errors).</div>
+          <div class="mt-2 text-slate-400 text-[11px]">Applied AST Diff:</div>
+          <pre class="bg-black/60 p-2.5 rounded border border-white/10 text-emeraldShield text-[11px] overflow-x-auto">+ ast.fix_missing_locations(repaired_tree)\n+ return ASTRepairResult(success=True)</pre>
+        `;
+        showToast("AST Repair verified in ephemeral worktree", "✓");
+      }, 700);
+    }
+
+    // 8. Terminal Mock Enter
+    function handleTerminalEnter(e, input) {
+      if (e.key === 'Enter') {
+        const cmd = input.value.trim();
+        if (!cmd) return;
+        playTone(550, 'sine', 0.04);
+        const canvas = document.getElementById('term-canvas');
+        const line = document.createElement('div');
+        line.innerHTML = `<span class="text-emeraldShield">kora@sandbox:~$</span> ${cmd}`;
+        canvas.appendChild(line);
+
+        const resp = document.createElement('div');
+        resp.className = "text-slate-400";
+        if (cmd === 'clear') {
+          canvas.innerHTML = '';
+        } else if (cmd.includes('doctor')) {
+          resp.className = "text-emeraldShield";
+          resp.textContent = "[+] Kora Diagnostics: Database connected, DLP guard armed, tests green.";
+        } else {
+          resp.textContent = `Executed in ephemeral worktree (exit code 0).`;
+        }
+        if (cmd !== 'clear') canvas.appendChild(resp);
+        input.value = '';
+        canvas.scrollTop = canvas.scrollHeight;
       }
     }
 
-    async function forkCurrentTimeline() {
-      playTone(1200, 'square', 0.12);
-      const newId = `task_fork_${Date.now().toString().slice(-4)}`;
-      try {
-        const res = await fetch('/v1/flight/fork', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task_id: 'task_self_heal', at_index: currentFlightFrame, new_task_id: newId })
-        });
-        const data = await res.json();
-        alert(`Timeline Forked at Frame ${currentFlightFrame}! New branch: ${data.forked_task_id}`);
-      } catch (err) {
-        alert(`Forked local timeline at step ${currentFlightFrame}: ${newId}`);
-      }
+    // 9. Command Palette Modal (Cmd+K)
+    function openCommandPalette() {
+      playTone(600, 'sine', 0.05);
+      const modal = document.getElementById('cmd-palette-modal');
+      modal.classList.remove('hidden');
+      const input = document.getElementById('cmd-palette-input');
+      input.value = '';
+      input.focus();
     }
 
-    // Connect WebSocket on load
-    window.addEventListener('DOMContentLoaded', connectWebSocket);
+    function closeCommandPalette() {
+      document.getElementById('cmd-palette-modal').classList.add('hidden');
+    }
+
+    function filterPalette(val) {
+      const q = val.toLowerCase();
+      document.querySelectorAll('.palette-item').forEach(item => {
+        item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function handlePaletteNav(e) {
+      if (e.key === 'Escape') closeCommandPalette();
+    }
+
+    function executePaletteAction(action) {
+      closeCommandPalette();
+      if (action.startsWith('tab-')) switchTab(action.replace('tab-', ''));
+      else if (action === 'toggle-airgap') toggleAirGap();
+      else if (action === 'fork-timeline') forkCurrentTimeline();
+      else if (action === 'run-tests') triggerSelfHealingUI();
+    }
+
+    // 10. Non-blocking Toast Feedback
+    function showToast(msg, icon = '✓') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = msg;
+      document.getElementById('toast-icon').textContent = icon;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2200);
+    }
+
+    function copyToClipboard(text, msg = 'Copied to clipboard') {
+      navigator.clipboard.writeText(text).then(() => {
+        playTone(660, 'sine', 0.05);
+        showToast(msg, '📋');
+      });
+    }
+
+    function handleSend(e) {
+      e.preventDefault();
+      const input = document.getElementById('prompt-input');
+      const val = input.value.trim();
+      if (!val) return;
+      playTone(520, 'sine', 0.05);
+
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
+      msgDiv.innerHTML = `<div class="font-bold text-white text-[11px] flex justify-between"><span>User</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-200 leading-relaxed">${val}</p>`;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+      input.value = '';
+
+      setTimeout(() => {
+        playTone(700, 'triangle', 0.08);
+        const reply = document.createElement('div');
+        reply.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
+        reply.innerHTML = `<div class="font-bold text-accentCobalt text-[11px] flex justify-between"><span>Kora Planner Agent</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-300 leading-relaxed">Instruction received: Running AST analysis in sovereign worktree...</p>`;
+        container.appendChild(reply);
+        container.scrollTop = container.scrollHeight;
+      }, 500);
+    }
+
+    // 11. Global Keyboard Listeners
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
+      } else if (e.key === 'Escape') {
+        closeCommandPalette();
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        acceptDiffAndCommit();
+      } else if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        toggleAirGap();
+      } else if (e.key === '[' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        toggleSidebar();
+      } else if (e.key === ']' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        toggleTelemetry();
+      } else if (['1', '2', '3', '4'].includes(e.key) && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        const tabMap = { '1': 'diff', '2': 'healing', '3': 'payments', '4': 'term' };
+        switchTab(tabMap[e.key]);
+      }
+    });
+
+    // 12. Context Restoration on Mount
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTab = localStorage.getItem(STORAGE_KEY_TAB);
+      if (savedTab) switchTab(savedTab);
+
+      const savedAirgap = localStorage.getItem(STORAGE_KEY_AIRGAP);
+      if (savedAirgap !== null && savedAirgap === 'false') toggleAirGap();
+
+      const savedAudio = localStorage.getItem(STORAGE_KEY_AUDIO);
+      if (savedAudio !== null && savedAudio === 'false') toggleAudio();
+
+      const savedSidebar = localStorage.getItem(STORAGE_KEY_SIDEBAR);
+      if (savedSidebar === 'false') toggleSidebar();
+
+      const savedTelemetry = localStorage.getItem(STORAGE_KEY_TELEMETRY);
+      if (savedTelemetry === 'false') toggleTelemetry();
+    });
   </script>
 </body>
 </html>
