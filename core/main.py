@@ -27,12 +27,11 @@ logger = logging.getLogger("kora.core")
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan event handler for startup and shutdown."""
     logger.info("Initializing Kora AI Core...")
-    if settings.env in ["development", "test"]:
-        try:
-            logger.info("Auto-initializing local storage tables...")
-            await init_db()
-        except Exception as e:
-            logger.warning(f"Database auto-init warning (Postgres might still be booting): {e}")
+    try:
+        logger.info("Auto-initializing local storage tables...")
+        await init_db()
+    except Exception as e:
+        logger.warning(f"Database auto-init notice: {e}")
 
     yield
 
@@ -74,11 +73,13 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 app.include_router(router)
 
 # Mount Kora Dev Studio Web UI
-studio_dir = Path(__file__).parent / "studio"
-if studio_dir.exists():
-    @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
-    @app.get("/", response_class=HTMLResponse, tags=["Studio"])
-    async def serve_studio():
-        index_file = studio_dir / "index.html"
+studio_dir = Path(__file__).resolve().parent / "studio"
+index_file = studio_dir / "index.html"
+
+@app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
+@app.get("/", response_class=HTMLResponse, tags=["Studio"])
+async def serve_studio():
+    if index_file.exists():
         return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Kora AI Core</h1><p>API is active. Studio assets loading...</p>")
 

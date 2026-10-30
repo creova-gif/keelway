@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = Field(
-        default="sqlite+aiosqlite:///kora.db",
+        default="sqlite+aiosqlite:////tmp/kora.db",
         description="Async database connection string (SQLite for local dev, PostgreSQL for prod)"
     )
 
