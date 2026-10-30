@@ -13,6 +13,3 @@ dependencies = [
     "httpx",
     "python-dotenv",
 ]
-
-[tool.vercel]
-entrypoint = "core.main:app"
