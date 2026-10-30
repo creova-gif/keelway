@@ -231,6 +231,27 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
                     self.wfile.write(json.dumps({"status": "idle", "plan": []}).encode("utf-8"))
+                elif self.path.startswith("/v1/index/repomap"):
+                    from core.storage.ast_index import CodebaseSemanticIndex
+                    idx = CodebaseSemanticIndex()
+                    idx.index_workspace(max_files=100)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"repo_map": idx.generate_repo_map()}).encode("utf-8"))
+                elif self.path.startswith("/v1/index/search"):
+                    import urllib.parse
+                    from core.storage.ast_index import CodebaseSemanticIndex
+                    parsed = urllib.parse.urlparse(self.path)
+                    params = urllib.parse.parse_qs(parsed.query)
+                    q = params.get("q", [""])[0]
+                    idx = CodebaseSemanticIndex()
+                    idx.index_workspace(max_files=100)
+                    hits = idx.search_symbols(q, top_k=8)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"query": q, "results": hits}).encode("utf-8"))
                 else:
                     super().do_GET()
 
@@ -339,6 +360,38 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
     print(f"\nPayload Preview:")
     print(json.dumps(result['payload'], indent=2))
     print("\n" + "=" * 65 + "\n")
+
+
+async def cmd_repomap(max_tokens: int = 1500):
+    """Generate condensed codebase repository map for prompt augmentation."""
+    from core.storage.ast_index import CodebaseSemanticIndex
+    idx = CodebaseSemanticIndex()
+    stats = idx.index_workspace(max_files=150)
+    print("\n" + "=" * 65)
+    print("  🗺️  KORA CODEBASE REPOSITORY MAP")
+    print(f"  Indexed: {stats['total_files_indexed']} files, {stats['total_symbols_indexed']} symbols")
+    print("=" * 65 + "\n")
+    print(idx.generate_repo_map(max_tokens=max_tokens))
+    print()
+
+
+async def cmd_search(query: str, top_k: int = 10):
+    """Search workspace symbols using hybrid semantic vector and lexical matching."""
+    from core.storage.ast_index import CodebaseSemanticIndex
+    idx = CodebaseSemanticIndex()
+    idx.index_workspace(max_files=150)
+    results = idx.search_symbols(query=query, top_k=top_k)
+    print("\n" + "=" * 65)
+    print(f"  🔍 KORA SEMANTIC SYMBOL SEARCH: '{query}'")
+    print(f"  Matches Found: {len(results)}")
+    print("=" * 65 + "\n")
+    for r in results:
+        kind_badge = f"[{r['kind'].upper()}]"
+        print(f"  • {r['score']:.2f} {kind_badge:<12} {r['file_path']}:{r['line_number']}")
+        print(f"    Signature: {r['signature']}")
+        if r.get('docstring'):
+            print(f"    Docstring: {r['docstring'][:70]}...")
+        print()
 
 
 async def cmd_doctor():
@@ -635,6 +688,15 @@ def main():
     notify_parser.add_argument("--action", default="deploy_hotfix", help="Agent action requiring approval")
     notify_parser.add_argument("--task-id", default="task_01", help="Task ID")
 
+    # repomap (Condensed AST Repository Map)
+    repomap_parser = subparsers.add_parser("repomap", help="Generate condensed codebase repository map (RepoMap)")
+    repomap_parser.add_argument("--tokens", type=int, default=1500, help="Maximum approximate token budget")
+
+    # search (Semantic & Keyword Symbol Search)
+    search_parser = subparsers.add_parser("search", help="Semantic & keyword symbol search across codebase")
+    search_parser.add_argument("query", help="Symbol or concept search query")
+    search_parser.add_argument("--top-k", type=int, default=10, help="Number of matches to return")
+
     args = parser.parse_args()
 
     if args.command == "mesh":
@@ -647,6 +709,10 @@ def main():
         asyncio.run(cmd_pay(args.rail, args.amount, args.currency, args.to, args.desc))
     elif args.command == "notify":
         asyncio.run(cmd_notify(args.channel, args.target, args.action, args.task_id))
+    elif args.command == "repomap":
+        asyncio.run(cmd_repomap(args.tokens))
+    elif args.command == "search":
+        asyncio.run(cmd_search(args.query, args.top_k))
     elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
     elif args.command == "doctor":

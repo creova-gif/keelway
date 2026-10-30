@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable, Awaitable
 
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
+from core.storage.ast_index import CodebaseSemanticIndex
 from core.orchestration.flight_recorder import FlightRecorder, FlightEvent
 
 
@@ -68,6 +69,7 @@ class AutonomousAgentLoop:
         self.plan: List[PlanStep] = []
         self.events: List[Dict[str, Any]] = []
         self.pending_approval: Optional[Dict[str, Any]] = None
+        self.semantic_index = CodebaseSemanticIndex(self.fs)
 
         self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
         self.tools: Dict[str, AgentTool] = {}
@@ -232,28 +234,38 @@ class AutonomousAgentLoop:
         async def _h_search(args: Dict[str, Any]) -> Dict[str, Any]:
             query = args.get("query", "")
             if not query:
-                return {"matches": []}
+                return {"symbols": [], "matches": []}
             
+            # 1. AST Symbol & Semantic Search
+            if not self.semantic_index.symbols:
+                self.semantic_index.index_workspace(max_files=100)
+            symbol_hits = self.semantic_index.search_symbols(query, top_k=8)
+
+            # 2. Fast ripgrep or git grep for literal matches
+            matches = []
             try:
-                # Fast ripgrep or git grep
                 res = subprocess.run(
-                    ["git", "grep", "-n", "-I", "--max-count=50", query],
+                    ["git", "grep", "-n", "-I", "--max-count=30", query],
                     cwd=str(self.fs.root),
                     capture_output=True,
                     text=True,
                     timeout=5,
                 )
                 raw = res.stdout if res.returncode == 0 else ""
+                for line in raw.splitlines()[:30]:
+                    parts = line.split(":", 2)
+                    if len(parts) >= 3:
+                        matches.append({"path": parts[0], "line": parts[1], "snippet": parts[2].strip()})
             except Exception:
-                raw = ""
+                pass
 
-            matches = []
-            for line in raw.splitlines()[:50]:
-                parts = line.split(":", 2)
-                if len(parts) >= 3:
-                    matches.append({"path": parts[0], "line": parts[1], "snippet": parts[2].strip()})
-
-            return {"query": query, "total_matches": len(matches), "matches": matches}
+            return {
+                "query": query,
+                "symbols": symbol_hits,
+                "total_symbols": len(symbol_hits),
+                "text_matches": matches,
+                "total_text_matches": len(matches),
+            }
 
         self.tools["search_codebase"] = AgentTool(
             name="search_codebase",

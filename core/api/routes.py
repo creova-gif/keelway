@@ -563,6 +563,44 @@ async def get_workspace_git_diff(path: Optional[str] = None):
 
 
 # =====================================================================
+# Codebase Semantic Index & RepoMap Endpoints
+# =====================================================================
+
+from core.storage.ast_index import CodebaseSemanticIndex
+
+_semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
+
+
+@router.get("/v1/index/repomap", tags=["Codebase Index"])
+async def get_repository_map(max_tokens: int = 1500):
+    """Retrieve condensed repository map for prompt context augmentation."""
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    return {
+        "repo_map": _semantic_index.generate_repo_map(max_tokens=max_tokens),
+        "total_files": len(_semantic_index.symbols),
+    }
+
+
+@router.get("/v1/index/search", tags=["Codebase Index"])
+async def search_codebase_symbols(q: str, top_k: int = 10):
+    """Perform hybrid semantic and lexical search across indexed codebase symbols."""
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    return {
+        "query": q,
+        "results": _semantic_index.search_symbols(query=q, top_k=top_k),
+    }
+
+
+@router.post("/v1/index/refresh", tags=["Codebase Index"])
+async def refresh_codebase_index(max_files: int = 200):
+    """Re-index workspace files and refresh symbol embeddings."""
+    res = _semantic_index.index_workspace(max_files=max_files)
+    return {"status": "indexed", "stats": res}
+
+
+# =====================================================================
 # Autonomous ReAct Agent Loop Endpoints
 # =====================================================================
 
