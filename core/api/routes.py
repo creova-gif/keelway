@@ -499,6 +499,154 @@ async def list_mesh_peers():
     }
 
 
+# =====================================================================
+# Workspace Filesystem & Live Git Endpoints
+# =====================================================================
+
+from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
+
+_workspace_fs = WorkspaceFilesystem()
+
+
+@router.get("/v1/files/tree", tags=["Workspace Filesystem"])
+async def get_workspace_file_tree(subpath: str = ".", max_depth: int = 4):
+    """Retrieve recursive workspace file tree honoring .gitignore rules."""
+    try:
+        return _workspace_fs.get_file_tree(subpath=subpath, max_depth=max_depth)
+    except WorkspaceSecurityError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/v1/files/content", tags=["Workspace Filesystem"])
+async def read_workspace_file(path: str):
+    """Safely read text content of a workspace file."""
+    try:
+        return _workspace_fs.read_file(path)
+    except WorkspaceSecurityError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/v1/files/save", tags=["Workspace Filesystem"])
+async def save_workspace_file(payload: dict):
+    """Atomically write content to a workspace file."""
+    path = payload.get("path")
+    content = payload.get("content")
+    if not path or content is None:
+        raise HTTPException(status_code=400, detail="Missing required 'path' or 'content' field.")
+    try:
+        return _workspace_fs.write_file(path, content)
+    except WorkspaceSecurityError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
+
+@router.get("/v1/git/status", tags=["Workspace Git"])
+async def get_workspace_git_status():
+    """Retrieve live Git repository status, branch, and modified files."""
+    return _workspace_fs.get_git_status()
+
+
+@router.get("/v1/git/diff", tags=["Workspace Git"])
+async def get_workspace_git_diff(path: Optional[str] = None):
+    """Retrieve live unified Git diff for workspace or specific file."""
+    try:
+        return _workspace_fs.get_git_diff(path=path)
+    except WorkspaceSecurityError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+# =====================================================================
+# Autonomous ReAct Agent Loop Endpoints
+# =====================================================================
+
+from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
+
+_active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
+
+
+@router.post("/v1/agent/run", tags=["Autonomous Agent Loop"])
+async def run_agent_task(payload: dict):
+    """Initialize and run an autonomous agent engineering task."""
+    task_id = payload.get("task_id") or f"task_{int(time.time())}"
+    goal = payload.get("goal", "Inspect codebase and prepare solution")
+    steps = payload.get("steps") or [
+        "Inspect workspace files and dependencies",
+        "Search codebase for target symbols",
+        "Formulate and verify solution patch",
+        "Run automated checks",
+    ]
+    policy_str = payload.get("policy", "confirm_mutation")
+    policy = AutonomyPolicy(policy_str) if policy_str in [p.value for p in AutonomyPolicy] else AutonomyPolicy.CONFIRM_MUTATION
+
+    agent = AutonomousAgentLoop(task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True)
+    agent.initialize_plan(goal=goal, steps=steps)
+    _active_agent_loops[task_id] = agent
+
+    return {
+        "task_id": task_id,
+        "goal": goal,
+        "policy": agent.policy.value,
+        "state": agent.get_state(),
+    }
+
+
+@router.get("/v1/agent/status/{task_id}", tags=["Autonomous Agent Loop"])
+async def get_agent_status(task_id: str):
+    """Retrieve current state, plan steps, and pending approvals for an agent."""
+    if task_id not in _active_agent_loops:
+        raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
+    return _active_agent_loops[task_id].get_state()
+
+
+@router.post("/v1/agent/step/{task_id}", tags=["Autonomous Agent Loop"])
+async def step_agent_tool(task_id: str, payload: dict):
+    """Execute a single tool call within the agent loop."""
+    if task_id not in _active_agent_loops:
+        raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
+
+    tool_name = payload.get("tool_name")
+    arguments = payload.get("arguments", {})
+    step_id = payload.get("step_id")
+
+    if not tool_name:
+        raise HTTPException(status_code=400, detail="Missing 'tool_name' in request payload.")
+
+    agent = _active_agent_loops[task_id]
+    try:
+        res = await agent.execute_tool(tool_name=tool_name, arguments=arguments, step_id=step_id)
+        return {
+            "task_id": task_id,
+            "step_result": res,
+            "agent_state": agent.get_state(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/v1/agent/approve/{task_id}", tags=["Autonomous Agent Loop"])
+async def approve_agent_action(task_id: str, payload: dict):
+    """Human-in-the-loop: grant or deny permission for a pending mutating tool."""
+    if task_id not in _active_agent_loops:
+        raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
+
+    approved = bool(payload.get("approved", True))
+    agent = _active_agent_loops[task_id]
+    res = await agent.approve_pending(approved=approved)
+    return {
+        "task_id": task_id,
+        "approval_result": res,
+        "agent_state": agent.get_state(),
+    }
+
+
+
 
 
 

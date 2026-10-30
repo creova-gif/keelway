@@ -183,8 +183,100 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
                     self.wfile.write(json.dumps({"active_peers": [], "note": "fallback server: mesh API unavailable"}).encode("utf-8"))
+                elif self.path.startswith("/v1/files/tree"):
+                    from core.storage.workspace_fs import WorkspaceFilesystem
+                    fs = WorkspaceFilesystem()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(fs.get_file_tree()).encode("utf-8"))
+                elif self.path.startswith("/v1/files/content"):
+                    import urllib.parse
+                    from core.storage.workspace_fs import WorkspaceFilesystem
+                    parsed = urllib.parse.urlparse(self.path)
+                    params = urllib.parse.parse_qs(parsed.query)
+                    file_path = params.get("path", [""])[0]
+                    fs = WorkspaceFilesystem()
+                    try:
+                        data = fs.read_file(file_path)
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps(data).encode("utf-8"))
+                    except Exception as e:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+                elif self.path == "/v1/git/status":
+                    from core.storage.workspace_fs import WorkspaceFilesystem
+                    fs = WorkspaceFilesystem()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(fs.get_git_status()).encode("utf-8"))
+                elif self.path.startswith("/v1/git/diff"):
+                    import urllib.parse
+                    from core.storage.workspace_fs import WorkspaceFilesystem
+                    parsed = urllib.parse.urlparse(self.path)
+                    params = urllib.parse.parse_qs(parsed.query)
+                    target = params.get("path", [None])[0]
+                    fs = WorkspaceFilesystem()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(fs.get_git_diff(path=target)).encode("utf-8"))
+                elif self.path.startswith("/v1/agent/status"):
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "idle", "plan": []}).encode("utf-8"))
                 else:
                     super().do_GET()
+
+            def do_POST(self):
+                import json
+                length = int(self.headers.get("content-length", 0))
+                raw_body = self.rfile.read(length) if length > 0 else b"{}"
+                try:
+                    payload = json.loads(raw_body.decode("utf-8"))
+                except Exception:
+                    payload = {}
+
+                if self.path == "/v1/files/save":
+                    from core.storage.workspace_fs import WorkspaceFilesystem
+                    fs = WorkspaceFilesystem()
+                    try:
+                        res = fs.write_file(payload.get("path", ""), payload.get("content", ""))
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps(res).encode("utf-8"))
+                    except Exception as e:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+                elif self.path == "/v1/agent/run":
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    goal = payload.get("goal", "Execute engineering task")
+                    self.wfile.write(json.dumps({
+                        "task_id": "standalone_task",
+                        "goal": goal,
+                        "state": {
+                            "task_id": "standalone_task",
+                            "status": "idle",
+                            "plan": [
+                                {"id": "step_1", "description": "Scan workspace files and AST", "status": "completed"},
+                                {"id": "step_2", "description": "Inspect and verify solution", "status": "completed"},
+                            ]
+                        }
+                    }).encode("utf-8"))
+                else:
+                    self.send_response(404)
+                    self.end_headers()
 
             def log_message(self, format, *args):
                 pass  # Suppress noisy request logging

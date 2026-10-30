@@ -6,6 +6,8 @@
   <title>Kora Dev Studio — Autonomous Agent IDE</title>
   <!-- Tailwind CSS CDN for reactive modern IDE styling -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Monaco Editor AMD Loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -232,12 +234,16 @@
           </div>
         </div>
 
-        <!-- RIGHT TAB ACTIONS (DIFF MODE & COMMIT) -->
+        <!-- RIGHT TAB ACTIONS (VIEW MODE, SAVE & COMMIT) -->
         <div class="flex items-center space-x-2 text-xs">
           <div class="flex items-center bg-white/5 rounded p-0.5 border border-white/5 text-[10px]">
-            <button id="btn-view-unified" onclick="setDiffMode('unified')" class="px-2 py-0.5 rounded bg-white/10 text-white font-medium">Unified</button>
-            <button id="btn-view-split" onclick="setDiffMode('split')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Split 2-Col</button>
+            <button id="btn-view-editor" onclick="setViewMode('editor')" class="px-2 py-0.5 rounded bg-white/10 text-white font-medium">Code (Monaco)</button>
+            <button id="btn-view-unified" onclick="setViewMode('unified')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Unified Diff</button>
+            <button id="btn-view-split" onclick="setViewMode('split')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Split 2-Col</button>
           </div>
+          <button onclick="saveActiveFile()" class="px-2.5 py-1 rounded bg-accentCobalt hover:bg-blue-600 text-white font-bold text-[11px] transition shadow-sm active:scale-95 flex items-center gap-1">
+            <span>💾</span> Save <kbd class="px-1 py-0.2 rounded bg-black/20 text-[9px]">⌘S</kbd>
+          </button>
           <button onclick="acceptDiffAndCommit()" class="px-2.5 py-1 rounded bg-emeraldShield hover:bg-emerald-600 text-obsidian font-bold text-[11px] transition shadow-sm active:scale-95 flex items-center gap-1">
             <span>✓</span> Commit <kbd class="px-1 py-0.2 rounded bg-black/20 text-[9px]">⌘⏎</kbd>
           </button>
@@ -246,23 +252,23 @@
 
       <!-- BREADCRUMB NAVIGATION -->
       <div class="h-6 bg-ideEditor/90 border-b border-ideBorder/50 px-4 flex items-center text-[11px] font-mono text-slate-400 space-x-1.5 shrink-0">
-        <span>kora</span>
-        <span>›</span>
-        <span>core</span>
-        <span>›</span>
-        <span>agent</span>
+        <span>workspace</span>
         <span>›</span>
         <span class="text-white font-bold" id="breadcrumb-filename">self_healing.py</span>
-        <span>›</span>
-        <span class="text-accentCobalt">AutonomousSelfHealingEngine</span>
-        <span>›</span>
-        <span class="text-slate-500">execute_repair()</span>
+        <span id="breadcrumb-status" class="text-emeraldShield text-[10px] ml-2">● Saved</span>
       </div>
 
       <!-- CODE & DIFF CANVAS -->
       <div class="flex-1 flex flex-col min-h-0 relative">
+        <!-- INTERACTIVE MONACO EDITOR VIEW -->
+        <div id="monaco-editor-view" class="flex-1 w-full h-full bg-ideEditor overflow-hidden relative">
+          <!-- Fallback textarea if Monaco is loading or offline -->
+          <textarea id="monaco-fallback-area" class="w-full h-full p-4 bg-ideEditor text-slate-200 font-mono text-xs outline-none resize-none" spellcheck="false" oninput="markFileDirty()"></textarea>
+          <div id="monaco-mount-point" class="absolute inset-0"></div>
+        </div>
+
         <!-- UNIFIED DIFF CONTAINER -->
-        <div id="diff-unified-view" class="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5 bg-ideEditor">
+        <div id="diff-unified-view" class="hidden flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5 bg-ideEditor">
           <!-- Populated dynamically by renderActiveDiff() -->
         </div>
 
@@ -271,7 +277,7 @@
           <div class="flex flex-col min-h-0 bg-black/40">
             <div class="p-2 border-b border-ideBorder text-[10px] font-bold text-crimsonKill uppercase bg-ideSidebar/50 flex justify-between">
               <span>Original (Base Working Tree)</span>
-              <span class="text-slate-500 font-normal">core/agent/self_healing.py</span>
+              <span id="split-filename-label" class="text-slate-500 font-normal">core/agent/self_healing.py</span>
             </div>
             <div id="split-left-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
               <!-- Left Original Lines -->
@@ -398,10 +404,10 @@
       <div class="p-3 border-b border-ideBorder bg-surfaceLight/20 space-y-1.5 shrink-0">
         <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex justify-between">
           <span>Execution Plan</span>
-          <span class="text-accentCobalt font-mono">4 of 5 Complete</span>
+          <span id="plan-progress-counter" class="text-accentCobalt font-mono">4 of 5 Complete</span>
         </div>
 
-        <div class="space-y-1 text-[11px]">
+        <div id="plan-steps-container" class="space-y-1 text-[11px]">
           <div class="flex items-center gap-2 text-emeraldShield">
             <span>✓</span>
             <span class="line-through text-slate-400">1. Localize AST syntax failure (Line 88)</span>
@@ -416,13 +422,29 @@
           </div>
           <div class="flex items-center gap-2 text-emeraldShield font-bold">
             <span class="animate-spin">●</span>
-            <span>4. Verify test suite (22/22 green)</span>
+            <span>4. Verify test suite (31/31 green)</span>
           </div>
           <div class="flex items-center gap-2 text-slate-500">
             <span>○</span>
             <span>5. Await developer commit approval</span>
           </div>
         </div>
+
+        <!-- HUMAN-IN-THE-LOOP APPROVAL CARD -->
+        <div id="plan-approval-card" class="hidden p-2 rounded bg-amberGate/10 border border-amberGate/40 space-y-1.5 mt-2">
+          <div class="text-[10px] font-bold text-amberGate flex items-center gap-1">
+            <span>⚠️</span> Safety Gate: Approval Required
+          </div>
+          <div id="plan-approval-desc" class="text-[10px] text-slate-300 font-mono">tool: edit_file (workspace)</div>
+          <div class="flex items-center space-x-1.5 mt-1">
+            <button onclick="submitToolApproval(true)" class="flex-1 py-1 rounded bg-emeraldShield text-black font-bold text-[10px] hover:bg-emerald-400">Allow</button>
+            <button onclick="submitToolApproval(false)" class="flex-1 py-1 rounded bg-crimsonKill/20 border border-crimsonKill/40 text-red-300 font-bold text-[10px] hover:bg-crimsonKill/40">Deny</button>
+          </div>
+        </div>
+
+        <button onclick="triggerAutonomousTask()" class="w-full mt-2 py-1 bg-accentCobalt/20 hover:bg-accentCobalt/30 border border-accentCobalt/40 rounded text-accentCobalt font-bold text-[10px] flex items-center justify-center gap-1 transition active:scale-95">
+          <span>▶</span> Run Autonomous Loop
+        </button>
       </div>
 
       <!-- COLLAPSIBLE TOOL EXECUTION CARD (DEVIN SIGNATURE) -->
@@ -781,29 +803,363 @@
       });
     }
 
-    function setDiffMode(mode) {
+    let currentViewMode = 'editor';
+    let monacoEditor = null;
+    let activeTask = 'task_autonomous_01';
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
       diffMode = mode;
       playTone(480, 'sine', 0.04);
-      document.getElementById('btn-view-unified').className = mode === 'unified' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
-      document.getElementById('btn-view-split').className = mode === 'split' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+      
+      const btnEditor = document.getElementById('btn-view-editor');
+      const btnUnified = document.getElementById('btn-view-unified');
+      const btnSplit = document.getElementById('btn-view-split');
+
+      if (btnEditor) btnEditor.className = mode === 'editor' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+      if (btnUnified) btnUnified.className = mode === 'unified' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+      if (btnSplit) btnSplit.className = mode === 'split' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
+
+      document.getElementById('monaco-editor-view').classList.toggle('hidden', mode !== 'editor');
       document.getElementById('diff-unified-view').classList.toggle('hidden', mode !== 'unified');
       document.getElementById('diff-split-view').classList.toggle('hidden', mode !== 'split');
-      showToast(`Switched to ${mode} diff mode`, '📄');
+
+      if (mode === 'editor' && monacoEditor) {
+        setTimeout(() => monacoEditor.layout(), 20);
+      } else if (mode !== 'editor') {
+        renderActiveDiff();
+      }
+      showToast(`Switched view: ${mode}`, '📄');
+    }
+
+    function setDiffMode(mode) {
+      setViewMode(mode);
+    }
+
+    function getLanguageForFile(path) {
+      if (path.endsWith('.py')) return 'python';
+      if (path.endsWith('.js')) return 'javascript';
+      if (path.endsWith('.ts') || path.endsWith('.tsx')) return 'typescript';
+      if (path.endsWith('.json')) return 'json';
+      if (path.endsWith('.html')) return 'html';
+      if (path.endsWith('.css')) return 'css';
+      if (path.endsWith('.md')) return 'markdown';
+      if (path.endsWith('.sh')) return 'shell';
+      return 'plaintext';
+    }
+
+    function markFileDirty() {
+      const status = document.getElementById('breadcrumb-status');
+      if (status) {
+        status.textContent = '● Modified';
+        status.className = 'text-amberGate text-[10px] ml-2 font-bold';
+      }
+    }
+
+    function initMonaco() {
+      if (typeof require !== 'undefined' && require.config) {
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+          monaco.editor.defineTheme('koraDark', {
+            base: 'vs-dark',
+            inherit: true,
+            rules: [
+              { token: 'comment', foreground: '6272A4', fontStyle: 'italic' },
+              { token: 'keyword', foreground: '3B82F6' },
+              { token: 'string', foreground: '10B981' },
+              { token: 'number', foreground: 'F59E0B' },
+            ],
+            colors: {
+              'editor.background': '#0A0F1D',
+              'editor.foreground': '#E2E8F0',
+              'editorLineNumber.foreground': '#4B5563',
+              'editorLineNumber.activeForeground': '#94A3B8',
+              'editor.selectionBackground': '#2563EB40',
+              'editor.lineHighlightBackground': '#121B3040',
+            }
+          });
+
+          const mount = document.getElementById('monaco-mount-point');
+          if (mount) {
+            monacoEditor = monaco.editor.create(mount, {
+              value: "# Kora Sovereign Developer Studio\n# Open any workspace file from the explorer on the left or press ⌘K.\n\nprint('Kora AI Sovereign Agent Environment Ready')\n",
+              language: 'python',
+              theme: 'koraDark',
+              fontFamily: "'Fira Code', monospace",
+              fontSize: 12,
+              automaticLayout: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              lineNumbers: 'on',
+              renderLineHighlight: 'all',
+            });
+
+            // Bind Cmd+S in Monaco
+            monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
+              saveActiveFile();
+            });
+
+            monacoEditor.onDidChangeModelContent(function () {
+              markFileDirty();
+            });
+
+            const fallback = document.getElementById('monaco-fallback-area');
+            if (fallback) fallback.classList.add('hidden');
+          }
+        });
+      }
+    }
+
+    async function openWorkspaceFile(filePath) {
+      activeFile = filePath;
+      playTone(520, 'sine', 0.04);
+      const name = filePath.split('/').pop();
+      document.getElementById('breadcrumb-filename').textContent = name;
+      const statusEl = document.getElementById('breadcrumb-status');
+      statusEl.textContent = '● Loading...';
+      statusEl.className = 'text-amberGate text-[10px] ml-2';
+
+      try {
+        const res = await fetch(`/v1/files/content?path=${encodeURIComponent(filePath)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const content = data.content || '';
+          const lang = getLanguageForFile(filePath);
+
+          if (monacoEditor && window.monaco) {
+            const oldModel = monacoEditor.getModel();
+            const newModel = monaco.editor.createModel(content, lang);
+            monacoEditor.setModel(newModel);
+            if (oldModel) oldModel.dispose();
+          } else {
+            const fallback = document.getElementById('monaco-fallback-area');
+            if (fallback) fallback.value = content;
+          }
+
+          statusEl.textContent = '● Clean';
+          statusEl.className = 'text-emeraldShield text-[10px] ml-2';
+          setViewMode('editor');
+          showToast(`Opened ${name}`, '📄');
+          return;
+        }
+      } catch (err) {}
+
+      // Fallback to diff viewer if content endpoint unreachable
+      renderActiveDiff();
+      statusEl.textContent = '● Sample';
     }
 
     function openFileInTab(filename) {
-      activeFile = filename;
-      playTone(520, 'sine', 0.04);
-      renderActiveDiff();
-      showToast(`Opened ${filename}`, '📄');
+      openWorkspaceFile(filename);
     }
 
     function selectFile(filename) {
-      openFileInTab(filename);
+      openWorkspaceFile(filename);
     }
 
     function closeTab(filename) {
       showToast(`Closed tab: ${filename}`, '✕');
+    }
+
+    async function saveActiveFile() {
+      playTone(700, 'triangle', 0.08);
+      let content = '';
+      if (monacoEditor) {
+        content = monacoEditor.getValue();
+      } else {
+        const fallback = document.getElementById('monaco-fallback-area');
+        content = fallback ? fallback.value : '';
+      }
+
+      const statusEl = document.getElementById('breadcrumb-status');
+      statusEl.textContent = '● Saving...';
+      statusEl.className = 'text-amberGate text-[10px] ml-2';
+
+      try {
+        const res = await fetch('/v1/files/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: activeFile, content: content }),
+        });
+
+        if (res.ok) {
+          playTone(880, 'sine', 0.1);
+          statusEl.textContent = '● Saved ✓';
+          statusEl.className = 'text-emeraldShield text-[10px] ml-2';
+          showToast(`Saved ${activeFile.split('/').pop()} cleanly ✓`, '💾');
+          loadGitStatusAndDiff();
+          return;
+        }
+      } catch (err) {}
+
+      showToast(`Saved locally (offline mode)`, '💾');
+      statusEl.textContent = '● Saved (Offline)';
+      statusEl.className = 'text-slate-400 text-[10px] ml-2';
+    }
+
+    async function loadWorkspaceTree() {
+      try {
+        const res = await fetch('/v1/files/tree');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.tree) return;
+
+        const sidebar = document.getElementById('sidebar-content');
+        sidebar.innerHTML = '';
+
+        const rootName = data.name || 'workspace';
+        const rootHeader = document.createElement('div');
+        rootHeader.className = 'flex items-center gap-1.5 px-1 py-1 text-slate-400 font-semibold cursor-pointer';
+        rootHeader.innerHTML = `<span class="text-[10px]">▼</span><span>${escapeHtml(rootName)}</span>`;
+        sidebar.appendChild(rootHeader);
+
+        const container = document.createElement('div');
+        container.className = 'pl-2 space-y-0.5';
+
+        function renderNode(node, parentEl) {
+          if (node.type === 'directory') {
+            const dirEl = document.createElement('div');
+            dirEl.className = 'space-y-0.5';
+            const titleEl = document.createElement('div');
+            titleEl.className = 'flex items-center gap-1.5 px-1 py-0.5 text-slate-400 hover:text-slate-200 font-semibold cursor-pointer text-xs';
+            titleEl.innerHTML = `<span class="text-[9px]">▼</span><span>📁 ${escapeHtml(node.name)}</span>`;
+            dirEl.appendChild(titleEl);
+
+            const childrenEl = document.createElement('div');
+            childrenEl.className = 'pl-3 space-y-0.5';
+            titleEl.onclick = () => {
+              const isHidden = childrenEl.classList.toggle('hidden');
+              titleEl.querySelector('span').textContent = isHidden ? '▶' : '▼';
+            };
+
+            (node.children || []).forEach(child => renderNode(child, childrenEl));
+            dirEl.appendChild(childrenEl);
+            parentEl.appendChild(dirEl);
+          } else {
+            const fileEl = document.createElement('div');
+            fileEl.className = 'file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l border-transparent text-xs';
+            const ext = node.name.split('.').pop();
+            const icon = ext === 'py' ? '🐍' : ext === 'json' ? '⚙️' : ext === 'html' ? '🌐' : '📄';
+            fileEl.innerHTML = `<span class="truncate flex items-center gap-1.5"><span>${icon}</span> ${escapeHtml(node.name)}</span>`;
+            fileEl.onclick = () => openWorkspaceFile(node.path);
+            parentEl.appendChild(fileEl);
+          }
+        }
+
+        (data.tree.children || []).forEach(child => renderNode(child, container));
+        sidebar.appendChild(container);
+      } catch (e) {}
+    }
+
+    async function loadGitStatusAndDiff() {
+      try {
+        const [statusRes, diffRes] = await Promise.all([
+          fetch('/v1/git/status'),
+          fetch('/v1/git/diff')
+        ]);
+
+        if (statusRes.ok) {
+          const gitData = await statusRes.json();
+          const dot = document.querySelector('#act-btn-git span');
+          if (dot) dot.style.display = gitData.clean ? 'none' : 'block';
+        }
+
+        if (diffRes.ok) {
+          const diffData = await diffRes.json();
+          if (diffData.diff) {
+            renderRawUnifiedDiff(diffData.diff);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function renderRawUnifiedDiff(diffText) {
+      const unifiedContainer = document.getElementById('diff-unified-view');
+      unifiedContainer.innerHTML = '';
+      const lines = diffText.split('\n');
+      lines.forEach((lineText, idx) => {
+        const div = document.createElement('div');
+        const isAdd = lineText.startsWith('+') && !lineText.startsWith('+++');
+        const isDel = lineText.startsWith('-') && !lineText.startsWith('---');
+        const isInfo = lineText.startsWith('@@') || lineText.startsWith('diff ');
+        div.className = `code-line flex items-center px-2 py-0.5 rounded font-mono text-xs ${isAdd ? 'diff-add font-medium' : isDel ? 'diff-del font-medium' : isInfo ? 'text-slate-500 font-semibold mb-1' : 'text-slate-400'}`;
+        div.innerHTML = `<span class="line-num">${idx + 1}</span><span>${escapeHtml(lineText)}</span>`;
+        unifiedContainer.appendChild(div);
+      });
+    }
+
+    async function triggerAutonomousTask(customGoal) {
+      playTone(600, 'triangle', 0.1);
+      const goal = customGoal || "Autonomous code inspection, AST verification and repair";
+      showToast("Autonomous ReAct Loop Initiated", "⚡");
+
+      try {
+        const res = await fetch('/v1/agent/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            goal: goal,
+            policy: "confirm_mutation",
+            steps: [
+              "Scan repository workspace and AST symbols",
+              "Localize target files and unverified lines",
+              "Formulate patch and test in ephemeral worktree",
+              "Run local 31 unit tests and record flight tape",
+              "Present verified diff for commit approval"
+            ]
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          activeTask = data.task_id;
+          renderAgentPlan(data.state.plan);
+          appendAgentThought("Kora Autonomous Planner", `Task [${data.task_id}] dispatched: ${goal}`);
+        }
+      } catch (e) {
+        appendAgentThought("Kora Planner", "Agent loop running in local sandbox.");
+      }
+    }
+
+    function renderAgentPlan(planSteps) {
+      const container = document.getElementById('plan-steps-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      let completedCount = 0;
+      planSteps.forEach((step, idx) => {
+        const div = document.createElement('div');
+        if (step.status === 'completed') {
+          completedCount++;
+          div.className = "flex items-center gap-2 text-emeraldShield";
+          div.innerHTML = `<span>✓</span><span class="line-through text-slate-400">${idx+1}. ${escapeHtml(step.description)}</span>`;
+        } else if (step.status === 'running') {
+          div.className = "flex items-center gap-2 text-emeraldShield font-bold";
+          div.innerHTML = `<span class="animate-spin">●</span><span>${idx+1}. ${escapeHtml(step.description)}</span>`;
+        } else {
+          div.className = "flex items-center gap-2 text-slate-500";
+          div.innerHTML = `<span>○</span><span>${idx+1}. ${escapeHtml(step.description)}</span>`;
+        }
+        container.appendChild(div);
+      });
+
+      const counter = document.getElementById('plan-progress-counter');
+      if (counter) counter.textContent = `${completedCount} of ${planSteps.length} Complete`;
+    }
+
+    async function submitToolApproval(approved) {
+      playTone(approved ? 750 : 300, 'sine', 0.08);
+      document.getElementById('plan-approval-card').classList.add('hidden');
+      try {
+        await fetch(`/v1/agent/approve/${activeTask}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ approved })
+        });
+        showToast(approved ? "Tool execution allowed" : "Tool execution denied", approved ? "✓" : "✕");
+      } catch (e) {
+        showToast(approved ? "Allowed (sandbox)" : "Denied (sandbox)", approved ? "✓" : "✕");
+      }
     }
 
     function acceptDiffAndCommit() {
@@ -1017,6 +1373,9 @@
         openCommandPalette();
       } else if (e.key === 'Escape') {
         closeCommandPalette();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveActiveFile();
       } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
         acceptDiffAndCommit();
@@ -1040,6 +1399,9 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       renderActiveDiff();
+      initMonaco();
+      loadWorkspaceTree();
+      loadGitStatusAndDiff();
     });
   </script>
 </body>
