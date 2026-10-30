@@ -114,7 +114,6 @@ The following modules are prototypes: they have data models and unit tests, but 
 | `core/orchestration/mcp.py` | In-process JSON-RPC dispatcher; no stdio/SSE transport |
 | `core/security/telemetry.py` | In-memory spans; no OpenTelemetry exporter |
 | `core/security/rbac.py` | Permission matrix; not enforced by the API |
-| `core/studio/index.html` panels | Client-side demos; not yet connected to the API/WebSocket |
 | `mobile/` | Expo scaffold; not runnable yet |
 
 ---
