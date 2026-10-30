@@ -3,1260 +3,1135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kora Dev Studio — Sovereign Developer Runtime</title>
-  <!-- Tailwind CSS CDN for instant, zero-build reactive styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            obsidian: '#05070D',
-            surface: '#0C101D',
-            surfaceLight: '#141B2D',
-            surfaceCard: '#1A233A',
-            borderSubtle: '#1E293B',
-            accentBlue: '#2563EB',
-            accentCobalt: '#3B82F6',
-            emeraldShield: '#10B981',
-            amberGate: '#F59E0B',
-            crimsonKill: '#EF4444',
-          },
-          fontFamily: {
-            sans: ['Inter', '-apple-system', 'sans-serif'],
-            mono: ['Fira Code', 'monospace'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { background-color: #05070D; color: #E2E8F0; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #05070D; }
-    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 2px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    .diff-add { background-color: rgba(16, 185, 129, 0.12); color: #34D399; }
-    .diff-del { background-color: rgba(239, 68, 68, 0.12); color: #F87171; }
-    .tabular-nums { font-variant-numeric: tabular-nums; }
-    .code-line:hover { background-color: rgba(255, 255, 255, 0.03); }
-  </style>
+  <meta name="color-scheme" content="dark">
+  <title>Kora Dev Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%232563EB%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EK%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/studio/assets/studio.css">
 </head>
-<body class="font-sans antialiased h-screen flex flex-col overflow-hidden select-none text-slate-200">
+<body class="h-screen flex flex-col overflow-hidden font-sans text-sm antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:rounded-md focus:bg-accentBlue focus:text-white">Skip to workspace</a>
 
-  <!-- TOP APP HEADER (BROAD CONTEXT / GLOBAL APPLICATION STATE) -->
-  <header class="h-11 bg-surface border-b border-borderSubtle flex items-center justify-between px-3 shrink-0 z-30">
-    <div class="flex items-center space-x-3">
-      <!-- BRAND & GIT CONTEXT -->
-      <div class="flex items-center space-x-2">
-        <div class="w-6 h-6 rounded bg-gradient-to-tr from-accentBlue to-indigo-500 flex items-center justify-center shadow-md shadow-accentBlue/20">
-          <span class="text-white font-bold text-xs">⚡</span>
-        </div>
-        <span class="font-bold text-white tracking-tight text-sm">Kora <span class="text-accentCobalt font-normal">Dev Studio</span></span>
-      </div>
-
-      <div class="hidden sm:flex items-center space-x-1 text-xs">
-        <span class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">v2.5-audit</span>
-        <span class="text-slate-600">/</span>
-        <button onclick="copyToClipboard('git checkout main', 'Copied Git branch command')" title="Click to copy branch" class="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1.5 px-1 py-0.5 rounded hover:bg-white/5 transition">
-          <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
-          <span>main</span>
-          <span class="text-[10px] text-slate-500">#b0f1f4f</span>
-        </button>
-      </div>
-
-      <!-- WS STATUS BADGE -->
-      <div class="hidden lg:flex items-center space-x-1 text-[11px] font-mono bg-surfaceLight/50 px-2 py-0.5 rounded border border-white/5">
-        <span id="ws-status-indicator" class="w-2 h-2 rounded-full bg-emeraldShield"></span>
-        <span id="ws-status-text" class="text-slate-400">SOVEREIGN LOCAL</span>
-      </div>
+  <!-- Header -->
+  <header class="h-12 border-b border-borderSubtle bg-surface flex items-center justify-between px-3 gap-3 shrink-0">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <button id="toggle-left" type="button" class="lg:hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle workspace explorer">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-accentBlue to-accentCobalt flex items-center justify-center font-bold text-white text-xs shadow-lg shadow-accentBlue/20" aria-hidden="true">K</div>
+      <h1 class="sr-only sm:not-sr-only font-semibold text-white tracking-tight whitespace-nowrap">Kora Dev Studio</h1>
+      <span id="git-ref" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surfaceLight border border-borderSubtle text-[11px] font-mono text-slate-400 truncate max-w-[14rem]" title="Current git branch">
+        <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-10 6"/></svg>
+        <span id="git-ref-text">—</span>
+      </span>
+      <span id="ws-status" role="status" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium text-amber-300 bg-amberGate/10 border border-amberGate/30">
+        <span id="ws-dot" class="w-1.5 h-1.5 rounded-full bg-amberGate" aria-hidden="true"></span>
+        <span id="ws-label" class="whitespace-nowrap">Connecting</span>
+      </span>
     </div>
 
-    <!-- CENTER SEARCH / COMMAND PALETTE TRIGGER (EVIL MARTIANS QUICK CONTEXT ACCESS) -->
-    <div class="flex items-center">
-      <button onclick="openCommandPalette()" class="flex items-center space-x-2 bg-surfaceLight/80 hover:bg-surfaceLight px-3 py-1 rounded-md border border-white/10 text-xs text-slate-400 hover:text-slate-200 transition shadow-inner w-56 sm:w-80 justify-between">
-        <span class="flex items-center gap-1.5 truncate">
-          <span>🔍</span>
-          <span class="truncate">Search commands, files, diffs...</span>
-        </span>
-        <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/10 text-slate-300 border border-white/10">⌘K</kbd>
+    <button id="palette-trigger" type="button" class="hidden md:flex items-center gap-2 w-72 px-3 py-1.5 rounded-md bg-surfaceLight border border-borderSubtle text-slate-500 hover:border-slate-600 hover:text-slate-300 transition-colors duration-150 text-xs" aria-haspopup="dialog">
+      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="flex-1 text-left">Search or run a command…</span>
+      <kbd class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-obsidian border border-borderSubtle">⌘K</kbd>
+    </button>
+
+    <div class="flex items-center gap-1.5">
+      <button id="airgap-btn" type="button" aria-pressed="false" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors duration-150 border-borderSubtle text-slate-300 bg-surfaceLight hover:border-slate-500">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/></svg>
+        <span id="airgap-label" class="sr-only sm:not-sr-only whitespace-nowrap">Checking egress…</span>
       </button>
-    </div>
-
-    <!-- RIGHT GLOBAL CONTROLS & LAYOUT TOGGLES -->
-    <div class="flex items-center space-x-2 text-xs">
-      <!-- HARDWARE & AIRGAP STATUS -->
-      <div class="hidden md:flex items-center space-x-2 bg-surfaceLight/50 px-2.5 py-1 rounded border border-white/5 font-mono text-[11px]">
-        <span class="text-slate-400">Spec:</span>
-        <span class="text-emeraldShield font-bold">2.58x</span>
-        <span class="text-slate-600">|</span>
-        <span class="text-slate-400">Mesh:</span>
-        <span class="text-accentCobalt font-bold">3 Nodes</span>
-      </div>
-
-      <!-- AIR-GAP KILL SWITCH -->
-      <button id="airgap-btn" onclick="toggleAirGap()" class="flex items-center space-x-1.5 px-2.5 py-1 rounded border text-xs font-medium transition shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20 active:scale-95" title="Toggle Physical Egress Shield (Alt+A)">
-        <span id="airgap-icon">🔒</span>
-        <span id="airgap-label" class="hidden sm:inline">Air-Gapped: Zero-Egress</span>
+      <button id="sound-btn" type="button" aria-pressed="true" class="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5" aria-label="Interface sounds">
+        <svg id="sound-on" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+        <svg id="sound-off" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>
       </button>
-
-      <!-- AUDIO FEEDBACK TOGGLE -->
-      <button onclick="toggleAudio()" id="audio-toggle" class="p-1 rounded hover:bg-white/5 text-slate-400 hover:text-white transition" title="Toggle Synthesizer Audio">
-        <span id="audio-icon">🔊</span>
+      <button id="toggle-right" type="button" class="xl:hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/5" aria-controls="copilot" aria-expanded="false" aria-label="Toggle runtime panel">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
       </button>
-
-      <span class="text-slate-700">|</span>
-
-      <!-- PANEL TOGGLE SHORTCUTS (INTERMEDIATE CONTEXT CONTROLS) -->
-      <div class="flex items-center space-x-0.5 bg-surfaceLight/80 p-0.5 rounded border border-white/10">
-        <button id="btn-toggle-left" onclick="toggleSidebar()" class="px-1.5 py-0.5 rounded text-[11px] text-slate-300 hover:bg-white/10 transition" title="Toggle Sidebar ([)">◧</button>
-        <button id="btn-toggle-right" onclick="toggleTelemetry()" class="px-1.5 py-0.5 rounded text-[11px] text-slate-300 hover:bg-white/10 transition" title="Toggle Telemetry (])">◨</button>
-      </div>
     </div>
   </header>
 
-  <!-- MAIN THREE-COLUMN WORKSPACE WITH EVIL MARTIANS DIRECTIONAL FLOW -->
   <div class="flex-1 flex overflow-hidden relative">
+    <!-- Left: workspace explorer -->
+    <aside id="sidebar" class="drawer drawer-left w-72 shrink-0 bg-surface border-r border-borderSubtle flex-col overflow-hidden hidden lg:flex" aria-label="Workspace explorer">
+      <div class="flex-1 overflow-y-auto py-2">
+        <section aria-labelledby="changes-heading" class="px-2 pb-3">
+          <div class="flex items-center justify-between px-2 py-1.5">
+            <h2 id="changes-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Changes</h2>
+            <span id="changes-count" class="text-[11px] font-mono text-slate-500 tabular-nums">0</span>
+          </div>
+          <ul id="changes-list" class="space-y-0.5"></ul>
+        </section>
 
-    <!-- LEFT SIDEBAR: WORKSPACE EXPLORER & SECURITY (INTERMEDIATE CONTEXT) -->
-    <aside id="left-sidebar" class="w-64 bg-surface/95 border-r border-borderSubtle flex flex-col shrink-0 transition-all duration-150 ease-out z-10">
-      
-      <!-- SUB-HEADER: QUICK FILTER -->
-      <div class="p-2.5 border-b border-borderSubtle flex items-center justify-between">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-          <span>📁</span>
-          <span>Workspace Tree</span>
-        </div>
-        <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-300 text-xs px-1" title="Collapse Sidebar ([)">✕</button>
-      </div>
+        <section aria-labelledby="tasks-heading" class="px-2 pb-3 border-t border-borderSubtle pt-2">
+          <div class="flex items-center justify-between px-2 py-1.5">
+            <h2 id="tasks-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tasks</h2>
+            <button id="new-task-btn" type="button" class="text-[11px] text-accentCobalt hover:text-blue-300 px-1.5 py-0.5 rounded">+ New</button>
+          </div>
+          <form id="task-form" class="hidden px-2 pb-2 space-y-1.5" autocomplete="off">
+            <label for="task-title" class="sr-only">Task title</label>
+            <input id="task-title" required minlength="3" maxlength="255" placeholder="What should the agent do?" class="w-full px-2.5 py-1.5 rounded-md bg-obsidian border border-borderSubtle text-xs text-white placeholder-slate-600 focus:border-accentCobalt">
+            <div class="flex items-center gap-1.5">
+              <label for="task-budget" class="text-[11px] text-slate-500">Budget $</label>
+              <input id="task-budget" type="number" min="0.01" step="0.01" value="0.50" class="w-20 px-2 py-1 rounded-md bg-obsidian border border-borderSubtle text-xs font-mono text-white">
+              <button type="submit" class="ml-auto px-2.5 py-1 rounded-md bg-accentBlue hover:bg-blue-500 text-white text-xs font-medium">Create</button>
+            </div>
+          </form>
+          <ul id="task-list" class="space-y-0.5"></ul>
+        </section>
 
-      <!-- FILE TREE EXPLORER (LEFT CONTROLS RIGHT) -->
-      <div class="flex-1 overflow-y-auto p-2 text-xs font-mono space-y-0.5" id="file-tree-container">
-        <div class="text-[10px] font-semibold uppercase text-slate-500 px-2 pt-1 pb-0.5">Core Runtime Modules</div>
-        
-        <div onclick="selectFile('core/agent/self_healing.py')" id="file-item-core-agent-self_healing-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l-2 border-accentCobalt">
-          <span class="truncate flex items-center gap-1.5"><span>📄</span> self_healing.py</span>
-          <span class="text-[9px] font-bold px-1 rounded bg-amberGate/20 text-amberGate">MODIFIED</span>
-        </div>
-
-        <div onclick="selectFile('core/models/speculative.py')" id="file-item-core-models-speculative-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
-          <span class="truncate flex items-center gap-1.5"><span>📄</span> speculative.py</span>
-          <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">VERIFIED</span>
-        </div>
-
-        <div onclick="selectFile('core/orchestration/p2p_mesh.py')" id="file-item-core-orchestration-p2p_mesh-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
-          <span class="truncate flex items-center gap-1.5"><span>📄</span> p2p_mesh.py</span>
-          <span class="text-[9px] font-bold px-1 rounded bg-accentCobalt/20 text-accentCobalt">READY</span>
-        </div>
-
-        <div onclick="selectFile('core/storage/payment_broker.py')" id="file-item-core-storage-payment_broker-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
-          <span class="truncate flex items-center gap-1.5"><span>📄</span> payment_broker.py</span>
-          <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">READY</span>
-        </div>
-
-        <div onclick="selectFile('core/api/messaging.py')" id="file-item-core-api-messaging-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent">
-          <span class="truncate flex items-center gap-1.5"><span>📄</span> messaging.py</span>
-          <span class="text-[9px] font-bold px-1 rounded bg-emeraldShield/20 text-emeraldShield">READY</span>
-        </div>
-
-        <div class="text-[10px] font-semibold uppercase text-slate-500 px-2 pt-3 pb-0.5">Test Suites & Specs</div>
-        <div onclick="selectFile('tests/test_self_healing.py')" id="file-item-tests-test_self_healing-py" class="file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white border-l-2 border-transparent">
-          <span class="truncate flex items-center gap-1.5"><span>🧪</span> test_self_healing.py</span>
-          <span class="text-[9px] text-emeraldShield font-bold">22 PASS</span>
-        </div>
-      </div>
-
-      <!-- PANEL FOOTER (EVIL MARTIANS IMMEDIATE CONTEXT SUMMARY) -->
-      <div class="p-2.5 bg-surfaceLight/60 border-t border-borderSubtle text-[11px] font-mono shrink-0">
-        <div class="flex items-center justify-between text-slate-300 mb-1">
-          <span class="font-sans text-slate-400">DLP Secret Guard:</span>
-          <span class="text-emeraldShield font-bold">ARMED</span>
-        </div>
-        <div class="flex items-center justify-between text-slate-300 mb-1">
-          <span class="font-sans text-slate-400">AST Self-Healing:</span>
-          <span class="text-emeraldShield font-bold">ENGAGED</span>
-        </div>
-        <div class="flex items-center justify-between text-slate-300">
-          <span class="font-sans text-slate-400">Zero-Dep Tests:</span>
-          <span class="text-emeraldShield font-bold">22/22 (0.10s)</span>
-        </div>
+        <section aria-labelledby="tapes-heading" class="px-2 border-t border-borderSubtle pt-2">
+          <div class="flex items-center justify-between px-2 py-1.5">
+            <h2 id="tapes-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Flight tapes</h2>
+            <span id="tapes-count" class="text-[11px] font-mono text-slate-500 tabular-nums">0</span>
+          </div>
+          <ul id="tape-list" class="space-y-0.5"></ul>
+        </section>
       </div>
     </aside>
 
-    <!-- CENTER CANVAS: PRIMARY WORKSPACE (IMMEDIATE CONTEXT WITH EXPLICIT CONTROLS) -->
-    <main class="flex-1 flex flex-col min-w-0 bg-obsidian">
-      
-      <!-- TOP NAVIGATION BAR: HIGH-INFORMATION SEGMENTED CONTROL (NO DROPDOWNS) -->
-      <div class="h-10 bg-surface/70 border-b border-borderSubtle flex items-center justify-between px-3 shrink-0">
-        <!-- TABS (SEGMENTED BUTTONS WITH KEYBOARD NUMBERS 1-4) -->
-        <div class="flex items-center space-x-1 text-xs" role="tablist">
-          <button id="tab-diff-btn" onclick="switchTab('diff')" role="tab" class="px-3 py-1.5 rounded font-medium border border-accentCobalt/40 bg-accentCobalt/10 text-white transition active:scale-95">
-            <span class="text-accentCobalt font-mono mr-1">1</span> Multi-File Diff
-          </button>
-          <button id="tab-healing-btn" onclick="switchTab('healing')" role="tab" class="px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95">
-            <span class="text-slate-500 font-mono mr-1">2</span> Autonomous Self-Healing
-          </button>
-          <button id="tab-payments-btn" onclick="switchTab('payments')" role="tab" class="px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95">
-            <span class="text-slate-500 font-mono mr-1">3</span> Multi-Rail Settlement
-          </button>
-          <button id="tab-term-btn" onclick="switchTab('term')" role="tab" class="px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95">
-            <span class="text-slate-500 font-mono mr-1">4</span> Sandboxed Terminal
-          </button>
-        </div>
-
-        <div class="flex items-center space-x-2 text-xs">
-          <span class="text-[11px] font-mono text-slate-500 hidden md:inline">Diff view:</span>
-          <div class="flex items-center bg-surfaceLight rounded p-0.5 border border-white/5 text-[11px]">
-            <button id="btn-view-unified" onclick="setDiffMode('unified')" class="px-2 py-0.5 rounded bg-white/10 text-white font-medium">Unified</button>
-            <button id="btn-view-split" onclick="setDiffMode('split')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Split 2-Col</button>
-          </div>
-        </div>
+    <!-- Center: workspace -->
+    <main id="main" class="flex-1 flex flex-col min-w-0 bg-obsidian" tabindex="-1">
+      <div role="tablist" aria-label="Workspace views" class="h-10 border-b border-borderSubtle flex items-stretch px-2 gap-0.5 overflow-x-auto no-scrollbar bg-surface/60 shrink-0">
+        <button role="tab" id="tab-diff" aria-controls="panel-diff" data-tab="diff" class="tab">Multi-File Diff</button>
+        <button role="tab" id="tab-tasks" aria-controls="panel-tasks" data-tab="tasks" class="tab">Task Board</button>
+        <button role="tab" id="tab-memory" aria-controls="panel-memory" data-tab="memory" class="tab">Memory</button>
+        <button role="tab" id="tab-flight" aria-controls="panel-flight" data-tab="flight" class="tab">Flight Recorder</button>
+        <button role="tab" id="tab-healing" aria-controls="panel-healing" data-tab="healing" class="tab">Self-Healing</button>
+        <button role="tab" id="tab-payments" aria-controls="panel-payments" data-tab="payments" class="tab">Payments</button>
+        <button role="tab" id="tab-console" aria-controls="panel-console" data-tab="console" class="tab">Console</button>
       </div>
 
-      <!-- DETERMINISTIC FLIGHT RECORDER TIME-TRAVEL BAR (COMBINED SLIDER + DIRECT NUMERIC INPUT) -->
-      <div class="h-9 bg-surfaceLight/40 border-b border-borderSubtle flex items-center justify-between px-3 shrink-0 text-xs font-mono">
-        <div class="flex items-center space-x-2">
-          <span class="text-slate-400 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-accentCobalt animate-ping"></span>
-            <span class="hidden sm:inline">Flight Tape:</span>
-          </span>
-          <span class="text-white font-bold truncate" id="flight-tape-name">task_self_heal.flight</span>
-          <span class="text-slate-600">|</span>
-          
-          <!-- DUAL SLIDER + EXACT TEXT INPUT -->
-          <span class="text-slate-300 flex items-center gap-1">
-            <span>Frame</span>
-            <input id="flight-frame-input" type="number" min="1" max="4" value="4" onchange="handleDirectFrameInput(this.value)" class="w-10 bg-black/60 border border-white/20 rounded px-1 py-0.5 text-center text-accentCobalt font-bold focus:outline-none focus:border-accentCobalt">
-            <span>of 4</span>
-          </span>
-
-          <span id="flight-status-badge" class="hidden md:inline-block px-1.5 py-0.2 rounded text-[10px] font-bold bg-emeraldShield/20 text-emeraldShield">
-            VERIFIED GREEN
-          </span>
+      <!-- Diff -->
+      <section role="tabpanel" id="panel-diff" aria-labelledby="tab-diff" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden">
+        <div class="h-10 px-4 border-b border-borderSubtle flex items-center justify-between gap-3 shrink-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="diff-file" class="font-mono text-xs text-slate-200 truncate">Working tree vs HEAD</span>
+            <span id="diff-stats" class="font-mono text-[11px] tabular-nums whitespace-nowrap"></span>
+          </div>
+          <button id="diff-refresh" type="button" class="btn-ghost">Refresh</button>
         </div>
+        <div id="diff-body" class="flex-1 overflow-auto font-mono text-xs"></div>
+      </section>
 
-        <div class="flex items-center space-x-1.5">
-          <button onclick="flightStepBack()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95" title="Step Back ([)">◂ Step</button>
-          <input id="flight-scrubber" type="range" min="1" max="4" value="4" oninput="handleScrub(this.value)" class="w-24 sm:w-36 accent-accentCobalt cursor-pointer">
-          <button onclick="flightStepForward()" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95" title="Step Forward (])">Step ▸</button>
-          <button onclick="forkCurrentTimeline()" class="ml-1.5 px-2 py-0.5 rounded bg-amberGate/20 text-amberGate hover:bg-amberGate/30 border border-amberGate/40 font-sans font-semibold transition active:scale-95 flex items-center gap-1" title="Branch a parallel exploration tree">
-            <span>⑂</span>
-            <span class="hidden sm:inline">Fork Timeline</span>
-          </button>
+      <!-- Tasks -->
+      <section role="tabpanel" id="panel-tasks" aria-labelledby="tab-tasks" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden">
+        <div class="h-10 px-4 border-b border-borderSubtle flex items-center justify-between shrink-0">
+          <p class="text-xs text-slate-400">Tasks move through the deterministic state machine. Only valid transitions are offered.</p>
+          <button id="tasks-refresh" type="button" class="btn-ghost">Refresh</button>
         </div>
-      </div>
+        <div id="task-board" class="flex-1 overflow-auto p-4 grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 content-start"></div>
+      </section>
 
-      <!-- TAB CONTENT AREA (CONTAINED SCROLLING & PERSISTENT STATES) -->
-      <div class="flex-1 flex flex-col min-h-0 relative">
-        
-        <!-- 1. MULTI-FILE DIFF VIEWER (SUPPORTS UNIFIED & SPLIT 2-COLUMN) -->
-        <div id="tab-diff" class="flex-1 flex flex-col min-h-0">
-          <!-- TOP PANEL CONTROL -->
-          <div class="px-4 py-2 bg-surfaceLight/20 border-b border-borderSubtle flex items-center justify-between text-xs font-mono shrink-0">
-            <div class="flex items-center space-x-2">
-              <span class="text-slate-400">File:</span>
-              <span id="active-file-title" class="text-accentCobalt font-bold">core/agent/self_healing.py</span>
-              <span class="text-slate-600">|</span>
-              <span id="active-file-additions" class="text-emeraldShield">+14 lines</span>
-              <span id="active-file-deletions" class="text-crimsonKill">-3 lines</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="copyActiveDiff()" class="px-2 py-0.5 rounded hover:bg-white/5 text-slate-400 hover:text-white transition flex items-center gap-1">
-                <span>📋</span> Copy Diff
-              </button>
-            </div>
-          </div>
-
-          <!-- UNIFIED DIFF CONTAINER -->
-          <div id="diff-unified-view" class="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5">
-            <!-- Rendered dynamically by renderActiveDiff() -->
-          </div>
-
-          <!-- SPLIT 2-COLUMN DIFF CONTAINER -->
-          <div id="diff-split-view" class="hidden flex-1 overflow-hidden grid grid-cols-2 divide-x divide-borderSubtle font-mono text-xs leading-relaxed">
-            <div class="flex flex-col min-h-0 bg-black/40">
-              <div class="p-2 border-b border-borderSubtle text-[11px] font-bold text-crimsonKill uppercase bg-surface/50">
-                Original (Base Revision)
-              </div>
-              <div id="split-left-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
-                <!-- Left Original Lines -->
-              </div>
-            </div>
-            <div class="flex flex-col min-h-0 bg-black/20">
-              <div class="p-2 border-b border-borderSubtle text-[11px] font-bold text-emeraldShield uppercase bg-surface/50">
-                Patched (AST Synthesis)
-              </div>
-              <div id="split-right-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
-                <!-- Right Patched Lines -->
-              </div>
-            </div>
-          </div>
-
-          <!-- PANEL FOOTER (EVIL MARTIANS IMMEDIATE CONTEXT ACTION BAR) -->
-          <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs">
-            <div class="flex items-center space-x-2 text-slate-400">
-              <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
-              <span id="diff-footer-status">Syntax validated (AST clean)</span>
-              <span class="text-slate-600">|</span>
-              <span id="diff-footer-summary" class="font-mono text-slate-300">1 File • +14 / -3</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="triggerSelfHealingUI()" class="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition active:scale-95 font-medium">
-                Test In Isolated Worktree
-              </button>
-              <button onclick="acceptDiffAndCommit()" class="px-4 py-1.5 rounded bg-emeraldShield hover:bg-emerald-600 text-obsidian font-bold transition shadow-md shadow-emeraldShield/20 active:scale-95 flex items-center gap-1.5">
-                <span>✓</span> Accept & Commit <kbd class="px-1 py-0.2 rounded bg-black/20 text-[10px]">⌘⏎</kbd>
-              </button>
-            </div>
-          </div>
+      <!-- Memory -->
+      <section role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden">
+        <div class="p-4 border-b border-borderSubtle grid gap-3 md:grid-cols-2 shrink-0">
+          <form id="memory-search" class="flex gap-2" role="search">
+            <label for="memory-q" class="sr-only">Search memories</label>
+            <input id="memory-q" type="search" placeholder="Search memories by key or content" class="input flex-1">
+            <button type="submit" class="btn-secondary">Search</button>
+          </form>
+          <form id="memory-form" class="flex gap-2" autocomplete="off">
+            <label for="memory-key" class="sr-only">Memory key</label>
+            <input id="memory-key" required placeholder="key" class="input w-32">
+            <label for="memory-content" class="sr-only">Memory content</label>
+            <input id="memory-content" required placeholder="Remember that…" class="input flex-1">
+            <button type="submit" class="btn-primary">Save</button>
+          </form>
         </div>
+        <ul id="memory-list" class="flex-1 overflow-auto p-4 space-y-2"></ul>
+      </section>
 
-        <!-- 2. AUTONOMOUS SELF-HEALING PANEL -->
-        <div id="tab-healing" class="hidden flex-1 flex flex-col min-h-0">
-          <div class="p-4 border-b border-borderSubtle bg-surfaceLight/30 flex items-center justify-between shrink-0">
-            <div class="flex-1 mr-4">
-              <div class="text-xs font-semibold text-slate-300 mb-1 flex items-center gap-2">
-                <span>🔧 Closed-Loop Test & AST Repair Engine</span>
-                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accentCobalt/20 text-accentCobalt">Auto-Tandem</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <input id="heal-test-cmd" type="text" value="python3 -m unittest tests/test_self_healing.py" class="flex-1 bg-black/60 border border-white/10 rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-accentCobalt">
-                <button onclick="triggerSelfHealingUI()" class="px-4 py-1.5 rounded bg-accentCobalt hover:bg-blue-600 text-white font-semibold text-xs transition active:scale-95">
-                  Engage Repair Loop
-                </button>
-              </div>
-              <!-- PRESET TEST BUTTONS -->
-              <div class="flex items-center space-x-2 mt-2 text-[11px] text-slate-400">
-                <span>Presets:</span>
-                <button onclick="document.getElementById('heal-test-cmd').value='python3 -m unittest discover tests'; playTone(440);" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300">unittest discover</button>
-                <button onclick="document.getElementById('heal-test-cmd').value='python3 tests/test_speculative.py'; playTone(440);" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300">speculative test</button>
-                <button onclick="document.getElementById('heal-test-cmd').value='python3 cli.py doctor'; playTone(440);" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300">kora doctor</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex-1 overflow-auto p-4 font-mono text-xs space-y-3" id="heal-log">
-            <div class="text-slate-400">Awaiting test trigger. Self-healing engine will:</div>
-            <div class="pl-3 border-l-2 border-white/10 space-y-1 text-slate-400">
-              <div>1. Execute target test suite in isolated git worktree.</div>
-              <div>2. Intercept failure stack trace and AST node location.</div>
-              <div>3. Synthesize candidate AST patch without hallucinating new signatures.</div>
-              <div>4. Re-run test suite. If green, offer instant commit; if red, retry (up to 3x).</div>
-            </div>
-          </div>
-
-          <!-- PANEL FOOTER -->
-          <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs font-mono">
-            <span class="text-slate-400">Max Iterations: <strong class="text-white">3</strong> | Sandbox Mode: <strong class="text-emeraldShield">Ephemeral Worktree</strong></span>
-            <button onclick="document.getElementById('heal-log').innerHTML='<div class=\'text-slate-400\'>Cleared logs.</div>'" class="text-slate-500 hover:text-slate-300">Clear Output</button>
-          </div>
+      <!-- Flight recorder -->
+      <section role="tabpanel" id="panel-flight" aria-labelledby="tab-flight" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden">
+        <div class="px-4 py-3 border-b border-borderSubtle flex flex-wrap items-center gap-3 shrink-0">
+          <span id="flight-title" class="font-mono text-xs text-slate-200 truncate max-w-[16rem]">No tape selected</span>
+          <label for="flight-scrubber" class="sr-only">Flight tape position</label>
+          <input id="flight-scrubber" type="range" min="0" max="0" value="0" disabled class="flex-1 min-w-[10rem] accent-blue-500">
+          <span id="flight-step" class="font-mono text-[11px] text-slate-400 tabular-nums w-24 text-right">0 / 0</span>
+          <button id="flight-fork" type="button" class="btn-secondary" disabled>Fork here</button>
         </div>
+        <div class="flex-1 grid md:grid-cols-2 min-h-0">
+          <ol id="flight-events" class="overflow-auto p-3 space-y-1 border-r border-borderSubtle" aria-label="Recorded events"></ol>
+          <pre id="flight-payload" class="overflow-auto p-4 font-mono text-xs text-slate-300 whitespace-pre-wrap"></pre>
+        </div>
+      </section>
 
-        <!-- 3. MULTI-RAIL SETTLEMENT PANEL (HIGH DENSITY SEGMENTED CONTROLS) -->
-        <div id="tab-payments" class="hidden flex-1 flex flex-col min-h-0">
-          <div class="p-4 border-b border-borderSubtle bg-surfaceLight/30 shrink-0">
-            <div class="text-xs font-semibold text-slate-300 mb-2">Global Sovereign Settlement Broker (Zero-Custody)</div>
-            
-            <!-- EXPLICIT SEGMENTED CONTROLS (NO HIDDEN DROPDOWNS) -->
-            <div class="flex items-center space-x-1.5 mb-3 flex-wrap gap-y-1">
-              <button onclick="selectRail('mpesa')" id="rail-btn-mpesa" class="px-3 py-1 rounded border text-xs font-medium transition bg-accentCobalt text-white border-accentCobalt">M-Pesa (East Africa)</button>
-              <button onclick="selectRail('pix')" id="rail-btn-pix" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Pix (Brazil)</button>
-              <button onclick="selectRail('upi')" id="rail-btn-upi" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">UPI (India)</button>
-              <button onclick="selectRail('lightning')" id="rail-btn-lightning" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Lightning L402</button>
-              <button onclick="selectRail('offline')" id="rail-btn-offline" class="px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white">Offline Voucher</button>
+      <!-- Self-healing -->
+      <section role="tabpanel" id="panel-healing" aria-labelledby="tab-healing" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden overflow-auto">
+        <div class="p-4 space-y-4 max-w-3xl w-full">
+          <div class="flex gap-3 p-3 rounded-lg border border-amberGate/30 bg-amberGate/5 text-xs text-amber-200">
+            <span aria-hidden="true">⚠</span>
+            <p>Runs the command below in this repository. If a candidate patch makes it pass, that patch is <strong>applied to your working tree</strong>. Review the result in Multi-File Diff.</p>
+          </div>
+          <form id="healing-form" class="grid gap-3 sm:grid-cols-[1fr_auto_auto] items-end">
+            <div>
+              <label for="healing-cmd" class="label">Test command</label>
+              <input id="healing-cmd" required value="pytest -q" class="input w-full font-mono">
             </div>
+            <div>
+              <label for="healing-attempts" class="label">Max attempts</label>
+              <input id="healing-attempts" type="number" min="1" max="5" value="3" class="input w-24 font-mono">
+            </div>
+            <button id="healing-run" type="submit" class="btn-primary h-9">Run repair cycle</button>
+          </form>
+          <div id="healing-result" class="space-y-3" aria-live="polite"></div>
+        </div>
+      </section>
 
-            <!-- FORM ROW -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+      <!-- Payments -->
+      <section role="tabpanel" id="panel-payments" aria-labelledby="tab-payments" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden overflow-auto">
+        <div class="p-4 space-y-4 max-w-3xl w-full">
+          <div class="flex gap-3 p-3 rounded-lg border border-borderSubtle bg-surfaceLight text-xs text-slate-300">
+            <span aria-hidden="true">ⓘ</span>
+            <p><strong>Simulated.</strong> Builds a rail-specific payment payload only. No funds move and nothing is sent.</p>
+          </div>
+          <form id="payment-form" class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label for="pay-rail" class="label">Rail</label>
+              <select id="pay-rail" class="input w-full">
+                <option value="mpesa">M-Pesa</option>
+                <option value="pix">Pix</option>
+                <option value="upi">UPI</option>
+                <option value="lightning_l402">Lightning L402</option>
+                <option value="offline_voucher">Offline voucher</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-[1fr_6rem] gap-2">
               <div>
-                <label class="block text-[11px] text-slate-400 mb-1">Amount & Currency:</label>
-                <div class="flex items-center">
-                  <input id="pay-amount" type="number" value="15.00" class="flex-1 bg-black/60 border border-white/10 rounded-l px-2.5 py-1.5 text-white font-mono">
-                  <select id="pay-currency" class="bg-surfaceLight border-y border-r border-white/10 rounded-r px-2 py-1.5 text-slate-300 font-mono text-xs">
-                    <option value="KES">KES</option>
-                    <option value="BRL">BRL</option>
-                    <option value="INR">INR</option>
-                    <option value="SATS">SATS</option>
-                    <option value="USD">USD</option>
-                  </select>
-                </div>
+                <label for="pay-amount" class="label">Amount</label>
+                <input id="pay-amount" type="number" min="0.01" step="0.01" value="12.50" required class="input w-full font-mono">
               </div>
-
-              <div class="sm:col-span-2">
-                <label class="block text-[11px] text-slate-400 mb-1">Recipient Identifier:</label>
-                <div class="flex items-center space-x-2">
-                  <input id="pay-recipient" type="text" value="+254712345678" class="flex-1 bg-black/60 border border-white/10 rounded px-2.5 py-1.5 text-white font-mono">
-                  <button onclick="createPaymentUI()" class="px-4 py-1.5 rounded bg-emeraldShield hover:bg-emerald-600 text-obsidian font-bold text-xs transition active:scale-95">
-                    Generate Intent
-                  </button>
-                </div>
+              <div>
+                <label for="pay-currency" class="label">Currency</label>
+                <input id="pay-currency" value="USD" maxlength="3" required class="input w-full font-mono uppercase">
               </div>
             </div>
-          </div>
-
-          <div class="flex-1 overflow-auto p-4 font-mono text-xs" id="payment-output">
-            <div class="text-slate-400">Select payment rail and amount to generate a signed settlement intent.</div>
-          </div>
-
-          <div class="p-3 bg-surface border-t border-borderSubtle flex items-center justify-between shrink-0 text-xs font-mono">
-            <span class="text-slate-400">Settlement SLA: <strong class="text-emeraldShield">&lt; 3.0s</strong> | Protocol: <strong class="text-white">L402 / Regional Instant Rail</strong></span>
-          </div>
+            <div>
+              <label for="pay-recipient" class="label">Recipient</label>
+              <input id="pay-recipient" required placeholder="+254700000000" class="input w-full font-mono">
+            </div>
+            <div>
+              <label for="pay-description" class="label">Description</label>
+              <input id="pay-description" value="Kora Agent Service" class="input w-full">
+            </div>
+            <div class="sm:col-span-2"><button type="submit" class="btn-primary">Build payment intent</button></div>
+          </form>
+          <div id="payment-result" aria-live="polite"></div>
         </div>
+      </section>
 
-        <!-- 4. SANDBOXED TERMINAL PANEL -->
-        <div id="tab-term" class="hidden flex-1 flex flex-col min-h-0 bg-black/80 font-mono text-xs">
-          <div class="h-8 bg-surface border-b border-borderSubtle px-3 flex items-center justify-between text-slate-400 shrink-0 text-[11px]">
-            <div class="flex items-center space-x-2">
-              <span class="w-2 h-2 rounded-full bg-emeraldShield"></span>
-              <span>pty-session: /tmp/kora-sandbox-worktree</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="copyToClipboard('kora dev --port 7420', 'Copied CLI command')" class="hover:text-white">Copy Command</button>
-              <button onclick="document.getElementById('term-canvas').innerHTML=''" class="hover:text-white">Clear</button>
-            </div>
-          </div>
-          <div class="flex-1 p-3 overflow-auto space-y-1 text-slate-300" id="term-canvas">
-            <div class="text-slate-500">Kora Sovereign Agent Environment (PTY Attached)</div>
-            <div>$ kora doctor</div>
-            <div class="text-emeraldShield">[+] System Diagnostics: 22/22 unit tests green. Local AST self-healing active.</div>
-            <div>$ kora spec</div>
-            <div class="text-accentCobalt">[+] Speculative decoding tandem speedup: 2.58x (Draft: 0.5B, Target: 7B).</div>
-            <div>$ kora notify --channel telegram --action deploy_hotfix</div>
-            <div class="text-emeraldShield">[+] Omnichannel dispatch delivered [200 OK]. Biometric verification token generated.</div>
-            <div class="flex items-center gap-1 text-white mt-2">
-              <span class="text-emeraldShield">kora@sandbox:~$</span>
-              <input id="term-input" type="text" placeholder="Type CLI command..." onkeydown="handleTerminalEnter(event, this)" class="flex-1 bg-transparent border-none outline-none text-white font-mono">
-            </div>
-          </div>
-          <div class="p-2 bg-surface border-t border-borderSubtle text-[11px] text-slate-400 flex items-center justify-between">
-            <span>Isolation: 🔒 Standard Sandbox</span>
-            <span>Egress: 0.0 KB</span>
-          </div>
-        </div>
-
-      </div>
+      <!-- Console -->
+      <section role="tabpanel" id="panel-console" aria-labelledby="tab-console" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden">
+        <div id="console-log" role="log" aria-live="polite" class="flex-1 overflow-auto p-4 font-mono text-xs space-y-1 text-slate-300"></div>
+        <form id="console-form" class="h-10 border-t border-borderSubtle flex items-center gap-2 px-4 shrink-0" autocomplete="off">
+          <span class="font-mono text-xs text-emeraldShield" aria-hidden="true">kora ❯</span>
+          <label for="console-input" class="sr-only">Console command</label>
+          <input id="console-input" spellcheck="false" placeholder="Type help" class="flex-1 bg-transparent font-mono text-xs text-white placeholder-slate-600 focus:outline-none">
+        </form>
+      </section>
     </main>
 
-    <!-- RIGHT COLUMN: TELEMETRY & AGENT INSPECTOR (INTERMEDIATE CONTEXT / PERSISTENT GAUGES) -->
-    <aside id="right-telemetry" class="w-80 bg-surface/95 border-l border-borderSubtle flex flex-col shrink-0 transition-all duration-150 ease-out z-10">
-      
-      <!-- SUB-HEADER -->
-      <div class="p-2.5 border-b border-borderSubtle flex items-center justify-between">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-          <span>🧠</span>
-          <span>Agent Telemetry & Thoughts</span>
-        </div>
-        <button onclick="toggleTelemetry()" class="text-slate-500 hover:text-slate-300 text-xs px-1" title="Collapse Telemetry (])">✕</button>
-      </div>
-
-      <!-- HARDWARE METRICS GAUGES -->
-      <div class="p-3 border-b border-borderSubtle bg-surfaceLight/30 space-y-2 text-xs font-mono">
-        <div>
-          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-            <span>Local GPU VRAM</span>
-            <span class="text-white font-bold tabular-nums">4.2 / 16.0 GB</span>
+    <!-- Right: runtime / copilot -->
+    <aside id="copilot" class="drawer drawer-right w-80 shrink-0 bg-surface border-l border-borderSubtle flex-col overflow-hidden hidden xl:flex" aria-label="Runtime telemetry">
+      <div class="flex-1 overflow-y-auto">
+        <section class="p-4 border-b border-borderSubtle" aria-labelledby="runtime-heading">
+          <h2 id="runtime-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-3">Runtime</h2>
+          <dl id="runtime-list" class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-xs"></dl>
+        </section>
+        <section class="p-4 border-b border-borderSubtle" aria-labelledby="state-heading">
+          <div class="flex items-center justify-between mb-3">
+            <h2 id="state-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tasks by state</h2>
+            <span id="tasks-total" class="text-[11px] font-mono text-slate-400 tabular-nums">0</span>
           </div>
-          <div class="w-full bg-black/60 rounded-full h-1.5 overflow-hidden">
-            <div class="bg-accentCobalt h-1.5 rounded-full" style="width: 26%"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-            <span>Speculative Draft Hit Rate</span>
-            <span class="text-emeraldShield font-bold tabular-nums">84.2%</span>
-          </div>
-          <div class="w-full bg-black/60 rounded-full h-1.5 overflow-hidden">
-            <div class="bg-emeraldShield h-1.5 rounded-full" style="width: 84%"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STREAMING THOUGHTS & MESSAGES -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs">
-        <div class="bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1">
-          <div class="font-bold text-accentCobalt text-[11px] flex items-center justify-between">
-            <span>Kora Planner Agent</span>
-            <span class="text-[10px] text-slate-500 font-mono">15:20:04</span>
-          </div>
-          <p class="text-slate-300 leading-relaxed" id="agent-current-thought">
-            Identified AST syntax failure in line 88. Formulating safe node transformation to rewrite <code class="text-emeraldShield">ast.unparse</code> without regex instability.
-          </p>
-        </div>
-
-        <div class="bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1">
-          <div class="font-bold text-emeraldShield text-[11px] flex items-center justify-between">
-            <span>Verification Watchdog</span>
-            <span class="text-[10px] text-slate-500 font-mono">15:20:05</span>
-          </div>
-          <p class="text-slate-300 leading-relaxed">
-            All 22 unit tests verified in isolated scratch worktree. Ready for manual review or one-click merge.
-          </p>
-        </div>
-      </div>
-
-      <!-- PROMPT / INSTRUCTION INPUT (IMMEDIATE DISPATCH) -->
-      <div class="p-2.5 bg-surface border-t border-borderSubtle shrink-0">
-        <form onsubmit="handleSend(event)" class="relative">
-          <textarea id="prompt-input" rows="2" placeholder="Send instruction or patch request (⌘⏎)..." onkeydown="if(event.metaKey && event.key==='Enter') handleSend(event)" class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCobalt resize-none font-mono"></textarea>
-          <div class="flex items-center justify-between mt-1 text-[11px] text-slate-400">
-            <span class="text-[10px]">Zero telemetry egress</span>
-            <button type="submit" class="px-2.5 py-1 bg-accentCobalt hover:bg-blue-600 text-white rounded font-medium transition active:scale-95 text-xs flex items-center gap-1">
-              <span>Send</span> <span>⏎</span>
-            </button>
-          </div>
-        </form>
+          <div id="state-bars" class="space-y-1.5"></div>
+        </section>
+        <section class="p-4 border-b border-borderSubtle" aria-labelledby="mesh-heading">
+          <h2 id="mesh-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-3">Team mesh</h2>
+          <div id="mesh-info" class="text-xs text-slate-400 space-y-1"></div>
+        </section>
+        <section class="p-4 border-b border-borderSubtle" aria-labelledby="ask-heading">
+          <h2 id="ask-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-3">Ask the gateway</h2>
+          <form id="ask-form" class="space-y-2">
+            <label for="ask-input" class="sr-only">Prompt</label>
+            <textarea id="ask-input" rows="3" required placeholder="Ask a model through the Kora gateway…" class="input w-full resize-none"></textarea>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-500">⌘↵ to send</span>
+              <button id="ask-send" type="submit" class="btn-primary">Send</button>
+            </div>
+          </form>
+          <div id="ask-result" class="mt-3" aria-live="polite"></div>
+        </section>
+        <section class="p-4" aria-labelledby="activity-heading">
+          <h2 id="activity-heading" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-3">Activity</h2>
+          <ol id="activity" class="space-y-2 text-xs" aria-live="polite"></ol>
+        </section>
       </div>
     </aside>
-
   </div>
 
-  <!-- FLOATING COMMAND PALETTE MODAL (BROAD CONTEXT / QUICK KEYBOARD NAVIGATION CMD+K) -->
-  <div id="cmd-palette-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-24">
-    <div class="w-full max-w-lg bg-surface border border-white/15 rounded-xl shadow-2xl overflow-hidden flex flex-col font-sans">
-      <div class="p-3 border-b border-borderSubtle flex items-center space-x-2">
-        <span class="text-slate-400 text-sm">🔍</span>
-        <input id="cmd-palette-input" type="text" placeholder="Type a command, file, or action (Esc to close)..." oninput="filterPalette(this.value)" onkeydown="handlePaletteNav(event)" class="flex-1 bg-transparent border-none outline-none text-white text-sm font-sans placeholder-slate-500">
-        <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/10 text-slate-400 border border-white/10">ESC</kbd>
-      </div>
-      <div id="cmd-palette-list" class="max-h-64 overflow-y-auto p-2 text-xs space-y-1">
-        <div onclick="executePaletteAction('tab-diff')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>📂 Switch to Multi-File Diff View</span>
-          <kbd class="text-[10px] font-mono text-slate-500">1</kbd>
-        </div>
-        <div onclick="executePaletteAction('tab-healing')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>🔧 Switch to Autonomous Self-Healing</span>
-          <kbd class="text-[10px] font-mono text-slate-500">2</kbd>
-        </div>
-        <div onclick="executePaletteAction('tab-payments')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>💳 Switch to Global Settlement Broker</span>
-          <kbd class="text-[10px] font-mono text-slate-500">3</kbd>
-        </div>
-        <div onclick="executePaletteAction('tab-term')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>💻 Switch to Sandboxed Terminal</span>
-          <kbd class="text-[10px] font-mono text-slate-500">4</kbd>
-        </div>
-        <div onclick="executePaletteAction('toggle-airgap')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>🔒 Toggle Air-Gap Zero-Egress Shield</span>
-          <kbd class="text-[10px] font-mono text-slate-500">Alt+A</kbd>
-        </div>
-        <div onclick="executePaletteAction('fork-timeline')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>⑂ Fork Current Timeline</span>
-          <kbd class="text-[10px] font-mono text-slate-500">Fork</kbd>
-        </div>
-        <div onclick="executePaletteAction('run-tests')" class="palette-item px-3 py-2 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>🧪 Run 22 Zero-Dependency Test Suite</span>
-          <kbd class="text-[10px] font-mono text-slate-500">Tests</kbd>
-        </div>
-      </div>
+  <!-- Status bar -->
+  <footer class="h-6 border-t border-borderSubtle bg-surface text-[11px] font-mono flex items-center justify-between gap-3 px-3 text-slate-500 shrink-0 whitespace-nowrap overflow-hidden">
+    <div class="flex items-center gap-3 min-w-0">
+      <span id="sb-db">DB —</span>
+      <span id="sb-ws" class="hidden sm:inline">WS —</span>
+      <span id="sb-tasks" class="hidden sm:inline tabular-nums">0 tasks</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="sb-egress">—</span>
+      <span id="sb-version" class="hidden sm:inline">Kora</span>
+    </div>
+  </footer>
+
+  <!-- Command palette -->
+  <div id="palette" class="fixed inset-0 z-50 hidden items-start justify-center pt-[12vh] bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="palette-label">
+    <div class="w-[min(36rem,92vw)] rounded-xl border border-borderSubtle bg-surface shadow-2xl overflow-hidden panel-enter">
+      <label id="palette-label" for="palette-input" class="sr-only">Command palette</label>
+      <input id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" placeholder="Type a command…" class="w-full px-4 py-3 bg-transparent border-b border-borderSubtle text-sm text-white placeholder-slate-500 focus:outline-none">
+      <ul id="palette-list" role="listbox" class="max-h-80 overflow-y-auto py-1"></ul>
     </div>
   </div>
 
-  <!-- FLOATING TOAST NOTIFICATION CONTAINER (NON-BLOCKING FEEDBACK) -->
-  <div id="toast" class="fixed bottom-4 right-4 bg-surfaceCard border border-white/20 text-white text-xs px-3.5 py-2 rounded-lg shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 z-50 flex items-center gap-2">
-    <span id="toast-icon">✓</span>
-    <span id="toast-message">Action completed</span>
-  </div>
+  <div id="toast" role="status" class="fixed bottom-8 right-4 z-50 px-3.5 py-2 rounded-lg border text-xs shadow-xl opacity-0 pointer-events-none transition-opacity duration-150 bg-surfaceCard border-white/10 text-white"></div>
+
 
   <script>
-    // ==========================================
-    // EVIL MARTIANS DEV TOOL ARCHITECTURE ENGINE
-    // ==========================================
+  'use strict';
 
-    let airGapped = true;
-    let currentRail = 'mpesa';
-    let currentTab = 'diff';
-    let diffMode = 'unified';
-    let activeFile = 'core/agent/self_healing.py';
-    let currentFrame = 4;
-    let audioEnabled = true;
-    let audioCtx = null;
-    let leftSidebarOpen = true;
-    let rightTelemetryOpen = true;
+  const TRANSITIONS = {
+    created: ['planned', 'cancelled'],
+    planned: ['awaiting_approval', 'running', 'cancelled'],
+    awaiting_approval: ['running', 'cancelled'],
+    running: ['verifying', 'failed', 'cancelled'],
+    verifying: ['completed', 'failed', 'planned'],
+    failed: ['planned', 'cancelled'],
+    completed: [],
+    cancelled: [],
+  };
+  const STATES = Object.keys(TRANSITIONS);
+  const STATE_STYLE = {
+    created: 'text-slate-300 bg-slate-500/15 border-slate-500/30',
+    planned: 'text-sky-300 bg-sky-500/10 border-sky-500/30',
+    awaiting_approval: 'text-amber-300 bg-amberGate/10 border-amberGate/30',
+    running: 'text-blue-300 bg-accentBlue/15 border-accentBlue/40',
+    verifying: 'text-violet-300 bg-violet-500/10 border-violet-500/30',
+    completed: 'text-emerald-300 bg-emeraldShield/10 border-emeraldShield/30',
+    failed: 'text-red-300 bg-crimsonKill/10 border-crimsonKill/30',
+    cancelled: 'text-slate-400 bg-slate-700/20 border-slate-600/30',
+  };
+  const STATE_BAR = {
+    created: 'bg-slate-500', planned: 'bg-sky-500', awaiting_approval: 'bg-amberGate', running: 'bg-accentBlue',
+    verifying: 'bg-violet-500', completed: 'bg-emeraldShield', failed: 'bg-crimsonKill', cancelled: 'bg-slate-600',
+  };
+  const TABS = ['diff', 'tasks', 'memory', 'flight', 'healing', 'payments', 'console'];
 
-    // LOCAL STORAGE KEYS FOR PERSISTENT CONTEXT
-    const STORAGE_KEY_TAB = 'kora_studio_active_tab';
-    const STORAGE_KEY_DIFF_MODE = 'kora_studio_diff_mode';
-    const STORAGE_KEY_AIRGAP = 'kora_studio_airgap';
-    const STORAGE_KEY_AUDIO = 'kora_studio_audio';
-    const STORAGE_KEY_SIDEBAR = 'kora_studio_left_open';
-    const STORAGE_KEY_TELEMETRY = 'kora_studio_right_open';
-    const STORAGE_KEY_FILE = 'kora_studio_active_file';
+  const state = {
+    status: null, tasks: [], tapes: [], diff: null, selectedFile: null,
+    tape: null, tapeId: null, cursor: 0, airGapped: null, ws: null, wsRetry: 0,
+    sound: localStorage.getItem('kora.sound') !== 'off', tab: 'diff', focusTask: null,
+    consoleHistory: [], consoleIndex: 0,
+  };
 
-    // 1. Dynamic File Catalog with Real Diffs (Unified & Split)
-    const FILE_CATALOG = {
-      'core/agent/self_healing.py': {
-        additions: 14,
-        deletions: 3,
-        unifiedLines: [
-          { type: 'info', text: '@@ -84,12 +84,23 @@ class AutonomousSelfHealingEngine:' },
-          { type: 'context', text: '     def execute_repair(self, failure_signature: str) -> ASTRepairResult:' },
-          { type: 'context', text: '         tree = ast.parse(self.source_code)' },
-          { type: 'del', text: '-        # Legacy naive regex line patch' },
-          { type: 'del', text: '-        patched_code = re.sub(failure_signature, "", self.source_code)' },
-          { type: 'del', text: '-        return ASTRepairResult(success=False, ast_diff="regex_failed")' },
-          { type: 'add', text: '+        # AST-driven syntax rewriting with zero regex drift' },
-          { type: 'add', text: '+        transformer = SyntaxErrorHealingTransformer(failure_signature)' },
-          { type: 'add', text: '+        repaired_tree = transformer.visit(tree)' },
-          { type: 'add', text: '+        ast.fix_missing_locations(repaired_tree)' },
-          { type: 'add', text: '+        patched_code = ast.unparse(repaired_tree)' },
-          { type: 'add', text: '+        ' },
-          { type: 'add', text: '+        # Execute test probe in isolated ephemeral worktree' },
-          { type: 'add', text: '+        verify_result = self.worktree.run_verification(patched_code)' },
-          { type: 'add', text: '+        return ASTRepairResult(' },
-          { type: 'add', text: '+            success=verify_result.exit_code == 0,' },
-          { type: 'add', text: '+            ast_diff=transformer.get_diff_summary(),' },
-          { type: 'add', text: '+            verification_output=verify_result.output' },
-          { type: 'add', text: '+        )' },
-          { type: 'context', text: '     def rollback(self) -> None:' },
-          { type: 'context', text: '         self.worktree.restore_snapshot()' }
-        ],
-        splitLeft: [
-          { type: 'info', text: '@@ Original Class Definition' },
-          { type: 'context', text: 'def execute_repair(self, failure_signature):' },
-          { type: 'context', text: '    tree = ast.parse(self.source_code)' },
-          { type: 'del', text: '-   # Legacy naive regex line patch' },
-          { type: 'del', text: '-   patched_code = re.sub(sig, "", src)' },
-          { type: 'del', text: '-   return ASTRepairResult(success=False)' },
-          { type: 'context', text: 'def rollback(self):' },
-          { type: 'context', text: '    self.worktree.restore_snapshot()' }
-        ],
-        splitRight: [
-          { type: 'info', text: '@@ Patched AST Method' },
-          { type: 'context', text: 'def execute_repair(self, failure_signature):' },
-          { type: 'context', text: '    tree = ast.parse(self.source_code)' },
-          { type: 'add', text: '+   # AST-driven syntax rewriting' },
-          { type: 'add', text: '+   transformer = SyntaxErrorTransformer()' },
-          { type: 'add', text: '+   repaired_tree = transformer.visit(tree)' },
-          { type: 'add', text: '+   ast.fix_missing_locations(repaired_tree)' },
-          { type: 'add', text: '+   patched_code = ast.unparse(repaired_tree)' },
-          { type: 'context', text: 'def rollback(self):' },
-          { type: 'context', text: '    self.worktree.restore_snapshot()' }
-        ]
-      },
-      'core/models/speculative.py': {
-        additions: 28,
-        deletions: 6,
-        unifiedLines: [
-          { type: 'info', text: '@@ -42,8 +42,30 @@ class SpeculativeEngine:' },
-          { type: 'context', text: '     async def generate_tandem(self, prompt: str) -> GenerationResult:' },
-          { type: 'del', text: '-        # Unaccelerated target-only generation' },
-          { type: 'del', text: '-        return await self.target_model.generate(prompt)' },
-          { type: 'add', text: '+        # 0.5B draft forward pass' },
-          { type: 'add', text: '+        draft_tokens = await self.draft_model.generate_k(prompt, k=4)' },
-          { type: 'add', text: '+        # Single parallel verification pass on 7B target' },
-          { type: 'add', text: '+        accepted, bonus = await self.target_model.verify(draft_tokens)' },
-          { type: 'add', text: '+        speedup = (len(accepted) + 1) / target_forward_cost' },
-          { type: 'add', text: '+        return GenerationResult(tokens=accepted + [bonus], speedup_factor=2.58)' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- return await self.target_model.generate(prompt)' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ draft_tokens = await self.draft_model.generate_k(prompt, k=4)' },
-          { type: 'add', text: '+ accepted, bonus = await self.target_model.verify(draft_tokens)' },
-          { type: 'add', text: '+ return GenerationResult(speedup_factor=2.58)' }
-        ]
-      },
-      'core/orchestration/p2p_mesh.py': {
-        additions: 45,
-        deletions: 12,
-        unifiedLines: [
-          { type: 'info', text: '@@ -18,6 +18,39 @@ class LocalMeshDiscovery:' },
-          { type: 'del', text: '-    def discover_peers(self): return []' },
-          { type: 'add', text: '+    def broadcast_mdns(self):' },
-          { type: 'add', text: '+        zeroconf.register_service("_kora-agent._tcp.local.", 7420)' },
-          { type: 'add', text: '+    def pool_vram(self, peers):' },
-          { type: 'add', text: '+        return sum(p.available_vram_mb for p in peers)' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- def discover_peers(self): return []' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ def broadcast_mdns(self): register_service()' },
-          { type: 'add', text: '+ def pool_vram(self, peers): return sum(p.vram)' }
-        ]
-      },
-      'core/storage/payment_broker.py': {
-        additions: 32,
-        deletions: 4,
-        unifiedLines: [
-          { type: 'info', text: '@@ -55,4 +55,32 @@ class PaymentBroker:' },
-          { type: 'del', text: '-    # Stripe credit-card only' },
-          { type: 'add', text: '+    # Multi-rail sovereign clearing engine' },
-          { type: 'add', text: '+    RAILS = ["mpesa", "pix", "upi", "lightning_l402", "offline_voucher"]' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- # Stripe credit-card only' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ RAILS = ["mpesa", "pix", "upi", "lightning_l402"]' }
-        ]
-      },
-      'core/api/messaging.py': {
-        additions: 52,
-        deletions: 8,
-        unifiedLines: [
-          { type: 'info', text: '@@ -110,6 +110,50 @@ class OmnichannelDispatcher:' },
-          { type: 'del', text: '-    def notify(self): pass' },
-          { type: 'add', text: '+    def dispatch(self, approval, pref):' },
-          { type: 'add', text: '+        if pref.primary_channel == MessagingChannel.TELEGRAM:' },
-          { type: 'add', text: '+            return self.format_telegram_payload(approval)' },
-          { type: 'add', text: '+        elif pref.primary_channel == MessagingChannel.WHATSAPP:' },
-          { type: 'add', text: '+            return self.format_whatsapp_payload(approval)' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- def notify(self): pass' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ def dispatch(self, approval, pref):' },
-          { type: 'add', text: '+     if pref.primary_channel == TELEGRAM: ...' }
-        ]
-      },
-      'tests/test_self_healing.py': {
-        additions: 18,
-        deletions: 0,
-        unifiedLines: [
-          { type: 'info', text: '@@ -1,5 +1,23 @@ import unittest' },
-          { type: 'add', text: '+class TestSelfHealingAST(unittest.TestCase):' },
-          { type: 'add', text: '+    def test_syntax_repair_verified(self):' },
-          { type: 'add', text: '+        self.assertTrue(engine.verify_patch())' }
-        ],
-        splitLeft: [
-          { type: 'context', text: '# Clean new test file' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ class TestSelfHealingAST(unittest.TestCase): ...' }
-        ]
-      }
-    };
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
 
-    // 2. Flight Recorder Frames (4 Discrete States)
-    const FLIGHT_FRAMES = {
-      1: {
-        badge: "FAILURE DETECTED",
-        badgeColor: "bg-crimsonKill/20 text-crimsonKill",
-        thought: "Frame 1 (15:20:01): SyntaxError intercepted at line 88 in core/agent/self_healing.py. Exit code 1.",
-        activeStatus: "Syntax error intercepted at line 88",
-        file: 'core/agent/self_healing.py'
-      },
-      2: {
-        badge: "AST TRANSFORMING",
-        badgeColor: "bg-amberGate/20 text-amberGate",
-        thought: "Frame 2 (15:20:02): Synthesizing localized AST visitor SyntaxErrorHealingTransformer to rewrite invalid node.",
-        activeStatus: "AST node visitor analyzing syntax tree",
-        file: 'core/agent/self_healing.py'
-      },
-      3: {
-        badge: "VERIFICATION PROBE",
-        badgeColor: "bg-accentCobalt/20 text-accentCobalt",
-        thought: "Frame 3 (15:20:03): Executing verification probe in ephemeral worktree (/tmp/kora-scratch-wt).",
-        activeStatus: "Running tests in ephemeral worktree",
-        file: 'core/agent/self_healing.py'
-      },
-      4: {
-        badge: "VERIFIED GREEN",
-        badgeColor: "bg-emeraldShield/20 text-emeraldShield",
-        thought: "Frame 4 (15:20:04): All 22 unit tests green in 0.10s. Zero syntax regression. Ready for one-click commit.",
-        activeStatus: "Syntax validated (AST clean)",
-        file: 'core/agent/self_healing.py'
-      }
-    };
-
-    // 3. Tactile Teenage Engineering Synthetic Audio
-    function playTone(freq, type = 'sine', duration = 0.05) {
-      if (!audioEnabled) return;
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
+  function h(tag, attrs = {}, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
     }
-
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      localStorage.setItem(STORAGE_KEY_AUDIO, audioEnabled ? 'true' : 'false');
-      const icon = document.getElementById('audio-icon');
-      icon.textContent = audioEnabled ? '🔊' : '🔇';
-      showToast(audioEnabled ? 'Audio feedback enabled' : 'Audio feedback muted', '🔊');
-      if (audioEnabled) playTone(587, 'sine', 0.08);
+    for (const c of children.flat()) {
+      if (c == null || c === false) continue;
+      el.append(c instanceof Node ? c : document.createTextNode(String(c)));
     }
+    return el;
+  }
 
-    // 4. Tab Switching with State Persistence
-    function switchTab(tabId) {
-      currentTab = tabId;
-      localStorage.setItem(STORAGE_KEY_TAB, tabId);
-      playTone(440, 'sine', 0.04);
+  async function api(path, { method = 'GET', body } = {}) {
+    const res = await fetch(path, {
+      method,
+      headers: body !== undefined ? { 'Content-Type': 'application/json' } : {},
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    if (!res.ok) {
+      const d = data && data.detail;
+      throw new Error(typeof d === 'string' ? d : Array.isArray(d) ? d.map((x) => x.msg).join('; ') : `HTTP ${res.status}`);
+    }
+    return data;
+  }
 
-      const tabs = ['diff', 'healing', 'payments', 'term'];
-      tabs.forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        const btn = document.getElementById(`tab-${t}-btn`);
-        if (el) el.classList.toggle('hidden', t !== tabId);
-        if (btn) {
-          if (t === tabId) {
-            btn.className = "px-3 py-1.5 rounded font-medium border border-accentCobalt/40 bg-accentCobalt/10 text-white transition active:scale-95";
-          } else {
-            btn.className = "px-3 py-1.5 rounded font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5 transition active:scale-95";
-          }
+  const humanState = (s) => s.replace(/_/g, ' ');
+  const shortId = (id) => (id || '').slice(0, 8);
+  const money = (n) => `$${Number(n || 0).toFixed(2)}`;
+
+  function ago(iso) {
+    const t = typeof iso === 'number' ? iso * 1000 : Date.parse(iso);
+    if (!t) return '';
+    const s = Math.max(0, Math.round((Date.now() - t) / 1000));
+    if (s < 60) return `${s}s ago`;
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return `${Math.floor(s / 86400)}d ago`;
+  }
+
+  function badge(s) {
+    return h('span', { class: `inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium capitalize ${STATE_STYLE[s] || STATE_STYLE.created}` }, humanState(s));
+  }
+
+  function emptyState(title, detail) {
+    return h('div', { class: 'h-full min-h-[10rem] flex flex-col items-center justify-center text-center gap-1 p-6' },
+      h('p', { class: 'text-sm text-slate-300 font-medium' }, title),
+      detail ? h('p', { class: 'text-xs text-slate-500 max-w-sm' }, detail) : null);
+  }
+
+  let audioCtx = null;
+  function tone(kind) {
+    if (!state.sound) return;
+    const [freq, type, dur] = { ok: [880, 'sine', 0.06], warn: [440, 'triangle', 0.08], err: [220, 'sawtooth', 0.12], tick: [1320, 'sine', 0.025] }[kind] || [660, 'sine', 0.05];
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    } catch { /* audio unavailable */ }
+  }
+
+  let toastTimer = null;
+  function toast(msg, kind = 'ok') {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = el.className.replace(/border-\S+/g, '') + (kind === 'err' ? ' border-crimsonKill/50' : kind === 'warn' ? ' border-amberGate/50' : ' border-white/10');
+    el.style.opacity = '1';
+    tone(kind);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2800);
+  }
+
+  function activity(text, kind = 'info') {
+    const dot = { info: 'bg-slate-500', ok: 'bg-emeraldShield', warn: 'bg-amberGate', err: 'bg-crimsonKill', live: 'bg-accentCobalt' }[kind];
+    const list = $('activity');
+    list.prepend(h('li', { class: 'flex gap-2 panel-enter' },
+      h('span', { class: `mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${dot}`, 'aria-hidden': 'true' }),
+      h('div', { class: 'min-w-0' },
+        h('p', { class: 'text-slate-300 break-words' }, text),
+        h('time', { class: 'text-[10px] text-slate-600 font-mono', datetime: new Date().toISOString() }, new Date().toLocaleTimeString()))));
+    while (list.children.length > 50) list.lastChild.remove();
+  }
+
+  // ---------- tabs ----------
+  function switchTab(tab, { focus = false } = {}) {
+    if (!TABS.includes(tab)) return;
+    state.tab = tab;
+    for (const t of TABS) {
+      const btn = $(`tab-${t}`);
+      const panel = $(`panel-${t}`);
+      const active = t === tab;
+      btn.setAttribute('aria-selected', String(active));
+      btn.tabIndex = active ? 0 : -1;
+      panel.classList.toggle('hidden', !active);
+      panel.classList.toggle('flex', active);
+    }
+    if (focus) $(`tab-${tab}`).focus();
+    history.replaceState(null, '', `#${tab}`);
+    closeMobileDrawers();
+    if (tab === 'diff') loadDiff();
+    if (tab === 'console') $('console-input').focus();
+    if (tab === 'flight' && !state.tapeId && state.tapes.length) openTape(state.tapes[state.tapes.length - 1]);
+  }
+
+  function onTabKey(e) {
+    const i = TABS.indexOf(state.tab);
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    switchTab(TABS[(next + TABS.length) % TABS.length], { focus: true });
+  }
+
+  // ---------- drawers ----------
+  function toggleDrawer(id, btnId) {
+    const el = $(id);
+    const open = el.classList.contains('hidden');
+    el.classList.toggle('hidden', !open);
+    el.classList.toggle('flex', open);
+    $(btnId).setAttribute('aria-expanded', String(open));
+  }
+
+  function closeMobileDrawers() {
+    for (const [id, btn, query] of [['sidebar', 'toggle-left', '(max-width: 1023px)'], ['copilot', 'toggle-right', '(max-width: 1279px)']]) {
+      if (window.matchMedia(query).matches && !$(id).classList.contains('hidden')) toggleDrawer(id, btn);
+    }
+  }
+
+  // ---------- status / telemetry ----------
+  async function loadStatus() {
+    try {
+      const s = await api('/v1/studio/status');
+      state.status = s;
+      setAirGap(s.air_gapped);
+      renderStatus();
+    } catch (err) {
+      $('sb-db').textContent = 'API unreachable';
+      $('sb-db').className = 'text-red-400';
+    }
+  }
+
+  function renderStatus() {
+    const s = state.status;
+    if (!s) return;
+    $('git-ref-text').textContent = s.git.branch ? `${s.git.branch}@${s.git.sha}` : 'not a git repo';
+    $('sb-db').textContent = `${s.database_connected ? '●' : '○'} ${s.database_backend}`;
+    $('sb-db').className = s.database_connected ? 'text-emerald-400' : 'text-red-400';
+    $('sb-tasks').textContent = `${s.tasks.total} task${s.tasks.total === 1 ? '' : 's'} · ${s.flight_tapes} tape${s.flight_tapes === 1 ? '' : 's'}`;
+    $('sb-version').textContent = `Kora ${s.version} · ${s.environment}`;
+
+    const providers = Object.entries(s.providers);
+    const rows = [
+      ['Database', s.database_connected ? `Connected (${s.database_backend})` : 'Unavailable', s.database_connected ? 'text-emerald-300' : 'text-red-300'],
+      ['Egress', s.air_gapped ? 'Blocked (local only)' : 'Cloud providers allowed', s.air_gapped ? 'text-emerald-300' : 'text-amber-300'],
+      ['Local model', s.local_model, 'text-slate-200 font-mono'],
+      ['Studio clients', String(s.ws_clients), 'text-slate-200 font-mono tabular-nums'],
+    ];
+    const dl = $('runtime-list');
+    dl.replaceChildren();
+    for (const [k, v, cls] of rows) dl.append(h('dt', { class: 'text-slate-500' }, k), h('dd', { class: `${cls} truncate text-right` }, v));
+    dl.append(h('dt', { class: 'text-slate-500' }, 'Providers'),
+      h('dd', { class: 'flex flex-wrap justify-end gap-1' }, providers.map(([name, ok]) =>
+        h('span', {
+          class: `px-1.5 py-0.5 rounded border text-[10px] ${ok && !(s.air_gapped && name !== 'local') ? 'border-emeraldShield/30 text-emerald-300 bg-emeraldShield/5' : 'border-borderSubtle text-slate-500'}`,
+          title: ok ? (s.air_gapped && name !== 'local' ? 'Configured, blocked by air-gap' : 'Configured') : 'No API key configured',
+        }, name))));
+
+    $('tasks-total').textContent = s.tasks.total;
+    const bars = $('state-bars');
+    bars.replaceChildren();
+    const max = Math.max(1, ...Object.values(s.tasks.by_state));
+    for (const st of STATES) {
+      const n = s.tasks.by_state[st] || 0;
+      bars.append(h('div', { class: 'grid grid-cols-[6.5rem_1fr_2rem] items-center gap-2 text-[11px]' },
+        h('span', { class: 'text-slate-400 capitalize truncate' }, humanState(st)),
+        h('div', { class: 'h-1.5 rounded-full bg-surfaceLight overflow-hidden' },
+          h('div', { class: `h-full rounded-full ${STATE_BAR[st]}`, style: `width:${(n / max) * 100}%` })),
+        h('span', { class: 'font-mono text-slate-300 text-right tabular-nums' }, n)));
+    }
+  }
+
+  function setAirGap(on) {
+    state.airGapped = on;
+    const btn = $('airgap-btn');
+    btn.setAttribute('aria-pressed', String(on));
+    $('airgap-label').textContent = on ? 'Air-Gapped: Zero-Egress' : 'Cloud egress allowed';
+    btn.className = btn.className.replace(/\b(border|text|bg)-(emeraldShield|borderSubtle|emerald|slate)[^\s]*/g, '') +
+      (on ? ' border-emeraldShield/40 text-emerald-300 bg-emeraldShield/10' : ' border-borderSubtle text-slate-300 bg-surfaceLight');
+    $('sb-egress').textContent = on ? '⛨ zero-egress' : '↗ egress allowed';
+    $('sb-egress').className = on ? 'text-emerald-400' : 'text-amber-400';
+  }
+
+  async function toggleAirGap() {
+    try {
+      const res = await api('/v1/studio/airgap', { method: 'POST', body: { enabled: !state.airGapped } });
+      setAirGap(res.air_gapped);
+      toast(res.air_gapped ? 'Air-gap armed: cloud providers blocked' : 'Air-gap disarmed: cloud providers allowed', res.air_gapped ? 'ok' : 'warn');
+      loadStatus();
+    } catch (err) { toast(`Air-gap toggle failed: ${err.message}`, 'err'); }
+  }
+
+  async function loadMesh() {
+    const box = $('mesh-info');
+    try {
+      const m = await api('/v1/mesh/peers');
+      const n = m.local_node;
+      box.replaceChildren(
+        h('p', {}, 'This node: ', h('span', { class: 'font-mono text-slate-200' }, n.hostname), ` · ${n.vram_mb ? `${n.vram_mb} MB VRAM` : 'no GPU detected'}`),
+        h('p', {}, m.peers.length ? `${m.peers.length} peer${m.peers.length === 1 ? '' : 's'} registered` : 'No peers registered. LAN discovery is not wired up yet.'),
+      );
+    } catch (err) { box.textContent = `Mesh unavailable: ${err.message}`; }
+  }
+
+  // ---------- diff ----------
+  async function loadDiff() {
+    try {
+      state.diff = await api('/v1/studio/diff');
+      if (state.selectedFile && !state.diff.files.some((f) => f.path === state.selectedFile)) state.selectedFile = null;
+      renderChanges();
+      renderDiff();
+    } catch (err) {
+      $('diff-body').replaceChildren(emptyState('Could not load diff', err.message));
+    }
+  }
+
+  function renderChanges() {
+    const files = state.diff ? state.diff.files : [];
+    $('changes-count').textContent = files.length;
+    const list = $('changes-list');
+    list.replaceChildren();
+    if (!files.length) {
+      list.append(h('li', { class: 'px-2 py-1 text-xs text-slate-600' }, state.diff && state.diff.available ? 'Working tree clean' : 'Not a git checkout'));
+      return;
+    }
+    for (const f of files) {
+      const active = f.path === state.selectedFile;
+      list.append(h('li', {}, h('button', {
+        type: 'button',
+        class: `w-full flex items-center gap-2 px-2 py-1 rounded-md text-left text-xs transition-colors duration-150 ${active ? 'bg-accentBlue/15 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`,
+        'aria-current': active ? 'true' : null,
+        onclick: () => { state.selectedFile = active ? null : f.path; renderChanges(); renderDiff(); switchTab('diff'); tone('tick'); },
+      },
+      h('span', { class: 'font-mono truncate flex-1', title: f.path }, f.path.split('/').pop()),
+      h('span', { class: 'font-mono text-[10px] text-emerald-400 tabular-nums' }, `+${f.additions}`),
+      h('span', { class: 'font-mono text-[10px] text-red-400 tabular-nums' }, `−${f.deletions}`))));
+    }
+  }
+
+  function renderDiff() {
+    const body = $('diff-body');
+    const d = state.diff;
+    if (!d) return;
+    if (!d.available) { body.replaceChildren(emptyState('No git repository', 'Diffs come from `git diff HEAD` in the Kora checkout.')); return; }
+    const files = state.selectedFile ? d.files.filter((f) => f.path === state.selectedFile) : d.files;
+    const adds = files.reduce((a, f) => a + f.additions, 0);
+    const dels = files.reduce((a, f) => a + f.deletions, 0);
+    $('diff-file').textContent = state.selectedFile || `Working tree vs HEAD · ${d.files.length} file${d.files.length === 1 ? '' : 's'}`;
+    $('diff-stats').replaceChildren(h('span', { class: 'text-emerald-400' }, `+${adds}`), ' ', h('span', { class: 'text-red-400' }, `−${dels}`));
+    if (!files.length) { body.replaceChildren(emptyState('Working tree is clean', 'No uncommitted changes to tracked files. Agent and self-healing patches will show up here.')); return; }
+    const frag = document.createDocumentFragment();
+    if (d.truncated) frag.append(h('p', { class: 'px-4 py-2 text-amber-300 bg-amberGate/5 border-b border-amberGate/20' }, 'Diff truncated at 512 KB.'));
+    for (const f of files) {
+      frag.append(h('div', { class: 'sticky top-0 z-10 px-4 py-1.5 bg-surface border-y border-borderSubtle text-slate-300 flex items-center gap-2' },
+        h('span', { class: 'truncate' }, f.path),
+        h('span', { class: 'text-emerald-400 tabular-nums' }, `+${f.additions}`),
+        h('span', { class: 'text-red-400 tabular-nums' }, `−${f.deletions}`)));
+      if (f.binary) { frag.append(h('p', { class: 'px-4 py-2 text-slate-500' }, 'Binary file changed')); continue; }
+      const table = h('table', { class: 'w-full border-collapse' });
+      const tbody = h('tbody');
+      for (const ln of f.lines) {
+        const cls = { add: 'diff-add', del: 'diff-del', hunk: 'diff-hunk', context: 'text-slate-400' }[ln.type];
+        tbody.append(h('tr', { class: `code-line ${cls}` },
+          h('td', { class: 'w-12 px-2 text-right text-slate-600 select-none tabular-nums align-top' }, ln.old ?? ''),
+          h('td', { class: 'w-12 px-2 text-right text-slate-600 select-none tabular-nums align-top border-r border-borderSubtle' }, ln.new ?? ''),
+          h('td', { class: 'w-5 text-center select-none align-top', 'aria-hidden': 'true' }, { add: '+', del: '−', hunk: '', context: '' }[ln.type]),
+          h('td', { class: 'pr-4 whitespace-pre' }, ln.text)));
+      }
+      table.append(tbody);
+      frag.append(table);
+    }
+    body.replaceChildren(frag);
+  }
+
+  // ---------- tasks ----------
+  async function loadTasks() {
+    try {
+      state.tasks = await api('/v1/tasks?limit=100');
+      renderTasks();
+    } catch (err) {
+      $('task-list').replaceChildren(h('li', { class: 'px-2 py-1 text-xs text-red-400' }, err.message));
+    }
+  }
+
+  function renderTasks() {
+    const list = $('task-list');
+    list.replaceChildren();
+    if (!state.tasks.length) list.append(h('li', { class: 'px-2 py-1 text-xs text-slate-600' }, 'No tasks yet'));
+    for (const t of state.tasks.slice(0, 30)) {
+      list.append(h('li', {}, h('button', {
+        type: 'button',
+        class: 'w-full flex items-center gap-2 px-2 py-1 rounded-md text-left text-xs text-slate-300 hover:bg-white/5',
+        onclick: () => { state.focusTask = t.id; switchTab('tasks'); renderBoard(); },
+      }, h('span', { class: 'truncate flex-1' }, t.title), badge(t.state))));
+    }
+    renderBoard();
+  }
+
+  function renderBoard() {
+    const board = $('task-board');
+    board.replaceChildren();
+    if (!state.tasks.length) { board.append(h('div', { class: 'col-span-full' }, emptyState('No tasks yet', 'Create one from the explorer, the console (task new <title>), or POST /v1/tasks.'))); return; }
+    for (const t of state.tasks) {
+      const focused = t.id === state.focusTask;
+      const card = h('article', {
+        class: `rounded-lg border p-3 bg-surface flex flex-col gap-2 transition-colors duration-150 ${focused ? 'border-accentCobalt ring-1 ring-accentCobalt/40' : 'border-borderSubtle hover:border-slate-600'}`,
+        id: `task-${t.id}`, 'aria-label': t.title,
+      },
+      h('div', { class: 'flex items-start justify-between gap-2' },
+        h('h3', { class: 'text-sm text-white font-medium leading-snug break-words' }, t.title), badge(t.state)),
+      t.description ? h('p', { class: 'text-xs text-slate-400 break-words' }, t.description) : null,
+      h('p', { class: 'text-[11px] font-mono text-slate-500 tabular-nums' }, `${shortId(t.id)} · ${money(t.cost_usd)} / ${money(t.budget_usd)} · ${ago(t.updated_at)}`),
+      TRANSITIONS[t.state].length ? h('div', { class: 'flex flex-wrap gap-1.5 pt-1' }, TRANSITIONS[t.state].map((next) =>
+        h('button', {
+          type: 'button',
+          class: `px-2 py-0.5 rounded border text-[11px] capitalize transition-colors duration-150 ${next === 'cancelled' || next === 'failed' ? 'border-crimsonKill/30 text-red-300 hover:bg-crimsonKill/10' : 'border-borderSubtle text-slate-300 hover:border-accentCobalt hover:text-white'}`,
+          onclick: (e) => transitionTask(t, next, e.currentTarget),
+        }, `→ ${humanState(next)}`))) : h('p', { class: 'text-[11px] text-slate-600' }, 'Terminal state'));
+      board.append(card);
+      if (focused) requestAnimationFrame(() => card.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    }
+  }
+
+  async function createTask(title, budget) {
+    const t = await api('/v1/tasks', { method: 'POST', body: { title, budget_usd: budget, owner: 'studio' } });
+    state.focusTask = t.id;
+    await loadTasks();
+    return t;
+  }
+
+  async function transitionTask(t, next, btn) {
+    if (btn) btn.disabled = true;
+    try {
+      await api(`/v1/tasks/${encodeURIComponent(t.id)}/transition`, { method: 'POST', body: { target_state: next } });
+      state.focusTask = t.id;
+      await loadTasks();
+    } catch (err) {
+      toast(err.message, 'err');
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  // ---------- memory ----------
+  async function loadMemories(q = '') {
+    const list = $('memory-list');
+    try {
+      const items = await api(`/v1/memories?limit=50${q ? `&q=${encodeURIComponent(q)}` : ''}`);
+      list.replaceChildren();
+      if (!items.length) { list.append(h('li', {}, emptyState(q ? 'No matching memories' : 'No memories yet', 'Memories are durable notes agents can recall across tasks.'))); return; }
+      for (const m of items) {
+        list.append(h('li', { class: 'rounded-lg border border-borderSubtle bg-surface p-3' },
+          h('div', { class: 'flex items-center justify-between gap-2 mb-1' },
+            h('span', { class: 'font-mono text-xs text-accentCobalt truncate' }, m.key),
+            h('span', { class: 'text-[10px] text-slate-500 font-mono' }, `${m.scope} · ${ago(m.updated_at)}`)),
+          h('p', { class: 'text-xs text-slate-300 whitespace-pre-wrap break-words' }, m.content)));
+      }
+    } catch (err) { list.replaceChildren(h('li', { class: 'text-xs text-red-400' }, err.message)); }
+  }
+
+  // ---------- flight recorder ----------
+  async function loadTapes() {
+    try {
+      const { tapes } = await api('/v1/flight/tapes');
+      state.tapes = tapes.map((t) => t.task_id).sort();
+      $('tapes-count').textContent = state.tapes.length;
+      const list = $('tape-list');
+      list.replaceChildren();
+      if (!state.tapes.length) list.append(h('li', { class: 'px-2 py-1 text-xs text-slate-600' }, 'No tapes recorded'));
+      for (const id of state.tapes) {
+        const active = id === state.tapeId;
+        list.append(h('li', {}, h('button', {
+          type: 'button',
+          class: `w-full px-2 py-1 rounded-md text-left text-xs font-mono truncate ${active ? 'bg-accentBlue/15 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`,
+          'aria-current': active ? 'true' : null, title: id,
+          onclick: () => openTape(id),
+        }, id)));
+      }
+      if (!state.tapeId && state.tab === 'flight' && state.tapes.length) openTape(state.tapes[state.tapes.length - 1]);
+      else if (!state.tapeId) renderFlight();
+    } catch (err) { $('tape-list').replaceChildren(h('li', { class: 'px-2 py-1 text-xs text-red-400' }, err.message)); }
+  }
+
+  async function openTape(id) {
+    try {
+      state.tape = await api(`/v1/flight/tape/${encodeURIComponent(id)}`);
+      state.tapeId = id;
+      state.cursor = state.tape.events.length;
+      switchTab('flight');
+      loadTapes();
+      renderFlight();
+    } catch (err) { toast(err.message, 'err'); }
+  }
+
+  function renderFlight() {
+    const tape = state.tape;
+    const events = tape ? tape.events : [];
+    const scrub = $('flight-scrubber');
+    $('flight-title').textContent = tape ? state.tapeId : 'No tape selected';
+    scrub.disabled = !tape;
+    scrub.max = String(events.length);
+    scrub.value = String(state.cursor);
+    scrub.setAttribute('aria-valuetext', `Step ${state.cursor} of ${events.length}`);
+    $('flight-step').textContent = `${state.cursor} / ${events.length}`;
+    $('flight-fork').disabled = !tape;
+    const list = $('flight-events');
+    list.replaceChildren();
+    if (!tape) {
+      list.append(h('li', {}, emptyState('No tape selected', state.tapes.length ? 'Pick a tape from the explorer.' : 'Tapes are written to .kora/recordings when agent runs are recorded.')));
+      $('flight-payload').textContent = '';
+      return;
+    }
+    events.forEach((ev, i) => {
+      const played = i < state.cursor;
+      list.append(h('li', {}, h('button', {
+        type: 'button',
+        class: `w-full flex items-center gap-2 px-2 py-1 rounded text-left text-xs ${i === state.cursor - 1 ? 'bg-accentBlue/15 text-white' : played ? 'text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:bg-white/5'}`,
+        onclick: () => { state.cursor = i + 1; renderFlight(); tone('tick'); },
+      },
+      h('span', { class: 'font-mono text-[10px] text-slate-500 w-6 text-right tabular-nums' }, ev.event_index),
+      h('span', { class: 'font-mono' }, ev.event_type),
+      h('span', { class: 'ml-auto text-[10px] text-slate-600' }, ago(ev.timestamp_utc)))));
+    });
+    const current = events[state.cursor - 1];
+    $('flight-payload').textContent = current ? JSON.stringify(current.payload, null, 2) : 'Start of tape. Drag the scrubber to replay.';
+  }
+
+  async function forkTape() {
+    if (!state.tape) return;
+    try {
+      const res = await api('/v1/flight/fork', { method: 'POST', body: { task_id: state.tapeId, at_index: state.cursor } });
+      toast(`Forked at step ${state.cursor}`);
+      activity(`Forked ${state.tapeId} at step ${state.cursor}`, 'ok');
+      await loadTapes();
+      const id = res.forked_task_id;
+      if (id) openTape(id);
+    } catch (err) { toast(`Fork failed: ${err.message}`, 'err'); }
+  }
+
+  // ---------- self-healing ----------
+  async function runHealing(e) {
+    e.preventDefault();
+    const cmd = $('healing-cmd').value.trim();
+    const attempts = Number($('healing-attempts').value) || 1;
+    if (!confirm(`Run "${cmd}" and apply a passing patch to your working tree?`)) return;
+    const btn = $('healing-run');
+    const out = $('healing-result');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    out.replaceChildren(h('p', { class: 'text-xs text-slate-400' }, `Running ${cmd} with up to ${attempts} repair attempt${attempts === 1 ? '' : 's'}…`));
+    activity(`Self-healing started: ${cmd}`, 'live');
+    try {
+      const r = await api('/v1/healing/repair', { method: 'POST', body: { test_command: cmd, max_attempts: attempts } });
+      out.replaceChildren(
+        h('div', { class: `flex items-center gap-2 p-3 rounded-lg border text-xs ${r.success ? 'border-emeraldShield/30 bg-emeraldShield/5 text-emerald-200' : 'border-crimsonKill/30 bg-crimsonKill/5 text-red-200'}` },
+          h('strong', {}, r.success ? 'Passing' : 'Not repaired'),
+          h('span', {}, `after ${r.attempts} attempt${r.attempts === 1 ? '' : 's'}`),
+          r.diff ? h('button', { type: 'button', class: 'ml-auto underline', onclick: () => switchTab('diff') }, 'View diff') : null),
+        h('pre', { class: 'p-3 rounded-lg bg-surface border border-borderSubtle font-mono text-[11px] text-slate-300 whitespace-pre-wrap max-h-80 overflow-auto' }, r.verification_output || '(no output)'));
+      activity(`Self-healing ${r.success ? 'passed' : 'failed'} after ${r.attempts} attempt(s)`, r.success ? 'ok' : 'err');
+      tone(r.success ? 'ok' : 'err');
+      loadDiff();
+    } catch (err) {
+      out.replaceChildren(h('p', { class: 'text-xs text-red-400' }, err.message));
+      tone('err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run repair cycle';
+    }
+  }
+
+  // ---------- payments ----------
+  async function buildPayment(e) {
+    e.preventDefault();
+    const out = $('payment-result');
+    try {
+      const r = await api('/v1/payments/intent', {
+        method: 'POST',
+        body: {
+          rail: $('pay-rail').value,
+          amount: Number($('pay-amount').value),
+          currency: $('pay-currency').value.toUpperCase(),
+          recipient: $('pay-recipient').value.trim(),
+          description: $('pay-description').value.trim(),
+        },
+      });
+      out.replaceChildren(h('div', { class: 'rounded-lg border border-borderSubtle bg-surface overflow-hidden panel-enter' },
+        h('div', { class: 'px-3 py-2 border-b border-borderSubtle flex flex-wrap items-center gap-2 text-xs' },
+          h('span', { class: 'font-mono text-slate-200' }, r.intent_id),
+          h('span', { class: 'px-1.5 py-0.5 rounded border border-borderSubtle text-[10px] text-slate-400 uppercase' }, r.rail),
+          h('span', { class: 'ml-auto font-mono tabular-nums text-white' }, `${Number(r.amount).toFixed(2)} ${r.currency}`)),
+        h('pre', { class: 'p-3 font-mono text-[11px] text-slate-300 whitespace-pre-wrap overflow-auto max-h-80' }, JSON.stringify(r.payment_payload, null, 2))));
+      tone('ok');
+    } catch (err) { out.replaceChildren(h('p', { class: 'text-xs text-red-400' }, err.message)); tone('err'); }
+  }
+
+  // ---------- gateway ----------
+  async function ask(e) {
+    e.preventDefault();
+    const prompt = $('ask-input').value.trim();
+    if (!prompt) return;
+    const out = $('ask-result');
+    const btn = $('ask-send');
+    btn.disabled = true;
+    out.replaceChildren(h('p', { class: 'text-xs text-slate-500' }, 'Waiting for the gateway…'));
+    try {
+      const r = await api('/v1/completions', { method: 'POST', body: { messages: [{ role: 'user', content: prompt }], max_tokens: 1024 } });
+      out.replaceChildren(
+        h('p', { class: 'text-xs text-slate-200 whitespace-pre-wrap break-words' }, r.content),
+        h('p', { class: 'mt-2 text-[10px] font-mono text-slate-500 tabular-nums' },
+          `${r.provider}/${r.model} · ${Math.round(r.latency_ms)} ms · ${r.usage.total_tokens ?? 0} tok${r.cost_usd != null ? ` · $${r.cost_usd.toFixed(4)}` : ''}`));
+      tone('ok');
+    } catch (err) {
+      out.replaceChildren(h('p', { class: 'text-xs text-red-400 break-words' }, err.message));
+      tone('err');
+    } finally { btn.disabled = false; }
+  }
+
+  // ---------- console ----------
+  function cprint(text, cls = 'text-slate-300') {
+    const log = $('console-log');
+    log.append(h('div', { class: `${cls} whitespace-pre-wrap break-words` }, text));
+    log.scrollTop = log.scrollHeight;
+  }
+
+  const COMMANDS = {
+    help: { usage: 'help', desc: 'List commands', run: () => Object.values(COMMANDS).forEach((c) => cprint(`  ${c.usage.padEnd(28)} ${c.desc}`, 'text-slate-400')) },
+    status: { usage: 'status', desc: 'Runtime status', run: async () => { await loadStatus(); cprint(JSON.stringify(state.status, null, 2)); } },
+    tasks: { usage: 'tasks', desc: 'List tasks', run: async () => { await loadTasks(); if (!state.tasks.length) cprint('No tasks.'); state.tasks.forEach((t) => cprint(`${shortId(t.id)}  ${t.state.padEnd(18)} ${t.title}`)); } },
+    task: {
+      usage: 'task new <title> | move <id> <state>', desc: 'Create or transition a task',
+      run: async (args) => {
+        if (args[0] === 'new' && args.length > 1) { const t = await createTask(args.slice(1).join(' '), 0.5); cprint(`Created ${shortId(t.id)} (${t.state})`, 'text-emerald-300'); return; }
+        if (args[0] === 'move' && args.length === 3) {
+          const t = state.tasks.find((x) => x.id.startsWith(args[1]));
+          if (!t) throw new Error(`No task matching ${args[1]}`);
+          await api(`/v1/tasks/${encodeURIComponent(t.id)}/transition`, { method: 'POST', body: { target_state: args[2] } });
+          await loadTasks();
+          cprint(`${shortId(t.id)} → ${args[2]}`, 'text-emerald-300');
+          return;
         }
-      });
-    }
+        throw new Error('Usage: task new <title> | task move <id-prefix> <state>');
+      },
+    },
+    memories: { usage: 'memories [query]', desc: 'Search memories', run: async (args) => { const items = await api(`/v1/memories?limit=20${args.length ? `&q=${encodeURIComponent(args.join(' '))}` : ''}`); if (!items.length) cprint('No memories.'); items.forEach((m) => cprint(`${m.scope}/${m.key}: ${m.content}`)); } },
+    tapes: { usage: 'tapes', desc: 'List flight tapes', run: async () => { await loadTapes(); if (!state.tapes.length) cprint('No tapes.'); state.tapes.forEach((t) => cprint(t)); } },
+    peers: { usage: 'peers', desc: 'Show mesh peers', run: async () => cprint(JSON.stringify(await api('/v1/mesh/peers'), null, 2)) },
+    airgap: { usage: 'airgap on|off', desc: 'Arm or disarm zero-egress', run: async (args) => { if (!['on', 'off'].includes(args[0])) throw new Error('Usage: airgap on|off'); const r = await api('/v1/studio/airgap', { method: 'POST', body: { enabled: args[0] === 'on' } }); setAirGap(r.air_gapped); cprint(`Air-gap ${r.air_gapped ? 'armed' : 'disarmed'}`, 'text-emerald-300'); } },
+    ask: { usage: 'ask <prompt>', desc: 'Send a prompt through the gateway', run: async (args) => { const r = await api('/v1/completions', { method: 'POST', body: { messages: [{ role: 'user', content: args.join(' ') }], max_tokens: 1024 } }); cprint(r.content); cprint(`${r.provider}/${r.model} · ${Math.round(r.latency_ms)} ms`, 'text-slate-500'); } },
+    clear: { usage: 'clear', desc: 'Clear the console', run: () => $('console-log').replaceChildren() },
+  };
 
-    // 5. Layout Toggles (Intermediate Context Customization)
-    function toggleSidebar() {
-      leftSidebarOpen = !leftSidebarOpen;
-      localStorage.setItem(STORAGE_KEY_SIDEBAR, leftSidebarOpen ? 'true' : 'false');
-      const aside = document.getElementById('left-sidebar');
-      aside.style.display = leftSidebarOpen ? 'flex' : 'none';
-      playTone(leftSidebarOpen ? 520 : 380, 'sine', 0.04);
-    }
+  async function runConsole(e) {
+    e.preventDefault();
+    const input = $('console-input');
+    const line = input.value.trim();
+    input.value = '';
+    if (!line) return;
+    state.consoleHistory.push(line);
+    state.consoleIndex = state.consoleHistory.length;
+    cprint(`kora ❯ ${line}`, 'text-emerald-300');
+    const [name, ...args] = line.split(/\s+/);
+    const cmd = COMMANDS[name];
+    if (!cmd) { cprint(`Unknown command: ${name}. Type help.`, 'text-red-400'); return; }
+    try { await cmd.run(args); } catch (err) { cprint(err.message, 'text-red-400'); tone('err'); }
+  }
 
-    function toggleTelemetry() {
-      rightTelemetryOpen = !rightTelemetryOpen;
-      localStorage.setItem(STORAGE_KEY_TELEMETRY, rightTelemetryOpen ? 'true' : 'false');
-      const aside = document.getElementById('right-telemetry');
-      aside.style.display = rightTelemetryOpen ? 'flex' : 'none';
-      playTone(rightTelemetryOpen ? 520 : 380, 'sine', 0.04);
-    }
+  function consoleKey(e) {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const hist = state.consoleHistory;
+    state.consoleIndex = Math.max(0, Math.min(hist.length, state.consoleIndex + (e.key === 'ArrowUp' ? -1 : 1)));
+    e.target.value = hist[state.consoleIndex] || '';
+  }
 
-    // 6. Air-Gap Shield Toggle
-    function toggleAirGap() {
-      airGapped = !airGapped;
-      localStorage.setItem(STORAGE_KEY_AIRGAP, airGapped ? 'true' : 'false');
-      playTone(airGapped ? 220 : 440, 'sawtooth', 0.1);
-      const btn = document.getElementById('airgap-btn');
-      const label = document.getElementById('airgap-label');
-      if (airGapped) {
-        btn.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded border text-xs font-medium transition shadow-sm bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20 active:scale-95";
-        label.textContent = "Air-Gapped: Zero-Egress";
-        showToast("Air-Gap Armed: Zero outgoing egress", "🔒");
-      } else {
-        btn.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded border text-xs font-medium transition shadow-sm bg-amberGate/10 border-amberGate/40 text-amberGate hover:bg-amberGate/20 active:scale-95";
-        label.textContent = "Hybrid Cloud Allowed";
-        showToast("Hybrid mode enabled", "🌐");
-      }
-    }
+  // ---------- command palette ----------
+  const PALETTE = [
+    ...TABS.map((t, i) => ({ label: `Go to ${$(`tab-${t}`).textContent}`, hint: `Alt+${i + 1}`, run: () => switchTab(t, { focus: true }) })),
+    { label: 'Toggle Air-Gapped: Zero-Egress mode', hint: 'Alt+A', run: toggleAirGap },
+    { label: 'New task', run: () => { openTaskForm(); } },
+    { label: 'Refresh everything', hint: 'Alt+R', run: () => refreshAll(true) },
+    { label: 'Toggle interface sounds', run: () => setSound(!state.sound) },
+    { label: 'Toggle workspace explorer', run: () => toggleDrawer('sidebar', 'toggle-left') },
+    { label: 'Toggle runtime panel', run: () => toggleDrawer('copilot', 'toggle-right') },
+  ];
+  let paletteIndex = 0;
+  let paletteItems = PALETTE;
+  let paletteReturnFocus = null;
 
-    // 7. Render Diff (Unified vs Split 2-Column)
-    function renderActiveDiff() {
-      const data = FILE_CATALOG[activeFile] || FILE_CATALOG['core/agent/self_healing.py'];
-      
-      // Update top header badges
-      document.getElementById('active-file-title').textContent = activeFile;
-      document.getElementById('active-file-additions').textContent = `+${data.additions} lines`;
-      document.getElementById('active-file-deletions').textContent = `-${data.deletions} lines`;
-      document.getElementById('diff-footer-summary').textContent = `1 File • +${data.additions} / -${data.deletions}`;
-
-      // Render Unified View
-      const unifiedContainer = document.getElementById('diff-unified-view');
-      unifiedContainer.innerHTML = '';
-      data.unifiedLines.forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = `code-line flex items-center px-2 py-0.5 rounded font-mono text-xs ${line.type === 'add' ? 'diff-add font-medium' : line.type === 'del' ? 'diff-del font-medium' : line.type === 'info' ? 'text-slate-500 font-semibold mb-1' : 'text-slate-400'}`;
-        div.innerHTML = `<span class="w-8 select-none text-[10px] text-slate-600 font-mono">${idx + 1}</span><span>${escapeHtml(line.text)}</span>`;
-        unifiedContainer.appendChild(div);
-      });
-
-      // Render Split View
-      const splitLeft = document.getElementById('split-left-pane');
-      const splitRight = document.getElementById('split-right-pane');
-      splitLeft.innerHTML = '';
-      splitRight.innerHTML = '';
-
-      (data.splitLeft || data.unifiedLines).forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = `code-line px-2 py-0.5 rounded text-xs font-mono ${line.type === 'del' ? 'diff-del font-medium' : 'text-slate-400'}`;
-        div.textContent = line.text;
-        splitLeft.appendChild(div);
-      });
-
-      (data.splitRight || data.unifiedLines).forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = `code-line px-2 py-0.5 rounded text-xs font-mono ${line.type === 'add' ? 'diff-add font-medium' : 'text-slate-400'}`;
-        div.textContent = line.text;
-        splitRight.appendChild(div);
-      });
-    }
-
-    function setDiffMode(mode) {
-      diffMode = mode;
-      localStorage.setItem(STORAGE_KEY_DIFF_MODE, mode);
-      playTone(480, 'sine', 0.04);
-
-      document.getElementById('btn-view-unified').className = mode === 'unified' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
-      document.getElementById('btn-view-split').className = mode === 'split' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
-
-      document.getElementById('diff-unified-view').classList.toggle('hidden', mode !== 'unified');
-      document.getElementById('diff-split-view').classList.toggle('hidden', mode !== 'split');
-
-      showToast(`Switched to ${mode} diff mode`, '📄');
-    }
-
-    function selectFile(filename) {
-      activeFile = filename;
-      localStorage.setItem(STORAGE_KEY_FILE, filename);
-      playTone(520, 'sine', 0.04);
-
-      // Highlight active file in tree
-      document.querySelectorAll('.file-tree-item').forEach(el => {
-        el.className = 'file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l-2 border-transparent';
-      });
-      const activeEl = document.getElementById(`file-item-${filename.replace(/[/.]/g, '-')}`);
-      if (activeEl) {
-        activeEl.className = 'file-tree-item px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l-2 border-accentCobalt';
-      }
-
-      renderActiveDiff();
-      switchTab('diff');
-      showToast(`Loaded diff: ${filename}`, '📄');
-    }
-
-    // 8. Flight Recorder Frame Time-Travel Engine
-    function handleScrub(val) {
-      currentFrame = parseInt(val);
-      document.getElementById('flight-frame-input').value = currentFrame;
-      document.getElementById('flight-scrubber').value = currentFrame;
-      playTone(400 + currentFrame * 40, 'sine', 0.03);
-
-      const frameData = FLIGHT_FRAMES[currentFrame];
-      if (frameData) {
-        const badge = document.getElementById('flight-status-badge');
-        badge.textContent = frameData.badge;
-        badge.className = `hidden md:inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${frameData.badgeColor}`;
-        document.getElementById('diff-footer-status').textContent = frameData.activeStatus;
-        appendAgentThought("Flight Recorder", frameData.thought);
-      }
-    }
-
-    function handleDirectFrameInput(val) {
-      val = Math.max(1, Math.min(4, parseInt(val) || 1));
-      handleScrub(val);
-    }
-
-    function flightStepBack() {
-      if (currentFrame > 1) handleScrub(currentFrame - 1);
-    }
-
-    function flightStepForward() {
-      if (currentFrame < 4) handleScrub(currentFrame + 1);
-    }
-
-    function forkCurrentTimeline() {
-      playTone(659, 'triangle', 0.12);
-      showToast("Timeline forked to task_self_heal_branch_1.flight", "⑂");
-    }
-
-    function acceptDiffAndCommit() {
-      playTone(880, 'triangle', 0.12);
-      showToast("Diff accepted & AST committed into main branch!", "✓");
-    }
-
-    function copyActiveDiff() {
-      const data = FILE_CATALOG[activeFile] || FILE_CATALOG['core/agent/self_healing.py'];
-      const text = data.unifiedLines.map(l => l.text).join('\n');
-      copyToClipboard(text, 'Diff copied to clipboard');
-    }
-
-    // 9. Payment Rail Selector (Segmented Radio Buttons)
-    function selectRail(rail) {
-      currentRail = rail;
-      playTone(500, 'sine', 0.04);
-      const rails = ['mpesa', 'pix', 'upi', 'lightning', 'offline'];
-      rails.forEach(r => {
-        const btn = document.getElementById(`rail-btn-${r}`);
-        if (btn) {
-          if (r === rail) {
-            btn.className = "px-3 py-1 rounded border text-xs font-medium transition bg-accentCobalt text-white border-accentCobalt";
-          } else {
-            btn.className = "px-3 py-1 rounded border text-xs font-medium transition bg-surfaceLight border-white/10 text-slate-300 hover:text-white";
-          }
-        }
-      });
-    }
-
-    async function createPaymentUI() {
-      playTone(600, 'sine', 0.08);
-      const amount = document.getElementById('pay-amount').value;
-      const currency = document.getElementById('pay-currency').value;
-      const recipient = document.getElementById('pay-recipient').value;
-      const outEl = document.getElementById('payment-output');
-
-      outEl.innerHTML = `
-        <div class="text-emeraldShield font-bold mb-1">Signed Intent Generated: intent_${Date.now().toString(16)} [READY]</div>
-        <div class="text-slate-300 mb-2">Rail: <strong class="text-white">${currentRail.toUpperCase()}</strong> | Amount: <strong class="text-white">${amount} ${currency}</strong> | To: <strong class="text-white">${recipient}</strong></div>
-        <div class="bg-black/60 p-3 rounded border border-white/10 text-accentCobalt text-[11px] overflow-x-auto">
-{
-  "rail": "${currentRail}",
-  "status": "pending_settlement",
-  "recipient": "${recipient}",
-  "amount": "${amount}",
-  "currency": "${currency}",
-  "sovereign_signature": "ecdsa_secp256k1_verified_local"
-}
-        </div>
-      `;
-      showToast("Payment intent dispatched", "💳");
-    }
-
-    async function triggerSelfHealingUI() {
-      playTone(620, 'sine', 0.08);
-      const cmd = document.getElementById('heal-test-cmd').value;
-      const logEl = document.getElementById('heal-log');
-      logEl.innerHTML = `<div class="text-amberGate animate-pulse">Running AST repair loop on "${cmd}"...</div>`;
-
-      setTimeout(() => {
-        playTone(880, 'triangle', 0.15);
-        logEl.innerHTML = `
-          <div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt 1 of 3):</div>
-          <div class="text-slate-300">Ran: 22 tests in 0.102s — OK (Zero syntax errors).</div>
-          <div class="mt-2 text-slate-400 text-[11px]">Applied AST Diff:</div>
-          <pre class="bg-black/60 p-2.5 rounded border border-white/10 text-emeraldShield text-[11px] overflow-x-auto">+ ast.fix_missing_locations(repaired_tree)\n+ return ASTRepairResult(success=True)</pre>
-        `;
-        showToast("AST Repair verified in ephemeral worktree", "✓");
-      }, 700);
-    }
-
-    // 10. Terminal Mock Command Parser
-    function handleTerminalEnter(e, input) {
-      if (e.key === 'Enter') {
-        const cmd = input.value.trim();
-        if (!cmd) return;
-        playTone(550, 'sine', 0.04);
-        const canvas = document.getElementById('term-canvas');
-        const line = document.createElement('div');
-        line.innerHTML = `<span class="text-emeraldShield">kora@sandbox:~$</span> ${escapeHtml(cmd)}`;
-        canvas.appendChild(line);
-
-        const resp = document.createElement('div');
-        resp.className = "text-slate-400";
-        if (cmd === 'clear') {
-          canvas.innerHTML = '';
-        } else if (cmd === 'help') {
-          resp.innerHTML = `Available commands: <span class="text-accentCobalt">kora doctor, kora spec, kora mesh, kora heal, kora notify, kora pay, git status, clear</span>`;
-        } else if (cmd.includes('doctor')) {
-          resp.className = "text-emeraldShield";
-          resp.textContent = "[+] Kora Diagnostics: Database connected, DLP guard armed, 22/22 unit tests green.";
-        } else if (cmd.includes('spec')) {
-          resp.className = "text-accentCobalt";
-          resp.textContent = "[+] Speculative Decoding: 2.58x measured speedup (0.5B draft + 7B target).";
-        } else if (cmd.includes('mesh')) {
-          resp.className = "text-accentCobalt";
-          resp.textContent = "[+] P2P Mesh: 3 peer workstations discovered via mDNS (Pooled VRAM: 32 GB).";
-        } else if (cmd.includes('heal')) {
-          resp.className = "text-emeraldShield";
-          resp.textContent = "[+] Autonomous Self-Healing: AST repair verified in ephemeral worktree (0 syntax errors).";
-        } else if (cmd.includes('notify')) {
-          resp.className = "text-emeraldShield";
-          resp.textContent = "[+] Omnichannel Dispatch: Alert delivered via Telegram inline keyboard [200 OK].";
-        } else if (cmd.includes('pay')) {
-          resp.className = "text-emeraldShield";
-          resp.textContent = "[+] Sovereign Payment: Settlement intent generated via local L402 broker.";
-        } else if (cmd === 'git status') {
-          resp.textContent = "On branch main. Your branch is up to date with 'origin/main'. Working tree clean.";
-        } else {
-          resp.textContent = `Executed in isolated sandbox worktree (exit code 0).`;
-        }
-        if (cmd !== 'clear') canvas.appendChild(resp);
-        input.value = '';
-        canvas.scrollTop = canvas.scrollHeight;
-      }
-    }
-
-    // 11. Command Palette Modal (Cmd+K)
-    function openCommandPalette() {
-      playTone(600, 'sine', 0.05);
-      const modal = document.getElementById('cmd-palette-modal');
-      modal.classList.remove('hidden');
-      const input = document.getElementById('cmd-palette-input');
-      input.value = '';
-      input.focus();
-    }
-
-    function closeCommandPalette() {
-      document.getElementById('cmd-palette-modal').classList.add('hidden');
-    }
-
-    function filterPalette(val) {
-      const q = val.toLowerCase();
-      document.querySelectorAll('.palette-item').forEach(item => {
-        item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
-      });
-    }
-
-    function handlePaletteNav(e) {
-      if (e.key === 'Escape') closeCommandPalette();
-    }
-
-    function executePaletteAction(action) {
-      closeCommandPalette();
-      if (action.startsWith('tab-')) switchTab(action.replace('tab-', ''));
-      else if (action === 'toggle-airgap') toggleAirGap();
-      else if (action === 'fork-timeline') forkCurrentTimeline();
-      else if (action === 'run-tests') triggerSelfHealingUI();
-    }
-
-    // 12. Non-blocking Toast Feedback
-    function showToast(msg, icon = '✓') {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-message').textContent = msg;
-      document.getElementById('toast-icon').textContent = icon;
-      toast.classList.remove('opacity-0');
-      toast.classList.add('opacity-100');
-      setTimeout(() => {
-        toast.classList.remove('opacity-100');
-        toast.classList.add('opacity-0');
-      }, 2200);
-    }
-
-    function copyToClipboard(text, msg = 'Copied to clipboard') {
-      navigator.clipboard.writeText(text).then(() => {
-        playTone(660, 'sine', 0.05);
-        showToast(msg, '📋');
-      });
-    }
-
-    function appendAgentThought(sender, text) {
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
-      msgDiv.innerHTML = `<div class="font-bold text-accentCobalt text-[11px] flex justify-between"><span>${escapeHtml(sender)}</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-300 leading-relaxed">${escapeHtml(text)}</p>`;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function handleSend(e) {
+  function openPalette() {
+    paletteReturnFocus = document.activeElement;
+    $('palette').classList.remove('hidden');
+    $('palette').classList.add('flex');
+    $('palette-input').value = '';
+    filterPalette();
+    $('palette-input').focus();
+  }
+  function closePalette() {
+    $('palette').classList.add('hidden');
+    $('palette').classList.remove('flex');
+    if (paletteReturnFocus) paletteReturnFocus.focus();
+  }
+  function filterPalette() {
+    const q = $('palette-input').value.toLowerCase();
+    paletteItems = PALETTE.filter((c) => c.label.toLowerCase().includes(q));
+    paletteIndex = 0;
+    renderPalette();
+  }
+  function renderPalette() {
+    const list = $('palette-list');
+    list.replaceChildren();
+    if (!paletteItems.length) list.append(h('li', { class: 'px-4 py-3 text-xs text-slate-500' }, 'No matching commands'));
+    paletteItems.forEach((c, i) => {
+      list.append(h('li', {
+        role: 'option', id: `palette-opt-${i}`, 'aria-selected': String(i === paletteIndex),
+        class: `mx-1 px-3 py-2 rounded-md flex items-center justify-between text-sm cursor-pointer ${i === paletteIndex ? 'bg-accentBlue/20 text-white' : 'text-slate-300'}`,
+        onmousemove: () => { if (paletteIndex !== i) { paletteIndex = i; renderPalette(); } },
+        onclick: () => runPaletteItem(i),
+      }, c.label, c.hint ? h('kbd', { class: 'font-mono text-[10px] text-slate-500' }, c.hint) : null));
+    });
+    $('palette-input').setAttribute('aria-activedescendant', paletteItems.length ? `palette-opt-${paletteIndex}` : '');
+  }
+  function runPaletteItem(i) {
+    const c = paletteItems[i];
+    if (!c) return;
+    closePalette();
+    c.run();
+  }
+  function paletteKey(e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
-      const input = document.getElementById('prompt-input');
-      const val = input.value.trim();
-      if (!val) return;
-      playTone(520, 'sine', 0.05);
+      paletteIndex = (paletteIndex + (e.key === 'ArrowDown' ? 1 : -1) + paletteItems.length) % Math.max(1, paletteItems.length);
+      renderPalette();
+      $(`palette-opt-${paletteIndex}`)?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') { e.preventDefault(); runPaletteItem(paletteIndex); }
+    else if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
+  }
 
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = "bg-surfaceLight/50 p-2.5 rounded border border-white/5 space-y-1";
-      msgDiv.innerHTML = `<div class="font-bold text-white text-[11px] flex justify-between"><span>User</span><span class="text-[10px] text-slate-500 font-mono">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-200 leading-relaxed">${escapeHtml(val)}</p>`;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-      input.value = '';
+  // ---------- misc ui ----------
+  function setSound(on) {
+    state.sound = on;
+    localStorage.setItem('kora.sound', on ? 'on' : 'off');
+    $('sound-btn').setAttribute('aria-pressed', String(on));
+    $('sound-on').classList.toggle('hidden', !on);
+    $('sound-off').classList.toggle('hidden', on);
+    if (on) tone('tick');
+  }
 
-      setTimeout(() => {
-        playTone(700, 'triangle', 0.08);
-        appendAgentThought("Kora Planner Agent", `Instruction received: Running AST analysis in sovereign worktree for "${val}"...`);
-      }, 500);
+  function openTaskForm() {
+    if ($('sidebar').classList.contains('hidden')) toggleDrawer('sidebar', 'toggle-left');
+    $('task-form').classList.remove('hidden');
+    $('task-title').focus();
+  }
+
+  async function refreshAll(announce = false) {
+    await Promise.all([loadStatus(), loadTasks(), loadTapes(), loadDiff(), loadMesh(), loadMemories()]);
+    if (announce) toast('Refreshed');
+  }
+
+  // ---------- websocket ----------
+  function setWs(label, tone_) {
+    const styles = {
+      ok: ['text-emerald-300 bg-emeraldShield/10 border-emeraldShield/30', 'bg-emeraldShield pulse-dot'],
+      warn: ['text-amber-300 bg-amberGate/10 border-amberGate/30', 'bg-amberGate'],
+      err: ['text-red-300 bg-crimsonKill/10 border-crimsonKill/30', 'bg-crimsonKill'],
+    }[tone_];
+    $('ws-status').className = `inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border ${styles[0]}`;
+    $('ws-dot').className = `w-1.5 h-1.5 rounded-full ${styles[1]}`;
+    $('ws-label').textContent = label;
+    $('sb-ws').textContent = `WS ${label.toLowerCase()}`;
+  }
+
+  function connectWs() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${proto}//${location.host}/v1/ws/studio`);
+    state.ws = ws;
+    setWs('Connecting', 'warn');
+    ws.onopen = () => { state.wsRetry = 0; setWs('Live', 'ok'); };
+    ws.onmessage = (msg) => {
+      let ev;
+      try { ev = JSON.parse(msg.data); } catch { return; }
+      handleEvent(ev);
+    };
+    ws.onclose = () => {
+      setWs('Offline', 'err');
+      const delay = Math.min(15000, 1000 * 2 ** state.wsRetry++);
+      setTimeout(connectWs, delay);
+    };
+  }
+
+  function handleEvent(ev) {
+    switch (ev.type) {
+      case 'handshake':
+        setAirGap(ev.air_gapped);
+        activity('Connected to Kora runtime', 'ok');
+        break;
+      case 'pong':
+        break;
+      case 'agent_state_changed':
+        activity(`${ev.title}: ${ev.previous_state ? `${humanState(ev.previous_state)} → ` : 'created as '}${humanState(ev.new_state)}`, ev.new_state === 'failed' ? 'err' : ev.new_state === 'completed' ? 'ok' : 'live');
+        tone(ev.new_state === 'failed' ? 'err' : 'tick');
+        loadTasks();
+        loadStatus();
+        break;
+      case 'air_gap_status_changed':
+        setAirGap(ev.air_gapped);
+        activity(ev.air_gapped ? 'Air-gap armed' : 'Air-gap disarmed', ev.air_gapped ? 'ok' : 'warn');
+        break;
+      case 'agent_thought':
+        activity(ev.message || ev.content || ev.thought || 'Agent thought', 'live');
+        break;
+      default:
+        activity(`${ev.type}${ev.message ? `: ${ev.message}` : ''}`, 'info');
     }
+  }
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
+  // ---------- wiring ----------
+  document.querySelector('[role="tablist"]').addEventListener('keydown', onTabKey);
+  for (const t of TABS) $(`tab-${t}`).addEventListener('click', () => { switchTab(t); tone('tick'); });
+  $('toggle-left').addEventListener('click', () => toggleDrawer('sidebar', 'toggle-left'));
+  $('toggle-right').addEventListener('click', () => toggleDrawer('copilot', 'toggle-right'));
+  $('airgap-btn').addEventListener('click', toggleAirGap);
+  $('sound-btn').addEventListener('click', () => setSound(!state.sound));
+  $('palette-trigger').addEventListener('click', openPalette);
+  $('palette-input').addEventListener('input', filterPalette);
+  $('palette-input').addEventListener('keydown', paletteKey);
+  $('palette').addEventListener('click', (e) => { if (e.target.id === 'palette') closePalette(); });
+  $('diff-refresh').addEventListener('click', loadDiff);
+  $('tasks-refresh').addEventListener('click', loadTasks);
+  $('new-task-btn').addEventListener('click', () => { const f = $('task-form'); f.classList.toggle('hidden'); if (!f.classList.contains('hidden')) $('task-title').focus(); });
+  $('task-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await createTask($('task-title').value.trim(), Number($('task-budget').value) || 0.5);
+      $('task-title').value = '';
+      $('task-form').classList.add('hidden');
+      switchTab('tasks');
+    } catch (err) { toast(err.message, 'err'); }
+  });
+  $('memory-search').addEventListener('submit', (e) => { e.preventDefault(); loadMemories($('memory-q').value.trim()); });
+  $('memory-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await api('/v1/memories', { method: 'POST', body: { key: $('memory-key').value.trim(), content: $('memory-content').value.trim() } });
+      $('memory-key').value = '';
+      $('memory-content').value = '';
+      toast('Memory saved');
+      loadMemories($('memory-q').value.trim());
+    } catch (err) { toast(err.message, 'err'); }
+  });
+  $('flight-scrubber').addEventListener('input', (e) => { state.cursor = Number(e.target.value); renderFlight(); });
+  $('flight-fork').addEventListener('click', forkTape);
+  $('healing-form').addEventListener('submit', runHealing);
+  $('payment-form').addEventListener('submit', buildPayment);
+  $('ask-form').addEventListener('submit', ask);
+  $('ask-input').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('ask-form').requestSubmit(); });
+  $('console-form').addEventListener('submit', runConsole);
+  $('console-input').addEventListener('keydown', consoleKey);
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('palette').classList.contains('hidden') ? openPalette() : closePalette(); return; }
+    if (e.key === 'Escape') closeMobileDrawers();
+    if (e.altKey && !e.metaKey && !e.ctrlKey) {
+      const n = Number(e.code.replace('Digit', ''));
+      if (n >= 1 && n <= TABS.length) { e.preventDefault(); switchTab(TABS[n - 1], { focus: true }); }
+      else if (e.code === 'KeyA') { e.preventDefault(); toggleAirGap(); }
+      else if (e.code === 'KeyR') { e.preventDefault(); refreshAll(true); }
     }
+  });
+  window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (TABS.includes(t) && t !== state.tab) switchTab(t); });
+  window.addEventListener('focus', () => { loadStatus(); if (state.tab === 'diff') loadDiff(); });
 
-    // 13. WebSocket Connector with Graceful Standalone Fallback
-    function initWebSocket() {
-      const wsStatus = document.getElementById('ws-status-indicator');
-      const wsText = document.getElementById('ws-status-text');
-      try {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/v1/ws/studio`;
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-emeraldShield';
-          if (wsText) wsText.textContent = 'LIVE WS CONNECTED';
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const msg = JSON.parse(event.data);
-            if (msg.type === 'agent_thought') {
-              appendAgentThought(msg.sender || 'Kora Agent', msg.content);
-            } else if (msg.type === 'file_selected') {
-              selectFile(msg.file);
-            }
-          } catch (e) {}
-        };
-
-        ws.onerror = () => {
-          if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-accentCobalt';
-          if (wsText) wsText.textContent = 'SOVEREIGN LOCAL';
-        };
-
-        ws.onclose = () => {
-          if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-accentCobalt';
-          if (wsText) wsText.textContent = 'SOVEREIGN LOCAL';
-          setTimeout(initWebSocket, 6000);
-        };
-      } catch (e) {
-        if (wsStatus) wsStatus.className = 'w-2 h-2 rounded-full bg-accentCobalt';
-        if (wsText) wsText.textContent = 'SOVEREIGN LOCAL';
-      }
-    }
-
-    // 14. Global Keyboard Listeners
-    window.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        openCommandPalette();
-      } else if (e.key === 'Escape') {
-        closeCommandPalette();
-      } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        e.preventDefault();
-        acceptDiffAndCommit();
-      } else if (e.altKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        toggleAirGap();
-      } else if (e.key === '[' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        toggleSidebar();
-      } else if (e.key === ']' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        toggleTelemetry();
-      } else if (['1', '2', '3', '4'].includes(e.key) && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        const tabMap = { '1': 'diff', '2': 'healing', '3': 'payments', '4': 'term' };
-        switchTab(tabMap[e.key]);
-      }
-    });
-
-    // 15. Context Restoration on Mount
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedTab = localStorage.getItem(STORAGE_KEY_TAB);
-      if (savedTab) switchTab(savedTab);
-
-      const savedDiffMode = localStorage.getItem(STORAGE_KEY_DIFF_MODE);
-      if (savedDiffMode) setDiffMode(savedDiffMode);
-
-      const savedAirgap = localStorage.getItem(STORAGE_KEY_AIRGAP);
-      if (savedAirgap !== null && savedAirgap === 'false') toggleAirGap();
-
-      const savedAudio = localStorage.getItem(STORAGE_KEY_AUDIO);
-      if (savedAudio !== null && savedAudio === 'false') toggleAudio();
-
-      const savedSidebar = localStorage.getItem(STORAGE_KEY_SIDEBAR);
-      if (savedSidebar === 'false') toggleSidebar();
-
-      const savedTelemetry = localStorage.getItem(STORAGE_KEY_TELEMETRY);
-      if (savedTelemetry === 'false') toggleTelemetry();
-
-      const savedFile = localStorage.getItem(STORAGE_KEY_FILE);
-      if (savedFile && FILE_CATALOG[savedFile]) activeFile = savedFile;
-
-      renderActiveDiff();
-      initWebSocket();
-    });
+  setSound(state.sound);
+  switchTab(TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'diff');
+  cprint('Kora console. This talks to the local Kora API, not a system shell. Type help.', 'text-slate-500');
+  refreshAll();
+  connectWs();
+  setInterval(loadStatus, 10000);
+  setInterval(() => { if (state.ws && state.ws.readyState === WebSocket.OPEN) state.ws.send(JSON.stringify({ type: 'ping' })); }, 25000);
   </script>
 </body>
 </html>

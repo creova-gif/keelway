@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { background-color: #05070D; color: #E2E8F0; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #05070D; }
+::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+:focus-visible { outline: 2px solid rgba(59, 130, 246, 0.85); outline-offset: 1px; border-radius: 4px; }
+button:active:not(:disabled) { transform: scale(0.98); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+.diff-add { background-color: rgba(16, 185, 129, 0.12); color: #6EE7B7; }
+.diff-del { background-color: rgba(239, 68, 68, 0.12); color: #FCA5A5; }
+.diff-hunk { color: #64748B; background-color: rgba(59, 130, 246, 0.06); }
+.code-line:hover { background-color: rgba(255, 255, 255, 0.03); }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.tabular-nums, .font-mono { font-variant-numeric: tabular-nums; }
+.panel-enter { animation: panel-in 150ms cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes panel-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); } 50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+@media (max-width: 1023px) {
+  .drawer { position: absolute; top: 0; bottom: 0; z-index: 40; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); }
+  .drawer-left { left: 0; }
+  .drawer-right { right: 0; }
+}
+
+@layer components {
+  .btn-primary { @apply inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-accentBlue text-white text-xs font-medium transition-colors duration-150; }
+  .btn-primary:hover:not(:disabled) { @apply bg-blue-500; }
+  .btn-secondary { @apply inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-borderSubtle bg-surfaceLight text-slate-200 text-xs font-medium transition-colors duration-150; }
+  .btn-secondary:hover:not(:disabled) { @apply border-slate-500 text-white; }
+  .btn-ghost { @apply inline-flex items-center px-2 py-1 rounded-md text-xs text-slate-400 transition-colors duration-150; }
+  .btn-ghost:hover { @apply text-white bg-white/5; }
+  .input { @apply px-2.5 py-1.5 rounded-md bg-obsidian border border-borderSubtle text-xs text-white placeholder-slate-600 transition-colors duration-150; }
+  .input:focus { @apply border-accentCobalt outline-none; }
+  .label { @apply block mb-1 text-[11px] font-medium text-slate-400; }
+  .tab { @apply px-3 text-xs font-medium text-slate-400 border-b-2 border-transparent whitespace-nowrap transition-colors duration-150; }
+  .tab:hover { @apply text-slate-200; }
+  .tab[aria-selected="true"] { @apply text-white border-accentCobalt; }
+}

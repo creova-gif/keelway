@@ -59,3 +59,4 @@ PITCH_AND_JUDGE_QA.md
 # Packaging
 *.egg-info/
 build/
+.kora/

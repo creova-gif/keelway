@@ -33,7 +33,7 @@ py-modules = ["cli"]
 include = ["core*", "research*", "evaluations*"]
 
 [tool.setuptools.package-data]
-core = ["studio/*.html"]
+core = ["studio/*.html", "studio/assets/*"]
 
 [tool.ruff.lint]
 select = ["E9", "F63", "F7", "F82"]
