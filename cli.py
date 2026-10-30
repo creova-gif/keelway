@@ -25,6 +25,9 @@ from core.config import settings
 from core.storage.database import check_db_health, init_db, AsyncSessionLocal
 from core.models.gateway import gateway
 from core.api.schemas import Provider
+from core.security.airgap import AirGapEnforcer
+from core.security.style import StyleEngine, VoiceStyle
+from core.storage.ledger import SovereignLedger
 from core.orchestration.workflows import (
     EngineeringBriefWorkflow,
     ResearchSummaryWorkflow,
@@ -55,16 +58,25 @@ async def cmd_doctor():
     print("\n[+] Diagnostics complete.\n")
 
 
-async def cmd_chat(provider_name: str, system_prompt: str = None):
-    """Run interactive multi-turn agent chat with dynamic memory recall and safety checks."""
+async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
+    """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
+    if air_gapped:
+        gateway.air_gap.enabled = True
+        prov = Provider.LOCAL
+
+    style_directive = StyleEngine.get_style_prompt(VoiceStyle(voice_style))
+    combined_prompt = f"{system_prompt or InteractiveChatSession.DEFAULT_SYSTEM_PROMPT}\n\n{style_directive}"
+
     await init_db()
 
-    session = InteractiveChatSession(gateway=gateway, provider=prov, system_prompt=system_prompt)
-    print("\n" + "=" * 62)
+    session = InteractiveChatSession(gateway=gateway, provider=prov, system_prompt=combined_prompt)
+    print("\n" + "=" * 65)
     print("  KORA AI — Sovereign Agent Interactive Workspace (REPL)")
-    print(f"  Active Provider: {prov.value.upper()} | Type '/help' for commands")
-    print("=" * 62 + "\n")
+    print(f"  Active Provider: {prov.value.upper()} | Style: {voice_style.upper()}")
+    if air_gapped:
+        print("  Security Mode:   🔒 STRICT AIR-GAPPED (Zero Network Egress)")
+    print("=" * 65 + "\n")
 
     while True:
         try:
@@ -221,6 +233,8 @@ def main():
     chat_parser = subparsers.add_parser("chat", help="Start interactive agent REPL session")
     chat_parser.add_argument("--provider", default="local", choices=["anthropic", "google", "openai", "local"], help="Model provider")
     chat_parser.add_argument("--system", default=None, help="Custom system prompt")
+    chat_parser.add_argument("--air-gapped", action="store_true", help="Enforce 100 percent offline zero-network egress")
+    chat_parser.add_argument("--style", default="human-engineer", choices=["human-engineer", "executive", "conversational"], help="Writing voice style")
 
     # brief
     brief_parser = subparsers.add_parser("brief", help="Generate engineering brief from PR/git changes")
@@ -290,7 +304,7 @@ def main():
     if args.command == "doctor":
         asyncio.run(cmd_doctor())
     elif args.command == "chat":
-        asyncio.run(cmd_chat(args.provider, args.system))
+        asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":
         asyncio.run(cmd_brief(args.title, args.desc, args.files, args.failing, args.provider))
     elif args.command == "summarize":

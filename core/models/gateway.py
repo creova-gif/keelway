@@ -12,17 +12,20 @@ from core.models.adapters.local import LocalAdapter
 from core.models.adapters.gemini import GeminiAdapter
 from core.models.adapters.openai import OpenAIAdapter
 from core.security.firewall import SecurityGateway
+from core.security.airgap import AirGapEnforcer
+from core.security.style import StyleEngine, VoiceStyle
 
 logger = logging.getLogger(__name__)
 
 
 class ModelGateway:
-    """Multi-provider model gateway with policy-based routing, automated failover, and security guardrails."""
+    """Multi-provider model gateway with policy-based routing, automated failover, air-gap zero-egress, and style de-slopping."""
 
     def __init__(
         self,
         adapters: Optional[Dict[Provider, ModelAdapter]] = None,
         security_gateway: Optional[SecurityGateway] = None,
+        air_gap_enforcer: Optional[AirGapEnforcer] = None,
     ):
         if adapters is not None:
             self.adapters = adapters
@@ -34,6 +37,7 @@ class ModelGateway:
                 Provider.LOCAL: LocalAdapter(),
             }
         self.security = security_gateway or SecurityGateway(block_on_injection=True, redact_secrets=True)
+        self.air_gap = air_gap_enforcer or AirGapEnforcer(enabled=False)
 
     def register_adapter(self, provider: Provider, adapter: ModelAdapter) -> None:
         self.adapters[provider] = adapter
@@ -74,6 +78,11 @@ class ModelGateway:
         last_error: Optional[Exception] = None
 
         for provider in provider_order:
+            # Enforce Air-Gap Zero-Egress restriction if enabled
+            if self.air_gap.enabled and provider != Provider.LOCAL:
+                logger.warning(f"Air-Gap Mode Active: Dropping outbound request to {provider.value}")
+                continue
+
             adapter = self.adapters.get(provider)
             if not adapter or not adapter.is_available():
                 continue
@@ -81,7 +90,11 @@ class ModelGateway:
             try:
                 logger.info(f"Routing request to provider: {provider.value}")
                 response = await adapter.complete(sanitized_request)
-                return response
+                # De-slop output text
+                clean_content, slop_found = StyleEngine.de_slop(response.content)
+                if slop_found:
+                    logger.info(f"StyleEngine pruned {len(slop_found)} AI slop tokens from output")
+                return response.model_copy(update={"content": clean_content})
             except Exception as e:
                 logger.warning(f"Provider {provider.value} failed: {e}. Attempting fallback...")
                 last_error = e
