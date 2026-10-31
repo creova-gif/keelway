@@ -1,6 +1,6 @@
 // Build: npx -y tailwindcss@3.4.17 -c core/studio/tailwind.config.js -i core/studio/tailwind.input.css -o core/studio/assets/studio.css --minify
 module.exports = {
-  content: [__dirname + '/index.html'],
+  content: [__dirname + '/index.html', __dirname + '/assets/studio.js'],
   darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {

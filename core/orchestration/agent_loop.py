@@ -332,6 +332,7 @@ class AutonomousAgentLoop:
                 self._update_step_status(pending["step_id"], "failed", "User denied permission.")
             return {"status": "denied", "tool_name": pending["tool_name"]}
 
+        self._record_event("approval_granted", pending)
         tool = self.tools[pending["tool_name"]]
         return await self._run_approved_tool(tool, pending["arguments"], pending.get("step_id"))
 
@@ -390,6 +391,9 @@ class AutonomousAgentLoop:
             "event_type": event_type,
             "data": data,
         })
+        # Tool calls/results are already taped as "tool:<name>"; tape the decisions around them too.
+        if self.flight_recorder and event_type not in ("tool_call", "tool_success"):
+            self.flight_recorder.record_event(event_type=event_type, payload=data)
 
     def get_state(self) -> Dict[str, Any]:
         """Returns JSON state for the Dev Studio frontend."""
