@@ -181,7 +181,7 @@ function initMonaco() {
     monaco.editor.defineTheme('koraDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0A0F1D' } });
     editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'koraDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
-    editor.onDidChangeModelContent(() => { if (state.active) { state.dirty.add(state.active); renderTabs(); } });
+    editor.onDidChangeModelContent(() => { if (state.active && !state.syncing) { state.dirty.add(state.active); renderTabs(); } });
     if (state.active) state.buffers[state.active] = $('fallback-editor').value;
     for (const [p, text] of Object.entries(state.buffers)) state.models[p] = monaco.editor.createModel(text, langFor(p));
     state.buffers = {};
@@ -192,16 +192,17 @@ function initMonaco() {
 
 async function openFile(path) {
   try {
-    const cached = editor ? state.models[path] : state.buffers[path];
-    const content = cached === undefined ? (await api(`/v1/files/content?path=${encodeURIComponent(path)}`)).content || '' : null;
+    const content = (await api(`/v1/files/content?path=${encodeURIComponent(path)}`)).content || '';
+    const fresh = !state.dirty.has(path);
     if (!editor && state.active) state.buffers[state.active] = $('fallback-editor').value;
     if (!state.tabs.includes(path)) state.tabs.push(path);
     state.active = path;
     if (editor) {
       if (!state.models[path]) state.models[path] = monaco.editor.createModel(content, langFor(path));
+      else if (fresh && state.models[path].getValue() !== content) { state.syncing = true; state.models[path].setValue(content); state.syncing = false; }
       editor.setModel(state.models[path]);
     } else {
-      if (state.buffers[path] === undefined) state.buffers[path] = content;
+      if (state.buffers[path] === undefined || fresh) state.buffers[path] = content;
       $('fallback-editor').value = state.buffers[path];
     }
     $('crumb').textContent = path;
