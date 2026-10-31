@@ -716,7 +716,7 @@ async def get_agent_status(task_id: str):
 
 
 @router.post("/v1/agent/step/{task_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
-async def step_agent_tool(task_id: str, payload: dict):
+async def step_agent_tool(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
     """Execute a single tool call within the agent loop."""
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
@@ -729,6 +729,14 @@ async def step_agent_tool(task_id: str, payload: dict):
         raise HTTPException(status_code=400, detail="Missing 'tool_name' in request payload.")
 
     agent = _active_agent_loops[task_id]
+    if agent.policy == AutonomyPolicy.AUTONOMOUS:
+        allowed = principal.can(Permission.APPROVE_TIER3)
+        await record_audit(principal, Permission.APPROVE_TIER3.value, f"agent step autonomous {task_id}", allowed)
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Stepping an 'autonomous' agent skips approvals and requires 'approve_tier3' (admin or owner).",
+            )
     try:
         res = await agent.execute_tool(tool_name=tool_name, arguments=arguments, step_id=step_id)
         return {

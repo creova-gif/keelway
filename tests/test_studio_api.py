@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from core.api.studio import parse_unified_diff
@@ -65,3 +66,12 @@ def test_task_changes_broadcast_agent_state_changed():
         client.post(f"/v1/tasks/{task['id']}/transition", json={"target_state": "planned"})
         moved = ws.receive_json()
         assert (moved["previous_state"], moved["new_state"]) == ("created", "planned")
+
+
+@pytest.mark.asyncio
+async def test_git_output_larger_than_pipe_buffer_is_truncated_without_hanging():
+    import asyncio
+    from core.api import studio
+
+    rc, out = await asyncio.wait_for(studio._git("log", "-p", "--all", limit=300_000), timeout=20)
+    assert len(out.encode()) <= 300_000 + 65536

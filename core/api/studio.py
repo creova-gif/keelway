@@ -38,7 +38,12 @@ async def _git(*args: str, limit: int = MAX_DIFF_BYTES) -> Tuple[int, str]:
         )
     except FileNotFoundError:
         return 127, ""
-    out = await proc.stdout.read(limit + 1)
+    out = b""
+    while len(out) <= limit:
+        chunk = await proc.stdout.read(65536)
+        if not chunk:
+            break
+        out += chunk
     if len(out) > limit and proc.returncode is None:
         proc.kill()
         await proc.wait()

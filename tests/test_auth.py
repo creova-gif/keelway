@@ -161,3 +161,10 @@ def test_revoked_token_loses_websocket_privileges(client, owner):
         with pytest.raises(WebSocketDisconnect) as exc:
             ws.receive_json()
         assert exc.value.code == 1008
+
+
+def test_engineer_cannot_step_an_autonomous_agent(client, owner):
+    task_id = client.post("/v1/agent/run", json={"goal": "g", "policy": "autonomous"}, headers=owner).json()["task_id"]
+    eng = bearer(mint(client, owner, "engineer")["token"])
+    step = {"tool_name": "list_directory", "arguments": {"path": "."}}
+    assert client.post(f"/v1/agent/step/{task_id}", json=step, headers=eng).status_code == 403
