@@ -15,10 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.api.routes import FLIGHT_RECORDINGS_DIR, ws_manager
 from core.config import settings
 from core.models.gateway import gateway
+from core.security.auth import current_principal, require
+from core.security.rbac import Permission
 from core.storage.database import check_db_health, get_db
 from core.storage.models import TaskRecord
 
-router = APIRouter(prefix="/v1/studio", tags=["Studio"])
+router = APIRouter(prefix="/v1/studio", tags=["Studio"], dependencies=[Depends(current_principal)])
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MAX_DIFF_BYTES = 512 * 1024
@@ -136,7 +138,7 @@ class AirGapRequest(BaseModel):
     enabled: bool
 
 
-@router.post("/airgap")
+@router.post("/airgap", dependencies=[Depends(require(Permission.APPROVE_TIER3))])
 async def set_air_gap(request: AirGapRequest) -> Dict[str, Any]:
     """Arm or disarm the zero-egress provider guard and notify every Studio client."""
     gateway.air_gap.enabled = request.enabled

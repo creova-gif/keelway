@@ -7,6 +7,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from sqlalchemy import (
+    Boolean,
     Column,
     String,
     Float,
@@ -95,3 +96,31 @@ class MemoryRecord(Base):
     metadata_json = Column(JSON, default=dict, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class ApiTokenRecord(Base):
+    __tablename__ = "kora_api_tokens"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    name = Column(String(100), nullable=False)
+    role = Column(String(20), nullable=False)
+    token_hash = Column(String(64), nullable=False, unique=True, index=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class AuditEventRecord(Base):
+    """Append-only, hash-chained audit trail: entry_hash = sha256(prev_hash + canonical fields)."""
+
+    __tablename__ = "kora_audit_events"
+
+    seq = Column(Integer, primary_key=True, autoincrement=True)
+    timestamp = Column(String(40), nullable=False, index=True)
+    actor = Column(String(100), nullable=False)
+    role = Column(String(20), nullable=False)
+    action = Column(String(100), nullable=False)
+    resource = Column(String(512), nullable=False)
+    allowed = Column(Boolean, nullable=False)
+    prev_hash = Column(String(64), nullable=False)
+    entry_hash = Column(String(64), nullable=False, unique=True)

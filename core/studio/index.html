@@ -563,6 +563,43 @@
     <span id="toast-message">Action completed</span>
   </div>
 
+  <dialog id="kora-signin" aria-labelledby="kora-signin-title" class="rounded-xl border border-white/10 bg-[#0C101D] text-slate-200 p-0 backdrop:bg-black/80 w-[min(26rem,92vw)]">
+    <form id="kora-signin-form" method="dialog" class="p-6 space-y-4">
+      <h2 id="kora-signin-title" class="text-base font-semibold text-white">Sign in to Kora</h2>
+      <p class="text-xs text-slate-400">Open the Studio link printed by <code class="font-mono text-slate-200">kora dev</code>, or paste a token from <code class="font-mono text-slate-200">kora token create --name me</code>.</p>
+      <label for="kora-signin-token" class="block text-[11px] font-medium text-slate-400">API token</label>
+      <input id="kora-signin-token" type="password" required autocomplete="off" spellcheck="false" placeholder="kora_…" class="w-full px-3 py-2 rounded-md bg-black/40 border border-white/10 font-mono text-xs text-white focus:outline-none focus:border-blue-500">
+      <button type="submit" class="w-full h-9 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium">Sign in</button>
+    </form>
+  </dialog>
+  <script>
+    // API token plumbing: ?token= from `kora dev` is stored once and attached to every /v1 request.
+    (() => {
+      const params = new URLSearchParams(location.search);
+      if (params.get('token')) {
+        localStorage.setItem('kora.token', params.get('token'));
+        history.replaceState(null, '', location.pathname + location.hash);
+      }
+      const dialog = document.getElementById('kora-signin');
+      document.getElementById('kora-signin-form').addEventListener('submit', () => {
+        localStorage.setItem('kora.token', document.getElementById('kora-signin-token').value.trim());
+        location.reload();
+      });
+      const nativeFetch = window.fetch.bind(window);
+      window.fetch = async (input, init = {}) => {
+        const url = typeof input === 'string' ? input : input.url;
+        const isApi = url.startsWith('/v1/');
+        if (isApi && localStorage.getItem('kora.token')) {
+          const headers = new Headers(init.headers || {});
+          headers.set('Authorization', `Bearer ${localStorage.getItem('kora.token')}`);
+          init = { ...init, headers };
+        }
+        const res = await nativeFetch(input, init);
+        if (isApi && res.status === 401 && !dialog.open) dialog.showModal();
+        return res;
+      };
+    })();
+  </script>
   <script>
     // ==========================================
     // KORA DEVIN & VS CODE HYBRID IDE CONTROLLER

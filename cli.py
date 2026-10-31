@@ -129,14 +129,20 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
 
     print("\n" + "=" * 65)
     print("  ⚡ KORA DEV STUDIO — Sovereign Agent Engineering Environment")
-    print(f"  URL: http://{host}:{port}")
-    print(f"  Studio Interface: http://{host}:{port}/studio")
+    from core.config import settings
+    from core.security.auth import launch_token
+    os.environ["KORA_DEV_CLI"] = "1"
+    if settings.auth_required:
+        print(f"  Studio: http://{host}:{port}/?token={launch_token()}")
+        print("  (owner launch token; changes every run unless KORA_API_TOKEN is set)")
+    else:
+        print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
     print("  Air-Gap: off (cloud providers allowed; use `kora chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
     def auto_open_browser():
         try:
-            webbrowser.open(f"http://{host}:{port}")
+            webbrowser.open(f"http://{host}:{port}/?token={launch_token()}" if settings.auth_required else f"http://{host}:{port}")
         except Exception:
             pass
 
@@ -437,6 +443,40 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
         print(f"    Or manually run: `ollama pull {model}`\n")
 
 
+async def cmd_token(action: str, name: str = "", role: str = "engineer", token_id: str = ""):
+    """Mint, list, or revoke API tokens directly in the local database."""
+    from sqlalchemy import select
+    from core.security.auth import create_api_token
+    from core.security.rbac import Role
+    from core.storage.database import AsyncSessionLocal, init_db
+    from core.storage.models import ApiTokenRecord
+    from datetime import datetime, timezone
+
+    await init_db()
+    async with AsyncSessionLocal() as db:
+        if action == "create":
+            record, token = await create_api_token(db, name, Role(role))
+            await db.commit()
+            print(f"Created token '{record.name}' ({record.role}) id={record.id}")
+            print(f"  {token}")
+            print("Store it now; only its hash is kept. Send it as `Authorization: Bearer <token>`.")
+        elif action == "list":
+            rows = (await db.execute(select(ApiTokenRecord).order_by(ApiTokenRecord.created_at))).scalars().all()
+            if not rows:
+                print("No API tokens. Create one with: kora token create --name <name> --role engineer")
+            for r in rows:
+                state = "revoked" if r.revoked_at else f"last used {r.last_used_at:%Y-%m-%d %H:%M}" if r.last_used_at else "never used"
+                print(f"{r.id}  {r.role:<9} {r.name:<24} {state}")
+        elif action == "revoke":
+            record = await db.get(ApiTokenRecord, token_id)
+            if record is None:
+                print(f"No token with id {token_id}")
+                sys.exit(1)
+            record.revoked_at = record.revoked_at or datetime.now(timezone.utc)
+            await db.commit()
+            print(f"Revoked token '{record.name}'")
+
+
 async def cmd_doctor():
     """Check health of environment, database, and providers."""
     print("\n[+] Running Kora AI System Diagnostics (kora doctor)...\n")
@@ -635,6 +675,15 @@ def main():
     # doctor
     subparsers.add_parser("doctor", help="Run system and provider diagnostics")
 
+    token_parser = subparsers.add_parser("token", help="Manage API tokens (auth + RBAC)")
+    token_sub = token_parser.add_subparsers(dest="token_command", required=True)
+    token_create = token_sub.add_parser("create", help="Mint a new API token")
+    token_create.add_argument("--name", required=True, help="Who or what the token is for")
+    token_create.add_argument("--role", default="engineer", choices=["owner", "admin", "engineer", "auditor"])
+    token_sub.add_parser("list", help="List tokens (hashes are never shown)")
+    token_revoke = token_sub.add_parser("revoke", help="Revoke a token by id")
+    token_revoke.add_argument("token_id")
+
     # chat
     chat_parser = subparsers.add_parser("chat", help="Start interactive agent REPL session")
     chat_parser.add_argument("--provider", default="local", choices=["anthropic", "google", "openai", "local"], help="Model provider")
@@ -780,6 +829,13 @@ def main():
         print()
     elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
+    elif args.command == "token":
+        asyncio.run(cmd_token(
+            args.token_command,
+            name=getattr(args, "name", ""),
+            role=getattr(args, "role", "engineer"),
+            token_id=getattr(args, "token_id", ""),
+        ))
     elif args.command == "doctor":
         asyncio.run(cmd_doctor())
     elif args.command == "chat":

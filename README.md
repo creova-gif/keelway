@@ -113,7 +113,6 @@ The following modules are prototypes: they have data models and unit tests, but 
 | `core/storage/crdt.py` | In-memory LWW register; no persistence or transport |
 | `core/orchestration/mcp.py` | In-process JSON-RPC dispatcher; no stdio/SSE transport |
 | `core/security/telemetry.py` | In-memory spans; no OpenTelemetry exporter |
-| `core/security/rbac.py` | Permission matrix; not enforced by the API |
 | `core/studio/index.html` panels | Client-side demos; not yet connected to the API/WebSocket |
 | `mobile/` | Expo scaffold; not runnable yet |
 
@@ -145,6 +144,25 @@ Verify your local environment, database connectivity, and configured providers:
 ```bash
 ./bin/kora doctor
 ```
+
+---
+
+## 🔐 Authentication, RBAC & Audit
+
+Every `/v1` route and the Studio WebSocket require an API token (`/health` and the Studio page itself are public).
+
+- `kora dev` prints a Studio link with this run's **launch token** (owner role). Set `KORA_API_TOKEN` to pin it.
+- Mint named tokens for scripts, CI, or teammates: `kora token create --name ci --role engineer` (also `kora token list`, `kora token revoke <id>`). Only SHA-256 hashes are stored.
+- Send tokens as `Authorization: Bearer <token>` (WebSocket: `?token=`).
+
+| Role | Can |
+|---|---|
+| `owner` | everything, including minting/revoking tokens |
+| `admin` | run agents, approve `awaiting_approval` tasks, build payment intents, toggle air-gap, manage memories, read audit |
+| `engineer` | run agents (tasks, completions, workflows, self-healing, flight forks), manage memories, read audit |
+| `auditor` | read-only, including the audit log |
+
+Every permission decision on a mutating action is appended to a hash-chained audit log (`GET /v1/audit`, `GET /v1/audit/verify`, and the Studio **Audit** tab). `AUTH_REQUIRED=false` disables auth for throwaway local hacking only.
 
 ---
 
