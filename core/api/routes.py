@@ -691,7 +691,8 @@ async def _publish_agent(agent: AutonomousAgentLoop) -> Dict[str, Any]:
 @router.post("/v1/agent/run", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
 async def run_agent_task(payload: dict, principal: Principal = Depends(current_principal)):
     """Initialize and run an autonomous agent engineering task."""
-    task_id = payload.get("task_id") or f"task_{int(time.time())}"
+    task_id = payload.get("task_id") or f"task_{time.time_ns()}"
+    _tape_path(task_id)
     goal = payload.get("goal", "Inspect codebase and prepare solution")
     steps = payload.get("steps") or [
         "Inspect workspace files and dependencies",
@@ -710,6 +711,9 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
                 detail="The 'autonomous' policy skips approvals and requires 'approve_tier3' (admin or owner).",
             )
 
+    # No await between this check and registration, so concurrent runs can't both claim the id.
+    if task_id in _active_agent_loops or _tape_path(task_id).exists():
+        raise HTTPException(status_code=409, detail=f"Agent task {task_id} already exists.")
     agent = AutonomousAgentLoop(task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True)
     agent.initialize_plan(goal=goal, steps=steps)
     _active_agent_loops[task_id] = agent
