@@ -99,3 +99,14 @@ def test_agent_actions_broadcast_state_and_save_flight_tape(tmp_path, monkeypatc
     tape = client.get("/v1/flight/tape/tape_check").json()
     kinds = [e["event_type"] for e in tape["events"]]
     assert kinds == ["plan_initialized", "approval_requested", "approval_granted", "tool:write_file"]
+
+
+def test_agent_run_rejects_unsafe_and_duplicate_task_ids(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with TestClient(app) as client:
+        assert client.post("/v1/agent/run", json={"task_id": "../../escape", "goal": "x"}).status_code == 400
+        first = client.post("/v1/agent/run", json={"goal": "a"}).json()["task_id"]
+        second = client.post("/v1/agent/run", json={"goal": "b"}).json()["task_id"]
+        assert first != second
+        assert client.post("/v1/agent/run", json={"task_id": first, "goal": "c"}).status_code == 409
+    assert not (tmp_path.parent / "escape.flight.json").exists()

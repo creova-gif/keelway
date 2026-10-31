@@ -92,7 +92,7 @@ async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-const state = { me: null, status: null, tabs: [], active: null, models: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
+const state = { me: null, status: null, tabs: [], active: null, models: {}, buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
 
 const signInOpen = () => !$('signin').classList.contains('hidden');
 function showSignIn(message) {
@@ -182,18 +182,28 @@ function initMonaco() {
     editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'koraDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
     editor.onDidChangeModelContent(() => { if (state.active) { state.dirty.add(state.active); renderTabs(); } });
+    if (state.active) state.buffers[state.active] = $('fallback-editor').value;
+    for (const [p, text] of Object.entries(state.buffers)) state.models[p] = monaco.editor.createModel(text, langFor(p));
+    state.buffers = {};
+    if (state.active) editor.setModel(state.models[state.active]);
+    setMode(state.mode);
   }, () => { $('fallback-editor').classList.remove('hidden'); });
 }
 
 async function openFile(path) {
   try {
-    const f = await api(`/v1/files/content?path=${encodeURIComponent(path)}`);
+    const cached = editor ? state.models[path] : state.buffers[path];
+    const content = cached === undefined ? (await api(`/v1/files/content?path=${encodeURIComponent(path)}`)).content || '' : null;
+    if (!editor && state.active) state.buffers[state.active] = $('fallback-editor').value;
     if (!state.tabs.includes(path)) state.tabs.push(path);
     state.active = path;
-    if (window.monaco && editor) {
-      if (!state.models[path]) state.models[path] = monaco.editor.createModel(f.content || '', langFor(path));
+    if (editor) {
+      if (!state.models[path]) state.models[path] = monaco.editor.createModel(content, langFor(path));
       editor.setModel(state.models[path]);
-    } else { $('fallback-editor').value = f.content || ''; }
+    } else {
+      if (state.buffers[path] === undefined) state.buffers[path] = content;
+      $('fallback-editor').value = state.buffers[path];
+    }
     $('crumb').textContent = path;
     $('save-btn').disabled = false;
     setMode('editor'); renderTabs(); tone('tick');
@@ -264,7 +274,7 @@ async function loadGit() {
     const n = g.files.length;
     $('git-dot').classList.toggle('hidden', n === 0);
     $('sb-changes').textContent = n ? `● ${n}` : '✓';
-    $('git-files').replaceChildren(...(n ? g.files.map((f) => h('li', {}, h('button', { type: 'button', class: 'w-full flex gap-2 px-2 py-0.5 rounded hover:bg-ide-fg/5 font-mono text-start', onclick: () => { openFile(f.path); setMode('diff'); } },
+    $('git-files').replaceChildren(...(n ? g.files.map((f) => h('li', {}, h('button', { type: 'button', class: 'w-full flex gap-2 px-2 py-0.5 rounded hover:bg-ide-fg/5 font-mono text-start', onclick: async () => { await openFile(f.path); setMode('diff'); } },
       h('span', { class: f.status.includes('D') ? 'text-danger' : f.status.includes('?') ? 'text-ok' : 'text-warn' }, f.status.trim() || 'M'), h('span', { class: 'truncate' }, f.path))))
       : [h('li', { class: 'px-2 text-ide-muted' }, t('clean'))]));
   } catch { /* noop */ }
