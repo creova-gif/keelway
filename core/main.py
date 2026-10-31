@@ -9,10 +9,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from core.config import settings
 from core.security.origin import extra_origins, origin_allowed
 from core.api.routes import router
+from core.api.studio import router as studio_router
+from core.api.auth_routes import router as auth_router
+from core.security.auth import launch_token
+import os
 from core.storage.database import init_db
 
 # Configure logging
@@ -33,6 +38,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         logger.exception("Database initialization failed (database_url=%s)", settings.database_url.split("@")[-1])
         raise
+
+    if settings.auth_required and not settings.kora_api_token and not os.environ.get("KORA_DEV_CLI"):
+        logger.info("API auth on. Launch token for this process (owner role): %s", launch_token())
+        logger.info("Open the Studio at /?token=<launch token>, or set KORA_API_TOKEN to pin it.")
+    elif not settings.auth_required:
+        logger.warning("AUTH_REQUIRED=false: every request is treated as the local owner.")
 
     yield
 
@@ -80,10 +91,13 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # Mount routes
 app.include_router(router)
+app.include_router(studio_router)
+app.include_router(auth_router)
 
 # Mount Kora Dev Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
 index_file = studio_dir / "index.html"
+app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
 
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
 @app.get("/", response_class=HTMLResponse, tags=["Studio"])

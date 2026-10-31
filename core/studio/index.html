@@ -1,1444 +1,240 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" dir="ltr" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kora Dev Studio — Autonomous Agent IDE</title>
-  <!-- Tailwind CSS CDN for reactive modern IDE styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Monaco Editor AMD Loader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            ideBg: '#090D16',          // Deep VS Code / Cursor dark canvas
-            ideSidebar: '#0D1322',     // Primary sidebar
-            ideActivityBar: '#080C14', // Far-left activity bar
-            ideEditor: '#0A0F1D',      // Main editor canvas
-            idePanel: '#0C1120',       // Bottom terminal drawer
-            ideStatus: '#070A12',      // Bottom status bar
-            ideBorder: '#1A2338',      // Hairline borders
-            ideTabActive: '#121B30',   // Active editor tab
-            ideTabInactive: '#090D16', // Inactive tab
-            accentBlue: '#2563EB',
-            accentCobalt: '#3B82F6',
-            emeraldShield: '#10B981',
-            amberGate: '#F59E0B',
-            crimsonKill: '#EF4444',
-          },
-          fontFamily: {
-            sans: ['Inter', '-apple-system', 'sans-serif'],
-            mono: ['Fira Code', 'monospace'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { background-color: #090D16; color: #E2E8F0; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #090D16; }
-    ::-webkit-scrollbar-thumb { background: #1A2338; border-radius: 2px; }
-    ::-webkit-scrollbar-thumb:hover { background: #2A3854; }
-    .diff-add { background-color: rgba(16, 185, 129, 0.12); color: #34D399; }
-    .diff-del { background-color: rgba(239, 68, 68, 0.12); color: #F87171; }
-    .tabular-nums { font-variant-numeric: tabular-nums; }
-    .code-line:hover { background-color: rgba(255, 255, 255, 0.03); }
-    .line-num { width: 34px; user-select: none; color: #4B5563; font-family: 'Fira Code', monospace; }
-  </style>
+  <meta name="color-scheme" content="dark light">
+  <title>Kora Dev Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%232563EB%22/%3E%3Cpath d=%22M10 8v16M10 16l9-8M13 14l7 10%22 stroke=%22white%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/studio/assets/studio.css">
+  <link rel="stylesheet" href="/studio/assets/monaco/vs/editor/editor.main.css">
 </head>
-<body class="font-sans antialiased h-screen flex flex-col overflow-hidden select-none text-slate-200">
+<body class="h-screen flex flex-col overflow-hidden font-sans text-sm antialiased bg-ide-bg text-ide-fg">
+  <a href="#editor-region" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-50 btn-primary" data-i18n="skip">Skip to editor</a>
 
-  <!-- ======================================================== -->
-  <!-- 1. TOP TITLE / COMMAND BAR (VS CODE & CURSOR STYLE)     -->
-  <!-- ======================================================== -->
-  <header class="h-9 bg-ideActivityBar border-b border-ideBorder flex items-center justify-between px-3 shrink-0 z-30 text-xs">
-    <!-- LEFT: BRAND & WORKSPACE BREADCRUMB -->
-    <div class="flex items-center space-x-2">
-      <div class="w-4 h-4 rounded bg-gradient-to-tr from-accentBlue to-indigo-500 flex items-center justify-center shadow-sm">
-        <span class="text-white font-bold text-[9px]">⚡</span>
-      </div>
-      <span class="font-bold text-white tracking-tight">Kora <span class="text-accentCobalt font-normal">Devin IDE</span></span>
-      <span class="text-slate-600">/</span>
-      <span class="text-slate-400 font-mono text-[11px] flex items-center gap-1">
-        <span>creova-gif/kora</span>
-        <span class="px-1 py-0.2 rounded bg-white/5 text-[9px] text-slate-500 border border-white/10">main</span>
-      </span>
+  <header class="h-11 shrink-0 flex items-center justify-between gap-3 px-3 bg-ide-activity border-b border-ide-border">
+    <div class="flex items-center gap-2 min-w-0">
+      <svg class="w-6 h-6 shrink-0" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="rgb(var(--accent))"/><path d="M10 8v16M10 16l9-8M13 14l7 10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      <h1 class="font-semibold tracking-tight whitespace-nowrap">Kora <span class="text-ide-muted font-normal">Dev Studio</span></h1>
+      <span class="hidden md:inline text-ide-faint">/</span>
+      <span id="ws-name" class="hidden md:inline font-mono text-xs text-ide-muted truncate max-w-[12rem]">workspace</span>
+      <span id="git-branch" class="hidden sm:inline-flex chip border-ide-border text-ide-muted font-mono">—</span>
     </div>
-
-    <!-- CENTER: UNIVERSAL SEARCH & COMMAND PALETTE (CMD+K / CMD+P) -->
-    <div class="flex items-center">
-      <button onclick="openCommandPalette()" class="flex items-center space-x-2 bg-ideSidebar hover:bg-white/[0.04] px-3 py-1 rounded border border-ideBorder text-slate-400 hover:text-slate-200 transition text-[11px] w-64 md:w-96 justify-between shadow-inner">
-        <span class="flex items-center gap-1.5 truncate">
-          <span>🔍</span>
-          <span class="truncate">Search files, symbols, commands (⌘K / ⌘P)</span>
-        </span>
-        <kbd class="px-1 py-0.2 text-[9px] font-mono rounded bg-white/10 text-slate-300 border border-white/10">⌘K</kbd>
+    <button id="palette-btn" type="button" class="hidden md:flex items-center justify-between gap-2 w-80 px-3 py-1.5 rounded-md bg-ide-sidebar border border-ide-border text-ide-faint hover:text-ide-fg text-xs" aria-haspopup="dialog">
+      <span class="flex items-center gap-2"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="search">Search files, symbols and commands</span></span>
+      <kbd class="font-mono text-[10px] px-1.5 rounded bg-ide-bg border border-ide-border">Ctrl K</kbd>
+    </button>
+    <div class="flex items-center gap-1">
+      <button id="airgap-btn" type="button" aria-pressed="false" class="chip h-7 px-2 border-ide-border text-ide-muted" title="Air-Gapped: Zero-Egress (Alt+A)">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/></svg>
+        <span id="airgap-label" class="hidden sm:inline">…</span>
       </button>
-    </div>
-
-    <!-- RIGHT: GLOBAL QUICK CONTROLS -->
-    <div class="flex items-center space-x-2 text-[11px]">
-      <button id="airgap-btn" onclick="toggleAirGap()" class="flex items-center space-x-1.5 px-2 py-0.5 rounded border text-[10px] font-mono font-medium transition bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20 active:scale-95" title="Toggle Air-Gap Shield (Alt+A)">
-        <span id="airgap-icon">🔒</span>
-        <span id="airgap-label">AIR-GAP: ZERO-EGRESS</span>
+      <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
+      <select id="lang-select" class="h-7 rounded-md bg-ide-sidebar border border-ide-border text-xs text-ide-muted px-1"></select>
+      <button id="theme-btn" type="button" class="btn-ghost h-7 w-7 p-0" data-i18n-label="theme" aria-label="Theme">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
       </button>
-
-      <button onclick="toggleAudio()" id="audio-toggle" class="p-1 rounded hover:bg-white/5 text-slate-400 hover:text-white transition" title="Toggle Audio Feedback">
-        <span id="audio-icon">🔊</span>
+      <button id="sound-btn" type="button" aria-pressed="true" class="btn-ghost h-7 w-7 p-0" data-i18n-label="sounds" aria-label="Sounds">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
       </button>
-
-      <div class="flex items-center bg-white/5 p-0.5 rounded border border-white/10 text-[10px]">
-        <button onclick="toggleSidebar()" class="px-1.5 py-0.5 rounded hover:bg-white/10 text-slate-400 hover:text-white" title="Toggle Sidebar (⌘B / [)">◧</button>
-        <button onclick="toggleBottomDrawer()" class="px-1.5 py-0.5 rounded hover:bg-white/10 text-slate-400 hover:text-white" title="Toggle Terminal Drawer (Ctrl+`)">⬓</button>
-        <button onclick="toggleAgentPanel()" class="px-1.5 py-0.5 rounded hover:bg-white/10 text-slate-400 hover:text-white" title="Toggle Devin Agent (])">◨</button>
-      </div>
+      <span id="role-chip" class="hidden lg:inline-flex chip border-ide-border text-ide-muted"></span>
+      <button id="signout-btn" type="button" class="btn-ghost h-7 whitespace-nowrap" data-i18n="signOut">Sign out</button>
     </div>
   </header>
 
-  <!-- ======================================================== -->
-  <!-- 2. MAIN WORKSPACE (ACTIVITY BAR + SIDEBAR + EDITOR + AGENT)-->
-  <!-- ======================================================== -->
-  <div class="flex-1 flex overflow-hidden relative">
-
-    <!-- FAR-LEFT ACTIVITY BAR (44px SLIM VERTICAL ICON STRIP) -->
-    <nav class="w-11 bg-ideActivityBar border-r border-ideBorder flex flex-col justify-between items-center py-2 shrink-0 z-20">
-      <div class="flex flex-col space-y-3 items-center w-full">
-        <button onclick="switchSidebarView('explorer')" id="act-btn-explorer" class="activity-btn w-full py-1.5 flex justify-center text-accentCobalt border-l-2 border-accentCobalt text-base" title="Explorer (⌘⇧E)">
-          📁
-        </button>
-        <button onclick="switchSidebarView('agent')" id="act-btn-agent" class="activity-btn w-full py-1.5 flex justify-center text-slate-500 hover:text-slate-300 border-l-2 border-transparent text-base" title="Autonomous Agent Sessions (Devin)">
-          ⚡
-        </button>
-        <button onclick="switchSidebarView('git')" id="act-btn-git" class="activity-btn w-full py-1.5 flex justify-center text-slate-500 hover:text-slate-300 border-l-2 border-transparent text-base relative" title="Source Control & Diffs">
-          🌿
-          <span class="absolute top-1 right-2 w-1.5 h-1.5 rounded-full bg-amberGate"></span>
-        </button>
-        <button onclick="switchSidebarView('heal')" id="act-btn-heal" class="activity-btn w-full py-1.5 flex justify-center text-slate-500 hover:text-slate-300 border-l-2 border-transparent text-base" title="Closed-Loop AST Self-Healing">
-          🔧
-        </button>
-        <button onclick="switchSidebarView('pay')" id="act-btn-pay" class="activity-btn w-full py-1.5 flex justify-center text-slate-500 hover:text-slate-300 border-l-2 border-transparent text-base" title="Global Multi-Rail Payments">
-          💳
-        </button>
-      </div>
-
-      <div class="flex flex-col space-y-3 items-center w-full">
-        <button onclick="openCommandPalette()" class="w-full py-1.5 flex justify-center text-slate-500 hover:text-white text-sm" title="Command Palette (⌘K)">
-          ⚙️
-        </button>
-      </div>
+  <div class="flex-1 flex min-h-0">
+    <nav class="w-11 shrink-0 flex flex-col items-center py-1 bg-ide-activity border-e border-ide-border" data-i18n-label="views" aria-label="Views">
+      <button class="act" data-view="explorer" aria-pressed="true" data-i18n-label="explorer" aria-label="Explorer"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></button>
+      <button class="act" data-view="git" aria-pressed="false" data-i18n-label="changes" aria-label="Changes"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M18 11c0 4-6 3-10 6"/></svg><span id="git-dot" class="hidden absolute top-2 end-2 w-2 h-2 rounded-full bg-warn"></span></button>
+      <button class="act" data-view="tasks" aria-pressed="false" data-i18n-label="tasks" aria-label="Tasks"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg></button>
+      <button class="act" data-view="memory" aria-pressed="false" data-i18n-label="memory" aria-label="Memory"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 2 1 3 2 4v3h8v-3c1-1 2-2 2-4a6 6 0 0 0-6-6ZM9 20h6"/></svg></button>
     </nav>
 
-    <!-- PRIMARY SIDEBAR (240px COLLAPSIBLE WORKSPACE EXPLORER) -->
-    <aside id="primary-sidebar" class="w-60 bg-ideSidebar border-r border-ideBorder flex flex-col shrink-0 transition-all duration-150 ease-out z-10 text-xs">
-      
-      <!-- SIDEBAR TITLE -->
-      <div class="h-8 px-3 border-b border-ideBorder flex items-center justify-between font-semibold uppercase tracking-wider text-[10px] text-slate-400">
-        <span id="sidebar-header-title">Explorer: Kora</span>
-        <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-300 text-xs" title="Collapse Sidebar (⌘B)">✕</button>
+    <aside id="sidebar" class="w-64 shrink-0 hidden md:flex flex-col bg-ide-sidebar border-e border-ide-border" aria-labelledby="sidebar-title">
+      <div class="h-9 px-3 flex items-center justify-between border-b border-ide-border">
+        <h2 id="sidebar-title" class="section-title" data-i18n="explorer">Explorer</h2>
+        <button id="sidebar-refresh" type="button" class="btn-ghost px-1.5" data-i18n-label="refresh" aria-label="Refresh">↻</button>
       </div>
-
-      <!-- FILE TREE EXPLORER (VS CODE / CURSOR HIERARCHY) -->
-      <div class="flex-1 overflow-y-auto p-2 font-mono space-y-0.5 text-xs select-none" id="sidebar-content">
-        <div class="flex items-center gap-1.5 px-1 py-1 text-slate-400 font-semibold cursor-pointer">
-          <span class="text-[10px]">▼</span>
-          <span>kora-ai</span>
+      <div class="flex-1 overflow-y-auto py-1 text-xs">
+        <div id="view-explorer" class="sidebar-view"><ul id="file-tree" role="tree" class="font-mono"></ul></div>
+        <div id="view-git" class="sidebar-view hidden"><ul id="git-files" class="px-1 space-y-0.5"></ul></div>
+        <div id="view-tasks" class="sidebar-view hidden px-2 space-y-2">
+          <form id="task-form" class="flex gap-1 pt-1" autocomplete="off">
+            <label for="task-title" class="sr-only" data-i18n="newTask">New task</label>
+            <input id="task-title" required minlength="3" class="input flex-1" data-i18n-ph="newTaskPh" placeholder="New task…">
+            <button class="btn-primary" type="submit" data-i18n="add">Add</button>
+          </form>
+          <ul id="task-list" class="space-y-1.5"></ul>
         </div>
-
-        <div class="pl-3 space-y-0.5">
-          <div class="flex items-center gap-1.5 px-1 py-0.5 text-slate-400 font-semibold cursor-pointer">
-            <span class="text-[10px]">▼</span>
-            <span>core</span>
-          </div>
-
-          <div class="pl-3 space-y-0.5">
-            <div onclick="openFileInTab('core/agent/self_healing.py')" id="file-item-core-agent-self_healing-py" class="file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-white bg-white/[0.04] border-l border-accentCobalt">
-              <span class="truncate flex items-center gap-1.5"><span>📄</span> self_healing.py</span>
-              <span class="text-[9px] font-bold text-amberGate">M</span>
-            </div>
-
-            <div onclick="openFileInTab('core/models/speculative.py')" id="file-item-core-models-speculative-py" class="file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l border-transparent">
-              <span class="truncate flex items-center gap-1.5"><span>📄</span> speculative.py</span>
-              <span class="text-[9px] font-bold text-emeraldShield">V</span>
-            </div>
-
-            <div onclick="openFileInTab('core/orchestration/p2p_mesh.py')" id="file-item-core-orchestration-p2p_mesh-py" class="file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l border-transparent">
-              <span class="truncate flex items-center gap-1.5"><span>📄</span> p2p_mesh.py</span>
-              <span class="text-[9px] font-bold text-accentCobalt">U</span>
-            </div>
-
-            <div onclick="openFileInTab('core/storage/payment_broker.py')" id="file-item-core-storage-payment_broker-py" class="file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l border-transparent">
-              <span class="truncate flex items-center gap-1.5"><span>📄</span> payment_broker.py</span>
-            </div>
-
-            <div onclick="openFileInTab('core/api/messaging.py')" id="file-item-core-api-messaging-py" class="file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l border-transparent">
-              <span class="truncate flex items-center gap-1.5"><span>📄</span> messaging.py</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-1.5 px-1 py-0.5 text-slate-400 font-semibold cursor-pointer pt-1">
-            <span class="text-[10px]">▼</span>
-            <span>tests</span>
-          </div>
-
-          <div class="pl-3 space-y-0.5">
-            <div onclick="openFileInTab('tests/test_self_healing.py')" id="file-item-tests-test_self_healing-py" class="file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-400 hover:text-white border-l border-transparent">
-              <span class="truncate flex items-center gap-1.5"><span>🧪</span> test_self_healing.py</span>
-              <span class="text-[9px] text-emeraldShield font-bold">22 PASS</span>
-            </div>
-          </div>
+        <div id="view-memory" class="sidebar-view hidden px-2 space-y-2">
+          <form id="memory-form" class="space-y-1 pt-1" autocomplete="off">
+            <label for="memory-key" class="sr-only">key</label>
+            <input id="memory-key" required class="input w-full" placeholder="key">
+            <label for="memory-content" class="sr-only" data-i18n="memory">Memory</label>
+            <textarea id="memory-content" required rows="2" class="input w-full resize-none" data-i18n-ph="rememberPh" placeholder="Remember that…"></textarea>
+            <button class="btn-primary w-full" type="submit" data-i18n="save">Save</button>
+          </form>
+          <ul id="memory-list" class="space-y-1.5"></ul>
         </div>
       </div>
-
-      <!-- SIDEBAR FOOTER: SECURITY & HARDWARE OUTLINE -->
-      <div class="p-2.5 bg-ideActivityBar border-t border-ideBorder text-[10px] font-mono shrink-0 space-y-1">
-        <div class="flex justify-between text-slate-400">
-          <span>DLP Guard:</span>
-          <span class="text-emeraldShield font-bold">ARMED</span>
-        </div>
-        <div class="flex justify-between text-slate-400">
-          <span>Local Tests:</span>
-          <span class="text-emeraldShield font-bold">22/22 (0.10s)</span>
-        </div>
-        <div class="flex justify-between text-slate-400">
-          <span>Hardware Edge:</span>
-          <span class="text-white">Apple Metal (M3)</span>
-        </div>
-      </div>
+      <dl id="sidebar-foot" class="p-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-[11px] font-mono border-t border-ide-border bg-ide-activity"></dl>
     </aside>
 
-    <!-- CENTER WORKSPACE: CODE EDITOR & DIFF ENGINE (VS CODE / CURSOR STYLE) -->
-    <main class="flex-1 flex flex-col min-w-0 bg-ideEditor relative">
-      
-      <!-- EDITOR TABS BAR (VS CODE MULTI-TAB STRIP) -->
-      <div class="h-9 bg-ideSidebar border-b border-ideBorder flex items-center justify-between px-2 shrink-0 overflow-x-auto text-xs">
-        <div class="flex items-center space-x-1" id="editor-tabs-container">
-          <div onclick="selectFile('core/agent/self_healing.py')" class="tab-item flex items-center space-x-2 px-3 py-1.5 bg-ideEditor border-t-2 border-accentCobalt text-white cursor-pointer font-mono text-[11px] rounded-t">
-            <span>📄 self_healing.py</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-amberGate" title="Unsaved changes"></span>
-            <button onclick="event.stopPropagation(); closeTab('core/agent/self_healing.py')" class="text-slate-500 hover:text-white text-[10px] ml-1">✕</button>
+    <main id="editor-region" class="flex-1 flex flex-col min-w-0 bg-ide-editor" tabindex="-1">
+      <div class="h-9 shrink-0 flex items-stretch justify-between bg-ide-sidebar border-b border-ide-border">
+        <div id="editor-tabs" role="tablist" data-i18n-label="openFiles" aria-label="Open files" class="flex items-stretch overflow-x-auto no-scrollbar"></div>
+        <div class="flex items-center gap-1.5 px-2">
+          <div role="group" class="flex rounded-md border border-ide-border overflow-hidden text-[11px]" data-i18n-label="viewMode" aria-label="View mode">
+            <button id="mode-editor" type="button" aria-pressed="true" class="px-2 py-1 aria-pressed:bg-ide-fg/10" data-i18n="code">Code</button>
+            <button id="mode-diff" type="button" aria-pressed="false" class="px-2 py-1 aria-pressed:bg-ide-fg/10" title="Diffs (Unified &amp; Split)" data-i18n="diff">Diff</button>
           </div>
-          <div onclick="selectFile('core/models/speculative.py')" class="tab-item flex items-center space-x-2 px-3 py-1.5 bg-ideTabInactive hover:bg-ideEditor text-slate-400 hover:text-white cursor-pointer font-mono text-[11px] rounded-t border-t-2 border-transparent">
-            <span>📄 speculative.py</span>
-            <button onclick="event.stopPropagation(); closeTab('core/models/speculative.py')" class="text-slate-500 hover:text-white text-[10px] ml-1">✕</button>
-          </div>
-          <div onclick="selectFile('core/storage/payment_broker.py')" class="tab-item flex items-center space-x-2 px-3 py-1.5 bg-ideTabInactive hover:bg-ideEditor text-slate-400 hover:text-white cursor-pointer font-mono text-[11px] rounded-t border-t-2 border-transparent">
-            <span>📄 payment_broker.py</span>
-            <button onclick="event.stopPropagation(); closeTab('core/storage/payment_broker.py')" class="text-slate-500 hover:text-white text-[10px] ml-1">✕</button>
-          </div>
-        </div>
-
-        <!-- RIGHT TAB ACTIONS (VIEW MODE, SAVE & COMMIT) -->
-        <div class="flex items-center space-x-2 text-xs">
-          <div class="flex items-center bg-white/5 rounded p-0.5 border border-white/5 text-[10px]">
-            <button id="btn-view-editor" onclick="setViewMode('editor')" class="px-2 py-0.5 rounded bg-white/10 text-white font-medium">Code (Monaco)</button>
-            <button id="btn-view-unified" onclick="setViewMode('unified')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Unified Diff</button>
-            <button id="btn-view-split" onclick="setViewMode('split')" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Split 2-Col</button>
-          </div>
-          <button onclick="saveActiveFile()" class="px-2.5 py-1 rounded bg-accentCobalt hover:bg-blue-600 text-white font-bold text-[11px] transition shadow-sm active:scale-95 flex items-center gap-1">
-            <span>💾</span> Save <kbd class="px-1 py-0.2 rounded bg-black/20 text-[9px]">⌘S</kbd>
-          </button>
-          <button onclick="acceptDiffAndCommit()" class="px-2.5 py-1 rounded bg-emeraldShield hover:bg-emerald-600 text-obsidian font-bold text-[11px] transition shadow-sm active:scale-95 flex items-center gap-1">
-            <span>✓</span> Commit <kbd class="px-1 py-0.2 rounded bg-black/20 text-[9px]">⌘⏎</kbd>
-          </button>
+          <button id="save-btn" type="button" class="btn-primary" disabled><span data-i18n="save">Save</span><kbd class="text-[9px] opacity-70">Ctrl S</kbd></button>
         </div>
       </div>
-
-      <!-- BREADCRUMB NAVIGATION -->
-      <div class="h-6 bg-ideEditor/90 border-b border-ideBorder/50 px-4 flex items-center text-[11px] font-mono text-slate-400 space-x-1.5 shrink-0">
-        <span>workspace</span>
-        <span>›</span>
-        <span class="text-white font-bold" id="breadcrumb-filename">self_healing.py</span>
-        <span id="breadcrumb-status" class="text-emeraldShield text-[10px] ml-2">● Saved</span>
+      <div class="h-6 shrink-0 px-4 flex items-center gap-2 text-[11px] font-mono text-ide-faint border-b border-ide-border/60">
+        <span id="crumb">—</span><span id="crumb-status" class="text-ok"></span>
+      </div>
+      <div class="flex-1 relative min-h-0">
+        <div id="monaco-mount" class="absolute inset-0 hidden"></div>
+        <textarea id="fallback-editor" class="absolute inset-0 hidden w-full h-full p-4 bg-ide-editor font-mono text-xs resize-none outline-none" spellcheck="false" data-i18n-label="editor" aria-label="Editor"></textarea>
+        <div id="diff-view" class="absolute inset-0 hidden overflow-auto font-mono text-xs"></div>
+        <section id="welcome" class="absolute inset-0 overflow-auto aurora flex items-center justify-center p-6">
+          <div class="max-w-xl w-full space-y-6 enter">
+            <div>
+              <p class="section-title text-accent" data-i18n="tagline">Local-first · Deterministic · Yours</p>
+              <h2 class="mt-2 text-2xl md:text-3xl font-semibold tracking-tight" data-i18n="welcomeTitle">Build with agents that never leave your machine.</h2>
+              <p class="mt-2 text-ide-muted" data-i18n="welcomeBody">Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.</p>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-2" id="welcome-actions"></div>
+            <dl id="welcome-facts" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs"></dl>
+          </div>
+        </section>
       </div>
 
-      <!-- CODE & DIFF CANVAS -->
-      <div class="flex-1 flex flex-col min-h-0 relative">
-        <!-- INTERACTIVE MONACO EDITOR VIEW -->
-        <div id="monaco-editor-view" class="flex-1 w-full h-full bg-ideEditor overflow-hidden relative">
-          <!-- Fallback textarea if Monaco is loading or offline -->
-          <textarea id="monaco-fallback-area" class="w-full h-full p-4 bg-ideEditor text-slate-200 font-mono text-xs outline-none resize-none" spellcheck="false" oninput="markFileDirty()"></textarea>
-          <div id="monaco-mount-point" class="absolute inset-0"></div>
+      <section id="panel" class="h-56 shrink-0 flex flex-col bg-ide-panel border-t border-ide-border" aria-label="Panel">
+        <div role="tablist" id="panel-tabs" data-i18n-label="panel" aria-label="Panel" class="h-8 shrink-0 flex items-stretch px-2 overflow-x-auto no-scrollbar border-b border-ide-border"></div>
+        <div id="panel-console" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden">
+          <div id="console-log" role="log" aria-live="polite" class="flex-1 overflow-auto p-3 font-mono text-xs space-y-0.5"></div>
+          <form id="console-form" class="h-8 px-3 flex items-center gap-2 border-t border-ide-border" autocomplete="off">
+            <span class="font-mono text-xs text-ok" aria-hidden="true">kora ❯</span>
+            <label for="console-input" class="sr-only">Console</label>
+            <input id="console-input" spellcheck="false" class="flex-1 bg-transparent font-mono text-xs outline-none" placeholder="help">
+          </form>
         </div>
-
-        <!-- UNIFIED DIFF CONTAINER -->
-        <div id="diff-unified-view" class="hidden flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed space-y-0.5 bg-ideEditor">
-          <!-- Populated dynamically by renderActiveDiff() -->
-        </div>
-
-        <!-- SPLIT 2-COLUMN DIFF CONTAINER -->
-        <div id="diff-split-view" class="hidden flex-1 overflow-hidden grid grid-cols-2 divide-x divide-ideBorder font-mono text-xs leading-relaxed">
-          <div class="flex flex-col min-h-0 bg-black/40">
-            <div class="p-2 border-b border-ideBorder text-[10px] font-bold text-crimsonKill uppercase bg-ideSidebar/50 flex justify-between">
-              <span>Original (Base Working Tree)</span>
-              <span id="split-filename-label" class="text-slate-500 font-normal">core/agent/self_healing.py</span>
-            </div>
-            <div id="split-left-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
-              <!-- Left Original Lines -->
-            </div>
+        <div id="panel-flight" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden">
+          <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border">
+            <label for="tape-select" class="sr-only" data-i18n="flight">Flight tape</label>
+            <select id="tape-select" class="input py-1"></select>
+            <label for="flight-scrubber" class="sr-only">Position</label>
+            <input id="flight-scrubber" type="range" min="0" max="0" value="0" class="flex-1 min-w-[8rem] accent-blue-500" disabled>
+            <span id="flight-step" class="font-mono text-[11px] text-ide-muted w-16 text-end">0 / 0</span>
+            <button id="flight-fork" type="button" class="btn-outline" disabled data-i18n="fork">Fork here</button>
           </div>
-          <div class="flex flex-col min-h-0 bg-black/20">
-            <div class="p-2 border-b border-ideBorder text-[10px] font-bold text-emeraldShield uppercase bg-ideSidebar/50 flex justify-between">
-              <span>Patched (AST Synthesis)</span>
-              <span class="text-emeraldShield font-bold">+14 -3</span>
-            </div>
-            <div id="split-right-pane" class="flex-1 overflow-auto p-3 space-y-0.5">
-              <!-- Right Patched Lines -->
-            </div>
+          <div class="flex-1 grid grid-cols-2 min-h-0">
+            <ol id="flight-events" class="overflow-auto p-2 space-y-0.5 border-e border-ide-border"></ol>
+            <pre id="flight-payload" class="overflow-auto p-3 font-mono text-[11px] text-ide-muted whitespace-pre-wrap"></pre>
           </div>
         </div>
-      </div>
-
-      <!-- ======================================================== -->
-      <!-- 3. BOTTOM PANEL: TERMINAL & FLIGHT RECORDER (COLLAPSIBLE)-->
-      <!-- ======================================================== -->
-      <div id="bottom-panel" class="h-44 bg-idePanel border-t border-ideBorder flex flex-col shrink-0">
-        <!-- DRAWER TAB HEADER -->
-        <div class="h-7 bg-ideSidebar border-b border-ideBorder px-3 flex items-center justify-between text-xs font-mono shrink-0">
-          <div class="flex items-center space-x-3">
-            <button onclick="switchBottomTab('terminal')" id="btn-bottom-terminal" class="text-white border-b-2 border-accentCobalt pb-0.5 font-bold">TERMINAL (zsh)</button>
-            <button onclick="switchBottomTab('flight')" id="btn-bottom-flight" class="text-slate-400 hover:text-slate-200 pb-0.5">FLIGHT RECORDER (4 Frames)</button>
-            <button onclick="switchBottomTab('healing')" id="btn-bottom-healing" class="text-slate-400 hover:text-slate-200 pb-0.5">SELF-HEALING LOGS</button>
-            <button onclick="switchBottomTab('payments')" id="btn-bottom-payments" class="text-slate-400 hover:text-slate-200 pb-0.5">SETTLEMENT LEDGER</button>
-          </div>
-          <div class="flex items-center space-x-2 text-[10px] text-slate-500">
-            <span>Worktree: /tmp/kora-sandbox-wt</span>
-            <button onclick="toggleBottomDrawer()" class="hover:text-white">✕</button>
-          </div>
+        <div id="panel-healing" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden overflow-auto p-3 gap-2">
+          <p class="text-xs text-warn" data-i18n="healWarn">Runs the command in this repository. A passing patch is applied to your working tree.</p>
+          <form id="heal-form" class="flex flex-wrap gap-2 items-end">
+            <div class="flex-1 min-w-[12rem]"><label for="heal-cmd" class="label" data-i18n="testCommand">Test command</label><input id="heal-cmd" class="input w-full font-mono" value="pytest -q" required></div>
+            <div><label for="heal-attempts" class="label" data-i18n="attempts">Attempts</label><input id="heal-attempts" type="number" min="1" max="5" value="3" class="input w-20 font-mono"></div>
+            <button id="heal-run" class="btn-primary h-8" type="submit" data-i18n="runRepair">Run repair cycle</button>
+          </form>
+          <pre id="heal-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </div>
-
-        <!-- BOTTOM TAB 1: TERMINAL -->
-        <div id="drawer-terminal" class="flex-1 p-2.5 overflow-auto font-mono text-xs text-slate-300 space-y-1 bg-black/60">
-          <div class="text-slate-500">Kora Sovereign Agent Environment (PTY Attached)</div>
-          <div>$ kora doctor</div>
-          <div class="text-emeraldShield">[+] System Diagnostics: 22/22 unit tests green. Local AST self-healing active.</div>
-          <div class="flex items-center gap-1 text-white mt-1">
-            <span class="text-emeraldShield">kora@sandbox:~$</span>
-            <input id="term-input" type="text" placeholder="Type CLI command (kora doctor, kora spec, kora heal)..." onkeydown="handleTerminalEnter(event, this)" class="flex-1 bg-transparent border-none outline-none text-white font-mono text-xs">
-          </div>
+        <div id="panel-ledger" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden overflow-auto p-3 gap-2">
+          <p class="text-xs text-ide-muted" data-i18n="paySim">Simulated: builds a payment payload only. No money moves.</p>
+          <form id="pay-form" class="flex flex-wrap gap-2 items-end">
+            <div><label for="pay-rail" class="label" data-i18n="rail">Rail</label><select id="pay-rail" class="input"><option value="mpesa">M-Pesa</option><option value="pix">Pix</option><option value="upi">UPI</option><option value="lightning_l402">Lightning L402</option><option value="offline_voucher">Offline voucher</option></select></div>
+            <div><label for="pay-amount" class="label" data-i18n="amount">Amount</label><input id="pay-amount" type="number" min="0.01" step="0.01" value="5" class="input w-24 font-mono"></div>
+            <div><label for="pay-currency" class="label" data-i18n="currency">Currency</label><input id="pay-currency" value="USD" maxlength="3" class="input w-16 font-mono uppercase"></div>
+            <div class="flex-1 min-w-[10rem]"><label for="pay-recipient" class="label" data-i18n="recipient">Recipient</label><input id="pay-recipient" required class="input w-full font-mono" placeholder="+254700000000"></div>
+            <button class="btn-primary h-8" type="submit" data-i18n="buildIntent">Build intent</button>
+          </form>
+          <pre id="pay-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </div>
-
-        <!-- BOTTOM TAB 2: FLIGHT RECORDER TIME-TRAVEL SCRUBBER -->
-        <div id="drawer-flight" class="hidden flex-1 p-3 bg-ideActivityBar font-mono text-xs flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="w-2 h-2 rounded-full bg-accentCobalt animate-ping"></span>
-              <span class="text-slate-400">Flight Tape:</span>
-              <span class="text-white font-bold">task_self_heal.flight</span>
-              <span class="text-slate-600">|</span>
-              <span class="text-slate-300">Frame <strong id="flight-frame-val" class="text-accentCobalt">4</strong> of 4</span>
-              <span id="flight-status-badge" class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emeraldShield/20 text-emeraldShield">VERIFIED GREEN</span>
-            </div>
-            <button onclick="forkCurrentTimeline()" class="px-2.5 py-1 rounded bg-amberGate/20 text-amberGate hover:bg-amberGate/30 border border-amberGate/40 font-sans font-semibold text-xs active:scale-95 flex items-center gap-1">
-              <span>⑂</span> Fork Timeline
-            </button>
+        <div id="panel-audit" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden">
+          <div class="h-8 px-3 flex items-center justify-between border-b border-ide-border">
+            <span id="audit-chain" class="text-[11px] text-ide-muted" data-i18n="auditHint">Every permission decision is appended to a SHA-256 hash chain.</span>
+            <button id="audit-verify" type="button" class="btn-outline py-0.5" data-i18n="verify">Verify chain</button>
           </div>
-          <div class="flex items-center space-x-3 my-2">
-            <button onclick="flightStepBack()" class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">◂ Step</button>
-            <input id="flight-scrubber" type="range" min="1" max="4" value="4" oninput="handleScrub(this.value)" class="flex-1 accent-accentCobalt cursor-pointer">
-            <button onclick="flightStepForward()" class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">Step ▸</button>
-          </div>
-          <div class="text-[10px] text-slate-500 flex justify-between">
-            <span>Frame 1: SyntaxError</span>
-            <span>Frame 2: AST Isolation</span>
-            <span>Frame 3: Ephemeral Worktree</span>
-            <span class="text-emeraldShield">Frame 4: 22 Tests Passing</span>
-          </div>
+          <div class="flex-1 overflow-auto"><table class="w-full text-[11px]"><tbody id="audit-body"></tbody></table></div>
         </div>
-
-        <!-- BOTTOM TAB 3: SELF-HEALING LOGS -->
-        <div id="drawer-healing" class="hidden flex-1 p-3 bg-black/60 font-mono text-xs overflow-auto text-slate-300 space-y-1">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-slate-400">Target: <code class="text-white">python3 -m unittest tests/test_self_healing.py</code></span>
-            <button onclick="triggerSelfHealingUI()" class="px-3 py-1 bg-accentCobalt text-white rounded font-bold text-xs">Run Repair Cycle</button>
-          </div>
-          <div id="heal-log" class="text-slate-400">
-            [✓] Self-Healing Engine Standing By. Ephemeral worktree manager ready.
-          </div>
-        </div>
-
-        <!-- BOTTOM TAB 4: SETTLEMENT LEDGER -->
-        <div id="drawer-payments" class="hidden flex-1 p-3 bg-black/60 font-mono text-xs overflow-auto text-slate-300">
-          <div class="flex items-center justify-between mb-2">
-            <span>Global Multi-Rail Sovereign Clearing:</span>
-            <div class="flex space-x-1 text-[10px]">
-              <button onclick="selectRail('mpesa')" class="px-2 py-0.5 rounded bg-accentCobalt text-white">M-Pesa</button>
-              <button onclick="selectRail('pix')" class="px-2 py-0.5 rounded bg-white/10 text-slate-300">Pix</button>
-              <button onclick="selectRail('upi')" class="px-2 py-0.5 rounded bg-white/10 text-slate-300">UPI</button>
-              <button onclick="selectRail('lightning')" class="px-2 py-0.5 rounded bg-white/10 text-slate-300">L402</button>
-            </div>
-          </div>
-          <div id="payment-output" class="text-slate-400">
-            Awaiting payment intent generation...
-          </div>
-        </div>
-      </div>
+      </section>
     </main>
 
-    <!-- ======================================================== -->
-    <!-- 4. RIGHT AGENT PANEL (DEVIN / CONDUCTOR AUTONOMOUS AGENT) -->
-    <!-- ======================================================== -->
-    <aside id="agent-panel" class="w-80 bg-ideSidebar border-l border-ideBorder flex flex-col shrink-0 transition-all duration-150 ease-out z-10 text-xs">
-      
-      <!-- DEVIN / CONDUCTOR SESSION HEADER -->
-      <div class="p-3 border-b border-ideBorder bg-ideActivityBar shrink-0">
-        <div class="flex items-center justify-between mb-1">
-          <div class="flex items-center space-x-1.5 font-bold text-white text-xs">
-            <span class="w-2 h-2 rounded-full bg-emeraldShield animate-pulse"></span>
-            <span>Kora Autonomous Agent</span>
-          </div>
-          <span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emeraldShield/20 text-emeraldShield font-bold">ACTIVE</span>
+    <aside id="agent" class="w-80 shrink-0 hidden lg:flex flex-col bg-ide-sidebar border-s border-ide-border" aria-labelledby="agent-title">
+      <div class="p-3 border-b border-ide-border bg-ide-activity">
+        <div class="flex items-center justify-between">
+          <h2 id="agent-title" class="font-semibold text-xs flex items-center gap-1.5"><span id="agent-dot" class="w-2 h-2 rounded-full bg-ide-faint"></span><span data-i18n="agent">Kora agent</span></h2>
+          <span id="agent-status" class="chip border-ide-border text-ide-muted" data-i18n="idle">idle</span>
         </div>
-        <div class="text-[11px] text-slate-400 truncate" id="agent-active-task-label">
-          Task: Fix syntax regression in self_healing.py
-        </div>
+        <p id="agent-goal-label" class="mt-1 text-[11px] text-ide-muted truncate" data-i18n="noGoal">No goal yet.</p>
       </div>
-
-      <!-- DEVIN-STYLE AUTONOMOUS EXECUTION PLAN -->
-      <div class="p-3 border-b border-ideBorder bg-surfaceLight/20 space-y-1.5 shrink-0">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex justify-between">
-          <span>Execution Plan</span>
-          <span id="plan-progress-counter" class="text-accentCobalt font-mono">4 of 5 Complete</span>
-        </div>
-
-        <div id="plan-steps-container" class="space-y-1 text-[11px]">
-          <div class="flex items-center gap-2 text-emeraldShield">
-            <span>✓</span>
-            <span class="line-through text-slate-400">1. Localize AST syntax failure (Line 88)</span>
+      <div class="flex-1 overflow-y-auto">
+        <section class="p-3 border-b border-ide-border space-y-2" aria-labelledby="plan-title">
+          <div class="flex justify-between"><h3 id="plan-title" class="section-title" data-i18n="plan">Plan</h3><span id="plan-progress" class="text-[10px] font-mono text-accent"></span></div>
+          <ol id="agent-plan" class="space-y-1 text-[11px]"></ol>
+          <div id="agent-approval" class="hidden p-2 rounded-md border border-warn/40 bg-warn/10 space-y-1.5" role="alert">
+            <p class="text-[11px] font-semibold text-warn" data-i18n="approvalNeeded">Approval needed</p>
+            <pre id="agent-approval-desc" class="text-[10px] font-mono whitespace-pre-wrap"></pre>
+            <div class="flex gap-1.5"><button id="approve-yes" class="btn-primary flex-1" data-i18n="allow">Allow</button><button id="approve-no" class="btn-outline flex-1 text-danger" data-i18n="deny">Deny</button></div>
           </div>
-          <div class="flex items-center gap-2 text-emeraldShield">
-            <span>✓</span>
-            <span class="line-through text-slate-400">2. Spawn ephemeral git worktree</span>
-          </div>
-          <div class="flex items-center gap-2 text-emeraldShield">
-            <span>✓</span>
-            <span class="line-through text-slate-400">3. Synthesize AST node visitor fix</span>
-          </div>
-          <div class="flex items-center gap-2 text-emeraldShield font-bold">
-            <span class="animate-spin">●</span>
-            <span>4. Verify test suite (31/31 green)</span>
-          </div>
-          <div class="flex items-center gap-2 text-slate-500">
-            <span>○</span>
-            <span>5. Await developer commit approval</span>
-          </div>
-        </div>
-
-        <!-- HUMAN-IN-THE-LOOP APPROVAL CARD -->
-        <div id="plan-approval-card" class="hidden p-2 rounded bg-amberGate/10 border border-amberGate/40 space-y-1.5 mt-2">
-          <div class="text-[10px] font-bold text-amberGate flex items-center gap-1">
-            <span>⚠️</span> Safety Gate: Approval Required
-          </div>
-          <div id="plan-approval-desc" class="text-[10px] text-slate-300 font-mono">tool: edit_file (workspace)</div>
-          <div class="flex items-center space-x-1.5 mt-1">
-            <button onclick="submitToolApproval(true)" class="flex-1 py-1 rounded bg-emeraldShield text-black font-bold text-[10px] hover:bg-emerald-400">Allow</button>
-            <button onclick="submitToolApproval(false)" class="flex-1 py-1 rounded bg-crimsonKill/20 border border-crimsonKill/40 text-red-300 font-bold text-[10px] hover:bg-crimsonKill/40">Deny</button>
-          </div>
-        </div>
-
-        <button onclick="triggerAutonomousTask()" class="w-full mt-2 py-1 bg-accentCobalt/20 hover:bg-accentCobalt/30 border border-accentCobalt/40 rounded text-accentCobalt font-bold text-[10px] flex items-center justify-center gap-1 transition active:scale-95">
-          <span>▶</span> Run Autonomous Loop
-        </button>
+        </section>
+        <section class="p-3 space-y-1.5" aria-labelledby="events-title">
+          <h3 id="events-title" class="section-title" data-i18n="activity">Activity</h3>
+          <ol id="agent-events" class="space-y-1.5 text-[11px]" aria-live="polite"></ol>
+        </section>
       </div>
-
-      <!-- COLLAPSIBLE TOOL EXECUTION CARD (DEVIN SIGNATURE) -->
-      <div class="p-2.5 border-b border-ideBorder bg-black/40 text-[11px] font-mono shrink-0">
-        <div class="flex items-center justify-between text-slate-400 mb-1">
-          <span class="flex items-center gap-1 text-slate-300 font-bold">
-            <span>▶</span> Tool: <code class="text-accentCobalt">run_test_suite</code>
-          </span>
-          <span class="text-emeraldShield font-bold">[0.10s]</span>
+      <form id="agent-form" class="p-2.5 border-t border-ide-border bg-ide-activity space-y-1.5">
+        <label for="agent-goal" class="sr-only" data-i18n="goal">Goal</label>
+        <textarea id="agent-goal" rows="2" required class="input w-full resize-none" data-i18n-ph="goalPh" placeholder="Describe a goal for the agent…"></textarea>
+        <div class="flex items-center justify-between gap-2">
+          <label for="agent-policy" class="sr-only">Policy</label>
+          <select id="agent-policy" class="input py-1 text-[11px]"><option value="confirm_mutation" data-i18n="polConfirmMut">Ask before changes</option><option value="confirm_all" data-i18n="polConfirmAll">Ask before every step</option><option value="autonomous" data-i18n="polAuto">Autonomous (admin)</option></select>
+          <button class="btn-primary" type="submit" data-i18n="start">Start</button>
         </div>
-        <div class="bg-black/80 p-2 rounded border border-white/5 text-[10px] text-slate-300">
-          $ python3 -m unittest tests/test_self_healing.py<br>
-          <span class="text-emeraldShield">Ran 22 tests in 0.102s — OK</span>
-        </div>
-      </div>
-
-      <!-- LIVE AGENT THOUGHT LOGS (STREAMING) -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs">
-        <div class="bg-surfaceLight/40 p-2.5 rounded border border-white/5 space-y-1">
-          <div class="font-bold text-accentCobalt text-[10px] flex justify-between">
-            <span>Kora Planner Agent</span>
-            <span class="text-slate-500 font-mono text-[9px]">15:20:04</span>
-          </div>
-          <p class="text-slate-300 leading-relaxed text-[11px]">
-            Analyzed failing AST nodes. Applied <code class="text-emeraldShield">ast.fix_missing_locations(repaired_tree)</code> to eliminate syntax drift. Ready for commit.
-          </p>
-        </div>
-      </div>
-
-      <!-- AGENT PROMPT / INSTRUCTION BOX -->
-      <div class="p-2.5 bg-ideActivityBar border-t border-ideBorder shrink-0">
-        <form onsubmit="handleSend(event)" class="relative">
-          <textarea id="prompt-input" rows="2" placeholder="Send goal or patch instructions (⌘⏎)..." onkeydown="if(event.metaKey && event.key==='Enter') handleSend(event)" class="w-full bg-black/60 border border-white/10 rounded p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCobalt resize-none font-mono"></textarea>
-          <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400">
-            <span>🔒 Air-gapped reasoning</span>
-            <button type="submit" class="px-2.5 py-1 bg-accentCobalt hover:bg-blue-600 text-white rounded font-medium transition active:scale-95 text-xs flex items-center gap-1">
-              <span>Send</span> <span>⏎</span>
-            </button>
-          </div>
-        </form>
-      </div>
+      </form>
     </aside>
-
   </div>
 
-  <!-- ======================================================== -->
-  <!-- 5. BOTTOM STATUS BAR (VS CODE & CURSOR 22px SLIM BAR)    -->
-  <!-- ======================================================== -->
-  <footer class="h-6 bg-ideStatus border-t border-ideBorder flex items-center justify-between px-3 shrink-0 text-[11px] font-mono select-none z-30">
-    <div class="flex items-center space-x-3 text-slate-400">
-      <span class="flex items-center gap-1 hover:text-white cursor-pointer" onclick="copyToClipboard('git status', 'Copied git status')">
-        <span>🌿</span>
-        <span>main*</span>
-      </span>
-      <span>0 ⚠️ 0 ✗</span>
-      <span class="text-slate-600">|</span>
-      <span class="text-slate-300 flex items-center gap-1">
-        <span class="w-1.5 h-1.5 rounded-full bg-emeraldShield"></span>
-        <span>Qwen 2.5 Coder (9.7B Edge)</span>
-      </span>
-      <span class="text-slate-600">|</span>
-      <span>UTF-8</span>
-    </div>
-
-    <div class="flex items-center space-x-3 text-slate-400">
-      <span class="text-emeraldShield flex items-center gap-1 font-bold">
-        <span>🔒</span> Air-Gapped: Zero-Egress
-      </span>
-      <span class="text-slate-600">|</span>
-      <span>VRAM: <strong class="text-white">4.2 / 16.0 GB</strong></span>
-      <span class="text-slate-600">|</span>
-      <span>Spec: <strong class="text-emeraldShield">2.58x</strong></span>
-      <span class="text-slate-600">|</span>
-      <span>Mesh: <strong class="text-accentCobalt">3 Nodes</strong></span>
-    </div>
+  <footer class="h-6 shrink-0 flex items-center justify-between gap-3 px-3 text-[11px] font-mono bg-ide-status border-t border-ide-border text-ide-faint whitespace-nowrap overflow-hidden">
+    <div class="flex items-center gap-3 min-w-0 overflow-hidden"><span id="sb-branch" class="truncate"></span><span id="sb-changes"></span><span id="sb-model" class="hidden sm:inline"></span><span id="sb-db" class="hidden sm:inline"></span></div>
+    <div class="flex items-center gap-3 shrink-0"><span id="sb-egress"></span><span id="sb-hw" class="hidden md:inline"></span><span id="sb-mesh" class="hidden md:inline"></span><span id="sb-ws"></span></div>
   </footer>
 
-  <!-- ======================================================== -->
-  <!-- 6. COMMAND PALETTE (CMD+K / CMD+P MODAL)                 -->
-  <!-- ======================================================== -->
-  <div id="cmd-palette-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-20">
-    <div class="w-full max-w-lg bg-ideSidebar border border-ideBorder rounded-lg shadow-2xl overflow-hidden flex flex-col font-sans">
-      <div class="p-2.5 border-b border-ideBorder flex items-center space-x-2">
-        <span class="text-slate-400 text-xs">🔍</span>
-        <input id="cmd-palette-input" type="text" placeholder="Type a file, command, or action (Esc to close)..." oninput="filterPalette(this.value)" onkeydown="if(event.key==='Escape') closeCommandPalette()" class="flex-1 bg-transparent border-none outline-none text-white text-xs font-sans placeholder-slate-500">
-        <kbd class="px-1.5 py-0.2 text-[9px] font-mono rounded bg-white/10 text-slate-400 border border-white/10">ESC</kbd>
-      </div>
-      <div id="cmd-palette-list" class="max-h-60 overflow-y-auto p-1.5 text-xs space-y-0.5">
-        <div onclick="executePaletteAction('open-self-healing')" class="palette-item px-2.5 py-1.5 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>📄 Open core/agent/self_healing.py</span>
-          <kbd class="text-[9px] font-mono text-slate-500">File</kbd>
-        </div>
-        <div onclick="executePaletteAction('open-speculative')" class="palette-item px-2.5 py-1.5 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>📄 Open core/models/speculative.py</span>
-          <kbd class="text-[9px] font-mono text-slate-500">File</kbd>
-        </div>
-        <div onclick="executePaletteAction('open-mesh')" class="palette-item px-2.5 py-1.5 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>📄 Open core/orchestration/p2p_mesh.py</span>
-          <kbd class="text-[9px] font-mono text-slate-500">File</kbd>
-        </div>
-        <div onclick="executePaletteAction('toggle-airgap')" class="palette-item px-2.5 py-1.5 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>🔒 Toggle Air-Gap Zero-Egress Shield</span>
-          <kbd class="text-[9px] font-mono text-slate-500">Alt+A</kbd>
-        </div>
-        <div onclick="executePaletteAction('run-tests')" class="palette-item px-2.5 py-1.5 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-300">
-          <span>🧪 Run 22 Zero-Dependency Test Suite</span>
-          <kbd class="text-[9px] font-mono text-slate-500">Tests</kbd>
-        </div>
-      </div>
+  <div id="palette" class="fixed inset-0 z-50 hidden items-start justify-center pt-[12vh] bg-black/60" role="dialog" aria-modal="true" aria-labelledby="palette-label">
+    <div class="w-[min(36rem,92vw)] rounded-xl border border-ide-border bg-ide-sidebar shadow-2xl overflow-hidden enter">
+      <label id="palette-label" for="palette-input" class="sr-only">Command palette</label>
+      <input id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" class="w-full px-4 py-3 bg-transparent border-b border-ide-border outline-none" data-i18n-ph="search" placeholder="Search files, symbols and commands">
+      <ul id="palette-list" role="listbox" class="max-h-80 overflow-y-auto py-1"></ul>
     </div>
   </div>
 
-  <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
-  <div id="toast" class="fixed bottom-8 right-6 bg-ideSidebar border border-ideBorder text-white text-xs px-3 py-1.5 rounded shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 z-50 flex items-center gap-2">
-    <span id="toast-icon">✓</span>
-    <span id="toast-message">Action completed</span>
+  <div id="signin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 aurora bg-ide-bg" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+    <form id="signin-form" class="w-[min(26rem,100%)] rounded-2xl border border-ide-border bg-ide-sidebar/90 p-6 space-y-4 shadow-2xl enter">
+      <svg class="w-10 h-10" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="rgb(var(--accent))"/><path d="M10 8v16M10 16l9-8M13 14l7 10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      <div><h2 id="signin-title" class="text-lg font-semibold" data-i18n="signInTitle">Sign in to Kora</h2><p class="text-xs text-ide-muted" data-i18n="signInBody">Open the link printed by kora dev, or paste a token from kora token create.</p></div>
+      <div><label for="signin-token" class="label" data-i18n="apiToken">API token</label><input id="signin-token" type="password" required autocomplete="off" spellcheck="false" class="input w-full font-mono" placeholder="kora_…"></div>
+      <p id="signin-error" class="hidden text-xs text-danger" role="alert"></p>
+      <button class="btn-primary w-full h-9" type="submit" data-i18n="signIn">Sign in</button>
+    </form>
   </div>
 
-  <script>
-    // ==========================================
-    // KORA DEVIN & VS CODE HYBRID IDE CONTROLLER
-    // ==========================================
-
-    let airGapped = true;
-    let diffMode = 'unified';
-    let activeFile = 'core/agent/self_healing.py';
-    let currentFrame = 4;
-    let currentRail = 'mpesa';
-    let audioEnabled = true;
-    let audioCtx = null;
-    let sidebarOpen = true;
-    let bottomDrawerOpen = true;
-    let agentPanelOpen = true;
-
-    // 1. Dynamic File Catalog with Real Diffs (Unified & Split)
-    const FILE_CATALOG = {
-      'core/agent/self_healing.py': {
-        additions: 14,
-        deletions: 3,
-        unifiedLines: [
-          { type: 'info', text: '@@ -84,12 +84,23 @@ class AutonomousSelfHealingEngine:' },
-          { type: 'context', text: '     def execute_repair(self, failure_signature: str) -> ASTRepairResult:' },
-          { type: 'context', text: '         tree = ast.parse(self.source_code)' },
-          { type: 'del', text: '-        # Legacy naive regex line patch' },
-          { type: 'del', text: '-        patched_code = re.sub(failure_signature, "", self.source_code)' },
-          { type: 'del', text: '-        return ASTRepairResult(success=False, ast_diff="regex_failed")' },
-          { type: 'add', text: '+        # AST-driven syntax rewriting with zero regex drift' },
-          { type: 'add', text: '+        transformer = SyntaxErrorHealingTransformer(failure_signature)' },
-          { type: 'add', text: '+        repaired_tree = transformer.visit(tree)' },
-          { type: 'add', text: '+        ast.fix_missing_locations(repaired_tree)' },
-          { type: 'add', text: '+        patched_code = ast.unparse(repaired_tree)' },
-          { type: 'add', text: '+        ' },
-          { type: 'add', text: '+        # Execute test probe in isolated ephemeral worktree' },
-          { type: 'add', text: '+        verify_result = self.worktree.run_verification(patched_code)' },
-          { type: 'add', text: '+        return ASTRepairResult(' },
-          { type: 'add', text: '+            success=verify_result.exit_code == 0,' },
-          { type: 'add', text: '+            ast_diff=transformer.get_diff_summary(),' },
-          { type: 'add', text: '+            verification_output=verify_result.output' },
-          { type: 'add', text: '+        )' },
-          { type: 'context', text: '     def rollback(self) -> None:' },
-          { type: 'context', text: '         self.worktree.restore_snapshot()' }
-        ],
-        splitLeft: [
-          { type: 'info', text: '@@ Original Class Definition' },
-          { type: 'context', text: 'def execute_repair(self, failure_signature):' },
-          { type: 'context', text: '    tree = ast.parse(self.source_code)' },
-          { type: 'del', text: '-   # Legacy naive regex line patch' },
-          { type: 'del', text: '-   patched_code = re.sub(sig, "", src)' },
-          { type: 'del', text: '-   return ASTRepairResult(success=False)' },
-          { type: 'context', text: 'def rollback(self):' },
-          { type: 'context', text: '    self.worktree.restore_snapshot()' }
-        ],
-        splitRight: [
-          { type: 'info', text: '@@ Patched AST Method' },
-          { type: 'context', text: 'def execute_repair(self, failure_signature):' },
-          { type: 'context', text: '    tree = ast.parse(self.source_code)' },
-          { type: 'add', text: '+   # AST-driven syntax rewriting' },
-          { type: 'add', text: '+   transformer = SyntaxErrorTransformer()' },
-          { type: 'add', text: '+   repaired_tree = transformer.visit(tree)' },
-          { type: 'add', text: '+   ast.fix_missing_locations(repaired_tree)' },
-          { type: 'add', text: '+   patched_code = ast.unparse(repaired_tree)' },
-          { type: 'context', text: 'def rollback(self):' },
-          { type: 'context', text: '    self.worktree.restore_snapshot()' }
-        ]
-      },
-      'core/models/speculative.py': {
-        additions: 28,
-        deletions: 6,
-        unifiedLines: [
-          { type: 'info', text: '@@ -42,8 +42,30 @@ class SpeculativeEngine:' },
-          { type: 'context', text: '     async def generate_tandem(self, prompt: str) -> GenerationResult:' },
-          { type: 'del', text: '-        # Unaccelerated target-only generation' },
-          { type: 'del', text: '-        return await self.target_model.generate(prompt)' },
-          { type: 'add', text: '+        # 0.5B draft forward pass' },
-          { type: 'add', text: '+        draft_tokens = await self.draft_model.generate_k(prompt, k=4)' },
-          { type: 'add', text: '+        # Single parallel verification pass on 7B target' },
-          { type: 'add', text: '+        accepted, bonus = await self.target_model.verify(draft_tokens)' },
-          { type: 'add', text: '+        speedup = (len(accepted) + 1) / target_forward_cost' },
-          { type: 'add', text: '+        return GenerationResult(tokens=accepted + [bonus], speedup_factor=2.58)' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- return await self.target_model.generate(prompt)' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ draft_tokens = await self.draft_model.generate_k(prompt, k=4)' },
-          { type: 'add', text: '+ accepted, bonus = await self.target_model.verify(draft_tokens)' },
-          { type: 'add', text: '+ return GenerationResult(speedup_factor=2.58)' }
-        ]
-      },
-      'core/orchestration/p2p_mesh.py': {
-        additions: 45,
-        deletions: 12,
-        unifiedLines: [
-          { type: 'info', text: '@@ -18,6 +18,39 @@ class LocalMeshDiscovery:' },
-          { type: 'del', text: '-    def discover_peers(self): return []' },
-          { type: 'add', text: '+    def broadcast_mdns(self):' },
-          { type: 'add', text: '+        zeroconf.register_service("_kora-agent._tcp.local.", 7420)' },
-          { type: 'add', text: '+    def pool_vram(self, peers):' },
-          { type: 'add', text: '+        return sum(p.available_vram_mb for p in peers)' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- def discover_peers(self): return []' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ def broadcast_mdns(self): register_service()' },
-          { type: 'add', text: '+ def pool_vram(self, peers): return sum(p.vram)' }
-        ]
-      },
-      'core/storage/payment_broker.py': {
-        additions: 32,
-        deletions: 4,
-        unifiedLines: [
-          { type: 'info', text: '@@ -55,4 +55,32 @@ class PaymentBroker:' },
-          { type: 'del', text: '-    # Stripe credit-card only' },
-          { type: 'add', text: '+    # Multi-rail sovereign clearing engine' },
-          { type: 'add', text: '+    RAILS = ["mpesa", "pix", "upi", "lightning_l402", "offline_voucher"]' }
-        ],
-        splitLeft: [
-          { type: 'del', text: '- # Stripe credit-card only' }
-        ],
-        splitRight: [
-          { type: 'add', text: '+ RAILS = ["mpesa", "pix", "upi", "lightning_l402"]' }
-        ]
-      }
-    };
-
-    // 2. Audio Engine
-    function playTone(freq, type = 'sine', duration = 0.05) {
-      if (!audioEnabled) return;
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
-    }
-
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      const icon = document.getElementById('audio-icon');
-      icon.textContent = audioEnabled ? '🔊' : '🔇';
-      showToast(audioEnabled ? 'Audio feedback active' : 'Audio muted', '🔊');
-      if (audioEnabled) playTone(587, 'sine', 0.08);
-    }
-
-    // 3. UI Panel Toggles
-    function toggleSidebar() {
-      sidebarOpen = !sidebarOpen;
-      const sidebar = document.getElementById('primary-sidebar');
-      sidebar.style.display = sidebarOpen ? 'flex' : 'none';
-      playTone(sidebarOpen ? 520 : 380, 'sine', 0.04);
-    }
-
-    function toggleBottomDrawer() {
-      bottomDrawerOpen = !bottomDrawerOpen;
-      const drawer = document.getElementById('bottom-panel');
-      drawer.style.display = bottomDrawerOpen ? 'flex' : 'none';
-      playTone(bottomDrawerOpen ? 520 : 380, 'sine', 0.04);
-    }
-
-    function toggleAgentPanel() {
-      agentPanelOpen = !agentPanelOpen;
-      const panel = document.getElementById('agent-panel');
-      panel.style.display = agentPanelOpen ? 'flex' : 'none';
-      playTone(agentPanelOpen ? 520 : 380, 'sine', 0.04);
-    }
-
-    function switchSidebarView(view) {
-      playTone(480, 'sine', 0.04);
-      document.querySelectorAll('.activity-btn').forEach(b => {
-        b.className = 'activity-btn w-full py-1.5 flex justify-center text-slate-500 hover:text-slate-300 border-l-2 border-transparent text-base';
-      });
-      const activeBtn = document.getElementById(`act-btn-${view}`);
-      if (activeBtn) activeBtn.className = 'activity-btn w-full py-1.5 flex justify-center text-accentCobalt border-l-2 border-accentCobalt text-base';
-      
-      const title = document.getElementById('sidebar-header-title');
-      if (view === 'explorer') title.textContent = 'Explorer: Kora';
-      else if (view === 'agent') title.textContent = 'Autonomous Sessions';
-      else if (view === 'git') title.textContent = 'Source Control: Diffs';
-      else if (view === 'heal') title.textContent = 'AST Self-Healing';
-      else if (view === 'pay') title.textContent = 'Settlement Rails';
-    }
-
-    function switchBottomTab(tab) {
-      playTone(440, 'sine', 0.03);
-      ['terminal', 'flight', 'healing', 'payments'].forEach(t => {
-        document.getElementById(`drawer-${t}`).classList.toggle('hidden', t !== tab);
-        const btn = document.getElementById(`btn-bottom-${t}`);
-        if (btn) {
-          btn.className = t === tab ? 'text-white border-b-2 border-accentCobalt pb-0.5 font-bold' : 'text-slate-400 hover:text-slate-200 pb-0.5';
-        }
-      });
-    }
-
-    // 4. Render Active Diff
-    function renderActiveDiff() {
-      const data = FILE_CATALOG[activeFile] || FILE_CATALOG['core/agent/self_healing.py'];
-      document.getElementById('breadcrumb-filename').textContent = activeFile.split('/').pop();
-
-      // Render Unified View
-      const unifiedContainer = document.getElementById('diff-unified-view');
-      unifiedContainer.innerHTML = '';
-      data.unifiedLines.forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = `code-line flex items-center px-2 py-0.5 rounded font-mono text-xs ${line.type === 'add' ? 'diff-add font-medium' : line.type === 'del' ? 'diff-del font-medium' : line.type === 'info' ? 'text-slate-500 font-semibold mb-1' : 'text-slate-400'}`;
-        div.innerHTML = `<span class="line-num">${idx + 1}</span><span>${escapeHtml(line.text)}</span>`;
-        unifiedContainer.appendChild(div);
-      });
-
-      // Render Split View
-      const splitLeft = document.getElementById('split-left-pane');
-      const splitRight = document.getElementById('split-right-pane');
-      splitLeft.innerHTML = '';
-      splitRight.innerHTML = '';
-
-      (data.splitLeft || data.unifiedLines).forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = `code-line px-2 py-0.5 rounded text-xs font-mono ${line.type === 'del' ? 'diff-del font-medium' : 'text-slate-400'}`;
-        div.textContent = line.text;
-        splitLeft.appendChild(div);
-      });
-
-      (data.splitRight || data.unifiedLines).forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = `code-line px-2 py-0.5 rounded text-xs font-mono ${line.type === 'add' ? 'diff-add font-medium' : 'text-slate-400'}`;
-        div.textContent = line.text;
-        splitRight.appendChild(div);
-      });
-    }
-
-    let currentViewMode = 'editor';
-    let monacoEditor = null;
-    let activeTask = 'task_autonomous_01';
-
-    function setViewMode(mode) {
-      currentViewMode = mode;
-      diffMode = mode;
-      playTone(480, 'sine', 0.04);
-      
-      const btnEditor = document.getElementById('btn-view-editor');
-      const btnUnified = document.getElementById('btn-view-unified');
-      const btnSplit = document.getElementById('btn-view-split');
-
-      if (btnEditor) btnEditor.className = mode === 'editor' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
-      if (btnUnified) btnUnified.className = mode === 'unified' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
-      if (btnSplit) btnSplit.className = mode === 'split' ? 'px-2 py-0.5 rounded bg-white/10 text-white font-medium' : 'px-2 py-0.5 rounded text-slate-400 hover:text-white';
-
-      document.getElementById('monaco-editor-view').classList.toggle('hidden', mode !== 'editor');
-      document.getElementById('diff-unified-view').classList.toggle('hidden', mode !== 'unified');
-      document.getElementById('diff-split-view').classList.toggle('hidden', mode !== 'split');
-
-      if (mode === 'editor' && monacoEditor) {
-        setTimeout(() => monacoEditor.layout(), 20);
-      } else if (mode !== 'editor') {
-        renderActiveDiff();
-      }
-      showToast(`Switched view: ${mode}`, '📄');
-    }
-
-    function setDiffMode(mode) {
-      setViewMode(mode);
-    }
-
-    function getLanguageForFile(path) {
-      if (path.endsWith('.py')) return 'python';
-      if (path.endsWith('.js')) return 'javascript';
-      if (path.endsWith('.ts') || path.endsWith('.tsx')) return 'typescript';
-      if (path.endsWith('.json')) return 'json';
-      if (path.endsWith('.html')) return 'html';
-      if (path.endsWith('.css')) return 'css';
-      if (path.endsWith('.md')) return 'markdown';
-      if (path.endsWith('.sh')) return 'shell';
-      return 'plaintext';
-    }
-
-    function markFileDirty() {
-      const status = document.getElementById('breadcrumb-status');
-      if (status) {
-        status.textContent = '● Modified';
-        status.className = 'text-amberGate text-[10px] ml-2 font-bold';
-      }
-    }
-
-    function initMonaco() {
-      if (typeof require !== 'undefined' && require.config) {
-        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
-          monaco.editor.defineTheme('koraDark', {
-            base: 'vs-dark',
-            inherit: true,
-            rules: [
-              { token: 'comment', foreground: '6272A4', fontStyle: 'italic' },
-              { token: 'keyword', foreground: '3B82F6' },
-              { token: 'string', foreground: '10B981' },
-              { token: 'number', foreground: 'F59E0B' },
-            ],
-            colors: {
-              'editor.background': '#0A0F1D',
-              'editor.foreground': '#E2E8F0',
-              'editorLineNumber.foreground': '#4B5563',
-              'editorLineNumber.activeForeground': '#94A3B8',
-              'editor.selectionBackground': '#2563EB40',
-              'editor.lineHighlightBackground': '#121B3040',
-            }
-          });
-
-          const mount = document.getElementById('monaco-mount-point');
-          if (mount) {
-            monacoEditor = monaco.editor.create(mount, {
-              value: "# Kora Sovereign Developer Studio\n# Open any workspace file from the explorer on the left or press ⌘K.\n\nprint('Kora AI Sovereign Agent Environment Ready')\n",
-              language: 'python',
-              theme: 'koraDark',
-              fontFamily: "'Fira Code', monospace",
-              fontSize: 12,
-              automaticLayout: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              lineNumbers: 'on',
-              renderLineHighlight: 'all',
-            });
-
-            // Bind Cmd+S in Monaco
-            monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
-              saveActiveFile();
-            });
-
-            monacoEditor.onDidChangeModelContent(function () {
-              markFileDirty();
-            });
-
-            const fallback = document.getElementById('monaco-fallback-area');
-            if (fallback) fallback.classList.add('hidden');
-          }
-        });
-      }
-    }
-
-    async function openWorkspaceFile(filePath) {
-      activeFile = filePath;
-      playTone(520, 'sine', 0.04);
-      const name = filePath.split('/').pop();
-      document.getElementById('breadcrumb-filename').textContent = name;
-      const statusEl = document.getElementById('breadcrumb-status');
-      statusEl.textContent = '● Loading...';
-      statusEl.className = 'text-amberGate text-[10px] ml-2';
-
-      try {
-        const res = await fetch(`/v1/files/content?path=${encodeURIComponent(filePath)}`);
-        if (res.ok) {
-          const data = await res.json();
-          const content = data.content || '';
-          const lang = getLanguageForFile(filePath);
-
-          if (monacoEditor && window.monaco) {
-            const oldModel = monacoEditor.getModel();
-            const newModel = monaco.editor.createModel(content, lang);
-            monacoEditor.setModel(newModel);
-            if (oldModel) oldModel.dispose();
-          } else {
-            const fallback = document.getElementById('monaco-fallback-area');
-            if (fallback) fallback.value = content;
-          }
-
-          statusEl.textContent = '● Clean';
-          statusEl.className = 'text-emeraldShield text-[10px] ml-2';
-          setViewMode('editor');
-          showToast(`Opened ${name}`, '📄');
-          return;
-        }
-      } catch (err) {}
-
-      // Fallback to diff viewer if content endpoint unreachable
-      renderActiveDiff();
-      statusEl.textContent = '● Sample';
-    }
-
-    function openFileInTab(filename) {
-      openWorkspaceFile(filename);
-    }
-
-    function selectFile(filename) {
-      openWorkspaceFile(filename);
-    }
-
-    function closeTab(filename) {
-      showToast(`Closed tab: ${filename}`, '✕');
-    }
-
-    async function saveActiveFile() {
-      playTone(700, 'triangle', 0.08);
-      let content = '';
-      if (monacoEditor) {
-        content = monacoEditor.getValue();
-      } else {
-        const fallback = document.getElementById('monaco-fallback-area');
-        content = fallback ? fallback.value : '';
-      }
-
-      const statusEl = document.getElementById('breadcrumb-status');
-      statusEl.textContent = '● Saving...';
-      statusEl.className = 'text-amberGate text-[10px] ml-2';
-
-      try {
-        const res = await fetch('/v1/files/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: activeFile, content: content }),
-        });
-
-        if (res.ok) {
-          playTone(880, 'sine', 0.1);
-          statusEl.textContent = '● Saved ✓';
-          statusEl.className = 'text-emeraldShield text-[10px] ml-2';
-          showToast(`Saved ${activeFile.split('/').pop()} cleanly ✓`, '💾');
-          loadGitStatusAndDiff();
-          return;
-        }
-      } catch (err) {}
-
-      showToast(`Saved locally (offline mode)`, '💾');
-      statusEl.textContent = '● Saved (Offline)';
-      statusEl.className = 'text-slate-400 text-[10px] ml-2';
-    }
-
-    async function loadWorkspaceTree() {
-      try {
-        const res = await fetch('/v1/files/tree');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data.tree) return;
-
-        const sidebar = document.getElementById('sidebar-content');
-        sidebar.innerHTML = '';
-
-        const rootName = data.name || 'workspace';
-        const rootHeader = document.createElement('div');
-        rootHeader.className = 'flex items-center gap-1.5 px-1 py-1 text-slate-400 font-semibold cursor-pointer';
-        rootHeader.innerHTML = `<span class="text-[10px]">▼</span><span>${escapeHtml(rootName)}</span>`;
-        sidebar.appendChild(rootHeader);
-
-        const container = document.createElement('div');
-        container.className = 'pl-2 space-y-0.5';
-
-        function renderNode(node, parentEl) {
-          if (node.type === 'directory') {
-            const dirEl = document.createElement('div');
-            dirEl.className = 'space-y-0.5';
-            const titleEl = document.createElement('div');
-            titleEl.className = 'flex items-center gap-1.5 px-1 py-0.5 text-slate-400 hover:text-slate-200 font-semibold cursor-pointer text-xs';
-            titleEl.innerHTML = `<span class="text-[9px]">▼</span><span>📁 ${escapeHtml(node.name)}</span>`;
-            dirEl.appendChild(titleEl);
-
-            const childrenEl = document.createElement('div');
-            childrenEl.className = 'pl-3 space-y-0.5';
-            titleEl.onclick = () => {
-              const isHidden = childrenEl.classList.toggle('hidden');
-              titleEl.querySelector('span').textContent = isHidden ? '▶' : '▼';
-            };
-
-            (node.children || []).forEach(child => renderNode(child, childrenEl));
-            dirEl.appendChild(childrenEl);
-            parentEl.appendChild(dirEl);
-          } else {
-            const fileEl = document.createElement('div');
-            fileEl.className = 'file-tree-row px-2 py-1 rounded hover:bg-white/5 cursor-pointer flex items-center justify-between text-slate-300 hover:text-white border-l border-transparent text-xs';
-            const ext = node.name.split('.').pop();
-            const icon = ext === 'py' ? '🐍' : ext === 'json' ? '⚙️' : ext === 'html' ? '🌐' : '📄';
-            fileEl.innerHTML = `<span class="truncate flex items-center gap-1.5"><span>${icon}</span> ${escapeHtml(node.name)}</span>`;
-            fileEl.onclick = () => openWorkspaceFile(node.path);
-            parentEl.appendChild(fileEl);
-          }
-        }
-
-        (data.tree.children || []).forEach(child => renderNode(child, container));
-        sidebar.appendChild(container);
-      } catch (e) {}
-    }
-
-    async function loadGitStatusAndDiff() {
-      try {
-        const [statusRes, diffRes] = await Promise.all([
-          fetch('/v1/git/status'),
-          fetch('/v1/git/diff')
-        ]);
-
-        if (statusRes.ok) {
-          const gitData = await statusRes.json();
-          const dot = document.querySelector('#act-btn-git span');
-          if (dot) dot.style.display = gitData.clean ? 'none' : 'block';
-        }
-
-        if (diffRes.ok) {
-          const diffData = await diffRes.json();
-          if (diffData.diff) {
-            renderRawUnifiedDiff(diffData.diff);
-          }
-        }
-      } catch (e) {}
-    }
-
-    function renderRawUnifiedDiff(diffText) {
-      const unifiedContainer = document.getElementById('diff-unified-view');
-      unifiedContainer.innerHTML = '';
-      const lines = diffText.split('\n');
-      lines.forEach((lineText, idx) => {
-        const div = document.createElement('div');
-        const isAdd = lineText.startsWith('+') && !lineText.startsWith('+++');
-        const isDel = lineText.startsWith('-') && !lineText.startsWith('---');
-        const isInfo = lineText.startsWith('@@') || lineText.startsWith('diff ');
-        div.className = `code-line flex items-center px-2 py-0.5 rounded font-mono text-xs ${isAdd ? 'diff-add font-medium' : isDel ? 'diff-del font-medium' : isInfo ? 'text-slate-500 font-semibold mb-1' : 'text-slate-400'}`;
-        div.innerHTML = `<span class="line-num">${idx + 1}</span><span>${escapeHtml(lineText)}</span>`;
-        unifiedContainer.appendChild(div);
-      });
-    }
-
-    async function triggerAutonomousTask(customGoal) {
-      playTone(600, 'triangle', 0.1);
-      const goal = customGoal || "Autonomous code inspection, AST verification and repair";
-      showToast("Autonomous ReAct Loop Initiated", "⚡");
-
-      try {
-        const res = await fetch('/v1/agent/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            goal: goal,
-            policy: "confirm_mutation",
-            steps: [
-              "Scan repository workspace and AST symbols",
-              "Localize target files and unverified lines",
-              "Formulate patch and test in ephemeral worktree",
-              "Run local 31 unit tests and record flight tape",
-              "Present verified diff for commit approval"
-            ]
-          })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          activeTask = data.task_id;
-          renderAgentPlan(data.state.plan);
-          appendAgentThought("Kora Autonomous Planner", `Task [${data.task_id}] dispatched: ${goal}`);
-        }
-      } catch (e) {
-        appendAgentThought("Kora Planner", "Agent loop running in local sandbox.");
-      }
-    }
-
-    function renderAgentPlan(planSteps) {
-      const container = document.getElementById('plan-steps-container');
-      if (!container) return;
-      container.innerHTML = '';
-
-      let completedCount = 0;
-      planSteps.forEach((step, idx) => {
-        const div = document.createElement('div');
-        if (step.status === 'completed') {
-          completedCount++;
-          div.className = "flex items-center gap-2 text-emeraldShield";
-          div.innerHTML = `<span>✓</span><span class="line-through text-slate-400">${idx+1}. ${escapeHtml(step.description)}</span>`;
-        } else if (step.status === 'running') {
-          div.className = "flex items-center gap-2 text-emeraldShield font-bold";
-          div.innerHTML = `<span class="animate-spin">●</span><span>${idx+1}. ${escapeHtml(step.description)}</span>`;
-        } else {
-          div.className = "flex items-center gap-2 text-slate-500";
-          div.innerHTML = `<span>○</span><span>${idx+1}. ${escapeHtml(step.description)}</span>`;
-        }
-        container.appendChild(div);
-      });
-
-      const counter = document.getElementById('plan-progress-counter');
-      if (counter) counter.textContent = `${completedCount} of ${planSteps.length} Complete`;
-    }
-
-    async function submitToolApproval(approved) {
-      playTone(approved ? 750 : 300, 'sine', 0.08);
-      document.getElementById('plan-approval-card').classList.add('hidden');
-      try {
-        await fetch(`/v1/agent/approve/${activeTask}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ approved })
-        });
-        showToast(approved ? "Tool execution allowed" : "Tool execution denied", approved ? "✓" : "✕");
-      } catch (e) {
-        showToast(approved ? "Allowed (sandbox)" : "Denied (sandbox)", approved ? "✓" : "✕");
-      }
-    }
-
-    function acceptDiffAndCommit() {
-      playTone(880, 'triangle', 0.12);
-      showToast("Diff accepted & committed into main branch!", "✓");
-    }
-
-    // 5. Air-Gap Shield
-    function toggleAirGap() {
-      airGapped = !airGapped;
-      playTone(airGapped ? 220 : 440, 'sawtooth', 0.1);
-      const btn = document.getElementById('airgap-btn');
-      const label = document.getElementById('airgap-label');
-      if (airGapped) {
-        btn.className = "flex items-center space-x-1.5 px-2 py-0.5 rounded border text-[10px] font-mono font-medium transition bg-emeraldShield/10 border-emeraldShield/40 text-emeraldShield hover:bg-emeraldShield/20 active:scale-95";
-        label.textContent = "AIR-GAP: ZERO-EGRESS";
-        showToast("Air-Gap Active: Zero network egress", "🔒");
-      } else {
-        btn.className = "flex items-center space-x-1.5 px-2 py-0.5 rounded border text-[10px] font-mono font-medium transition bg-amberGate/10 border-amberGate/40 text-amberGate hover:bg-amberGate/20 active:scale-95";
-        label.textContent = "HYBRID CLOUD ALLOWED";
-        showToast("Hybrid cloud mode enabled", "🌐");
-      }
-    }
-
-    // 6. Flight Scrubber
-    function handleScrub(val) {
-      currentFrame = parseInt(val);
-      document.getElementById('flight-frame-val').textContent = currentFrame;
-      document.getElementById('flight-scrubber').value = currentFrame;
-      playTone(400 + currentFrame * 40, 'sine', 0.03);
-
-      const frames = {
-        1: { badge: "FAILURE DETECTED", thought: "Frame 1: Intercepted SyntaxError at line 88. Zero regex modifications allowed." },
-        2: { badge: "AST TRANSFORMING", thought: "Frame 2: Synthesizing AST visitor SyntaxErrorHealingTransformer." },
-        3: { badge: "VERIFICATION PROBE", thought: "Frame 3: Ephemeral worktree probe running test suite." },
-        4: { badge: "VERIFIED GREEN", thought: "Frame 4: 22 tests passing in 0.10s. Ready for developer commit approval." }
-      };
-
-      const f = frames[currentFrame];
-      if (f) {
-        document.getElementById('flight-status-badge').textContent = f.badge;
-        appendAgentThought("Flight Scrubber", f.thought);
-      }
-    }
-
-    function flightStepBack() {
-      if (currentFrame > 1) handleScrub(currentFrame - 1);
-    }
-
-    function flightStepForward() {
-      if (currentFrame < 4) handleScrub(currentFrame + 1);
-    }
-
-    function forkCurrentTimeline() {
-      playTone(659, 'triangle', 0.12);
-      showToast("Forked timeline branch: task_self_heal_fork.flight", "⑂");
-    }
-
-    // 7. Terminal Parser
-    function handleTerminalEnter(e, input) {
-      if (e.key === 'Enter') {
-        const cmd = input.value.trim();
-        if (!cmd) return;
-        playTone(550, 'sine', 0.04);
-        const canvas = document.getElementById('drawer-terminal');
-        const line = document.createElement('div');
-        line.innerHTML = `<span class="text-emeraldShield">kora@sandbox:~$</span> ${escapeHtml(cmd)}`;
-        canvas.appendChild(line);
-
-        const resp = document.createElement('div');
-        resp.className = "text-slate-400";
-        if (cmd === 'clear') {
-          canvas.innerHTML = '';
-        } else if (cmd.includes('doctor')) {
-          resp.className = "text-emeraldShield";
-          resp.textContent = "[+] Kora Diagnostics: Database connected, DLP guard armed, 22/22 unit tests green.";
-        } else if (cmd.includes('spec')) {
-          resp.className = "text-accentCobalt";
-          resp.textContent = "[+] Speculative Decoding: 2.58x measured tandem speedup (0.5B draft + 7B target).";
-        } else if (cmd.includes('heal')) {
-          resp.className = "text-emeraldShield";
-          resp.textContent = "[+] AST Self-Healing: Patched SyntaxError in ephemeral worktree (0 syntax errors).";
-        } else {
-          resp.textContent = `Executed in ephemeral worktree (exit code 0).`;
-        }
-        if (cmd !== 'clear') canvas.appendChild(resp);
-        input.value = '';
-        canvas.scrollTop = canvas.scrollHeight;
-      }
-    }
-
-    // 8. Agent Thought Streaming & Chat
-    function appendAgentThought(sender, text) {
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = "bg-surfaceLight/40 p-2.5 rounded border border-white/5 space-y-1";
-      msgDiv.innerHTML = `<div class="font-bold text-accentCobalt text-[10px] flex justify-between"><span>${escapeHtml(sender)}</span><span class="text-slate-500 font-mono text-[9px]">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-300 leading-relaxed text-[11px]">${escapeHtml(text)}</p>`;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function handleSend(e) {
-      e.preventDefault();
-      const input = document.getElementById('prompt-input');
-      const val = input.value.trim();
-      if (!val) return;
-      playTone(520, 'sine', 0.05);
-
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = "bg-white/[0.04] p-2.5 rounded border border-white/5 space-y-1";
-      msgDiv.innerHTML = `<div class="font-bold text-white text-[10px] flex justify-between"><span>User</span><span class="text-slate-500 font-mono text-[9px]">${new Date().toLocaleTimeString()}</span></div><p class="text-slate-200 leading-relaxed text-[11px]">${escapeHtml(val)}</p>`;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-      input.value = '';
-
-      setTimeout(() => {
-        playTone(700, 'triangle', 0.08);
-        appendAgentThought("Kora Planner Agent", `Instruction received: Autonomous AST engine analyzing repository for "${val}"...`);
-      }, 500);
-    }
-
-    // 9. Command Palette Modal (Cmd+K)
-    function openCommandPalette() {
-      playTone(600, 'sine', 0.05);
-      const modal = document.getElementById('cmd-palette-modal');
-      modal.classList.remove('hidden');
-      const input = document.getElementById('cmd-palette-input');
-      input.value = '';
-      input.focus();
-    }
-
-    function closeCommandPalette() {
-      document.getElementById('cmd-palette-modal').classList.add('hidden');
-    }
-
-    let paletteDebounceTimer = null;
-
-    function filterPalette(val) {
-      const q = val.toLowerCase().trim();
-      document.querySelectorAll('.palette-item').forEach(item => {
-        item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
-      });
-
-      if (q.length >= 2) {
-        clearTimeout(paletteDebounceTimer);
-        paletteDebounceTimer = setTimeout(async () => {
-          try {
-            const res = await fetch(`/v1/index/search?q=${encodeURIComponent(q)}&top_k=5`);
-            if (!res.ok) return;
-            const data = await res.json();
-            const list = document.getElementById('cmd-palette-list');
-            
-            // Remove previous dynamic symbol matches
-            document.querySelectorAll('.palette-symbol-hit').forEach(el => el.remove());
-
-            (data.results || []).forEach(hit => {
-              const div = document.createElement('div');
-              div.className = 'palette-symbol-hit px-2.5 py-1.5 rounded hover:bg-accentCobalt hover:text-white cursor-pointer flex items-center justify-between text-slate-200 bg-white/[0.02] border-l-2 border-accentCobalt text-xs';
-              div.onclick = () => {
-                closeCommandPalette();
-                openWorkspaceFile(hit.file_path);
-              };
-              const kindIcon = hit.kind === 'class' ? '🔷' : hit.kind === 'function' ? '⚡' : '🔹';
-              div.innerHTML = `
-                <div class="truncate flex items-center gap-1.5">
-                  <span>${kindIcon}</span>
-                  <span class="font-bold text-white">${escapeHtml(hit.name)}</span>
-                  <span class="text-slate-400 font-mono text-[10px] truncate">${escapeHtml(hit.file_path)}:${hit.line_number}</span>
-                </div>
-                <kbd class="text-[9px] font-mono text-emeraldShield">${hit.kind.toUpperCase()}</kbd>
-              `;
-              list.insertBefore(div, list.firstChild);
-            });
-          } catch (e) {}
-        }, 150);
-      }
-    }
-
-    function executePaletteAction(action) {
-      closeCommandPalette();
-      if (action === 'open-self-healing') openFileInTab('core/agent/self_healing.py');
-      else if (action === 'open-speculative') openFileInTab('core/models/speculative.py');
-      else if (action === 'open-mesh') openFileInTab('core/orchestration/p2p_mesh.py');
-      else if (action === 'toggle-airgap') toggleAirGap();
-      else if (action === 'run-tests') {
-        switchBottomTab('healing');
-        triggerSelfHealingUI();
-      }
-    }
-
-    function triggerSelfHealingUI() {
-      playTone(620, 'sine', 0.08);
-      const logEl = document.getElementById('heal-log');
-      logEl.innerHTML = `<div class="text-amberGate animate-pulse">Running AST repair loop in ephemeral worktree...</div>`;
-
-      setTimeout(() => {
-        playTone(880, 'triangle', 0.15);
-        logEl.innerHTML = `
-          <div class="text-emeraldShield font-bold">[✓] REPAIR VERIFIED (Attempt 1 of 3):</div>
-          <div class="text-slate-300">Ran: 22 tests in 0.102s — OK (Zero syntax errors).</div>
-          <pre class="bg-black/60 p-2 rounded text-emeraldShield text-[10px] mt-1">+ ast.fix_missing_locations(repaired_tree)\n+ return ASTRepairResult(success=True)</pre>
-        `;
-        showToast("AST Repair verified in ephemeral worktree", "✓");
-      }, 700);
-    }
-
-    function selectRail(rail) {
-      currentRail = rail;
-      playTone(500, 'sine', 0.04);
-      document.getElementById('payment-output').innerHTML = `
-        <div class="text-emeraldShield font-bold">Signed Intent Generated: intent_${Date.now().toString(16)} [READY]</div>
-        <div class="text-slate-300">Rail: <strong>${rail.toUpperCase()}</strong> | Amount: <strong>1,000 KES (~$7.70 USD)</strong></div>
-      `;
-      showToast(`Selected rail: ${rail.toUpperCase()}`, '💳');
-    }
-
-    function showToast(msg, icon = '✓') {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-message').textContent = msg;
-      document.getElementById('toast-icon').textContent = icon;
-      toast.classList.remove('opacity-0');
-      toast.classList.add('opacity-100');
-      setTimeout(() => {
-        toast.classList.remove('opacity-100');
-        toast.classList.add('opacity-0');
-      }, 2200);
-    }
-
-    function copyToClipboard(text, msg = 'Copied to clipboard') {
-      navigator.clipboard.writeText(text).then(() => {
-        playTone(660, 'sine', 0.05);
-        showToast(msg, '📋');
-      });
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // 10. Global Keyboard Shortcuts
-    window.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'p')) {
-        e.preventDefault();
-        openCommandPalette();
-      } else if (e.key === 'Escape') {
-        closeCommandPalette();
-      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        saveActiveFile();
-      } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        e.preventDefault();
-        acceptDiffAndCommit();
-      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        toggleSidebar();
-      } else if (e.altKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        toggleAirGap();
-      } else if (e.key === '[' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        toggleSidebar();
-      } else if (e.key === ']' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        toggleAgentPanel();
-      } else if (e.key === '`' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        toggleBottomDrawer();
-      }
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      renderActiveDiff();
-      initMonaco();
-      loadWorkspaceTree();
-      loadGitStatusAndDiff();
-    });
-  </script>
+  <div id="onboard" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/60" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
+    <div class="w-[min(30rem,100%)] rounded-2xl border border-ide-border bg-ide-sidebar p-6 space-y-4 shadow-2xl enter">
+      <p id="onboard-step" class="section-title text-accent"></p>
+      <h2 id="onboard-title" class="text-lg font-semibold"></h2>
+      <p id="onboard-body" class="text-sm text-ide-muted"></p>
+      <div class="flex justify-between"><button id="onboard-skip" class="btn-ghost" data-i18n="skipTour">Skip</button><button id="onboard-next" class="btn-primary" data-i18n="next">Next</button></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" class="fixed bottom-8 end-4 z-50 px-3 py-2 rounded-lg border border-ide-border bg-ide-sidebar text-xs shadow-xl opacity-0 pointer-events-none transition-opacity"></div>
+
+  <script src="/studio/assets/monaco/vs/loader.js"></script>
+  <script src="/studio/assets/studio.js"></script>
 </body>
 </html>
