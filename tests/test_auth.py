@@ -35,7 +35,7 @@ def test_public_routes_need_no_token(client):
     assert client.get("/").status_code == 200
 
 
-@pytest.mark.parametrize("path", ["/v1/tasks", "/v1/memories", "/v1/flight/tapes", "/v1/mesh/peers", "/v1/studio/status", "/v1/audit"])
+@pytest.mark.parametrize("path", ["/v1/tasks", "/v1/memories", "/v1/flight/tapes", "/v1/mesh/peers", "/v1/studio/status", "/v1/audit", "/v1/files/tree", "/v1/git/status", "/v1/index/repomap", "/v1/agent/status/x"])
 def test_api_rejects_missing_or_bad_token(client, path):
     assert client.get(path).status_code == 401
     assert client.get(path, headers=bearer("kora_not-a-real-token")).status_code == 401
@@ -130,3 +130,14 @@ def test_websocket_messages_enforce_role(client, owner):
         ws.send_json({"type": "run_self_healing", "test_command": "touch /tmp/should-not-run"})
         msg = ws.receive_json()
         assert msg["type"] == "error" and "execute_agent" in msg["message"]
+
+
+@pytest.mark.parametrize("path,body", [
+    ("/v1/files/save", {"path": "should-not-exist.txt", "content": "x"}),
+    ("/v1/agent/run", {"goal": "noop"}),
+    ("/v1/agent/approve/x", {"approved": True}),
+])
+def test_workspace_and_agent_mutations_need_tokens_and_roles(client, owner, path, body):
+    assert client.post(path, json=body).status_code == 401
+    aud = bearer(mint(client, owner, "auditor")["token"])
+    assert client.post(path, json=body, headers=aud).status_code == 403
