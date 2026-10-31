@@ -16,4 +16,5 @@ async def test_kora_dev_studio_html_endpoint():
         # Check /studio
         resp_studio = await client.get("/studio")
         assert resp_studio.status_code == 200
-        assert "Multi-File Diff" in resp_studio.text
+        assert "Kora Dev Studio" in resp_studio.text
+        assert "Diffs (Unified & Split)" in resp_studio.text
