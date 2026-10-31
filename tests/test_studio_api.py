@@ -75,3 +75,27 @@ async def test_git_output_larger_than_pipe_buffer_is_truncated_without_hanging()
 
     rc, out = await asyncio.wait_for(studio._git("log", "-p", "--all", limit=300_000), timeout=20)
     assert len(out.encode()) <= 300_000 + 65536
+
+
+def test_agent_actions_broadcast_state_and_save_flight_tape(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "notes.txt").write_text("hello\n")
+    from core.api import routes
+    from core.storage.workspace_fs import WorkspaceFilesystem
+    monkeypatch.setattr(routes, "_workspace_fs", WorkspaceFilesystem(root_dir=str(tmp_path)))
+    with TestClient(app) as client, client.websocket_connect("/v1/ws/studio") as ws:
+        ws.receive_json()
+        run = client.post("/v1/agent/run", json={"task_id": "tape_check", "goal": "Edit notes", "steps": ["Edit notes"]}).json()
+        started = ws.receive_json()
+        assert (started["type"], started["task_id"], started["state"]) == ("agent_loop_updated", "tape_check", run["state"])
+        step = client.post("/v1/agent/step/tape_check", json={"tool_name": "write_file", "arguments": {"path": "notes.txt", "content": "bye\n"}, "step_id": "step_1"}).json()
+        assert step["step_result"]["status"] == "paused_for_approval"
+        paused = ws.receive_json()
+        assert paused["type"] == "agent_loop_updated" and paused["state"]["pending_approval"]["tool_name"] == "write_file"
+        client.post("/v1/agent/approve/tape_check", json={"approved": True})
+        done = ws.receive_json()
+        assert done["state"]["plan"][0]["status"] == "completed"
+    assert (tmp_path / "notes.txt").read_text() == "bye\n"
+    tape = client.get("/v1/flight/tape/tape_check").json()
+    kinds = [e["event_type"] for e in tape["events"]]
+    assert kinds == ["plan_initialized", "approval_requested", "approval_granted", "tool:write_file"]

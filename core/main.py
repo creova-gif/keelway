@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from core.config import settings
 from core.security.origin import extra_origins, origin_allowed
@@ -96,6 +97,7 @@ app.include_router(auth_router)
 # Mount Kora Dev Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
 index_file = studio_dir / "index.html"
+app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
 
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
 @app.get("/", response_class=HTMLResponse, tags=["Studio"])

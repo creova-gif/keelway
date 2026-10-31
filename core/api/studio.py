@@ -97,6 +97,23 @@ def parse_unified_diff(text: str) -> List[Dict[str, Any]]:
     return files
 
 
+_HARDWARE: Dict[str, Any] = {}
+
+
+def _hardware() -> Dict[str, Any]:
+    """Host facts from the edge runtime probe (cached; RAM/arch don't change while running)."""
+    if not _HARDWARE:
+        from core.models.edge_loader import EdgeRuntimeManager
+        hw = EdgeRuntimeManager().detect_hardware()
+        _HARDWARE.update({
+            "arch": hw.arch,
+            "apple_silicon": hw.is_apple_silicon,
+            "ram_gb": hw.estimated_ram_gb,
+            "recommended_model": hw.recommended_model,
+        })
+    return _HARDWARE
+
+
 @router.get("/status")
 async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     """Live runtime facts shown in the Studio header, status bar, and telemetry panel."""
@@ -121,6 +138,7 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
             "local": True,
         },
         "local_model": settings.default_local_model,
+        "hardware": _hardware(),
         "git": {
             "branch": branch.strip() if branch_rc == 0 else None,
             "sha": sha.strip() if sha_rc == 0 else None,

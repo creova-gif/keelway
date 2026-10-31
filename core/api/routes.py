@@ -6,7 +6,7 @@ import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, WebSocketException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -673,6 +673,21 @@ from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
 
 
+async def _publish_agent(agent: AutonomousAgentLoop) -> Dict[str, Any]:
+    """Persist the agent's flight tape and push its new state to every Studio client."""
+    state = agent.get_state()
+    if agent.flight_recorder and agent.flight_recorder.events:
+        agent.flight_recorder.recordings_dir = FLIGHT_RECORDINGS_DIR
+        agent.flight_recorder.save_tape()
+    await ws_manager.broadcast({
+        "type": "agent_loop_updated",
+        "task_id": agent.task_id,
+        "state": state,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    return state
+
+
 @router.post("/v1/agent/run", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
 async def run_agent_task(payload: dict, principal: Principal = Depends(current_principal)):
     """Initialize and run an autonomous agent engineering task."""
@@ -703,7 +718,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         "task_id": task_id,
         "goal": goal,
         "policy": agent.policy.value,
-        "state": agent.get_state(),
+        "state": await _publish_agent(agent),
     }
 
 
@@ -742,7 +757,7 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
         return {
             "task_id": task_id,
             "step_result": res,
-            "agent_state": agent.get_state(),
+            "agent_state": await _publish_agent(agent),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -760,7 +775,7 @@ async def approve_agent_action(task_id: str, payload: dict):
     return {
         "task_id": task_id,
         "approval_result": res,
-        "agent_state": agent.get_state(),
+        "agent_state": await _publish_agent(agent),
     }
 
 
