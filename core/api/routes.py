@@ -29,8 +29,10 @@ from core.api.schemas import (
 )
 from core.config import settings
 from core.models.gateway import gateway
+from core.security.auth import LOCAL_OWNER, Principal, current_principal, principal_for_token, record_audit, require, token_from_headers
 from core.security.origin import origin_allowed
-from core.orchestration.state import validate_transition, InvalidStateTransitionError
+from core.security.rbac import Permission
+from core.orchestration.state import TaskState, validate_transition, InvalidStateTransitionError
 from core.orchestration.workflows import (
     EngineeringBriefWorkflow,
     ResearchSummaryWorkflow,
@@ -56,7 +58,7 @@ async def health_check() -> HealthResponse:
     )
 
 
-@router.post("/v1/completions", response_model=CompletionResponseSchema, tags=["Inference"])
+@router.post("/v1/completions", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], response_model=CompletionResponseSchema, tags=["Inference"])
 async def create_completion(request: CompletionRequestSchema) -> CompletionResponseSchema:
     """Route completion through model gateway with failover."""
     try:
@@ -73,12 +75,13 @@ async def create_completion(request: CompletionRequestSchema) -> CompletionRespo
 async def create_task(
     request: TaskCreateRequest,
     db: AsyncSession = Depends(get_db),
+    principal: Principal = Depends(require(Permission.EXECUTE_AGENT)),
 ) -> TaskResponse:
     """Create a new durable task."""
     task = TaskRecord(
         title=request.title,
         description=request.description,
-        owner=request.owner,
+        owner=principal.actor if request.owner == "anonymous" else request.owner,
         budget_usd=request.budget_usd,
         payload=request.payload,
     )
@@ -90,7 +93,7 @@ async def create_task(
     return response
 
 
-@router.get("/v1/tasks", response_model=List[TaskResponse], tags=["Tasks"])
+@router.get("/v1/tasks", dependencies=[Depends(current_principal)], response_model=List[TaskResponse], tags=["Tasks"])
 async def list_tasks(
     limit: int = 50,
     offset: int = 0,
@@ -103,7 +106,7 @@ async def list_tasks(
     return [TaskResponse.model_validate(t) for t in tasks]
 
 
-@router.get("/v1/tasks/{task_id}", response_model=TaskResponse, tags=["Tasks"])
+@router.get("/v1/tasks/{task_id}", dependencies=[Depends(current_principal)], response_model=TaskResponse, tags=["Tasks"])
 async def get_task(
     task_id: str,
     db: AsyncSession = Depends(get_db),
@@ -122,6 +125,7 @@ async def transition_task(
     task_id: str,
     request: TaskTransitionRequest,
     db: AsyncSession = Depends(get_db),
+    principal: Principal = Depends(require(Permission.EXECUTE_AGENT)),
 ) -> TaskResponse:
     """Transition a task state with strict validation."""
     query = select(TaskRecord).where(TaskRecord.id == task_id)
@@ -135,6 +139,15 @@ async def transition_task(
     except InvalidStateTransitionError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
+    if task.state == TaskState.AWAITING_APPROVAL and request.target_state == TaskState.RUNNING:
+        approved = principal.can(Permission.APPROVE_TIER3)
+        await record_audit(principal, Permission.APPROVE_TIER3.value, f"approve task {task_id}", approved)
+        if not approved:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Approving a task requires '{Permission.APPROVE_TIER3.value}' (admin or owner).",
+            )
+
     previous_state = task.state
     task.state = request.target_state
     await db.flush()
@@ -146,6 +159,7 @@ async def transition_task(
 
 @router.post(
     "/v1/workflows/engineering-brief",
+    dependencies=[Depends(require(Permission.EXECUTE_AGENT))],
     response_model=EngineeringBriefResponse,
     status_code=status.HTTP_200_OK,
     tags=["Workflows"],
@@ -175,6 +189,7 @@ async def generate_engineering_brief(
 
 @router.post(
     "/v1/workflows/research-summary",
+    dependencies=[Depends(require(Permission.EXECUTE_AGENT))],
     response_model=ResearchSummaryResponse,
     status_code=status.HTTP_200_OK,
     tags=["Workflows"],
@@ -205,6 +220,7 @@ async def generate_research_summary(
 
 @router.post(
     "/v1/workflows/sandbox-test",
+    dependencies=[Depends(require(Permission.EXECUTE_AGENT))],
     response_model=SandboxTestResponse,
     status_code=status.HTTP_200_OK,
     tags=["Workflows"],
@@ -241,7 +257,7 @@ async def execute_sandboxed_tests(
         )
 
 
-@router.get("/v1/memories", response_model=List[MemoryResponse], tags=["Memory"])
+@router.get("/v1/memories", dependencies=[Depends(current_principal)], response_model=List[MemoryResponse], tags=["Memory"])
 async def search_memories(
     q: Optional[str] = None,
     scope: Optional[str] = None,
@@ -260,7 +276,7 @@ async def search_memories(
     return [MemoryResponse.model_validate(r) for r in records]
 
 
-@router.post("/v1/memories", response_model=MemoryResponse, status_code=status.HTTP_201_CREATED, tags=["Memory"])
+@router.post("/v1/memories", dependencies=[Depends(require(Permission.MANAGE_MEMORIES))], response_model=MemoryResponse, status_code=status.HTTP_201_CREATED, tags=["Memory"])
 async def create_or_update_memory(
     request: MemoryCreateRequest,
     db: AsyncSession = Depends(get_db),
@@ -277,7 +293,7 @@ async def create_or_update_memory(
     return MemoryResponse.model_validate(record)
 
 
-@router.get("/v1/memories/{key}", response_model=MemoryResponse, tags=["Memory"])
+@router.get("/v1/memories/{key}", dependencies=[Depends(current_principal)], response_model=MemoryResponse, tags=["Memory"])
 async def get_memory(
     key: str,
     scope: str = "project",
@@ -292,7 +308,7 @@ async def get_memory(
     return MemoryResponse.model_validate(record)
 
 
-@router.delete("/v1/memories/{key}", status_code=status.HTTP_204_NO_CONTENT, tags=["Memory"])
+@router.delete("/v1/memories/{key}", dependencies=[Depends(require(Permission.MANAGE_MEMORIES))], status_code=status.HTTP_204_NO_CONTENT, tags=["Memory"])
 async def delete_memory(
     key: str,
     scope: str = "project",
@@ -345,6 +361,24 @@ async def websocket_studio_endpoint(websocket: WebSocket):
     """Real-time bidirectional channel for Kora Dev Studio events, diffs, and thought streaming."""
     if not origin_allowed(websocket.headers.get("origin"), websocket.headers.get("host")):
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Origin not allowed.")
+    if settings.auth_required:
+        principal = await principal_for_token(websocket.query_params.get("token") or token_from_headers(websocket.headers))
+        if principal is None:
+            raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Missing or invalid API token.")
+    else:
+        principal = LOCAL_OWNER
+
+    async def permitted(permission: Permission, resource: str) -> bool:
+        allowed = principal.can(permission)
+        await record_audit(principal, permission.value, f"WS {resource}", allowed)
+        if not allowed:
+            await websocket.send_json({
+                "type": "error",
+                "message": f"Role '{principal.role.value}' lacks permission '{permission.value}'.",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+        return allowed
+
     await ws_manager.connect(websocket)
     try:
         # Send initial connection handshake
@@ -362,6 +396,8 @@ async def websocket_studio_endpoint(websocket: WebSocket):
             if event_type == "ping":
                 await websocket.send_json({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()})
             elif event_type == "toggle_air_gap":
+                if not await permitted(Permission.APPROVE_TIER3, "toggle_air_gap"):
+                    continue
                 new_state = data.get("enabled", True)
                 gateway.air_gap.enabled = new_state
                 await ws_manager.broadcast({
@@ -370,6 +406,8 @@ async def websocket_studio_endpoint(websocket: WebSocket):
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
             elif event_type == "execute_instruction":
+                if not await permitted(Permission.EXECUTE_AGENT, "execute_instruction"):
+                    continue
                 prompt = data.get("prompt", "")
                 # Broadcast synthetic thinking / processing event
                 await websocket.send_json({
@@ -379,6 +417,8 @@ async def websocket_studio_endpoint(websocket: WebSocket):
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
             elif event_type == "run_self_healing":
+                if not await permitted(Permission.EXECUTE_AGENT, "run_self_healing"):
+                    continue
                 from core.orchestration.self_healing import SelfHealingLoop
                 test_cmd = data.get("test_command", "python3 -m unittest")
                 loop = SelfHealingLoop()
@@ -397,7 +437,7 @@ async def websocket_studio_endpoint(websocket: WebSocket):
         ws_manager.disconnect(websocket)
 
 
-@router.post("/v1/healing/repair", tags=["Autonomous Self-Healing"])
+@router.post("/v1/healing/repair", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Self-Healing"])
 async def trigger_self_healing(payload: dict):
     """Trigger autonomous AST fault localization and closed-loop test repair."""
     from core.orchestration.self_healing import SelfHealingLoop
@@ -415,7 +455,7 @@ async def trigger_self_healing(payload: dict):
     }
 
 
-@router.post("/v1/payments/intent", tags=["Global Sovereign Settlement"])
+@router.post("/v1/payments/intent", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Global Sovereign Settlement"])
 async def create_payment_intent(payload: dict):
     """Generate sovereign multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher)."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
@@ -454,7 +494,7 @@ def _tape_path(task_id: str) -> Path:
     return FLIGHT_RECORDINGS_DIR / f"{task_id}.flight.json"
 
 
-@router.get("/v1/flight/tapes", tags=["Deterministic Flight Recorder"])
+@router.get("/v1/flight/tapes", dependencies=[Depends(current_principal)], tags=["Deterministic Flight Recorder"])
 async def list_flight_tapes():
     """List all recorded deterministic agent execution tapes."""
     recordings_dir = FLIGHT_RECORDINGS_DIR
@@ -466,7 +506,7 @@ async def list_flight_tapes():
     return {"tapes": tapes}
 
 
-@router.get("/v1/flight/tape/{task_id}", tags=["Deterministic Flight Recorder"])
+@router.get("/v1/flight/tape/{task_id}", dependencies=[Depends(current_principal)], tags=["Deterministic Flight Recorder"])
 async def get_flight_tape(task_id: str):
     """Retrieve full execution tape with all chronological step frames."""
     tape_file = _tape_path(task_id)
@@ -476,7 +516,7 @@ async def get_flight_tape(task_id: str):
     return json.loads(tape_file.read_text(encoding="utf-8"))
 
 
-@router.post("/v1/flight/fork", tags=["Deterministic Flight Recorder"])
+@router.post("/v1/flight/fork", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Deterministic Flight Recorder"])
 async def fork_flight_tape(payload: dict):
     """Fork an execution timeline at a specific step index to explore alternative solutions."""
     from core.orchestration.flight_recorder import FlightPlayer
@@ -504,7 +544,7 @@ async def fork_flight_tape(payload: dict):
     }
 
 
-@router.get("/v1/mesh/peers", tags=["Local Team Mesh"])
+@router.get("/v1/mesh/peers", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
 async def list_mesh_peers():
     """List peer developer workstations discovered on local Wi-Fi / Tailscale."""
     from core.orchestration.p2p_mesh import LocalTeamMesh

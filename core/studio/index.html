@@ -23,6 +23,7 @@
         <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-10 6"/></svg>
         <span id="git-ref-text">—</span>
       </span>
+      <span id="role-chip" class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-borderSubtle text-slate-400 bg-surfaceLight" title="Your role"></span>
       <span id="ws-status" role="status" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium text-amber-300 bg-amberGate/10 border border-amberGate/30">
         <span id="ws-dot" class="w-1.5 h-1.5 rounded-full bg-amberGate" aria-hidden="true"></span>
         <span id="ws-label" class="whitespace-nowrap">Connecting</span>
@@ -99,6 +100,7 @@
         <button role="tab" id="tab-healing" aria-controls="panel-healing" data-tab="healing" class="tab">Self-Healing</button>
         <button role="tab" id="tab-payments" aria-controls="panel-payments" data-tab="payments" class="tab">Payments</button>
         <button role="tab" id="tab-console" aria-controls="panel-console" data-tab="console" class="tab">Console</button>
+        <button role="tab" id="tab-audit" aria-controls="panel-audit" data-tab="audit" class="tab">Audit</button>
       </div>
 
       <!-- Diff -->
@@ -229,6 +231,24 @@
           <input id="console-input" spellcheck="false" placeholder="Type help" class="flex-1 bg-transparent font-mono text-xs text-white placeholder-slate-600 focus:outline-none">
         </form>
       </section>
+      <!-- Audit -->
+      <section role="tabpanel" id="panel-audit" aria-labelledby="tab-audit" tabindex="0" class="panel flex-1 flex-col min-h-0 hidden">
+        <div class="h-10 px-4 border-b border-borderSubtle flex items-center justify-between gap-3 shrink-0">
+          <p id="audit-chain" class="text-xs text-slate-400 truncate">Every permission decision is appended to a SHA-256 hash chain.</p>
+          <div class="flex gap-2">
+            <button id="audit-verify" type="button" class="btn-secondary">Verify chain</button>
+            <button id="audit-refresh" type="button" class="btn-ghost">Refresh</button>
+          </div>
+        </div>
+        <div class="flex-1 overflow-auto">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-surface text-[11px] uppercase tracking-wider text-slate-500">
+              <tr><th scope="col" class="text-left font-medium px-4 py-2 w-14">#</th><th scope="col" class="text-left font-medium px-2 py-2">When</th><th scope="col" class="text-left font-medium px-2 py-2">Actor</th><th scope="col" class="text-left font-medium px-2 py-2">Permission</th><th scope="col" class="text-left font-medium px-2 py-2">Resource</th><th scope="col" class="text-left font-medium px-2 py-2">Decision</th><th scope="col" class="text-left font-medium px-4 py-2">Hash</th></tr>
+            </thead>
+            <tbody id="audit-body"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <!-- Right: runtime / copilot -->
@@ -291,6 +311,28 @@
     </div>
   </div>
 
+  <div id="signin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-obsidian/90 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+    <form id="signin-form" class="w-[min(28rem,100%)] rounded-xl border border-borderSubtle bg-surface p-6 space-y-4 shadow-2xl panel-enter">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-accentBlue to-accentCobalt flex items-center justify-center font-bold text-white" aria-hidden="true">K</div>
+        <div>
+          <h2 id="signin-title" class="text-base font-semibold text-white">Sign in to Kora</h2>
+          <p class="text-xs text-slate-400">This runtime requires an API token.</p>
+        </div>
+      </div>
+      <ol class="text-xs text-slate-400 space-y-1 list-decimal list-inside">
+        <li>Open the Studio link printed by <code class="font-mono text-slate-200">kora dev</code>, or</li>
+        <li>paste a token from <code class="font-mono text-slate-200">kora token create --name me</code>.</li>
+      </ol>
+      <div>
+        <label for="signin-token" class="label">API token</label>
+        <input id="signin-token" type="password" required autocomplete="off" spellcheck="false" placeholder="kora_…" class="input w-full font-mono">
+      </div>
+      <p id="signin-error" class="hidden text-xs text-red-400" role="alert"></p>
+      <button type="submit" class="btn-primary w-full h-9">Sign in</button>
+    </form>
+  </div>
+
   <div id="toast" role="status" class="fixed bottom-8 right-4 z-50 px-3.5 py-2 rounded-lg border text-xs shadow-xl opacity-0 pointer-events-none transition-opacity duration-150 bg-surfaceCard border-white/10 text-white"></div>
 
 
@@ -322,12 +364,19 @@
     created: 'bg-slate-500', planned: 'bg-sky-500', awaiting_approval: 'bg-amberGate', running: 'bg-accentBlue',
     verifying: 'bg-violet-500', completed: 'bg-emeraldShield', failed: 'bg-crimsonKill', cancelled: 'bg-slate-600',
   };
-  const TABS = ['diff', 'tasks', 'memory', 'flight', 'healing', 'payments', 'console'];
+  const TABS = ['diff', 'tasks', 'memory', 'flight', 'healing', 'payments', 'console', 'audit'];
+
+  const urlToken = new URLSearchParams(location.search).get('token');
+  if (urlToken) {
+    localStorage.setItem('kora.token', urlToken);
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
+  const authToken = () => localStorage.getItem('kora.token');
 
   const state = {
     status: null, tasks: [], tapes: [], diff: null, selectedFile: null,
     tape: null, tapeId: null, cursor: 0, airGapped: null, ws: null, wsRetry: 0,
-    sound: localStorage.getItem('kora.sound') !== 'off', tab: 'diff', focusTask: null,
+    sound: localStorage.getItem('kora.sound') !== 'off', me: null, tab: 'diff', focusTask: null,
     consoleHistory: [], consoleIndex: 0,
   };
 
@@ -350,14 +399,17 @@
   }
 
   async function api(path, { method = 'GET', body } = {}) {
+    const headers = body !== undefined ? { 'Content-Type': 'application/json' } : {};
+    if (authToken()) headers.Authorization = `Bearer ${authToken()}`;
     const res = await fetch(path, {
       method,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : {},
+      headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
     const text = await res.text();
     let data = null;
     try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    if (res.status === 401) showSignIn();
     if (!res.ok) {
       const d = data && data.detail;
       throw new Error(typeof d === 'string' ? d : Array.isArray(d) ? d.map((x) => x.msg).join('; ') : `HTTP ${res.status}`);
@@ -446,6 +498,7 @@
     history.replaceState(null, '', `#${tab}`);
     closeMobileDrawers();
     if (tab === 'diff') loadDiff();
+    if (tab === 'audit') loadAudit();
     if (tab === 'console') $('console-input').focus();
     if (tab === 'flight' && !state.tapeId && state.tapes.length) openTape(state.tapes[state.tapes.length - 1]);
   }
@@ -935,6 +988,7 @@
     { label: 'New task', run: () => { openTaskForm(); } },
     { label: 'Refresh everything', hint: 'Alt+R', run: () => refreshAll(true) },
     { label: 'Toggle interface sounds', run: () => setSound(!state.sound) },
+    { label: 'Sign out', run: signOut },
     { label: 'Toggle workspace explorer', run: () => toggleDrawer('sidebar', 'toggle-left') },
     { label: 'Toggle runtime panel', run: () => toggleDrawer('copilot', 'toggle-right') },
   ];
@@ -1012,6 +1066,103 @@
     if (announce) toast('Refreshed');
   }
 
+  // ---------- auth ----------
+  const signInOpen = () => !$('signin').classList.contains('hidden');
+
+  function showSignIn(message) {
+    const box = $('signin');
+    if (!signInOpen()) {
+      box.classList.remove('hidden');
+      box.classList.add('flex');
+      setWs('Signed out', 'warn');
+      setTimeout(() => $('signin-token').focus(), 0);
+    }
+    $('signin-error').textContent = message || '';
+    $('signin-error').classList.toggle('hidden', !message);
+  }
+
+  function hideSignIn() {
+    $('signin').classList.add('hidden');
+    $('signin').classList.remove('flex');
+  }
+
+  async function loadMe() {
+    state.me = await api('/v1/auth/whoami');
+    const chip = $('role-chip');
+    chip.textContent = state.me.auth_required ? `${state.me.role} · ${state.me.actor}` : 'auth off';
+    chip.title = `Permissions: ${state.me.permissions.join(', ')}`;
+    return state.me;
+  }
+
+  async function signIn(e) {
+    e.preventDefault();
+    const token = $('signin-token').value.trim();
+    if (!token) return;
+    localStorage.setItem('kora.token', token);
+    try {
+      await loadMe();
+      $('signin-token').value = '';
+      hideSignIn();
+      toast(`Signed in as ${state.me.actor}`);
+      await startSession();
+    } catch (err) {
+      localStorage.removeItem('kora.token');
+      showSignIn(err.message === 'Missing or invalid API token.' ? 'That token was not accepted.' : err.message);
+    }
+  }
+
+  function signOut() {
+    localStorage.removeItem('kora.token');
+    state.me = null;
+    $('role-chip').textContent = '';
+    const ws = state.ws;
+    state.ws = null;
+    if (ws) ws.close();
+    showSignIn();
+  }
+
+  async function startSession() {
+    await refreshAll();
+    if (!state.ws || state.ws.readyState > WebSocket.OPEN) connectWs();
+  }
+
+  async function boot() {
+    try { await loadMe(); } catch { return; }
+    await startSession();
+  }
+
+  // ---------- audit ----------
+  async function loadAudit() {
+    const body = $('audit-body');
+    try {
+      const events = await api('/v1/audit?limit=200');
+      body.replaceChildren();
+      if (!events.length) body.append(h('tr', {}, h('td', { colspan: '7' }, emptyState('No audit events yet', 'Permission checks on mutating actions are recorded here.'))));
+      for (const ev of events) {
+        body.append(h('tr', { class: 'border-t border-borderSubtle hover:bg-white/[0.02]' },
+          h('td', { class: 'px-4 py-1.5 font-mono text-slate-500 tabular-nums' }, ev.seq),
+          h('td', { class: 'px-2 py-1.5 text-slate-400 whitespace-nowrap', title: ev.timestamp }, ago(ev.timestamp)),
+          h('td', { class: 'px-2 py-1.5 text-slate-200' }, ev.actor, h('span', { class: 'ml-1 text-[10px] text-slate-500 capitalize' }, ev.role)),
+          h('td', { class: 'px-2 py-1.5 font-mono text-slate-300' }, ev.action),
+          h('td', { class: 'px-2 py-1.5 font-mono text-slate-400 break-all' }, ev.resource),
+          h('td', { class: 'px-2 py-1.5' }, h('span', { class: `px-1.5 py-0.5 rounded border text-[10px] ${ev.allowed ? 'border-emeraldShield/30 text-emerald-300' : 'border-crimsonKill/40 text-red-300'}` }, ev.allowed ? 'allowed' : 'denied')),
+          h('td', { class: 'px-4 py-1.5 font-mono text-[10px] text-slate-600', title: ev.entry_hash }, ev.entry_hash.slice(0, 12))));
+      }
+    } catch (err) {
+      body.replaceChildren(h('tr', {}, h('td', { colspan: '7' }, emptyState('Audit log unavailable', err.message))));
+    }
+  }
+
+  async function verifyAudit() {
+    const out = $('audit-chain');
+    try {
+      const r = await api('/v1/audit/verify');
+      out.textContent = r.valid ? `Chain intact · ${r.entries} entries · head ${r.head.slice(0, 12)}` : `Chain broken at entry #${r.broken_at_seq} of ${r.entries}`;
+      out.className = `text-xs truncate ${r.valid ? 'text-emerald-300' : 'text-red-300'}`;
+      tone(r.valid ? 'ok' : 'err');
+    } catch (err) { out.textContent = err.message; out.className = 'text-xs truncate text-red-300'; }
+  }
+
   // ---------- websocket ----------
   function setWs(label, tone_) {
     const styles = {
@@ -1027,7 +1178,8 @@
 
   function connectWs() {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${proto}//${location.host}/v1/ws/studio`);
+    const qs = authToken() ? `?token=${encodeURIComponent(authToken())}` : '';
+    const ws = new WebSocket(`${proto}//${location.host}/v1/ws/studio${qs}`);
     state.ws = ws;
     setWs('Connecting', 'warn');
     ws.onopen = () => { state.wsRetry = 0; setWs('Live', 'ok'); };
@@ -1038,8 +1190,12 @@
     };
     ws.onclose = () => {
       setWs('Offline', 'err');
+      if (state.ws !== ws || signInOpen()) return;
       const delay = Math.min(15000, 1000 * 2 ** state.wsRetry++);
-      setTimeout(connectWs, delay);
+      setTimeout(async () => {
+        if (state.ws !== ws || signInOpen()) return;
+        try { await api('/v1/auth/whoami'); connectWs(); } catch { /* sign-in shown on 401; otherwise retry later */ if (!signInOpen()) setTimeout(connectWs, delay); }
+      }, delay);
     };
   }
 
@@ -1050,6 +1206,10 @@
         activity('Connected to Kora runtime', 'ok');
         break;
       case 'pong':
+        break;
+      case 'error':
+        activity(ev.message, 'err');
+        toast(ev.message, 'err');
         break;
       case 'agent_state_changed':
         activity(ev.previous_state ? `${ev.title}: ${humanState(ev.previous_state)} → ${humanState(ev.new_state)}` : `New task: ${ev.title}`, ev.new_state === 'failed' ? 'err' : ev.new_state === 'completed' ? 'ok' : 'live');
@@ -1111,6 +1271,9 @@
   $('ask-input').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('ask-form').requestSubmit(); });
   $('console-form').addEventListener('submit', runConsole);
   $('console-input').addEventListener('keydown', consoleKey);
+  $('signin-form').addEventListener('submit', signIn);
+  $('audit-refresh').addEventListener('click', loadAudit);
+  $('audit-verify').addEventListener('click', verifyAudit);
 
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('palette').classList.contains('hidden') ? openPalette() : closePalette(); return; }
@@ -1123,14 +1286,13 @@
     }
   });
   window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (TABS.includes(t) && t !== state.tab) switchTab(t); });
-  window.addEventListener('focus', () => { loadStatus(); if (state.tab === 'diff') loadDiff(); });
+  window.addEventListener('focus', () => { if (signInOpen()) return; loadStatus(); if (state.tab === 'diff') loadDiff(); });
 
   setSound(state.sound);
   switchTab(TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'diff');
   cprint('Kora console. This talks to the local Kora API, not a system shell. Type help.', 'text-slate-500');
-  refreshAll();
-  connectWs();
-  setInterval(loadStatus, 10000);
+  boot();
+  setInterval(() => { if (!signInOpen()) loadStatus(); }, 10000);
   setInterval(() => { if (state.ws && state.ws.readyState === WebSocket.OPEN) state.ws.send(JSON.stringify({ type: 'ping' })); }, 25000);
   </script>
 </body>
