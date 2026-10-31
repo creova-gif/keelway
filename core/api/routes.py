@@ -361,14 +361,22 @@ async def websocket_studio_endpoint(websocket: WebSocket):
     """Real-time bidirectional channel for Kora Dev Studio events, diffs, and thought streaming."""
     if not origin_allowed(websocket.headers.get("origin"), websocket.headers.get("host")):
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Origin not allowed.")
+    ws_token = websocket.query_params.get("token") or token_from_headers(websocket.headers)
     if settings.auth_required:
-        principal = await principal_for_token(websocket.query_params.get("token") or token_from_headers(websocket.headers))
+        principal = await principal_for_token(ws_token)
         if principal is None:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Missing or invalid API token.")
     else:
         principal = LOCAL_OWNER
 
     async def permitted(permission: Permission, resource: str) -> bool:
+        nonlocal principal
+        if settings.auth_required:
+            current = await principal_for_token(ws_token)
+            if current is None:
+                await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="API token revoked.")
+                return False
+            principal = current
         allowed = principal.can(permission)
         await record_audit(principal, permission.value, f"WS {resource}", allowed)
         if not allowed:
@@ -666,7 +674,7 @@ _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
 
 
 @router.post("/v1/agent/run", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
-async def run_agent_task(payload: dict):
+async def run_agent_task(payload: dict, principal: Principal = Depends(current_principal)):
     """Initialize and run an autonomous agent engineering task."""
     task_id = payload.get("task_id") or f"task_{int(time.time())}"
     goal = payload.get("goal", "Inspect codebase and prepare solution")
@@ -678,6 +686,14 @@ async def run_agent_task(payload: dict):
     ]
     policy_str = payload.get("policy", "confirm_mutation")
     policy = AutonomyPolicy(policy_str) if policy_str in [p.value for p in AutonomyPolicy] else AutonomyPolicy.CONFIRM_MUTATION
+    if policy == AutonomyPolicy.AUTONOMOUS:
+        allowed = principal.can(Permission.APPROVE_TIER3)
+        await record_audit(principal, Permission.APPROVE_TIER3.value, "agent policy autonomous", allowed)
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="The 'autonomous' policy skips approvals and requires 'approve_tier3' (admin or owner).",
+            )
 
     agent = AutonomousAgentLoop(task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True)
     agent.initialize_plan(goal=goal, steps=steps)

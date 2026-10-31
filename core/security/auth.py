@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -140,12 +141,21 @@ async def record_audit(principal: Principal, action: str, resource: str, allowed
         principal.actor, principal.role.value, action, resource[:512], allowed,
         datetime.now(timezone.utc).isoformat(),
     )
-    async with _audit_lock, AsyncSessionLocal() as db:
-        prev = (await db.execute(
-            select(AuditEventRecord.entry_hash).order_by(AuditEventRecord.seq.desc()).limit(1)
-        )).scalar_one_or_none() or GENESIS_HASH
-        db.add(AuditEventRecord(**fields, prev_hash=prev, entry_hash=_chain_hash(prev, fields)))
-        await db.commit()
+    # prev_hash is UNIQUE, so a concurrent writer in another process that raced us onto the
+    # same predecessor fails the insert and retries on the new head instead of forking the chain.
+    async with _audit_lock:
+        for _ in range(5):
+            async with AsyncSessionLocal() as db:
+                prev = (await db.execute(
+                    select(AuditEventRecord.entry_hash).order_by(AuditEventRecord.seq.desc()).limit(1)
+                )).scalar_one_or_none() or GENESIS_HASH
+                db.add(AuditEventRecord(**fields, prev_hash=prev, entry_hash=_chain_hash(prev, fields)))
+                try:
+                    await db.commit()
+                    return
+                except IntegrityError:
+                    await db.rollback()
+        raise RuntimeError("Could not append audit entry after concurrent retries.")
 
 
 async def verify_audit_chain() -> Dict[str, Any]:

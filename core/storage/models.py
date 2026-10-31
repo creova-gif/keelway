@@ -122,5 +122,5 @@ class AuditEventRecord(Base):
     action = Column(String(100), nullable=False)
     resource = Column(String(512), nullable=False)
     allowed = Column(Boolean, nullable=False)
-    prev_hash = Column(String(64), nullable=False)
+    prev_hash = Column(String(64), nullable=False, unique=True)
     entry_hash = Column(String(64), nullable=False, unique=True)

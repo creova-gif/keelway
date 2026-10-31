@@ -157,6 +157,10 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
         await server.serve()
     except ImportError as e:
         print(f"[i] ASGI server not available ({e}).")
+        if settings.auth_required:
+            print("[-] The fallback server cannot enforce API tokens, so it is disabled while auth is on.")
+            print("    Install the API server (`pip install -r requirements.txt`) or set AUTH_REQUIRED=false.")
+            sys.exit(1)
         print("[+] Engaging zero-dependency fallback server (static Studio UI only; API routes unavailable)...")
         import http.server
         import socketserver
@@ -169,7 +173,7 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
 
         class SovereignStudioHandler(http.server.SimpleHTTPRequestHandler):
             def do_GET(self):
-                if self.path in ("/", "/studio", "/index.html"):
+                if self.path.split("?", 1)[0] in ("/", "/studio", "/index.html"):
                     self.send_response(200)
                     self.send_header("Content-Type", "text/html; charset=utf-8")
                     self.end_headers()

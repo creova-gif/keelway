@@ -141,3 +141,23 @@ def test_workspace_and_agent_mutations_need_tokens_and_roles(client, owner, path
     assert client.post(path, json=body).status_code == 401
     aud = bearer(mint(client, owner, "auditor")["token"])
     assert client.post(path, json=body, headers=aud).status_code == 403
+
+
+def test_engineer_cannot_start_agent_in_autonomous_policy(client, owner):
+    eng = bearer(mint(client, owner, "engineer")["token"])
+    assert client.post("/v1/agent/run", json={"goal": "g", "policy": "autonomous"}, headers=eng).status_code == 403
+    assert client.post("/v1/agent/run", json={"goal": "g", "policy": "confirm_mutation"}, headers=eng).status_code == 200
+    assert client.post("/v1/agent/run", json={"goal": "g", "policy": "autonomous"}, headers=owner).status_code == 200
+
+
+def test_revoked_token_loses_websocket_privileges(client, owner):
+    from starlette.websockets import WebSocketDisconnect
+
+    created = mint(client, owner, "owner")
+    with client.websocket_connect(f"/v1/ws/studio?token={created['token']}") as ws:
+        ws.receive_json()
+        assert client.delete(f"/v1/auth/tokens/{created['id']}", headers=owner).status_code == 204
+        ws.send_json({"type": "toggle_air_gap", "enabled": True})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
+        assert exc.value.code == 1008

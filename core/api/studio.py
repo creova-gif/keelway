@@ -27,7 +27,8 @@ MAX_DIFF_BYTES = 512 * 1024
 STUDIO_VERSION = "0.1.0"
 
 
-async def _git(*args: str) -> Tuple[int, str]:
+async def _git(*args: str, limit: int = MAX_DIFF_BYTES) -> Tuple[int, str]:
+    """Run git, reading at most `limit + 1` bytes of stdout so huge outputs are never buffered."""
     try:
         proc = await asyncio.create_subprocess_exec(
             "git", *args,
@@ -37,7 +38,12 @@ async def _git(*args: str) -> Tuple[int, str]:
         )
     except FileNotFoundError:
         return 127, ""
-    out, _ = await proc.communicate()
+    out = await proc.stdout.read(limit + 1)
+    if len(out) > limit and proc.returncode is None:
+        proc.kill()
+        await proc.wait()
+        return 0, out.decode(errors="replace")
+    await proc.wait()
     return proc.returncode, out.decode(errors="replace")
 
 
@@ -126,7 +132,7 @@ async def studio_diff() -> Dict[str, Any]:
     rc, out = await _git("diff", "--no-color", "--no-ext-diff", "HEAD")
     if rc != 0:
         return {"available": False, "truncated": False, "files": []}
-    truncated = len(out) > MAX_DIFF_BYTES
+    truncated = len(out.encode()) > MAX_DIFF_BYTES
     return {
         "available": True,
         "truncated": truncated,
