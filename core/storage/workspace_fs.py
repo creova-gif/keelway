@@ -23,6 +23,7 @@ DEFAULT_IGNORED_DIRS = {
     ".vscode",
     ".DS_Store",
     ".keelway/recordings",
+    ".kora/recordings",
 }
 
 

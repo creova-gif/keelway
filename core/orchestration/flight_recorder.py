@@ -9,6 +9,8 @@ import time
 import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from core.config import legacy_aware
 from typing import Dict, Any, List, Optional
 
 
@@ -33,7 +35,7 @@ class FlightRecorder:
 
     def __init__(self, task_id: str, recordings_dir: Optional[Path] = None):
         self.task_id = task_id
-        self.recordings_dir = recordings_dir or Path(".keelway/recordings")
+        self.recordings_dir = recordings_dir or legacy_aware(Path(".keelway/recordings"), Path(".kora/recordings"))
         self.events: List[FlightEvent] = []
         self.current_index = 0
 

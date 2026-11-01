@@ -11,6 +11,8 @@ import urllib.request
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+
+from core.config import legacy_aware
 from typing import Dict, Any, Optional
 
 
@@ -41,7 +43,7 @@ class EdgeRuntimeManager:
 
     def __init__(self, ollama_url: str = "http://localhost:11434", cache_dir: Optional[Path] = None):
         self.ollama_url = ollama_url
-        self.cache_dir = cache_dir or Path.home() / ".keelway" / "models"
+        self.cache_dir = cache_dir or legacy_aware(Path.home() / ".keelway" / "models", Path.home() / ".kora" / "models")
         self.hardware = self.detect_hardware()
 
     def detect_hardware(self) -> HardwareProfile:
