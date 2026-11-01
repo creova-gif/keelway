@@ -60,3 +60,4 @@ PITCH_AND_JUDGE_QA.md
 *.egg-info/
 build/
 .keelway/
+.kora/
