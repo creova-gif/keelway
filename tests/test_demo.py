@@ -41,3 +41,12 @@ def test_seed_records_a_real_sealed_tape_in_its_own_db(tmp_path):
     assert kinds[0] == "plan_initialized"
     assert "approval_granted" in kinds and "tool:write_file" in kinds
     assert len(tape["tape_sha256"]) == 64
+
+
+def test_reset_refuses_a_marked_folder_with_foreign_files(tmp_path):
+    (tmp_path / ".kora").mkdir()
+    (tmp_path / demo.SEEDED_MARKER).write_text("1\n")
+    (tmp_path / "src").mkdir()
+    with pytest.raises(SystemExit):
+        demo.prepare_workspace(tmp_path, reset=True)
+    assert (tmp_path / "src").exists()

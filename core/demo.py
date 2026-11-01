@@ -15,6 +15,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DIR = Path.home() / "kora-demo"
 SEEDED_MARKER = ".kora/seeded"
+DEMO_ENTRIES = {".git", ".kora", "money.py"}
 PAST_TASK_ID = "task_demo_format_cents"
 
 FILES = {
@@ -73,7 +74,8 @@ def prepare_workspace(root: Path, reset: bool = False) -> Path:
     """Write the sample project (idempotent unless reset) and commit it to a fresh git repo."""
     root = root.expanduser().resolve()
     if reset and root.exists():
-        if not (root / SEEDED_MARKER).exists() and any(root.iterdir()):
+        entries = {p.name for p in root.iterdir()}
+        if entries and (not (root / SEEDED_MARKER).exists() or not entries <= DEMO_ENTRIES | set(FILES)):
             raise SystemExit(f"Refusing to reset {root}: it is not a Kora demo folder.")
         shutil.rmtree(root)
     if (root / SEEDED_MARKER).exists():
