@@ -2,6 +2,8 @@
 Unit tests for the Model Gateway and policy routing.
 """
 
+import sys
+
 import pytest
 from unittest.mock import AsyncMock
 
@@ -132,3 +134,16 @@ async def test_response_explains_its_route_including_fallback():
     res = await gw.complete(_req())
     assert res.provider == Provider.ANTHROPIC
     assert res.routing_reason == "local-first: $0.00 inference; fell back to anthropic"
+
+
+def test_budget_counts_every_prompt_byte_so_emoji_cannot_sneak_past_it():
+    gw = _gw(Provider.GOOGLE, Provider.LOCAL)
+    req = CompletionRequestSchema(messages=[MessageSchema(role="user", content="🔥" * 1000)], max_tokens=1)
+    assert gw.estimate_cost_usd(Provider.GOOGLE, req) >= 4000 * 0.075 / 1_000_000
+
+
+def test_unpriced_cloud_provider_never_fits_a_budget(monkeypatch):
+    g = sys.modules[ModelGateway.__module__]
+    monkeypatch.setattr(g, "PRICE_PER_MTOK", {Provider.LOCAL: (0.0, 0.0)})
+    order, _ = _gw(Provider.OPENAI, Provider.LOCAL).explain_route(_req(required_capabilities=["vision"], max_cost_usd=0.0))
+    assert order == [Provider.LOCAL]

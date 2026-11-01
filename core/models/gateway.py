@@ -53,9 +53,10 @@ class ModelGateway:
         self.adapters[provider] = adapter
 
     def estimate_cost_usd(self, provider: Provider, request: CompletionRequestSchema) -> float:
-        """Upper-bound cost: prompt at ~4 chars/token plus the full max_tokens budget."""
-        price_in, price_out = PRICE_PER_MTOK.get(provider, (0.0, 0.0))
-        prompt_tokens = sum(len(m.content) for m in request.messages) / 4
+        """Upper-bound cost: one token per prompt byte plus the full max_tokens budget; unpriced cloud providers cost inf."""
+        unpriced = (0.0, 0.0) if provider == Provider.LOCAL else (float("inf"), float("inf"))
+        price_in, price_out = PRICE_PER_MTOK.get(provider, unpriced)
+        prompt_tokens = sum(len(m.content.encode("utf-8")) for m in request.messages)
         return (prompt_tokens * price_in + request.max_tokens * price_out) / 1_000_000
 
     def explain_route(self, request: CompletionRequestSchema) -> Tuple[List[Provider], str]:
