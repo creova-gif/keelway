@@ -61,6 +61,7 @@ class AutonomousAgentLoop:
         workspace_fs: Optional[WorkspaceFilesystem] = None,
         policy: AutonomyPolicy = AutonomyPolicy.CONFIRM_MUTATION,
         record_flight: bool = True,
+        approval_rules: Optional[Any] = None,
     ):
         self.task_id = task_id
         self.fs = workspace_fs or WorkspaceFilesystem()
@@ -70,6 +71,7 @@ class AutonomousAgentLoop:
         self.plan: List[PlanStep] = []
         self.events: List[Dict[str, Any]] = []
         self.pending_approval: Optional[Dict[str, Any]] = None
+        self.approval_rules = approval_rules
         self.semantic_index = CodebaseSemanticIndex(self.fs)
 
         self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
@@ -304,6 +306,17 @@ class AutonomousAgentLoop:
             self.policy == AutonomyPolicy.CONFIRM_ALL
             or (self.policy == AutonomyPolicy.CONFIRM_MUTATION and tool.is_mutation)
         )
+
+        if needs_approval and self.policy == AutonomyPolicy.CONFIRM_MUTATION and self.approval_rules is not None:
+            rule = self.approval_rules.match(tool_name, arguments)
+            if rule:
+                self._record_event("approval_auto_granted", {
+                    "task_id": self.task_id, "tool_name": tool_name, "arguments": arguments,
+                    "step_id": step_id, "rule_id": rule.id, "scope": rule.scope,
+                })
+                result = await self._run_approved_tool(tool, arguments, step_id)
+                result["approved_by_rule"] = rule.to_dict()
+                return result
 
         if needs_approval:
             self.status = AgentLoopStatus.AWAITING_APPROVAL

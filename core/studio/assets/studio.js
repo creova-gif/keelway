@@ -27,14 +27,14 @@ const STRINGS = {
   zh: { search: '搜索文件、符号和命令', signOut: '退出', explorer: '资源管理器', changes: '更改', tasks: '任务', memory: '记忆', save: '保存', tagline: '本地优先 · 确定性 · 属于你', welcomeTitle: '与从不离开你电脑的智能体一起构建。', welcomeBody: '每一步都被记录、可重放、可审计。', start: '开始', signIn: '登录', signInTitle: '登录 Keelway', next: '下一步', done: '开始使用', skipTour: '跳过', airOn: '已隔离', airOff: '允许云端', activity: '活动', allow: '允许', deny: '拒绝', openFile: '打开文件', giveGoal: '给智能体一个目标', reviewChanges: '查看更改' },
 };
 const MORE = {
-  en: { files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed' },
-  es: { files: 'Archivos', record: 'Registro', runs: 'Ejecuciones', backlog: 'Pendientes', needsApproval: 'Requiere aprobación', allowOnce: 'Permitir una vez', composerPh: 'Pide a Keelway que cambie algo…', newTask: 'Nueva tarea', recordBody: 'Cada paso y decisión, sellados y reproducibles.', labsBody: 'Experimentos. Lo marcado como Simulado nunca toca sistemas ni dinero reales.', simulated: 'Simulado' },
-  fr: { files: 'Fichiers', record: 'Registre', runs: 'Exécutions', backlog: 'À faire', needsApproval: 'Approbation requise', allowOnce: 'Autoriser une fois', composerPh: 'Demandez à Keelway de modifier quelque chose…', newTask: 'Nouvelle tâche', recordBody: 'Chaque étape et décision, scellées et rejouables.', labsBody: 'Expériences. Ce qui est marqué Simulé ne touche jamais de vrais systèmes ni d’argent.', simulated: 'Simulé' },
-  pt: { files: 'Arquivos', record: 'Registro', runs: 'Execuções', backlog: 'Pendências', needsApproval: 'Requer aprovação', allowOnce: 'Permitir uma vez', composerPh: 'Peça ao Keelway para mudar algo…', newTask: 'Nova tarefa', recordBody: 'Cada passo e decisão, selados e reproduzíveis.', labsBody: 'Experimentos. O que está marcado como Simulado nunca toca sistemas ou dinheiro reais.', simulated: 'Simulado' },
-  sw: { files: 'Faili', record: 'Rekodi', labs: 'Maabara', runs: 'Utekelezaji', backlog: 'Orodha', needsApproval: 'Inahitaji idhini', allowOnce: 'Ruhusu mara moja', composerPh: 'Mwombe Keelway abadilishe kitu…', newTask: 'Kazi mpya', recordBody: 'Kila hatua na uamuzi, vimetiwa muhuri na vinaweza kurudiwa.', labsBody: 'Majaribio. Chochote kilichoandikwa Kuigwa hakigusi mifumo halisi wala pesa.', simulated: 'Kuigwa' },
-  ar: { files: 'الملفات', record: 'السجل', labs: 'المختبر', runs: 'التشغيلات', backlog: 'قائمة المهام', needsApproval: 'بحاجة إلى موافقة', allowOnce: 'السماح مرة واحدة', composerPh: 'اطلب من Keelway تغيير شيء…', newTask: 'مهمة جديدة', recordBody: 'كل خطوة وقرار، مختومة وقابلة للإعادة.', labsBody: 'تجارب. أي شيء موسوم بـ«محاكاة» لا يلمس أنظمة أو أموالًا حقيقية.', simulated: 'محاكاة' },
-  hi: { files: 'फ़ाइलें', record: 'रिकॉर्ड', labs: 'लैब्स', runs: 'रन', backlog: 'बैकलॉग', needsApproval: 'मंज़ूरी चाहिए', allowOnce: 'एक बार अनुमति दें', composerPh: 'Keelway से कुछ बदलने को कहें…', newTask: 'नया कार्य', recordBody: 'हर कदम और फ़ैसला, सील किया हुआ और दोहराने योग्य।', labsBody: 'प्रयोग। “सिम्युलेटेड” चिह्नित कुछ भी असली सिस्टम या पैसे को नहीं छूता।', simulated: 'सिम्युलेटेड' },
-  zh: { files: '文件', record: '记录', labs: '实验室', runs: '运行', backlog: '待办', needsApproval: '需要批准', allowOnce: '允许一次', composerPh: '让 Keelway 修改点什么…', newTask: '新任务', recordBody: '每一步和每个决定都被封存，可重放。', labsBody: '实验功能。标记为“模拟”的内容不会触及真实系统或资金。', simulated: '模拟' },
+  en: { files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed', allowAlways: 'Allow always…', alwaysScope: 'Scope', alwaysConfirm: 'Allow and remember', cancel: 'Cancel', alwaysHelpPath: 'Future {tool} requests for paths matching this pattern run without asking, in this workspace only. * matches any characters.', alwaysHelpCmd: 'Future runs of exactly this command run without asking, in this workspace only.', rulesTitle: 'Standing approvals', rulesHint: 'Only for "Ask before changes" runs. Keelway and git internals always ask.', noRules: 'None yet. Every change asks first.', revoke: 'Revoke', ruleSaved: 'Standing approval saved', autoApproved: 'Allowed by standing approval' },
+  es: { allowAlways: 'Permitir siempre…', rulesTitle: 'Aprobaciones permanentes', revoke: 'Revocar', files: 'Archivos', record: 'Registro', runs: 'Ejecuciones', backlog: 'Pendientes', needsApproval: 'Requiere aprobación', allowOnce: 'Permitir una vez', composerPh: 'Pide a Keelway que cambie algo…', newTask: 'Nueva tarea', recordBody: 'Cada paso y decisión, sellados y reproducibles.', labsBody: 'Experimentos. Lo marcado como Simulado nunca toca sistemas ni dinero reales.', simulated: 'Simulado' },
+  fr: { allowAlways: 'Toujours autoriser…', rulesTitle: 'Autorisations permanentes', revoke: 'Révoquer', files: 'Fichiers', record: 'Registre', runs: 'Exécutions', backlog: 'À faire', needsApproval: 'Approbation requise', allowOnce: 'Autoriser une fois', composerPh: 'Demandez à Keelway de modifier quelque chose…', newTask: 'Nouvelle tâche', recordBody: 'Chaque étape et décision, scellées et rejouables.', labsBody: 'Expériences. Ce qui est marqué Simulé ne touche jamais de vrais systèmes ni d’argent.', simulated: 'Simulé' },
+  pt: { allowAlways: 'Permitir sempre…', rulesTitle: 'Aprovações permanentes', revoke: 'Revogar', files: 'Arquivos', record: 'Registro', runs: 'Execuções', backlog: 'Pendências', needsApproval: 'Requer aprovação', allowOnce: 'Permitir uma vez', composerPh: 'Peça ao Keelway para mudar algo…', newTask: 'Nova tarefa', recordBody: 'Cada passo e decisão, selados e reproduzíveis.', labsBody: 'Experimentos. O que está marcado como Simulado nunca toca sistemas ou dinheiro reais.', simulated: 'Simulado' },
+  sw: { allowAlways: 'Ruhusu daima…', rulesTitle: 'Idhini za kudumu', revoke: 'Futa', files: 'Faili', record: 'Rekodi', labs: 'Maabara', runs: 'Utekelezaji', backlog: 'Orodha', needsApproval: 'Inahitaji idhini', allowOnce: 'Ruhusu mara moja', composerPh: 'Mwombe Keelway abadilishe kitu…', newTask: 'Kazi mpya', recordBody: 'Kila hatua na uamuzi, vimetiwa muhuri na vinaweza kurudiwa.', labsBody: 'Majaribio. Chochote kilichoandikwa Kuigwa hakigusi mifumo halisi wala pesa.', simulated: 'Kuigwa' },
+  ar: { allowAlways: 'السماح دائمًا…', rulesTitle: 'موافقات دائمة', revoke: 'إلغاء', files: 'الملفات', record: 'السجل', labs: 'المختبر', runs: 'التشغيلات', backlog: 'قائمة المهام', needsApproval: 'بحاجة إلى موافقة', allowOnce: 'السماح مرة واحدة', composerPh: 'اطلب من Keelway تغيير شيء…', newTask: 'مهمة جديدة', recordBody: 'كل خطوة وقرار، مختومة وقابلة للإعادة.', labsBody: 'تجارب. أي شيء موسوم بـ«محاكاة» لا يلمس أنظمة أو أموالًا حقيقية.', simulated: 'محاكاة' },
+  hi: { allowAlways: 'हमेशा अनुमति दें…', rulesTitle: 'स्थायी मंज़ूरियाँ', revoke: 'रद्द करें', files: 'फ़ाइलें', record: 'रिकॉर्ड', labs: 'लैब्स', runs: 'रन', backlog: 'बैकलॉग', needsApproval: 'मंज़ूरी चाहिए', allowOnce: 'एक बार अनुमति दें', composerPh: 'Keelway से कुछ बदलने को कहें…', newTask: 'नया कार्य', recordBody: 'हर कदम और फ़ैसला, सील किया हुआ और दोहराने योग्य।', labsBody: 'प्रयोग। “सिम्युलेटेड” चिह्नित कुछ भी असली सिस्टम या पैसे को नहीं छूता।', simulated: 'सिम्युलेटेड' },
+  zh: { allowAlways: '始终允许…', rulesTitle: '长期批准', revoke: '撤销', files: '文件', record: '记录', labs: '实验室', runs: '运行', backlog: '待办', needsApproval: '需要批准', allowOnce: '允许一次', composerPh: '让 Keelway 修改点什么…', newTask: '新任务', recordBody: '每一步和每个决定都被封存，可重放。', labsBody: '实验功能。标记为“模拟”的内容不会触及真实系统或资金。', simulated: '模拟' },
 };
 for (const [k, v] of Object.entries(MORE)) Object.assign(STRINGS[k], v);
 const fmt = (key, vars) => t(key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
@@ -323,7 +323,18 @@ function switchSection(sec) {
   if (location.hash !== `#${sec}`) history.replaceState(null, '', `#${sec}`);
   if (sec === 'tasks') { loadRuns(); loadTasks(); }
   if (sec === 'files') { refreshView(); if (editor) editor.layout(); }
-  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); }
+  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); }
+}
+async function loadRules() {
+  try {
+    const { rules } = await api('/v1/approval-rules');
+    $('rule-list').replaceChildren(...(rules.length ? rules.map((r) => h('li', { class: 'px-3 py-2 flex items-center gap-3' },
+      h('span', { class: 'step-chip text-accent border-accent/40 font-mono' }, r.tool_name),
+      h('span', { class: 'flex-1 font-mono truncate', dir: 'ltr' }, r.scope),
+      h('span', { class: 'hidden sm:inline text-ide-faint' }, `${r.created_by} · ${new Date(r.created_at * 1000).toLocaleDateString(lang)}`),
+      h('button', { type: 'button', class: 'btn-outline py-0.5 text-danger', onclick: async () => { try { await api(`/v1/approval-rules/${encodeURIComponent(r.id)}`, { method: 'DELETE' }); tone('tick'); loadRules(); } catch (err) { toast(err.message, 'err'); } } }, t('revoke'))))
+      : [h('li', { class: 'px-3 py-2 text-ide-muted' }, t('noRules'))]));
+  } catch { /* noop */ }
 }
 async function loadRuns() {
   try { state.runs = (await api('/v1/agent/runs')).runs; } catch { return; }
@@ -569,9 +580,16 @@ function renderApproval(s) {
   const p = s.pending_approval;
   $('agent-approval').classList.toggle('hidden', !p);
   if (!p) { state.lastPending = null; return; }
-  const key = `${s.task_id}:${p.step_id}:${p.tool_name}`;
-  if (state.lastPending !== key) { state.lastPending = key; tone('warn'); }
   const a = p.arguments || {};
+  const key = `${s.task_id}:${p.step_id}:${p.tool_name}`;
+  const scopable = ['edit_file', 'write_file', 'run_command'].includes(p.tool_name);
+  $('approve-always').classList.toggle('hidden', !scopable);
+  if (state.lastPending !== key) {
+    state.lastPending = key; tone('warn');
+    $('always-form').classList.add('hidden'); $('approve-always').setAttribute('aria-expanded', 'false');
+    $('always-scope').value = p.tool_name === 'run_command' ? (a.command || '') : (a.path || '');
+    $('always-help').textContent = fmt(p.tool_name === 'run_command' ? 'alwaysHelpCmd' : 'alwaysHelpPath', { tool: p.tool_name });
+  }
   const target = a.path || a.command || '';
   const titleKey = { edit_file: 'wantsEdit', write_file: 'wantsWrite', run_command: 'wantsRun' }[p.tool_name] || 'wantsTool';
   $('approval-title').textContent = fmt(titleKey, { target, tool: p.tool_name });
@@ -604,12 +622,18 @@ function stepRunner(step) {
   });
   return h('div', { class: 'ms-7 space-y-1.5' }, h('div', { class: 'flex gap-1.5' }, tool, run), args);
 }
-async function approve(yes) {
-  try { const r = await api(`/v1/agent/approve/${encodeURIComponent(state.agentTask.id)}`, { method: 'POST', body: { approved: yes } }); renderAgent(r.agent_state); afterAgentAction(r.approval_result); }
+async function approve(yes, scope) {
+  try {
+    const body = { approved: yes }; if (scope) body.remember = { scope };
+    const r = await api(`/v1/agent/approve/${encodeURIComponent(state.agentTask.id)}`, { method: 'POST', body });
+    if (r.rule) toast(`${t('ruleSaved')} · ${r.rule.tool_name} ${r.rule.scope}`);
+    renderAgent(r.agent_state); afterAgentAction(r.approval_result);
+  }
   catch (err) { toast(err.message, 'err'); }
 }
 function afterAgentAction(res) {
   if (!res) return;
+  if (res.status === 'success' && res.approved_by_rule) toast(`${t('autoApproved')} · ${res.approved_by_rule.scope}`);
   if (res.status === 'success') { tone('ok'); if (['edit_file', 'write_file'].includes(res.tool)) { loadGit(); toast(t('reviewChanges')); } }
   else if (res.status === 'error') toast(res.error, 'err');
   else if (res.status === 'denied') toast(`${t('deny')} · ${res.tool_name}`, 'warn');
@@ -734,6 +758,9 @@ function wire() {
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));
   $('approve-no').addEventListener('click', () => approve(false));
+  $('approve-always').addEventListener('click', () => { const f = $('always-form'); const open = f.classList.toggle('hidden') === false; $('approve-always').setAttribute('aria-expanded', String(open)); if (open) $('always-scope').focus(); });
+  $('always-cancel').addEventListener('click', () => { $('always-form').classList.add('hidden'); $('approve-always').setAttribute('aria-expanded', 'false'); });
+  $('always-form').addEventListener('submit', (e) => { e.preventDefault(); approve(true, $('always-scope').value.trim()); });
   document.querySelectorAll('[data-section]').forEach((b) => b.addEventListener('click', () => switchSection(b.dataset.section)));
   $('new-run-btn').addEventListener('click', newRun);
   $('task-back').addEventListener('click', () => { $('sec-tasks').dataset.detail = 'false'; });

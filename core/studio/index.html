@@ -119,8 +119,15 @@
               <dl id="approval-meta" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs"></dl>
               <div id="approval-preview" class="rounded-md border border-ide-border bg-ide-bg font-mono text-[11.5px] overflow-auto max-h-64" dir="ltr"></div>
               <pre id="agent-approval-desc" class="sr-only"></pre>
+              <form id="always-form" class="hidden rounded-md border border-ide-border bg-ide-bg p-3 space-y-2" autocomplete="off">
+                <label for="always-scope" class="label" data-i18n="alwaysScope">Scope</label>
+                <input id="always-scope" required class="input w-full font-mono" dir="ltr" spellcheck="false">
+                <p id="always-help" class="text-[11px] text-ide-muted"></p>
+                <div class="flex gap-2"><button id="always-confirm" type="submit" class="btn-primary h-7" data-i18n="alwaysConfirm">Allow and remember</button><button id="always-cancel" type="button" class="btn-ghost h-7" data-i18n="cancel">Cancel</button></div>
+              </form>
               <div class="flex flex-wrap items-center gap-2">
                 <button id="approve-yes" class="btn-primary h-8 px-3"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg><span data-i18n="allowOnce">Allow once</span></button>
+                <button id="approve-always" type="button" class="btn-outline h-8 px-3" aria-expanded="false" aria-controls="always-form"><span data-i18n="allowAlways">Allow always…</span></button>
                 <button id="approve-no" class="btn-outline h-8 px-3 text-danger"><span data-i18n="deny">Deny</span></button>
                 <span class="text-[11px] text-ide-muted" data-i18n="approvalNote">Your decision is sealed into the record.</span>
               </div>
@@ -230,6 +237,12 @@
       </div>
       <div class="px-4 md:px-6">
         <p id="audit-chain" class="rounded-md border border-ide-border bg-ide-sidebar px-3 py-2 text-xs text-ide-muted" role="status" data-i18n="auditHint">Every permission decision is appended to a SHA-256 hash chain.</p>
+      </div>
+      <div class="px-4 md:px-6 pt-4">
+        <section class="card" aria-labelledby="rules-title">
+          <div class="px-3 py-2 border-b border-ide-border flex items-center justify-between"><h3 id="rules-title" class="section-title" data-i18n="rulesTitle">Standing approvals</h3><span class="text-[11px] text-ide-faint" data-i18n="rulesHint">Only for "Ask before changes" runs. Keelway and git internals always ask.</span></div>
+          <ul id="rule-list" class="divide-y divide-ide-border text-xs"></ul>
+        </section>
       </div>
       <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">
         <section class="card flex flex-col min-h-[20rem] overflow-hidden" aria-labelledby="flight-title">

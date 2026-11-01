@@ -669,6 +669,7 @@ async def refresh_codebase_index(max_files: int = 200):
 # =====================================================================
 
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
+from core.security.approval_rules import ApprovalRuleError, ApprovalRuleStore, validate_scope
 
 _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
 
@@ -714,7 +715,10 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
     # No await between this check and registration, so concurrent runs can't both claim the id.
     if task_id in _active_agent_loops or _tape_path(task_id).exists():
         raise HTTPException(status_code=409, detail=f"Agent task {task_id} already exists.")
-    agent = AutonomousAgentLoop(task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True)
+    agent = AutonomousAgentLoop(
+        task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True,
+        approval_rules=ApprovalRuleStore(_workspace_fs.root),
+    )
     agent.initialize_plan(goal=goal, steps=steps)
     _active_agent_loops[task_id] = agent
 
@@ -786,19 +790,49 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
 
 
 @router.post("/v1/agent/approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
-async def approve_agent_action(task_id: str, payload: dict):
-    """Human-in-the-loop: grant or deny permission for a pending mutating tool."""
+async def approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
+    """Human-in-the-loop: grant or deny a pending mutating tool, optionally remembering a scoped standing approval."""
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
 
     approved = bool(payload.get("approved", True))
     agent = _active_agent_loops[task_id]
+    remember = payload.get("remember")
+    rule = None
+    if approved and remember is not None and agent.pending_approval:
+        pending = agent.pending_approval
+        args = pending.get("arguments") or {}
+        requested = (remember or {}).get("scope") if isinstance(remember, dict) else None
+        try:
+            scope = validate_scope(pending["tool_name"], requested or args.get("path") or args.get("command"))
+        except ApprovalRuleError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        rule = ApprovalRuleStore(_workspace_fs.root).add(pending["tool_name"], scope, principal.actor)
+        await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
+
     res = await agent.approve_pending(approved=approved)
     return {
         "task_id": task_id,
         "approval_result": res,
+        "rule": rule.to_dict() if rule else None,
         "agent_state": await _publish_agent(agent),
     }
+
+
+@router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
+async def list_approval_rules():
+    """Standing approvals for the open workspace."""
+    return {"rules": [r.to_dict() for r in ApprovalRuleStore(_workspace_fs.root).list()]}
+
+
+@router.delete("/v1/approval-rules/{rule_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
+async def revoke_approval_rule(rule_id: str, principal: Principal = Depends(current_principal)):
+    """Revoke a standing approval; matching requests ask again."""
+    gone = ApprovalRuleStore(_workspace_fs.root).remove(rule_id)
+    if not gone:
+        raise HTTPException(status_code=404, detail=f"Approval rule '{rule_id}' not found.")
+    await record_audit(principal, "approval_rule_revoke", f"{gone.tool_name}:{gone.scope}", True)
+    return {"revoked": gone.to_dict()}
 
 
 
