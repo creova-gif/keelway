@@ -15,7 +15,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DIR = Path.home() / "kora-demo"
 SEEDED_MARKER = ".kora/seeded"
-DEMO_ENTRIES = {".git", ".kora", "money.py"}
+DEMO_ENTRIES = {".git", ".kora", "money.py", "__pycache__"}
 PAST_TASK_ID = "task_demo_format_cents"
 
 FILES = {

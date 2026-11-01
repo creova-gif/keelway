@@ -65,3 +65,14 @@ def test_requires_git_before_writing_anything(tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="needs git"):
         demo.prepare_workspace(tmp_path / "d")
     assert not (tmp_path / "d").exists()
+
+
+def test_reset_accepts_a_used_demo_folder(tmp_path):
+    root = demo.prepare_workspace(tmp_path / "d")
+    (root / ".kora").mkdir()
+    (root / demo.SEEDED_MARKER).write_text("1\n")
+    (root / "__pycache__").mkdir()
+    (root / "pricing.py").write_text("edited")
+    demo.prepare_workspace(root, reset=True)
+    assert demo.BUGGY_LINE in (root / "pricing.py").read_text()
+    assert not (root / "__pycache__").exists()
