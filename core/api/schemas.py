@@ -60,6 +60,7 @@ class CompletionResponseSchema(BaseModel):
     latency_ms: float
     cost_usd: Optional[float] = None
     tool_calls: Optional[List[Dict[str, Any]]] = None
+    routing_reason: Optional[str] = None
 
 
 class TaskCreateRequest(BaseModel):
