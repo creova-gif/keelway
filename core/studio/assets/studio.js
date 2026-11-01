@@ -192,8 +192,9 @@ function initMonaco() {
 
 async function openFile(path) {
   try {
-    const content = (await api(`/v1/files/content?path=${encodeURIComponent(path)}`)).content || '';
     const fresh = !state.dirty.has(path);
+    const cached = editor ? state.models[path] : state.buffers[path];
+    const content = fresh || cached === undefined ? (await api(`/v1/files/content?path=${encodeURIComponent(path)}`)).content || '' : null;
     if (!editor && state.active) state.buffers[state.active] = $('fallback-editor').value;
     if (!state.tabs.includes(path)) state.tabs.push(path);
     state.active = path;
