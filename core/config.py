@@ -21,6 +21,11 @@ except ImportError:
         def __init__(self, **kwargs): pass
 
 
+
+def legacy_aware(path: Path, legacy: Path) -> Path:
+    """Keep using pre-rename (Kora) data at `legacy` until data exists at the new `path`."""
+    return legacy if legacy.exists() and not path.exists() else path
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         extra="ignore"
@@ -45,7 +50,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = Field(
-        default=f"sqlite+aiosqlite:///{Path.home() / '.keelway' / 'keelway.db'}",
+        default_factory=lambda: f"sqlite+aiosqlite:///{legacy_aware(Path.home() / '.keelway' / 'keelway.db', Path.home() / '.kora' / 'kora.db')}",
         description="Async database connection string (SQLite for local dev, PostgreSQL for prod)"
     )
 

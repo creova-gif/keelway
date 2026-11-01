@@ -27,7 +27,7 @@ from core.api.schemas import (
     MemoryCreateRequest,
     MemoryResponse,
 )
-from core.config import settings
+from core.config import legacy_aware, settings
 from core.models.gateway import gateway
 from core.security.auth import LOCAL_OWNER, Principal, current_principal, principal_for_token, record_audit, require, token_from_headers
 from core.security.origin import origin_allowed
@@ -491,7 +491,7 @@ async def create_payment_intent(payload: dict):
     }
 
 
-FLIGHT_RECORDINGS_DIR = Path(".keelway/recordings")
+FLIGHT_RECORDINGS_DIR = legacy_aware(Path(".keelway/recordings"), Path(".kora/recordings"))
 # 243 + len(".flight.json") == 255, the common filesystem filename limit.
 _TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,243}$")
 
