@@ -110,3 +110,22 @@ def test_agent_run_rejects_unsafe_and_duplicate_task_ids(tmp_path, monkeypatch):
         assert first != second
         assert client.post("/v1/agent/run", json={"task_id": first, "goal": "c"}).status_code == 409
     assert not (tmp_path.parent / "escape.flight.json").exists()
+
+
+def test_studio_diff_reads_the_open_workspace_not_the_kora_checkout(tmp_path, monkeypatch):
+    import subprocess
+    from core.api import routes
+    from core.storage.workspace_fs import WorkspaceFilesystem
+
+    def git(*args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *args], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init", "-q")
+    (tmp_path / "app.py").write_text("x = 1\n")
+    git("add", ".")
+    git("commit", "-qm", "init")
+    (tmp_path / "app.py").write_text("x = 2\n")
+    monkeypatch.setattr(routes, "_workspace_fs", WorkspaceFilesystem(root_dir=str(tmp_path)))
+    with TestClient(app) as client:
+        files = client.get("/v1/studio/diff").json()["files"]
+    assert [f["path"] for f in files] == ["app.py"]
