@@ -1,4 +1,4 @@
-# Kora AI — Global Competitive Teardown & Product Expansion Blueprint
+# Keelway — Global Competitive Teardown & Product Expansion Blueprint
 
 > **Mission**: Build the world's most resilient, sovereign, and inclusive AI developer runtime—capturing not just Silicon Valley and North America, but the next 20 million developers across Latin America, Africa, Asia-Pacific, Eastern Europe, and sovereign global enterprises.
 
@@ -24,7 +24,7 @@ The Silicon Valley developer tools ecosystem operates under flawed assumptions:
 
 ## 2. In-Depth Competitor Teardown
 
-| Competitor | Core Offering | Critical Blind Spots & Global Failure Modes | Kora's Unfair Sovereign Advantage |
+| Competitor | Core Offering | Critical Blind Spots & Global Failure Modes | Keelway's Unfair Sovereign Advantage |
 | :--- | :--- | :--- | :--- |
 | **Cursor / Windsurf** | Cloud-tethered IDE forks with tab-autocomplete and agent composer | • Requires constant cloud connection ($20/mo USD credit card).<br>• Zero air-gap capability; banned in defense, banks, and healthcare.<br>• Egresses source code to third-party model servers.<br>• Heavy resource footprint on 8GB-16GB laptops. | **100% Local Inference ($0.00 edge)** with cryptographic zero-egress proof. Native local MCP and Git worktree isolation. Multi-rail local billing. |
 | **Cognition (Devin) / SWE-Agent** | Autonomous cloud sandbox coding agents | • Extreme cost ($2 to $8 per PR attempt).<br>• Cloud microVM execution with high latency.<br>• Zero support for offline development or local intranet repositories.<br>• Opaque hallucinations without deterministic replay. | **Deterministic Flight Recorder** (time-travel replay tape). Zero cloud spend on local edge models. Closed-loop AST self-healing loop. |
@@ -33,9 +33,9 @@ The Silicon Valley developer tools ecosystem operates under flawed assumptions:
 
 ---
 
-## 3. The "Missing Capabilities" Inventory: What Kora Must Feature
+## 3. The "Missing Capabilities" Inventory: What Keelway Must Feature
 
-To win developers across the entire globe, Kora is incorporating the following frontier features:
+To win developers across the entire globe, Keelway is incorporating the following frontier features:
 
 ### A. Edge Inference Acceleration & Speculative Decoding
 - **Speculative Draft Decoding**: Pair a 0.5B draft model with a 7B/14B target model locally. Delivers 2.5x to 3.8x token generation speeds on consumer M1/M2 Macs and Intel/AMD laptops.
@@ -62,10 +62,10 @@ To win developers across the entire globe, Kora is incorporating the following f
 
 ```
 +---------------------------------------------------------------------------------------------------+
-|                                  KORA SOVEREIGN ARCHITECTURE STACK                                |
+|                                  KEELWAY SOVEREIGN ARCHITECTURE STACK                                |
 +---------------------------------------------------------------------------------------------------+
 |  [ LAYER 5: CLIENTS & SURFACES ]                                                                  |
-|    • High-Density Dev Studio (Web/PWA)  • Terminal CLI (kora)  • USSD / SMS / Telegram Adapter   |
+|    • High-Density Dev Studio (Web/PWA)  • Terminal CLI (keelway)  • USSD / SMS / Telegram Adapter   |
 |                                                                                                   |
 |  [ LAYER 4: ORCHESTRATION & REPAIR ]                                                              |
 |    • Self-Healing AST Loop  • Ephemeral Git Worktrees  • Flight Recorder  • Multi-Agent Mesh      |

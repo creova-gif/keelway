@@ -29,7 +29,7 @@ htmlcov/
 *.db
 *.sqlite
 *.sqlite3
-kora.db
+keelway.db
 
 # Logs & temp
 *.log
@@ -59,4 +59,4 @@ PITCH_AND_JUDGE_QA.md
 # Packaging
 *.egg-info/
 build/
-.kora/
+.keelway/

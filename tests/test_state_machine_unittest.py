@@ -1,5 +1,5 @@
 """
-Standard library unittest verification for Kora AI Task State Machine.
+Standard library unittest verification for Keelway Task State Machine.
 Runs in clean Python environments without third-party dependencies.
 """
 

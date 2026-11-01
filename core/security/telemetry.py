@@ -1,5 +1,5 @@
 """
-Kora AI OpenTelemetry GenAI (`gen_ai.*`) Semantic Tracing Subsystem.
+Keelway OpenTelemetry GenAI (`gen_ai.*`) Semantic Tracing Subsystem.
 Implements vendor-neutral observability conforming to OpenTelemetry 2026 specs:
 - Standardized attributes: gen_ai.system, gen_ai.request.model, gen_ai.usage.input_tokens
 - Privacy-safe tracing (scrubs prompt text unless explicitly opted-in)
@@ -33,7 +33,7 @@ class GenAISpan:
 class TelemetryTracer:
     """Manages OpenTelemetry-compliant GenAI spans and trace export."""
 
-    def __init__(self, service_name: str = "kora-ai-core"):
+    def __init__(self, service_name: str = "keelway-core"):
         self.service_name = service_name
         self.spans: List[GenAISpan] = []
 

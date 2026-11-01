@@ -1,13 +1,13 @@
-# Kora AI — Project Kickoff & Starter Documentation
+# Keelway — Project Kickoff & Starter Documentation
 
 **Planning horizon:** 2026–2031  
-**Scope:** Kora Technologies, Kora Dev, Kora AI, Personal AI Assistant  
+**Scope:** Sorvex Labs, Keelway Dev, Keelway, Personal AI Assistant  
 **Status:** Project start — foundation phase  
 **Date:** October 2026
 
 ## Executive Recommendation
 
-Kora should evolve from integrating AI services into building reusable AI infrastructure and intelligent systems.
+Keelway should evolve from integrating AI services into building reusable AI infrastructure and intelligent systems.
 
 - **AI integration**: Application calls a model, MCP server, or external agent.
 - **AI engineering**: Control retrieval, memory, orchestration, evaluation, execution, and deployment.
@@ -15,25 +15,25 @@ Kora should evolve from integrating AI services into building reusable AI infras
 - **AI research**: Investigate new architectures, efficiency techniques, datasets, benchmarks, and original IP.
 
 **Three connected initiatives:**
-1. **Kora AI Core** — Shared intelligence infrastructure (model routing, retrieval, memory, evaluations, security, inference, agent execution).
-2. **Kora Dev** — CLI-first developer platform with coding agents, isolated workspaces, Git integration, testing, deployments, and future desktop control plane.
-3. **Kora Personal Agent** — Internal assistant for research, engineering, documentation, decisions, and authorized Kora operations, built on the same AI Core.
+1. **Keelway Core** — Shared intelligence infrastructure (model routing, retrieval, memory, evaluations, security, inference, agent execution).
+2. **Keelway Dev** — CLI-first developer platform with coding agents, isolated workspaces, Git integration, testing, deployments, and future desktop control plane.
+3. **Keelway Personal Agent** — Internal assistant for research, engineering, documentation, decisions, and authorized Keelway operations, built on the same AI Core.
 
-The personal agent is the first demanding internal customer. Kora Dev is the developer-facing distribution channel.
+The personal agent is the first demanding internal customer. Keelway Dev is the developer-facing distribution channel.
 
 ## Problem Grounding
 
-**Audience:** Kora engineering and research team (primary); external developers via Kora Dev (secondary).
+**Audience:** Keelway engineering and research team (primary); external developers via Keelway Dev (secondary).
 
 **Problem statement:** Agent loops multiply cost, latency, and failure modes. Persistent context is lost or becomes noisy. Tool use is unsafe without scoped permissions, audit, and recovery. Pure API integration does not deliver reliable, economical, portable systems under real infrastructure constraints (latency, cost, connectivity, sovereignty, power).
 
-**Evidence sources:** Internal Kora metrics (time on repetitive tasks, PR review load, cost per workflow); Stanford AI Index (evaluation and governance gaps); IEA data-centre electricity projections; NIST AI RMF.
+**Evidence sources:** Internal Keelway metrics (time on repetitive tasks, PR review load, cost per workflow); Stanford AI Index (evaluation and governance gaps); IEA data-centre electricity projections; NIST AI RMF.
 
 **SDG alignment:** SDG 9 (Industry, Innovation and Infrastructure), SDG 8 (Decent Work and Economic Growth). Optional SDG 4 if education-adjacent paths expand.
 
 ## Solution Overview
 
-One shared intelligence layer, multiple interfaces, controlled access to Kora infrastructure.
+One shared intelligence layer, multiple interfaces, controlled access to Keelway infrastructure.
 
 **Architectural principle:** Share the model gateway, retrieval, policy, telemetry, and execution infrastructure. Keep each application’s permissions, memory, and user experience isolated.
 
@@ -68,7 +68,7 @@ The model gateway is provider-agnostic by design. Initial supported providers:
 
 **Path to custom / own LLM:**
 - First 90 days: adopt foundation models; build evaluation harness, data pipelines, and serving infrastructure.
-- Medium term: fine-tuning / adapters (LoRA, QLoRA) on open models when prompting + RAG consistently underperform on measured Kora tasks.
+- Medium term: fine-tuning / adapters (LoRA, QLoRA) on open models when prompting + RAG consistently underperform on measured Keelway tasks.
 - Longer term: train or continue-train small domain-specific or African-language models only when benchmarks show a clear advantage over adapted open models. Do not attempt a general frontier LLM until there is strong evidence of differentiation and the supporting infrastructure (data, eval, serving, governance) is mature.
 
 ### Google Cloud + NVIDIA + other providers (meaningful product features)
@@ -85,18 +85,18 @@ All providers contribute through the shared gateway. No single vendor is require
 **Success criteria:** The assistant reliably completes at least three real recurring workflows and saves measurable time without unauthorized actions.
 
 ### Days 1–30: Establish the foundation
-- Create Kora AI Core architecture and initial ADRs
+- Create Keelway Core architecture and initial ADRs
 - Implement FastAPI agent backend and model gateway
 - Build private chat interface with authentication
-- Connect read-only GitHub and Kora research sources
+- Connect read-only GitHub and Keelway research sources
 - Establish PostgreSQL memory and provenance
 - Create first 30–50 evaluation tasks
 
 ### Days 31–60: Prove reliable execution
 - Implement task state machine and durable jobs
-- Build Kora Agent Gateway with scoped permissions
+- Build Keelway Agent Gateway with scoped permissions
 - Add sandboxed test and code-inspection tools
-- Introduce Kora Dev CLI integration
+- Introduce Keelway Dev CLI integration
 - Benchmark model quality, latency, and cost
 - Pilot three real personal-agent workflows
 
@@ -104,7 +104,7 @@ All providers contribute through the shared gateway. No single vendor is require
 - Implement agent recovery and approval workflows
 - Evaluate small/local models against hosted baselines
 - Add observability, security tests, and audit logs
-- Prototype Kora Dev agent orchestration
+- Prototype Keelway Dev agent orchestration
 - Recruit 5–10 developer testers
 - Publish research findings and decide next investment gate
 
@@ -115,11 +115,11 @@ All providers contribute through the shared gateway. No single vendor is require
 | Foundation models | Adopt | Avoid unnecessary frontier training costs |
 | Model gateway | Build | Strategic routing, portability, economics |
 | Vector database | Adopt | PostgreSQL/pgvector is sufficient initially |
-| Memory architecture | Build | Central to persistent Kora intelligence |
-| Agent orchestration | Build on frameworks | Own Kora’s policy, state, and evaluation logic |
+| Memory architecture | Build | Central to persistent Keelway intelligence |
+| Agent orchestration | Build on frameworks | Own Keelway’s policy, state, and evaluation logic |
 | Sandboxing | Integrate then extend | Reuse mature isolation mechanisms |
 | Evaluation system | Build | Domain-specific reliability becomes an asset |
-| Kora Dev CLI | Build | Flagship developer interface |
+| Keelway Dev CLI | Build | Flagship developer interface |
 | Workflow infrastructure | Adopt/integrate | Use established durable execution where possible |
 | Small domain models | Research, then selectively train | Only when benchmarks justify it |
 
@@ -137,7 +137,7 @@ Four permission levels: read, draft, execute in sandbox, modify external systems
 ## Suggested Repository Structure
 
 ```
-kora-ai/
+keelway/
 ├── core/
 │   ├── models/
 │   ├── routing/
@@ -153,9 +153,9 @@ kora-ai/
 │   └── infrastructure/
 ├── integrations/
 │   ├── github/
-│   ├── kora-dev/
-│   ├── kora-connect/
-│   └── kora-cloud/
+│   ├── keelway-dev/
+│   ├── keelway-connect/
+│   └── keelway-cloud/
 ├── evaluations/
 │   ├── coding/
 │   ├── retrieval/
@@ -173,10 +173,10 @@ kora-ai/
 │   ├── adr/
 │   ├── rfc/
 │   └── security/
-└── KORA.md
+└── KEELWAY.md
 ```
 
-Reconcile with existing Kora repositories before creating a new one.
+Reconcile with existing Keelway repositories before creating a new one.
 
 ## Five-Year Research Priorities (ranked)
 

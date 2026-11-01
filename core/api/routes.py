@@ -1,5 +1,5 @@
 """
-FastAPI Routes for Kora AI Core.
+FastAPI Routes for Keelway Core.
 """
 
 import re
@@ -323,7 +323,7 @@ async def delete_memory(
 
 
 class ConnectionManager:
-    """Manages active WebSocket connections for Kora Dev Studio."""
+    """Manages active WebSocket connections for Keelway Studio."""
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
 
@@ -358,7 +358,7 @@ async def _broadcast_task_state(task: TaskResponse, previous_state) -> None:
 
 @router.websocket("/v1/ws/studio")
 async def websocket_studio_endpoint(websocket: WebSocket):
-    """Real-time bidirectional channel for Kora Dev Studio events, diffs, and thought streaming."""
+    """Real-time bidirectional channel for Keelway Studio events, diffs, and thought streaming."""
     if not origin_allowed(websocket.headers.get("origin"), websocket.headers.get("host")):
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Origin not allowed.")
     ws_token = websocket.query_params.get("token") or token_from_headers(websocket.headers)
@@ -392,7 +392,7 @@ async def websocket_studio_endpoint(websocket: WebSocket):
         # Send initial connection handshake
         await websocket.send_json({
             "type": "handshake",
-            "server": "Kora AI Dev Studio",
+            "server": "Keelway Studio",
             "version": "2.1.0-alpha",
             "air_gapped": gateway.air_gap.enabled,
             "connected_at": datetime.now(timezone.utc).isoformat(),
@@ -475,7 +475,7 @@ async def create_payment_intent(payload: dict):
     amount = float(payload.get("amount", 0.0))
     currency = payload.get("currency", "USD")
     recipient = payload.get("recipient", "")
-    description = payload.get("description", "Kora Agent Service")
+    description = payload.get("description", "Keelway Agent Service")
 
     broker = GlobalPaymentBroker()
     intent = broker.create_intent(rail=rail, amount=amount, currency=currency, recipient=recipient, description=description)
@@ -491,7 +491,7 @@ async def create_payment_intent(payload: dict):
     }
 
 
-FLIGHT_RECORDINGS_DIR = Path(".kora/recordings")
+FLIGHT_RECORDINGS_DIR = Path(".keelway/recordings")
 # 243 + len(".flight.json") == 255, the common filesystem filename limit.
 _TAPE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,243}$")
 

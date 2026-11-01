@@ -1,8 +1,8 @@
 """
-Kora AI Task State Machine
+Keelway Task State Machine
 
 Explicit states, deterministic transitions, and recovery rules.
-Aligned with KORA.md: 'Prefer explicit state over opaque agent loops'.
+Aligned with KEELWAY.md: 'Prefer explicit state over opaque agent loops'.
 """
 
 from enum import Enum

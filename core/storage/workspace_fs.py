@@ -1,5 +1,5 @@
 """
-Kora AI Sovereign Workspace Filesystem & Live Git Engine.
+Keelway Sovereign Workspace Filesystem & Live Git Engine.
 Provides safe, sandboxed file operations, directory tree indexing, and git diff inspection.
 """
 
@@ -22,7 +22,7 @@ DEFAULT_IGNORED_DIRS = {
     ".idea",
     ".vscode",
     ".DS_Store",
-    ".kora/recordings",
+    ".keelway/recordings",
 }
 
 
@@ -153,7 +153,7 @@ class WorkspaceFilesystem:
         target = self.resolve_safe_path(relative_path)
         target.parent.mkdir(parents=True, exist_ok=True)
 
-        tmp_target = target.with_suffix(f"{target.suffix}.kora_tmp_{os.getpid()}")
+        tmp_target = target.with_suffix(f"{target.suffix}.keelway_tmp_{os.getpid()}")
         try:
             tmp_target.write_text(content, encoding="utf-8")
             # Atomic replace

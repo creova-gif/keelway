@@ -1,5 +1,5 @@
 """
-Kora AI Deterministic Flight Recorder & Time-Travel Debugging Engine.
+Keelway Deterministic Flight Recorder & Time-Travel Debugging Engine.
 Captures byte-for-byte execution tapes (prompts, tool calls, environment headers, state changes)
 to enable 100% reproducible offline replay and step-by-step forensic inspection.
 """
@@ -33,7 +33,7 @@ class FlightRecorder:
 
     def __init__(self, task_id: str, recordings_dir: Optional[Path] = None):
         self.task_id = task_id
-        self.recordings_dir = recordings_dir or Path(".kora/recordings")
+        self.recordings_dir = recordings_dir or Path(".keelway/recordings")
         self.events: List[FlightEvent] = []
         self.current_index = 0
 

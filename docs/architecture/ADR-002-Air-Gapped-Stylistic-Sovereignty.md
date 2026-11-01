@@ -2,7 +2,7 @@
 
 **Status:** Approved  
 **Date:** 2026-10-30  
-**Deciders:** Kora Core Engineering & Research Team  
+**Deciders:** Keelway Core Engineering & Research Team  
 **Consulted:** Y Combinator Winter RFS ("AI for the Air-Gapped Economy", "LLMs That Write Well")
 
 ---
@@ -18,7 +18,7 @@ Current frontier AI frameworks are architecturally centralized, fragile, and geo
 
 ## 2. Decision & Architectural Pillars
 
-Kora AI establishes three sovereign runtime capabilities:
+Keelway establishes three sovereign runtime capabilities:
 
 ### Pillar I: Strict Air-Gapped Zero-Egress Mode (`--air-gapped`)
 * **Socket & Transport Lockout:** When enabled, the runtime enforces loopback binding (`127.0.0.1`), shuts down external DNS, and drops all outbound network calls at the adapter and firewall layer.

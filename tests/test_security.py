@@ -53,11 +53,11 @@ def test_tool_policy_guard_blocks_destructive_commands():
 
 
 def test_tool_policy_guard_path_traversal():
-    root = Path("/tmp/kora_sandbox")
-    valid, _ = ToolPolicyGuard.validate_path("/tmp/kora_sandbox/src/main.py", allowed_root=root)
+    root = Path("/tmp/keelway_sandbox")
+    valid, _ = ToolPolicyGuard.validate_path("/tmp/keelway_sandbox/src/main.py", allowed_root=root)
     assert valid
 
-    invalid, reason = ToolPolicyGuard.validate_path("/tmp/kora_sandbox/../../etc/passwd", allowed_root=root)
+    invalid, reason = ToolPolicyGuard.validate_path("/tmp/keelway_sandbox/../../etc/passwd", allowed_root=root)
     assert not invalid
     assert "Path traversal outside sandbox root" in reason
 

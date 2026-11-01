@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Kora AI Evaluation Runner Entrypoint.
+Keelway Evaluation Runner Entrypoint.
 Delegates to evaluations/run_compare.py.
 """
 import sys

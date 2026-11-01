@@ -1,5 +1,5 @@
 'use strict';
-// Kora Dev Studio — vanilla JS, no CDN, works offline. All server data is rendered via textContent.
+// Keelway Studio — vanilla JS, no CDN, works offline. All server data is rendered via textContent.
 
 const $ = (id) => document.getElementById(id);
 function h(tag, attrs = {}, ...kids) {
@@ -16,19 +16,19 @@ function h(tag, attrs = {}, ...kids) {
 
 // ---------- i18n ----------
 const STRINGS = {
-  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Kora agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Kora', signInBody: 'Open the link printed by kora dev, or paste a token from kora token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Air-gapped', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
-    tour: [['Welcome to Kora', 'A local-first, deterministic agent workspace. Your code, models and data stay on this machine.'], ['Agents you can trust', 'Agents propose a plan, ask before changing files, and every step lands in a replayable flight tape.'], ['Audit everything', 'Tokens, roles and a tamper-evident audit log make Kora safe to share with your team.']] },
-  es: { search: 'Buscar archivos, símbolos y comandos', signOut: 'Cerrar sesión', explorer: 'Explorador', changes: 'Cambios', tasks: 'Tareas', memory: 'Memoria', save: 'Guardar', tagline: 'Local · Determinista · Tuyo', welcomeTitle: 'Construye con agentes que nunca salen de tu equipo.', welcomeBody: 'Cada paso queda registrado, reproducible y auditable.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Inicia sesión en Kora', next: 'Siguiente', done: 'Empezar', skipTour: 'Omitir', airOn: 'Aislado', airOff: 'Nube permitida', plan: 'Plan', activity: 'Actividad', allow: 'Permitir', deny: 'Denegar', openFile: 'Abrir un archivo', giveGoal: 'Dar un objetivo', reviewChanges: 'Revisar cambios' },
-  fr: { search: 'Rechercher fichiers, symboles et commandes', signOut: 'Déconnexion', explorer: 'Explorateur', changes: 'Modifications', tasks: 'Tâches', memory: 'Mémoire', save: 'Enregistrer', tagline: 'Local · Déterministe · À vous', welcomeTitle: 'Des agents qui ne quittent jamais votre machine.', welcomeBody: 'Chaque étape est enregistrée, rejouable et auditable.', start: 'Démarrer', signIn: 'Se connecter', signInTitle: 'Connexion à Kora', next: 'Suivant', done: 'Commencer', skipTour: 'Passer', airOn: 'Isolé', airOff: 'Cloud autorisé', activity: 'Activité', allow: 'Autoriser', deny: 'Refuser', openFile: 'Ouvrir un fichier', giveGoal: 'Donner un objectif', reviewChanges: 'Voir les modifications' },
-  pt: { search: 'Buscar arquivos, símbolos e comandos', signOut: 'Sair', explorer: 'Explorador', changes: 'Alterações', tasks: 'Tarefas', memory: 'Memória', save: 'Salvar', tagline: 'Local · Determinístico · Seu', welcomeTitle: 'Agentes que nunca saem da sua máquina.', welcomeBody: 'Cada passo é registrado, reproduzível e auditável.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Entrar no Kora', next: 'Próximo', done: 'Começar', skipTour: 'Pular', airOn: 'Isolado', airOff: 'Nuvem permitida', activity: 'Atividade', allow: 'Permitir', deny: 'Negar', openFile: 'Abrir um arquivo', giveGoal: 'Dar um objetivo', reviewChanges: 'Revisar alterações' },
-  sw: { search: 'Tafuta faili, alama na amri', signOut: 'Toka', explorer: 'Kivinjari', changes: 'Mabadiliko', tasks: 'Kazi', memory: 'Kumbukumbu', save: 'Hifadhi', tagline: 'Ndani · Thabiti · Yako', welcomeTitle: 'Jenga na mawakala wasioondoka kwenye kompyuta yako.', welcomeBody: 'Kila hatua inarekodiwa, inaweza kurudiwa na kukaguliwa.', start: 'Anza', signIn: 'Ingia', signInTitle: 'Ingia kwenye Kora', next: 'Ifuatayo', done: 'Anza sasa', skipTour: 'Ruka', airOn: 'Bila mtandao', airOff: 'Wingu linaruhusiwa', activity: 'Shughuli', allow: 'Ruhusu', deny: 'Kataa', openFile: 'Fungua faili', giveGoal: 'Mpe wakala lengo', reviewChanges: 'Kagua mabadiliko' },
-  ar: { search: 'ابحث في الملفات والرموز والأوامر', signOut: 'تسجيل الخروج', explorer: 'المستكشف', changes: 'التغييرات', tasks: 'المهام', memory: 'الذاكرة', save: 'حفظ', tagline: 'محلي · حتمي · ملكك', welcomeTitle: 'ابنِ مع وكلاء لا يغادرون جهازك أبدًا.', welcomeBody: 'كل خطوة مسجلة وقابلة للإعادة والتدقيق.', start: 'ابدأ', signIn: 'دخول', signInTitle: 'تسجيل الدخول إلى Kora', next: 'التالي', done: 'لنبدأ', skipTour: 'تخطي', airOn: 'معزول', airOff: 'السحابة مسموحة', activity: 'النشاط', allow: 'سماح', deny: 'رفض', openFile: 'افتح ملفًا', giveGoal: 'حدد هدفًا للوكيل', reviewChanges: 'راجع التغييرات' },
-  hi: { search: 'फ़ाइलें, सिंबल और कमांड खोजें', signOut: 'साइन आउट', explorer: 'एक्सप्लोरर', changes: 'बदलाव', tasks: 'कार्य', memory: 'मेमोरी', save: 'सहेजें', tagline: 'लोकल · निर्धारक · आपका', welcomeTitle: 'ऐसे एजेंट जो आपकी मशीन कभी नहीं छोड़ते।', welcomeBody: 'हर कदम रिकॉर्ड, दोहराने योग्य और ऑडिट योग्य है।', start: 'शुरू करें', signIn: 'साइन इन', signInTitle: 'Kora में साइन इन करें', next: 'आगे', done: 'शुरू करें', skipTour: 'छोड़ें', airOn: 'एयर-गैप्ड', airOff: 'क्लाउड अनुमत', activity: 'गतिविधि', allow: 'अनुमति दें', deny: 'अस्वीकार', openFile: 'फ़ाइल खोलें', giveGoal: 'एजेंट को लक्ष्य दें', reviewChanges: 'बदलाव देखें' },
-  zh: { search: '搜索文件、符号和命令', signOut: '退出', explorer: '资源管理器', changes: '更改', tasks: '任务', memory: '记忆', save: '保存', tagline: '本地优先 · 确定性 · 属于你', welcomeTitle: '与从不离开你电脑的智能体一起构建。', welcomeBody: '每一步都被记录、可重放、可审计。', start: '开始', signIn: '登录', signInTitle: '登录 Kora', next: '下一步', done: '开始使用', skipTour: '跳过', airOn: '已隔离', airOff: '允许云端', activity: '活动', allow: '允许', deny: '拒绝', openFile: '打开文件', giveGoal: '给智能体一个目标', reviewChanges: '查看更改' },
+  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Air-gapped', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
+    tour: [['Welcome to Keelway', 'A local-first, deterministic agent workspace. Your code, models and data stay on this machine.'], ['Agents you can trust', 'Agents propose a plan, ask before changing files, and every step lands in a replayable flight tape.'], ['Audit everything', 'Tokens, roles and a tamper-evident audit log make Keelway safe to share with your team.']] },
+  es: { search: 'Buscar archivos, símbolos y comandos', signOut: 'Cerrar sesión', explorer: 'Explorador', changes: 'Cambios', tasks: 'Tareas', memory: 'Memoria', save: 'Guardar', tagline: 'Local · Determinista · Tuyo', welcomeTitle: 'Construye con agentes que nunca salen de tu equipo.', welcomeBody: 'Cada paso queda registrado, reproducible y auditable.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Inicia sesión en Keelway', next: 'Siguiente', done: 'Empezar', skipTour: 'Omitir', airOn: 'Aislado', airOff: 'Nube permitida', plan: 'Plan', activity: 'Actividad', allow: 'Permitir', deny: 'Denegar', openFile: 'Abrir un archivo', giveGoal: 'Dar un objetivo', reviewChanges: 'Revisar cambios' },
+  fr: { search: 'Rechercher fichiers, symboles et commandes', signOut: 'Déconnexion', explorer: 'Explorateur', changes: 'Modifications', tasks: 'Tâches', memory: 'Mémoire', save: 'Enregistrer', tagline: 'Local · Déterministe · À vous', welcomeTitle: 'Des agents qui ne quittent jamais votre machine.', welcomeBody: 'Chaque étape est enregistrée, rejouable et auditable.', start: 'Démarrer', signIn: 'Se connecter', signInTitle: 'Connexion à Keelway', next: 'Suivant', done: 'Commencer', skipTour: 'Passer', airOn: 'Isolé', airOff: 'Cloud autorisé', activity: 'Activité', allow: 'Autoriser', deny: 'Refuser', openFile: 'Ouvrir un fichier', giveGoal: 'Donner un objectif', reviewChanges: 'Voir les modifications' },
+  pt: { search: 'Buscar arquivos, símbolos e comandos', signOut: 'Sair', explorer: 'Explorador', changes: 'Alterações', tasks: 'Tarefas', memory: 'Memória', save: 'Salvar', tagline: 'Local · Determinístico · Seu', welcomeTitle: 'Agentes que nunca saem da sua máquina.', welcomeBody: 'Cada passo é registrado, reproduzível e auditável.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Entrar no Keelway', next: 'Próximo', done: 'Começar', skipTour: 'Pular', airOn: 'Isolado', airOff: 'Nuvem permitida', activity: 'Atividade', allow: 'Permitir', deny: 'Negar', openFile: 'Abrir um arquivo', giveGoal: 'Dar um objetivo', reviewChanges: 'Revisar alterações' },
+  sw: { search: 'Tafuta faili, alama na amri', signOut: 'Toka', explorer: 'Kivinjari', changes: 'Mabadiliko', tasks: 'Kazi', memory: 'Kumbukumbu', save: 'Hifadhi', tagline: 'Ndani · Thabiti · Yako', welcomeTitle: 'Jenga na mawakala wasioondoka kwenye kompyuta yako.', welcomeBody: 'Kila hatua inarekodiwa, inaweza kurudiwa na kukaguliwa.', start: 'Anza', signIn: 'Ingia', signInTitle: 'Ingia kwenye Keelway', next: 'Ifuatayo', done: 'Anza sasa', skipTour: 'Ruka', airOn: 'Bila mtandao', airOff: 'Wingu linaruhusiwa', activity: 'Shughuli', allow: 'Ruhusu', deny: 'Kataa', openFile: 'Fungua faili', giveGoal: 'Mpe wakala lengo', reviewChanges: 'Kagua mabadiliko' },
+  ar: { search: 'ابحث في الملفات والرموز والأوامر', signOut: 'تسجيل الخروج', explorer: 'المستكشف', changes: 'التغييرات', tasks: 'المهام', memory: 'الذاكرة', save: 'حفظ', tagline: 'محلي · حتمي · ملكك', welcomeTitle: 'ابنِ مع وكلاء لا يغادرون جهازك أبدًا.', welcomeBody: 'كل خطوة مسجلة وقابلة للإعادة والتدقيق.', start: 'ابدأ', signIn: 'دخول', signInTitle: 'تسجيل الدخول إلى Keelway', next: 'التالي', done: 'لنبدأ', skipTour: 'تخطي', airOn: 'معزول', airOff: 'السحابة مسموحة', activity: 'النشاط', allow: 'سماح', deny: 'رفض', openFile: 'افتح ملفًا', giveGoal: 'حدد هدفًا للوكيل', reviewChanges: 'راجع التغييرات' },
+  hi: { search: 'फ़ाइलें, सिंबल और कमांड खोजें', signOut: 'साइन आउट', explorer: 'एक्सप्लोरर', changes: 'बदलाव', tasks: 'कार्य', memory: 'मेमोरी', save: 'सहेजें', tagline: 'लोकल · निर्धारक · आपका', welcomeTitle: 'ऐसे एजेंट जो आपकी मशीन कभी नहीं छोड़ते।', welcomeBody: 'हर कदम रिकॉर्ड, दोहराने योग्य और ऑडिट योग्य है।', start: 'शुरू करें', signIn: 'साइन इन', signInTitle: 'Keelway में साइन इन करें', next: 'आगे', done: 'शुरू करें', skipTour: 'छोड़ें', airOn: 'एयर-गैप्ड', airOff: 'क्लाउड अनुमत', activity: 'गतिविधि', allow: 'अनुमति दें', deny: 'अस्वीकार', openFile: 'फ़ाइल खोलें', giveGoal: 'एजेंट को लक्ष्य दें', reviewChanges: 'बदलाव देखें' },
+  zh: { search: '搜索文件、符号和命令', signOut: '退出', explorer: '资源管理器', changes: '更改', tasks: '任务', memory: '记忆', save: '保存', tagline: '本地优先 · 确定性 · 属于你', welcomeTitle: '与从不离开你电脑的智能体一起构建。', welcomeBody: '每一步都被记录、可重放、可审计。', start: '开始', signIn: '登录', signInTitle: '登录 Keelway', next: '下一步', done: '开始使用', skipTour: '跳过', airOn: '已隔离', airOff: '允许云端', activity: '活动', allow: '允许', deny: '拒绝', openFile: '打开文件', giveGoal: '给智能体一个目标', reviewChanges: '查看更改' },
 };
 const LANGS = { en: 'English', es: 'Español', fr: 'Français', pt: 'Português', sw: 'Kiswahili', ar: 'العربية', hi: 'हिन्दी', zh: '中文' };
 const RTL = new Set(['ar']);
-let lang = localStorage.getItem('kora.lang') || (navigator.language || 'en').slice(0, 2);
+let lang = localStorage.getItem('keelway.lang') || (navigator.language || 'en').slice(0, 2);
 if (!STRINGS[lang]) lang = 'en';
 const t = (key) => (STRINGS[lang] && STRINGS[lang][key]) ?? STRINGS.en[key] ?? key;
 
@@ -43,10 +43,10 @@ function applyI18n() {
 // ---------- theme & sound ----------
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  localStorage.setItem('kora.theme', theme);
-  if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : 'koraDark');
+  localStorage.setItem('keelway.theme', theme);
+  if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : 'keelwayDark');
 }
-let sound = localStorage.getItem('kora.sound') !== 'off';
+let sound = localStorage.getItem('keelway.sound') !== 'off';
 let audioCtx = null;
 function tone(kind) {
   if (!sound) return;
@@ -73,8 +73,8 @@ function toast(msg, kind = 'ok') {
 
 // ---------- API + auth ----------
 const urlToken = new URLSearchParams(location.search).get('token');
-if (urlToken) { localStorage.setItem('kora.token', urlToken); history.replaceState(null, '', location.pathname + location.hash); }
-const token = () => localStorage.getItem('kora.token');
+if (urlToken) { localStorage.setItem('keelway.token', urlToken); history.replaceState(null, '', location.pathname + location.hash); }
+const token = () => localStorage.getItem('keelway.token');
 
 async function api(path, { method = 'GET', body } = {}) {
   const headers = {};
@@ -115,11 +115,11 @@ async function loadMe() {
 
 async function signIn(e) {
   e.preventDefault();
-  localStorage.setItem('kora.token', $('signin-token').value.trim());
+  localStorage.setItem('keelway.token', $('signin-token').value.trim());
   try { await loadMe(); $('signin-token').value = ''; hideSignIn(); toast(`${t('signIn')} · ${state.me.actor}`); await startSession(); }
-  catch (err) { localStorage.removeItem('kora.token'); showSignIn(t('badToken')); }
+  catch (err) { localStorage.removeItem('keelway.token'); showSignIn(t('badToken')); }
 }
-function signOut() { localStorage.removeItem('kora.token'); const ws = state.ws; state.ws = null; if (ws) ws.close(); showSignIn(); }
+function signOut() { localStorage.removeItem('keelway.token'); const ws = state.ws; state.ws = null; if (ws) ws.close(); showSignIn(); }
 
 // ---------- status ----------
 function setAirGap(on) {
@@ -178,8 +178,8 @@ function initMonaco() {
   if (!window.require || !require.config) { $('fallback-editor').classList.remove('hidden'); return; }
   require.config({ paths: { vs: '/studio/assets/monaco/vs' } });
   require(['vs/editor/editor.main'], () => {
-    monaco.editor.defineTheme('koraDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0A0F1D' } });
-    editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'koraDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
+    monaco.editor.defineTheme('keelwayDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0A0F1D' } });
+    editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'keelwayDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
     editor.onDidChangeModelContent(() => { if (state.active && !state.syncing) { state.dirty.add(state.active); renderTabs(); } });
     if (state.active) state.buffers[state.active] = $('fallback-editor').value;
@@ -591,7 +591,7 @@ function renderTour() {
   $('onboard-title').textContent = title; $('onboard-body').textContent = body;
   $('onboard-next').textContent = tourStep === steps.length - 1 ? t('done') : t('next');
 }
-function endTour() { localStorage.setItem('kora.onboarded', '1'); $('onboard').classList.add('hidden'); $('onboard').classList.remove('flex'); }
+function endTour() { localStorage.setItem('keelway.onboarded', '1'); $('onboard').classList.add('hidden'); $('onboard').classList.remove('flex'); }
 
 // ---------- boot ----------
 function welcomeFacts() {
@@ -605,17 +605,17 @@ async function startSession() {
   if (state.view !== 'explorer') refreshView();
   if (state.ws) { const old = state.ws; state.ws = null; old.close(); }
   connectWs();
-  if (!localStorage.getItem('kora.onboarded')) startTour();
+  if (!localStorage.getItem('keelway.onboarded')) startTour();
 }
 function relabel() { applyI18n(); renderPanelTabs(); renderWelcome(); renderTabs(); if (state.status) setAirGap(state.status.air_gapped); }
 
 function wire() {
   $('lang-select').replaceChildren(...Object.entries(LANGS).map(([k, v]) => h('option', { value: k }, v)));
   $('lang-select').value = lang;
-  $('lang-select').addEventListener('change', (e) => { lang = e.target.value; localStorage.setItem('kora.lang', lang); relabel(); });
+  $('lang-select').addEventListener('change', (e) => { lang = e.target.value; localStorage.setItem('keelway.lang', lang); relabel(); });
   $('theme-btn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
   $('sound-btn').setAttribute('aria-pressed', String(sound));
-  $('sound-btn').addEventListener('click', () => { sound = !sound; localStorage.setItem('kora.sound', sound ? 'on' : 'off'); $('sound-btn').setAttribute('aria-pressed', String(sound)); tone('tick'); });
+  $('sound-btn').addEventListener('click', () => { sound = !sound; localStorage.setItem('keelway.sound', sound ? 'on' : 'off'); $('sound-btn').setAttribute('aria-pressed', String(sound)); tone('tick'); });
   $('airgap-btn').addEventListener('click', toggleAirGap);
   $('signout-btn').addEventListener('click', signOut);
   $('signin-form').addEventListener('submit', signIn);
@@ -655,9 +655,9 @@ function wire() {
 }
 
 async function boot() {
-  setTheme(localStorage.getItem('kora.theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  setTheme(localStorage.getItem('keelway.theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
   wire(); relabel(); switchPanel('console'); initMonaco();
-  log('Kora Dev Studio · type help', 'text-ide-muted');
+  log('Keelway Studio · type help', 'text-ide-muted');
   try { await loadMe(); } catch { if (!signInOpen()) showSignIn(); return; }
   await startSession();
 }

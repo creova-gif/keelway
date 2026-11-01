@@ -1,5 +1,5 @@
 """
-Integration tests for the Kora AI Core FastAPI service.
+Integration tests for the Keelway Core FastAPI service.
 Tests health checks, task creation, retrieval, and state transitions.
 """
 
@@ -39,7 +39,7 @@ async def test_task_lifecycle_and_state_transition():
             "description": "Compare Claude and local Qwen on PR brief",
             "owner": "founder",
             "budget_usd": 0.25,
-            "payload": {"repo": "kora-ai"},
+            "payload": {"repo": "keelway"},
         }
         res_create = await client.post("/v1/tasks", json=create_payload)
         assert res_create.status_code == 201

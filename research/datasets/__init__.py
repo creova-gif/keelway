@@ -1,5 +1,5 @@
 """
-Kora AI Autonomous Dataset Extraction & LoRA Fine-Tuning Pipeline.
+Keelway Autonomous Dataset Extraction & LoRA Fine-Tuning Pipeline.
 Converts verified execution traces into ShareGPT and OpenAI formatted training pairs.
 """
 

@@ -1,5 +1,5 @@
 /**
- * Kora Mobile Mission Control Screen.
+ * Keelway Mobile Mission Control Screen.
  * Features live agent thought streaming, air-gap toggle, ghost diff review,
  * and biometric commit approval gestures.
  */
@@ -7,16 +7,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, TextInput, Alert } from 'react-native';
 import { BiometricGate } from '../services/biometrics';
-import { KoraMobileClient, AgentEvent } from '../services/api';
+import { KeelwayMobileClient, AgentEvent } from '../services/api';
 
 export default function MissionControlScreen() {
   const [airGapped, setAirGapped] = useState(true);
   const [instruction, setInstruction] = useState('');
   const [events, setEvents] = useState<AgentEvent[]>([]);
-  const [client, setClient] = useState<KoraMobileClient | null>(null);
+  const [client, setClient] = useState<KeelwayMobileClient | null>(null);
 
   useEffect(() => {
-    const mobileClient = new KoraMobileClient('127.0.0.1:7420');
+    const mobileClient = new KeelwayMobileClient('127.0.0.1:7420');
     mobileClient.connect((event) => {
       setEvents((prev) => [event, ...prev]);
     });
@@ -46,7 +46,7 @@ export default function MissionControlScreen() {
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.logo}>⚡</Text>
-          <Text style={styles.title}>KORA <Text style={styles.subtitle}>MOBILE</Text></Text>
+          <Text style={styles.title}>KEELWAY <Text style={styles.subtitle}>MOBILE</Text></Text>
         </View>
         <TouchableOpacity
           style={[styles.airgapBadge, airGapped ? styles.airgapActive : styles.airgapInactive]}

@@ -1,6 +1,6 @@
-# Kora AI — 90-Day Implementation Plan
+# Keelway — 90-Day Implementation Plan
 
-**Goal:** Working Personal Kora agent built on a reusable AI Core, with limited Kora Dev integration and measured reliability.
+**Goal:** Working Personal Keelway agent built on a reusable AI Core, with limited Keelway Dev integration and measured reliability.
 
 **Success metric:** Reliably completes at least three real recurring workflows and saves measurable time without unauthorized actions.
 
@@ -8,7 +8,7 @@
 
 | # | Deliverable | Owner | Done criteria |
 |---|-------------|-------|---------------|
-| 1 | Kora AI Core architecture doc + ADR-001 | Lead | ADR accepted |
+| 1 | Keelway Core architecture doc + ADR-001 | Lead | ADR accepted |
 | 2 | FastAPI backend skeleton + multi-provider model gateway (Claude + at least one other) | Backend | Health endpoint + simple completion works across two providers |
 | 3 | Private chat interface with authentication | Full-stack | Authenticated user can chat |
 | 4 | Read-only GitHub connector | Backend | Can list/read repos and files with citations |
@@ -20,9 +20,9 @@
 | # | Deliverable | Owner | Done criteria |
 |---|-------------|-------|---------------|
 | 7 | Task state machine + durable jobs | Backend | Tasks survive restarts; retries work |
-| 8 | Kora Agent Gateway with scoped permissions | Backend | Gateway enforces scopes; audit log exists |
+| 8 | Keelway Agent Gateway with scoped permissions | Backend | Gateway enforces scopes; audit log exists |
 | 9 | Sandboxed test and code-inspection tools | Backend | Can run tests in isolation |
-| 10 | Kora Dev CLI integration (minimal) | Dev | CLI can trigger a simple agent task |
+| 10 | Keelway Dev CLI integration (minimal) | Dev | CLI can trigger a simple agent task |
 | 11 | Model quality / latency / cost benchmarks | Research | Spreadsheet or dashboard of results |
 | 12 | Pilot three real personal-agent workflows | Product | Workflows run end-to-end with human approval where needed |
 
@@ -33,7 +33,7 @@
 | 13 | Agent recovery and approval workflows | Backend | Failed tasks can be resumed or escalated |
 | 14 | Small/local model evaluation vs hosted | Research | Comparison report |
 | 15 | Observability, security tests, audit logs | Platform | Traces + audit trail visible |
-| 16 | Prototype Kora Dev agent orchestration | Dev | One multi-step Dev workflow works |
+| 16 | Prototype Keelway Dev agent orchestration | Dev | One multi-step Dev workflow works |
 | 17 | Recruit 5–10 developer testers | Product | Feedback collected |
 | 18 | Research findings + next investment gate | Lead | Decision document published |
 

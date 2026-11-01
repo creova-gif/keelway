@@ -1,27 +1,27 @@
 {
   "expo": {
-    "name": "Kora Mobile",
-    "slug": "kora-mobile",
+    "name": "Keelway Mobile",
+    "slug": "keelway-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "scheme": "kora",
+    "scheme": "keelway",
     "splash": {
       "backgroundColor": "#070A12"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ai.kora.mobile",
+      "bundleIdentifier": "dev.keelway.mobile",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Kora requires FaceID to cryptographically authorize agent code commits and spend mandates."
+        "NSFaceIDUsageDescription": "Keelway requires FaceID to cryptographically authorize agent code commits and spend mandates."
       }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#070A12"
       },
-      "package": "ai.kora.mobile",
+      "package": "dev.keelway.mobile",
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",

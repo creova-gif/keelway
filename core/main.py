@@ -1,5 +1,5 @@
 """
-Kora AI Core — FastAPI Application Entrypoint.
+Keelway Core — FastAPI Application Entrypoint.
 """
 
 from contextlib import asynccontextmanager
@@ -25,13 +25,13 @@ logging.basicConfig(
     level=settings.log_level.upper(),
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("kora.core")
+logger = logging.getLogger("keelway.core")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan event handler for startup and shutdown."""
-    logger.info("Initializing Kora AI Core...")
+    logger.info("Initializing Keelway Core...")
     logger.info("Auto-initializing local storage tables...")
     try:
         await init_db()
@@ -39,19 +39,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.exception("Database initialization failed (database_url=%s)", settings.database_url.split("@")[-1])
         raise
 
-    if settings.auth_required and not settings.kora_api_token and not os.environ.get("KORA_DEV_CLI"):
+    if settings.auth_required and not settings.keelway_api_token and not os.environ.get("KEELWAY_DEV_CLI"):
         logger.info("API auth on. Launch token for this process (owner role): %s", launch_token())
-        logger.info("Open the Studio at /?token=<launch token>, or set KORA_API_TOKEN to pin it.")
+        logger.info("Open the Studio at /?token=<launch token>, or set KEELWAY_API_TOKEN to pin it.")
     elif not settings.auth_required:
         logger.warning("AUTH_REQUIRED=false: every request is treated as the local owner.")
 
     yield
 
-    logger.info("Shutting down Kora AI Core...")
+    logger.info("Shutting down Keelway Core...")
 
 
 app = FastAPI(
-    title="Kora AI Core",
+    title="Keelway Core",
     version="0.1.0",
     description="Shared Intelligence Infrastructure & Multi-Provider Model Gateway.",
     lifespan=lifespan,
@@ -94,7 +94,7 @@ app.include_router(router)
 app.include_router(studio_router)
 app.include_router(auth_router)
 
-# Mount Kora Dev Studio Web UI
+# Mount Keelway Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
 index_file = studio_dir / "index.html"
 app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
@@ -104,5 +104,5 @@ app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="
 async def serve_studio():
     if index_file.exists():
         return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
-    return HTMLResponse(content="<h1>Kora AI Core</h1><p>API is active. Studio assets loading...</p>")
+    return HTMLResponse(content="<h1>Keelway Core</h1><p>API is active. Studio assets loading...</p>")
 

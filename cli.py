@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Kora AI Developer & Operations CLI Tool.
+Keelway Developer & Operations CLI Tool.
 Usage:
-  kora doctor
-  kora chat [--provider PROVIDER]
-  kora brief [--title TITLE]
-  kora summarize <path_to_doc> [--store-memory]
-  kora test-sandbox <command> [--approve]
-  kora eval [--mock]
-  kora memory <store|get|search|ingest|list>
-  kora dataset export [--output PATH] [--format sharegpt|openai]
+  keelway doctor
+  keelway chat [--provider PROVIDER]
+  keelway brief [--title TITLE]
+  keelway summarize <path_to_doc> [--store-memory]
+  keelway test-sandbox <command> [--approve]
+  keelway eval [--mock]
+  keelway memory <store|get|search|ingest|list>
+  keelway dataset export [--output PATH] [--format sharegpt|openai]
 """
 
 import argparse
@@ -43,7 +43,7 @@ async def cmd_heal(test_cmd: str, max_attempts: int = 3):
     """Run closed-loop autonomous repair on a failing test command."""
     from core.orchestration.self_healing import SelfHealingLoop
     print("\n" + "=" * 65)
-    print("  🔧 KORA AUTONOMOUS REPAIR LOOP")
+    print("  🔧 KEELWAY AUTONOMOUS REPAIR LOOP")
     print(f"  Command:   {test_cmd}")
     print(f"  Isolation: Ephemeral Git Worktree")
     print(f"  Attempts:  Up to {max_attempts}")
@@ -69,7 +69,7 @@ async def cmd_mesh():
     from core.orchestration.p2p_mesh import LocalTeamMesh
     mesh = LocalTeamMesh()
     print("\n" + "=" * 65)
-    print("  🌐 KORA PEER-TO-PEER LOCAL TEAM MESH")
+    print("  🌐 KEELWAY PEER-TO-PEER LOCAL TEAM MESH")
     print("=" * 65)
     local = mesh.get_local_advertisement()
     print(f"  Local Node ID: {local['node_id']} ({local['hostname']})")
@@ -89,7 +89,7 @@ async def cmd_spec():
     """Run speculative decoding benchmark comparison."""
     from core.models.speculative import SpeculativeDecoder
     print("\n" + "=" * 65)
-    print("  🚀 KORA SPECULATIVE DECODING BENCHMARK (0.5B + 7B Tandem)")
+    print("  🚀 KEELWAY SPECULATIVE DECODING BENCHMARK (0.5B + 7B Tandem)")
     print("=" * 65 + "\n")
     print("[+] Simulating parallel verification pass with K=4 lookahead...")
     decoder = SpeculativeDecoder(lookahead_k=4)
@@ -110,7 +110,7 @@ async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, descr
     r = GlobalRail(rail)
     intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
     print("\n" + "=" * 65)
-    print("  💳 KORA GLOBAL SOVEREIGN PAYMENT BROKER")
+    print("  💳 KEELWAY GLOBAL SOVEREIGN PAYMENT BROKER")
     print(f"  Rail:        {intent.rail.value.upper()}")
     print(f"  Amount:      {intent.amount:.2f} {intent.currency}")
     print(f"  Recipient:   {intent.recipient}")
@@ -123,21 +123,21 @@ async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, descr
 
 
 async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
-    """Launch Kora Dev Studio — Local Web & Desktop UI."""
+    """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
     import threading
 
     print("\n" + "=" * 65)
-    print("  ⚡ KORA DEV STUDIO — Sovereign Agent Engineering Environment")
+    print("  ⚡ KEELWAY STUDIO — Sovereign Agent Engineering Environment")
     from core.config import settings
     from core.security.auth import launch_token
-    os.environ["KORA_DEV_CLI"] = "1"
+    os.environ["KEELWAY_DEV_CLI"] = "1"
     if settings.auth_required:
         print(f"  Studio: http://{host}:{port}/?token={launch_token()}")
-        print("  (owner launch token; changes every run unless KORA_API_TOKEN is set)")
+        print("  (owner launch token; changes every run unless KEELWAY_API_TOKEN is set)")
     else:
         print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
-    print("  Air-Gap: off (cloud providers allowed; use `kora chat --air-gapped` for local-only)")
+    print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
     def auto_open_browser():
@@ -330,7 +330,7 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
     import json
 
     print("\n" + "=" * 65)
-    print("  📲 KORA OMNICHANNEL AGENT DISPATCHER")
+    print("  📲 KEELWAY OMNICHANNEL AGENT DISPATCHER")
     print("=" * 65)
 
     chan_map = {
@@ -341,7 +341,7 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
     }
 
     chosen_chan = chan_map.get(channel.lower(), MessagingChannel.TELEGRAM)
-    target = target or ("@kora_security_lead" if channel == "telegram" else "+15550192834")
+    target = target or ("@keelway_security_lead" if channel == "telegram" else "+15550192834")
 
     pref = ChannelPreference(
         user_id="lead_eng",
@@ -378,7 +378,7 @@ async def cmd_repomap(max_tokens: int = 1500):
     idx = CodebaseSemanticIndex()
     stats = idx.index_workspace(max_files=150)
     print("\n" + "=" * 65)
-    print("  🗺️  KORA CODEBASE REPOSITORY MAP")
+    print("  🗺️  KEELWAY CODEBASE REPOSITORY MAP")
     print(f"  Indexed: {stats['total_files_indexed']} files, {stats['total_symbols_indexed']} symbols")
     print("=" * 65 + "\n")
     print(idx.generate_repo_map(max_tokens=max_tokens))
@@ -392,7 +392,7 @@ async def cmd_search(query: str, top_k: int = 10):
     idx.index_workspace(max_files=150)
     results = idx.search_symbols(query=query, top_k=top_k)
     print("\n" + "=" * 65)
-    print(f"  🔍 KORA SEMANTIC SYMBOL SEARCH: '{query}'")
+    print(f"  🔍 KEELWAY SEMANTIC SYMBOL SEARCH: '{query}'")
     print(f"  Matches Found: {len(results)}")
     print("=" * 65 + "\n")
     for r in results:
@@ -411,7 +411,7 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
     
     ollama_url = "http://localhost:11434/api/pull"
     print("\n" + "=" * 65)
-    print("  📦 KORA ZERO-CONFIG MODEL STREAMING DOWNLOADER")
+    print("  📦 KEELWAY ZERO-CONFIG MODEL STREAMING DOWNLOADER")
     print(f"  Target Model: {model}")
     print(f"  Ollama Host:  http://localhost:11434")
     print("=" * 65 + "\n")
@@ -467,7 +467,7 @@ async def cmd_token(action: str, name: str = "", role: str = "engineer", token_i
         elif action == "list":
             rows = (await db.execute(select(ApiTokenRecord).order_by(ApiTokenRecord.created_at))).scalars().all()
             if not rows:
-                print("No API tokens. Create one with: kora token create --name <name> --role engineer")
+                print("No API tokens. Create one with: keelway token create --name <name> --role engineer")
             for r in rows:
                 state = "revoked" if r.revoked_at else f"last used {r.last_used_at:%Y-%m-%d %H:%M}" if r.last_used_at else "never used"
                 print(f"{r.id}  {r.role:<9} {r.name:<24} {state}")
@@ -483,7 +483,7 @@ async def cmd_token(action: str, name: str = "", role: str = "engineer", token_i
 
 async def cmd_doctor():
     """Check health of environment, database, and providers."""
-    print("\n[+] Running Kora AI System Diagnostics (kora doctor)...\n")
+    print("\n[+] Running Keelway System Diagnostics (keelway doctor)...\n")
 
     # 1. Environment & DB
     print(f"  • Environment:     {settings.env}")
@@ -517,7 +517,7 @@ async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bo
 
     session = InteractiveChatSession(gateway=gateway, provider=prov, system_prompt=combined_prompt)
     print("\n" + "=" * 65)
-    print("  KORA AI — Sovereign Agent Interactive Workspace (REPL)")
+    print("  KEELWAY — Sovereign Agent Interactive Workspace (REPL)")
     print(f"  Active Provider: {prov.value.upper()} | Style: {voice_style.upper()}")
     if air_gapped:
         print("  Security Mode:   🔒 STRICT AIR-GAPPED (Zero Network Egress)")
@@ -525,9 +525,9 @@ async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bo
 
     while True:
         try:
-            user_input = input("kora> ").strip()
+            user_input = input("keelway> ").strip()
         except (KeyboardInterrupt, EOFError):
-            print("\nExiting Kora session. Goodbye!")
+            print("\nExiting Keelway session. Goodbye!")
             break
 
         if not user_input:
@@ -668,11 +668,11 @@ async def cmd_test_sandbox(command: str, approve: bool, provider_name: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="kora", description="Kora AI Core Developer & Operations CLI")
+    parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # dev
-    dev_parser = subparsers.add_parser("dev", help="Launch Kora Dev Studio — Local Web & Desktop UI")
+    dev_parser = subparsers.add_parser("dev", help="Launch Keelway Studio — Local Web & Desktop UI")
     dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
 
@@ -775,7 +775,7 @@ def main():
     pay_parser.add_argument("--amount", type=float, required=True, help="Payment amount")
     pay_parser.add_argument("--currency", default="USD", help="Currency code (USD, KES, BRL, INR, SATS)")
     pay_parser.add_argument("--to", required=True, help="Recipient identifier (phone, key, VPA, pubkey, node)")
-    pay_parser.add_argument("--desc", default="Kora Autonomous Agent Compute Charge", help="Description")
+    pay_parser.add_argument("--desc", default="Keelway Autonomous Agent Compute Charge", help="Description")
 
     # notify (Omnichannel Agent Approval Dispatcher)
     notify_parser = subparsers.add_parser("notify", help="Dispatch omnichannel agent approval request (Telegram, WhatsApp, Mobile, SMS)")
@@ -823,7 +823,7 @@ def main():
         harness = ProductionEvalHarness()
         summary = asyncio.run(harness.run_all())
         print("\n" + "=" * 65)
-        print("  🏆 KORA AI GOLDEN EVALUATION BENCHMARK REPORT")
+        print("  🏆 KEELWAY GOLDEN EVALUATION BENCHMARK REPORT")
         print(f"  Passed: {summary['passed_tasks']}/{summary['total_tasks']} ({summary['pass_rate_pct']}%)")
         print(f"  Duration: {summary['total_duration_ms']:.2f} ms")
         print("=" * 65 + "\n")

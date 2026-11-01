@@ -1,0 +1,51 @@
+{
+  "task_id": "demo-refactor-run",
+  "event_count": 5,
+  "events": [
+    {
+      "event_index": 1,
+      "event_type": "prompt",
+      "payload": {
+        "text": "Refactor payment broker"
+      },
+      "timestamp_utc": 1793393925.13409
+    },
+    {
+      "event_index": 2,
+      "event_type": "model_response",
+      "payload": {
+        "provider": "local",
+        "tokens": 412
+      },
+      "timestamp_utc": 1793393925.1340923
+    },
+    {
+      "event_index": 3,
+      "event_type": "tool_call",
+      "payload": {
+        "tool": "read_file",
+        "path": "core/storage/payment_broker.py"
+      },
+      "timestamp_utc": 1793393925.1340935
+    },
+    {
+      "event_index": 4,
+      "event_type": "tool_result",
+      "payload": {
+        "bytes": 5120
+      },
+      "timestamp_utc": 1793393925.1340942
+    },
+    {
+      "event_index": 5,
+      "event_type": "state_transition",
+      "payload": {
+        "from": "running",
+        "to": "verifying"
+      },
+      "timestamp_utc": 1793393925.1340952
+    }
+  ],
+  "tape_sha256": "995fddcc5ed53ceb6c08fe99b8730fae405c70962a84351d37e44ff278f3d65c",
+  "recorded_at": 1793393925.1342964
+}

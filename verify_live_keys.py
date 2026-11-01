@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Verification Script for Kora AI Model Provider Keys.
+Live Verification Script for Keelway Model Provider Keys.
 Tests active credentials against Anthropic, Google Gemini, and OpenAI endpoints.
 """
 
@@ -31,7 +31,7 @@ async def test_provider(name: str, adapter, key_present: bool):
 
     request = CompletionRequestSchema(
         messages=[
-            MessageSchema(role="user", content="Respond with exactly 'KORA_OK' and nothing else.")
+            MessageSchema(role="user", content="Respond with exactly 'KEELWAY_OK' and nothing else.")
         ],
         temperature=0.0,
         max_tokens=20,
@@ -56,7 +56,7 @@ async def test_provider(name: str, adapter, key_present: bool):
 
 async def main():
     print("============================================================", flush=True)
-    print("  Kora AI — Live Provider Credentials Verification          ", flush=True)
+    print("  Keelway — Live Provider Credentials Verification          ", flush=True)
     print("============================================================", flush=True)
     print(f"Loaded .env from: {Path(__file__).parent / '.env'}", flush=True)
     print(f"Anthropic Key Present: {bool(settings.anthropic_api_key)}", flush=True)

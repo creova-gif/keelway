@@ -1,5 +1,5 @@
 """
-Pydantic v2 schemas for Kora AI Core API.
+Pydantic v2 schemas for Keelway Core API.
 """
 
 from datetime import datetime

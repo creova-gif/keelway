@@ -1,5 +1,5 @@
 """
-Google Gemini Model Adapter for Kora AI Core.
+Google Gemini Model Adapter for Keelway Core.
 Direct REST client targeting Google AI Studio or Vertex AI Gemini endpoints.
 """
 

@@ -1,5 +1,5 @@
 """
-Kora AI Codebase Semantic Indexer & Repository Map (RepoMap).
+Keelway Codebase Semantic Indexer & Repository Map (RepoMap).
 Performs AST-level symbol extraction (classes, methods, signatures, imports),
 maintains an incremental SHA-256 hash cache, and generates condensed repo maps
 and vector-indexed symbol search for prompt context augmentation.

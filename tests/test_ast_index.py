@@ -1,5 +1,5 @@
 """
-Unit tests for Kora AI CodebaseSemanticIndex and AST Symbol Extraction.
+Unit tests for Keelway CodebaseSemanticIndex and AST Symbol Extraction.
 Tests Python and TypeScript symbol parsing, incremental hashing, repo map generation, and hybrid search.
 """
 

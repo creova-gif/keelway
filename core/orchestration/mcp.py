@@ -1,8 +1,8 @@
 """
-Kora AI Universal Model Context Protocol (MCP) Bridge.
+Keelway Universal Model Context Protocol (MCP) Bridge.
 Implements the JSON-RPC Model Context Protocol standard:
 - Discovers and registers external MCP tools and resources.
-- Exposes Kora's local Hybrid Memory and Security Gateway to external clients (Cursor, Claude Code, Zed).
+- Exposes Keelway's local Hybrid Memory and Security Gateway to external clients (Cursor, Claude Code, Zed).
 """
 
 import json
@@ -27,7 +27,7 @@ class MCPResourceDefinition:
 
 
 class MCPProtocolServer:
-    """Lightweight, zero-overhead Model Context Protocol server for Kora tools & resources."""
+    """Lightweight, zero-overhead Model Context Protocol server for Keelway tools & resources."""
 
     def __init__(self):
         self.tools: Dict[str, MCPToolDefinition] = {}

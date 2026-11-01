@@ -1,5 +1,5 @@
 """
-Standard library unit tests for Kora AI Autonomous Self-Healing Verification Loop.
+Standard library unit tests for Keelway Autonomous Self-Healing Verification Loop.
 Runs in clean zero-dependency environments.
 """
 
@@ -21,16 +21,16 @@ ___________________________ test_calculation ___________________________
 >       assert multiply(3, 4) == 10
 E       AssertionError: assert 12 == 10
 
-kora/math/ops.py:42: AssertionError
+keelway/math/ops.py:42: AssertionError
 =========================== short test summary info ===========================
-FAILED kora/math/ops.py::test_calculation - AssertionError: assert 12 == 10
-File "kora/math/ops.py", line 42, in test_calculation
+FAILED keelway/math/ops.py::test_calculation - AssertionError: assert 12 == 10
+File "keelway/math/ops.py", line 42, in test_calculation
 """
         loop = SelfHealingLoop()
         diag = loop.parse_test_failure(sample_pytest_output)
 
         self.assertIsNotNone(diag)
-        self.assertEqual(diag.file_path, "kora/math/ops.py")
+        self.assertEqual(diag.file_path, "keelway/math/ops.py")
         self.assertEqual(diag.line_number, 42)
         self.assertEqual(diag.function_or_symbol, "test_calculation")
         self.assertEqual(diag.exception_type, "AssertionError")

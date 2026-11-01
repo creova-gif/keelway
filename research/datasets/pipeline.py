@@ -1,5 +1,5 @@
 """
-Kora AI Autonomous Dataset Extraction & LoRA Fine-Tuning Pipeline.
+Keelway Autonomous Dataset Extraction & LoRA Fine-Tuning Pipeline.
 Extracts verified task executions from SQLite, sanitizes secrets, and produces
 reproducible training datasets for 7B/8B model fine-tuning (Unsloth / Axolotl).
 """
@@ -30,7 +30,7 @@ class DatasetManifest:
         dataset_path: Path,
         sample_count: int,
         source_description: str,
-        license_type: str = "Kora-Internal-Proprietary",
+        license_type: str = "Keelway-Internal-Proprietary",
     ) -> Dict[str, Any]:
         hasher = hashlib.sha256()
         with open(dataset_path, "rb") as f:
@@ -55,7 +55,7 @@ class DatasetManifest:
 
 
 class TraceDatasetExtractor:
-    """Extracts, filters, and formats successful Kora traces into fine-tuning datasets."""
+    """Extracts, filters, and formats successful Keelway traces into fine-tuning datasets."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -113,7 +113,7 @@ class TraceDatasetExtractor:
         self,
         sample: Dict[str, Any],
         format_type: ExportFormat = ExportFormat.SHAREGPT,
-        system_prompt: str = "You are Kora, a sovereign, deterministic AI engineering agent.",
+        system_prompt: str = "You are Keelway, a sovereign, deterministic AI engineering agent.",
     ) -> Dict[str, Any]:
         """Converts raw input/output pair into target fine-tuning JSON structure."""
         if format_type == ExportFormat.SHAREGPT:
@@ -160,7 +160,7 @@ class TraceDatasetExtractor:
         manifest = DatasetManifest.generate(
             dataset_path=output_file,
             sample_count=len(samples),
-            source_description=f"Kora verified traces ({workflow_type or 'all-workflows'})",
+            source_description=f"Keelway verified traces ({workflow_type or 'all-workflows'})",
         )
         manifest_path = output_file.parent / f"{output_file.stem}_manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

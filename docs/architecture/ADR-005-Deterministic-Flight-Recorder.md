@@ -2,7 +2,7 @@
 
 **Status:** Approved  
 **Date:** 2026-10-30  
-**Deciders:** Kora Core Engineering & Research Team  
+**Deciders:** Keelway Core Engineering & Research Team  
 **Consulted:** Reprise MCP Record-Replay Spec, Temporal Durable Execution Patterns, rr Deterministic Time-Travel Systems
 
 ---
@@ -18,13 +18,13 @@ As AI agents perform complex, multi-step tasks across codebases and APIs, develo
 
 ## 2. Decision & Architectural Implementations
 
-Kora AI implements a built-in **Deterministic Flight Recorder & Time-Travel Debugger (`core/orchestration/flight_recorder.py`)**:
+Keelway implements a built-in **Deterministic Flight Recorder & Time-Travel Debugger (`core/orchestration/flight_recorder.py`)**:
 
 ### Pillar I: Zero-Overhead Flight Recording
 * **Event Interception Layer:** Intercepts every model prompt, tool call input, tool output, state transition, and environment header.
-* **Deterministic Event Serialization:** Serializes events into a tamper-evident, append-only JSON tape (`.kora/recordings/<task_id>.flight.json`) paired with a cryptographic SHA-256 seal.
+* **Deterministic Event Serialization:** Serializes events into a tamper-evident, append-only JSON tape (`.keelway/recordings/<task_id>.flight.json`) paired with a cryptographic SHA-256 seal.
 
-### Pillar II: Time-Travel & Deterministic Offline Replay (`kora replay`)
+### Pillar II: Time-Travel & Deterministic Offline Replay (`keelway replay`)
 * **Zero-Cost, Zero-Network Replay:** During replay, model generations and tool outputs are served byte-for-byte directly from the recorded tape.
 * **Step-by-Step Rewind & Inspection:** Allows developers to step backward and forward through the execution graph, inspecting memory context, token usage, and variable states at each instant.
 

@@ -1,5 +1,5 @@
 """
-Database connection and session lifecycle for Kora AI Core.
+Database connection and session lifecycle for Keelway Core.
 """
 
 from typing import AsyncGenerator

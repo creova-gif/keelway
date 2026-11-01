@@ -1,5 +1,5 @@
 """
-Kora AI Deterministic Dense Vector Embedding & Similarity Engine.
+Keelway Deterministic Dense Vector Embedding & Similarity Engine.
 Pure-Python, zero-dependency implementation of normalized vector hashing and hybrid relevance scoring.
 """
 

@@ -1,0 +1,17 @@
+{
+  "task_id": "task_1793462199750422323",
+  "event_count": 1,
+  "events": [
+    {
+      "event_index": 1,
+      "event_type": "plan_initialized",
+      "payload": {
+        "goal": "g",
+        "step_count": 4
+      },
+      "timestamp_utc": 1793462199.7524257
+    }
+  ],
+  "tape_sha256": "e13e9430c41714d511e3de9dac75f0e427ef2c6072a9349ce2cd3c10c91f9510",
+  "recorded_at": 1793462199.7525012
+}

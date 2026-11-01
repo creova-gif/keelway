@@ -1,5 +1,5 @@
 """
-Standard library unit tests for Kora AI Global Sovereign Multi-Rail Payment Broker.
+Standard library unit tests for Keelway Global Sovereign Multi-Rail Payment Broker.
 Runs in clean zero-dependency environments.
 """
 
@@ -30,24 +30,24 @@ class TestGlobalPaymentBroker(unittest.TestCase):
             rail=GlobalRail.PIX,
             amount=25.50,
             currency="BRL",
-            recipient="developer@kora.ai",
+            recipient="developer@keelway.dev",
             description="Agent worktree execution"
         )
         self.assertEqual(intent.rail, GlobalRail.PIX)
         self.assertIn("br.gov.bcb.pix", intent.payment_payload["copia_e_cola"])
-        self.assertEqual(intent.payment_payload["pix_key"], "developer@kora.ai")
+        self.assertEqual(intent.payment_payload["pix_key"], "developer@keelway.dev")
 
     def test_upi_intent_url(self):
         intent = self.broker.create_intent(
             rail=GlobalRail.UPI,
             amount=150.00,
             currency="INR",
-            recipient="kora-agent@okaxis",
+            recipient="keelway-agent@okaxis",
             description="Local AST repair token"
         )
         self.assertEqual(intent.rail, GlobalRail.UPI)
-        self.assertIn("upi://pay?pa=kora-agent@okaxis", intent.payment_payload["intent_url"])
-        self.assertEqual(intent.payment_payload["vpa"], "kora-agent@okaxis")
+        self.assertIn("upi://pay?pa=keelway-agent@okaxis", intent.payment_payload["intent_url"])
+        self.assertEqual(intent.payment_payload["vpa"], "keelway-agent@okaxis")
 
     def test_lightning_l402_and_macaroon(self):
         intent = self.broker.create_intent(

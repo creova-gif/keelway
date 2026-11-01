@@ -1,5 +1,5 @@
 """
-Unit tests for Kora AI AutonomousAgentLoop.
+Unit tests for Keelway AutonomousAgentLoop.
 Tests tool execution, planning state machine, human-in-the-loop approval, and flight recording.
 """
 

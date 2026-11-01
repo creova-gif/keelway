@@ -1,4 +1,4 @@
-# Kora AI — `/autoplan` Executive Review & Approval Gate
+# Keelway — `/autoplan` Executive Review & Approval Gate
 
 **Pipeline:** `CEO Review` ➔ `Design Review` ➔ `DX Review` ➔ `Eng Review` (Mandatory Sequence)  
 **Host Platform:** GitHub (`https://github.com/creova-gif/kora.git`) | **Base Branch:** `main`  
@@ -10,7 +10,7 @@
 ## Phase 1: CEO Review (Strategy & The 10-Star Product)
 - **Posture:** Scope Expansion (Finding the 10-star product).
 - **Auto-Decisions Applied:**
-  - *Positioning:* Not an IDE plugin or VS Code fork. Kora is an **autonomous sovereign agent runtime** with an open MCP bridge to VS Code, Cursor, Neovim, and JetBrains.
+  - *Positioning:* Not an IDE plugin or VS Code fork. Keelway is an **autonomous sovereign agent runtime** with an open MCP bridge to VS Code, Cursor, Neovim, and JetBrains.
   - *Global Footprint:* Complete rejection of North American/US-only payment assumptions. Built native multi-rail broker supporting M-Pesa (East Africa), PIX (Brazil), UPI (India), L402 Lightning (Global satoshi micro-streaming), and offline cryptographic prepaid vouchers.
   - *Defensible Moat:* Zero cloud token spend ($0.00 edge default) + cryptographic zero-egress attestation (defense/banking/healthcare compliant).
 
@@ -30,9 +30,9 @@
 ## Phase 3: Developer Experience (DX) Review
 - **Posture:** Radical friction removal and offline resilience.
 - **Auto-Decisions Applied:**
-  - *Time-To-Hello-World (TTHW):* Target <30 seconds with single-line boot: `curl -fsSL https://get.kora.ai | sh`.
+  - *Time-To-Hello-World (TTHW):* Target <30 seconds with single-line boot: `curl -fsSL https://get.keelway.dev | sh`.
   - *Zero-Config Model Selection:* Automatically detects Apple Silicon GPU / NVIDIA CUDA / CPU and loads optimal 4-bit GGUF quantization tier without manual prompt tuning.
-  - *Self-Healing Proactivity:* Terminal failures automatically suggest 1-key AST auto-repair (`kora heal`).
+  - *Self-Healing Proactivity:* Terminal failures automatically suggest 1-key AST auto-repair (`keelway heal`).
   - *Offline Immunity:* Zero blocking spinners or network timeout warnings when internet drops.
 
 ---
@@ -41,7 +41,7 @@
 - **Posture:** Maximum rigor and zero silent failures.
 - **Auto-Decisions Applied:**
   - *Formal State Machine:* Immutable transition table (`CREATED ➔ PLANNED ➔ AWAITING_APPROVAL ➔ RUNNING ➔ VERIFYING ➔ COMPLETED`) with zero illegal leaps.
-  - *Ephemeral Worktree Isolation:* Parallel agent tasks run in disposable Git worktrees (`.kora/worktrees/agent_<id>`), preventing repo locking or uncommitted work collisions.
+  - *Ephemeral Worktree Isolation:* Parallel agent tasks run in disposable Git worktrees (`.keelway/worktrees/agent_<id>`), preventing repo locking or uncommitted work collisions.
   - *Air-Gap Boundary:* Enforced at socket and adapter level with SHA-256 zero-egress audit logging.
   - *Closed-Loop AST Repair:* Error frame parser, Python AST code block locator, and regression verification gate.
 
@@ -52,7 +52,7 @@
 The 6 principles resolved all mechanical decisions. The following **3 Taste Decisions** are surfaced for your final approval:
 
 ### Taste Decision 1: Edge Model Runtime Architecture
-- **Option A (Direct GGUF Embedding)**: Kora downloads 4-bit GGUF models directly to `~/.kora/models/` using an embedded llama.cpp runtime (zero external dependencies).
+- **Option A (Direct GGUF Embedding)**: Keelway downloads 4-bit GGUF models directly to `~/.keelway/models/` using an embedded llama.cpp runtime (zero external dependencies).
 - **Option B (Ollama Daemon Dependency)**: Require users to install and run Ollama on `localhost:11434`.
 - **Recommendation (Option A + B Hybrid)**: Auto-detect Ollama if running; if absent, transparently load embedded 4-bit GGUF weights so the user never installs a daemon.
 

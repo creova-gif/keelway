@@ -1,13 +1,13 @@
 <div align="center">
 
-# ⚡ Kora AI
-### Sovereign, Deterministic Runtime Infrastructure for Autonomous AI Agents
+# ⚡ Keelway
+### Local-first, deterministic AI agent infrastructure for developers — by Sorvex Labs
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
 [![Security Firewall](https://img.shields.io/badge/security-DLP%20%2B%20Prompt%20Guard-orange.svg)](core/security/)
 [![Architecture](https://img.shields.io/badge/architecture-Sovereign%20AI%20Core-purple.svg)](docs/architecture/)
-[![License: Proprietary](https://img.shields.io/badge/license-Kora%20Proprietary-red.svg)](LICENSE)
+[![License: Proprietary](https://img.shields.io/badge/license-Keelway%20Proprietary-red.svg)](LICENSE)
 
 *Built for zero vendor lock-in, automated failover, verifiable state machines, hybrid memory retrieval, and edge offline execution.*
 
@@ -22,7 +22,7 @@ Modern AI agent frameworks suffer from three systemic engineering flaws:
 2. **Context Amnesia & Hallucination**: Unscoped retrieval where agents cite outdated or non-existent files.
 3. **Security Vulnerabilities**: External text from PRs, documentation, or untrusted user input can execute indirect prompt injections or exfiltrate private credentials.
 
-**Kora AI** is a hardened, production-ready sovereign agent runtime. It unifies multi-provider routing, proactive DLP/injection firewalls, dual-index hybrid vector memory, and human-in-the-loop state machines into a single, cohesive developer platform.
+**Keelway** is a hardened, production-ready sovereign agent runtime. It unifies multi-provider routing, proactive DLP/injection firewalls, dual-index hybrid vector memory, and human-in-the-loop state machines into a single, cohesive developer platform.
 
 ---
 
@@ -75,7 +75,7 @@ Modern AI agent frameworks suffer from three systemic engineering flaws:
 
 ### 1. Multi-Provider Fallback & Local Edge Execution
 * Seamless automated failover across **Anthropic Claude**, **Google Gemini**, **OpenAI GPT**, and **Local Ollama** (`qwen3.5:latest`).
-* If external cloud frontier APIs experience outages, rate limits, or quota exhaustion, Kora automatically routes traffic to local edge models with **$0.00 inference cost**.
+* If external cloud frontier APIs experience outages, rate limits, or quota exhaustion, Keelway automatically routes traffic to local edge models with **$0.00 inference cost**.
 
 ### 2. Proactive Security & DLP Firewall
 * Intercepts and masks credentials (Anthropic `sk-ant-*`, OpenAI `sk-proj-*`, Google `AIza*`, AWS tokens, and database passwords) before prompts touch model APIs or database traces.
@@ -108,7 +108,7 @@ The following modules are prototypes: they have data models and unit tests, but 
 | `core/models/speculative.py` | Simulated draft/verify loop; no model calls |
 | `core/models/edge_loader.py` | Hardware/Ollama probe; not used by the local adapter |
 | `core/storage/ap2.py`, `ledger.py`, `payment_broker.py` | Payload builders only; no live payment rails, not for real funds |
-| `core/api/messaging.py`, `kora notify` | Builds Telegram/WhatsApp/push/SMS payloads; nothing is sent |
+| `core/api/messaging.py`, `keelway notify` | Builds Telegram/WhatsApp/push/SMS payloads; nothing is sent |
 | `core/api/telephony.py` | USSD formatting helpers; no webhook route |
 | `core/storage/crdt.py` | In-memory LWW register; no persistence or transport |
 | `core/orchestration/mcp.py` | In-process JSON-RPC dispatcher; no stdio/SSE transport |
@@ -125,13 +125,13 @@ The following modules are prototypes: they have data models and unit tests, but 
 ```bash
 # Clone the repository
 git clone https://github.com/creova-gif/kora.git
-cd kora
+cd keelway
 
 # Create and activate Python virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install Kora and its dependencies (add ",postgres" for PostgreSQL)
+# Install Keelway and its dependencies (add ",postgres" for PostgreSQL)
 pip install -e ".[dev]"
 
 # Configure environment variables
@@ -142,7 +142,7 @@ cp env.example .env
 
 Verify your local environment, database connectivity, and configured providers:
 ```bash
-./bin/kora doctor
+./bin/keelway doctor
 ```
 
 ---
@@ -151,8 +151,8 @@ Verify your local environment, database connectivity, and configured providers:
 
 Every `/v1` route and the Studio WebSocket require an API token (`/health` and the Studio page itself are public).
 
-- `kora dev` prints a Studio link with this run's **launch token** (owner role). Set `KORA_API_TOKEN` to pin it.
-- Mint named tokens for scripts, CI, or teammates: `kora token create --name ci --role engineer` (also `kora token list`, `kora token revoke <id>`). Only SHA-256 hashes are stored.
+- `keelway dev` prints a Studio link with this run's **launch token** (owner role). Set `KEELWAY_API_TOKEN` to pin it.
+- Mint named tokens for scripts, CI, or teammates: `keelway token create --name ci --role engineer` (also `keelway token list`, `keelway token revoke <id>`). Only SHA-256 hashes are stored.
 - Send tokens as `Authorization: Bearer <token>` (WebSocket: `?token=`).
 
 | Role | Can |
@@ -168,10 +168,10 @@ Every permission decision on a mutating action is appended to a hash-chained aud
 
 ## 💻 CLI Commands & Workflows
 
-### 💬 Interactive Terminal REPL (`kora chat`)
+### 💬 Interactive Terminal REPL (`keelway chat`)
 Launch the stateful conversational workspace with automated hybrid memory recall and thinking token display:
 ```bash
-./bin/kora chat --provider local
+./bin/keelway chat --provider local
 ```
 *In-chat commands:*
 * `/memory <query>` — Run live hybrid semantic search over memory.
@@ -180,22 +180,22 @@ Launch the stateful conversational workspace with automated hybrid memory recall
 
 ---
 
-### 🧠 Scoped Memory & Document Ingestion (`kora memory`)
+### 🧠 Scoped Memory & Document Ingestion (`keelway memory`)
 Ingest architecture decisions, codebases, or research notes into chunked memories with line-level provenance:
 ```bash
 # Ingest an architecture document into the 'architecture' scope
-./bin/kora memory ingest docs/architecture/ADR-001-AI-Core-Architecture.md --scope architecture
+./bin/keelway memory ingest docs/architecture/ADR-001-AI-Core-Architecture.md --scope architecture
 
 # Run a hybrid vector + lexical search
-./bin/kora memory search "model routing architecture" --hybrid --scope architecture
+./bin/keelway memory search "model routing architecture" --hybrid --scope architecture
 ```
 
 ---
 
-### 📋 Workflow 1: Engineering Brief Generator (`kora brief`)
+### 📋 Workflow 1: Engineering Brief Generator (`keelway brief`)
 Generates an evidence-grounded pull request brief, assesses risks, and verifies governance alignment:
 ```bash
-./bin/kora brief \
+./bin/keelway brief \
   --title "Add task state machine to agent backend" \
   --desc "Deterministic state machine with retry loop" \
   --files core/orchestration/state.py tests/test_state.py \
@@ -205,26 +205,26 @@ Generates an evidence-grounded pull request brief, assesses risks, and verifies 
 
 ---
 
-### 🔬 Workflow 2: Research Summarization (`kora summarize`)
+### 🔬 Workflow 2: Research Summarization (`keelway summarize`)
 Synthesizes research whitepapers or ADRs and persists key takeaways into memory:
 ```bash
-./bin/kora summarize docs/architecture/ADR-001-AI-Core-Architecture.md --store-memory --provider local
+./bin/keelway summarize docs/architecture/ADR-001-AI-Core-Architecture.md --store-memory --provider local
 ```
 
 ---
 
-### 🛡️ Workflow 3: Ephemeral Sandboxed Test Analysis (`kora test-sandbox`)
+### 🛡️ Workflow 3: Ephemeral Sandboxed Test Analysis (`keelway test-sandbox`)
 Executes test commands within an isolated container environment with mandatory human sign-off:
 ```bash
-./bin/kora test-sandbox "pytest tests/test_gateway.py" --approve --provider local
+./bin/keelway test-sandbox "pytest tests/test_gateway.py" --approve --provider local
 ```
 
 ---
 
-### 📦 LoRA Training Dataset Exporter (`kora dataset`)
+### 📦 LoRA Training Dataset Exporter (`keelway dataset`)
 Export verified agent execution traces into fine-tuning datasets:
 ```bash
-./bin/kora dataset export \
+./bin/keelway dataset export \
   --output research/datasets/seed/v1.jsonl \
   --format sharegpt \
   --limit 50
@@ -232,10 +232,10 @@ Export verified agent execution traces into fine-tuning datasets:
 
 ---
 
-### 📊 Benchmark Evaluation Harness (`kora eval`)
+### 📊 Benchmark Evaluation Harness (`keelway eval`)
 Runs the standardized `EVAL-COMPARE-001` test suite comparing latency, token consumption, and citation accuracy:
 ```bash
-./bin/kora eval --providers local
+./bin/keelway eval --providers local
 ```
 
 ---
@@ -270,9 +270,9 @@ CI runs `ruff check .` and `pytest` on Python 3.11 and 3.12 for every push and p
 ## 📂 Project Organization
 
 ```text
-kora/
+keelway/
 ├── bin/
-│   └── kora                            # Executable CLI entrypoint
+│   └── keelway                            # Executable CLI entrypoint
 ├── cli.py                              # Central CLI dispatcher and command router
 ├── core/
 │   ├── api/                            # FastAPI REST endpoints & Pydantic schemas
@@ -292,7 +292,7 @@ kora/
 │       ├── memory.py                   # Hybrid semantic vector search & RAG service
 │       └── models.py                   # Task, Trace, Evidence, Memory ORM schemas
 ├── docs/
-│   ├── architecture/                   # ADR-001, KORA.md, engineering framework
+│   ├── architecture/                   # ADR-001, KEELWAY.md, engineering framework
 │   ├── research/                       # Research agenda, own-model track, LoRA plan
 │   ├── roadmap/                        # 90-day implementation plan, workflows
 │   └── archive/                        # Historical project kickoff materials
@@ -318,5 +318,5 @@ kora/
 ---
 
 <div align="center">
-  <sub>Engineered by Kora Technologies. Dedicated to building sovereign, affordable, and resilient artificial intelligence.</sub>
+  <sub>Engineered by Sorvex Labs. Dedicated to building sovereign, affordable, and resilient artificial intelligence.</sub>
 </div>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
-  <title>Kora Dev Studio</title>
+  <title>Keelway Studio</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%232563EB%22/%3E%3Cpath d=%22M10 8v16M10 16l9-8M13 14l7 10%22 stroke=%22white%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/studio/assets/studio.css">
   <link rel="stylesheet" href="/studio/assets/monaco/vs/editor/editor.main.css">
@@ -15,7 +15,7 @@
   <header class="h-11 shrink-0 flex items-center justify-between gap-3 px-3 bg-ide-activity border-b border-ide-border">
     <div class="flex items-center gap-2 min-w-0">
       <svg class="w-6 h-6 shrink-0" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="rgb(var(--accent))"/><path d="M10 8v16M10 16l9-8M13 14l7 10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-      <h1 class="font-semibold tracking-tight whitespace-nowrap">Kora <span class="text-ide-muted font-normal">Dev Studio</span></h1>
+      <h1 class="font-semibold tracking-tight whitespace-nowrap">Keelway <span class="text-ide-muted font-normal">Dev Studio</span></h1>
       <span class="hidden md:inline text-ide-faint">/</span>
       <span id="ws-name" class="hidden md:inline font-mono text-xs text-ide-muted truncate max-w-[12rem]">workspace</span>
       <span id="git-branch" class="hidden sm:inline-flex chip border-ide-border text-ide-muted font-mono">—</span>
@@ -116,7 +116,7 @@
         <div id="panel-console" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden">
           <div id="console-log" role="log" aria-live="polite" class="flex-1 overflow-auto p-3 font-mono text-xs space-y-0.5"></div>
           <form id="console-form" class="h-8 px-3 flex items-center gap-2 border-t border-ide-border" autocomplete="off">
-            <span class="font-mono text-xs text-ok" aria-hidden="true">kora ❯</span>
+            <span class="font-mono text-xs text-ok" aria-hidden="true">keelway ❯</span>
             <label for="console-input" class="sr-only">Console</label>
             <input id="console-input" spellcheck="false" class="flex-1 bg-transparent font-mono text-xs outline-none" placeholder="help">
           </form>
@@ -168,7 +168,7 @@
     <aside id="agent" class="w-80 shrink-0 hidden lg:flex flex-col bg-ide-sidebar border-s border-ide-border" aria-labelledby="agent-title">
       <div class="p-3 border-b border-ide-border bg-ide-activity">
         <div class="flex items-center justify-between">
-          <h2 id="agent-title" class="font-semibold text-xs flex items-center gap-1.5"><span id="agent-dot" class="w-2 h-2 rounded-full bg-ide-faint"></span><span data-i18n="agent">Kora agent</span></h2>
+          <h2 id="agent-title" class="font-semibold text-xs flex items-center gap-1.5"><span id="agent-dot" class="w-2 h-2 rounded-full bg-ide-faint"></span><span data-i18n="agent">Keelway agent</span></h2>
           <span id="agent-status" class="chip border-ide-border text-ide-muted" data-i18n="idle">idle</span>
         </div>
         <p id="agent-goal-label" class="mt-1 text-[11px] text-ide-muted truncate" data-i18n="noGoal">No goal yet.</p>
@@ -216,8 +216,8 @@
   <div id="signin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 aurora bg-ide-bg" role="dialog" aria-modal="true" aria-labelledby="signin-title">
     <form id="signin-form" class="w-[min(26rem,100%)] rounded-2xl border border-ide-border bg-ide-sidebar/90 p-6 space-y-4 shadow-2xl enter">
       <svg class="w-10 h-10" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="rgb(var(--accent))"/><path d="M10 8v16M10 16l9-8M13 14l7 10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-      <div><h2 id="signin-title" class="text-lg font-semibold" data-i18n="signInTitle">Sign in to Kora</h2><p class="text-xs text-ide-muted" data-i18n="signInBody">Open the link printed by kora dev, or paste a token from kora token create.</p></div>
-      <div><label for="signin-token" class="label" data-i18n="apiToken">API token</label><input id="signin-token" type="password" required autocomplete="off" spellcheck="false" class="input w-full font-mono" placeholder="kora_…"></div>
+      <div><h2 id="signin-title" class="text-lg font-semibold" data-i18n="signInTitle">Sign in to Keelway</h2><p class="text-xs text-ide-muted" data-i18n="signInBody">Open the link printed by keelway dev, or paste a token from keelway token create.</p></div>
+      <div><label for="signin-token" class="label" data-i18n="apiToken">API token</label><input id="signin-token" type="password" required autocomplete="off" spellcheck="false" class="input w-full font-mono" placeholder="keelway_…"></div>
       <p id="signin-error" class="hidden text-xs text-danger" role="alert"></p>
       <button class="btn-primary w-full h-9" type="submit" data-i18n="signIn">Sign in</button>
     </form>

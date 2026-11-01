@@ -1,5 +1,5 @@
 """
-Kora AI Security Gateway & Guardrails Module.
+Keelway Security Gateway & Guardrails Module.
 Provides Data Loss Prevention (DLP), Prompt Injection Detection, and Tool Execution Policy.
 """
 
