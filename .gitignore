@@ -61,3 +61,4 @@ PITCH_AND_JUDGE_QA.md
 build/
 .keelway/
 .kora/
+kora.db
