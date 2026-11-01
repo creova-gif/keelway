@@ -4,7 +4,6 @@ Keelway Studio API: live workspace status, working-tree diff, and air-gap contro
 
 import asyncio
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from fastapi import APIRouter, Depends
@@ -12,6 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.api import routes
 from core.api.routes import FLIGHT_RECORDINGS_DIR, ws_manager
 from core.config import settings
 from core.models.gateway import gateway
@@ -22,17 +22,16 @@ from core.storage.models import TaskRecord
 
 router = APIRouter(prefix="/v1/studio", tags=["Studio"], dependencies=[Depends(current_principal)])
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 MAX_DIFF_BYTES = 512 * 1024
 STUDIO_VERSION = "0.1.0"
 
 
 async def _git(*args: str, limit: int = MAX_DIFF_BYTES) -> Tuple[int, str]:
-    """Run git, reading at most `limit + 1` bytes of stdout so huge outputs are never buffered."""
+    """Run git in the open workspace, reading at most `limit + 1` bytes of stdout so huge outputs are never buffered."""
     try:
         proc = await asyncio.create_subprocess_exec(
             "git", *args,
-            cwd=str(REPO_ROOT),
+            cwd=str(routes._workspace_fs.root),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
         )

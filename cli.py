@@ -676,6 +676,12 @@ def main():
     dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
 
+    demo_parser = subparsers.add_parser("demo", help="Seed a sample project and open the Studio on it (own folder + DB)")
+    demo_parser.add_argument("--dir", type=Path, default=None, help="Demo folder (default: ~/keelway-demo)")
+    demo_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
+    demo_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    demo_parser.add_argument("--reset", action="store_true", help="Delete and re-seed the demo folder")
+
     # doctor
     subparsers.add_parser("doctor", help="Run system and provider diagnostics")
 
@@ -833,6 +839,9 @@ def main():
         print()
     elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
+    elif args.command == "demo":
+        from core import demo
+        sys.exit(demo.run(args.dir or demo.DEFAULT_DIR, args.port, args.host, args.reset))
     elif args.command == "token":
         asyncio.run(cmd_token(
             args.token_command,
