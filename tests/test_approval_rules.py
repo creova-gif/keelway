@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -120,3 +122,19 @@ def test_blank_remembered_scope_is_rejected_not_a_silent_one_time_approval(clien
     r = client.post("/v1/agent/approve/b1", json={"approved": True, "remember": {"scope": "   "}})
     assert r.status_code == 400 and not (tmp_path / "blank.txt").exists()
     assert client.get("/v1/approval-rules").json()["rules"] == []
+
+
+def test_recursive_glob_never_reaches_nested_protected_dirs():
+    rule = ApprovalRule("r", "write_file", "src/**/*.json", "t", 0.0)
+    assert rule_matches(rule, "write_file", {"path": "src/a/b.json"})
+    for p in ("src/.keelway/approval_rules.json", "src/vendor/.git/config.json", "src/.kora/x.json"):
+        assert not rule_matches(rule, "write_file", {"path": p})
+    with pytest.raises(ApprovalRuleError):
+        validate_scope("write_file", "src/.git/*")
+
+
+def test_many_recursive_segments_match_in_polynomial_time():
+    rule = ApprovalRule("r", "write_file", "/".join(["**"] * 5 + ["a", "**"] * 5) + "/z.py", "t", 0.0)
+    start = time.monotonic()
+    assert not rule_matches(rule, "write_file", {"path": "/".join(["a"] * 20) + "/y.py"})
+    assert time.monotonic() - start < 1

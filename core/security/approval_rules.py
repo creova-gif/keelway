@@ -6,6 +6,7 @@ import json
 import os
 import secrets
 import time
+from functools import lru_cache
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, List, Optional, Tuple
@@ -42,8 +43,8 @@ def _normalize_path(path: Any) -> Optional[str]:
 
 
 def _is_protected(path: str) -> bool:
-    first = PurePosixPath(path).parts[0]
-    return any(first == prefix or first.startswith(prefix + "/") for prefix in PROTECTED_PREFIXES)
+    """Any `.keelway`/`.kora`/`.git` segment, at any depth (nested repos and submodules included)."""
+    return any(part in PROTECTED_PREFIXES for part in PurePosixPath(path).parts)
 
 
 def validate_scope(tool_name: str, scope: Any) -> str:
@@ -67,12 +68,17 @@ def validate_scope(tool_name: str, scope: Any) -> str:
 
 def _glob_match(path_parts: tuple, pattern_parts: tuple) -> bool:
     """Segment-wise glob: `*` stays inside one directory, a `**` segment spans any number of them."""
-    if not pattern_parts:
-        return not path_parts
-    head, rest = pattern_parts[0], pattern_parts[1:]
-    if head == "**":
-        return any(_glob_match(path_parts[i:], rest) for i in range(len(path_parts) + 1))
-    return bool(path_parts) and fnmatch.fnmatchcase(path_parts[0], head) and _glob_match(path_parts[1:], rest)
+    pat = tuple(p for i, p in enumerate(pattern_parts) if not (p == "**" and i and pattern_parts[i - 1] == "**"))
+
+    @lru_cache(maxsize=None)
+    def match(i: int, j: int) -> bool:
+        if j == len(pat):
+            return i == len(path_parts)
+        if pat[j] == "**":
+            return match(i, j + 1) or (i < len(path_parts) and match(i + 1, j))
+        return i < len(path_parts) and fnmatch.fnmatchcase(path_parts[i], pat[j]) and match(i + 1, j + 1)
+
+    return match(0, 0)
 
 
 def rule_matches(rule: ApprovalRule, tool_name: str, arguments: Dict[str, Any]) -> bool:
