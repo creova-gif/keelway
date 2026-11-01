@@ -80,7 +80,7 @@ def prepare_workspace(root: Path, reset: bool = False) -> Path:
         shutil.rmtree(root)
     if (root / SEEDED_MARKER).exists():
         return root
-    if root.exists() and any(p.name != ".kora" for p in root.iterdir()):
+    if root.exists() and any(root.iterdir()):
         raise SystemExit(f"{root} already has files. Pick an empty folder with --dir.")
     root.mkdir(parents=True, exist_ok=True)
     for name, content in FILES.items():

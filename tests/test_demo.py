@@ -50,3 +50,11 @@ def test_reset_refuses_a_marked_folder_with_foreign_files(tmp_path):
     with pytest.raises(SystemExit):
         demo.prepare_workspace(tmp_path, reset=True)
     assert (tmp_path / "src").exists()
+
+
+def test_refuses_an_existing_kora_workspace(tmp_path):
+    (tmp_path / ".kora").mkdir()
+    (tmp_path / ".kora" / "kora.db").write_text("real data")
+    with pytest.raises(SystemExit):
+        demo.prepare_workspace(tmp_path)
+    assert not (tmp_path / "pricing.py").exists()
