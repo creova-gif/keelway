@@ -1,5 +1,5 @@
 """
-Kora AI Air-Gapped Zero-Egress Boundary Enforcer.
+Keelway Air-Gapped Zero-Egress Boundary Enforcer.
 Implements Y Combinator RFS 'AI for the Air-Gapped Economy':
 - Locks all outbound requests to loopback/local models.
 - Generates cryptographic verification hashes of zero-egress compliance.

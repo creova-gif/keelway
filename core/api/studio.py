@@ -1,5 +1,5 @@
 """
-Kora Dev Studio API: live workspace status, working-tree diff, and air-gap control.
+Keelway Studio API: live workspace status, working-tree diff, and air-gap control.
 """
 
 import asyncio
@@ -150,7 +150,7 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 
 @router.get("/diff")
 async def studio_diff() -> Dict[str, Any]:
-    """Uncommitted changes in the Kora repo working tree (tracked files, vs HEAD)."""
+    """Uncommitted changes in the Keelway repo working tree (tracked files, vs HEAD)."""
     rc, out = await _git("diff", "--no-color", "--no-ext-diff", "HEAD")
     if rc != 0:
         return {"available": False, "truncated": False, "files": []}

@@ -1,5 +1,5 @@
 """
-Kora AI Autonomous ReAct Agent Loop.
+Keelway Autonomous ReAct Agent Loop.
 Implements the multi-step Observe -> Plan -> Tool Call -> Observation -> Verify loop
 with native workspace tools, deterministic flight recording, and human-in-the-loop safety controls.
 """

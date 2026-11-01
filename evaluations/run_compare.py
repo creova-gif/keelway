@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Kora AI — Benchmark Evaluation Runner for EVAL-COMPARE-001.
+Keelway — Benchmark Evaluation Runner for EVAL-COMPARE-001.
 Compares frontier models against local/open-weight models on a standardized engineering brief task.
 """
 
@@ -21,7 +21,7 @@ from core.api.schemas import (
 from core.models.gateway import ModelGateway, gateway as default_gateway
 from core.models.adapters.base import ModelAdapter
 
-PROMPT = """You are a Kora engineering assistant.
+PROMPT = """You are a Keelway engineering assistant.
 
 Review the following pull request summary and produce a concise, prioritized engineering brief.
 
@@ -29,7 +29,7 @@ PR: "Add task state machine to agent backend"
 - Changes: new TaskState enum, transition table, retry logic, human approval gate
 - Files touched: core/orchestration/state.py, core/orchestration/engine.py, tests/test_state.py
 - Failing test: test_retry_on_transient_error currently times out
-- Related: KORA.md says "Prefer explicit state over opaque agent loops"
+- Related: KEELWAY.md says "Prefer explicit state over opaque agent loops"
 
 Produce directly and concisely:
 1. Summary of the change (2–3 sentences)
@@ -96,7 +96,7 @@ async def run_eval_comparison(gw: ModelGateway, providers_to_test: List[Provider
     results: Dict[str, Any] = {}
 
     print("\n============================================================")
-    print("  Kora AI — Benchmark Evaluation Task: EVAL-COMPARE-001     ")
+    print("  Keelway — Benchmark Evaluation Task: EVAL-COMPARE-001     ")
     print("============================================================\n")
 
     for provider in providers_to_test:
@@ -162,7 +162,7 @@ async def run_eval_comparison(gw: ModelGateway, providers_to_test: List[Provider
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Kora AI Model Comparison Benchmark")
+    parser = argparse.ArgumentParser(description="Keelway Model Comparison Benchmark")
     parser.add_argument("--mock", action="store_true", help="Run with simulated mock providers for offline testing")
     parser.add_argument("--providers", nargs="+", default=None, help="List of providers to evaluate (e.g. google openai)")
     parser.add_argument("--output-dir", default="evaluations/results/EVAL-COMPARE-001", help="Results output directory")

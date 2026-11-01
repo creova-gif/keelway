@@ -1,5 +1,5 @@
 /**
- * Kora Mobile Biometric Security Service.
+ * Keelway Mobile Biometric Security Service.
  * Enforces hardware-backed FaceID / TouchID / Fingerprint signoff
  * before any autonomous agent can perform destructive repository actions or financial spends.
  */
@@ -26,7 +26,7 @@ export class BiometricGate {
   /**
    * Prompts the developer for FaceID or Fingerprint authentication.
    */
-  static async authenticateAction(promptMessage: string = 'Authorize Kora Autonomous Commit'): Promise<BiometricAuthResult> {
+  static async authenticateAction(promptMessage: string = 'Authorize Keelway Autonomous Commit'): Promise<BiometricAuthResult> {
     try {
       const available = await this.isAvailable();
       if (!available) {

@@ -1,5 +1,5 @@
 """
-Kora AI Autonomous Agent Payment & Mandate Protocol (AP2 + HTTP 402).
+Keelway Autonomous Agent Payment & Mandate Protocol (AP2 + HTTP 402).
 Enables machine-to-machine microtransactions, cryptographic spend mandates,
 and offline/regional voucher settlement without requiring USD credit cards.
 """
@@ -46,7 +46,7 @@ class SpendMandate:
 class AgentPaymentGateway:
     """Handles agentic commerce settlement, HTTP 402 parsing, and mandate enforcement."""
 
-    def __init__(self, secret_salt: str = "KORA_AP2_SALT_2026"):
+    def __init__(self, secret_salt: str = "KEELWAY_AP2_SALT_2026"):
         self.secret_salt = secret_salt
         self.ledger: List[Dict[str, Any]] = []
 

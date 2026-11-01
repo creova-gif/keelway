@@ -1,5 +1,5 @@
 """
-Base Model Adapter Interface for Kora AI Core.
+Base Model Adapter Interface for Keelway Core.
 """
 
 from abc import ABC, abstractmethod

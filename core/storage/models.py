@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM models for Kora AI Core.
+SQLAlchemy ORM models for Keelway Core.
 """
 
 from datetime import datetime, timezone

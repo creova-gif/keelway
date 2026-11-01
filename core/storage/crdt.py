@@ -1,5 +1,5 @@
 """
-Kora AI Local-First Conflict-Free Replicated Data Type (CRDT) Subsystem.
+Keelway Local-First Conflict-Free Replicated Data Type (CRDT) Subsystem.
 Enables offline-first agent state tracking, Lamport timestamp ordering,
 and conflict-free bidirectional delta synchronization for intermittent networks.
 """

@@ -1,5 +1,5 @@
 """
-Kora AI Ephemeral Git Worktree Manager.
+Keelway Ephemeral Git Worktree Manager.
 Enables concurrent, non-colliding execution of parallel AI coding agents
 by attaching isolated disposable worktrees to the local repository.
 """
@@ -52,13 +52,13 @@ class EphemeralWorktreeManager:
 
     def __init__(self, repo_root: Optional[Path] = None):
         self.repo_root = repo_root or Path.cwd()
-        self.worktrees_root = self.repo_root / ".kora" / "worktrees"
+        self.worktrees_root = self.repo_root / ".keelway" / "worktrees"
 
     async def create_worktree(self, task_id: str) -> WorktreeSession:
         """Creates an ephemeral worktree directory and dedicated git branch."""
         self.worktrees_root.mkdir(parents=True, exist_ok=True)
         worktree_path = self.worktrees_root / f"agent_{task_id}"
-        branch_name = f"kora/agent/{task_id}"
+        branch_name = f"keelway/agent/{task_id}"
 
         # Clean existing directory if leftover
         if worktree_path.exists():
@@ -77,7 +77,7 @@ class EphemeralWorktreeManager:
             # Fallback for mock/test environments without active git branches
             worktree_path.mkdir(parents=True, exist_ok=True)
             for item in self.repo_root.iterdir():
-                if item.name == ".kora":
+                if item.name == ".keelway":
                     continue
                 dst = worktree_path / item.name
                 if item.is_dir():

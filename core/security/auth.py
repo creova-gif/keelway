@@ -2,8 +2,8 @@
 API authentication, RBAC enforcement, and the hash-chained audit log.
 
 Tokens are bearer secrets. Two kinds are accepted:
-- the per-process launch token (owner role), printed by `kora dev` and fixed via KORA_API_TOKEN;
-- named tokens minted with `kora token create` or POST /v1/auth/tokens, stored only as SHA-256 hashes.
+- the per-process launch token (owner role), printed by `keelway dev` and fixed via KEELWAY_API_TOKEN;
+- named tokens minted with `keelway token create` or POST /v1/auth/tokens, stored only as SHA-256 hashes.
 """
 
 import asyncio
@@ -25,7 +25,7 @@ from core.security.rbac import ROLE_PERMISSIONS, AccessControlManager, Permissio
 from core.storage.database import AsyncSessionLocal
 from core.storage.models import ApiTokenRecord, AuditEventRecord
 
-TOKEN_PREFIX = "kora_"
+TOKEN_PREFIX = "keelway_"
 GENESIS_HASH = "0" * 64
 
 
@@ -37,7 +37,7 @@ def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-_launch_token = settings.kora_api_token or generate_token()
+_launch_token = settings.keelway_api_token or generate_token()
 _audit_lock = asyncio.Lock()
 
 
@@ -94,7 +94,7 @@ def token_from_headers(headers) -> Optional[str]:
     scheme, _, value = headers.get("authorization", "").partition(" ")
     if scheme.lower() == "bearer" and value.strip():
         return value.strip()
-    return headers.get("x-kora-token")
+    return headers.get("x-keelway-token")
 
 
 async def current_principal(request: Request) -> Principal:

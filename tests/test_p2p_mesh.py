@@ -1,5 +1,5 @@
 """
-Standard library unit tests for Kora AI Peer-to-Peer Local Team Mesh.
+Standard library unit tests for Keelway Peer-to-Peer Local Team Mesh.
 """
 
 import time
@@ -12,11 +12,11 @@ class TestLocalTeamMesh(unittest.TestCase):
         mesh = LocalTeamMesh(node_name="macbook-pro", port=7420, vram_mb=16384)
         ad = mesh.get_local_advertisement()
 
-        self.assertTrue(ad["node_id"].startswith("kora_"))
+        self.assertTrue(ad["node_id"].startswith("keelway_"))
         self.assertEqual(ad["hostname"], "macbook-pro")
         self.assertEqual(ad["port"], 7420)
         self.assertEqual(ad["vram_mb"], 16384)
-        self.assertEqual(ad["service_type"], "_kora-agent._tcp.local.")
+        self.assertEqual(ad["service_type"], "_keelway-agent._tcp.local.")
 
     def test_peer_registration_and_heartbeat(self):
         mesh = LocalTeamMesh()

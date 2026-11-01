@@ -26,7 +26,7 @@ def mint(client, owner, role):
     resp = client.post("/v1/auth/tokens", json={"name": f"{role}-bot", "role": role}, headers=owner)
     assert resp.status_code == 201, resp.text
     body = resp.json()
-    assert body["token"].startswith("kora_")
+    assert body["token"].startswith("keelway_")
     return body
 
 
@@ -38,7 +38,7 @@ def test_public_routes_need_no_token(client):
 @pytest.mark.parametrize("path", ["/v1/tasks", "/v1/memories", "/v1/flight/tapes", "/v1/mesh/peers", "/v1/studio/status", "/v1/audit", "/v1/files/tree", "/v1/git/status", "/v1/index/repomap", "/v1/agent/status/x"])
 def test_api_rejects_missing_or_bad_token(client, path):
     assert client.get(path).status_code == 401
-    assert client.get(path, headers=bearer("kora_not-a-real-token")).status_code == 401
+    assert client.get(path, headers=bearer("keelway_not-a-real-token")).status_code == 401
 
 
 def test_launch_token_is_owner(client, owner):

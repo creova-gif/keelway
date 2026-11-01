@@ -1,5 +1,5 @@
 """
-Kora AI Personal Agent — Workflow 3: Sandboxed Test Execution & Failure Analysis.
+Keelway Personal Agent — Workflow 3: Sandboxed Test Execution & Failure Analysis.
 Permission Level: TIER 3 (Sandbox Execution - Requires Approval Gate)
 Executes tests in an isolated execution sandbox and performs LLM failure root-cause analysis.
 """
@@ -36,7 +36,7 @@ class SandboxedFailureAnalysisWorkflow:
         """Execute test command in an isolated environment with process boundary & timeout."""
         start_time = time.perf_counter()
 
-        venv_bin = str((self.workspace_root / "kora-ai" / ".venv" / "bin").resolve())
+        venv_bin = str((self.workspace_root / "keelway" / ".venv" / "bin").resolve())
         sandbox_env = {
             **os.environ,
             "PATH": f"{venv_bin}:{os.environ.get('PATH', '')}",
@@ -79,7 +79,7 @@ class SandboxedFailureAnalysisWorkflow:
     ) -> Dict[str, Any]:
         """Analyze test failure trace via ModelGateway."""
         system_prompt = (
-            "You are Kora Technologies' Principal Systems Debugger.\n"
+            "You are Sorvex Labs' Principal Systems Debugger.\n"
             "Analyze the attached test execution output and provide:\n"
             "1. Failure Summary: Which test(s) failed and with what error type.\n"
             "2. Root Cause Hypothesis: Explain why the failure occurred.\n"

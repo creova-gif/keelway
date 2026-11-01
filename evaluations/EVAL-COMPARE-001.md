@@ -2,11 +2,11 @@
 
 ## Task ID: EVAL-COMPARE-001
 **Category:** coding + reasoning  
-**Description:** Compare Anthropic Claude and a local/open-weight model on a realistic Kora engineering brief task. Measure correctness, citation quality, latency, and cost.
+**Description:** Compare Anthropic Claude and a local/open-weight model on a realistic Keelway engineering brief task. Measure correctness, citation quality, latency, and cost.
 
 ### Input
 ```
-You are a Kora engineering assistant.
+You are a Keelway engineering assistant.
 
 Review the following pull request summary and produce a prioritized engineering brief.
 
@@ -14,7 +14,7 @@ PR: "Add task state machine to agent backend"
 - Changes: new TaskState enum, transition table, retry logic, human approval gate
 - Files touched: core/orchestration/state.py, core/orchestration/engine.py, tests/test_state.py
 - Failing test: test_retry_on_transient_error currently times out
-- Related: KORA.md says "Prefer explicit state over opaque agent loops"
+- Related: KEELWAY.md says "Prefer explicit state over opaque agent loops"
 
 Produce:
 1. Summary of the change (2–3 sentences)
@@ -25,7 +25,7 @@ Produce:
 
 ### Expected Behavior
 - Correctly identifies the state-machine addition and the failing test.
-- Mentions the KORA.md principle.
+- Mentions the KEELWAY.md principle.
 - Ranks risks (e.g., missing recovery path, approval bypass, test flakiness).
 - Provides ordered next actions (fix test, add recovery test, document transitions).
 - Cites the files by name.

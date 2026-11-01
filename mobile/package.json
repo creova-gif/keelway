@@ -1,7 +1,7 @@
 {
-  "name": "kora-mobile",
+  "name": "keelway-mobile",
   "version": "1.0.0",
-  "description": "Kora AI Sovereign Mobile Agent Mission Control — iOS & Android",
+  "description": "Keelway Sovereign Mobile Agent Mission Control — iOS & Android",
   "main": "index.js",
   "scripts": {
     "start": "expo start",

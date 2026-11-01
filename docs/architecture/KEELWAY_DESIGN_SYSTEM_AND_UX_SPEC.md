@@ -1,15 +1,15 @@
-# Kora AI — Senior UI/UX Design System & Front-End Architecture Specification
+# Keelway — Senior UI/UX Design System & Front-End Architecture Specification
 
 **Role:** Senior Principal Product Designer & Lead Front-End Architect  
 **Design Standard:** Teenage Engineering Tactility × Linear Precision × NASA Mission Control Rigor  
 **Compliance Standard:** WCAG 2.1 AA Certified, 0.00 CLS, <50ms INP  
-**Target Platform:** Kora Dev Studio (`kora dev`), Kora Mobile (`mobile/`), Kora Web (`website/`)  
+**Target Platform:** Keelway Studio (`keelway dev`), Keelway Mobile (`mobile/`), Keelway Web (`website/`)  
 
 ---
 
 ## 0. Framing & Foundational Assumptions
 
-1. **Brand Identity:** Kora AI is a **Sovereign Agent Computer**, not a conversational toy or autocomplete plugin. The aesthetic is industrial, tactical, and distraction-free: dark obsidian surfaces, hairline borders, monospace telemetry, and physical audio-haptic feedback.
+1. **Brand Identity:** Keelway is a **Sovereign Agent Computer**, not a conversational toy or autocomplete plugin. The aesthetic is industrial, tactical, and distraction-free: dark obsidian surfaces, hairline borders, monospace telemetry, and physical audio-haptic feedback.
 2. **Primary Audience:** 
    - *Enterprise / Defense Engineers:* High security, zero cloud egress tolerance, strict audit trails.
    - *Emerging Market & Global Developers:* Intermittent connectivity, non-USD regional payment rails (M-Pesa, PIX, UPI), consumer laptops (8GB–16GB RAM).
@@ -37,7 +37,7 @@ Implemented directly from Evil Martians' research (*"Devs in mind: how to design
 
 3. **Broad Context (The OS & Tool Ecosystem):**
    - *Multi-Tool Harmony:* Designed to sit seamlessly alongside VS Code, Neovim, and terminal split windows (supports 50% screen snapping down to 768px without horizontal clipping).
-   - *1-Click CLI Interoperability:* Every state (git branch `#f05b0b9`, CLI commands `kora dev`, `kora notify`) has a 1-click copy button with instant toast feedback.
+   - *1-Click CLI Interoperability:* Every state (git branch `#f05b0b9`, CLI commands `keelway dev`, `keelway notify`) has a 1-click copy button with instant toast feedback.
 
 ### B. Directional Flow Rules
 - **The Top-Down Rule:** Elements positioned *above* strictly control elements *below* (e.g., Tab bar controls the center workspace; file view mode `Unified | Split` controls the diff canvas; Flight scrubber controls the historical frames below it).
@@ -56,15 +56,15 @@ Implemented directly from Evil Martians' research (*"Devs in mind: how to design
 - **Persona 1: Commander Elena (Defense / SCIF Systems Lead)**
   - *Goal:* Run autonomous refactoring and security audits without a single byte leaving the physical facility.
   - *Friction:* Cloud tools (Cursor, Copilot, ChatGPT) violate federal data residency and classified air-gap rules.
-  - *Kora Solution:* One-click cryptographic air-gap kill switch (`AirGapEnforcer`), generating verifiable SHA-256 zero-egress receipts.
+  - *Keelway Solution:* One-click cryptographic air-gap kill switch (`AirGapEnforcer`), generating verifiable SHA-256 zero-egress receipts.
 - **Persona 2: Dev Tariq (Nairobi Full-Stack Engineer)**
   - *Goal:* Build modern apps with high-level AI pair programming without paying $20/month in USD or getting blocked by international card declines.
   - *Friction:* Stripe rejects local debit cards; subsea fiber cable cuts cause frequent 4-hour internet blackouts.
-  - *Kora Solution:* $0.00 local edge model inference via Qwen 2.5 Coder, M-Pesa Daraja STK push micro-payments, and 100% offline immunity.
+  - *Keelway Solution:* $0.00 local edge model inference via Qwen 2.5 Coder, M-Pesa Daraja STK push micro-payments, and 100% offline immunity.
 - **Persona 3: Alex (Open-Source Core Maintainer)**
   - *Goal:* Fix 20 failing CI tests overnight without babysitting prompt hallucinations.
   - *Friction:* AI models propose broken syntax and break other test suites.
-  - *Kora Solution:* Closed-Loop AST Self-Healing in disposable Git worktrees with zero-regression verification before merging.
+  - *Keelway Solution:* Closed-Loop AST Self-Healing in disposable Git worktrees with zero-regression verification before merging.
 
 ---
 
@@ -72,7 +72,7 @@ Implemented directly from Evil Martians' research (*"Devs in mind: how to design
 
 ```
 [ FLOW 1: ONBOARDING (<30 SECONDS TO FIRST FLIGHT) ]
-User runs: curl -fsSL https://get.kora.ai | sh
+User runs: curl -fsSL https://get.keelway.dev | sh
        │
        ▼
 Auto-detects Hardware (RAM, Metal GPU/CUDA)
@@ -128,7 +128,7 @@ Rationale: No destructive rollbacks; developers explore parallel counterfactual 
 ```
 +─────────────────────────────────────────────────────────────────────────────────────────────────────────+
 | 1. GLOBAL MISSION HEADER (Height: 52px, Sticky)                                                         |
-| [⚡ KORA DEV STUDIO] [Repo: creova-gif/kora] [Engine: Qwen 2.5 7B Edge] [🔒 Air-Gapped] [Egress: 0.0 KB]|
+| [⚡ KEELWAY STUDIO] [Repo: creova-gif/kora] [Engine: Qwen 2.5 7B Edge] [🔒 Air-Gapped] [Egress: 0.0 KB]|
 +─────────────────────────────────────────────────────────────────────────────────────────────────────────+
 | 2. FLIGHT RECORDER TIME-TRAVEL SCRUBBER (Height: 36px, Sticky Subheader)                                |
 | Tape: task_7420.flight │ [◂ Step] [ ═════════●══ ] Frame 3 of 4 [Step ▸] │ [⑂ Fork Alternate Timeline]  |
@@ -229,7 +229,7 @@ Built on a strict 4px/8px modular scale:
 ---
 
 ### B. Teenage Engineering Synthetic Audio Architecture
-Instead of loading external MP3 files (which fail in offline SCIFs), Kora synthesizes sound live using the **Web Audio API**:
+Instead of loading external MP3 files (which fail in offline SCIFs), Keelway synthesizes sound live using the **Web Audio API**:
 
 ```javascript
 // Zero-dependency pure mathematical sound generation
@@ -280,7 +280,7 @@ function playTone(freq, type = 'sine', duration = 0.08, gainVal = 0.04) {
 
 ## 6. Quality Checklist: Nielsen's 10 Usability Heuristics & Core Web Vitals
 
-| Heuristic | Implementation in Kora Dev Studio |
+| Heuristic | Implementation in Keelway Studio |
 | :--- | :--- |
 | **1. Visibility of System Status** | Real-time WebSocket connection badge (`LIVE`), live cost counter (`$0.00000`), active model indicator, and frame-by-frame flight tape counter. |
 | **2. Match between System & Real World** | Git worktrees labeled as "disposable sandboxes", mechanical click audio cues for state toggles, recognizable regional payment logos (M-Pesa, PIX, UPI). |
@@ -291,7 +291,7 @@ function playTone(freq, type = 'sine', duration = 0.08, gainVal = 0.04) {
 | **7. Flexibility & Efficiency of Use** | Keyboard accelerators for power users; 1-click visual buttons for beginners; open MCP bridge for custom IDEs. |
 | **8. Aesthetic & Minimalist Design** | Pure obsidian background; zero marketing fluff inside the engineering canvas; every pixel serves code comprehension. |
 | **9. Help Users Recognize & Recover** | Error frame locator highlights the exact offending AST line, file name, and exception type with an automated repair proposal. |
-| **10. Help & Documentation** | Built-in `kora doctor` diagnostics and embedded ADR references for architectural decisions. |
+| **10. Help & Documentation** | Built-in `keelway doctor` diagnostics and embedded ADR references for architectural decisions. |
 
 ### Core Web Vitals Targets
 - **Largest Contentful Paint (LCP)**: `< 0.4s` (zero external framework bundles, inline Tailwind utilities).

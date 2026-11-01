@@ -23,5 +23,5 @@ jobs:
         run: ruff check .
       - name: Test
         env:
-          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/kora-ci.db
+          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
         run: pytest -q

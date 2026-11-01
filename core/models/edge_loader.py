@@ -1,5 +1,5 @@
 """
-Kora AI Hybrid Edge Model Runtime & Auto-Quantization Loader.
+Keelway Hybrid Edge Model Runtime & Auto-Quantization Loader.
 Transparently routes between a local Ollama daemon and embedded 4-bit GGUF weights,
 auto-detecting hardware capabilities to run $0.00 local inference on any laptop.
 """
@@ -41,7 +41,7 @@ class EdgeRuntimeManager:
 
     def __init__(self, ollama_url: str = "http://localhost:11434", cache_dir: Optional[Path] = None):
         self.ollama_url = ollama_url
-        self.cache_dir = cache_dir or Path.home() / ".kora" / "models"
+        self.cache_dir = cache_dir or Path.home() / ".keelway" / "models"
         self.hardware = self.detect_hardware()
 
     def detect_hardware(self) -> HardwareProfile:
@@ -88,7 +88,7 @@ class EdgeRuntimeManager:
     def probe_ollama(self, timeout_sec: float = 0.5) -> bool:
         """Checks if a local Ollama daemon is active and responding."""
         try:
-            req = urllib.request.Request(f"{self.ollama_url}/api/tags", headers={"User-Agent": "KoraAI/Edge"})
+            req = urllib.request.Request(f"{self.ollama_url}/api/tags", headers={"User-Agent": "Keelway/Edge"})
             with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
                 return resp.status == 200
         except Exception:

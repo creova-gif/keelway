@@ -1,5 +1,5 @@
 """
-Kora AI Ultra-Low-Bandwidth Telephony & Signaling Adapter (USSD / SMS).
+Keelway Ultra-Low-Bandwidth Telephony & Signaling Adapter (USSD / SMS).
 Enables AI agent interaction across emerging markets on 2G feature phones
 via Africa's Talking, Twilio, or generic telecom signaling gateways.
 """
@@ -55,11 +55,11 @@ class TelephonyAdapter:
         """
         Generates deterministic lightweight menu navigation for 2G users:
         - Level 0: Main Menu
-        - Level 1: Feature selection (1: Ask Kora, 2: System Status, 3: Voucher Balance)
+        - Level 1: Feature selection (1: Ask Keelway, 2: System Status, 3: Voucher Balance)
         """
         if depth == 0 or not user_input:
             menu = (
-                "Welcome to Kora AI Sovereign Agent\n"
+                "Welcome to Keelway Sovereign Agent\n"
                 "1. Ask Question\n"
                 "2. System Status\n"
                 "3. Token Balance"
@@ -70,7 +70,7 @@ class TelephonyAdapter:
             if user_input == "1":
                 return cls.format_ussd_response("Type your prompt / question:", is_terminal=False), False
             elif user_input == "2":
-                status_msg = "Kora Core: ACTIVE\nEdge Model: Qwen 3.5\nAir-Gap: ZERO-EGRESS"
+                status_msg = "Keelway Core: ACTIVE\nEdge Model: Qwen 3.5\nAir-Gap: ZERO-EGRESS"
                 return cls.format_ussd_response(status_msg, is_terminal=True), True
             elif user_input == "3":
                 balance_msg = "Balance: 500,000 tokens ($0.00)\nVoucher Rail: ACTIVE"
@@ -79,4 +79,4 @@ class TelephonyAdapter:
                 return cls.format_ussd_response("Invalid option. Session ended.", is_terminal=True), True
 
         # Prompt submitted at depth 2
-        return cls.format_ussd_response(f"Kora Answer: Query '{user_input[:20]}' processed locally.", is_terminal=True), True
+        return cls.format_ussd_response(f"Keelway Answer: Query '{user_input[:20]}' processed locally.", is_terminal=True), True

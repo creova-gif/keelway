@@ -1,5 +1,5 @@
 """
-Kora AI Multi-Agent Mesh & Distributed Task Dispatcher.
+Keelway Multi-Agent Mesh & Distributed Task Dispatcher.
 Enables autonomous collaboration between specialized agent personas:
 - ArchitectAgent (ADR & spec compliance)
 - SecurityAuditorAgent (DLP & injection gating)

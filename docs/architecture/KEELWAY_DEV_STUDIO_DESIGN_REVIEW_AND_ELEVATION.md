@@ -1,6 +1,6 @@
-# Kora Dev Studio — 10-Dimension Designer's Eye Plan Review
+# Keelway Studio — 10-Dimension Designer's Eye Plan Review
 
-**Target:** `core/studio/index.html` & `docs/architecture/KORA_DEV_STUDIO_PRD.md`  
+**Target:** `core/studio/index.html` & `docs/architecture/KEELWAY_DEV_STUDIO_PRD.md`  
 **Reviewer:** Principal Product Designer & HIG Specialist  
 **Design Standard:** Linear-grade fluidity + Teenage Engineering tactile hardware aesthetic  
 

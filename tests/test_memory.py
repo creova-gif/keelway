@@ -1,5 +1,5 @@
 """
-Tests for Kora AI Memory Layer & Memory Service.
+Tests for Keelway Memory Layer & Memory Service.
 Verifies storage, scoped isolation, substring search, updates, and REST API endpoints.
 """
 
@@ -29,7 +29,7 @@ async def test_memory_service_crud_and_search():
             key="adr_001_core",
             content="ADR-001 establishes the shared AI Core for CLI and Personal Agent.",
             scope="project",
-            provenance_uri="https://kora.tech/adr/001",
+            provenance_uri="https://keelway.dev/adr/001",
         )
         assert rec.id is not None
         assert rec.key == "adr_001_core"
@@ -71,7 +71,7 @@ async def test_memory_api_endpoints():
             "key": "eval_rubric_001",
             "content": "EVAL-COMPARE-001 scores on summary, ranked risks, next actions, and citations.",
             "scope": "evaluation",
-            "provenance_uri": "file:///kora-ai/EVAL-COMPARE-001.md",
+            "provenance_uri": "file:///keelway/EVAL-COMPARE-001.md",
         }
         res_create = await client.post("/v1/memories", json=create_payload)
         assert res_create.status_code == 201

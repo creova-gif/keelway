@@ -1,5 +1,5 @@
 """
-Unit tests for the Kora AI Task State Machine.
+Unit tests for the Keelway Task State Machine.
 """
 
 import pytest

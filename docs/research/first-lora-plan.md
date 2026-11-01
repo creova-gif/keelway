@@ -1,7 +1,7 @@
 # First LoRA Experiment Plan (Week 1–2 of research track)
 
 ## Objective
-Fine-tune a 7B open model on 20–30 Kora engineering-brief examples and measure whether it beats the base model (and approaches Claude) on the same evaluation task.
+Fine-tune a 7B open model on 20–30 Keelway engineering-brief examples and measure whether it beats the base model (and approaches Claude) on the same evaluation task.
 
 ## Steps
 

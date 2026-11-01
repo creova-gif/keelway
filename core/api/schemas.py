@@ -1,5 +1,5 @@
 """
-Pydantic v2 schemas for Kora AI Core API.
+Pydantic v2 schemas for Keelway Core API.
 """
 
 from datetime import datetime
@@ -60,6 +60,7 @@ class CompletionResponseSchema(BaseModel):
     latency_ms: float
     cost_usd: Optional[float] = None
     tool_calls: Optional[List[Dict[str, Any]]] = None
+    routing_reason: Optional[str] = None
 
 
 class TaskCreateRequest(BaseModel):

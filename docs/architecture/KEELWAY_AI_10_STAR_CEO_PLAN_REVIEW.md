@@ -1,4 +1,4 @@
-# Kora AI — 10-Star CEO Plan Review & Global Sovereign Strategy
+# Keelway — 10-Star CEO Plan Review & Global Sovereign Strategy
 
 **Mode:** SCOPE EXPANSION (Dream Big — The 10-Star Product)  
 **Date:** October 30, 2026  
@@ -10,7 +10,7 @@
 
 Silicon Valley treats AI developer tools as incremental IDE plugins: cloud autocompletes that cost $20/month, bill via US credit cards, upload code to California servers, and break the moment a laptop loses Wi-Fi.
 
-**Kora AI is not an IDE plugin. Kora AI is a Sovereign Agent Computer.**
+**Keelway is not an IDE plugin. Keelway is a Sovereign Agent Computer.**
 
 It is an air-gapped, local-first autonomous software engineering runtime that turns any laptop—from a $4,000 M3 Max MacBook in San Francisco to a $300 refurbished ThinkPad in Nairobi or São Paulo—into a self-directed engineering team capable of architecting, writing, testing, self-healing, and deploying software with $0.00 cloud token cost.
 
@@ -23,13 +23,13 @@ It is an air-gapped, local-first autonomous software engineering runtime that tu
 | **5-Star** | An autocomplete that predicts the next line in VS Code (Copilot). | High cloud egress, zero deep reasoning, zero multi-file understanding. |
 | **7-Star** | An agent that takes an issue, edits 3 files in a cloud microVM, and opens a PR with 50% pass rate (Devin / Cursor Composer). | High cost ($2–$8/run), requires fast broadband, locks code into proprietary cloud. |
 | **8-Star** | A local agent that runs on Ollama with basic tool calling. | Merely a terminal wrapper; no AST fault recovery, no time-travel replay tape, no team sync. |
-| **10-Star (Kora AI)** | **Autonomous Sovereign Engineering Grid:**<br>1. **Zero-Cloud Air-Gapped Engine:** Runs 100% locally on edge hardware with cryptographic zero-egress attestation (defense, banking, healthcare compliant).<br>2. **Closed-Loop AST Self-Healing:** Catches its own test/compile errors, slices AST nodes, isolates experiments in ephemeral Git worktrees, and verifies zero-regression before touching `main`.<br>3. **Deterministic Flight Recorder:** Captures byte-for-byte execution tapes. The developer can drag a timeline scrubber back in time, inspect every thought and diff, and fork new realities.<br>4. **Global Multi-Rail Financial Sovereignty:** Settle compute, licenses, or agent-to-agent bounties via M-Pesa, PIX, UPI, L402 Lightning, or offline cryptographic vouchers—no USD credit card needed.<br>5. **Tactile Teenage Engineering UI/UX:** A sensory mission control featuring mechanical sound design, high-density monospace telemetry, zero-latency ghost diffs, and an interactive WebGPU playground. | **Kora AI's defensible moat.** Impossible for cloud-locked, ad-supported, or card-gated competitors to replicate without rewriting their foundational infrastructure. |
+| **10-Star (Keelway)** | **Autonomous Sovereign Engineering Grid:**<br>1. **Zero-Cloud Air-Gapped Engine:** Runs 100% locally on edge hardware with cryptographic zero-egress attestation (defense, banking, healthcare compliant).<br>2. **Closed-Loop AST Self-Healing:** Catches its own test/compile errors, slices AST nodes, isolates experiments in ephemeral Git worktrees, and verifies zero-regression before touching `main`.<br>3. **Deterministic Flight Recorder:** Captures byte-for-byte execution tapes. The developer can drag a timeline scrubber back in time, inspect every thought and diff, and fork new realities.<br>4. **Global Multi-Rail Financial Sovereignty:** Settle compute, licenses, or agent-to-agent bounties via M-Pesa, PIX, UPI, L402 Lightning, or offline cryptographic vouchers—no USD credit card needed.<br>5. **Tactile Teenage Engineering UI/UX:** A sensory mission control featuring mechanical sound design, high-density monospace telemetry, zero-latency ghost diffs, and an interactive WebGPU playground. | **Keelway's defensible moat.** Impossible for cloud-locked, ad-supported, or card-gated competitors to replicate without rewriting their foundational infrastructure. |
 
 ---
 
 ## 2. Global Distribution & Viral Growth Engine
 
-To conquer the entire world (Latin America, Africa, Asia-Pacific, Europe, North America), Kora bypasses traditional enterprise sales friction:
+To conquer the entire world (Latin America, Africa, Asia-Pacific, Europe, North America), Keelway bypasses traditional enterprise sales friction:
 
 ```
                                 [ VIRAL GLOBAL ACQUISITION LOOP ]
@@ -56,16 +56,16 @@ To conquer the entire world (Latin America, Africa, Asia-Pacific, Europe, North 
 ```
 
 ### The 4 Viral Hooks:
-1. **The "Air-Gapped Badge" on GitHub PRs:** Every pull request generated or verified by Kora bears an immutable cryptographic badge: `[🔒 Kora Verified: Air-Gapped Zero-Egress | 0 Tokens Leaked | SHA-256 Verified]`. Security officers and engineering leads will mandate Kora across repositories.
-2. **The "Zero-Dollar Dev" Challenge:** Run full SWE-bench tests locally using Qwen 2.5 Coder 7B/14B with zero API keys. Developers in emerging markets share social proof comparing $0.00 Kora runs against $50.00 OpenAI bills.
-3. **P2P LAN Compute Pooling:** When several developers in a co-working space or university lab open Kora, they automatically pool GPU VRAM over the local Wi-Fi router. A student with an M1 MacBook can borrow spare GPU compute from a teammate's desktop without touching the public internet.
+1. **The "Air-Gapped Badge" on GitHub PRs:** Every pull request generated or verified by Keelway bears an immutable cryptographic badge: `[🔒 Keelway Verified: Air-Gapped Zero-Egress | 0 Tokens Leaked | SHA-256 Verified]`. Security officers and engineering leads will mandate Keelway across repositories.
+2. **The "Zero-Dollar Dev" Challenge:** Run full SWE-bench tests locally using Qwen 2.5 Coder 7B/14B with zero API keys. Developers in emerging markets share social proof comparing $0.00 Keelway runs against $50.00 OpenAI bills.
+3. **P2P LAN Compute Pooling:** When several developers in a co-working space or university lab open Keelway, they automatically pool GPU VRAM over the local Wi-Fi router. A student with an M1 MacBook can borrow spare GPU compute from a teammate's desktop without touching the public internet.
 4. **Omnichannel Messaging Bot (WhatsApp / Telegram / USSD):** An engineer can trigger autonomous refactors or test repairs from a smartphone while commuting, receiving immediate diff previews in Telegram or WhatsApp.
 
 ---
 
 ## 3. Creative UI/UX & Website Design System
 
-The visual, auditory, and ergonomic design of Kora must transcend conventional SaaS web templates:
+The visual, auditory, and ergonomic design of Keelway must transcend conventional SaaS web templates:
 
 ### A. The "Teenage Engineering x Linear" Aesthetic
 - **Color Architecture:** 
@@ -78,9 +78,9 @@ The visual, auditory, and ergonomic design of Kora must transcend conventional S
   - Ghost diffs that slide into view with spring physics rather than abrupt layout shifts.
   - Interactive scrubbing timeline with magnetic keyframe snapping.
 
-### B. The Creative Marketing Website (`kora.ai`)
+### B. The Creative Marketing Website (`keelway.dev`)
 - **Interactive Live WebGPU Hero:** Visitors do not just read text; an actual 0.5B quantized model runs directly in their browser's WebGPU VRAM within 2 seconds of page load.
-- **Live "Air-Gap Kill Switch" Interactive Demo:** A toggle switch on the homepage cuts the browser's fetch connections and demonstrates Kora solving a bug completely offline.
+- **Live "Air-Gap Kill Switch" Interactive Demo:** A toggle switch on the homepage cuts the browser's fetch connections and demonstrates Keelway solving a bug completely offline.
 - **Global Purchasing Power Parity (PPP) Pricing Slider:** An interactive world map where selecting Kenya displays M-Pesa checkout, Brazil displays PIX QR codes, and India displays UPI deep links.
 
 ---
@@ -89,7 +89,7 @@ The visual, auditory, and ergonomic design of Kora must transcend conventional S
 
 ### Decision 1: Platform Positioning
 - **Option A (IDE Replacement):** Build a full Electron/VSCode fork competing with Cursor. *(High maintenance, heavy bloat, slow on 8GB machines).*
-- **Option B (Recommended — Sovereign Agent Mission Control):** A standalone, ultra-lightweight high-density desktop and web app (`kora dev`) paired with a headless CLI (`kora`) and an open MCP bridge that plugs into VS Code, Cursor, Neovim, and JetBrains. *(Zero lock-in, universal adoption, blazing speed).*
+- **Option B (Recommended — Sovereign Agent Mission Control):** A standalone, ultra-lightweight high-density desktop and web app (`keelway dev`) paired with a headless CLI (`keelway`) and an open MCP bridge that plugs into VS Code, Cursor, Neovim, and JetBrains. *(Zero lock-in, universal adoption, blazing speed).*
 
 ### Decision 2: Open-Core Monetization Architecture
 - **Community Edition ($0.00 Forever):** 100% local edge inference, self-healing loop, local Git worktrees, and air-gapped zero-egress CLI.
@@ -102,7 +102,7 @@ The visual, auditory, and ergonomic design of Kora must transcend conventional S
 
 ```
 +----------------------------------------------------------------------------------------------------+
-|                                    KORA STRATEGIC EXECUTION HORIZON                                |
+|                                    KEELWAY STRATEGIC EXECUTION HORIZON                                |
 +----------------------------------------------------------------------------------------------------+
 |                                                                                                    |
 |  PHASE 1: THE SOVEREIGN CORE (NOW - WEEK 4)                                                        |

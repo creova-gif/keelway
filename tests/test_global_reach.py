@@ -29,14 +29,14 @@ def test_telephony_adapter_ussd_parsing_and_menus():
     initial_req = {"sessionId": "sess_123", "phoneNumber": "+254712345678", "text": ""}
     parsed = TelephonyAdapter.parse_africastalking_request(initial_req)
     resp, is_term = TelephonyAdapter.generate_menu_response(parsed["depth"], parsed["latest_input"])
-    assert resp.startswith("CON Welcome to Kora")
+    assert resp.startswith("CON Welcome to Keelway")
     assert is_term is False
 
     # Select Option 2 (System Status)
     status_req = {"sessionId": "sess_123", "phoneNumber": "+254712345678", "text": "2"}
     parsed_status = TelephonyAdapter.parse_africastalking_request(status_req)
     resp_status, is_term_status = TelephonyAdapter.generate_menu_response(parsed_status["depth"], parsed_status["latest_input"])
-    assert resp_status.startswith("END Kora Core: ACTIVE")
+    assert resp_status.startswith("END Keelway Core: ACTIVE")
     assert is_term_status is True
     assert len(resp_status) <= 180
 

@@ -38,14 +38,14 @@ class Settings(BaseSettings):
         default=True,
         description="Require an API token on every /v1 route (set false only for throwaway local hacking)",
     )
-    kora_api_token: Optional[str] = Field(
+    keelway_api_token: Optional[str] = Field(
         default=None,
         description="Fixed owner token for this server process; a random one is generated per launch if unset",
     )
 
     # Database
     database_url: str = Field(
-        default=f"sqlite+aiosqlite:///{Path.home() / '.kora' / 'kora.db'}",
+        default=f"sqlite+aiosqlite:///{Path.home() / '.keelway' / 'keelway.db'}",
         description="Async database connection string (SQLite for local dev, PostgreSQL for prod)"
     )
 

@@ -1,5 +1,5 @@
 """
-Standard library unit tests for Kora AI Hybrid Edge Model Runtime & Auto-Quantization Loader.
+Standard library unit tests for Keelway Hybrid Edge Model Runtime & Auto-Quantization Loader.
 """
 
 import tempfile

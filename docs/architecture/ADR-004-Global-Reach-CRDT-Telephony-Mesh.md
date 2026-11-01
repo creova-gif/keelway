@@ -2,7 +2,7 @@
 
 **Status:** Approved  
 **Date:** 2026-10-30  
-**Deciders:** Kora Core Engineering & Research Team  
+**Deciders:** Keelway Core Engineering & Research Team  
 **Consulted:** Africa's Talking API, Local-First CRDT Working Group (Yjs/Automerge), W3C WebSub / Webhook Automation Specs
 
 ---
@@ -14,7 +14,7 @@ Most modern AI developer platforms are built inside a narrow **Silicon Valley bu
 2. **Assuming Everyone Has a Smartphone & Browser:** Millions of technicians, operators, and builders in developing economies communicate via basic feature phones or cellular signaling channels without broadband data plans.
 3. **Single-Threaded Agent Bottlenecks:** Tasks in large systems require coordinated teamwork—an architecture agent, a security auditor, a test runner, and a documenter working together asynchronously without human micromanagement.
 
-To fulfill our mission of creating a **flawless, truly sovereign tool for anyone, anywhere on Earth**, Kora AI must overcome these physical, economic, and regional barriers.
+To fulfill our mission of creating a **flawless, truly sovereign tool for anyone, anywhere on Earth**, Keelway must overcome these physical, economic, and regional barriers.
 
 ---
 
@@ -26,7 +26,7 @@ To fulfill our mission of creating a **flawless, truly sovereign tool for anyone
 
 ### Pillar II: Ultra-Low-Bandwidth Telephony Adapter (USSD / SMS / Webhooks) (`core/api/telephony.py`)
 * **Sub-182 Character Token Compression:** Implements native gateway adapters for telecom signaling protocols (Africa's Talking / Twilio / generic webhooks).
-* **Asynchronous Session Failover:** If a user’s USSD or cellular session times out, Kora automatically detects the disconnection and dispatches an asynchronous SMS with the distilled answer.
+* **Asynchronous Session Failover:** If a user’s USSD or cellular session times out, Keelway automatically detects the disconnection and dispatches an asynchronous SMS with the distilled answer.
 * **Dialect & Multi-Currency Awareness:** Translates agent interactions into concise, numbered option menus executable on 2G feature phones without an internet data bundle.
 
 ### Pillar III: Multi-Agent Mesh Orchestration & Task Dispatcher (`core/orchestration/mesh.py`)

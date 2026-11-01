@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kora"
+name = "keelway"
 version = "0.1.0"
 description = "Sovereign AI Agent Runtime Infrastructure"
 requires-python = ">=3.11"
@@ -24,7 +24,7 @@ postgres = ["asyncpg"]
 dev = ["pytest", "pytest-asyncio", "ruff"]
 
 [project.scripts]
-kora = "cli:main"
+keelway = "cli:main"
 
 [tool.setuptools]
 py-modules = ["cli"]

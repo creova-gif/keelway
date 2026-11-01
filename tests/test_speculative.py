@@ -1,5 +1,5 @@
 """
-Standard library unit tests for Kora AI Speculative Decoding Engine.
+Standard library unit tests for Keelway Speculative Decoding Engine.
 """
 
 import unittest
