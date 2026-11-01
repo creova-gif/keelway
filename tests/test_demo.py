@@ -58,3 +58,10 @@ def test_refuses_an_existing_kora_workspace(tmp_path):
     with pytest.raises(SystemExit):
         demo.prepare_workspace(tmp_path)
     assert not (tmp_path / "pricing.py").exists()
+
+
+def test_requires_git_before_writing_anything(tmp_path, monkeypatch):
+    monkeypatch.setattr(demo.shutil, "which", lambda name: None)
+    with pytest.raises(SystemExit, match="needs git"):
+        demo.prepare_workspace(tmp_path / "d")
+    assert not (tmp_path / "d").exists()

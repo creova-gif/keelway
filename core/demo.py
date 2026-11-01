@@ -63,11 +63,14 @@ FIXED_LINE = "    return round(price_cents * (100 - percent) / 100)\n"
 
 
 def _git(root: Path, *args: str) -> None:
-    if shutil.which("git"):
-        subprocess.run(
-            ["git", "-c", "user.name=Kora Demo", "-c", "user.email=demo@kora.local", *args],
-            cwd=root, check=False, capture_output=True,
-        )
+    if not shutil.which("git"):
+        raise SystemExit("kora demo needs git on PATH (the Studio shows the agent's changes as git diffs).")
+    res = subprocess.run(
+        ["git", "-c", "user.name=Kora Demo", "-c", "user.email=demo@kora.local", "-c", "commit.gpgsign=false", *args],
+        cwd=root, capture_output=True, text=True,
+    )
+    if res.returncode:
+        raise SystemExit(f"git {' '.join(args)} failed in {root}: {res.stderr.strip()}")
 
 
 def prepare_workspace(root: Path, reset: bool = False) -> Path:
@@ -82,6 +85,7 @@ def prepare_workspace(root: Path, reset: bool = False) -> Path:
         return root
     if root.exists() and any(root.iterdir()):
         raise SystemExit(f"{root} already has files. Pick an empty folder with --dir.")
+    _git(Path.cwd(), "--version")
     root.mkdir(parents=True, exist_ok=True)
     for name, content in FILES.items():
         (root / name).write_text(content, encoding="utf-8")
