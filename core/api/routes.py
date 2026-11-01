@@ -807,8 +807,9 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
             scope = validate_scope(pending["tool_name"], requested or args.get("path") or args.get("command"))
         except ApprovalRuleError as e:
             raise HTTPException(status_code=400, detail=str(e))
-        rule = ApprovalRuleStore(_workspace_fs.root).add(pending["tool_name"], scope, principal.actor)
-        await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
+        rule, created = ApprovalRuleStore(_workspace_fs.root).add(pending["tool_name"], scope, principal.actor)
+        if created:
+            await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
 
     res = await agent.approve_pending(approved=approved)
     return {
