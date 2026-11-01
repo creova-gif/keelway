@@ -104,9 +104,19 @@ def test_malformed_rule_files_mean_no_rules(tmp_path, content):
 
 
 def test_reapproving_an_existing_scope_does_not_log_a_second_creation(client):
+    before = max((e["seq"] for e in client.get("/v1/audit?limit=1").json()), default=0)
     for task in ("d1", "d2"):
         client.post("/v1/agent/run", json={"task_id": task, "goal": "g", "steps": ["w"], "policy": "confirm_all"})
         _write(client, task, "same.txt")
         client.post(f"/v1/agent/approve/{task}", json={"approved": True, "remember": {"scope": "same.txt"}})
-    actions = [e["action"] for e in client.get("/v1/audit?limit=50").json()]
-    assert actions.count("approval_rule_create") == 1
+    creations = [e for e in client.get("/v1/audit?limit=200").json()
+                 if e["seq"] > before and e["action"] == "approval_rule_create" and e["resource"] == "write_file:same.txt"]
+    assert len(creations) == 1
+
+
+def test_blank_remembered_scope_is_rejected_not_a_silent_one_time_approval(client, tmp_path):
+    client.post("/v1/agent/run", json={"task_id": "b1", "goal": "g", "steps": ["w"]})
+    _write(client, "b1", "blank.txt")
+    r = client.post("/v1/agent/approve/b1", json={"approved": True, "remember": {"scope": "   "}})
+    assert r.status_code == 400 and not (tmp_path / "blank.txt").exists()
+    assert client.get("/v1/approval-rules").json()["rules"] == []
