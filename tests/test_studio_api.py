@@ -112,7 +112,7 @@ def test_agent_run_rejects_unsafe_and_duplicate_task_ids(tmp_path, monkeypatch):
     assert not (tmp_path.parent / "escape.flight.json").exists()
 
 
-def test_studio_diff_reads_the_open_workspace_not_the_kora_checkout(tmp_path, monkeypatch):
+def test_studio_diff_reads_the_open_workspace_not_the_keelway_checkout(tmp_path, monkeypatch):
     import subprocess
     from core.api import routes
     from core.storage.workspace_fs import WorkspaceFilesystem

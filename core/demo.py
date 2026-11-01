@@ -1,7 +1,7 @@
-"""`kora demo`: seed a small sample project and open the Studio on it.
+"""`keelway demo`: seed a small sample project and open the Studio on it.
 
 The demo lives in its own folder with its own SQLite database, so it never
-touches your real Kora data. Everything it shows is produced by the real
+touches your real Keelway data. Everything it shows is produced by the real
 runtime: the seeded history is an actual agent run, taped and sealed.
 """
 
@@ -13,16 +13,16 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DIR = Path.home() / "kora-demo"
-SEEDED_MARKER = ".kora/seeded"
-DEMO_ENTRIES = {".git", ".kora", "money.py", "__pycache__"}
+DEFAULT_DIR = Path.home() / "keelway-demo"
+SEEDED_MARKER = ".keelway/seeded"
+DEMO_ENTRIES = {".git", ".keelway", "money.py", "__pycache__"}
 PAST_TASK_ID = "task_demo_format_cents"
 
 FILES = {
-    ".gitignore": ".kora/\n__pycache__/\n",
+    ".gitignore": ".keelway/\n__pycache__/\n",
     "README.md": (
         "# acme-checkout\n\n"
-        "Tiny checkout service used by the Kora demo. Prices are integer cents.\n\n"
+        "Tiny checkout service used by the Keelway demo. Prices are integer cents.\n\n"
         "Run the tests with `python3 -m unittest -q`.\n"
     ),
     "pricing.py": (
@@ -64,9 +64,9 @@ FIXED_LINE = "    return round(price_cents * (100 - percent) / 100)\n"
 
 def _git(root: Path, *args: str) -> None:
     if not shutil.which("git"):
-        raise SystemExit("kora demo needs git on PATH (the Studio shows the agent's changes as git diffs).")
+        raise SystemExit("keelway demo needs git on PATH (the Studio shows the agent's changes as git diffs).")
     res = subprocess.run(
-        ["git", "-c", "user.name=Kora Demo", "-c", "user.email=demo@kora.local", "-c", "commit.gpgsign=false", *args],
+        ["git", "-c", "user.name=Keelway Demo", "-c", "user.email=demo@keelway.local", "-c", "commit.gpgsign=false", *args],
         cwd=root, capture_output=True, text=True,
     )
     if res.returncode:
@@ -79,7 +79,7 @@ def prepare_workspace(root: Path, reset: bool = False) -> Path:
     if reset and root.exists():
         entries = {p.name for p in root.iterdir()}
         if entries and (not (root / SEEDED_MARKER).exists() or not entries <= DEMO_ENTRIES | set(FILES)):
-            raise SystemExit(f"Refusing to reset {root}: it is not a Kora demo folder.")
+            raise SystemExit(f"Refusing to reset {root}: it is not a Keelway demo folder.")
         shutil.rmtree(root)
     if (root / SEEDED_MARKER).exists():
         return root
@@ -144,7 +144,7 @@ async def seed(root: Path) -> None:
 
 def _demo_env(root: Path) -> dict:
     env = os.environ.copy()
-    env["DATABASE_URL"] = f"sqlite+aiosqlite:///{root / '.kora' / 'demo.db'}"
+    env["DATABASE_URL"] = f"sqlite+aiosqlite:///{root / '.keelway' / 'demo.db'}"
     env["PYTHONUNBUFFERED"] = "1"
     env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(REPO_ROOT), env.get("PYTHONPATH")]))
     return env
@@ -153,7 +153,7 @@ def _demo_env(root: Path) -> dict:
 def run(directory: Path = DEFAULT_DIR, port: int = 7420, host: str = "127.0.0.1", reset: bool = False) -> int:
     """Prepare the demo folder, then serve the Studio from it in a child process with its own database."""
     root = prepare_workspace(directory, reset=reset)
-    (root / ".kora").mkdir(exist_ok=True)
+    (root / ".keelway").mkdir(exist_ok=True)
     print(f"[+] Demo workspace: {root}")
     print(f"[+] Try this goal: {LIVE_GOAL}")
     cmd = [sys.executable, "-m", "core.demo", "--serve", str(root), "--port", str(port), "--host", host]

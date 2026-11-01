@@ -677,7 +677,7 @@ def main():
     dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
 
     demo_parser = subparsers.add_parser("demo", help="Seed a sample project and open the Studio on it (own folder + DB)")
-    demo_parser.add_argument("--dir", type=Path, default=None, help="Demo folder (default: ~/kora-demo)")
+    demo_parser.add_argument("--dir", type=Path, default=None, help="Demo folder (default: ~/keelway-demo)")
     demo_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     demo_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     demo_parser.add_argument("--reset", action="store_true", help="Delete and re-seed the demo folder")
