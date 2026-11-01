@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def test_opentelemetry_genai_semantic_tracer():
-    tracer = TelemetryTracer(service_name="kora-test")
+    tracer = TelemetryTracer(service_name="keelway-test")
     span = tracer.start_span(
         name="chat_completion",
         system="local",
@@ -47,7 +47,7 @@ async def test_mcp_protocol_server_tools_and_resources():
 
     # Register a resource
     server.register_resource(
-        uri="kora-memory://project/adr-001",
+        uri="keelway-memory://project/adr-001",
         name="ADR-001 Memory Chunk",
         description="Core architecture principles",
     )
@@ -60,7 +60,7 @@ async def test_mcp_protocol_server_tools_and_resources():
     # Test resources/list
     res_resources = await server.handle_jsonrpc_request({"id": 2, "method": "resources/list"})
     assert len(res_resources["result"]["resources"]) == 1
-    assert res_resources["result"]["resources"][0]["uri"] == "kora-memory://project/adr-001"
+    assert res_resources["result"]["resources"][0]["uri"] == "keelway-memory://project/adr-001"
 
     # Test tools/call
     res_call = await server.handle_jsonrpc_request({

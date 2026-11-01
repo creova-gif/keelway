@@ -1,6 +1,6 @@
 """
-Kora AI Production Benchmark Evaluation Runner (evals/eval_runner.py).
-Executes SWE-style golden coding challenges against Kora's local agent engine,
+Keelway Production Benchmark Evaluation Runner (evals/eval_runner.py).
+Executes SWE-style golden coding challenges against Keelway's local agent engine,
 measuring Pass@1 success rate, latency, token costs, and self-healing iterations.
 """
 
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     harness = ProductionEvalHarness()
     summary = asyncio.run(harness.run_all())
     print("\n" + "=" * 65)
-    print("  🏆 KORA AI GOLDEN EVALUATION BENCHMARK REPORT")
+    print("  🏆 KEELWAY GOLDEN EVALUATION BENCHMARK REPORT")
     print(f"  Passed: {summary['passed_tasks']}/{summary['total_tasks']} ({summary['pass_rate_pct']}%)")
     print(f"  Duration: {summary['total_duration_ms']:.2f} ms")
     print("=" * 65 + "\n")

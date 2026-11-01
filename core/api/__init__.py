@@ -1,1 +1,1 @@
-"""Kora API Module."""
+"""Keelway API Module."""

@@ -1,5 +1,5 @@
 """
-Standard library unit tests for Kora AI Omnichannel Messaging & Mobile Agent Dispatcher.
+Standard library unit tests for Keelway Omnichannel Messaging & Mobile Agent Dispatcher.
 """
 
 import unittest
@@ -41,7 +41,7 @@ class TestOmnichannelMessaging(unittest.TestCase):
     def test_mobile_app_formatting(self):
         payload = self.dispatcher.format_mobile_app_payload(self.approval, push_token="push_xyz789")
         self.assertEqual(payload["to"], "push_xyz789")
-        self.assertEqual(payload["data"]["deep_link"], "kora://task/review/task_99a")
+        self.assertEqual(payload["data"]["deep_link"], "keelway://task/review/task_99a")
         self.assertTrue(payload["data"]["requires_biometric"])
 
     def test_dispatch_preferences(self):

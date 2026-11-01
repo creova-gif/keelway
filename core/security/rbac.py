@@ -1,5 +1,5 @@
 """
-Kora AI Multi-Tenant Organization & RBAC Subsystem.
+Keelway Multi-Tenant Organization & RBAC Subsystem.
 Provides enterprise-grade access control, team isolation, and audit logging.
 """
 

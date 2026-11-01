@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-Kora AI is designed as a sovereign, air-gappable, globally inclusive developer runtime. As developers deploy autonomous coding agents across diverse operating environments—ranging from high-end Silicon Valley workstations to low-bandwidth African mobile hotspots, defense SCIFs (Sensitive Compartmented Information Facilities), and remote agricultural or industrial IoT nodes—two critical operational gaps emerge:
+Keelway is designed as a sovereign, air-gappable, globally inclusive developer runtime. As developers deploy autonomous coding agents across diverse operating environments—ranging from high-end Silicon Valley workstations to low-bandwidth African mobile hotspots, defense SCIFs (Sensitive Compartmented Information Facilities), and remote agricultural or industrial IoT nodes—two critical operational gaps emerge:
 
 1. **The Autonomous Repair Gap (Self-Healing Loop):**
    Standard AI agents generate code or run commands, but when a compiler, linter, or test suite fails, they either hallucinate repetitively in context or leave broken repositories. An enterprise-grade developer tool requires a deterministic, closed-loop **Self-Healing Engine**:
@@ -24,7 +24,7 @@ Kora AI is designed as a sovereign, air-gappable, globally inclusive developer r
 
 ```
 +--------------------------------------------------------------------------------------------------+
-|                                    KORA AUTONOMOUS REPAIR ENGINE                                 |
+|                                    KEELWAY AUTONOMOUS REPAIR ENGINE                                 |
 +--------------------------------------------------------------------------------------------------+
 |                                                                                                  |
 |   +-----------------------+     +------------------------+     +-----------------------------+   |
@@ -86,14 +86,14 @@ Kora AI is designed as a sovereign, air-gappable, globally inclusive developer r
     5. `offline_voucher`: Validates zero-connectivity cryptographic vouchers issued by corporate admins.
 
 ### 3. Mesh & Low-Bandwidth Signaling
-- **Sneakernet Replication Protocol:** Supports importing and exporting signed Git bundles and agent memory checkpoints (`kora export --bundle`, `kora import --bundle`) over removable storage.
+- **Sneakernet Replication Protocol:** Supports importing and exporting signed Git bundles and agent memory checkpoints (`keelway export --bundle`, `keelway import --bundle`) over removable storage.
 - **USSD / SMS Remote Admin:** Enables engineers in remote field stations to approve patches and inspect agent statuses with standard numeric keypad menus (`*920*42#`).
 
 ---
 
 ## Consequences
 - **Positive:**
-  - True autonomous repair: Kora agents can fix failing builds without human intervention.
+  - True autonomous repair: Keelway agents can fix failing builds without human intervention.
   - Zero financial exclusion: Developers worldwide can pay for agent computation or run completely free edge models on their own laptops.
   - Air-gapped reliability: Defense, enterprise, and remote field deployments operate with high security and zero telemetry leakage.
 - **Negative:**

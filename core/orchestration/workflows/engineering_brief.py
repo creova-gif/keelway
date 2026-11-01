@@ -1,7 +1,7 @@
 """
-Kora AI Personal Agent — Workflow 1: Engineering Brief Generator.
+Keelway Personal Agent — Workflow 1: Engineering Brief Generator.
 Permission Level: READ ONLY
-Generates source-grounded engineering briefs from PRs/git changes and verifies against KORA.md.
+Generates source-grounded engineering briefs from PRs/git changes and verifies against KEELWAY.md.
 """
 
 from typing import Dict, Any, List, Optional
@@ -21,20 +21,20 @@ from core.storage.models import TaskRecord, EvidenceRecord
 class EngineeringBriefWorkflow:
     def __init__(self, gateway: Optional[ModelGateway] = None, docs_dir: Optional[Path] = None):
         self.gateway = gateway or default_gateway
-        self.docs_dir = docs_dir or Path("kora-ai")
+        self.docs_dir = docs_dir or Path("keelway")
 
     def load_governance_context(self) -> str:
-        """Load KORA.md and ADR-001 principles as grounded context."""
+        """Load KEELWAY.md and ADR-001 principles as grounded context."""
         context_parts = []
         kora_candidates = [
-            self.docs_dir / "docs" / "architecture" / "KORA.md",
-            self.docs_dir / "KORA.md",
-            Path("docs/architecture/KORA.md"),
-            Path("KORA.md"),
+            self.docs_dir / "docs" / "architecture" / "KEELWAY.md",
+            self.docs_dir / "KEELWAY.md",
+            Path("docs/architecture/KEELWAY.md"),
+            Path("KEELWAY.md"),
         ]
         for k_path in kora_candidates:
             if k_path.exists():
-                context_parts.append(f"=== KORA.md Principles ===\n{k_path.read_text()[:2000]}")
+                context_parts.append(f"=== KEELWAY.md Principles ===\n{k_path.read_text()[:2000]}")
                 break
 
         adr_candidates = [
@@ -65,12 +65,12 @@ class EngineeringBriefWorkflow:
         governance_context = self.load_governance_context()
 
         system_prompt = (
-            "You are the Kora Technical Lead & DevSecOps Lead. "
+            "You are the Keelway Technical Lead & DevSecOps Lead. "
             "Your job is to produce a rigorous, source-grounded engineering brief for a proposed pull request. "
             "You MUST:\n"
             "1. Summarize the changes (2-3 sentences)\n"
             "2. Identify risky or failing tests and evaluate their severity\n"
-            "3. Assess alignment with KORA.md and ADR-001 principles\n"
+            "3. Assess alignment with KEELWAY.md and ADR-001 principles\n"
             "4. Provide ranked risks with concrete mitigations\n"
             "5. Provide ordered next actions for the developer\n"
             "6. Cite exact files mentioned\n"

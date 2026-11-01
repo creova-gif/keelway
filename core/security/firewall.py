@@ -1,5 +1,5 @@
 """
-Kora AI Security Firewall & Guardrails.
+Keelway Security Firewall & Guardrails.
 Defends against:
 1. Data Loss / Secret Leakage (DLP Scanner)
 2. Direct and Indirect Prompt Injection

@@ -1,5 +1,5 @@
 """
-Kora AI Sovereign Economic Ledger & Offline Token Budget.
+Keelway Sovereign Economic Ledger & Offline Token Budget.
 Provides zero-dollar offline cost tracking, token quota governance,
 and prepaid voucher redemption for regions with USD card or banking restrictions.
 """

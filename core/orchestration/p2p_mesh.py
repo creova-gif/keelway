@@ -1,5 +1,5 @@
 """
-Kora AI Peer-to-Peer Local Team Mesh & GPU Resource Pooling.
+Keelway Peer-to-Peer Local Team Mesh & GPU Resource Pooling.
 Enables local engineering teams on the same office Wi-Fi or ad-hoc cellular hotspot
 to discover each other via mDNS, share VRAM/GPU compute, and route heavy agent tasks
 with zero cloud intermediary. Supports optional Tailscale overlays for remote teammates.
@@ -32,7 +32,7 @@ class LocalTeamMesh:
     """Manages zero-cloud peer discovery, GPU VRAM pooling, and task delegation."""
 
     def __init__(self, node_name: Optional[str] = None, port: int = 7420, vram_mb: int = 8192):
-        self.node_id = f"kora_{uuid.uuid4().hex[:8]}"
+        self.node_id = f"keelway_{uuid.uuid4().hex[:8]}"
         self.hostname = node_name or socket.gethostname()
         self.port = port
         self.vram_mb = vram_mb
@@ -44,14 +44,14 @@ class LocalTeamMesh:
         self.tailscale_ip = ts_ip
 
     def get_local_advertisement(self) -> Dict[str, Any]:
-        """Generates mDNS service record dictionary (_kora-agent._tcp.local)."""
+        """Generates mDNS service record dictionary (_keelway-agent._tcp.local)."""
         return {
             "node_id": self.node_id,
             "hostname": self.hostname,
             "port": self.port,
             "vram_mb": self.vram_mb,
             "tailscale_ip": self.tailscale_ip,
-            "service_type": "_kora-agent._tcp.local.",
+            "service_type": "_keelway-agent._tcp.local.",
         }
 
     def register_peer(

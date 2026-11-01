@@ -6,20 +6,20 @@ These are the three real recurring workflows the Personal Agent must complete re
 
 **Name:** `engineering_brief`  
 **Permission level:** Read  
-**Description:** Review recent Kora Dev pull requests, identify issues, and produce a prioritized engineering brief.
+**Description:** Review recent Keelway Dev pull requests, identify issues, and produce a prioritized engineering brief.
 
 ### Trigger
 User request:  
-"Review the latest Kora Dev pull requests, identify failing tests, compare changes against KORA.md, and prepare a prioritized engineering brief."
+"Review the latest Keelway Dev pull requests, identify failing tests, compare changes against KEELWAY.md, and prepare a prioritized engineering brief."
 
 ### Steps
 1. List open PRs in the target repository (read-only GitHub tool).
 2. For each relevant PR, fetch summary, changed files, and CI status.
-3. Retrieve relevant sections of KORA.md and any linked ADRs.
+3. Retrieve relevant sections of KEELWAY.md and any linked ADRs.
 4. Generate a brief containing:
    - Summary of changes
    - Failing or risky tests
-   - Alignment with KORA.md principles
+   - Alignment with KEELWAY.md principles
    - Ranked risks
    - Recommended next actions
    - File citations
@@ -35,7 +35,7 @@ User request:
 - `github.list_prs`
 - `github.get_pr`
 - `github.get_file`
-- `docs.search` (KORA.md / ADRs)
+- `docs.search` (KEELWAY.md / ADRs)
 
 ---
 
@@ -43,7 +43,7 @@ User request:
 
 **Name:** `research_summary`  
 **Permission level:** Read  
-**Description:** Summarize a research paper or internal ADR and relate it to current Kora work.
+**Description:** Summarize a research paper or internal ADR and relate it to current Keelway work.
 
 ### Trigger
 User request:  
@@ -52,10 +52,10 @@ User request:
 ### Steps
 1. Ingest the document (PDF, Markdown, or URL — treated as untrusted).
 2. Extract key claims, methods, and limitations.
-3. Search existing Kora docs and ADRs for related decisions.
+3. Search existing Keelway docs and ADRs for related decisions.
 4. Produce a structured summary:
    - Core contribution
-   - Relevance to Kora (specific components)
+   - Relevance to Keelway (specific components)
    - Potential risks or gaps
    - Suggested follow-up experiments or ADRs
    - Citations to both the source and internal docs
@@ -63,7 +63,7 @@ User request:
 
 ### Success criteria
 - Accurate extraction of the source material.
-- Clear, actionable link to Kora architecture.
+- Clear, actionable link to Keelway architecture.
 - Provenance recorded.
 - No hallucinated citations.
 
@@ -111,7 +111,7 @@ User request:
 
 ## Shared Requirements for All Three
 
-- Must go through the Kora Agent Gateway with scoped permissions.
+- Must go through the Keelway Agent Gateway with scoped permissions.
 - Must produce an audit log entry for every tool call.
 - Must cite sources.
 - Must respect the four permission levels (none of these workflows modify external systems without a later explicit approval step).

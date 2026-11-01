@@ -1,5 +1,5 @@
 """
-Kora AI Stylistic Conditioning & Anti-Slop Writing Engine.
+Keelway Stylistic Conditioning & Anti-Slop Writing Engine.
 Implements Y Combinator RFS 'LLMs That Write Well':
 - Filters out corporate RLHF buzzwords, sycophancy, and robotic filler.
 - Calibrates authentic tone, active voice, and high-signal communication.

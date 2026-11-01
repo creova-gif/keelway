@@ -1,21 +1,21 @@
-# Kora AI — Commercial Shipping Gap Analysis & Production Roadmap
+# Keelway — Commercial Shipping Gap Analysis & Production Roadmap
 
 **Author:** Principal Systems Architect & Senior Product Lead  
 **Scope:** `creova-gif/kora` Core Engine, Dev Studio, Agent Runtime, and CLI  
-**Objective:** Exhaustive audit of what is missing if Kora AI were to ship to commercial software engineers today as a sovereign, local-first developer tool competing against Devin, Cursor, Claude Code, and Aider.
+**Objective:** Exhaustive audit of what is missing if Keelway were to ship to commercial software engineers today as a sovereign, local-first developer tool competing against Devin, Cursor, Claude Code, and Aider.
 
 ---
 
 ## Executive Summary: The "Day 1" Reality
 
-Kora AI has achieved breakthrough foundational IP:
+Keelway has achieved breakthrough foundational IP:
 1. A **closed-loop AST self-healing engine** (`core/orchestration/self_healing.py`) that operates on syntax trees rather than brittle regex.
 2. A **2.58x speculative decoding engine** (`core/models/speculative.py`) that accelerates local inference on commodity laptops.
 3. An **air-gapped cryptographic kill switch** (`core/security/airgap.py`) guaranteeing zero outgoing network egress.
 4. An **omnichannel mobile/Telegram approval loop** (`core/api/messaging.py`) with biometric commit gates.
 5. A **Devin × VS Code × Cursor hybrid IDE interface** (`core/studio/index.html`) running locally with zero npm dependencies.
 
-However, if a developer were to download Kora **today** on an external clean machine, they would encounter **7 critical production gaps** that separate an advanced architectural prototype from a commercial developer tool.
+However, if a developer were to download Keelway **today** on an external clean machine, they would encounter **7 critical production gaps** that separate an advanced architectural prototype from a commercial developer tool.
 
 ---
 
@@ -23,7 +23,7 @@ However, if a developer were to download Kora **today** on an external clean mac
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│               7 GAPS TO SHIP KORA COMMERCIALLY TODAY                   │
+│               7 GAPS TO SHIP KEELWAY COMMERCIALLY TODAY                   │
 ├──────────────────────────┬──────────────────┬──────────────────────────┤
 │ PILLAR                   │ STATUS TODAY     │ REQUIRED FOR SHIP TODAY  │
 ├──────────────────────────┼──────────────────┼──────────────────────────┤
@@ -55,21 +55,21 @@ However, if a developer were to download Kora **today** on an external clean mac
 ### Gap 1: The Model Cold-Start Problem (Day 1 Zero-Config)
 
 * **The Problem Today:**
-  When a user clones Kora and runs `kora chat`, `LocalAdapter` tries connecting to `http://localhost:11434/api/chat`. If the user does not already have Ollama installed, running, and populated with `qwen2.5-coder:7b`, Kora immediately fails with a connection error.
+  When a user clones Keelway and runs `keelway chat`, `LocalAdapter` tries connecting to `http://localhost:11434/api/chat`. If the user does not already have Ollama installed, running, and populated with `qwen2.5-coder:7b`, Keelway immediately fails with a connection error.
 * **What Competitive Tools Do:**
   - *Ollama / Jan / LM Studio:* Provide single-click model downloads with real-time ETA and GB progress bars.
   - *Aider:* Prompts the user: *"No local model found. Enter your API key (Anthropic/OpenAI) or type `ollama pull qwen2.5-coder`"*.
 * **Required to Ship Today:**
-  1. **Built-in `kora pull <model>` CLI & UI Dialog:** A streaming HTTP downloader that fetches quantized GGUF weights directly from HuggingFace with chunked progress reporting (`0% -> 100%`).
-  2. **Bundled Zero-Daemon C++ Inference Runtime:** Include pre-compiled `llama.cpp` shared libraries (`libllama.dylib` on macOS Metal, `libllama.so` on Linux CUDA) so Kora can load GGUF weights directly into VRAM without requiring Ollama or Docker.
-  3. **Seamless Cloud Fallback:** If local RAM is <8GB and no Ollama daemon is detected, Kora should offer a clean 1-click prompt: *"Would you like to connect an Anthropic, OpenAI, or Gemini key, or run a 1.5B edge model?"*
+  1. **Built-in `keelway pull <model>` CLI & UI Dialog:** A streaming HTTP downloader that fetches quantized GGUF weights directly from HuggingFace with chunked progress reporting (`0% -> 100%`).
+  2. **Bundled Zero-Daemon C++ Inference Runtime:** Include pre-compiled `llama.cpp` shared libraries (`libllama.dylib` on macOS Metal, `libllama.so` on Linux CUDA) so Keelway can load GGUF weights directly into VRAM without requiring Ollama or Docker.
+  3. **Seamless Cloud Fallback:** If local RAM is <8GB and no Ollama daemon is detected, Keelway should offer a clean 1-click prompt: *"Would you like to connect an Anthropic, OpenAI, or Gemini key, or run a 1.5B edge model?"*
 
 ---
 
 ### Gap 2: Real File System IO & Dynamic Workspace Scanning
 
 * **The Problem Today:**
-  The Dev Studio currently displays a rich, pre-packaged catalog of Kora's own core modules (`self_healing.py`, `speculative.py`, `payment_broker.py`). If a developer launches `kora dev` inside an arbitrary project (e.g., a Django backend or a Next.js frontend), the studio does not yet dynamically scan the user's project directory or serve their real files.
+  The Dev Studio currently displays a rich, pre-packaged catalog of Keelway's own core modules (`self_healing.py`, `speculative.py`, `payment_broker.py`). If a developer launches `keelway dev` inside an arbitrary project (e.g., a Django backend or a Next.js frontend), the studio does not yet dynamically scan the user's project directory or serve their real files.
 * **What Competitive Tools Do:**
   - *VS Code / Cursor / Devin:* The server reads `process.cwd()`, walks the directory tree adhering to `.gitignore`, and serves real file contents via WebSocket/REST.
 * **Required to Ship Today:**
@@ -83,7 +83,7 @@ However, if a developer were to download Kora **today** on an external clean mac
 ### Gap 3: Autonomous Agent Tool Loop (The "Devin / Antigravity" Action Loop)
 
 * **The Problem Today:**
-  `kora chat` currently operates as a single-turn stateful conversational session (`core/orchestration/chat.py`). While `core/orchestration/self_healing.py` can autonomously patch failing tests, Kora does not yet have a generalized multi-step **ReAct Tool-Calling Loop** for general developer instructions.
+  `keelway chat` currently operates as a single-turn stateful conversational session (`core/orchestration/chat.py`). While `core/orchestration/self_healing.py` can autonomously patch failing tests, Keelway does not yet have a generalized multi-step **ReAct Tool-Calling Loop** for general developer instructions.
 * **What Devin / Claude Code / Antigravity Do:**
   When a user says: *"Add rate limiting to our payment webhook"*, the agent executes an autonomous loop:
   1. Calls `search_codebase("def payment_webhook")` → Finds `routes.py:112`.
@@ -110,7 +110,7 @@ However, if a developer were to download Kora **today** on an external clean mac
 * **What Competitive Tools Do:**
   - *Cursor & Windsurf:* Build an AST symbol index + vector embeddings database (`sqlite-vec` or LanceDB) to find relevant files in 15 milliseconds.
 * **Required to Ship Today:**
-  1. **AST Symbol Table:** A lightweight Python background task that extracts classes, functions, docstrings, and imports for every file in the repository upon `kora dev` boot.
+  1. **AST Symbol Table:** A lightweight Python background task that extracts classes, functions, docstrings, and imports for every file in the repository upon `keelway dev` boot.
   2. **Zero-Cloud Local Embeddings:** Use a tiny 30MB ONNX embedding model (like `nomic-embed-text-v1.5` or `all-MiniLM-L6-v2`) running via pure CPU/Metal to generate embeddings stored in SQLite, allowing semantic code search with zero external cloud egress.
 
 ---
@@ -129,19 +129,19 @@ However, if a developer were to download Kora **today** on an external clean mac
 ### Gap 6: Packaging, Distribution & Desktop Binary
 
 * **The Problem Today:**
-  Users currently need Git and Python installed to run `kora`. To reach mainstream developers, installation must be a single native action.
+  Users currently need Git and Python installed to run `keelway`. To reach mainstream developers, installation must be a single native action.
 * **Required to Ship Today:**
   1. **macOS Homebrew Formula:**
      ```bash
-     brew install creova-gif/kora/kora
+     brew install creova-gif/kora/keelway
      ```
   2. **PyPI Package:**
      ```bash
-     pip install kora-ai
+     pip install keelway
      ```
   3. **Native Desktop App (Tauri / Rust Wrapper):**
-     - Compile a lightweight 12MB native desktop app wrapper using Tauri (`Kora.app` on macOS, `Kora.exe` on Windows).
-     - Bundles the local UI and auto-spawns the Kora background daemon with no terminal window required.
+     - Compile a lightweight 12MB native desktop app wrapper using Tauri (`Keelway.app` on macOS, `Keelway.exe` on Windows).
+     - Bundles the local UI and auto-spawns the Keelway background daemon with no terminal window required.
 
 ---
 
@@ -173,12 +173,12 @@ PHASE 2: Agent Action Loop & Tool Registry (Days 2-3)
 └── Connect Dev Studio prompt box to live multi-step agent
 
 PHASE 3: Zero-Config Model Bootstrapper (Days 4-5)
-├── Implement streaming kora pull qwen2.5-coder:7b with progress bar
+├── Implement streaming keelway pull qwen2.5-coder:7b with progress bar
 ├── Auto-detect Ollama / vLLM / LM Studio on localhost
 └── Cloud API key fallback prompt when local VRAM is insufficient
 
 PHASE 4: Distribution & Packaging (Day 6)
-├── Publish to PyPI (pip install kora-ai)
-├── Create Homebrew tap (brew install kora)
+├── Publish to PyPI (pip install keelway)
+├── Create Homebrew tap (brew install keelway)
 └── Build automated evals regression runner in evals/
 ```

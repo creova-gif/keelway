@@ -1,5 +1,5 @@
 """
-Kora AI Autonomous Self-Healing Verification Loop.
+Keelway Autonomous Self-Healing Verification Loop.
 Detects test and build failures, performs AST fault localization,
 explores candidate patches in isolated worktrees, and verifies zero-regression repair.
 """

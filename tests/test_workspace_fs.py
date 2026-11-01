@@ -1,5 +1,5 @@
 """
-Unit tests for Kora AI WorkspaceFilesystem.
+Unit tests for Keelway WorkspaceFilesystem.
 Tests tree traversal, file read/write, security path traversal blocking, and git inspection.
 """
 

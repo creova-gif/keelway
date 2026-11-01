@@ -1,7 +1,7 @@
 """
-Kora AI Omnichannel Messaging & Mobile Agent Dispatcher.
+Keelway Omnichannel Messaging & Mobile Agent Dispatcher.
 Enables developers worldwide to monitor, review, and approve autonomous agent tasks
-via Telegram, WhatsApp, USSD/SMS fallback, and the native Kora Mobile App.
+via Telegram, WhatsApp, USSD/SMS fallback, and the native Keelway Mobile App.
 """
 
 import hmac
@@ -52,7 +52,7 @@ class OmnichannelDispatcher:
     def format_telegram_payload(self, approval: AgentApprovalRequest, chat_id: str) -> Dict[str, Any]:
         """Formats an actionable Telegram Bot message with inline callback buttons."""
         text = (
-            f"⚡ *Kora Autonomous Agent Alert*\n\n"
+            f"⚡ *Keelway Autonomous Agent Alert*\n\n"
             f"• *Task ID:* `{approval.task_id}`\n"
             f"• *Action:* `{approval.action_type}`\n"
             f"• *Summary:* {approval.summary}\n"
@@ -67,7 +67,7 @@ class OmnichannelDispatcher:
                     {"text": "✕ Reject", "callback_data": f"reject:{approval.task_id}"},
                 ],
                 [
-                    {"text": "🔍 Inspect Full Diff", "url": f"https://kora.ai/review/{approval.task_id}"}
+                    {"text": "🔍 Inspect Full Diff", "url": f"https://keelway.dev/review/{approval.task_id}"}
                 ]
             ]
         }
@@ -80,7 +80,7 @@ class OmnichannelDispatcher:
 
     def format_whatsapp_payload(self, approval: AgentApprovalRequest, phone_number: str) -> Dict[str, Any]:
         """Formats an interactive WhatsApp Cloud API / Twilio WhatsApp message."""
-        body_text = f"⚡ Kora Agent: {approval.summary}\nTask: {approval.task_id}\nAction: {approval.action_type}"
+        body_text = f"⚡ Keelway Agent: {approval.summary}\nTask: {approval.task_id}\nAction: {approval.action_type}"
         return {
             "messaging_product": "whatsapp",
             "recipient_type": "individual",
@@ -99,7 +99,7 @@ class OmnichannelDispatcher:
         }
 
     def format_mobile_app_payload(self, approval: AgentApprovalRequest, push_token: str) -> Dict[str, Any]:
-        """Formats a push notification payload for the native Kora Mobile App."""
+        """Formats a push notification payload for the native Keelway Mobile App."""
         return {
             "to": push_token,
             "priority": "high",
@@ -110,7 +110,7 @@ class OmnichannelDispatcher:
             "data": {
                 "task_id": approval.task_id,
                 "action_type": approval.action_type,
-                "deep_link": f"kora://task/review/{approval.task_id}",
+                "deep_link": f"keelway://task/review/{approval.task_id}",
                 "requires_biometric": True,
             }
         }
@@ -139,7 +139,7 @@ class OmnichannelDispatcher:
 
         elif pref.allow_sms_fallback and pref.sms_phone_number:
             # Fallback to SMS
-            sms_text = f"Kora Agent Alert: {approval.action_type} for task {approval.task_id}. Reply 1 to approve, 2 to reject."
+            sms_text = f"Keelway Agent Alert: {approval.action_type} for task {approval.task_id}. Reply 1 to approve, 2 to reject."
             return {
                 "channel": MessagingChannel.USSD_SMS,
                 "payload": {

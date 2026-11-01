@@ -1,5 +1,5 @@
 """
-Tests for Kora AI Personal Agent Workflows.
+Tests for Keelway Personal Agent Workflows.
 Verifies Workflow 1: Engineering Brief Generator.
 """
 
@@ -33,7 +33,7 @@ class MockWorkflowAdapter(ModelAdapter):
                 "This PR introduces an explicit TaskState enum and transition table to the backend.\n\n"
                 "### Failing Tests\n"
                 "- test_retry_on_transient_error times out.\n\n"
-                "### KORA.md Alignment\n"
+                "### KEELWAY.md Alignment\n"
                 "Aligns with 'Prefer explicit state over opaque loops'.\n\n"
                 "### Ranked Risks\n"
                 "1. Timeout under transient network error.\n\n"
@@ -105,10 +105,10 @@ async def test_research_summary_endpoint():
         payload = {
             "document_title": "ADR-001 Shared AI Core Architecture",
             "document_content": (
-                "ADR-001 proposes a shared AI Core across Kora personal agent and Kora Dev CLI. "
+                "ADR-001 proposes a shared AI Core across Keelway personal agent and Keelway Dev CLI. "
                 "Adopts a 4-tier permission model and multi-provider gateway with cost arbitrage."
             ),
-            "source_uri": "https://kora.tech/adr/001",
+            "source_uri": "https://keelway.dev/adr/001",
             "store_in_memory": True,
             "memory_key": "adr_001_core",
             "preferred_provider": "local",

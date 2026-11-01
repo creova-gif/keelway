@@ -1,5 +1,5 @@
 """
-Kora AI Model Gateway & Policy Router.
+Keelway Model Gateway & Policy Router.
 """
 
 from typing import Dict, List, Optional, Tuple

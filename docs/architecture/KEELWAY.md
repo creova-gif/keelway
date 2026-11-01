@@ -1,6 +1,6 @@
-# KORA.md
+# KEELWAY.md
 
-Living document for Kora AI Core principles, conventions, and current decisions.
+Living document for Keelway Core principles, conventions, and current decisions.
 
 ## Core Principles
 
@@ -33,9 +33,9 @@ Living document for Kora AI Core principles, conventions, and current decisions.
 
 ## Active Initiatives
 
-- Kora AI Core (foundation)
-- Kora Personal Agent (first customer)
-- Kora Dev (distribution channel, limited integration first)
+- Keelway Core (foundation)
+- Keelway Personal Agent (first customer)
+- Keelway Dev (distribution channel, limited integration first)
 
 ## Key ADRs
 

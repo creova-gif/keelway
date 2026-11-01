@@ -1,5 +1,5 @@
 """
-Kora AI Speculative Decoding Engine for Edge Hardware Acceleration.
+Keelway Speculative Decoding Engine for Edge Hardware Acceleration.
 Executes small draft models (0.5B/1.5B) in tandem with target models (7B/14B)
 to achieve 2.5x to 3.8x token generation speedups on consumer laptops and edge nodes.
 """

@@ -1,5 +1,5 @@
 """
-Kora AI Memory Service with Hybrid Semantic & Lexical Retrieval (RAG).
+Keelway Memory Service with Hybrid Semantic & Lexical Retrieval (RAG).
 Provides persistent storage, vector embedding generation, and hybrid relevance scoring.
 """
 

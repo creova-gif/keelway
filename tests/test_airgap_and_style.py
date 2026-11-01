@@ -46,7 +46,7 @@ def test_style_engine_de_slop():
 
 
 def test_sovereign_ledger_vouchers_and_savings():
-    voucher_code = "KORA-AFRICA-2026-TOKEN"
+    voucher_code = "KEELWAY-AFRICA-2026-TOKEN"
     sig = SovereignLedger.generate_offline_voucher(voucher_code, 500_000)
     assert SovereignLedger.verify_voucher(voucher_code, 500_000, sig) is True
     assert SovereignLedger.verify_voucher(voucher_code, 100_000, sig) is False

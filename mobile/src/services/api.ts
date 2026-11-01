@@ -1,6 +1,6 @@
 /**
- * Kora Mobile API & WebSocket Live Agent Streamer.
- * Connects to local Dev Studio (LAN/Wi-Fi/Tailscale) or remote Kora nodes.
+ * Keelway Mobile API & WebSocket Live Agent Streamer.
+ * Connects to local Dev Studio (LAN/Wi-Fi/Tailscale) or remote Keelway nodes.
  */
 
 export interface AgentEvent {
@@ -13,7 +13,7 @@ export interface AgentEvent {
   timestamp: string;
 }
 
-export class KoraMobileClient {
+export class KeelwayMobileClient {
   private ws: WebSocket | null = null;
   private baseUrl: string;
   private onEventCallback: ((event: AgentEvent) => void) | null = null;
@@ -41,7 +41,7 @@ export class KoraMobileClient {
     };
 
     this.ws.onerror = (err) => {
-      console.warn('Kora WS connection error:', err);
+      console.warn('Keelway WS connection error:', err);
     };
   }
 

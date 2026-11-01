@@ -1,5 +1,5 @@
 """
-OpenAI Model Adapter for Kora AI Core.
+OpenAI Model Adapter for Keelway Core.
 Targets OpenAI Chat Completions API.
 """
 

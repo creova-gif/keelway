@@ -1,18 +1,18 @@
-# Kora Dev Studio — Product Requirements Document (PRD) & UX Architecture
+# Keelway Studio — Product Requirements Document (PRD) & UX Architecture
 
-**Product:** Kora Dev Studio  
+**Product:** Keelway Studio  
 **Target:** Local Web & Desktop AI Engineering Environment  
 **Theme:** Sovereign, Air-Gapped, High-Density Mission Control  
-**Port:** `http://localhost:7420` (`kora dev`)  
+**Port:** `http://localhost:7420` (`keelway dev`)  
 **Design Standard:** Linear-grade minimalism + Bloomberg terminal information density + Apple HIG craftsmanship
 
 ---
 
 ## 1. Product Vision
 
-Kora Dev Studio is an AI developer workspace designed for software engineers, research scientists, and regulated enterprise teams who refuse to trade data sovereignty for AI capability.
+Keelway Studio is an AI developer workspace designed for software engineers, research scientists, and regulated enterprise teams who refuse to trade data sovereignty for AI capability.
 
-While Devin hides behind an asynchronous cloud wall, and Cursor is chained to standard VS Code chrome, **Kora Dev Studio** delivers:
+While Devin hides behind an asynchronous cloud wall, and Cursor is chained to standard VS Code chrome, **Keelway Studio** delivers:
 1. **Local-First Air-Gap Mission Control:** Instant toggle between Hybrid Multi-Cloud and 100% Zero-Egress Air-Gapped mode.
 2. **Deterministic State & Proof Visualization:** Live step-by-step visibility into the agent's internal state machine (`CREATED` -> `PLANNING` -> `VERIFYING` -> `COMPLETED`) with cryptographically verified evidence.
 3. **Ghost Diff & Sandbox Streaming:** Interactive multi-file side-by-side diffing with instantaneous approval/rejection per hunk.
@@ -26,7 +26,7 @@ The UI is built as a single-page responsive application served directly from the
 
 ```text
 +----------------------------------------------------------------------------------------------------+
-|  ⚡ KORA DEV STUDIO   |  Repo: creova-gif/kora  |  Provider: Qwen 3.5 (Local)  |  [🔒 AIR-GAPPED: ACTIVE] |
+|  ⚡ KEELWAY STUDIO   |  Repo: creova-gif/kora  |  Provider: Qwen 3.5 (Local)  |  [🔒 AIR-GAPPED: ACTIVE] |
 +-----------------------+-----------------------------------------------+----------------------------+
 |  LEFT SIDEBAR         |  CENTER WORKSPACE (Tabs: Diff, Terminal, Code)|  RIGHT AGENT COPILOT PANEL  |
 |                       |                                               |                            |

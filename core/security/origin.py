@@ -1,8 +1,8 @@
 """
-Browser origin policy for the local Kora API.
+Browser origin policy for the local Keelway API.
 
 Only the Studio page itself (same loopback host:port as the request) and any
-origins listed in KORA's `allowed_origins` setting may drive the API from a browser.
+origins listed in KEELWAY's `allowed_origins` setting may drive the API from a browser.
 Requests without an Origin header (CLI, scripts, same-origin GETs) are unaffected.
 """
 
