@@ -584,7 +584,9 @@ function renderApproval(s) {
     : p.tool_name === 'write_file' ? String(a.content ?? '').split('\n').map((l) => ['add', l])
       : p.tool_name === 'run_command' ? [['cmd', `$ ${a.command ?? ''}`]]
         : JSON.stringify(a, null, 2).split('\n').map((l) => ['ctx', l]);
-  $('approval-preview').replaceChildren(...lines.map(([k, l]) => h('div', { class: `px-3 py-px whitespace-pre ${k === 'add' ? 'diff-add' : k === 'del' ? 'diff-del' : 'text-ide-muted'}` }, `${k === 'add' ? '+ ' : k === 'del' ? '- ' : ''}${l}`)));
+  const frag = document.createDocumentFragment();
+  for (const [k, l] of lines) frag.append(h('div', { class: `px-3 py-px whitespace-pre ${k === 'add' ? 'diff-add' : k === 'del' ? 'diff-del' : 'text-ide-muted'}` }, `${k === 'add' ? '+ ' : k === 'del' ? '- ' : ''}${l}`));
+  $('approval-preview').replaceChildren(frag);
   $('agent-approval-desc').textContent = `${p.tool_name}\n${JSON.stringify(a, null, 2)}`;
 }
 function stepRunner(step) {
