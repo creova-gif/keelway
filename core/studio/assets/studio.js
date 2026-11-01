@@ -26,6 +26,19 @@ const STRINGS = {
   hi: { search: 'फ़ाइलें, सिंबल और कमांड खोजें', signOut: 'साइन आउट', explorer: 'एक्सप्लोरर', changes: 'बदलाव', tasks: 'कार्य', memory: 'मेमोरी', save: 'सहेजें', tagline: 'लोकल · निर्धारक · आपका', welcomeTitle: 'ऐसे एजेंट जो आपकी मशीन कभी नहीं छोड़ते।', welcomeBody: 'हर कदम रिकॉर्ड, दोहराने योग्य और ऑडिट योग्य है।', start: 'शुरू करें', signIn: 'साइन इन', signInTitle: 'Keelway में साइन इन करें', next: 'आगे', done: 'शुरू करें', skipTour: 'छोड़ें', airOn: 'एयर-गैप्ड', airOff: 'क्लाउड अनुमत', activity: 'गतिविधि', allow: 'अनुमति दें', deny: 'अस्वीकार', openFile: 'फ़ाइल खोलें', giveGoal: 'एजेंट को लक्ष्य दें', reviewChanges: 'बदलाव देखें' },
   zh: { search: '搜索文件、符号和命令', signOut: '退出', explorer: '资源管理器', changes: '更改', tasks: '任务', memory: '记忆', save: '保存', tagline: '本地优先 · 确定性 · 属于你', welcomeTitle: '与从不离开你电脑的智能体一起构建。', welcomeBody: '每一步都被记录、可重放、可审计。', start: '开始', signIn: '登录', signInTitle: '登录 Keelway', next: '下一步', done: '开始使用', skipTour: '跳过', airOn: '已隔离', airOff: '允许云端', activity: '活动', allow: '允许', deny: '拒绝', openFile: '打开文件', giveGoal: '给智能体一个目标', reviewChanges: '查看更改' },
 };
+const MORE = {
+  en: { files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed' },
+  es: { files: 'Archivos', record: 'Registro', runs: 'Ejecuciones', backlog: 'Pendientes', needsApproval: 'Requiere aprobación', allowOnce: 'Permitir una vez', composerPh: 'Pide a Keelway que cambie algo…', newTask: 'Nueva tarea', recordBody: 'Cada paso y decisión, sellados y reproducibles.', labsBody: 'Experimentos. Lo marcado como Simulado nunca toca sistemas ni dinero reales.', simulated: 'Simulado' },
+  fr: { files: 'Fichiers', record: 'Registre', runs: 'Exécutions', backlog: 'À faire', needsApproval: 'Approbation requise', allowOnce: 'Autoriser une fois', composerPh: 'Demandez à Keelway de modifier quelque chose…', newTask: 'Nouvelle tâche', recordBody: 'Chaque étape et décision, scellées et rejouables.', labsBody: 'Expériences. Ce qui est marqué Simulé ne touche jamais de vrais systèmes ni d’argent.', simulated: 'Simulé' },
+  pt: { files: 'Arquivos', record: 'Registro', runs: 'Execuções', backlog: 'Pendências', needsApproval: 'Requer aprovação', allowOnce: 'Permitir uma vez', composerPh: 'Peça ao Keelway para mudar algo…', newTask: 'Nova tarefa', recordBody: 'Cada passo e decisão, selados e reproduzíveis.', labsBody: 'Experimentos. O que está marcado como Simulado nunca toca sistemas ou dinheiro reais.', simulated: 'Simulado' },
+  sw: { files: 'Faili', record: 'Rekodi', labs: 'Maabara', runs: 'Utekelezaji', backlog: 'Orodha', needsApproval: 'Inahitaji idhini', allowOnce: 'Ruhusu mara moja', composerPh: 'Mwombe Keelway abadilishe kitu…', newTask: 'Kazi mpya', recordBody: 'Kila hatua na uamuzi, vimetiwa muhuri na vinaweza kurudiwa.', labsBody: 'Majaribio. Chochote kilichoandikwa Kuigwa hakigusi mifumo halisi wala pesa.', simulated: 'Kuigwa' },
+  ar: { files: 'الملفات', record: 'السجل', labs: 'المختبر', runs: 'التشغيلات', backlog: 'قائمة المهام', needsApproval: 'بحاجة إلى موافقة', allowOnce: 'السماح مرة واحدة', composerPh: 'اطلب من Keelway تغيير شيء…', newTask: 'مهمة جديدة', recordBody: 'كل خطوة وقرار، مختومة وقابلة للإعادة.', labsBody: 'تجارب. أي شيء موسوم بـ«محاكاة» لا يلمس أنظمة أو أموالًا حقيقية.', simulated: 'محاكاة' },
+  hi: { files: 'फ़ाइलें', record: 'रिकॉर्ड', labs: 'लैब्स', runs: 'रन', backlog: 'बैकलॉग', needsApproval: 'मंज़ूरी चाहिए', allowOnce: 'एक बार अनुमति दें', composerPh: 'Keelway से कुछ बदलने को कहें…', newTask: 'नया कार्य', recordBody: 'हर कदम और फ़ैसला, सील किया हुआ और दोहराने योग्य।', labsBody: 'प्रयोग। “सिम्युलेटेड” चिह्नित कुछ भी असली सिस्टम या पैसे को नहीं छूता।', simulated: 'सिम्युलेटेड' },
+  zh: { files: '文件', record: '记录', labs: '实验室', runs: '运行', backlog: '待办', needsApproval: '需要批准', allowOnce: '允许一次', composerPh: '让 Keelway 修改点什么…', newTask: '新任务', recordBody: '每一步和每个决定都被封存，可重放。', labsBody: '实验功能。标记为“模拟”的内容不会触及真实系统或资金。', simulated: '模拟' },
+};
+for (const [k, v] of Object.entries(MORE)) Object.assign(STRINGS[k], v);
+const fmt = (key, vars) => t(key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+function statusLabel(st) { const k = `status_${st}`; const v = t(k); return v === k ? String(st).replace(/_/g, ' ') : v; }
 const LANGS = { en: 'English', es: 'Español', fr: 'Français', pt: 'Português', sw: 'Kiswahili', ar: 'العربية', hi: 'हिन्दी', zh: '中文' };
 const RTL = new Set(['ar']);
 let lang = localStorage.getItem('keelway.lang') || (navigator.language || 'en').slice(0, 2);
@@ -92,7 +105,7 @@ async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-const state = { me: null, status: null, tabs: [], active: null, models: {}, buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
+const state = { me: null, status: null, tabs: [], active: null, models: {}, buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', section: 'tasks', runs: [], agentState: null, lastPending: null, agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
 
 const signInOpen = () => !$('signin').classList.contains('hidden');
 function showSignIn(message) {
@@ -129,6 +142,9 @@ function setAirGap(on) {
   b.style.borderColor = on ? 'rgb(var(--ok) / .4)' : 'rgb(var(--warn) / .4)';
   $('airgap-label').textContent = on ? t('airOn') : t('airOff');
   $('sb-egress').textContent = on ? `⛨ ${t('airOn')}` : `↗ ${t('airOff')}`;
+  $('sb-sent').textContent = on ? 'sent: 0 B' : 'sent: unmeasured';
+  if (state.status) state.status.air_gapped = on;
+  if (state.agentState) renderApproval(state.agentState);
 }
 
 async function loadStatus() {
@@ -138,6 +154,7 @@ async function loadStatus() {
     $('git-branch').textContent = s.git.branch || '—';
     $('sb-branch').textContent = s.git.branch ? `⎇ ${s.git.branch}@${s.git.sha}` : '';
     $('sb-model').textContent = `◉ ${s.local_model}`;
+    $('composer-model').textContent = `${t('localModel')} · ${s.local_model}`;
     $('sb-db').textContent = s.database_connected ? '● db' : '○ db';
     $('sb-hw').textContent = `${s.hardware.arch} · ${s.hardware.ram_gb} GB RAM`;
     const foot = $('sidebar-foot');
@@ -146,7 +163,7 @@ async function loadStatus() {
 }
 
 function renderWelcome() {
-  const acts = [[t('openFile'), () => switchView('explorer')], [t('giveGoal'), () => $('agent-goal').focus()], [t('reviewChanges'), () => setMode('diff')]];
+  const acts = [[t('openFile'), () => switchSection('files')], [t('giveGoal'), () => $('agent-goal').focus()], [t('reviewChanges'), () => { switchSection('files'); setMode('diff'); }]];
   $('welcome-actions').replaceChildren(...acts.map(([label, fn]) => h('button', { type: 'button', class: 'btn-outline justify-start h-10', onclick: fn }, label)));
 }
 
@@ -178,7 +195,7 @@ function initMonaco() {
   if (!window.require || !require.config) { $('fallback-editor').classList.remove('hidden'); return; }
   require.config({ paths: { vs: '/studio/assets/monaco/vs' } });
   require(['vs/editor/editor.main'], () => {
-    monaco.editor.defineTheme('keelwayDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0A0F1D' } });
+    monaco.editor.defineTheme('keelwayDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0D1218', 'editor.lineHighlightBackground': '#161C24', 'editorCursor.foreground': '#2DD4BF' } });
     editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'keelwayDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
     editor.onDidChangeModelContent(() => { if (state.active && !state.syncing) { state.dirty.add(state.active); renderTabs(); } });
@@ -265,7 +282,7 @@ function switchView(view) {
   document.querySelectorAll('.sidebar-view').forEach((v) => v.classList.toggle('hidden', v.id !== `view-${view}`));
   $('sidebar-title').dataset.i18n = VIEW_TITLES[view]; $('sidebar-title').textContent = t(VIEW_TITLES[view]);
   const sb = $('sidebar');
-  if (getComputedStyle(sb).display === 'none') { sb.classList.remove('hidden'); sb.classList.add('flex', 'fixed', 'inset-y-11', 'start-11', 'z-30', 'shadow-2xl'); }
+  if (getComputedStyle(sb).display === 'none') { sb.classList.remove('hidden'); sb.classList.add('flex', 'fixed', 'top-12', 'bottom-14', 'start-11', 'z-30', 'shadow-2xl'); }
   refreshView();
 }
 function refreshView() { ({ explorer: loadTree, git: loadGit, tasks: loadTasks, memory: loadMemories })[state.view](); }
@@ -289,9 +306,58 @@ async function loadTasks() {
     const tasks = await api('/v1/tasks?limit=50');
     $('task-list').replaceChildren(...(tasks.length ? tasks.map((tk) => h('li', { class: 'p-2 rounded-md border border-ide-border bg-ide-bg/40 space-y-1.5' },
       h('div', { class: 'flex justify-between gap-2' }, h('span', { class: 'truncate font-medium' }, tk.title), h('span', { class: `chip ${STATE_TONE[tk.state] || 'border-ide-border text-ide-muted'}` }, tk.state.replace('_', ' '))),
-      NEXT_STATES[tk.state].length ? h('div', { class: 'flex flex-wrap gap-1' }, ...NEXT_STATES[tk.state].map((s) => h('button', { type: 'button', class: 'btn-outline py-0 text-[10px]', onclick: () => transition(tk.id, s) }, `→ ${s.replace('_', ' ')}`))) : null))
-      : [h('li', { class: 'text-ide-muted' }, t('noTasks'))]));
+      h('div', { class: 'flex flex-wrap gap-1' },
+        ['completed', 'cancelled'].includes(tk.state) ? null : h('button', { type: 'button', class: 'btn-ghost py-0 text-[10px] text-accent', onclick: () => { newRun(); $('agent-goal').value = tk.title; } }, t('runWithAgent')),
+        ...NEXT_STATES[tk.state].map((st) => h('button', { type: 'button', class: 'btn-outline py-0 text-[10px]', onclick: () => transition(tk.id, st) }, `→ ${st.replace('_', ' ')}`)))))
+      : [h('li', { class: 'px-1 text-xs text-ide-muted' }, t('noTasks'))]));
   } catch { /* noop */ }
+}
+
+// ---------- sections + agent runs ----------
+const SECTIONS = ['tasks', 'files', 'record', 'labs'];
+function switchSection(sec) {
+  if (!SECTIONS.includes(sec)) sec = 'tasks';
+  state.section = sec;
+  SECTIONS.forEach((x) => { const el = $(`sec-${x}`); el.classList.toggle('hidden', x !== sec); el.classList.toggle('flex', x === sec); });
+  document.querySelectorAll('[data-section]').forEach((b) => b.setAttribute('aria-current', b.dataset.section === sec ? 'page' : 'false'));
+  if (location.hash !== `#${sec}`) history.replaceState(null, '', `#${sec}`);
+  if (sec === 'tasks') { loadRuns(); loadTasks(); }
+  if (sec === 'files') { refreshView(); if (editor) editor.layout(); }
+  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); }
+}
+async function loadRuns() {
+  try { state.runs = (await api('/v1/agent/runs')).runs; } catch { return; }
+  renderRuns();
+}
+function renderRuns() {
+  const runs = state.runs;
+  const waiting = runs.filter((r) => r.pending_approval).length;
+  const dot = $('rail-approval-dot'); dot.textContent = String(waiting); dot.classList.toggle('hidden', !waiting);
+  const sb = $('sb-approval'); sb.textContent = fmt('approvalsWaiting', { n: waiting }); sb.classList.toggle('hidden', !waiting);
+  $('run-list').replaceChildren(...(runs.length ? runs.map((r) => {
+    const sel = !!state.agentTask && state.agentTask.id === r.task_id;
+    const w = !!r.pending_approval;
+    const dotTone = w ? 'bg-warn pulse' : r.status === 'failed' ? 'bg-danger' : r.status === 'completed' ? 'bg-ok' : 'bg-accent';
+    return h('li', {}, h('button', { type: 'button', 'aria-current': sel ? 'true' : null, class: `w-full text-start p-2 rounded-md border ${sel ? 'border-accent/50 bg-accent/10' : 'border-transparent hover:bg-ide-fg/5'}`, onclick: () => selectRun(r.task_id, r.goal) },
+      h('div', { class: 'flex items-center gap-2' }, h('span', { class: `w-2 h-2 rounded-full shrink-0 ${dotTone}`, 'aria-hidden': 'true' }), h('span', { class: 'truncate font-medium', dir: 'auto' }, r.goal || r.task_id)),
+      h('div', { class: `mt-0.5 ms-4 text-[11px] ${w ? 'text-warn' : 'text-ide-muted'}` }, w ? `${t('needsApproval')} · ${r.pending_approval.tool_name}` : `${statusLabel(r.status)} · ${fmt('stepOf', { done: r.steps_done, total: r.steps_total })}`)));
+  }) : [h('li', { class: 'px-1 text-xs text-ide-muted' }, t('noRuns'))]));
+}
+async function selectRun(id, goal) {
+  state.agentTask = { id, goal };
+  try { renderAgent(await api(`/v1/agent/status/${encodeURIComponent(id)}`)); renderRuns(); }
+  catch (err) { toast(err.message, 'err'); }
+}
+function showRunDetail(on) {
+  $('task-empty').classList.toggle('hidden', on);
+  $('task-detail').classList.toggle('hidden', !on);
+  if (on) $('sec-tasks').dataset.detail = 'true';
+}
+function newRun() {
+  state.agentTask = null; state.agentState = null;
+  showRunDetail(false); $('sec-tasks').dataset.detail = 'true';
+  if (state.section !== 'tasks') switchSection('tasks');
+  renderRuns(); $('agent-goal').focus();
 }
 async function transition(id, target) {
   try { await api(`/v1/tasks/${id}/transition`, { method: 'POST', body: { target_state: target } }); tone('tick'); loadTasks(); }
@@ -319,7 +385,7 @@ async function saveMemory(e) {
 }
 
 // ---------- bottom panel ----------
-const PANELS = ['console', 'flight', 'healing', 'ledger', 'audit'];
+const PANELS = ['console'];
 function renderPanelTabs() {
   $('panel-tabs').replaceChildren(...PANELS.map((p) => h('button', { type: 'button', role: 'tab', id: `tab-${p}`, class: 'tab', 'aria-selected': String(p === state.panel), 'aria-controls': `panel-${p}`, tabindex: p === state.panel ? '0' : '-1', onclick: () => switchPanel(p),
     onkeydown: (e) => { const i = PANELS.indexOf(p); const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (d) { const dir = document.documentElement.dir === 'rtl' ? -d : d; switchPanel(PANELS[(i + dir + PANELS.length) % PANELS.length]); $(`tab-${state.panel}`).focus(); } } }, t(p))));
@@ -434,8 +500,8 @@ async function verifyAudit() {
   try {
     const v = await api('/v1/audit/verify');
     const el = $('audit-chain');
-    el.textContent = v.valid ? `✓ ${v.entries} entries · head ${String(v.head).slice(0, 12)}` : `✗ chain broken at seq ${v.broken_at_seq}`;
-    el.className = `text-[11px] font-mono ${v.valid ? 'text-ok' : 'text-danger'}`;
+    el.textContent = v.valid ? fmt('chainOk', { n: v.entries, head: String(v.head).slice(0, 12) }) : fmt('chainBroken', { seq: v.broken_at_seq });
+    el.className = `rounded-md border px-3 py-2 text-xs font-mono ${v.valid ? 'border-ok/40 bg-ok/5 text-ok' : 'border-danger/50 bg-danger/5 text-danger'}`;
     tone(v.valid ? 'ok' : 'err');
   } catch (err) { toast(err.message, 'err'); }
 }
@@ -461,49 +527,80 @@ async function startAgent(e) {
   try {
     const r = await api('/v1/agent/run', { method: 'POST', body: { goal, policy: $('agent-policy').value } });
     state.agentTask = { id: r.task_id, goal };
-    $('agent-goal').value = ''; tone('ok'); renderAgent(r.state);
+    $('agent-goal').value = ''; tone('ok'); renderAgent(r.state); loadRuns();
   } catch (err) { toast(err.message, 'err'); }
 }
+const STEP_CHIP = { completed: ['doneStep', 'text-ok border-ok/40'], running: ['running', 'text-accent border-accent/40'], failed: ['failedStep', 'text-danger border-danger/40'] };
 function renderAgent(s) {
   if (!s || !state.agentTask || s.task_id !== state.agentTask.id) return;
+  state.agentState = s;
+  showRunDetail(true);
   const busy = s.status === 'executing_tool', waiting = !!s.pending_approval;
-  $('agent-status').textContent = s.status.replace('_', ' ');
-  $('agent-status').className = `chip ${waiting ? 'text-warn border-warn/40' : s.status === 'failed' ? 'text-danger border-danger/40' : 'text-accent border-accent/40'}`;
+  const st = $('agent-status');
+  st.textContent = statusLabel(s.status);
+  st.className = `step-chip ${waiting ? 'text-warn border-warn/50' : s.status === 'failed' ? 'text-danger border-danger/40' : s.status === 'completed' ? 'text-ok border-ok/40' : 'text-accent border-accent/40'}`;
   $('agent-dot').className = `w-2 h-2 rounded-full ${waiting ? 'bg-warn pulse' : busy ? 'bg-accent pulse' : s.status === 'failed' ? 'bg-danger' : 'bg-ok'}`;
-  $('agent-goal-label').textContent = state.agentTask.goal;
+  $('agent-goal-label').textContent = s.goal || state.agentTask.goal || s.task_id;
   const done = s.plan.filter((p) => p.status === 'completed').length;
-  $('plan-progress').textContent = `${done}/${s.plan.length}`;
+  $('plan-progress').textContent = fmt('stepOf', { done, total: s.plan.length });
+  $('agent-policy-label').textContent = `· ${t({ confirm_mutation: 'polConfirmMut', confirm_all: 'polConfirmAll', autonomous: 'polAuto' }[s.policy] || s.policy)}`;
   const next = s.plan.find((p) => p.status === 'pending' || p.status === 'failed');
-  $('agent-plan').replaceChildren(...s.plan.map((p) => {
-    const icon = { completed: '✓', running: '◌', failed: '✗' }[p.status] || '○';
-    const color = { completed: 'text-ok', running: 'text-accent', failed: 'text-danger' }[p.status] || 'text-ide-faint';
-    const li = h('li', { class: 'p-1.5 rounded-md border border-ide-border/60 space-y-1' },
-      h('div', { class: 'flex gap-1.5' }, h('span', { class: color, 'aria-hidden': 'true' }, icon), h('span', { class: p.status === 'completed' ? 'text-ide-muted' : '' }, p.description), h('span', { class: 'sr-only' }, p.status)),
-      p.observation ? h('pre', { class: 'ms-4 max-h-24 overflow-auto text-[10px] font-mono text-ide-faint whitespace-pre-wrap' }, p.observation) : null);
-    if (p === next && !waiting && !busy) li.append(stepRunner(p));
+  const pendingStep = waiting ? s.pending_approval.step_id : null;
+  $('agent-plan').replaceChildren(...s.plan.map((p, i) => {
+    const gated = p.id === pendingStep;
+    const [labelKey, chipTone] = gated ? ['needsApproval', 'text-warn border-warn/50'] : STEP_CHIP[p.status] || ['queued', 'text-ide-muted border-ide-border'];
+    const isNext = p === next && !waiting && !busy;
+    const li = h('li', { class: `card p-3 space-y-2 ${gated ? 'border-warn/50' : isNext ? 'border-accent/50' : ''}` },
+      h('div', { class: 'flex items-start gap-2.5' },
+        h('span', { class: `mt-0.5 w-5 h-5 shrink-0 rounded-full border text-[10px] font-mono flex items-center justify-center ${chipTone}`, 'aria-hidden': 'true' }, String(i + 1)),
+        h('span', { class: `flex-1 ${p.status === 'completed' ? 'text-ide-muted' : ''}` }, p.description),
+        h('span', { class: `step-chip ${chipTone}` }, t(labelKey))),
+      p.observation ? h('details', { class: 'ms-7' }, h('summary', { class: 'cursor-pointer text-[11px] text-ide-faint' }, t('output')),
+        h('pre', { class: 'mt-1 max-h-40 overflow-auto text-[11px] font-mono text-ide-muted whitespace-pre-wrap', dir: 'ltr' }, p.observation)) : null);
+    if (isNext) li.append(stepRunner(p));
     return li;
   }));
-  const ap = $('agent-approval');
-  ap.classList.toggle('hidden', !waiting);
-  if (waiting) { $('agent-approval-desc').textContent = `${s.pending_approval.tool_name}\n${JSON.stringify(s.pending_approval.arguments, null, 2)}`; tone('warn'); }
+  renderApproval(s);
   $('agent-events').replaceChildren(...[...s.recent_events].reverse().map((ev) => h('li', { class: 'flex gap-2' },
     h('span', { class: `font-mono ${EVT_TONE[ev.type || ev.event_type] || 'text-ide-muted'}` }, ev.type || ev.event_type || 'event'),
-    h('span', { class: 'truncate text-ide-faint' }, ev.data ? JSON.stringify(ev.data).slice(0, 80) : ev.payload ? JSON.stringify(ev.payload).slice(0, 80) : ''))));
+    h('span', { class: 'truncate text-ide-faint', dir: 'ltr' }, ev.data ? JSON.stringify(ev.data).slice(0, 100) : ev.payload ? JSON.stringify(ev.payload).slice(0, 100) : ''))));
+}
+function renderApproval(s) {
+  const p = s.pending_approval;
+  $('agent-approval').classList.toggle('hidden', !p);
+  if (!p) { state.lastPending = null; return; }
+  const key = `${s.task_id}:${p.step_id}:${p.tool_name}`;
+  if (state.lastPending !== key) { state.lastPending = key; tone('warn'); }
+  const a = p.arguments || {};
+  const target = a.path || a.command || '';
+  const titleKey = { edit_file: 'wantsEdit', write_file: 'wantsWrite', run_command: 'wantsRun' }[p.tool_name] || 'wantsTool';
+  $('approval-title').textContent = fmt(titleKey, { target, tool: p.tool_name });
+  $('approval-step').textContent = p.step_id || '';
+  const step = s.plan.find((x) => x.id === p.step_id);
+  const air = !!(state.status && state.status.air_gapped);
+  const rows = [[t('why'), step ? step.description : '—'], [t('action'), p.tool_name], [t('target'), target || '—'], [t('network'), air ? t('netAir') : t('netCloud')]];
+  $('approval-meta').replaceChildren(...rows.flatMap(([k, v]) => [h('dt', { class: 'text-ide-faint' }, k), h('dd', { class: 'font-mono truncate', dir: 'auto' }, v)]));
+  const lines = p.tool_name === 'edit_file' ? [...String(a.target ?? '').split('\n').map((l) => ['del', l]), ...String(a.replacement ?? '').split('\n').map((l) => ['add', l])]
+    : p.tool_name === 'write_file' ? String(a.content ?? '').split('\n').slice(0, 40).map((l) => ['add', l])
+      : p.tool_name === 'run_command' ? [['cmd', `$ ${a.command ?? ''}`]]
+        : JSON.stringify(a, null, 2).split('\n').map((l) => ['ctx', l]);
+  $('approval-preview').replaceChildren(...lines.map(([k, l]) => h('div', { class: `px-3 py-px whitespace-pre ${k === 'add' ? 'diff-add' : k === 'del' ? 'diff-del' : 'text-ide-muted'}` }, `${k === 'add' ? '+ ' : k === 'del' ? '- ' : ''}${l}`)));
+  $('agent-approval-desc').textContent = `${p.tool_name}\n${JSON.stringify(a, null, 2)}`;
 }
 function stepRunner(step) {
-  const tool = h('select', { class: 'input py-0.5 text-[10px]', 'aria-label': 'Tool' }, ...TOOLS.map((x) => h('option', { value: x }, MUTATING.has(x) ? `${x} ⚠` : x)));
+  const tool = h('select', { class: 'input py-0.5 text-[10px]', 'aria-label': 'Tool' }, ...TOOLS.map((x) => h('option', { value: x }, MUTATING.has(x) ? `${x} (asks first)` : x)));
   tool.value = suggestTool(step.description);
   const args = h('textarea', { rows: '3', class: 'input w-full font-mono text-[10px] resize-y', spellcheck: 'false', 'aria-label': 'Arguments (JSON)', dir: 'ltr' });
   args.value = JSON.stringify(defaultArgs(tool.value, state.agentTask.goal), null, 1);
   tool.addEventListener('change', () => { args.value = JSON.stringify(defaultArgs(tool.value, state.agentTask.goal), null, 1); });
-  const run = h('button', { type: 'button', class: 'btn-primary py-0.5 text-[10px]' }, '▶ Run step');
+  const run = h('button', { type: 'button', class: 'btn-primary py-0.5 text-[11px]' }, 'Run step');
   run.addEventListener('click', async () => {
     let parsed; try { parsed = JSON.parse(args.value); } catch { toast('Arguments must be JSON', 'err'); return; }
     run.disabled = true;
     try { const r = await api(`/v1/agent/step/${encodeURIComponent(state.agentTask.id)}`, { method: 'POST', body: { tool_name: tool.value, arguments: parsed, step_id: step.id } }); renderAgent(r.agent_state); afterAgentAction(r.step_result); }
     catch (err) { toast(err.message, 'err'); run.disabled = false; }
   });
-  return h('div', { class: 'ms-4 space-y-1' }, h('div', { class: 'flex gap-1' }, tool, run), args);
+  return h('div', { class: 'ms-7 space-y-1.5' }, h('div', { class: 'flex gap-1.5' }, tool, run), args);
 }
 async function approve(yes) {
   try { const r = await api(`/v1/agent/approve/${encodeURIComponent(state.agentTask.id)}`, { method: 'POST', body: { approved: yes } }); renderAgent(r.agent_state); afterAgentAction(r.approval_result); }
@@ -511,7 +608,7 @@ async function approve(yes) {
 }
 function afterAgentAction(res) {
   if (!res) return;
-  if (res.status === 'success') { tone('ok'); if (['edit_file', 'write_file'].includes(res.tool)) { loadGit(); toast(t('reviewChanges')); setMode('diff'); } }
+  if (res.status === 'success') { tone('ok'); if (['edit_file', 'write_file'].includes(res.tool)) { loadGit(); toast(t('reviewChanges')); } }
   else if (res.status === 'error') toast(res.error, 'err');
   else if (res.status === 'denied') toast(`${t('deny')} · ${res.tool_name}`, 'warn');
 }
@@ -532,8 +629,8 @@ function connectWs() {
     let ev; try { ev = JSON.parse(m.data); } catch { return; }
     if (ev.type === 'handshake') { setAirGap(ev.air_gapped); log(`connected · ${ev.server} ${ev.version}`, 'text-ide-muted'); }
     else if (ev.type === 'air_gap_status_changed') { setAirGap(ev.air_gapped); log(`air-gap ${ev.air_gapped ? 'armed' : 'disarmed'}`, ev.air_gapped ? 'text-ok' : 'text-warn'); }
-    else if (ev.type === 'agent_state_changed') { log(`task "${ev.title}" ${ev.previous_state || '∅'} → ${ev.new_state}`, 'text-accent'); if (state.view === 'tasks') loadTasks(); }
-    else if (ev.type === 'agent_loop_updated') { if (state.agentTask && ev.task_id === state.agentTask.id) renderAgent(ev.state); if (state.panel === 'flight') loadTapes(); }
+    else if (ev.type === 'agent_state_changed') { log(`task "${ev.title}" ${ev.previous_state || '∅'} → ${ev.new_state}`, 'text-accent'); if (state.section === 'tasks') loadTasks(); }
+    else if (ev.type === 'agent_loop_updated') { if (state.agentTask && ev.task_id === state.agentTask.id) renderAgent(ev.state); loadRuns(); if (state.section === 'record') loadTapes(); }
     else if (ev.type === 'error') toast(ev.message, 'err');
   };
 }
@@ -548,9 +645,10 @@ let paletteItems = [], paletteIdx = 0, fileIndex = [];
 function flatten(n, out = []) { (n.children || []).forEach((c) => (c.type === 'directory' ? flatten(c, out) : out.push(c.path))); return out; }
 function commands() {
   return [
-    ['Go to Explorer', () => switchView('explorer')], ['Go to Changes', () => switchView('git')], ['Go to Tasks', () => switchView('tasks')], ['Go to Memory', () => switchView('memory')],
-    ['Show diff of working tree', () => setMode('diff')], ['Toggle air-gap', toggleAirGap], ['Toggle theme', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')],
-    ['Toggle agent panel', toggleAgent], ...PANELS.map((p) => [`Open ${t(p)}`, () => switchPanel(p)]), ['Verify audit chain', () => { switchPanel('audit'); verifyAudit(); }], ['Replay product tour', startTour], ['Sign out', signOut],
+    ['Go to Tasks', () => switchSection('tasks')], ['Go to Files', () => switchSection('files')], ['Go to Record', () => switchSection('record')], ['Go to Labs', () => switchSection('labs')],
+    ['New task', newRun], ['Explorer', () => { switchSection('files'); switchView('explorer'); }], ['Changes', () => { switchSection('files'); switchView('git'); }], ['Memory', () => { switchSection('files'); switchView('memory'); }],
+    ['Show diff of working tree', () => { switchSection('files'); setMode('diff'); }], ['Toggle air-gap', toggleAirGap], ['Toggle theme', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')],
+    ['Verify audit chain', () => switchSection('record')], ['Replay product tour', startTour], ['Sign out', signOut],
   ].map(([label, run]) => ({ label, run, kind: '⌘' }));
 }
 async function openPalette() {
@@ -561,7 +659,7 @@ async function openPalette() {
 function closePalette() { $('palette').classList.add('hidden'); $('palette').classList.remove('flex'); }
 function renderPalette() {
   const q = $('palette-input').value.toLowerCase().trim();
-  const items = [...commands(), ...fileIndex.map((p) => ({ label: p, kind: '📄', run: () => openFile(p) }))];
+  const items = [...commands(), ...fileIndex.map((p) => ({ label: p, kind: '·', run: () => { switchSection('files'); openFile(p); } }))];
   paletteItems = (q ? items.filter((i) => i.label.toLowerCase().includes(q)) : items).slice(0, 40);
   paletteIdx = Math.min(paletteIdx, Math.max(paletteItems.length - 1, 0));
   $('palette-list').replaceChildren(...paletteItems.map((it, i) => h('li', { role: 'option', id: `pal-${i}`, 'aria-selected': String(i === paletteIdx), class: `px-4 py-1.5 flex gap-2 cursor-pointer text-xs ${i === paletteIdx ? 'bg-accent/15 text-ide-fg' : 'text-ide-muted'}`, onclick: () => { closePalette(); it.run(); } },
@@ -573,14 +671,6 @@ function paletteKey(e) {
   else if (e.key === 'Enter' && paletteItems[paletteIdx]) { e.preventDefault(); const it = paletteItems[paletteIdx]; closePalette(); it.run(); }
   else if (e.key === 'Escape') closePalette();
 }
-function toggleAgent() {
-  const a = $('agent');
-  const shown = getComputedStyle(a).display !== 'none';
-  a.classList.toggle('hidden', shown); a.classList.toggle('flex', !shown);
-  if (!shown && innerWidth < 1024) a.classList.add('fixed', 'inset-y-11', 'end-0', 'z-30', 'shadow-2xl');
-  if (!shown) $('agent-goal').focus();
-}
-
 // ---------- onboarding ----------
 let tourStep = 0;
 function startTour() { tourStep = 0; $('onboard').classList.remove('hidden'); $('onboard').classList.add('flex'); renderTour(); $('onboard-next').focus(); }
@@ -602,12 +692,12 @@ function welcomeFacts() {
 async function startSession() {
   await Promise.all([loadStatus(), loadTree(), loadGit()]);
   welcomeFacts();
-  if (state.view !== 'explorer') refreshView();
+  switchSection(location.hash.slice(1) || 'tasks');
   if (state.ws) { const old = state.ws; state.ws = null; old.close(); }
   connectWs();
   if (!localStorage.getItem('keelway.onboarded')) startTour();
 }
-function relabel() { applyI18n(); renderPanelTabs(); renderWelcome(); renderTabs(); if (state.status) setAirGap(state.status.air_gapped); }
+function relabel() { applyI18n(); renderPanelTabs(); renderWelcome(); renderTabs(); renderRuns(); if (state.status) { setAirGap(state.status.air_gapped); $('composer-model').textContent = `${t('localModel')} · ${state.status.local_model}`; } if (state.agentState) renderAgent(state.agentState); }
 
 function wire() {
   $('lang-select').replaceChildren(...Object.entries(LANGS).map(([k, v]) => h('option', { value: k }, v)));
@@ -642,12 +732,19 @@ function wire() {
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));
   $('approve-no').addEventListener('click', () => approve(false));
+  document.querySelectorAll('[data-section]').forEach((b) => b.addEventListener('click', () => switchSection(b.dataset.section)));
+  $('new-run-btn').addEventListener('click', newRun);
+  $('task-back').addEventListener('click', () => { $('sec-tasks').dataset.detail = 'false'; });
+  $('review-btn').addEventListener('click', () => { switchSection('files'); setMode('diff'); });
+  $('open-record-btn').addEventListener('click', () => switchSection('record'));
+  $('sb-approval').addEventListener('click', () => { const r = state.runs.find((x) => x.pending_approval); switchSection('tasks'); if (r) selectRun(r.task_id, r.goal); });
   $('onboard-skip').addEventListener('click', endTour);
   $('onboard-next').addEventListener('click', () => { if (tourStep >= t('tour').length - 1) endTour(); else { tourStep += 1; renderTour(); } });
   document.addEventListener('keydown', (e) => {
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
     else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); }
+    else if (e.altKey && /^[1-4]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
     else if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); toggleAirGap(); }
     else if (mod && e.key === 'j') { e.preventDefault(); $('panel').classList.toggle('hidden'); }
     else if (e.key === 'Escape') { closePalette(); if (!$('onboard').classList.contains('hidden')) endTour(); }

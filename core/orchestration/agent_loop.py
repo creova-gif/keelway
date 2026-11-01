@@ -65,6 +65,7 @@ class AutonomousAgentLoop:
         self.task_id = task_id
         self.fs = workspace_fs or WorkspaceFilesystem()
         self.policy = policy
+        self.goal = ""
         self.status = AgentLoopStatus.IDLE
         self.plan: List[PlanStep] = []
         self.events: List[Dict[str, Any]] = []
@@ -281,6 +282,7 @@ class AutonomousAgentLoop:
 
     def initialize_plan(self, goal: str, steps: List[str]) -> None:
         """Initializes a structured multi-step execution plan."""
+        self.goal = goal
         self.plan = [
             PlanStep(id=f"step_{idx+1}", description=desc, status="pending")
             for idx, desc in enumerate(steps)
@@ -399,6 +401,7 @@ class AutonomousAgentLoop:
         """Returns JSON state for the Dev Studio frontend."""
         return {
             "task_id": self.task_id,
+            "goal": self.goal,
             "status": self.status.value,
             "policy": self.policy.value,
             "plan": [
