@@ -726,6 +726,24 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
     }
 
 
+@router.get("/v1/agent/runs", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
+async def list_agent_runs():
+    """Agent runs in this server process, newest first, summarised for the Studio task list."""
+    runs = []
+    for agent in reversed(list(_active_agent_loops.values())):
+        state = agent.get_state()
+        runs.append({
+            "task_id": state["task_id"],
+            "goal": state["goal"],
+            "status": state["status"],
+            "policy": state["policy"],
+            "steps_total": len(state["plan"]),
+            "steps_done": sum(step["status"] == "completed" for step in state["plan"]),
+            "pending_approval": state["pending_approval"],
+        })
+    return {"runs": runs}
+
+
 @router.get("/v1/agent/status/{task_id}", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
 async def get_agent_status(task_id: str):
     """Retrieve current state, plan steps, and pending approvals for an agent."""

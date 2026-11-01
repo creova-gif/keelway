@@ -129,3 +129,21 @@ def test_studio_diff_reads_the_open_workspace_not_the_keelway_checkout(tmp_path,
     with TestClient(app) as client:
         files = client.get("/v1/studio/diff").json()["files"]
     assert [f["path"] for f in files] == ["app.py"]
+
+
+def test_agent_runs_lists_goal_progress_and_pending_approval(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    from core.api import routes
+    from core.storage.workspace_fs import WorkspaceFilesystem
+    monkeypatch.setattr(routes, "_workspace_fs", WorkspaceFilesystem(root_dir=str(tmp_path)))
+    monkeypatch.setattr(routes, "_active_agent_loops", {})
+    with TestClient(app) as client:
+        client.post("/v1/agent/run", json={"task_id": "runs_a", "goal": "First goal", "steps": ["Look", "Write"]})
+        client.post("/v1/agent/run", json={"task_id": "runs_b", "goal": "Second goal", "steps": ["Write"]})
+        client.post("/v1/agent/step/runs_a", json={"tool_name": "list_dir", "arguments": {"path": "."}, "step_id": "step_1"})
+        client.post("/v1/agent/step/runs_a", json={"tool_name": "write_file", "arguments": {"path": "x.txt", "content": "x"}, "step_id": "step_2"})
+        runs = client.get("/v1/agent/runs").json()["runs"]
+    assert [r["task_id"] for r in runs] == ["runs_b", "runs_a"]
+    a = runs[1]
+    assert (a["goal"], a["steps_done"], a["steps_total"]) == ("First goal", 1, 2)
+    assert a["pending_approval"]["tool_name"] == "write_file" and runs[0]["pending_approval"] is None
