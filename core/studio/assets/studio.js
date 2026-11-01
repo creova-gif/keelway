@@ -581,7 +581,7 @@ function renderApproval(s) {
   const rows = [[t('why'), step ? step.description : '—'], [t('action'), p.tool_name], [t('target'), target || '—'], [t('network'), air ? t('netAir') : t('netCloud')]];
   $('approval-meta').replaceChildren(...rows.flatMap(([k, v]) => [h('dt', { class: 'text-ide-faint' }, k), h('dd', { class: 'font-mono truncate', dir: 'auto' }, v)]));
   const lines = p.tool_name === 'edit_file' ? [...String(a.target ?? '').split('\n').map((l) => ['del', l]), ...String(a.replacement ?? '').split('\n').map((l) => ['add', l])]
-    : p.tool_name === 'write_file' ? String(a.content ?? '').split('\n').slice(0, 40).map((l) => ['add', l])
+    : p.tool_name === 'write_file' ? String(a.content ?? '').split('\n').map((l) => ['add', l])
       : p.tool_name === 'run_command' ? [['cmd', `$ ${a.command ?? ''}`]]
         : JSON.stringify(a, null, 2).split('\n').map((l) => ['ctx', l]);
   $('approval-preview').replaceChildren(...lines.map(([k, l]) => h('div', { class: `px-3 py-px whitespace-pre ${k === 'add' ? 'diff-add' : k === 'del' ? 'diff-del' : 'text-ide-muted'}` }, `${k === 'add' ? '+ ' : k === 'del' ? '- ' : ''}${l}`)));
