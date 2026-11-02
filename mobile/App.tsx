@@ -52,7 +52,7 @@ export default function App() {
     <View style={styles.root}>
       <StatusBar style="light" />
       {ready && (conn
-        ? <MissionControlScreen key={conn.baseUrl} conn={conn} lang={lang} setLang={setLang} onDisconnect={onDisconnect} />
+        ? <MissionControlScreen key={`${conn.baseUrl}#${conn.token}`} conn={conn} lang={lang} setLang={setLang} onDisconnect={onDisconnect} />
         : <PairScreen lang={lang} setLang={setLang} onPaired={onPaired} />)}
     </View>
   );
