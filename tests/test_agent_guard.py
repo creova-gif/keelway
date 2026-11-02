@@ -13,6 +13,9 @@ EXAMPLE = Path(__file__).resolve().parent.parent / "docs" / "spec" / "examples" 
 
 
 def manifest(**edits):
+    # These tests exercise the guard, not the sandbox, so default to sandbox 'workspace': building a loop from
+    # sandbox 'worktree' + run_command correctly REFUSES on machines with no verified sandbox (Linux CI).
+    edits = {"sandbox": "workspace", **edits}
     data = copy.deepcopy(json.loads(EXAMPLE.read_text()))
     for dotted, value in edits.items():
         node = data
@@ -144,7 +147,7 @@ def test_search_results_are_filtered_to_readable_files(ws):
 
 
 def test_not_enforced_is_honest_about_gaps():
-    notes = not_enforced(manifest())
+    notes = not_enforced(manifest(sandbox="worktree"))
     assert any("sandbox 'worktree'" in n and "seatbelt" in n for n in notes)
     assert any("max_usd_per_run" in n for n in notes)
     assert any("unconfined" in n for n in not_enforced(manifest(sandbox="workspace")))
