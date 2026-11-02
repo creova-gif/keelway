@@ -1,139 +1,239 @@
-/**
- * Keelway Mobile Mission Control Screen.
- * Features live agent thought streaming, air-gap toggle, ghost diff review,
- * and biometric commit approval gestures.
- */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AgentRun, Connection, KeelwayClient, KeelwayError, PendingApproval, StudioStatus, WhoAmI } from '../services/api';
+import { confirmLocally } from '../services/biometrics';
+import { color, mono } from '../theme';
+import { Lang, isRTL, strings } from '../i18n';
+import LanguagePicker from './LanguagePicker';
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, TextInput, Alert } from 'react-native';
-import { BiometricGate } from '../services/biometrics';
-import { KeelwayMobileClient, AgentEvent } from '../services/api';
+const POLL_MS = 3000;
+const MAX_BACKOFF_MS = 30000;
 
-export default function MissionControlScreen() {
-  const [airGapped, setAirGapped] = useState(true);
-  const [instruction, setInstruction] = useState('');
-  const [events, setEvents] = useState<AgentEvent[]>([]);
-  const [client, setClient] = useState<KeelwayMobileClient | null>(null);
+function preview(p: PendingApproval): string {
+  const a = p.arguments || {};
+  const target = a.path || a.command || '';
+  const body = typeof a.content === 'string' ? `\n${a.content.split('\n').slice(0, 8).join('\n')}` : '';
+  return `${target}${body}`.trim();
+}
+
+export default function MissionControlScreen({ conn, lang, setLang, onDisconnect }: {
+  conn: Connection; lang: Lang; setLang: (l: Lang) => void; onDisconnect: () => void;
+}) {
+  const t = strings[lang];
+  const rtl = isRTL(lang);
+  const client = useRef(new KeelwayClient(conn)).current;
+  const [status, setStatus] = useState<StudioStatus | null>(null);
+  const [runs, setRuns] = useState<AgentRun[]>([]);
+  const [me, setMe] = useState<WhoAmI | null>(null);
+  const [online, setOnline] = useState(true);
+  const [syncedAt, setSyncedAt] = useState<Date | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const failures = useRef(0);
+
+  const refresh = useCallback(async () => {
+    try {
+      const [s, r] = await Promise.all([client.status(), client.runs()]);
+      if (!me) setMe(await client.whoami());
+      setStatus(s);
+      setRuns(r);
+      setOnline(true);
+      setSyncedAt(new Date());
+      failures.current = 0;
+    } catch (e) {
+      if (e instanceof KeelwayError && e.status === 401) return onDisconnect();
+      setOnline(false);
+      failures.current += 1;
+    }
+  }, [client, me, onDisconnect]);
 
   useEffect(() => {
-    const mobileClient = new KeelwayMobileClient('127.0.0.1:7420');
-    mobileClient.connect((event) => {
-      setEvents((prev) => [event, ...prev]);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let active = AppState.currentState === 'active';
+    const tick = async () => {
+      if (active) await refresh();
+      const delay = Math.min(POLL_MS * 2 ** failures.current, MAX_BACKOFF_MS);
+      timer = setTimeout(tick, delay);
+    };
+    tick();
+    const sub = AppState.addEventListener('change', (s) => {
+      active = s === 'active';
+      if (active) refresh();
     });
-    setClient(mobileClient);
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+    };
+  }, [refresh]);
 
-    return () => mobileClient.disconnect();
-  }, []);
+  const canApprove = !!me?.permissions.includes('approve_tier3');
 
-  const handleAuthorizeCommit = async (taskId: string) => {
-    const auth = await BiometricGate.authenticateAction(`Authorize Autonomous Commit for ${taskId}`);
-    if (auth.success) {
-      Alert.alert('Commit Authorized', `Cryptographically signed commit for task ${taskId}.`);
-    } else {
-      Alert.alert('Authentication Failed', 'Biometric verification was not completed.');
+  const decide = async (run: AgentRun, approved: boolean) => {
+    if (!run.pending_approval) return;
+    if (approved && !(await confirmLocally(`${t.authPrompt}: ${run.pending_approval.tool_name}`))) return;
+    setBusy(run.task_id);
+    try {
+      await client.decide(run.task_id, approved);
+      setNotice(`${approved ? t.approved : t.denied}: ${run.pending_approval.tool_name}`);
+      await refresh();
+    } catch (e) {
+      setNotice(e instanceof KeelwayError ? e.message : t.unreachable);
+    } finally {
+      setBusy(null);
     }
   };
 
-  const handleSend = () => {
-    if (!instruction.trim() || !client) return;
-    client.sendInstruction(instruction);
-    setInstruction('');
+  const toggleAirGap = async () => {
+    if (!status || !canApprove) return;
+    if (!status.air_gapped || (await confirmLocally(t.hybrid))) {
+      try {
+        await client.setAirGap(!status.air_gapped);
+        await refresh();
+      } catch (e) {
+        setNotice(e instanceof KeelwayError ? e.message : t.unreachable);
+      }
+    }
   };
 
+  const waiting = runs.filter((r) => r.pending_approval);
+  const align = rtl ? styles.rtl : null;
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={styles.logo}>⚡</Text>
-          <Text style={styles.title}>KEELWAY <Text style={styles.subtitle}>MOBILE</Text></Text>
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.teal} />}
+    >
+      <View style={[styles.header, rtl && styles.rowReverse]}>
+        <View>
+          <Text style={styles.brand}>Keelway</Text>
+          <Text style={styles.host}>{conn.baseUrl.replace(/^https?:\/\//, '')}</Text>
         </View>
-        <TouchableOpacity
-          style={[styles.airgapBadge, airGapped ? styles.airgapActive : styles.airgapInactive]}
-          onPress={() => setAirGapped(!airGapped)}
-        >
-          <Text style={styles.airgapText}>{airGapped ? '🔒 AIR-GAPPED' : '🌐 HYBRID'}</Text>
-        </TouchableOpacity>
+        {status && (
+          <TouchableOpacity
+            onPress={toggleAirGap}
+            disabled={!canApprove}
+            style={[styles.badge, status.air_gapped ? styles.badgeGap : styles.badgeHybrid]}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: status.air_gapped, disabled: !canApprove }}
+            accessibilityHint={t.airGapHint}
+            testID="airgap"
+          >
+            <Text style={[styles.badgeText, { color: status.air_gapped ? color.teal : color.amber }]}>
+              {status.air_gapped ? t.airGapped : t.hybrid}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* AGENT STREAM LOG */}
-      <ScrollView style={styles.streamContainer}>
-        <View style={styles.statusCard}>
-          <Text style={styles.cardHeader}>ACTIVE AGENT RUNTIME</Text>
-          <Text style={styles.cardBody}>Model: Qwen 2.5 Coder 7B (Edge)</Text>
-          <Text style={styles.cardCost}>Token Cost: $0.00000</Text>
-        </View>
+      <View style={[styles.sync, !online && styles.syncOff]} accessibilityLiveRegion="polite">
+        <Text style={[styles.syncText, align]}>
+          {online ? `${t.synced} ${syncedAt ? syncedAt.toLocaleTimeString() : ''}` : t.offline}
+        </Text>
+      </View>
 
-        <Text style={styles.sectionHeader}>LIVE AGENT ACTIONS</Text>
-        {events.length === 0 ? (
-          <Text style={styles.emptyText}>Waiting for agent tasks...</Text>
-        ) : (
-          events.map((evt, idx) => (
-            <View key={idx} style={styles.eventCard}>
-              <Text style={styles.eventType}>{evt.type.toUpperCase()}</Text>
-              {evt.prompt && <Text style={styles.eventPrompt}>{evt.prompt}</Text>}
-              {evt.verification && <Text style={styles.eventBody}>{evt.verification}</Text>}
-              {evt.diff && (
-                <View style={styles.diffBox}>
-                  <Text style={styles.diffText}>{evt.diff}</Text>
-                </View>
-              )}
+      {notice && (
+        <TouchableOpacity onPress={() => setNotice(null)} style={styles.notice} accessibilityLiveRegion="polite">
+          <Text style={[styles.noticeText, align]}>{notice}</Text>
+        </TouchableOpacity>
+      )}
+
+      {waiting.map((run) => (
+        <View key={run.task_id} style={styles.approval} testID="approval-card">
+          <Text style={[styles.approvalTitle, align]} accessibilityRole="header">{t.needsYou}</Text>
+          <Text style={[styles.goal, align]}>{run.goal}</Text>
+          <Text style={[styles.tool, align]}>
+            {run.pending_approval!.tool_name}{run.pending_approval!.is_mutation ? ' · mutation' : ''}
+          </Text>
+          {!!preview(run.pending_approval!) && <Text style={styles.code} numberOfLines={10}>{preview(run.pending_approval!)}</Text>}
+          {canApprove ? (
+            <View style={[styles.actions, rtl && styles.rowReverse]}>
               <TouchableOpacity
-                style={styles.authorizeButton}
-                onPress={() => handleAuthorizeCommit(evt.task_id || 'task_live')}
+                style={[styles.btn, styles.approve]}
+                disabled={busy === run.task_id}
+                onPress={() => decide(run, true)}
+                accessibilityRole="button"
+                testID="approve"
               >
-                <Text style={styles.authorizeButtonText}>✓ Biometric Signoff</Text>
+                <Text style={styles.approveText}>{t.approve}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.deny]}
+                disabled={busy === run.task_id}
+                onPress={() => decide(run, false)}
+                accessibilityRole="button"
+                testID="deny"
+              >
+                <Text style={styles.denyText}>{t.deny}</Text>
               </TouchableOpacity>
             </View>
-          ))
-        )}
-      </ScrollView>
+          ) : (
+            <Text style={[styles.muted, align]}>{t.noPermission}</Text>
+          )}
+        </View>
+      ))}
 
-      {/* INPUT DOCK */}
-      <View style={styles.inputDock}>
-        <TextInput
-          style={styles.input}
-          placeholder="Instruct agent (e.g. 'Heal test suite')..."
-          placeholderTextColor="#64748B"
-          value={instruction}
-          onChangeText={setInstruction}
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-          <Text style={styles.sendButtonText}>➔</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <Text style={[styles.section, align]} accessibilityRole="header">{t.runs}</Text>
+      {runs.length === 0 && <Text style={[styles.muted, align]}>{t.noRuns}</Text>}
+      {runs.map((run) => (
+        <View key={run.task_id} style={styles.run}>
+          <Text style={[styles.goal, align]} numberOfLines={2}>{run.goal}</Text>
+          <View style={[styles.runMeta, rtl && styles.rowReverse]}>
+            <Text style={[styles.status, run.pending_approval ? { color: color.amber } : null]}>{run.status}</Text>
+            <Text style={styles.muted}>{run.steps_done}/{run.steps_total} {t.steps}</Text>
+          </View>
+          <View style={styles.bar} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: run.steps_total || 1, now: run.steps_done }}>
+            <View style={[styles.barFill, { width: `${run.steps_total ? (100 * run.steps_done) / run.steps_total : 0}%` }]} />
+          </View>
+        </View>
+      ))}
+
+      {status && (
+        <Text style={[styles.footer, align]}>{t.localModel}: {status.local_model} · v{status.version}</Text>
+      )}
+      <LanguagePicker lang={lang} setLang={setLang} />
+      <TouchableOpacity onPress={onDisconnect} style={styles.disconnect} accessibilityRole="button" testID="disconnect">
+        <Text style={styles.muted}>{t.disconnect}</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070A12' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
-  titleRow: { flexDirection: 'row', alignItems: 'center' },
-  logo: { fontSize: 18, marginRight: 6 },
-  title: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
-  subtitle: { color: '#3B82F6', fontWeight: 'normal' },
-  airgapBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1 },
-  airgapActive: { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: '#10B981' },
-  airgapInactive: { backgroundColor: 'rgba(245,158,11,0.15)', borderColor: '#F59E0B' },
-  airgapText: { color: '#10B981', fontSize: 11, fontWeight: 'bold' },
-  streamContainer: { flex: 1, padding: 16 },
-  statusCard: { backgroundColor: '#0F1626', padding: 14, borderRadius: 10, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  cardHeader: { color: '#64748B', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-  cardBody: { color: '#E2E8F0', fontSize: 13, marginTop: 4, fontWeight: '600' },
-  cardCost: { color: '#10B981', fontSize: 12, marginTop: 2, fontFamily: 'monospace' },
-  sectionHeader: { color: '#94A3B8', fontSize: 11, fontWeight: 'bold', marginBottom: 10 },
-  emptyText: { color: '#475569', fontSize: 12, fontStyle: 'italic' },
-  eventCard: { backgroundColor: '#0F1626', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  eventType: { color: '#3B82F6', fontSize: 11, fontWeight: 'bold' },
-  eventPrompt: { color: '#F1F5F9', fontSize: 12, marginTop: 4 },
-  eventBody: { color: '#94A3B8', fontSize: 11, marginTop: 4 },
-  diffBox: { backgroundColor: '#05070D', padding: 8, borderRadius: 6, marginTop: 8 },
-  diffText: { color: '#34D399', fontSize: 10, fontFamily: 'monospace' },
-  authorizeButton: { marginTop: 10, backgroundColor: 'rgba(16,185,129,0.2)', paddingVertical: 8, borderRadius: 6, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(16,185,129,0.4)' },
-  authorizeButtonText: { color: '#10B981', fontSize: 12, fontWeight: '600' },
-  inputDock: { flexDirection: 'row', padding: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', backgroundColor: '#0F1626' },
-  input: { flex: 1, backgroundColor: '#070A12', borderRadius: 8, paddingHorizontal: 12, color: '#FFFFFF', fontSize: 13, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  sendButton: { width: 40, height: 40, backgroundColor: '#3B82F6', borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
-  sendButtonText: { color: '#FFFFFF', fontSize: 16 },
+  root: { flex: 1, backgroundColor: color.ink },
+  content: { padding: 16, paddingTop: 56, maxWidth: 720, width: '100%', alignSelf: 'center' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  rowReverse: { flexDirection: 'row-reverse' },
+  brand: { color: color.text, fontSize: 22, fontWeight: '700' },
+  host: { color: color.muted, fontFamily: mono, fontSize: 11 },
+  badge: { paddingHorizontal: 12, minHeight: 36, justifyContent: 'center', borderRadius: 18, borderWidth: 1 },
+  badgeGap: { borderColor: color.teal, backgroundColor: 'rgba(45,212,191,0.10)' },
+  badgeHybrid: { borderColor: color.amber, backgroundColor: 'rgba(245,181,71,0.10)' },
+  badgeText: { fontWeight: '700', fontSize: 12 },
+  sync: { paddingVertical: 6, marginBottom: 12 },
+  syncOff: { backgroundColor: 'rgba(248,113,113,0.10)', borderRadius: 8, paddingHorizontal: 10 },
+  syncText: { color: color.muted, fontSize: 12 },
+  notice: { backgroundColor: color.raised, borderRadius: 10, padding: 12, marginBottom: 12 },
+  noticeText: { color: color.text, fontSize: 13 },
+  approval: { borderColor: color.amber, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 14, backgroundColor: 'rgba(245,181,71,0.06)' },
+  approvalTitle: { color: color.amber, fontWeight: '700', fontSize: 13, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  goal: { color: color.text, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  tool: { color: color.muted, fontFamily: mono, fontSize: 12, marginBottom: 8 },
+  code: { color: color.text, fontFamily: mono, fontSize: 12, backgroundColor: color.ink, borderRadius: 8, padding: 10, marginBottom: 12 },
+  actions: { flexDirection: 'row', gap: 10 },
+  btn: { flex: 1, minHeight: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  approve: { backgroundColor: color.amber },
+  approveText: { color: color.ink, fontWeight: '700' },
+  deny: { borderWidth: 1, borderColor: color.line },
+  denyText: { color: color.text, fontWeight: '600' },
+  section: { color: color.muted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8, marginBottom: 8 },
+  run: { backgroundColor: color.surface, borderRadius: 12, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: color.line },
+  runMeta: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  status: { color: color.teal, fontFamily: mono, fontSize: 12 },
+  bar: { height: 4, borderRadius: 2, backgroundColor: color.raised, overflow: 'hidden' },
+  barFill: { height: 4, backgroundColor: color.teal },
+  muted: { color: color.muted, fontSize: 13 },
+  footer: { color: color.muted, fontSize: 12, marginTop: 16, marginBottom: 12 },
+  disconnect: { alignItems: 'center', paddingVertical: 14, minHeight: 48 },
+  rtl: { textAlign: 'right', writingDirection: 'rtl' },
 });

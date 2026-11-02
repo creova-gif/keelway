@@ -1,0 +1,80 @@
+import React, { useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Connection, KeelwayClient, KeelwayError, parseStudioLink } from '../services/api';
+import { color, mono } from '../theme';
+import { Lang, isRTL, strings } from '../i18n';
+import LanguagePicker from './LanguagePicker';
+
+export default function PairScreen({ lang, setLang, onPaired }: { lang: Lang; setLang: (l: Lang) => void; onPaired: (c: Connection) => void }) {
+  const t = strings[lang];
+  const rtl = isRTL(lang);
+  const [link, setLink] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const connect = async () => {
+    const conn = parseStudioLink(link);
+    if (!conn) return setError(t.badLink);
+    setBusy(true);
+    setError(null);
+    try {
+      await new KeelwayClient(conn).whoami();
+      onPaired(conn);
+    } catch (e) {
+      setError(e instanceof KeelwayError && e.status === 401 ? t.badToken : t.unreachable);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <LanguagePicker lang={lang} setLang={setLang} />
+      <View style={styles.mark} accessibilityElementsHidden>
+        <View style={styles.hull} />
+        <View style={styles.keel} />
+      </View>
+      <Text style={styles.brand}>Keelway</Text>
+      <Text style={styles.by}>by Sorvex Labs</Text>
+      <Text style={[styles.title, rtl && styles.rtl]} accessibilityRole="header">{t.pairTitle}</Text>
+      <Text style={[styles.help, rtl && styles.rtl]}>{t.pairHelp}</Text>
+      <Text style={[styles.label, rtl && styles.rtl]} nativeID="link-label">{t.link}</Text>
+      <TextInput
+        style={styles.input}
+        value={link}
+        onChangeText={setLink}
+        placeholder="http://192.168.1.20:7420/?token=…"
+        placeholderTextColor={color.muted}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        accessibilityLabelledBy="link-label"
+        accessibilityLabel={t.link}
+        onSubmitEditing={connect}
+        testID="pair-link"
+      />
+      {error && <Text style={[styles.error, rtl && styles.rtl]} accessibilityLiveRegion="polite">{error}</Text>}
+      <TouchableOpacity style={[styles.button, busy && styles.dim]} onPress={connect} disabled={busy} accessibilityRole="button" testID="pair-connect">
+        {busy ? <ActivityIndicator color={color.ink} /> : <Text style={styles.buttonText}>{t.connect}</Text>}
+      </TouchableOpacity>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: color.ink, padding: 24, justifyContent: 'center', maxWidth: 520, width: '100%', alignSelf: 'center' },
+  mark: { alignItems: 'center', marginBottom: 12 },
+  hull: { width: 56, height: 6, borderRadius: 3, backgroundColor: color.teal },
+  keel: { width: 6, height: 22, backgroundColor: color.teal, borderBottomLeftRadius: 3, borderBottomRightRadius: 3 },
+  brand: { color: color.text, fontSize: 28, fontWeight: '700', textAlign: 'center' },
+  by: { color: color.muted, fontSize: 12, textAlign: 'center', marginBottom: 28 },
+  title: { color: color.text, fontSize: 18, fontWeight: '600', marginBottom: 8 },
+  help: { color: color.muted, fontSize: 13, lineHeight: 19, marginBottom: 20 },
+  label: { color: color.muted, fontSize: 12, marginBottom: 6 },
+  input: { backgroundColor: color.surface, color: color.text, borderColor: color.line, borderWidth: 1, borderRadius: 10, padding: 14, fontFamily: mono, fontSize: 13 },
+  error: { color: color.danger, fontSize: 13, marginTop: 10 },
+  button: { backgroundColor: color.teal, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 16, minHeight: 48, justifyContent: 'center' },
+  buttonText: { color: color.ink, fontWeight: '700', fontSize: 15 },
+  dim: { opacity: 0.6 },
+  rtl: { textAlign: 'right', writingDirection: 'rtl' },
+});

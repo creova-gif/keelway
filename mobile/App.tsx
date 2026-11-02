@@ -1,40 +1,61 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, StatusBar } from 'react-native';
-import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
+import React, { useCallback, useEffect, useState } from 'react';
+import { I18nManager, StyleSheet, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
+import PairScreen from './src/screens/PairScreen';
 import MissionControlScreen from './src/screens/MissionControlScreen';
-import { BiometricGate } from './src/services/biometrics';
+import { Connection, parseStudioLink } from './src/services/api';
+import { loadConnection, saveConnection } from './src/services/storage';
+import { Lang, isRTL } from './src/i18n';
+import { color } from './src/theme';
 
 export default function App() {
-  const [isReady, setIsReady] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [conn, setConn] = useState<Connection | null>(null);
+  const [lang, setLangState] = useState<Lang>('en');
 
   useEffect(() => {
-    async function prepare() {
-      // Check biometric hardware on app boot
-      await BiometricGate.isSupported();
-      setIsReady(true);
-    }
-    prepare();
+    loadConnection().then((c) => {
+      setConn(c);
+      setReady(true);
+    });
   }, []);
 
-  if (!isReady) {
-    return <View style={styles.loadingContainer} />;
-  }
+  // keelway://pair?link=<url-encoded Studio link>
+  const url = Linking.useURL();
+  useEffect(() => {
+    if (!url) return;
+    const link = Linking.parse(url).queryParams?.link;
+    const parsed = typeof link === 'string' ? parseStudioLink(link) : null;
+    if (parsed) {
+      saveConnection(parsed);
+      setConn(parsed);
+    }
+  }, [url]);
+
+  const setLang = (l: Lang) => {
+    I18nManager.allowRTL(isRTL(l));
+    setLangState(l);
+  };
+
+  const onPaired = useCallback((c: Connection) => {
+    saveConnection(c);
+    setConn(c);
+  }, []);
+
+  const onDisconnect = useCallback(() => {
+    saveConnection(null);
+    setConn(null);
+  }, []);
 
   return (
     <View style={styles.root}>
-      <ExpoStatusBar style="light" />
-      <MissionControlScreen />
+      <StatusBar style="light" />
+      {ready && (conn
+        ? <MissionControlScreen key={conn.baseUrl} conn={conn} lang={lang} setLang={setLang} onDisconnect={onDisconnect} />
+        : <PairScreen lang={lang} setLang={setLang} onPaired={onPaired} />)}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#05070D',
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#05070D',
-  },
-});
+const styles = StyleSheet.create({ root: { flex: 1, backgroundColor: color.ink } });
