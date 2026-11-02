@@ -7,8 +7,9 @@ Implementation: `core/agents/manifest.py`. Example: `docs/spec/examples/test-fix
 CLI: `keelway agent validate|sign|verify FILE`.
 
 **Status:** the format, validation, digest and signing exist and are tested. **Run-time enforcement exists for
-part of it** (`core/agents/guard.py`, section "Enforcement"). **Not built yet:** registry, API routes, Studio
-builder, and enforcement of `sandbox`, `budget.max_usd_per_run`, `permissions.network` and `mcp_servers`.
+part of it** (`core/agents/guard.py`, section "Enforcement") and **commands can run in a verified OS sandbox on
+macOS** (`core/agents/sandbox.py`, section "Sandbox"). **Not built yet:** registry, API routes, Studio builder,
+a Linux sandbox, containers, and enforcement of `budget.max_usd_per_run` and `mcp_servers`.
 
 ## Fields
 
@@ -81,24 +82,54 @@ Every denial is recorded as a `policy_denied` event with the manifest digest, an
 the digest when the loop starts. These go to the loop's events and flight tape, **not yet to the hash-chained
 audit log** (that is written by API routes).
 
-**Refused outright:** an `autonomous` agent with `run_command` raises `ManifestNotRunnable`, because `sandbox` is
-not enforced (below) and an autonomous shell with no isolation is not safe.
+## Sandbox (`core/agents/sandbox.py`)
 
-**Not enforced yet** (`keelway agent validate` prints these for each manifest):
+`sandbox` decides how `run_command` executes:
 
-- `sandbox` `worktree` or `container`: `run_command` still executes in the workspace shell. There is no isolation.
-  A command in the allowed list can still do anything that command can do.
-- `budget.max_usd_per_run`: the loop does not meter cost.
-- `permissions.network` and `network_allow`: tools have no network control; model calls follow `model.routing`.
-- `mcp_servers`: the loop has no MCP client.
+| `sandbox` | Behaviour |
+|---|---|
+| `workspace` | The old path: a shell in your workspace that inherits your environment. **Unconfined.** An `autonomous` agent may not use it with `run_command`. |
+| `worktree` | Runs inside an OS sandbox (macOS seatbelt). Refused unless a self-test passes on this machine. |
+| `container` | **Not built.** A manifest that enables `run_command` with it is refused. |
+
+(The name `worktree` is historical: today it means "OS-confined process in the workspace", not a separate git
+worktree copy. A disposable copy that you merge back is a possible later step.)
+
+What a sandboxed command gets:
+
+- **Scrubbed environment.** Only `PATH`, locale and terminal variables survive. API keys, tokens, `SSH_AUTH_SOCK`
+  and cloud credentials are dropped. `HOME` and `TMPDIR` point at a private temp dir; git config is disabled.
+- **Writes** only inside the workspace and that temp dir, and never into `.git`, `.keelway` or `.kora`.
+- **Reads** the workspace, the Python environment and PATH tools. Other files under `/Users`, `/Volumes` and root's
+  home are denied (no `~/.ssh`, no other projects). `.keelway` (the signing key) is unreadable even inside the workspace.
+- **No network**, including loopback. There is no per-host allowlist, so `permissions.network: allowlist` with
+  `run_command` is refused.
+- **No shell** (`shell=False`, arguments split with `shlex`), so `;`, `&&`, `$VAR` and globs are passed literally.
+- **Process group** killed on timeout (grandchildren too), output capped at 200 KB, stdin closed.
+
+**Fail closed.** `Sandbox.verify()` really tries to escape in a throwaway workspace (write and read outside, open a
+network connection, write to `.git` and `.keelway`, read `.keelway`) and passes only if normal work succeeds and every
+escape fails. If it does not pass, or there is no backend, `loop_from_manifest` raises `ManifestNotRunnable`. An
+`autonomous` agent may run commands only under this verified sandbox.
+
+**Limits, plainly:**
+
+- macOS only. On Linux and Windows there is no backend, so such agents are **refused**, not run unconfined.
+- It is process confinement, not a VM or container. The kernel is shared, and system files outside the denied areas
+  stay readable. Apple marks `sandbox-exec` deprecated; it still works and other tools rely on it.
+- Tools that need to write elsewhere fail by design. For example Apple's `/usr/bin/git` shim writes a cache outside
+  the workspace and errors; use a real git binary or an allowed command that does not need it.
+- Commands in the allowed list still do whatever those programs do inside the workspace (for example `pytest`
+  runs the project's own code and can modify workspace files other than `.git`/`.keelway`).
+- A command that needs a tool under your home that is not on `PATH` will not be readable.
 
 ## Next steps (not built)
 
 1. **Route and audit integration** (after PR #15 merges, since it edits `core/api/routes.py`): start a run from a
    manifest via the API, check `approve_tier3` for `autonomous`, and write the manifest digest into the audit
    chain, not only the flight tape.
-2. **Sandbox:** real isolation for `run_command` (git worktree plus OS-level restrictions or a container), then
-   lift the `autonomous` refusal.
+2. **Sandbox follow-ups:** a Linux backend (bubblewrap, tested on a real Linux machine), containers, and a
+   disposable worktree copy that is merged back.
 3. **Cost metering** for `max_usd_per_run`.
 4. **Private team registry:** store manifests by `name@version`, record `owner`, add an enable/disable (kill
    switch) flag, expose list/get/publish routes with RBAC, and show agents on Studio's run board.

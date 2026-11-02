@@ -72,6 +72,7 @@ class AutonomousAgentLoop:
         self.events: List[Dict[str, Any]] = []
         self.pending_approval: Optional[Dict[str, Any]] = None
         self.approval_rules = approval_rules
+        self.command_runner: Optional[Any] = None  # (command, timeout) -> tool result; set when commands must run confined
         self.guard: Optional[Any] = None  # a core.agents.guard.ManifestGuard when running under an Agent Manifest
         self.semantic_index = CodebaseSemanticIndex(self.fs)
 
@@ -180,6 +181,9 @@ class AutonomousAgentLoop:
             for pat in danger_patterns:
                 if re.search(pat, cmd):
                     raise PermissionError(f"Command rejected by safety gate: '{cmd}'")
+
+            if self.command_runner is not None:
+                return self.command_runner(cmd, timeout)
 
             start_t = time.perf_counter()
             proc = subprocess.run(

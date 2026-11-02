@@ -143,12 +143,20 @@ class ManifestGuard:
 
 
 def not_enforced(manifest: AgentManifest) -> List[str]:
-    """Things this manifest declares that the runtime does not enforce yet."""
+    """Things this manifest declares that the runtime does not enforce (or enforces only in some places)."""
     notes = []
-    if manifest.sandbox != "workspace":
-        notes.append(f"sandbox '{manifest.sandbox}': commands still run in the workspace shell; there is no isolation yet")
+    runs_commands = "run_command" in manifest.tools
+    if manifest.sandbox == "worktree" and runs_commands:
+        notes.append("sandbox 'worktree': enforced with the macOS seatbelt backend after a self-test; on other platforms the run is refused")
+    elif manifest.sandbox == "container":
+        notes.append("sandbox 'container': not built; a run that uses run_command is refused")
+    elif manifest.sandbox == "workspace" and runs_commands:
+        notes.append("sandbox 'workspace': commands run unconfined in your shell and inherit your environment")
     if manifest.permissions.network != "none":
-        notes.append("permissions.network: tools have no network control yet (model calls follow model.routing)")
+        if runs_commands:
+            notes.append("permissions.network 'allowlist': per-host filtering does not exist, so a run with run_command is refused")
+        else:
+            notes.append("permissions.network: no tool of this agent uses the network (model calls follow model.routing)")
     notes.append("budget.max_usd_per_run: the loop does not meter cost yet; only max_steps is enforced")
     if manifest.mcp_servers:
         notes.append("mcp_servers: the loop has no MCP client yet; these are declared but unused")
@@ -165,11 +173,10 @@ def loop_from_manifest(
     """Build an AutonomousAgentLoop that can only do what the manifest allows."""
     from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 
-    if manifest.permissions.autonomy == "autonomous" and "run_command" in manifest.tools:
-        raise ManifestNotRunnable(
-            "autonomous agents that run commands need real sandbox isolation, which Keelway does not have yet; "
-            "use autonomy 'confirm_mutation' or drop run_command"
-        )
+    if "run_command" in manifest.tools and manifest.sandbox == "container":
+        raise ManifestNotRunnable("sandbox 'container' is not built; use 'worktree' on macOS or drop run_command")
+    if "run_command" in manifest.tools and manifest.sandbox == "workspace" and manifest.permissions.autonomy == "autonomous":
+        raise ManifestNotRunnable("autonomous agents that run commands must not use sandbox 'workspace' (unconfined shell)")
     agent = AutonomousAgentLoop(
         task_id=task_id,
         workspace_fs=workspace_fs,
@@ -177,7 +184,20 @@ def loop_from_manifest(
         record_flight=record_flight,
         approval_rules=approval_rules,
     )
+    runner = None
+    if "run_command" in manifest.tools and manifest.sandbox == "worktree":
+        if manifest.permissions.network != "none":
+            raise ManifestNotRunnable("per-host network allowlists cannot be enforced; set permissions.network to 'none' or drop run_command")
+        from core.agents.sandbox import Sandbox, SandboxUnavailable
+
+        sandbox = Sandbox(agent.fs.root)
+        try:
+            sandbox.require_verified()
+        except SandboxUnavailable as exc:
+            raise ManifestNotRunnable(f"commands need a verified sandbox and this machine has none: {exc}") from exc
+        runner = lambda command, timeout: sandbox.run(command, timeout).to_tool_result(command)  # noqa: E731
     agent.tools = {name: tool for name, tool in agent.tools.items() if name in manifest.tools}
     agent.guard = ManifestGuard(manifest, agent.fs.root)
+    agent.command_runner = runner
     agent._record_event("manifest_bound", {"task_id": task_id, "name": manifest.name, "version": manifest.version, "digest": agent.guard.manifest_digest})
     return agent

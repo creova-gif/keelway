@@ -470,7 +470,7 @@ def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None)
 
         print(f"[+] {manifest.name}@{manifest.version} is valid. digest {am.digest(manifest)}")
         for note in not_enforced(manifest):
-            print(f"  not enforced yet: {note}")
+            print(f"  note: {note}")
         return 0
     key = am.load_or_create_key(Path.cwd()) if action == "sign" else None
     if action == "sign":
