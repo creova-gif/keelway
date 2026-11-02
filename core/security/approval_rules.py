@@ -6,9 +6,10 @@ import json
 import os
 import secrets
 import time
+from functools import lru_cache
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 PATH_TOOLS = {"edit_file", "write_file"}
 COMMAND_TOOLS = {"run_command"}
@@ -42,8 +43,8 @@ def _normalize_path(path: Any) -> Optional[str]:
 
 
 def _is_protected(path: str) -> bool:
-    first = PurePosixPath(path).parts[0]
-    return any(first == prefix or first.startswith(prefix + "/") for prefix in PROTECTED_PREFIXES)
+    """Any `.keelway`/`.kora`/`.git` segment, at any depth (nested repos and submodules included)."""
+    return any(part in PROTECTED_PREFIXES for part in PurePosixPath(path).parts)
 
 
 def validate_scope(tool_name: str, scope: Any) -> str:
@@ -65,13 +66,28 @@ def validate_scope(tool_name: str, scope: Any) -> str:
     return norm
 
 
+def _glob_match(path_parts: tuple, pattern_parts: tuple) -> bool:
+    """Segment-wise glob: `*` stays inside one directory, a `**` segment spans any number of them."""
+    pat = tuple(p for i, p in enumerate(pattern_parts) if not (p == "**" and i and pattern_parts[i - 1] == "**"))
+
+    @lru_cache(maxsize=None)
+    def match(i: int, j: int) -> bool:
+        if j == len(pat):
+            return i == len(path_parts)
+        if pat[j] == "**":
+            return match(i, j + 1) or (i < len(path_parts) and match(i + 1, j))
+        return i < len(path_parts) and fnmatch.fnmatchcase(path_parts[i], pat[j]) and match(i + 1, j + 1)
+
+    return match(0, 0)
+
+
 def rule_matches(rule: ApprovalRule, tool_name: str, arguments: Dict[str, Any]) -> bool:
     if rule.tool_name != tool_name:
         return False
     if tool_name in COMMAND_TOOLS:
         return str(arguments.get("command", "")).strip() == rule.scope
     path = _normalize_path(arguments.get("path"))
-    return path is not None and not _is_protected(path) and fnmatch.fnmatchcase(path, rule.scope)
+    return path is not None and not _is_protected(path) and _glob_match(PurePosixPath(path).parts, PurePosixPath(rule.scope).parts)
 
 
 class ApprovalRuleStore:
@@ -85,9 +101,12 @@ class ApprovalRuleStore:
             data = json.loads(self.path.read_text(encoding="utf-8"))
         except (FileNotFoundError, json.JSONDecodeError, OSError):
             return []
+        raw_rules = data.get("rules") if isinstance(data, dict) else None
+        if not isinstance(raw_rules, list):
+            return []
         names = [f.name for f in fields(ApprovalRule)]
         rules = []
-        for raw in data.get("rules", []) if isinstance(data, dict) else []:
+        for raw in raw_rules:
             try:
                 rules.append(ApprovalRule(**{name: raw[name] for name in names}))
             except (KeyError, TypeError):
@@ -100,15 +119,16 @@ class ApprovalRuleStore:
         tmp.write_text(json.dumps({"version": 1, "rules": [r.to_dict() for r in rules]}, indent=2), encoding="utf-8")
         os.replace(tmp, self.path)
 
-    def add(self, tool_name: str, scope: Any, created_by: str) -> ApprovalRule:
+    def add(self, tool_name: str, scope: Any, created_by: str) -> Tuple[ApprovalRule, bool]:
+        """Returns (rule, created); an identical existing rule is returned with created=False."""
         scope = validate_scope(tool_name, scope)
         rules = self.list()
         for rule in rules:
             if rule.tool_name == tool_name and rule.scope == scope:
-                return rule
+                return rule, False
         rule = ApprovalRule(id=f"rule_{secrets.token_hex(6)}", tool_name=tool_name, scope=scope, created_by=created_by, created_at=time.time())
         self._save(rules + [rule])
-        return rule
+        return rule, True
 
     def remove(self, rule_id: str) -> Optional[ApprovalRule]:
         rules = self.list()
@@ -117,5 +137,23 @@ class ApprovalRuleStore:
             self._save([r for r in rules if r.id != rule_id])
         return gone
 
+    def _resolved_relative(self, path: Any) -> Optional[str]:
+        """The path the filesystem will actually touch, relative to the workspace (symlinks followed)."""
+        norm = _normalize_path(path)
+        if norm is None:
+            return None
+        root = self.path.parent.parent.resolve()
+        try:
+            return (root / norm).resolve().relative_to(root).as_posix()
+        except (ValueError, OSError):
+            return None
+
     def match(self, tool_name: str, arguments: Dict[str, Any]) -> Optional[ApprovalRule]:
-        return next((r for r in self.list() if rule_matches(r, tool_name, arguments)), None)
+        if tool_name in PATH_TOOLS:
+            real = self._resolved_relative(arguments.get("path"))
+            if real is None or real == "." or _is_protected(real):
+                return None
+            checks = [arguments, {**arguments, "path": real}]
+        else:
+            checks = [arguments]
+        return next((r for r in self.list() if all(rule_matches(r, tool_name, a) for a in checks)), None)
