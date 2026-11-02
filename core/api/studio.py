@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.api import routes
 from core.api.routes import FLIGHT_RECORDINGS_DIR, ws_manager
+from core.api.schemas import Provider
 from core.config import settings
 from core.models.gateway import gateway
 from core.security.auth import current_principal, require
@@ -122,6 +123,9 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     branch_rc, branch = await _git("rev-parse", "--abbrev-ref", "HEAD")
     sha_rc, sha = await _git("rev-parse", "--short", "HEAD")
     tapes = len(list(FLIGHT_RECORDINGS_DIR.glob("*.flight.json"))) if FLIGHT_RECORDINGS_DIR.exists() else 0
+    local_adapter = gateway.adapters.get(Provider.LOCAL)
+    local = (await asyncio.to_thread(local_adapter.describe) if hasattr(local_adapter, "describe")
+             else {"up": bool(local_adapter), "api": None, "model": None})
 
     return {
         "version": STUDIO_VERSION,
@@ -134,9 +138,10 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
             "anthropic": bool(settings.anthropic_api_key),
             "openai": bool(settings.openai_api_key),
             "google": bool(settings.gemini_api_key),
-            "local": True,
+            "local": local["up"],
         },
-        "local_model": settings.default_local_model,
+        "local_model": local["model"] or settings.default_local_model,
+        "local_runtime": local,
         "hardware": _hardware(),
         "git": {
             "branch": branch.strip() if branch_rc == 0 else None,
