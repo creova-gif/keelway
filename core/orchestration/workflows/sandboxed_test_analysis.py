@@ -12,6 +12,7 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.security.env_scrub import scrub_env
 from core.api.schemas import (
     CompletionRequestSchema,
     MessageSchema,
@@ -37,8 +38,9 @@ class SandboxedFailureAnalysisWorkflow:
         start_time = time.perf_counter()
 
         venv_bin = str((self.workspace_root / "keelway" / ".venv" / "bin").resolve())
+        clean_env, _ = scrub_env(os.environ)
         sandbox_env = {
-            **os.environ,
+            **clean_env,
             "PATH": f"{venv_bin}:{os.environ.get('PATH', '')}",
             "PYTHONUNBUFFERED": "1",
         }

@@ -312,7 +312,7 @@ keelway/
 ## 🔒 Security Policy
 
 * **API Key Safety**: Never commit `.env` or credentials to version control. Pre-commit scans enforce zero secret exposure.
-* **Least Privilege**: Sandboxed processes run under isolated container namespaces without root privileges.
+* **Secrets stay out of agent commands**: commands an agent runs (`run_command`), the sandboxed test workflow and the self-healing test runs do not inherit API keys, tokens, cloud credentials or URLs containing passwords (`core/security/env_scrub.py`). To pass a specific variable on purpose, start Keelway with `KEELWAY_COMMAND_ENV_PASSTHROUGH=NAME1,NAME2`. This is a filter on variable names and common credential shapes, not isolation: there is no container sandbox yet, so a command can still read files your user can read.
 * **Audit Trails**: All task transitions, prompt payloads, model latencies, and human approvals are permanently recorded in SQLite/PostgreSQL audit logs.
 
 ---
