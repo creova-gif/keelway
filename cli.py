@@ -122,6 +122,18 @@ async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, descr
     print(f"\n[+] Status: {intent.status.upper()} (Expires in 15 minutes)\n")
 
 
+def _lan_ip() -> str | None:
+    """This machine's LAN address, for pairing a phone. A UDP connect sends no packets."""
+    import socket
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))
+            ip = s.getsockname()[0]
+        return None if ip.startswith("127.") else ip
+    except OSError:
+        return None
+
+
 async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
     """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
@@ -137,6 +149,10 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
         print("  (owner launch token; changes every run unless KEELWAY_API_TOKEN is set)")
     else:
         print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
+    lan = _lan_ip() if host in ("0.0.0.0", "::") else None
+    if lan:
+        suffix = f"?token={launch_token()}" if settings.auth_required else ""
+        print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}/{suffix}")
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 

@@ -1,57 +1,29 @@
 /**
- * Keelway Mobile Biometric Security Service.
- * Enforces hardware-backed FaceID / TouchID / Fingerprint signoff
- * before any autonomous agent can perform destructive repository actions or financial spends.
+ * Local confirmation before a phone approves an agent action: Face ID / fingerprint, else the
+ * device passcode, else an explicit confirm dialog. The server token is still the real gate.
  */
-
+import { Alert, Platform } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Haptics from 'expo-haptics';
 
-export interface BiometricAuthResult {
-  success: boolean;
-  error?: string;
-  timestamp: number;
+function confirmDialog(message: string): Promise<boolean> {
+  if (Platform.OS === 'web') return Promise.resolve(globalThis.confirm?.(message) ?? false);
+  return new Promise((resolve) =>
+    Alert.alert('Keelway', message, [
+      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+      { text: 'OK', onPress: () => resolve(true) },
+    ]),
+  );
 }
 
-export class BiometricGate {
-  /**
-   * Checks if the device hardware supports biometrics and is enrolled.
-   */
-  static async isAvailable(): Promise<boolean> {
-    const hasHardware = await LocalAuthentication.hasHardwareAsync();
-    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-    return hasHardware && isEnrolled;
-  }
-
-  /**
-   * Prompts the developer for FaceID or Fingerprint authentication.
-   */
-  static async authenticateAction(promptMessage: string = 'Authorize Keelway Autonomous Commit'): Promise<BiometricAuthResult> {
-    try {
-      const available = await this.isAvailable();
-      if (!available) {
-        // Fallback for emulator / non-biometric devices
-        return { success: true, timestamp: Date.now() };
-      }
-
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage,
-        fallbackLabel: 'Use Device Passcode',
-        disableDeviceFallback: false,
-        cancelLabel: 'Cancel',
-      });
-
-      if (result.success) {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        return { success: true, timestamp: Date.now() };
-      } else {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        return { success: false, error: result.error, timestamp: Date.now() };
-      }
-    } catch (err: any) {
-      return { success: false, error: err.message, timestamp: Date.now() };
-    }
-  }
+export async function confirmLocally(prompt: string): Promise<boolean> {
+  if (Platform.OS === 'web') return confirmDialog(prompt);
+  const level = await LocalAuthentication.getEnrolledLevelAsync();
+  if (level === LocalAuthentication.SecurityLevel.NONE) return confirmDialog(prompt);
+  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  const result = await LocalAuthentication.authenticateAsync({ promptMessage: prompt, disableDeviceFallback: false });
+  await Haptics.notificationAsync(
+    result.success ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error,
+  );
+  return result.success;
 }
