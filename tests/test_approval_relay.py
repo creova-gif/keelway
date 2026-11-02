@@ -137,3 +137,41 @@ def test_whatsapp_webhook_requires_signature_and_approver(env):
 def test_whatsapp_verify_handshake(env):
     client, _, _ = env
     assert client.get("/v1/messaging/whatsapp/webhook", params={"hub.mode": "subscribe", "hub.verify_token": "x", "hub.challenge": "c"}).status_code == 403
+
+
+def test_studio_decision_invalidates_phone_buttons_for_identical_repeat(env):
+    client, fake, root = env
+    _pause_write(client)
+    nonce = fake.nonce()
+    client.post("/v1/agent/approve/m1", json={"approved": False})
+    r = client.post("/v1/agent/step/m1", json={"tool_name": "write_file", "arguments": {"path": "note.txt", "content": "hi\n"}, "step_id": "step_1"})
+    assert r.json()["step_result"]["status"] == "paused_for_approval"
+    fake.press(nonce)
+    _poll()
+    assert not (root / "note.txt").exists()
+
+
+def test_one_channel_failing_still_sends_the_other_and_test_reports_failure(env, monkeypatch):
+    client, fake, _ = env
+
+    def flaky(request):
+        if request.url.host == "api.telegram.org":
+            raise httpx.ConnectError("down")
+        return fake(request)
+
+    monkeypatch.setattr(messaging_routes.relay, "transport", httpx.MockTransport(flaky))
+    _pause_write(client)
+    assert any(h == "graph.facebook.com" for h, _, _ in fake.calls)
+
+    monkeypatch.setattr(messaging_routes.relay, "transport", httpx.MockTransport(lambda req: httpx.Response(500, json={})))
+    assert client.post("/v1/messaging/test").status_code == 502
+
+
+def test_group_chat_needs_explicit_approvers(monkeypatch):
+    monkeypatch.setenv("KEELWAY_TELEGRAM_BOT_TOKEN", "T")
+    monkeypatch.setenv("KEELWAY_TELEGRAM_CHAT_ID", "-100123")
+    monkeypatch.delenv("KEELWAY_TELEGRAM_APPROVER_IDS", raising=False)
+    cfg = RelayConfig.from_env()
+    assert cfg.telegram and not cfg.telegram_buttons
+    monkeypatch.setenv("KEELWAY_TELEGRAM_APPROVER_IDS", "555")
+    assert RelayConfig.from_env().telegram_buttons
