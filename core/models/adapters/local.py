@@ -120,7 +120,9 @@ class LocalAdapter(ModelAdapter):
         if not rt.up:
             raise RuntimeError(f"No local model server answering at {self.base_url} (start Ollama or vLLM).")
         if not rt.models:
-            raise RuntimeError(f"No local chat model installed. Run: ollama pull {_recommended_model()}")
+            fix = (f"Run: ollama pull {_recommended_model()}" if rt.api == "ollama"
+                   else "Load a model in your server (vLLM: --model, llama.cpp: -m, LM Studio: Load model).")
+            raise RuntimeError(f"No local chat model loaded at {self.base_url}. {fix}")
         model = self.resolve_model()
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
         if rt.api == "ollama":

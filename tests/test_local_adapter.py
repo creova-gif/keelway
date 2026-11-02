@@ -111,3 +111,13 @@ def test_embedding_models_are_never_picked_for_chat():
     a = LocalAdapter(base_url="http://x", default_model="qwen3.5:latest", api="ollama", transport=t)
     assert a.resolve_model() == "llama3.2:3b"
     assert a.describe()["installed"] == ["llama3.2:3b"]
+
+
+@pytest.mark.asyncio
+async def test_empty_openai_server_does_not_suggest_ollama():
+    t = _transport({("GET", "/v1/models"): lambda r: httpx.Response(200, json={"data": []})})
+    a = LocalAdapter(base_url="http://x", api="openai", transport=t)
+    assert a.is_available() is False
+    with pytest.raises(RuntimeError, match="Load a model") as e:
+        await a.complete(_req())
+    assert "ollama" not in str(e.value)
