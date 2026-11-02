@@ -123,18 +123,18 @@ async def test_git_diff_excludes_protected_and_secret_files(tmp_path):
     git("config", "user.email", "t@t")
     git("config", "user.name", "t")
     (tmp_path / ".keelway").mkdir()
-    for f in (".keelway/rules.json", ".env", "app.py", ".env.example", "cfg/prod.key"):
+    for f in (".keelway/rules.json", ".env", "app.py", ".env.example", "cfg/prod.key", "my keys/.env"):
         (tmp_path / f).parent.mkdir(exist_ok=True)
         (tmp_path / f).write_text("old\n")
     git("add", "-A")
     git("commit", "-qm", "init")
-    for f in (".keelway/rules.json", ".env", "app.py", ".env.example", "cfg/prod.key"):
+    for f in (".keelway/rules.json", ".env", "app.py", ".env.example", "cfg/prod.key", "my keys/.env"):
         (tmp_path / f).write_text(f"new-{f}\n")
     (reply,) = await _run(build_workspace_server(str(tmp_path)), [_call(1, "git_diff", {})])
     diff = reply["result"]["content"][0]["text"]
     assert "new-app.py" in diff
     assert "new-.keelway" not in diff and "new-.env\n" not in diff and "new-cfg/prod.key" not in diff
-    assert "new-.env.example" in diff
+    assert "new-.env.example" in diff and "new-my keys" not in diff
 
 
 @pytest.mark.asyncio

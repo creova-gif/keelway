@@ -8,7 +8,6 @@ Implements the JSON-RPC Model Context Protocol standard:
 import asyncio
 import fnmatch
 import json
-import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -249,18 +248,18 @@ def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
         path = args.get("path")
         target = str(fs.resolve_safe_path(_guard(path)).relative_to(fs.root)) if path else "."
         excludes = [f":(exclude,glob)**/{d}/**" for d in sorted(PROTECTED_DIRS)]
-        res = await asyncio.to_thread(
-            subprocess.run, ["git", "diff", "HEAD", "--", target, *excludes],
-            cwd=str(fs.root), capture_output=True, text=True, timeout=8,
-        )
-        diff = res.stdout if res.returncode == 0 else ""
-        # Credentials files are dropped per file section, so allowed templates like .env.example still show.
-        sections = re.split(r"(?m)^(?=diff --git )", diff)
-        kept = [sec for sec in sections if not (
-            (m := re.match(r"diff --git a/(\S+) b/(\S+)", sec))
-            and any(_is_secret_name(part) for f in m.groups() for part in Path(f).parts)
-        )]
-        return {"path": path or "workspace", "diff": "".join(kept)}
+
+        def _git(*extra: str) -> str:
+            res = subprocess.run(["git", "diff", "HEAD", "--no-renames", *extra], cwd=str(fs.root),
+                                 capture_output=True, text=True, timeout=8)
+            return res.stdout if res.returncode == 0 else ""
+
+        # List changed files NUL-separated (never quoted), drop credentials files, then diff only what's left,
+        # so allowed templates like .env.example still show and no header parsing is involved.
+        changed = (await asyncio.to_thread(_git, "--name-only", "-z", "--", target, *excludes)).split("\0")
+        allowed = [f":(literal){f}" for f in changed if f and not any(_is_secret_name(p) for p in Path(f).parts)]
+        diff = await asyncio.to_thread(_git, "--", *allowed) if allowed else ""
+        return {"path": path or "workspace", "diff": diff}
 
     path_arg = {"path": {"type": "string", "description": "Path relative to the workspace root"}}
     server.register_tool("list_files", "List files in the Keelway workspace (read-only).",
