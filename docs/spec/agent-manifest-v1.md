@@ -6,9 +6,9 @@ and how isolated it runs. It is data only. Nothing in this spec runs an agent.
 Implementation: `core/agents/manifest.py`. Example: `docs/spec/examples/test-fixer.agent.json`.
 CLI: `keelway agent validate|sign|verify FILE`.
 
-**Status:** the format, validation, digest and signing exist and are tested. **Not built yet:** the loop does not
-read manifests (nothing enforces the allowlists at run time), and there is no registry, API or Studio builder.
-Those are the next steps below.
+**Status:** the format, validation, digest and signing exist and are tested. **Run-time enforcement exists for
+part of it** (`core/agents/guard.py`, section "Enforcement"). **Not built yet:** registry, API routes, Studio
+builder, and enforcement of `sandbox`, `budget.max_usd_per_run`, `permissions.network` and `mcp_servers`.
 
 ## Fields
 
@@ -62,12 +62,45 @@ using the `schema` alias, sorted keys, separators `(",", ":")` and no null field
 or third parties, move to Ed25519 (needs the `cryptography` package). Verification results:
 `ok`, `not_signed`, `wrong_key`, `content_changed_since_signing`, `bad_signature`.
 
+## Enforcement (`core/agents/guard.py`)
+
+`loop_from_manifest(manifest, task_id, ...)` builds an `AutonomousAgentLoop` that can only do what the manifest
+allows. The guard only **narrows**: it can deny a call and never grants one, and it runs before approval rules,
+so a standing "Allow always" rule cannot widen a manifest.
+
+| Enforced | How |
+|---|---|
+| `tools` | Only listed tools are registered; the guard checks again on every call |
+| `permissions.read_paths`, `write_paths` | Glob (`*` stays in a folder, `**` crosses folders, `?`) matched on the **real, symlink-resolved** path; `..`, absolute paths, backslashes and NUL are rejected; Keelway state and `.git` are always off limits, including through symlinks. Empty `read_paths` means the whole workspace minus protected paths |
+| `search_codebase` | Results are filtered to files the agent may read |
+| `permissions.commands` | Exact string match after trimming whitespace |
+| `budget.max_steps` | Counted per guard; denied calls do not consume it |
+| `permissions.autonomy` | Becomes the loop's approval policy |
+
+Every denial is recorded as a `policy_denied` event with the manifest digest, and a `manifest_bound` event records
+the digest when the loop starts. These go to the loop's events and flight tape, **not yet to the hash-chained
+audit log** (that is written by API routes).
+
+**Refused outright:** an `autonomous` agent with `run_command` raises `ManifestNotRunnable`, because `sandbox` is
+not enforced (below) and an autonomous shell with no isolation is not safe.
+
+**Not enforced yet** (`keelway agent validate` prints these for each manifest):
+
+- `sandbox` `worktree` or `container`: `run_command` still executes in the workspace shell. There is no isolation.
+  A command in the allowed list can still do anything that command can do.
+- `budget.max_usd_per_run`: the loop does not meter cost.
+- `permissions.network` and `network_allow`: tools have no network control; model calls follow `model.routing`.
+- `mcp_servers`: the loop has no MCP client.
+
 ## Next steps (not built)
 
-1. **Enforcement:** build `AutonomousAgentLoop` from a manifest: tool allowlist, path and command scopes mapped
-   onto the approval-rule machinery, `budget` as hard stops, `autonomy` to `AutonomyPolicy`, and an audit entry
-   naming the manifest digest on every run.
-2. **Private team registry:** store manifests by `name@version`, record `owner`, add an enable/disable (kill
+1. **Route and audit integration** (after PR #15 merges, since it edits `core/api/routes.py`): start a run from a
+   manifest via the API, check `approve_tier3` for `autonomous`, and write the manifest digest into the audit
+   chain, not only the flight tape.
+2. **Sandbox:** real isolation for `run_command` (git worktree plus OS-level restrictions or a container), then
+   lift the `autonomous` refusal.
+3. **Cost metering** for `max_usd_per_run`.
+4. **Private team registry:** store manifests by `name@version`, record `owner`, add an enable/disable (kill
    switch) flag, expose list/get/publish routes with RBAC, and show agents on Studio's run board.
-3. **Builder in Studio:** create from a template, dry-run in a worktree, replay from the flight recorder, publish.
-4. **Ed25519 signatures** and a public "Keelway Verified" registry, last.
+5. **Builder in Studio:** create from a template, dry-run in a worktree, replay from the flight recorder, publish.
+6. **Ed25519 signatures** and a public "Keelway Verified" registry, last.
