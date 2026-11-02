@@ -87,8 +87,11 @@ async def test_missing_ollama_model_says_what_to_pull():
         ("GET", "/api/tags"): lambda r: httpx.Response(200, json={"models": []}),
         ("POST", "/api/chat"): lambda r: httpx.Response(404, json={"error": "model not found"}),
     })
+    a = LocalAdapter(base_url="http://x", api="ollama", transport=t)
+    assert a.is_available() is False
+    assert a.describe()["up"] is True and a.describe()["model"] is None
     with pytest.raises(RuntimeError, match="ollama pull qwen2.5-coder:7b"):
-        await LocalAdapter(base_url="http://x", api="ollama", transport=t).complete(_req())
+        await a.complete(_req())
 
 
 def test_probe_is_cached():

@@ -125,7 +125,7 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     tapes = len(list(FLIGHT_RECORDINGS_DIR.glob("*.flight.json"))) if FLIGHT_RECORDINGS_DIR.exists() else 0
     local_adapter = gateway.adapters.get(Provider.LOCAL)
     local = (await asyncio.to_thread(local_adapter.describe) if hasattr(local_adapter, "describe")
-             else {"up": bool(local_adapter), "api": None, "model": None})
+             else {"up": bool(local_adapter), "available": bool(local_adapter), "api": None, "model": None})
 
     return {
         "version": STUDIO_VERSION,
@@ -138,9 +138,9 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
             "anthropic": bool(settings.anthropic_api_key),
             "openai": bool(settings.openai_api_key),
             "google": bool(settings.gemini_api_key),
-            "local": local["up"],
+            "local": local["available"],
         },
-        "local_model": local["model"] or settings.default_local_model,
+        "local_model": local["model"] or ("no model installed" if local["up"] else "not running"),
         "local_runtime": local,
         "hardware": _hardware(),
         "git": {

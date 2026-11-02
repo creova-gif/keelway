@@ -100,15 +100,17 @@ class LocalAdapter(ModelAdapter):
         return installed[0]
 
     def is_available(self) -> bool:
-        return self.runtime().up
+        rt = self.runtime()
+        return rt.up and bool(rt.models)
 
     def describe(self) -> Dict[str, Any]:
         rt = self.runtime()
         return {
             "up": rt.up,
+            "available": rt.up and bool(rt.models),
             "api": rt.api,
             "endpoint": self.base_url,
-            "model": self.resolve_model() if rt.up else None,
+            "model": self.resolve_model() if rt.up and rt.models else None,
             "installed": rt.models,
             "recommended": _recommended_model(),
         }
@@ -117,6 +119,8 @@ class LocalAdapter(ModelAdapter):
         rt = self.runtime()
         if not rt.up:
             raise RuntimeError(f"No local model server answering at {self.base_url} (start Ollama or vLLM).")
+        if not rt.models:
+            raise RuntimeError(f"No local chat model installed. Run: ollama pull {_recommended_model()}")
         model = self.resolve_model()
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
         if rt.api == "ollama":
