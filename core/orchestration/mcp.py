@@ -79,9 +79,12 @@ class MCPProtocolServer:
         params = request.get("params") or {}
         if "id" not in request:
             return None
+        if not isinstance(params, dict):
+            return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": "Invalid params"}}
 
         if method == "initialize":
             asked = params.get("protocolVersion")
+            asked = asked if isinstance(asked, str) else None
             return {"jsonrpc": "2.0", "id": req_id, "result": {
                 "protocolVersion": asked if asked in SUPPORTED_VERSIONS else PROTOCOL_VERSION,
                 "capabilities": {"tools": {"listChanged": False}, "resources": {"listChanged": False}},
@@ -146,6 +149,15 @@ class MCPProtocolServer:
         }
 
 
+async def _safe_handle(server: MCPProtocolServer, message: Any) -> Optional[Dict[str, Any]]:
+    try:
+        return await server.handle_jsonrpc_request(message)
+    except Exception as e:  # one bad message must not end the session
+        print(f"keelway mcp: internal error: {e}", file=sys.stderr)
+        req_id = message.get("id") if isinstance(message, dict) else None
+        return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32603, "message": "Internal error"}}
+
+
 async def serve_stdio(server: MCPProtocolServer, stdin: Optional[IO[str]] = None, stdout: Optional[IO[str]] = None) -> None:
     """MCP stdio transport: newline-delimited JSON-RPC on stdin/stdout; nothing else is ever written to stdout."""
     stdin = stdin or sys.stdin
@@ -163,11 +175,13 @@ async def serve_stdio(server: MCPProtocolServer, stdin: Optional[IO[str]] = None
         except json.JSONDecodeError:
             response: Optional[Dict[str, Any]] = {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}
         else:
-            if isinstance(message, list):
-                replies = [r for r in [await server.handle_jsonrpc_request(m) for m in message] if r is not None]
+            if isinstance(message, list) and not message:
+                response = {"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Invalid Request"}}
+            elif isinstance(message, list):
+                replies = [r for r in [await _safe_handle(server, m) for m in message] if r is not None]
                 response = replies or None  # type: ignore[assignment]
             else:
-                response = await server.handle_jsonrpc_request(message)
+                response = await _safe_handle(server, message)
         if response is not None:
             stdout.write(json.dumps(response, ensure_ascii=False, separators=(",", ":")) + "\n")
             stdout.flush()

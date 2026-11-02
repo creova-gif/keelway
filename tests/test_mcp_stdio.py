@@ -133,3 +133,17 @@ async def test_git_diff_excludes_protected_and_secret_files(tmp_path):
     diff = reply["result"]["content"][0]["text"]
     assert "new-app.py" in diff
     assert "new-.keelway" not in diff and "new-.env" not in diff
+
+
+@pytest.mark.asyncio
+async def test_malformed_messages_do_not_end_the_session():
+    replies = await _run(MCPProtocolServer(), [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": [1, 2]},
+        {"jsonrpc": "2.0", "id": 2, "method": "initialize", "params": {"protocolVersion": ["2025-06-18"]}},
+        [],
+        {"jsonrpc": "2.0", "id": 3, "method": "ping"},
+    ])
+    assert replies[0]["error"]["code"] == -32602
+    assert replies[1]["result"]["protocolVersion"] == "2025-06-18"
+    assert replies[2]["error"]["code"] == -32600
+    assert replies[3] == {"jsonrpc": "2.0", "id": 3, "result": {}}
