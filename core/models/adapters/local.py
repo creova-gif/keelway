@@ -32,6 +32,14 @@ class LocalRuntime:
         return self.api is not None
 
 
+def _is_chat_model(entry: Dict[str, Any]) -> bool:
+    """Ollama lists embedding models (nomic-embed-text, bge-m3, all-minilm...) alongside chat models; /api/chat rejects them."""
+    name = str(entry.get("name", "")).lower()
+    details = entry.get("details") or {}
+    families = [str(f).lower() for f in (details.get("families") or [details.get("family") or ""])]
+    return "embed" not in name and not any("bert" in f for f in families)
+
+
 @functools.lru_cache(maxsize=1)
 def _recommended_model() -> str:
     from core.models.edge_loader import EdgeRuntimeManager
@@ -62,7 +70,7 @@ class LocalAdapter(ModelAdapter):
                     if kind == "ollama":
                         r = client.get(f"{self.base_url}/api/tags")
                         if r.status_code == 200:
-                            return LocalRuntime("ollama", [m["name"] for m in r.json().get("models", []) if m.get("name")])
+                            return LocalRuntime("ollama", [m["name"] for m in r.json().get("models", []) if m.get("name") and _is_chat_model(m)])
                     else:
                         r = client.get(f"{self.base_url}/v1/models")
                         if r.status_code == 200:

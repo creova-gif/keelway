@@ -97,3 +97,14 @@ def test_probe_is_cached():
     for _ in range(5):
         a.is_available()
     assert len(t.calls) == 1
+
+
+def test_embedding_models_are_never_picked_for_chat():
+    t = _transport({("GET", "/api/tags"): lambda r: httpx.Response(200, json={"models": [
+        {"name": "nomic-embed-text:latest", "details": {"family": "nomic-bert"}},
+        {"name": "bge-m3:latest", "details": {"families": ["bert"]}},
+        {"name": "llama3.2:3b", "details": {"family": "llama"}},
+    ]})})
+    a = LocalAdapter(base_url="http://x", default_model="qwen3.5:latest", api="ollama", transport=t)
+    assert a.resolve_model() == "llama3.2:3b"
+    assert a.describe()["installed"] == ["llama3.2:3b"]
