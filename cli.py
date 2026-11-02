@@ -819,12 +819,18 @@ def main():
     pull_parser = subparsers.add_parser("pull", help="Download and verify local LLM into Ollama")
     pull_parser.add_argument("model", nargs="?", default="qwen2.5-coder:7b", help="Model identifier to pull")
 
+    mcp_parser = subparsers.add_parser("mcp", help="Serve read-only workspace tools to MCP clients over stdio (Cursor, Claude Code, Zed)")
+    mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
+
     # bench (Production 10-Task Golden Evaluation Benchmark)
     subparsers.add_parser("bench", help="Run 10-task golden evaluation panel (Pass@1, latency, security)")
 
     args = parser.parse_args()
 
-    if args.command == "mesh":
+    if args.command == "mcp":
+        from core.orchestration.mcp import build_workspace_server, serve_stdio
+        asyncio.run(serve_stdio(build_workspace_server(args.workspace)))
+    elif args.command == "mesh":
         asyncio.run(cmd_mesh())
     elif args.command == "spec":
         asyncio.run(cmd_spec())
