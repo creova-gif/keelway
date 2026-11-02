@@ -68,6 +68,7 @@ class ManifestGuard:
         self._commands = {c.strip() for c in perms.commands}
         self._tools = set(manifest.tools)
         self.steps_used = 0
+        self.signed = False  # set by the caller that verified a signature
 
     # ---- path handling -------------------------------------------------
     def _real_relative(self, raw: Any) -> Tuple[Optional[str], Optional[Decision]]:
@@ -126,6 +127,13 @@ class ManifestGuard:
         self.steps_used += 1
         return decision
 
+    def summary(self) -> Dict[str, Any]:
+        m = self.manifest
+        return {
+            "name": m.name, "version": m.version, "digest": self.manifest_digest, "signed": self.signed,
+            "steps_used": self.steps_used, "max_steps": m.budget.max_steps, "sandbox": m.sandbox,
+        }
+
     def filter_result(self, tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]:
         """Drop search hits from files the agent may not read."""
         if tool_name != "search_codebase" or not self._read or not isinstance(result, dict):
@@ -163,6 +171,32 @@ def not_enforced(manifest: AgentManifest) -> List[str]:
     return notes
 
 
+def static_refusal(manifest: AgentManifest) -> Optional[str]:
+    """Reasons a valid manifest can never run, decided without touching the machine. None means no static objection."""
+    runs_commands = "run_command" in manifest.tools
+    if runs_commands and manifest.sandbox == "container":
+        return "sandbox 'container' is not built; use 'worktree' on macOS or drop run_command"
+    if runs_commands and manifest.sandbox == "workspace" and manifest.permissions.autonomy == "autonomous":
+        return "autonomous agents that run commands must not use sandbox 'workspace' (unconfined shell)"
+    if runs_commands and manifest.sandbox == "worktree" and manifest.permissions.network != "none":
+        return "per-host network allowlists cannot be enforced; set permissions.network to 'none' or drop run_command"
+    return None
+
+
+def preflight(manifest: AgentManifest, workspace_root: Path) -> Optional[str]:
+    """Why this manifest cannot run on THIS machine, or None if it can. May start processes (the sandbox self-test)."""
+    refusal = static_refusal(manifest)
+    if refusal:
+        return refusal
+    if "run_command" in manifest.tools and manifest.sandbox == "worktree":
+        from core.agents.sandbox import Sandbox
+
+        ok, detail = Sandbox(workspace_root).verify()
+        if not ok:
+            return f"commands need a verified sandbox and this machine has none: sandbox could not be verified on this machine: {detail}"
+    return None
+
+
 def loop_from_manifest(
     manifest: AgentManifest,
     task_id: str,
@@ -173,10 +207,9 @@ def loop_from_manifest(
     """Build an AutonomousAgentLoop that can only do what the manifest allows."""
     from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 
-    if "run_command" in manifest.tools and manifest.sandbox == "container":
-        raise ManifestNotRunnable("sandbox 'container' is not built; use 'worktree' on macOS or drop run_command")
-    if "run_command" in manifest.tools and manifest.sandbox == "workspace" and manifest.permissions.autonomy == "autonomous":
-        raise ManifestNotRunnable("autonomous agents that run commands must not use sandbox 'workspace' (unconfined shell)")
+    refusal = static_refusal(manifest)
+    if refusal:
+        raise ManifestNotRunnable(refusal)
     agent = AutonomousAgentLoop(
         task_id=task_id,
         workspace_fs=workspace_fs,
@@ -186,8 +219,6 @@ def loop_from_manifest(
     )
     runner = None
     if "run_command" in manifest.tools and manifest.sandbox == "worktree":
-        if manifest.permissions.network != "none":
-            raise ManifestNotRunnable("per-host network allowlists cannot be enforced; set permissions.network to 'none' or drop run_command")
         from core.agents.sandbox import Sandbox, SandboxUnavailable
 
         sandbox = Sandbox(agent.fs.root)

@@ -448,4 +448,5 @@ class AutonomousAgentLoop:
             "pending_approval": self.pending_approval,
             "events_count": len(self.events),
             "recent_events": self.events[-10:],
+            "manifest": self.guard.summary() if self.guard is not None else None,
         }
