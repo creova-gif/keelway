@@ -145,9 +145,10 @@ def test_search_results_are_filtered_to_readable_files(ws):
 
 def test_not_enforced_is_honest_about_gaps():
     notes = not_enforced(manifest())
-    assert any("sandbox 'worktree'" in n for n in notes)
+    assert any("sandbox 'worktree'" in n and "seatbelt" in n for n in notes)
     assert any("max_usd_per_run" in n for n in notes)
-    assert not any("sandbox" in n for n in not_enforced(manifest(sandbox="workspace")))
+    assert any("unconfined" in n for n in not_enforced(manifest(sandbox="workspace")))
+    assert any("container" in n and "not built" in n for n in not_enforced(manifest(sandbox="container")))
 
 
 # ---- the real loop ---------------------------------------------------------
@@ -228,9 +229,9 @@ async def test_loop_denies_unlisted_command_and_stops_at_step_budget(ws):
     assert again["code"] == "step_budget_exhausted"
 
 
-def test_autonomous_agents_with_commands_are_refused_until_sandboxing_exists(ws):
+def test_container_sandbox_is_refused_because_it_is_not_built(ws):
     m = manifest(permissions__autonomy="autonomous", sandbox="container")
-    with pytest.raises(ManifestNotRunnable, match="sandbox isolation"):
+    with pytest.raises(ManifestNotRunnable, match="'container' is not built"):
         loop_from_manifest(m, "t3", WorkspaceFilesystem(str(ws)), record_flight=False)
 
 
