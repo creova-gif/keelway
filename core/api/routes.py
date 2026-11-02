@@ -815,9 +815,9 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
         if created:
             await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
 
-    res = await agent.approve_pending(approved=approved)
     from core.api.messaging_routes import relay
     relay.forget_task(task_id)
+    res = await agent.approve_pending(approved=approved)
     return {
         "task_id": task_id,
         "approval_result": res,
