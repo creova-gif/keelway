@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -72,3 +74,67 @@ def test_unsafe_remember_scope_is_rejected_before_the_tool_runs(client, tmp_path
     assert client.post("/v1/agent/approve/c1", json={"approved": True, "remember": {"scope": "*"}}).status_code == 400
     assert not (tmp_path / "keep.txt").exists()
     assert client.get("/v1/agent/status/c1").json()["pending_approval"]["tool_name"] == "write_file"
+
+
+def test_star_stays_in_one_directory_and_double_star_spans_them():
+    one = ApprovalRule("r", "edit_file", "src/*.py", "me", 0)
+    assert rule_matches(one, "edit_file", {"path": "src/a.py"})
+    assert not rule_matches(one, "edit_file", {"path": "src/private/config.py"})
+    deep = ApprovalRule("r", "edit_file", "src/**/*.py", "me", 0)
+    assert rule_matches(deep, "edit_file", {"path": "src/a.py"}) and rule_matches(deep, "edit_file", {"path": "src/x/y/a.py"})
+
+
+def test_symlinks_into_protected_state_never_match(tmp_path):
+    from core.security.approval_rules import ApprovalRuleStore
+    store = ApprovalRuleStore(tmp_path)
+    store.add("write_file", "alias/*", "me")
+    (tmp_path / ".keelway").mkdir(exist_ok=True)
+    (tmp_path / "alias").symlink_to(tmp_path / ".keelway")
+    assert store.match("write_file", {"path": "alias/approval_rules.json"}) is None
+    (tmp_path / "real").mkdir()
+    store.add("write_file", "real/*", "me")
+    assert store.match("write_file", {"path": "real/a.txt"}) is not None
+
+
+@pytest.mark.parametrize("content", ['{"rules": null}', '{"rules": [1, "x", null]}', "[]", "not json"])
+def test_malformed_rule_files_mean_no_rules(tmp_path, content):
+    from core.security.approval_rules import ApprovalRuleStore
+    store = ApprovalRuleStore(tmp_path)
+    store.path.parent.mkdir(parents=True)
+    store.path.write_text(content)
+    assert store.list() == [] and store.match("write_file", {"path": "a.txt"}) is None
+
+
+def test_reapproving_an_existing_scope_does_not_log_a_second_creation(client):
+    before = max((e["seq"] for e in client.get("/v1/audit?limit=1").json()), default=0)
+    for task in ("d1", "d2"):
+        client.post("/v1/agent/run", json={"task_id": task, "goal": "g", "steps": ["w"], "policy": "confirm_all"})
+        _write(client, task, "same.txt")
+        client.post(f"/v1/agent/approve/{task}", json={"approved": True, "remember": {"scope": "same.txt"}})
+    creations = [e for e in client.get("/v1/audit?limit=200").json()
+                 if e["seq"] > before and e["action"] == "approval_rule_create" and e["resource"] == "write_file:same.txt"]
+    assert len(creations) == 1
+
+
+def test_blank_remembered_scope_is_rejected_not_a_silent_one_time_approval(client, tmp_path):
+    client.post("/v1/agent/run", json={"task_id": "b1", "goal": "g", "steps": ["w"]})
+    _write(client, "b1", "blank.txt")
+    r = client.post("/v1/agent/approve/b1", json={"approved": True, "remember": {"scope": "   "}})
+    assert r.status_code == 400 and not (tmp_path / "blank.txt").exists()
+    assert client.get("/v1/approval-rules").json()["rules"] == []
+
+
+def test_recursive_glob_never_reaches_nested_protected_dirs():
+    rule = ApprovalRule("r", "write_file", "src/**/*.json", "t", 0.0)
+    assert rule_matches(rule, "write_file", {"path": "src/a/b.json"})
+    for p in ("src/.keelway/approval_rules.json", "src/vendor/.git/config.json", "src/.kora/x.json"):
+        assert not rule_matches(rule, "write_file", {"path": p})
+    with pytest.raises(ApprovalRuleError):
+        validate_scope("write_file", "src/.git/*")
+
+
+def test_many_recursive_segments_match_in_polynomial_time():
+    rule = ApprovalRule("r", "write_file", "/".join(["**"] * 5 + ["a", "**"] * 5) + "/z.py", "t", 0.0)
+    start = time.monotonic()
+    assert not rule_matches(rule, "write_file", {"path": "/".join(["a"] * 20) + "/y.py"})
+    assert time.monotonic() - start < 1
