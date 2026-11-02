@@ -248,12 +248,18 @@ def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
         path = args.get("path")
         target = str(fs.resolve_safe_path(_guard(path)).relative_to(fs.root)) if path else "."
         excludes = [f":(exclude,glob)**/{d}/**" for d in sorted(PROTECTED_DIRS)]
-        excludes += [f":(exclude,glob)**/{g}" for g in SECRET_GLOBS]
-        res = await asyncio.to_thread(
-            subprocess.run, ["git", "diff", "HEAD", "--", target, *excludes],
-            cwd=str(fs.root), capture_output=True, text=True, timeout=8,
-        )
-        return {"path": path or "workspace", "diff": res.stdout if res.returncode == 0 else ""}
+
+        def _git(*extra: str) -> str:
+            res = subprocess.run(["git", "diff", "HEAD", "--no-renames", "--relative", *extra], cwd=str(fs.root),
+                                 capture_output=True, text=True, timeout=8)
+            return res.stdout if res.returncode == 0 else ""
+
+        # List changed files NUL-separated (never quoted), drop credentials files, then diff only what's left,
+        # so allowed templates like .env.example still show and no header parsing is involved.
+        changed = (await asyncio.to_thread(_git, "--name-only", "-z", "--", target, *excludes)).split("\0")
+        allowed = [f":(literal){f}" for f in changed if f and not any(_is_secret_name(p) for p in Path(f).parts)]
+        diff = await asyncio.to_thread(_git, "--", *allowed) if allowed else ""
+        return {"path": path or "workspace", "diff": diff}
 
     path_arg = {"path": {"type": "string", "description": "Path relative to the workspace root"}}
     server.register_tool("list_files", "List files in the Keelway workspace (read-only).",
