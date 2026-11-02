@@ -123,15 +123,36 @@ escape fails. If it does not pass, or there is no backend, `loop_from_manifest` 
   runs the project's own code and can modify workspace files other than `.git`/`.keelway`).
 - A command that needs a tool under your home that is not on `PATH` will not be readable.
 
+## HTTP API
+
+**Start a run from a manifest:** `POST /v1/agent/run` with an inline `manifest` object (plus the usual `task_id`,
+`goal`, `steps`). Needs `execute_agent`.
+
+- The manifest is validated; problems return **422** with `{"detail": {"errors": [...]}}`.
+- `permissions.autonomy` becomes the run's policy. A `policy` in the same request must match or is rejected (400).
+  `autonomous` still needs `approve_tier3`, so a manifest cannot be used to skip that check.
+- A manifest with a `signature` is checked against `.keelway/agent_signing.key` in the workspace; a bad signature
+  or a missing key is **400**. Set `require_signed_manifests=true` to reject unsigned manifests too.
+- A manifest that cannot run on this machine (`container`, a network allowlist with commands, no verified sandbox)
+  is **422** with the reason. Nothing is registered.
+- The response adds `manifest` (name, version, digest, signed, steps used, max steps) and `not_enforced`.
+  `GET /v1/agent/status/{task_id}` and the run state carry the same `manifest` block.
+
+**Audit.** These go into the hash-chained audit log (and so into the Record):
+`agent_run_manifest` for a start (allowed) and for every refusal (denied), and `manifest_denied` for every tool call
+the manifest blocked during a run, each naming the manifest digest.
+
+**Dry run:** `POST /v1/agents/validate` with `{"manifest": {...}}` (or the manifest itself) returns `valid`,
+`errors`, `warnings`, `digest`, `signature` state, `requires_signature`, `runnable` + `runnable_reason` for this
+machine, and `not_enforced`. It starts no agent (it may run the sandbox self-test).
+
 ## Next steps (not built)
 
-1. **Route and audit integration** (after PR #15 merges, since it edits `core/api/routes.py`): start a run from a
-   manifest via the API, check `approve_tier3` for `autonomous`, and write the manifest digest into the audit
-   chain, not only the flight tape.
-2. **Sandbox follow-ups:** a Linux backend (bubblewrap, tested on a real Linux machine), containers, and a
-   disposable worktree copy that is merged back.
+1. **Registry:** store manifests by `name@version`, record `owner`, add an enable/disable (kill switch) flag, list/get/
+   publish routes with RBAC, and show agents on Studio's run board. A run would reference a registered manifest by
+   `name@version` instead of sending it inline.
+2. **Linux sandbox backend** (bubblewrap), tested on a real Linux machine; containers.
 3. **Cost metering** for `max_usd_per_run`.
-4. **Private team registry:** store manifests by `name@version`, record `owner`, add an enable/disable (kill
-   switch) flag, expose list/get/publish routes with RBAC, and show agents on Studio's run board.
-5. **Builder in Studio:** create from a template, dry-run in a worktree, replay from the flight recorder, publish.
-6. **Ed25519 signatures** and a public "Keelway Verified" registry, last.
+4. **Builder in Studio:** create from a template, dry-run (use `/v1/agents/validate`), replay from the flight
+   recorder, publish.
+5. **Ed25519 signatures** and a public "Keelway Verified" registry, last.
