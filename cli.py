@@ -17,6 +17,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
@@ -447,6 +448,60 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
         print(f"    Or manually run: `ollama pull {model}`\n")
 
 
+def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None) -> int:
+    """Validate, sign or verify an Agent Manifest (docs/spec/agent-manifest-v1.md)."""
+    from core.agents import manifest as am
+
+    try:
+        report = am.validate(am.load_file(path))
+    except (OSError, ValueError) as exc:
+        print(f"[-] {exc}")
+        return 2
+    for message in report.errors:
+        print(f"  error: {message}")
+    for message in report.warnings:
+        print(f"  warning: {message}")
+    if not report.ok:
+        print(f"[-] {path} is not a valid agent manifest ({len(report.errors)} problem(s)).")
+        return 1
+    manifest = report.manifest
+    if action == "validate":
+        print(f"[+] {manifest.name}@{manifest.version} is valid. digest {am.digest(manifest)}")
+        return 0
+    key = am.load_or_create_key(Path.cwd()) if action == "sign" else None
+    if action == "sign":
+        signed = am.sign(manifest, key, by or os.environ.get("USER", "unknown"))
+        target = out or path
+        target.write_text(am.to_json(signed), encoding="utf-8")
+        print(f"[+] Signed {manifest.name}@{manifest.version} with key {signed.signature.key_id}; wrote {target}")
+        return 0
+    key_path = Path.cwd() / ".keelway" / am.KEY_FILE
+    if not key_path.exists():
+        print("[-] No signing key in this workspace (.keelway/agent_signing.key), so nothing can be verified here.")
+        return 1
+    ok, reason = am.verify(manifest, bytes.fromhex(key_path.read_text().strip()))
+    print(f"[+] Signature valid ({manifest.signature.signed_by}, {manifest.signature.signed_at})" if ok else f"[-] Signature check failed: {reason}")
+    return 0 if ok else 1
+
+
+async def cmd_record(action: str, path: Optional[Path] = None) -> int:
+    """Export the audit log as a portable Keelway Record file, or verify one (no server needed)."""
+    from core.security import record_format
+
+    if action == "verify":
+        return record_format.main(["verify", str(path)])
+    from core.security.record_export import export_record
+    from core.storage.database import init_db
+
+    await init_db()
+    result = await export_record(path)
+    if path is None:
+        sys.stdout.write(result["text"])
+    else:
+        print(f"[+] Wrote {result['entries']} entries to {path} (chain {'valid' if result['valid'] else 'BROKEN'}).")
+    return 0 if result["valid"] else 1
+
+
 async def cmd_token(action: str, name: str = "", role: str = "engineer", token_id: str = ""):
     """Mint, list, or revoke API tokens directly in the local database."""
     from sqlalchemy import select
@@ -803,6 +858,22 @@ def main():
     pull_parser = subparsers.add_parser("pull", help="Download and verify local LLM into Ollama")
     pull_parser.add_argument("model", nargs="?", default="qwen2.5-coder:7b", help="Model identifier to pull")
 
+    agent_parser = subparsers.add_parser("agent", help="Validate, sign or verify an Agent Manifest")
+    agent_sub = agent_parser.add_subparsers(dest="agent_command", required=True)
+    for _name, _help in (("validate", "Check a manifest file"), ("sign", "Sign a manifest with the workspace key"), ("verify", "Verify a signed manifest")):
+        _p = agent_sub.add_parser(_name, help=_help)
+        _p.add_argument("path", type=Path, help="Path to the .agent.json file")
+        if _name == "sign":
+            _p.add_argument("--by", default="", help="Who is signing (default: $USER)")
+            _p.add_argument("--out", type=Path, default=None, help="Write here instead of overwriting the input")
+
+    record_parser = subparsers.add_parser("record", help="Export or verify the audit log as a portable Record file")
+    record_sub = record_parser.add_subparsers(dest="record_command", required=True)
+    _export = record_sub.add_parser("export", help="Write the audit log as Keelway Record JSONL")
+    _export.add_argument("--out", type=Path, default=None, help="Output file (default: stdout)")
+    _verify = record_sub.add_parser("verify", help="Verify a Record file without a server")
+    _verify.add_argument("path", type=Path, help="Path to the .jsonl Record file")
+
     # bench (Production 10-Task Golden Evaluation Benchmark)
     subparsers.add_parser("bench", help="Run 10-task golden evaluation panel (Pass@1, latency, security)")
 
@@ -837,6 +908,10 @@ def main():
             status_badge = "[✓ PASS]" if t["passed"] else "[✕ FAIL]"
             print(f"  {status_badge} {t['task_id']}: {t['name']:<42} ({t['duration_ms']:.2f} ms)")
         print()
+    elif args.command == "agent":
+        sys.exit(cmd_agent(args.agent_command, args.path, getattr(args, "by", ""), getattr(args, "out", None)))
+    elif args.command == "record":
+        sys.exit(asyncio.run(cmd_record(args.record_command, getattr(args, "path", None) or getattr(args, "out", None))))
     elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
     elif args.command == "demo":
