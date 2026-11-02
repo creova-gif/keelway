@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from core.config import legacy_aware
+from core.security.redact import redact_payload
 from typing import Dict, Any, List, Optional
 
 
@@ -38,8 +39,12 @@ class FlightRecorder:
         self.recordings_dir = recordings_dir or legacy_aware(Path(".keelway/recordings"), Path(".kora/recordings"))
         self.events: List[FlightEvent] = []
         self.current_index = 0
+        self.redactions = 0  # credentials removed from what this tape stores
 
     def record_event(self, event_type: str, payload: Dict[str, Any]) -> FlightEvent:
+        # An agent can read .env or print secrets; the tape is exported, forked and shared, so it never stores them.
+        payload, removed = redact_payload(payload)
+        self.redactions += removed
         self.current_index += 1
         event = FlightEvent(
             event_index=self.current_index,
@@ -66,6 +71,7 @@ class FlightRecorder:
         final_payload = {
             **data,
             "tape_sha256": tape_hash,
+            "redactions": self.redactions,
             "recorded_at": time.time(),
         }
         tape_path.write_text(json.dumps(final_payload, indent=2), encoding="utf-8")
