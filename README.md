@@ -108,13 +108,12 @@ The following modules are prototypes: they have data models and unit tests, but 
 | `core/models/speculative.py` | Simulated draft/verify loop; no model calls |
 | `core/models/edge_loader.py` | Hardware/Ollama probe; not used by the local adapter |
 | `core/storage/ap2.py`, `ledger.py`, `payment_broker.py` | Payload builders only; no live payment rails, not for real funds |
-| `core/api/messaging.py`, `keelway notify` | Builds Telegram/WhatsApp/push/SMS payloads; nothing is sent |
+| `core/api/messaging.py`, `keelway notify` | Builds Telegram/WhatsApp/push/SMS payloads; nothing is sent (the real approval relay is `core/api/approval_relay.py`, see [docs/MESSAGING.md](docs/MESSAGING.md)) |
 | `core/api/telephony.py` | USSD formatting helpers; no webhook route |
 | `core/storage/crdt.py` | In-memory LWW register; no persistence or transport |
 | `core/orchestration/mcp.py` | In-process JSON-RPC dispatcher; no stdio/SSE transport |
 | `core/security/telemetry.py` | In-memory spans; no OpenTelemetry exporter |
 | `core/studio/index.html` panels | Client-side demos; not yet connected to the API/WebSocket |
-| `mobile/` | Expo scaffold; not runnable yet |
 
 ---
 
@@ -125,7 +124,7 @@ The following modules are prototypes: they have data models and unit tests, but 
 ```bash
 # Clone the repository
 git clone https://github.com/creova-gif/kora.git
-cd keelway
+cd kora
 
 # Create and activate Python virtual environment
 python3 -m venv .venv
