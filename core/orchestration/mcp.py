@@ -6,9 +6,12 @@ Implements the JSON-RPC Model Context Protocol standard:
 """
 
 import asyncio
+import fnmatch
 import json
+import subprocess
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable, Awaitable, IO
 
 PROTOCOL_VERSION = "2025-06-18"
@@ -171,6 +174,13 @@ async def serve_stdio(server: MCPProtocolServer, stdin: Optional[IO[str]] = None
 
 
 PROTECTED_DIRS = {".git", ".keelway", ".kora"}
+SECRET_GLOBS = (".env", ".env.*", "*.pem", "*.key", "*.p12", "*.pfx", "id_rsa*", "id_dsa*", "id_ecdsa*",
+                "id_ed25519*", ".netrc", ".npmrc", ".pypirc", ".git-credentials")
+SECRET_ALLOWED = {".env.example", ".env.sample", ".env.template"}
+
+
+def _is_secret_name(name: str) -> bool:
+    return name.lower() not in SECRET_ALLOWED and any(fnmatch.fnmatch(name.lower(), g) for g in SECRET_GLOBS)
 
 
 def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
@@ -180,14 +190,39 @@ def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
     fs = WorkspaceFilesystem(root)
     server = MCPProtocolServer()
 
+    def _blocked(rel: Path) -> Optional[str]:
+        if PROTECTED_DIRS & set(rel.parts):
+            return "inside a protected Keelway/git directory"
+        if any(_is_secret_name(part) for part in rel.parts):
+            return "a credentials file"
+        return None
+
     def _guard(path: str) -> str:
         resolved = fs.resolve_safe_path(path)
-        if PROTECTED_DIRS & set(resolved.relative_to(fs.root).parts):
-            raise PermissionError(f"'{path}' is inside a protected Keelway/git directory")
+        for rel in (Path(path.lstrip("/\\")), resolved.relative_to(fs.root)):
+            reason = _blocked(rel)
+            if reason:
+                raise PermissionError(f"'{path}' is {reason}")
         return path
 
+    def _prune(node: Dict[str, Any]) -> Dict[str, Any]:
+        kept = []
+        for child in node.get("children", []):
+            try:
+                rel = (fs.root / child["path"]).resolve().relative_to(fs.root)
+            except ValueError:
+                continue  # symlink pointing outside the workspace
+            if _blocked(rel) or _is_secret_name(child["name"]):
+                continue
+            kept.append(_prune(child))
+        if "children" in node:
+            node["children"] = kept
+        return node
+
     async def list_files(args: Dict[str, Any]) -> Dict[str, Any]:
-        return fs.get_file_tree(_guard(args.get("path", ".")), max_depth=int(args.get("max_depth", 3)))
+        result = fs.get_file_tree(_guard(args.get("path", ".")), max_depth=int(args.get("max_depth", 3)))
+        result["tree"] = _prune(result["tree"])
+        return result
 
     async def read_file(args: Dict[str, Any]) -> Dict[str, Any]:
         return fs.read_file(_guard(args["path"]), max_bytes=1_000_000)
@@ -197,7 +232,14 @@ def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
 
     async def git_diff(args: Dict[str, Any]) -> Dict[str, Any]:
         path = args.get("path")
-        return fs.get_git_diff(_guard(path) if path else None)
+        target = str(fs.resolve_safe_path(_guard(path)).relative_to(fs.root)) if path else "."
+        excludes = [f":(exclude,glob)**/{d}/**" for d in sorted(PROTECTED_DIRS)]
+        excludes += [f":(exclude,glob)**/{g}" for g in SECRET_GLOBS]
+        res = await asyncio.to_thread(
+            subprocess.run, ["git", "diff", "HEAD", "--", target, *excludes],
+            cwd=str(fs.root), capture_output=True, text=True, timeout=8,
+        )
+        return {"path": path or "workspace", "diff": res.stdout if res.returncode == 0 else ""}
 
     path_arg = {"path": {"type": "string", "description": "Path relative to the workspace root"}}
     server.register_tool("list_files", "List files in the Keelway workspace (read-only).",

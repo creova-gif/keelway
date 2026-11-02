@@ -75,3 +75,61 @@ def test_cli_stdout_carries_only_mcp_messages(tmp_path):
     )
     lines = proc.stdout.splitlines()
     assert [json.loads(line)["id"] for line in lines] == [1, 2], proc.stdout + proc.stderr
+
+
+def _call(i, name, args):
+    return {"jsonrpc": "2.0", "id": i, "method": "tools/call", "params": {"name": name, "arguments": args}}
+
+
+@pytest.mark.asyncio
+async def test_credentials_files_are_refused_and_hidden(tmp_path):
+    (tmp_path / ".env").write_text("OPENAI_API_KEY=sk-live")
+    (tmp_path / "deploy.pem").write_text("-----BEGIN KEY-----")
+    (tmp_path / ".env.example").write_text("OPENAI_API_KEY=")
+    (tmp_path / "app.py").write_text("x = 1")
+    server = build_workspace_server(str(tmp_path))
+    env, pem, example, tree = await _run(server, [
+        _call(1, "read_file", {"path": ".env"}), _call(2, "read_file", {"path": "deploy.pem"}),
+        _call(3, "read_file", {"path": ".env.example"}), _call(4, "list_files", {}),
+    ])
+    assert env["result"]["isError"] and pem["result"]["isError"]
+    assert "sk-live" not in json.dumps(env)
+    assert not example["result"].get("isError")
+    listing = tree["result"]["content"][0]["text"]
+    assert "app.py" in listing and "deploy.pem" not in listing
+
+
+@pytest.mark.asyncio
+async def test_symlinks_into_protected_dirs_are_pruned(tmp_path):
+    (tmp_path / ".keelway").mkdir()
+    (tmp_path / ".keelway" / "rules.json").write_text("{}")
+    (tmp_path / "state").symlink_to(tmp_path / ".keelway")
+    (tmp_path / "creds").symlink_to(tmp_path / ".env")
+    (tmp_path / ".env").write_text("TOKEN=abc")
+    server = build_workspace_server(str(tmp_path))
+    tree, read, creds = await _run(server, [
+        _call(1, "list_files", {}), _call(2, "read_file", {"path": "state/rules.json"}),
+        _call(3, "read_file", {"path": "creds"}),
+    ])
+    assert "rules.json" not in tree["result"]["content"][0]["text"]
+    assert read["result"]["isError"] and creds["result"]["isError"]
+
+
+@pytest.mark.asyncio
+async def test_git_diff_excludes_protected_and_secret_files(tmp_path):
+    def git(*a):
+        subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    (tmp_path / ".keelway").mkdir()
+    for f in (".keelway/rules.json", ".env", "app.py"):
+        (tmp_path / f).write_text("old\n")
+    git("add", "-A")
+    git("commit", "-qm", "init")
+    for f in (".keelway/rules.json", ".env", "app.py"):
+        (tmp_path / f).write_text(f"new-{f}\n")
+    (reply,) = await _run(build_workspace_server(str(tmp_path)), [_call(1, "git_diff", {})])
+    diff = reply["result"]["content"][0]["text"]
+    assert "new-app.py" in diff
+    assert "new-.keelway" not in diff and "new-.env" not in diff
