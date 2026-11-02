@@ -23,7 +23,8 @@ a convenience, and a failed send never blocks the agent.
 ```bash
 export KEELWAY_TELEGRAM_BOT_TOKEN=...
 export KEELWAY_TELEGRAM_CHAT_ID=...
-# optional, for group chats: who may press the buttons (defaults to the chat ID)
+# who may press the buttons; defaults to the chat ID for a private chat.
+# Group chats (negative IDs) get notifications only until you list approver user IDs here.
 export KEELWAY_TELEGRAM_APPROVER_IDS=111,222
 keelway dev
 ```

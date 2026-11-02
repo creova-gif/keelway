@@ -31,8 +31,10 @@ async def apply_remote_decision(nonce: str, approved: bool, actor: str) -> str:
         return "Already handled or no longer pending."
     tool = agent.pending_approval["tool_name"]
     await record_audit(principal, "remote_approval", f"{task_id}:{tool}:{'approve' if approved else 'deny'}", True)
-    await agent.approve_pending(approved=approved)
+    result = await agent.approve_pending(approved=approved)
     await routes._publish_agent(agent)
+    if result.get("status") == "error":
+        return f"Approved, but {tool} failed for {task_id}: {str(result.get('error', ''))[:120]}"
     return f"{'Approved' if approved else 'Denied'}: {tool} for {task_id}."
 
 
@@ -46,6 +48,7 @@ async def messaging_status() -> Dict[str, Any]:
         "air_gapped": gateway.air_gap.enabled,
         "blocked": gateway.air_gap.enabled,
         "whatsapp_replies": relay.config.whatsapp_replies,
+        "telegram_buttons": relay.config.telegram_buttons,
     }
 
 
@@ -55,7 +58,10 @@ async def messaging_test(principal: Principal = Depends(current_principal)) -> D
         result = await relay.send_test()
     except RelayBlocked as e:
         raise HTTPException(status_code=409, detail=str(e))
-    await record_audit(principal, "messaging_test", ",".join(result["sent"]), True)
+    delivered = [name for name, r in result["sent"].items() if r.get("ok")]
+    await record_audit(principal, "messaging_test", ",".join(result["sent"]), bool(delivered))
+    if not delivered:
+        raise HTTPException(status_code=502, detail={"message": "No channel accepted the test message.", **result})
     return result
 
 

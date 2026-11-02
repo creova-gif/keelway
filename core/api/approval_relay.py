@@ -52,7 +52,7 @@ class RelayConfig:
         return cls(
             telegram_token=env("KEELWAY_TELEGRAM_BOT_TOKEN", "").strip(),
             telegram_chat_id=chat,
-            telegram_approver_ids=approvers or ([chat] if chat else []),
+            telegram_approver_ids=approvers or ([chat] if chat and not chat.startswith("-") else []),
             whatsapp_token=env("KEELWAY_WHATSAPP_TOKEN", "").strip(),
             whatsapp_phone_id=env("KEELWAY_WHATSAPP_PHONE_NUMBER_ID", "").strip(),
             whatsapp_to=env("KEELWAY_WHATSAPP_TO", "").strip().lstrip("+"),
@@ -63,6 +63,11 @@ class RelayConfig:
     @property
     def telegram(self) -> bool:
         return bool(self.telegram_token and self.telegram_chat_id)
+
+    @property
+    def telegram_buttons(self) -> bool:
+        """Group chats (negative IDs) need explicit KEELWAY_TELEGRAM_APPROVER_IDS before buttons are offered."""
+        return self.telegram and bool(self.telegram_approver_ids)
 
     @property
     def whatsapp(self) -> bool:
@@ -118,10 +123,14 @@ class ApprovalRelay:
         """One-time: returns (task_id, fingerprint) and forgets the nonce."""
         return self._pending.pop(nonce, None)
 
-    def _new_nonce(self, task_id: str, pending: Dict[str, Any]) -> str:
+    def forget_task(self, task_id: str) -> None:
+        """Invalidate outstanding buttons for a task once its approval is answered anywhere."""
         for old, (tid, _) in list(self._pending.items()):
             if tid == task_id:
                 del self._pending[old]
+
+    def _new_nonce(self, task_id: str, pending: Dict[str, Any]) -> str:
+        self.forget_task(task_id)
         while len(self._pending) >= MAX_PENDING:
             del self._pending[next(iter(self._pending))]
         nonce = secrets.token_urlsafe(12)
@@ -133,28 +142,32 @@ class ApprovalRelay:
         self._check_can_send()
         nonce = self._new_nonce(pending["task_id"], pending)
         text = f"{_summary(pending)}\nTask: {pending['task_id']}"
-        results: Dict[str, Any] = {}
-        async with self._client() as client:
-            if self.config.telegram:
-                results["telegram"] = await self._telegram_send(client, text, nonce)
-            if self.config.whatsapp:
-                results["whatsapp"] = await self._whatsapp_send(client, text, nonce)
-        return {"sent": results}
+        return {"sent": await self._send_all(text, nonce)}
 
     async def send_test(self) -> Dict[str, Any]:
         self._check_can_send()
-        text = "Keelway: messaging works. Approval requests will arrive here."
+        return {"sent": await self._send_all("Keelway: messaging works. Approval requests will arrive here.", None)}
+
+    async def _send_all(self, text: str, nonce: Optional[str]) -> Dict[str, Any]:
+        """One channel failing (timeout, DNS, 5xx) never stops the others."""
+        senders = []
+        if self.config.telegram:
+            senders.append(("telegram", self._telegram_send))
+        if self.config.whatsapp:
+            senders.append(("whatsapp", self._whatsapp_send))
         results: Dict[str, Any] = {}
         async with self._client() as client:
-            if self.config.telegram:
-                results["telegram"] = await self._telegram_send(client, text, None)
-            if self.config.whatsapp:
-                results["whatsapp"] = await self._whatsapp_send(client, text, None)
-        return {"sent": results}
+            for name, send in senders:
+                try:
+                    results[name] = await send(client, text, nonce)
+                except Exception as e:
+                    logger.warning("%s send failed: %s", name, type(e).__name__)
+                    results[name] = {"ok": False, "error": type(e).__name__}
+        return results
 
     async def _telegram_send(self, client: httpx.AsyncClient, text: str, nonce: Optional[str]) -> Dict[str, Any]:
         body: Dict[str, Any] = {"chat_id": self.config.telegram_chat_id, "text": text}
-        if nonce:
+        if nonce and self.config.telegram_buttons:
             body["reply_markup"] = {"inline_keyboard": [[
                 {"text": "Approve", "callback_data": f"kw:a:{nonce}"},
                 {"text": "Deny", "callback_data": f"kw:d:{nonce}"},
@@ -212,7 +225,11 @@ class ApprovalRelay:
                 if chat != self.config.telegram_chat_id or sender not in self.config.telegram_approver_ids:
                     outcome = "You are not an approver for this Keelway workspace."
                 else:
-                    outcome = await self._decide(str(cq.get("data", "")), f"telegram:{sender}")
+                    try:
+                        outcome = await self._decide(str(cq.get("data", "")), f"telegram:{sender}")
+                    except Exception as e:
+                        logger.warning("Telegram decision failed: %s", type(e).__name__)
+                        outcome = "Keelway could not apply that answer. Use the Studio."
                     handled += 1
                 if cq.get("id"):
                     await client.post(f"{base}/answerCallbackQuery", json={"callback_query_id": cq["id"], "text": outcome[:200]})
