@@ -780,10 +780,13 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
             )
     try:
         res = await agent.execute_tool(tool_name=tool_name, arguments=arguments, step_id=step_id)
+        state = await _publish_agent(agent)
+        from core.api.messaging_routes import notify_if_paused
+        await notify_if_paused(res)
         return {
             "task_id": task_id,
             "step_result": res,
-            "agent_state": await _publish_agent(agent),
+            "agent_state": state,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -812,6 +815,8 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
         if created:
             await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
 
+    from core.api.messaging_routes import relay
+    relay.forget_task(task_id)
     res = await agent.approve_pending(approved=approved)
     return {
         "task_id": task_id,

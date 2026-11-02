@@ -111,7 +111,7 @@ The following modules are prototypes: they have data models and unit tests, but 
 | `core/api/messaging.py`, `keelway notify` | Builds Telegram/WhatsApp/push/SMS payloads; nothing is sent |
 | `core/api/telephony.py` | USSD formatting helpers; no webhook route |
 | `core/storage/crdt.py` | In-memory LWW register; no persistence or transport |
-| `core/orchestration/mcp.py` | In-process JSON-RPC dispatcher; no stdio/SSE transport |
+| `core/orchestration/mcp.py` | stdio transport (`keelway mcp`) with read-only workspace tools; no HTTP/SSE transport |
 | `core/security/telemetry.py` | In-memory spans; no OpenTelemetry exporter |
 | `core/studio/index.html` panels | Client-side demos; not yet connected to the API/WebSocket |
 | `mobile/` | Expo scaffold; not runnable yet |
@@ -167,6 +167,14 @@ Every permission decision on a mutating action is appended to a hash-chained aud
 ---
 
 ## 💻 CLI Commands & Workflows
+
+### 🔌 MCP server (`keelway mcp`)
+Serves read-only workspace tools (`list_files`, `read_file`, `git_status`, `git_diff`) over MCP stdio for Cursor, Claude Code, Zed and other MCP clients. `.git`, `.keelway` and `.kora` are refused, and writes and commands are not exposed, so they stay behind Keelway's approval gates. Works fully offline.
+```json
+{"mcpServers": {"keelway": {"command": "/path/to/kora/bin/keelway", "args": ["mcp", "--workspace", "/path/to/project"]}}}
+```
+
+---
 
 ### 💬 Interactive Terminal REPL (`keelway chat`)
 Launch the stateful conversational workspace with automated hybrid memory recall and thinking token display:

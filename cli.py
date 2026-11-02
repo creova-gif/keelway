@@ -123,6 +123,18 @@ async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, descr
     print(f"\n[+] Status: {intent.status.upper()} (Expires in 15 minutes)\n")
 
 
+def _lan_ip() -> str | None:
+    """This machine's LAN address, for pairing a phone. A UDP connect sends no packets."""
+    import socket
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))
+            ip = s.getsockname()[0]
+        return None if ip.startswith("127.") else ip
+    except OSError:
+        return None
+
+
 async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
     """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
@@ -138,6 +150,10 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
         print("  (owner launch token; changes every run unless KEELWAY_API_TOKEN is set)")
     else:
         print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
+    lan = _lan_ip() if host in ("0.0.0.0", "::") else None
+    if lan:
+        suffix = f"?token={launch_token()}" if settings.auth_required else ""
+        print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}/{suffix}")
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
@@ -874,12 +890,18 @@ def main():
     _verify = record_sub.add_parser("verify", help="Verify a Record file without a server")
     _verify.add_argument("path", type=Path, help="Path to the .jsonl Record file")
 
+    mcp_parser = subparsers.add_parser("mcp", help="Serve read-only workspace tools to MCP clients over stdio (Cursor, Claude Code, Zed)")
+    mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
+
     # bench (Production 10-Task Golden Evaluation Benchmark)
     subparsers.add_parser("bench", help="Run 10-task golden evaluation panel (Pass@1, latency, security)")
 
     args = parser.parse_args()
 
-    if args.command == "mesh":
+    if args.command == "mcp":
+        from core.orchestration.mcp import build_workspace_server, serve_stdio
+        asyncio.run(serve_stdio(build_workspace_server(args.workspace)))
+    elif args.command == "mesh":
         asyncio.run(cmd_mesh())
     elif args.command == "spec":
         asyncio.run(cmd_spec())

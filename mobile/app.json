@@ -4,22 +4,25 @@
     "slug": "keelway-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "keelway",
     "splash": {
-      "backgroundColor": "#070A12"
+      "backgroundColor": "#0B0F14"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dev.keelway.mobile",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Keelway requires FaceID to cryptographically authorize agent code commits and spend mandates."
+        "NSFaceIDUsageDescription": "Keelway asks for Face ID before approving an agent action from your phone.",
+        "NSLocalNetworkUsageDescription": "Keelway connects to the Keelway running on your computer over your local network.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#070A12"
+        "backgroundColor": "#0B0F14"
       },
       "package": "dev.keelway.mobile",
       "permissions": [
@@ -27,6 +30,20 @@
         "USE_FINGERPRINT",
         "INTERNET"
       ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "web": {
+      "bundler": "metro"
     }
   }
 }

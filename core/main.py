@@ -16,6 +16,8 @@ from core.security.origin import extra_origins, origin_allowed
 from core.api.routes import router
 from core.api.studio import router as studio_router
 from core.api.auth_routes import router as auth_router
+from core.api.messaging_routes import relay, router as messaging_router
+import asyncio
 from core.security.auth import launch_token
 import os
 from core.storage.database import init_db
@@ -45,8 +47,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     elif not settings.auth_required:
         logger.warning("AUTH_REQUIRED=false: every request is treated as the local owner.")
 
+    poller = asyncio.create_task(relay.run_telegram_poller()) if relay.config.telegram else None
+    if relay.channels():
+        logger.info("Approval messaging on: %s (blocked while air-gapped).", ", ".join(relay.channels()))
+
     yield
 
+    if poller:
+        poller.cancel()
     logger.info("Shutting down Keelway Core...")
 
 
@@ -93,6 +101,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 app.include_router(router)
 app.include_router(studio_router)
 app.include_router(auth_router)
+app.include_router(messaging_router)
 
 # Mount Keelway Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
