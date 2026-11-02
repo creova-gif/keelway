@@ -250,7 +250,7 @@ def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
         excludes = [f":(exclude,glob)**/{d}/**" for d in sorted(PROTECTED_DIRS)]
 
         def _git(*extra: str) -> str:
-            res = subprocess.run(["git", "diff", "HEAD", "--no-renames", *extra], cwd=str(fs.root),
+            res = subprocess.run(["git", "diff", "HEAD", "--no-renames", "--relative", *extra], cwd=str(fs.root),
                                  capture_output=True, text=True, timeout=8)
             return res.stdout if res.returncode == 0 else ""
 

@@ -149,3 +149,24 @@ async def test_malformed_messages_do_not_end_the_session():
     assert replies[1]["result"]["protocolVersion"] == "2025-06-18"
     assert replies[2]["error"]["code"] == -32600
     assert replies[3] == {"jsonrpc": "2.0", "id": 3, "result": {}}
+
+
+@pytest.mark.asyncio
+async def test_git_diff_in_workspace_below_repo_root(tmp_path):
+    def git(*a):
+        subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    ws = tmp_path / "service"
+    ws.mkdir()
+    for f in ("service/app.py", "service/.env", "other.py"):
+        (tmp_path / f).write_text("old\n")
+    git("add", "-A")
+    git("commit", "-qm", "init")
+    for f in ("service/app.py", "service/.env", "other.py"):
+        (tmp_path / f).write_text(f"new-{f}\n")
+    (reply,) = await _run(build_workspace_server(str(ws)), [_call(1, "git_diff", {})])
+    diff = reply["result"]["content"][0]["text"]
+    assert "new-service/app.py" in diff
+    assert "new-service/.env" not in diff and "new-other.py" not in diff
