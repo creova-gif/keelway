@@ -1,0 +1,4 @@
+# Vercel serves only the static landing page in website/. Keelway itself runs locally.
+/*
+!/website
+!/vercel.json
