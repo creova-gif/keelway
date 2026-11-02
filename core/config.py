@@ -61,7 +61,8 @@ class Settings(BaseSettings):
 
     # Local / Edge Provider
     ollama_base_url: str = Field(default="http://localhost:11434", description="Ollama or local model API base URL")
-    default_local_model: str = Field(default="qwen3.5:latest", description="Default local model tag")
+    default_local_model: str = Field(default="qwen3.5:latest", description="Preferred local model tag; falls back to an installed one")
+    local_api: str = Field(default="auto", description="Local server API: auto | ollama | openai (vLLM, llama.cpp, LM Studio)")
 
     # Policy Defaults
     max_latency_ms: int = Field(default=15000, description="Maximum acceptable latency before fallback")

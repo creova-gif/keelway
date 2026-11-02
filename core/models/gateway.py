@@ -2,8 +2,9 @@
 Keelway Model Gateway & Policy Router.
 """
 
-from typing import Dict, List, Optional, Tuple
+import asyncio
 import logging
+from typing import Dict, List, Optional, Tuple
 
 from core.api.schemas import CompletionRequestSchema, CompletionResponseSchema, Provider, MessageSchema
 from core.models.adapters.base import ModelAdapter
@@ -107,7 +108,8 @@ class ModelGateway:
                 continue
 
             adapter = self.adapters.get(provider)
-            if not adapter or not adapter.is_available():
+            # Off the event loop: the local adapter probes its server over HTTP.
+            if not adapter or not await asyncio.to_thread(adapter.is_available):
                 continue
 
             try:
