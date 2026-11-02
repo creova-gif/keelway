@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Keelway brand direction v0.2 (Sorvex Labs)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wdth,wght@75..100,400..700&family=Martian+Mono:wdth,wght@75..112,100..800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0A0D12;--ink2:#12161D;--line:#232A34;--paper:#F5F6F7;--graph:#5B6572;--teal:#2DD4BF;--teal-d:#0F766E;--amber:#F5B547;--amber-d:#B45309;--red:#F87171;--mute:#8B98A8}
+*{box-sizing:border-box;margin:0}
+body{background:var(--ink);color:#E9EEF3;font:15px/1.5 "Instrument Sans",system-ui,sans-serif}
+.disp{font-family:Archivo,sans-serif;font-weight:800;font-stretch:78%;letter-spacing:-.012em;word-spacing:.05em;line-height:.96}
+.mono{font-family:"Martian Mono",ui-monospace,monospace;font-size:12px;font-stretch:85%}
+.sec{padding:72px 64px;border-bottom:1px solid var(--line)}
+.paper{background:var(--paper);color:var(--ink);border-color:#DADFE4}
+.lab{font-size:12px;font-weight:600;color:var(--mute);margin-bottom:28px}
+.paper .lab{color:var(--graph)}
+/* hero */
+.hero{display:grid;grid-template-columns:7fr 5fr;gap:64px;min-height:640px;align-items:end;padding:56px 64px 72px}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:24px 64px;border-bottom:1px solid var(--line)}
+.nav .links{display:flex;gap:28px;color:var(--mute);font-weight:500}
+.nav .cta{background:#E9EEF3;color:var(--ink);padding:9px 16px;border-radius:6px;font-weight:600}
+.lock{display:flex;align-items:center;gap:12px}
+.lock span{font:800 24px Archivo;font-stretch:90%;letter-spacing:-.02em}
+h1.disp{font-size:116px;max-width:9.5ch}
+.sub{font-size:19px;color:#B9C3CE;max-width:40ch;margin-top:28px}
+.btns{display:flex;gap:12px;margin-top:32px}
+.b1{background:var(--teal);color:var(--ink);padding:13px 22px;border-radius:6px;font-weight:700}
+.b2{border:1px solid #3A4552;padding:13px 22px;border-radius:6px;font-weight:600}
+/* record panel */
+.rec{border:1px solid var(--line);background:var(--ink2);border-radius:10px;overflow:hidden}
+.rec .h{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--mute)}
+.row{display:grid;grid-template-columns:54px 1fr 70px;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);align-items:center}
+.row:last-child{border-bottom:0}
+.tag{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12px}
+.i{width:10px;height:10px;display:inline-block}
+.run .i{background:var(--teal);border-radius:50%}
+.hum .i{background:var(--amber);transform:rotate(45deg) scale(.82)}
+.ok .i{border:2px solid var(--teal);border-radius:50%}
+.no .i{background:var(--red)}
+.held{background:rgba(245,181,71,.07);border-left:0}
+/* marks */
+.marks{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.tile{border:1px solid var(--line);border-radius:10px;height:200px;display:grid;place-items:center}
+.paper .tile{border-color:#DADFE4;background:#fff}
+.sizes{display:flex;align-items:end;gap:24px}
+/* color */
+.sw{display:grid;grid-template-columns:3fr 1fr 1fr 1fr 1fr;height:180px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.sw div{padding:14px;font-size:12px;display:flex;flex-direction:column;justify-content:flex-end}
+.rule{max-width:60ch;margin-top:22px;font-size:17px}
+/* type */
+.big{font-size:84px}
+.cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;margin-top:40px}
+.cols p{color:var(--graph)}
+.foot{padding:40px 64px;display:flex;justify-content:space-between;color:var(--mute)}
+</style></head>
+<body>
+
+<div class="nav">
+  <div class="lock">
+    <svg width="30" height="30" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 5h9v38H7z" fill="#E9EEF3"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#E9EEF3"/><circle cx="42.5" cy="9" r="4.5" fill="#2DD4BF"/></svg>
+    <span>Keelway</span>
+  </div>
+  <div class="links"><span>Product</span><span>Record</span><span>Docs</span><span>Pricing</span><span>Security</span></div>
+  <div class="cta">Install free</div>
+</div>
+
+<div class="hero">
+  <div>
+    <h1 class="disp">The control layer for AI agents.</h1>
+    <p class="sub">Run any coding agent under your own rules. Every action is approved, recorded, and verifiable. Your code never has to leave your machine.</p>
+    <div class="btns"><span class="b1">Install free</span><span class="b2">Verify a record</span></div>
+    <p class="mono" style="margin-top:28px;color:var(--mute)">pip install keelway · local-first · open core</p>
+  </div>
+  <div class="rec">
+    <div class="h mono"><span>Record · run 0x41c</span><span>chain intact</span></div>
+    <div class="row mono"><span style="color:var(--mute)">#409</span><span class="tag ok"><i class="i"></i>Approved · run test suite</span><span style="color:var(--mute)">77a5c2</span></div>
+    <div class="row mono"><span style="color:var(--mute)">#410</span><span class="tag run"><i class="i"></i>Editing core/auth.py</span><span style="color:var(--mute)">2d9e10</span></div>
+    <div class="row mono"><span style="color:var(--mute)">#411</span><span class="tag ok"><i class="i"></i>Read core/api/studio.py</span><span style="color:var(--mute)">b04e77</span></div>
+    <div class="row mono held"><span>#412</span><span class="tag hum"><i class="i"></i>Needs you · git push --force</span><span>9f3a1c</span></div>
+  </div>
+</div>
+
+<div class="sec paper">
+  <div class="lab">Mark · a K whose arm ends at the point of human decision</div>
+  <div class="marks">
+    <div class="tile" style="background:var(--ink)"><svg width="120" height="120" viewBox="0 0 48 48"><path d="M7 5h9v38H7z" fill="#E9EEF3"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#E9EEF3"/><circle cx="42.5" cy="9" r="4.5" fill="#2DD4BF"/></svg></div>
+    <div class="tile"><svg width="120" height="120" viewBox="0 0 48 48"><path d="M7 5h9v38H7z" fill="#0A0D12"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#0A0D12"/><circle cx="42.5" cy="9" r="4.5" fill="#0F766E"/></svg></div>
+    <div class="tile"><svg width="120" height="120" viewBox="0 0 48 48"><path d="M7 5h9v38H7z" fill="#0A0D12"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#0A0D12"/></svg></div>
+    <div class="tile"><div class="sizes"><svg width="64" height="64" viewBox="0 0 48 48"><path d="M7 5h9v38H7z" fill="#0A0D12"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#0A0D12"/><circle cx="42.5" cy="9" r="4.5" fill="#0F766E"/></svg><svg width="32" height="32" viewBox="0 0 48 48"><path d="M7 5h9v38H7z" fill="#0A0D12"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#0A0D12"/><circle cx="42.5" cy="9" r="4.5" fill="#0F766E"/></svg><svg width="16" height="16" viewBox="0 0 48 48"><path d="M7 5h9v38H7z" fill="#0A0D12"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#0A0D12"/><circle cx="42.5" cy="9" r="4.5" fill="#0F766E"/></svg></div></div>
+  </div>
+  <p class="rule">No rounded tile, no gradient. A plain, heavy letterform that works in one color at 16 px, with one accent dot. The dot is the brand idea: the point where the agent stops and a person decides.</p>
+</div>
+
+<div class="sec">
+  <div class="lab">Color · one chromatic color, used with discipline</div>
+  <div class="sw">
+    <div style="background:#0A0D12;border-right:1px solid var(--line)"><b>Ink</b><span class="mono">#0A0D12</span>Most of every screen</div>
+    <div style="background:#F5F6F7;color:#0A0D12"><b>Paper</b><span class="mono">#F5F6F7</span></div>
+    <div style="background:#2DD4BF;color:#0A0D12"><b>Keel</b><span class="mono">#2DD4BF</span><span class="mono">#0F766E</span> on light</div>
+    <div style="background:#F5B547;color:#0A0D12"><b>Signal</b><span class="mono">#F5B547</span><span class="mono">#B45309</span> on light</div>
+    <div style="background:#F87171;color:#0A0D12"><b>Stop</b><span class="mono">#F87171</span><span class="mono">#DC2626</span> on light</div>
+  </div>
+  <p class="rule">Keel teal marks the brand and agent activity. Signal amber appears only when a human must decide. Stop red is only for denied or failed. Every state also carries a shape and a word, never color alone. Contrast measured at 4.5:1 or better for text in both themes.</p>
+</div>
+
+<div class="sec paper">
+  <div class="lab">Type · Archivo for voice, Instrument Sans for interface, Martian Mono for evidence</div>
+  <div class="disp big">Every action, on the record.</div>
+  <div class="cols">
+    <div><b>Archivo 800, condensed width</b><p>Headlines and the wordmark. Confident and compact, like transit signage, not a template.</p></div>
+    <div><b>Instrument Sans</b><p>Interface and body text. Quiet and legible at 12 to 16 px in long sessions.</p></div>
+    <div><b class="mono">Martian Mono</b><p>Hashes, timestamps, costs, entry numbers. The "evidence" voice is always mono.</p></div>
+  </div>
+  <p class="rule">Studio keeps Inter and JetBrains Mono, which are already shipped. These faces are for the website and brand surfaces. All three load from Google Fonts.</p>
+</div>
+
+<div class="sec">
+  <div class="lab">Voice</div>
+  <div class="disp" style="font-size:56px;max-width:18ch">Plain. Exact. Never hype.</div>
+  <div class="cols mono" style="color:#B9C3CE">
+    <div>"Keelway wants to edit 2 files in src/auth."</div>
+    <div>"Nothing left this machine. 0 bytes sent."</div>
+    <div>"Chain verified: 1,284 entries, no gaps."</div>
+  </div>
+</div>
+
+<div class="foot"><span>Keelway · by Sorvex Labs</span><span class="mono">Brand direction v0.2 · draft, not a trademark clearance</span></div>
+</body></html>
