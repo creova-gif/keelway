@@ -45,12 +45,16 @@ export class KeelwayError extends Error {
   }
 }
 
-/** Accepts the link `keelway dev` prints: http://host:port/?token=... */
+/** Accepts the link `keelway dev` prints: http://host:port/?token=... (no token when AUTH_REQUIRED=false). */
 export function parseStudioLink(link: string): Connection | null {
-  const trimmed = link.trim();
-  const m = trimmed.match(/^(https?:\/\/[^/?#\s]+)\/?(?:[^?#]*)\?(?:.*&)?token=([^&#\s]+)/i);
+  const m = link.trim().match(/^(https?:\/\/[^/?#\s]+)\/?[^?#\s]*(?:\?([^#\s]*))?(?:#\S*)?$/i);
   if (!m) return null;
-  return { baseUrl: m[1].replace(/\/$/, ''), token: decodeURIComponent(m[2]) };
+  const raw = (m[2] || '').split('&').find((p) => p.startsWith('token='))?.slice(6) ?? '';
+  try {
+    return { baseUrl: m[1], token: decodeURIComponent(raw) };
+  } catch {
+    return null;
+  }
 }
 
 export class KeelwayClient {
@@ -64,7 +68,7 @@ export class KeelwayClient {
         ...init,
         signal: controller.signal,
         headers: {
-          Authorization: `Bearer ${this.conn.token}`,
+          ...(this.conn.token ? { Authorization: `Bearer ${this.conn.token}` } : {}),
           'Content-Type': 'application/json',
           ...(init.headers || {}),
         },
