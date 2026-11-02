@@ -5,10 +5,16 @@ import { color, mono } from '../theme';
 import { Lang, isRTL, strings } from '../i18n';
 import LanguagePicker from './LanguagePicker';
 
-export default function PairScreen({ lang, setLang, onPaired }: { lang: Lang; setLang: (l: Lang) => void; onPaired: (c: Connection) => void }) {
+export default function PairScreen({ lang, setLang, onPaired, initialLink = '', onCancel }: {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  onPaired: (c: Connection) => void;
+  initialLink?: string;
+  onCancel?: () => void;
+}) {
   const t = strings[lang];
   const rtl = isRTL(lang);
-  const [link, setLink] = useState('');
+  const [link, setLink] = useState(initialLink);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +63,11 @@ export default function PairScreen({ lang, setLang, onPaired }: { lang: Lang; se
       <TouchableOpacity style={[styles.button, busy && styles.dim]} onPress={connect} disabled={busy} accessibilityRole="button" testID="pair-connect">
         {busy ? <ActivityIndicator color={color.ink} /> : <Text style={styles.buttonText}>{t.connect}</Text>}
       </TouchableOpacity>
+      {onCancel && (
+        <TouchableOpacity style={styles.cancel} onPress={onCancel} accessibilityRole="button" testID="pair-cancel">
+          <Text style={styles.cancelText}>{t.cancel}</Text>
+        </TouchableOpacity>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -76,5 +87,7 @@ const styles = StyleSheet.create({
   button: { backgroundColor: color.teal, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 16, minHeight: 48, justifyContent: 'center' },
   buttonText: { color: color.ink, fontWeight: '700', fontSize: 15 },
   dim: { opacity: 0.6 },
+  cancel: { alignItems: 'center', paddingVertical: 14, minHeight: 48, justifyContent: 'center' },
+  cancelText: { color: color.muted, fontSize: 14 },
   rtl: { textAlign: 'right', writingDirection: 'rtl' },
 });

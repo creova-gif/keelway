@@ -13,6 +13,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [conn, setConn] = useState<Connection | null>(null);
   const [lang, setLangState] = useState<Lang>('en');
+  const [pendingLink, setPendingLink] = useState<string | null>(null);
 
   useEffect(() => {
     loadConnection().then((c) => {
@@ -21,16 +22,13 @@ export default function App() {
     });
   }, []);
 
-  // keelway://pair?link=<url-encoded Studio link>
+  // keelway://pair?link=<url-encoded Studio link> only pre-fills the pair screen; the user still
+  // sees the host and presses Connect, which verifies it with whoami before replacing anything.
   const url = Linking.useURL();
   useEffect(() => {
     if (!url) return;
     const link = Linking.parse(url).queryParams?.link;
-    const parsed = typeof link === 'string' ? parseStudioLink(link) : null;
-    if (parsed) {
-      saveConnection(parsed);
-      setConn(parsed);
-    }
+    if (typeof link === 'string' && parseStudioLink(link)) setPendingLink(link);
   }, [url]);
 
   const setLang = (l: Lang) => {
@@ -41,6 +39,7 @@ export default function App() {
   const onPaired = useCallback((c: Connection) => {
     saveConnection(c);
     setConn(c);
+    setPendingLink(null);
   }, []);
 
   const onDisconnect = useCallback(() => {
@@ -51,9 +50,16 @@ export default function App() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      {ready && (conn
+      {ready && (conn && !pendingLink
         ? <MissionControlScreen key={`${conn.baseUrl}#${conn.token}`} conn={conn} lang={lang} setLang={setLang} onDisconnect={onDisconnect} />
-        : <PairScreen lang={lang} setLang={setLang} onPaired={onPaired} />)}
+        : <PairScreen
+            key={pendingLink ?? ''}
+            lang={lang}
+            setLang={setLang}
+            onPaired={onPaired}
+            initialLink={pendingLink ?? ''}
+            onCancel={conn ? () => setPendingLink(null) : undefined}
+          />)}
     </View>
   );
 }
