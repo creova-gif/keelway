@@ -8,6 +8,7 @@ Implements the JSON-RPC Model Context Protocol standard:
 import asyncio
 import fnmatch
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -248,12 +249,18 @@ def build_workspace_server(root: Optional[str] = None) -> MCPProtocolServer:
         path = args.get("path")
         target = str(fs.resolve_safe_path(_guard(path)).relative_to(fs.root)) if path else "."
         excludes = [f":(exclude,glob)**/{d}/**" for d in sorted(PROTECTED_DIRS)]
-        excludes += [f":(exclude,glob)**/{g}" for g in SECRET_GLOBS]
         res = await asyncio.to_thread(
             subprocess.run, ["git", "diff", "HEAD", "--", target, *excludes],
             cwd=str(fs.root), capture_output=True, text=True, timeout=8,
         )
-        return {"path": path or "workspace", "diff": res.stdout if res.returncode == 0 else ""}
+        diff = res.stdout if res.returncode == 0 else ""
+        # Credentials files are dropped per file section, so allowed templates like .env.example still show.
+        sections = re.split(r"(?m)^(?=diff --git )", diff)
+        kept = [sec for sec in sections if not (
+            (m := re.match(r"diff --git a/(\S+) b/(\S+)", sec))
+            and any(_is_secret_name(part) for f in m.groups() for part in Path(f).parts)
+        )]
+        return {"path": path or "workspace", "diff": "".join(kept)}
 
     path_arg = {"path": {"type": "string", "description": "Path relative to the workspace root"}}
     server.register_tool("list_files", "List files in the Keelway workspace (read-only).",
