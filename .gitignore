@@ -43,6 +43,8 @@ htmlcov/
 *.p12
 
 # Local Databases & runtime state
+.keelway/
+.kora/
 *.db
 *.db-shm
 *.db-wal

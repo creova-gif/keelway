@@ -76,10 +76,26 @@ def scrubbed_env(parent: Mapping[str, str], home: Path, extra_allow: Sequence[st
 
 class SeatbeltBackend:
     name = "seatbelt"
+    _available: Optional[bool] = None
 
-    @staticmethod
-    def available() -> bool:
-        return sys.platform == "darwin" and shutil.which("sandbox-exec") is not None
+    @classmethod
+    def available(cls) -> bool:
+        if cls._available is not None:
+            return cls._available
+        if sys.platform != "darwin" or shutil.which("sandbox-exec") is None:
+            cls._available = False
+            return False
+        try:
+            res = subprocess.run(
+                ["/usr/bin/sandbox-exec", "-p", "(version 1)(allow default)", "/usr/bin/true"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=2,
+            )
+            cls._available = (res.returncode == 0)
+        except Exception:
+            cls._available = False
+        return cls._available
 
     @staticmethod
     def profile(workspace: Path, tmp: Path, read_roots: Sequence[Path]) -> str:

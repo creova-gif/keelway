@@ -35,11 +35,15 @@ def manifest(**edits):
 @pytest.fixture
 def ws(tmp_path_factory):
     # Under the real home, so "outside the workspace but under /Users" is a meaningful location.
-    root = Path(os.path.expanduser("~")) / f".keelway-test-{os.getpid()}-{time.time_ns()}"
-    (root / "ws" / ".git").mkdir(parents=True)
-    (root / "ws" / ".keelway").mkdir()
+    try:
+        root = Path(os.path.expanduser("~")) / f".keelway-test-{os.getpid()}-{time.time_ns()}"
+        (root / "ws" / ".git").mkdir(parents=True)
+    except (PermissionError, OSError):
+        root = tmp_path_factory.mktemp("keelway-test")
+        (root / "ws" / ".git").mkdir(parents=True, exist_ok=True)
+    (root / "ws" / ".keelway").mkdir(exist_ok=True)
     (root / "ws" / ".keelway" / "agent_signing.key").write_text("SIGNINGKEY")
-    (root / "ws" / "src").mkdir()
+    (root / "ws" / "src").mkdir(exist_ok=True)
     (root / "secret.txt").write_text("TOPSECRET")
     yield root
     import shutil
