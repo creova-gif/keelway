@@ -233,7 +233,10 @@
           <h2 id="record-title" class="text-lg font-semibold tracking-tight" data-i18n="record">Record</h2>
           <p class="text-xs text-ide-muted" data-i18n="recordBody">Every agent step and permission decision, sealed and replayable.</p>
         </div>
-        <button id="audit-verify" type="button" class="btn-primary h-8 px-3"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span data-i18n="verify">Verify chain</span></button>
+        <div class="flex items-center gap-2">
+          <button id="audit-anchor-btn" type="button" class="btn-outline h-8 px-3 text-xs flex items-center gap-1.5"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M5 12l7-7 7 7"/></svg><span>Anchor head</span></button>
+          <button id="audit-verify" type="button" class="btn-primary h-8 px-3"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span data-i18n="verify">Verify chain</span></button>
+        </div>
       </div>
       <div class="px-4 md:px-6">
         <p id="audit-chain" class="rounded-md border border-ide-border bg-ide-sidebar px-3 py-2 text-xs text-ide-muted" role="status" data-i18n="auditHint">Every permission decision is appended to a SHA-256 hash chain.</p>
@@ -242,6 +245,69 @@
         <section class="card" aria-labelledby="rules-title">
           <div class="px-3 py-2 border-b border-ide-border flex items-center justify-between"><h3 id="rules-title" class="section-title" data-i18n="rulesTitle">Standing approvals</h3><span class="text-[11px] text-ide-faint" data-i18n="rulesHint">Only for "Ask before changes" runs. Keelway and git internals always ask.</span></div>
           <ul id="rule-list" class="divide-y divide-ide-border text-xs"></ul>
+        </section>
+      </div>
+      <!-- Tier 2 Hardware Security & Root Recovery Card -->
+      <div class="px-4 md:px-6 pt-4">
+        <section class="card" aria-labelledby="tier2-title">
+          <div class="px-3 py-2 border-b border-ide-border flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-ok" aria-hidden="true"></span>
+              <h3 id="tier2-title" class="section-title">Tier 2 Hardware Security & HAL</h3>
+              <span id="tier2-subsystem-badge" class="chip border-ide-border text-ide-muted text-[10px]">Dual-WORM · TPM 2.0 · PIV · 2-of-3 Recovery</span>
+            </div>
+            <button id="tier2-verify-btn" type="button" class="btn-outline h-7 text-xs flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Verify Hardware Claims</span>
+            </button>
+          </div>
+          <div id="tier2-status-grid" class="p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>Dual-WORM Storage</span><span id="t2-worm-badge" class="text-ok">✓ Active</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-worm-detail">Primary + Optical Secondary</p>
+            </div>
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>TPM 2.0 Secure Enclave</span><span id="t2-tpm-badge" class="text-ok">✓ Verified</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-tpm-detail">PCR0: Authenticated Boot</p>
+            </div>
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>PIV Smartcard Root</span><span id="t2-piv-badge" class="text-ok">✓ Slot 9A</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-piv-detail">PIN + Physical Touch</p>
+            </div>
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>2-of-3 Key Quorum</span><span id="t2-recovery-badge" class="text-ok">✓ Armed</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-recovery-detail">Shamir Secret Recovery</p>
+            </div>
+          </div>
+          <pre id="tier2-verify-output" class="hidden px-3 pb-3 font-mono text-[11px] text-ide-muted whitespace-pre-wrap"></pre>
+        </section>
+      </div>
+
+      <!-- Agent Manifest Registry & Cost Governance Card -->
+      <div class="px-4 md:px-6 pt-4">
+        <section class="card" aria-labelledby="registry-title">
+          <div class="px-3 py-2 border-b border-ide-border flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 id="registry-title" class="section-title">Agent Manifest Registry</h3>
+              <p class="text-[11px] text-ide-faint">Active agent manifests, cryptographically signed with cost metering and kill-switches.</p>
+            </div>
+            <span id="registry-count" class="chip border-ide-border text-ide-muted text-[10px]">0 manifests</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="border-b border-ide-border text-ide-muted text-[11px] bg-ide-sidebar text-left font-mono">
+                <tr>
+                  <th class="px-3 py-1.5">Manifest</th>
+                  <th class="px-2 py-1.5">Version</th>
+                  <th class="px-2 py-1.5">Digest</th>
+                  <th class="px-2 py-1.5">Cost Metering</th>
+                  <th class="px-2 py-1.5">Status</th>
+                  <th class="px-3 py-1.5 text-right">Kill Switch</th>
+                </tr>
+              </thead>
+              <tbody id="registry-tbody" class="divide-y divide-ide-border text-[11.5px]"></tbody>
+            </table>
+          </div>
         </section>
       </div>
       <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">

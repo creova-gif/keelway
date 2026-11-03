@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -45,8 +46,12 @@ def _bad(reason: str, index: int, entry: Optional[Dict[str, Any]], total: int) -
     return {"valid": False, "entries": total, "broken_at_index": index, "broken_at_seq": seq, "reason": reason}
 
 
-def verify_entries(entries: List[Dict[str, Any]], header: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Check a list of entries (and the optional header). Returns a dict with `valid` and, if not, `reason`."""
+def verify_entries(
+    entries: List[Dict[str, Any]],
+    header: Optional[Dict[str, Any]] = None,
+    expected_head: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Check a list of entries (and the optional header/expected head anchor). Returns a dict with `valid` and, if not, `reason`."""
     total = len(entries)
     prev = GENESIS_HASH
     if header is not None:
@@ -70,6 +75,8 @@ def verify_entries(entries: List[Dict[str, Any]], header: Optional[Dict[str, Any
         prev = entry["entry_hash"]
     if header is not None and "head" in header and header["head"] != prev:
         return _bad("header_head_mismatch", total - 1, entries[-1] if entries else None, total)
+    if expected_head is not None and prev != expected_head:
+        return _bad("head_anchor_mismatch", total - 1, entries[-1] if entries else None, total)
     return {"valid": True, "entries": total, "head": prev}
 
 
@@ -110,18 +117,32 @@ def dump_jsonl(entries: List[Dict[str, Any]], genesis: str = GENESIS_HASH) -> st
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    if len(args) != 2 or args[0] != "verify":
-        print("usage: python record_format.py verify RECORD.jsonl", file=sys.stderr)
+    if not args or args[0] != "verify":
+        print("usage: python record_format.py verify RECORD.jsonl [--anchor ANCHOR.json]", file=sys.stderr)
         return 2
+    record_file = args[1]
+    expected_head = None
+    if "--anchor" in args:
+        idx = args.index("--anchor")
+        if idx + 1 < len(args):
+            anchor_file = args[idx + 1]
+            try:
+                anchor_data = json.loads(Path(anchor_file).read_text(encoding="utf-8"))
+                expected_head = anchor_data.get("head_hash")
+            except Exception as exc:
+                print(f"cannot read anchor file: {exc}", file=sys.stderr)
+                return 2
     try:
-        header, entries = read_record_file(args[1])
+        header, entries = read_record_file(record_file)
     except (OSError, ValueError) as exc:
         print(f"cannot read record: {exc}", file=sys.stderr)
         return 2
-    result = verify_entries(entries, header)
+    result = verify_entries(entries, header, expected_head=expected_head)
     if result["valid"]:
         print(f"chain valid: {result['entries']} entries, head {result['head']}")
-        if header is None:
+        if expected_head:
+            print(f"[+] Head matches anchored reference ({expected_head})")
+        elif header is None:
             print("note: no header line, so the entry count and head were not cross-checked")
         return 0
     where = f"entry #{result['broken_at_index'] + 1}" if result["broken_at_index"] >= 0 else "the header"

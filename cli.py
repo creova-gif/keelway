@@ -504,12 +504,29 @@ def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None)
     return 0 if ok else 1
 
 
-async def cmd_record(action: str, path: Optional[Path] = None) -> int:
-    """Export the audit log as a portable Keelway Record file, or verify one (no server needed)."""
+async def cmd_record(action: str, path: Optional[Path] = None, anchor: Optional[Path] = None) -> int:
+    """Export the audit log as a portable Keelway Record file, anchor the head, or verify one (no server needed)."""
     from core.security import record_format
 
     if action == "verify":
-        return record_format.main(["verify", str(path)])
+        argv = ["verify", str(path)]
+        if anchor:
+            argv.extend(["--anchor", str(anchor)])
+        return record_format.main(argv)
+
+    if action == "anchor":
+        from core.security.record_export import create_head_anchor
+        from core.storage.database import init_db
+
+        await init_db()
+        result = await create_head_anchor(path=path)
+        print(f"[+] Anchored audit head: {result['head_hash']} ({result['entries_count']} entries)")
+        if result.get("git_note_anchored"):
+            print("    Git note published to refs/notes/keelway/audit")
+        if path is not None:
+            print(f"    Receipt written to {path}")
+        return 0
+
     from core.security.record_export import export_record
     from core.storage.database import init_db
 
@@ -1117,8 +1134,11 @@ def main():
     record_sub = record_parser.add_subparsers(dest="record_command", required=True)
     _export = record_sub.add_parser("export", help="Write the audit log as Keelway Record JSONL")
     _export.add_argument("--out", type=Path, default=None, help="Output file (default: stdout)")
+    _anchor = record_sub.add_parser("anchor", help="Anchor current audit head to signed receipt and Git note")
+    _anchor.add_argument("--out", type=Path, default=None, help="Output JSON receipt file (default: stdout only)")
     _verify = record_sub.add_parser("verify", help="Verify a Record file without a server")
     _verify.add_argument("path", type=Path, help="Path to the .jsonl Record file")
+    _verify.add_argument("--anchor", type=Path, default=None, help="Cross-verify head against an anchor receipt JSON")
 
     mcp_parser = subparsers.add_parser("mcp", help="Serve read-only workspace tools to MCP clients over stdio (Cursor, Claude Code, Zed)")
     mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
@@ -1172,7 +1192,15 @@ def main():
     elif args.command == "agent":
         sys.exit(cmd_agent(args.agent_command, args.path, getattr(args, "by", ""), getattr(args, "out", None)))
     elif args.command == "record":
-        sys.exit(asyncio.run(cmd_record(args.record_command, getattr(args, "path", None) or getattr(args, "out", None))))
+        sys.exit(
+            asyncio.run(
+                cmd_record(
+                    args.record_command,
+                    path=getattr(args, "path", None) or getattr(args, "out", None),
+                    anchor=getattr(args, "anchor", None),
+                )
+            )
+        )
     elif args.command == "dev":
         asyncio.run(cmd_dev(args.port, args.host))
     elif args.command == "demo":

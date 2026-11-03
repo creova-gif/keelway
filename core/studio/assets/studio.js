@@ -323,7 +323,7 @@ function switchSection(sec) {
   if (location.hash !== `#${sec}`) history.replaceState(null, '', `#${sec}`);
   if (sec === 'tasks') { loadRuns(); loadTasks(); }
   if (sec === 'files') { refreshView(); if (editor) editor.layout(); }
-  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); }
+  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadTier2Status(); loadManifestRegistry(); }
 }
 async function loadRules() {
   try {
@@ -515,6 +515,106 @@ async function verifyAudit() {
     el.className = `rounded-md border px-3 py-2 text-xs font-mono ${v.valid ? 'border-ok/40 bg-ok/5 text-ok' : 'border-danger/50 bg-danger/5 text-danger'}`;
     tone(v.valid ? 'ok' : 'err');
   } catch (err) { toast(err.message, 'err'); }
+}
+
+async function anchorAudit() {
+  try {
+    const res = await api('/v1/audit/anchor', { method: 'POST' });
+    const el = $('audit-chain');
+    el.textContent = `[+] Head anchored: ${res.head_hash.slice(0, 16)}… (${res.entries_count} entries, git_note=${res.git_note_anchored ? 'yes' : 'no'})`;
+    el.className = 'rounded-md border px-3 py-2 text-xs font-mono border-ok/40 bg-ok/5 text-ok';
+    toast('Audit head anchored & signed', 'ok');
+  } catch (err) { toast(err.message, 'err'); }
+}
+
+async function loadTier2Status() {
+  try {
+    const s = await api('/v1/tier2/status');
+    const b = s.hardware_badges || {};
+    if (b.worm && $('t2-worm-badge')) {
+      $('t2-worm-badge').textContent = b.worm.status === 'active' ? '✓ Active' : '✗ Inactive';
+      $('t2-worm-badge').className = b.worm.status === 'active' ? 'text-ok' : 'text-danger';
+      $('t2-worm-detail').textContent = `${b.worm.retention} retention · ${b.worm.mount_path}`;
+    }
+    if (b.tpm && $('t2-tpm-badge')) {
+      $('t2-tpm-badge').textContent = b.tpm.status === 'verified' ? '✓ Verified' : '✗ Failed';
+      $('t2-tpm-badge').className = b.tpm.status === 'verified' ? 'text-ok' : 'text-danger';
+      $('t2-tpm-detail').textContent = `PCR0: ${(b.tpm.pcr0 || '').slice(0, 14)}… (${b.tpm.manufacturer || 'HW'})`;
+    }
+    if (b.piv && $('t2-piv-badge')) {
+      $('t2-piv-badge').textContent = b.piv.status === 'configured' ? '✓ Slot 9A' : '✗ Missing';
+      $('t2-piv-badge').className = b.piv.status === 'configured' ? 'text-ok' : 'text-danger';
+      $('t2-piv-detail').textContent = `PIN + Touch · Card: ${b.piv.card_id || 'Primary'}`;
+    }
+    if (b.recovery && $('t2-recovery-badge')) {
+      $('t2-recovery-badge').textContent = b.recovery.status === 'armed' ? '✓ Armed' : '✗ Unarmed';
+      $('t2-recovery-badge').className = b.recovery.status === 'armed' ? 'text-ok' : 'text-danger';
+      $('t2-recovery-detail').textContent = `2-of-3 Shamir Quorum · ${b.recovery.total_shares || 3} Shares`;
+    }
+  } catch {
+    /* quiet fail */
+  }
+}
+
+async function verifyTier2() {
+  const out = $('tier2-verify-output');
+  if (!out) return;
+  out.classList.remove('hidden');
+  out.textContent = 'Running cryptographic verification on Tier 2 hardware claims…';
+  try {
+    const res = await api('/v1/tier2/verify', { method: 'POST', body: { subsystem: 'all' } });
+    out.textContent = JSON.stringify(res, null, 2);
+    if (res.overall_verified) {
+      toast('All Tier 2 hardware claims verified', 'ok');
+    } else {
+      toast('Tier 2 verification completed with warnings', 'warn');
+    }
+  } catch (err) {
+    out.textContent = `Verification error: ${err.message}`;
+    toast(err.message, 'err');
+  }
+}
+
+async function loadManifestRegistry() {
+  const tbody = $('registry-tbody');
+  if (!tbody) return;
+  try {
+    const list = await api('/v1/agents/registry');
+    $('registry-count').textContent = `${list.length} manifest${list.length === 1 ? '' : 's'}`;
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-ide-muted font-mono">No agent manifests registered yet. Register via POST /v1/agents/registry.</td></tr>';
+      return;
+    }
+    tbody.replaceChildren(...list.map((m) => {
+      const isSuspended = m.status === 'suspended';
+      const usdSpent = (m.usd_spent || 0).toFixed(4);
+      const maxUsd = m.budget && m.budget.max_usd_per_run ? `$${m.budget.max_usd_per_run.toFixed(2)}` : 'unlimited';
+      return h('tr', { class: 'hover:bg-ide-sidebar/50' },
+        h('td', { class: 'px-3 py-2 font-medium' }, m.name),
+        h('td', { class: 'px-2 py-2 font-mono text-ide-muted' }, `v${m.version}`),
+        h('td', { class: 'px-2 py-2 font-mono text-ide-faint', title: m.digest }, (m.digest || '').slice(0, 10)),
+        h('td', { class: 'px-2 py-2 font-mono text-xs' }, `$${usdSpent} / ${maxUsd}`),
+        h('td', { class: 'px-2 py-2' },
+          h('span', { class: `chip ${isSuspended ? 'border-danger/40 text-danger bg-danger/5' : 'border-ok/40 text-ok bg-ok/5'}` }, isSuspended ? 'Suspended' : 'Active')),
+        h('td', { class: 'px-3 py-2 text-right' },
+          h('button', {
+            type: 'button',
+            class: `btn-outline py-0.5 px-2 text-[11px] ${isSuspended ? 'text-ok hover:border-ok' : 'text-danger hover:border-danger'}`,
+            onclick: async () => {
+              try {
+                await api(`/v1/agents/registry/${encodeURIComponent(m.name)}/${encodeURIComponent(m.version)}/toggle`, { method: 'POST' });
+                toast(`Toggled ${m.name} to ${isSuspended ? 'active' : 'suspended'}`, 'ok');
+                loadManifestRegistry();
+              } catch (e) {
+                toast(e.message, 'err');
+              }
+            }
+          }, isSuspended ? 'Reactivate' : 'Kill Switch'))
+      );
+    }));
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-danger text-center font-mono">${err.message}</td></tr>`;
+  }
 }
 
 // ---------- agent ----------
@@ -754,6 +854,8 @@ function wire() {
   $('heal-form').addEventListener('submit', runHeal);
   $('pay-form').addEventListener('submit', buildIntent);
   $('audit-verify').addEventListener('click', verifyAudit);
+  if ($('audit-anchor-btn')) $('audit-anchor-btn').addEventListener('click', anchorAudit);
+  if ($('tier2-verify-btn')) $('tier2-verify-btn').addEventListener('click', verifyTier2);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

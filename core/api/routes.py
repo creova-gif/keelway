@@ -546,6 +546,11 @@ async def fork_flight_tape(payload: dict):
     forked_recorder = player.fork(at_index=at_index, new_task_id=new_task_id)
     forked_recorder.recordings_dir = FLIGHT_RECORDINGS_DIR
     saved_path = forked_recorder.save_tape()
+    try:
+        tape_hash = json.loads(saved_path.read_text(encoding="utf-8")).get("tape_sha256")
+        await record_audit(principal, "flight_tape_sealed", f"{new_task_id} fork_from={task_id} sha256:{tape_hash}", True)
+    except Exception:
+        pass
     return {
         "original_task_id": task_id,
         "forked_task_id": new_task_id,

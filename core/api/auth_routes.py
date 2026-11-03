@@ -125,3 +125,25 @@ async def export_audit(
         headers["Content-Disposition"] = "attachment; filename=keelway-audit.record.jsonl"
     return Response(content=res["text"], media_type="application/x-ndjson", headers=headers)
 
+
+@router.post("/v1/audit/anchor")
+async def anchor_audit_head(
+    principal: Principal = Depends(require(Permission.VIEW_AUDIT_LOGS)),
+) -> Dict[str, Any]:
+    """Create a signed head anchor receipt and git note for the current audit head."""
+    from core.security.record_export import create_head_anchor
+    from core.security.auth import record_audit
+    anchor_data = await create_head_anchor()
+    await record_audit(principal, "audit_head_anchored", f"head={anchor_data['head_hash']} entries={anchor_data['entries_count']}", True)
+    return anchor_data
+
+
+@router.get("/v1/audit/anchor")
+async def get_audit_head_anchor(
+    _: Principal = Depends(require(Permission.VIEW_AUDIT_LOGS)),
+) -> Dict[str, Any]:
+    """Retrieve the latest signed head anchor for the audit log."""
+    from core.security.record_export import create_head_anchor
+    return await create_head_anchor()
+
+
