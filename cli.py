@@ -1169,6 +1169,10 @@ def main():
     runner_parser.add_argument("--server", default="http://127.0.0.1:8000", help="Keelway Control Plane URL")
     runner_parser.add_argument("--repo", default=".", help="Target repository path")
 
+    # m1 (Milestone M1 Vertical Slice Validator)
+    m1_parser = subparsers.add_parser("m1", help="Validate Milestone M1: 10-stage end-to-end developer workflow")
+    m1_parser.add_argument("--repo", default=None, help="Target local repository folder (default: fresh isolated demo repo)")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1265,6 +1269,9 @@ def main():
         )
         print(f"[+] Starting Outbound Runner Daemon '{args.runner_id}' for org '{args.org}'...")
         daemon.start(poll_interval=5.0)
+    elif args.command == "m1":
+        from core.m1_slice import run_m1_cli
+        sys.exit(asyncio.run(run_m1_cli(args.repo)))
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":

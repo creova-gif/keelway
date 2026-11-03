@@ -841,6 +841,21 @@ function wire() {
   $('palette').addEventListener('click', (e) => { if (e.target === $('palette')) closePalette(); });
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.view)));
   $('sidebar-refresh').addEventListener('click', refreshView);
+  if ($('open-repo-btn')) {
+    $('open-repo-btn').addEventListener('click', async () => {
+      const current = $('ws-name').textContent || '';
+      const chosen = prompt('Enter path to local repository directory:', current !== 'workspace' ? current : '.');
+      if (!chosen) return;
+      try {
+        const res = await api('/v1/workspace/open', { method: 'POST', body: { path: chosen.trim() } });
+        toast(`[+] Opened workspace: ${res.name}`, 'ok');
+        $('ws-name').textContent = res.name;
+        refreshView();
+      } catch (err) {
+        toast(`Failed to open workspace: ${err.message}`, 'err');
+      }
+    });
+  }
   if ($('file-upload-input')) {
     $('file-upload-input').addEventListener('change', async (e) => {
       const files = Array.from(e.target.files || []);

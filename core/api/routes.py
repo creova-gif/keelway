@@ -579,6 +579,50 @@ from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityErro
 _workspace_fs = WorkspaceFilesystem()
 
 
+def set_workspace_fs(fs: WorkspaceFilesystem) -> None:
+    """Explicitly rebind the active workspace filesystem (e.g. for testing or workspace switching)."""
+    global _workspace_fs, _semantic_index
+    _workspace_fs = fs
+    _semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
+
+
+@router.get("/v1/workspace", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
+async def get_workspace_info():
+    """Retrieve active workspace directory path, git repository status, and metadata."""
+    is_git = (_workspace_fs.root / ".git").exists()
+    tree = _workspace_fs.get_file_tree()
+    return {
+        "root": str(_workspace_fs.root),
+        "name": _workspace_fs.root.name,
+        "is_git": is_git,
+        "files_count": len(tree.get("tree", {}).get("children", [])),
+    }
+
+
+@router.post("/v1/workspace/open", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
+async def open_workspace(payload: dict, principal: Principal = Depends(current_principal)):
+    """Open an existing local source repository or workspace directory in Keelway."""
+    path_str = payload.get("path")
+    if not path_str:
+        raise HTTPException(status_code=400, detail="Missing required 'path' field.")
+    target = Path(path_str).expanduser().resolve()
+    if not target.exists() or not target.is_dir():
+        raise HTTPException(status_code=404, detail=f"Target directory '{target}' does not exist.")
+
+    global _workspace_fs, _semantic_index
+    _workspace_fs = WorkspaceFilesystem(str(target))
+    _semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
+    await record_audit(principal, "workspace_open", str(target), True)
+
+    return {
+        "status": "opened",
+        "root": str(_workspace_fs.root),
+        "name": _workspace_fs.root.name,
+        "is_git": (_workspace_fs.root / ".git").exists(),
+    }
+
+
+
 @router.get("/v1/files/tree", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
 async def get_workspace_file_tree(subpath: str = ".", max_depth: int = 4):
     """Retrieve recursive workspace file tree honoring .gitignore rules."""

@@ -40,6 +40,7 @@ class FlightRecorder:
         self.events: List[FlightEvent] = []
         self.current_index = 0
         self.redactions = 0  # credentials removed from what this tape stores
+        self.tape_sha256: Optional[str] = None
 
     def record_event(self, event_type: str, payload: Dict[str, Any]) -> FlightEvent:
         # An agent can read .env or print secrets; the tape is exported, forked and shared, so it never stores them.
@@ -75,6 +76,7 @@ class FlightRecorder:
             "recorded_at": time.time(),
         }
         tape_path.write_text(json.dumps(final_payload, indent=2), encoding="utf-8")
+        self.tape_sha256 = tape_hash
         return tape_path
 
 

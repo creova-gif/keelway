@@ -186,10 +186,21 @@ class AutonomousAgentLoop:
             if self.command_runner is not None:
                 return self.command_runner(cmd, timeout)
 
+            exec_cmd = cmd
+            import sys
+            if exec_cmd.startswith("python3 ") or exec_cmd.startswith("python "):
+                parts = exec_cmd.split(" ", 1)
+                exec_cmd = f'"{sys.executable}" {parts[1]}'
+
             start_t = time.perf_counter()
             clean_env, dropped = scrub_env(os.environ)  # an agent-chosen command must not inherit API keys or tokens
+            if sys.prefix and "PATH" in clean_env:
+                venv_bin = str(Path(sys.prefix) / "bin")
+                if venv_bin not in clean_env["PATH"]:
+                    clean_env["PATH"] = f"{venv_bin}:{clean_env['PATH']}"
+
             proc = subprocess.run(
-                cmd,
+                exec_cmd,
                 shell=True,
                 cwd=str(self.fs.root),
                 env=clean_env,
