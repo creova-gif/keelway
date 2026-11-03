@@ -133,6 +133,18 @@
               </div>
             </section>
 
+            <section id="agent-manifest-card" class="hidden card p-3 space-y-2" aria-labelledby="agent-manifest-title">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 id="agent-manifest-title" class="section-title">Agent manifest</h3>
+                <span id="agent-manifest-state" class="step-chip border-ide-border text-ide-muted"></span>
+              </div>
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <strong id="agent-manifest-name" class="font-mono text-sm"></strong>
+                <span id="agent-manifest-digest" class="font-mono text-[10px] text-ide-faint break-all"></span>
+              </div>
+              <dl id="agent-manifest-meta" class="grid sm:grid-cols-[auto_1fr_auto_1fr] gap-x-3 gap-y-1 text-[11px]"></dl>
+            </section>
+
             <section aria-labelledby="plan-title" class="space-y-2">
               <h3 id="plan-title" class="section-title" data-i18n="plan">Plan</h3>
               <ol id="agent-plan" class="space-y-2"></ol>
@@ -149,8 +161,10 @@
           <label for="agent-goal" class="sr-only" data-i18n="goal">Goal</label>
           <textarea id="agent-goal" rows="2" required class="w-full resize-none bg-transparent outline-none text-sm placeholder-ide-faint" data-i18n-ph="composerPh" placeholder="Ask Keelway to change something…"></textarea>
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 min-w-0">
               <span id="composer-model" class="step-chip text-accent border-accent/40 font-mono truncate max-w-[14rem]">local</span>
+              <label for="agent-manifest" class="sr-only">Agent manifest</label>
+              <select id="agent-manifest" class="input py-1 text-[11px] max-w-[14rem]"><option value="">No manifest</option></select>
               <label for="agent-policy" class="sr-only">Policy</label>
               <select id="agent-policy" class="input py-1 text-[11px]"><option value="confirm_mutation" data-i18n="polConfirmMut">Ask before changes</option><option value="confirm_all" data-i18n="polConfirmAll">Ask before every step</option><option value="autonomous" data-i18n="polAuto">Autonomous (admin)</option></select>
             </div>

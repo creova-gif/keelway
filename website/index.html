@@ -98,9 +98,9 @@
       <p class="sub">A run is a state machine, not an open-ended loop. Each move to the next state is checked before it happens.</p>
       <ol class="steps">
         <li class="card"><h3>Plan</h3><p>The goal becomes explicit steps that you can read in Studio before anything runs.</p></li>
-        <li class="card"><h3>Check</h3><p>The agent's manifest limits which tools and paths it may use. Anything outside that is refused.</p></li>
+        <li class="card"><h3>Check</h3><p>Runs started from a manifest are limited to its declared tools, path scopes, exact commands and step budget. Calls outside those limits are refused.</p></li>
         <li class="card gate"><h3>Approve</h3><p>Writes, commands and deploys pause for a human. Allow once, allow a narrow rule, or deny.</p></li>
-        <li class="card"><h3>Record</h3><p>Every step, model call and decision goes into a sealed flight tape you can inspect and replay later.</p></li>
+        <li class="card"><h3>Record</h3><p>Every step, model call and decision goes into a checksummed flight tape you can inspect and replay later.</p></li>
       </ol>
     </div>
   </section>
@@ -122,8 +122,8 @@
       <h2 id="trust-h">An audit trail your security team can check</h2>
       <p class="sub">Every approval and permission decision is recorded in a form you can verify independently.</p>
       <div class="grid">
-        <article class="card feat"><h3>Hash-chained audit log</h3><p>Each permission decision is linked to the one before, so any edit or deletion breaks the chain. You can verify it from Studio or the API.</p></article>
-        <article class="card feat"><h3>Flight tapes</h3><p>Append-only, sealed run records with secrets removed. Open one to see exactly what the agent saw and did.</p></article>
+        <article class="card feat"><h3>Hash-chained audit log</h3><p>Each permission decision is linked to the one before, so edits and deletions from the middle break the chain. You can verify it from Studio or the API.</p></article>
+        <article class="card feat"><h3>Flight tapes</h3><p>Saved run tapes are pattern-redacted for common credentials before storage. Open one to inspect and replay what the agent saw and did.</p></article>
         <article class="card feat"><h3>Tokens and roles</h3><p>Every API route needs a token. Owner, admin, engineer and auditor roles. Only hashes of tokens are stored.</p></article>
         <article class="card feat"><h3>Scoped standing approvals</h3><p>"Allow always" saves one narrow rule: one tool, in one workspace, for an exact command or a single path pattern. Each use is logged, and you can revoke it.</p></article>
         <article class="card feat"><h3>Protected paths</h3><p><code>.git</code> and Keelway's own state always ask for approval, so an agent can never approve itself.</p></article>

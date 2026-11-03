@@ -77,6 +77,64 @@ def test_runs_without_a_manifest_are_unchanged(client):
     assert client.get("/v1/agent/status/plain").json()["manifest"] is None
 
 
+def test_registry_reference_runs_and_kill_switch_blocks_new_and_existing_runs(client):
+    registered = client.post("/v1/agents/manifests", json={"manifest": base()})
+    assert registered.status_code == 200, registered.text
+    assert registered.json()["enabled"] is True
+    listing = client.get("/v1/agents/manifests").json()["manifests"]
+    assert [(m["name"], m["version"]) for m in listing] == [("test-fixer", "0.1.0")]
+
+    ref = {"name": "test-fixer", "version": "0.1.0"}
+    started = client.post("/v1/agent/run", json={"task_id": "registered", "goal": "g", "manifest_ref": ref})
+    assert started.status_code == 200, started.text
+    assert started.json()["state"]["manifest"]["registry_ref"] == ref
+
+    disabled = client.patch("/v1/agents/manifests/test-fixer/0.1.0", json={"enabled": False})
+    assert disabled.status_code == 200 and disabled.json()["enabled"] is False
+    blocked_new = client.post("/v1/agent/run", json={"task_id": "blocked", "manifest_ref": ref})
+    assert blocked_new.status_code == 409 and "kill switch" in blocked_new.json()["detail"]
+    blocked_step = step(client, "registered", "read_file", {"path": "src/app.py"})
+    assert blocked_step.status_code == 409 and "kill switch" in blocked_step.json()["detail"]
+    assert audit(client, "manifest_kill_switch")
+
+    # A pending write cannot slip through by being approved after the version is disabled.
+    assert client.patch("/v1/agents/manifests/test-fixer/0.1.0", json={"enabled": True}).status_code == 200
+    assert client.post("/v1/agent/run", json={"task_id": "pending", "goal": "g", "manifest_ref": ref}).status_code == 200
+    paused = step(client, "pending", "edit_file", {"path": "src/app.py", "target": "hi", "replacement": "bye"})
+    assert paused.json()["step_result"]["status"] == "paused_for_approval"
+    assert client.patch("/v1/agents/manifests/test-fixer/0.1.0", json={"enabled": False}).status_code == 200
+    assert client.post("/v1/agent/approve/pending", json={"approved": True}).status_code == 409
+
+
+def test_registry_rejects_version_replacement_and_bad_refs(client):
+    assert client.post("/v1/agents/manifests", json={"manifest": base()}).status_code == 200
+    changed = base()
+    changed["instructions"] = "Different instructions"
+    assert client.post("/v1/agents/manifests", json={"manifest": changed}).status_code == 409
+    assert client.post("/v1/agent/run", json={"manifest": base(), "manifest_ref": {"name": "test-fixer", "version": "0.1.0"}}).status_code == 400
+    assert client.post("/v1/agent/run", json={"manifest_ref": {"name": "missing", "version": "1.0.0"}}).status_code == 404
+    assert client.post("/v1/agents/manifests", json={"manifest": base(version="0.2.0"), "enabled": "yes"}).status_code == 422
+
+
+@pytest.mark.auth
+def test_registry_mutations_require_approve_tier3(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    from core.api import routes
+    from core.storage.workspace_fs import WorkspaceFilesystem
+    monkeypatch.setattr(routes, "_workspace_fs", WorkspaceFilesystem(root_dir=str(tmp_path)))
+    monkeypatch.setattr(routes, "_active_agent_loops", {})
+    with TestClient(app) as c:
+        owner = {"Authorization": f"Bearer {launch_token()}"}
+        eng = c.post("/v1/auth/tokens", json={"name": "eng-registry", "role": "engineer"}, headers=owner).json()
+        eng_h = {"Authorization": f"Bearer {eng['token']}"}
+        assert c.post("/v1/agents/manifests", json={"manifest": base()}, headers=eng_h).status_code == 403
+        assert c.post("/v1/agents/manifests", json={"manifest": base()}, headers=owner).status_code == 200
+        assert c.get("/v1/agents/manifests", headers=eng_h).status_code == 200
+        assert c.patch(
+            "/v1/agents/manifests/test-fixer/0.1.0", json={"enabled": False}, headers=eng_h
+        ).status_code == 403
+
+
 @pytest.mark.parametrize("bad", ["not an object", {"schema": "keelway.agent/v1"}, base(surprise=1), base(tools=["rm_rf"]), base(permissions__write_paths=["../x"])])
 def test_invalid_manifests_are_rejected_audited_and_never_registered(client, bad):
     res = run(client, bad, task="bad1")

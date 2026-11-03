@@ -672,9 +672,35 @@ async def refresh_codebase_index(max_files: int = 200):
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 from core.agents import manifest as agent_manifest
 from core.agents.guard import ManifestNotRunnable, loop_from_manifest, not_enforced, preflight
+from core.agents.registry import (
+    ManifestDisabled,
+    ManifestNotFound,
+    ManifestRegistry,
+    ManifestVersionConflict,
+    RegistryError,
+)
 from core.security.approval_rules import ApprovalRuleError, ApprovalRuleStore, validate_scope
 
 _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
+
+
+def _manifest_registry() -> ManifestRegistry:
+    return ManifestRegistry(Path(_workspace_fs.root))
+
+
+async def _require_registry_enabled(agent: AutonomousAgentLoop, principal: Principal, task_id: str) -> None:
+    """Fail closed when a registry-backed run's version has been disabled or removed."""
+    registry_ref = getattr(agent, "registry_ref", None)
+    if registry_ref is None:
+        return
+    try:
+        _manifest_registry().resolve(registry_ref["name"], registry_ref["version"])
+    except (ManifestNotFound, ManifestDisabled) as exc:
+        await record_audit(
+            principal, "manifest_kill_switch",
+            f"{task_id} {registry_ref['name']}@{registry_ref['version']}", False,
+        )
+        raise HTTPException(status_code=409, detail=str(exc))
 
 
 async def _publish_agent(agent: AutonomousAgentLoop) -> Dict[str, Any]:
@@ -736,9 +762,27 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         "Formulate and verify solution patch",
         "Run automated checks",
     ]
-    manifest, manifest_signed = None, False
-    if payload.get("manifest") is not None:
+    manifest, manifest_signed, manifest_ref = None, False, None
+    if payload.get("manifest") is not None and payload.get("manifest_ref") is not None:
+        raise HTTPException(status_code=400, detail="Send either 'manifest' or 'manifest_ref', not both.")
+    if payload.get("manifest_ref") is not None:
+        ref = payload["manifest_ref"]
+        if not isinstance(ref, dict) or not isinstance(ref.get("name"), str) or not isinstance(ref.get("version"), str):
+            raise HTTPException(status_code=422, detail="manifest_ref needs string 'name' and 'version' fields.")
+        try:
+            entry = _manifest_registry().resolve(ref["name"], ref["version"])
+        except ManifestNotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        except ManifestDisabled as exc:
+            await record_audit(principal, "manifest_kill_switch", f"{task_id} {ref['name']}@{ref['version']}", False)
+            raise HTTPException(status_code=409, detail=str(exc))
+        manifest_ref = {"name": entry.manifest.name, "version": entry.manifest.version}
+        manifest, manifest_signed = await _checked_manifest(
+            entry.manifest.model_dump(mode="json", by_alias=True, exclude_none=True), principal, task_id
+        )
+    elif payload.get("manifest") is not None:
         manifest, manifest_signed = await _checked_manifest(payload["manifest"], principal, task_id)
+    if manifest is not None:
         if payload.get("policy") not in (None, manifest.permissions.autonomy):
             raise HTTPException(status_code=400, detail="'policy' conflicts with the manifest's permissions.autonomy; omit it.")
     policy_str = manifest.permissions.autonomy if manifest is not None else payload.get("policy", "confirm_mutation")
@@ -760,6 +804,8 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
             await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} not runnable: {exc}", False)
             raise HTTPException(status_code=422, detail=str(exc))
         agent.guard.signed = manifest_signed
+        agent.registry_ref = manifest_ref
+        agent.guard.registry_ref = manifest_ref
 
     # No await between this check and registration, so concurrent runs can't both claim the id.
     if task_id in _active_agent_loops or _tape_path(task_id).exists():
@@ -780,6 +826,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
     if manifest is not None:
         await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} {agent.guard.manifest_digest}", True)
         response["manifest"] = agent.guard.summary()
+        response["manifest"]["registry_ref"] = manifest_ref
         response["not_enforced"] = not_enforced(manifest)
     response["state"] = await _publish_agent(agent)
     return response
@@ -825,6 +872,7 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
         raise HTTPException(status_code=400, detail="Missing 'tool_name' in request payload.")
 
     agent = _active_agent_loops[task_id]
+    await _require_registry_enabled(agent, principal, task_id)
     if agent.policy == AutonomyPolicy.AUTONOMOUS:
         allowed = principal.can(Permission.APPROVE_TIER3)
         await record_audit(principal, Permission.APPROVE_TIER3.value, f"agent step autonomous {task_id}", allowed)
@@ -857,6 +905,7 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
 
     approved = bool(payload.get("approved", True))
     agent = _active_agent_loops[task_id]
+    await _require_registry_enabled(agent, principal, task_id)
     remember = payload.get("remember")
     rule = None
     if approved and remember is not None and agent.pending_approval:
@@ -903,6 +952,68 @@ async def validate_agent_manifest(payload: dict):
         not_enforced=not_enforced(manifest),
     )
     return out
+
+
+@router.get("/v1/agents/manifests", dependencies=[Depends(current_principal)], tags=["Agent Manifests"])
+async def list_registered_manifests():
+    """List workspace-local manifests, including disabled versions."""
+    try:
+        return {"manifests": [entry.summary() for entry in _manifest_registry().list()]}
+    except RegistryError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/v1/agents/manifests/{name}/{version}", dependencies=[Depends(current_principal)], tags=["Agent Manifests"])
+async def get_registered_manifest(name: str, version: str):
+    """Read one registered manifest version."""
+    try:
+        entry = _manifest_registry().get(name, version)
+    except ManifestNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except RegistryError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    return {**entry.summary(), "manifest": entry.manifest.model_dump(mode="json", by_alias=True, exclude_none=True)}
+
+
+@router.post("/v1/agents/manifests", tags=["Agent Manifests"])
+async def register_agent_manifest(
+    payload: dict,
+    principal: Principal = Depends(require(Permission.APPROVE_TIER3)),
+):
+    """Register an immutable manifest version. Reposting identical content is idempotent."""
+    enabled = payload.get("enabled", True)
+    if not isinstance(enabled, bool):
+        raise HTTPException(status_code=422, detail="'enabled' must be true or false.")
+    manifest, _ = await _checked_manifest(payload.get("manifest", payload), principal, "registry")
+    try:
+        entry = _manifest_registry().register(manifest, principal.actor, enabled=enabled)
+    except ManifestVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    except RegistryError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    await record_audit(principal, "manifest_register", f"{manifest.name}@{manifest.version} {entry.summary()['digest']}", True)
+    return entry.summary()
+
+
+@router.patch("/v1/agents/manifests/{name}/{version}", tags=["Agent Manifests"])
+async def set_registered_manifest_state(
+    name: str,
+    version: str,
+    payload: dict,
+    principal: Principal = Depends(require(Permission.APPROVE_TIER3)),
+):
+    """Enable or disable a registered version. Disabled entries cannot run or take another step."""
+    if not isinstance(payload.get("enabled"), bool):
+        raise HTTPException(status_code=422, detail="'enabled' must be true or false.")
+    try:
+        entry = _manifest_registry().set_enabled(name, version, payload["enabled"])
+    except ManifestNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except RegistryError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    state = "enabled" if entry.enabled else "disabled"
+    await record_audit(principal, "manifest_kill_switch", f"{name}@{version} {state}", True)
+    return entry.summary()
 
 
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])

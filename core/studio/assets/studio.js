@@ -105,7 +105,7 @@ async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-const state = { me: null, status: null, tabs: [], active: null, models: {}, buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', section: 'tasks', runs: [], agentState: null, lastPending: null, agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
+const state = { me: null, status: null, tabs: [], active: null, models: {}, manifests: [], buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', section: 'tasks', runs: [], agentState: null, lastPending: null, agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
 
 const signInOpen = () => !$('signin').classList.contains('hidden');
 function showSignIn(message) {
@@ -536,7 +536,13 @@ async function startAgent(e) {
   e.preventDefault();
   const goal = $('agent-goal').value.trim(); if (!goal) return;
   try {
-    const r = await api('/v1/agent/run', { method: 'POST', body: { goal, policy: $('agent-policy').value } });
+    const selected = $('agent-manifest').value;
+    const body = { goal };
+    if (selected) {
+      const [name, version] = selected.split('@');
+      body.manifest_ref = { name, version };
+    } else body.policy = $('agent-policy').value;
+    const r = await api('/v1/agent/run', { method: 'POST', body });
     state.agentTask = { id: r.task_id, goal };
     $('agent-goal').value = ''; tone('ok'); renderAgent(r.state); loadRuns();
   } catch (err) { toast(err.message, 'err'); }
@@ -555,6 +561,7 @@ function renderAgent(s) {
   const done = s.plan.filter((p) => p.status === 'completed').length;
   $('plan-progress').textContent = fmt('stepOf', { done, total: s.plan.length });
   $('agent-policy-label').textContent = `· ${t({ confirm_mutation: 'polConfirmMut', confirm_all: 'polConfirmAll', autonomous: 'polAuto' }[s.policy] || s.policy)}`;
+  renderManifest(s.manifest);
   const next = s.plan.find((p) => p.status === 'pending' || p.status === 'failed');
   const pendingStep = waiting ? s.pending_approval.step_id : null;
   $('agent-plan').replaceChildren(...s.plan.map((p, i) => {
@@ -575,6 +582,42 @@ function renderAgent(s) {
   $('agent-events').replaceChildren(...[...s.recent_events].reverse().map((ev) => h('li', { class: 'flex gap-2' },
     h('span', { class: `font-mono ${EVT_TONE[ev.type || ev.event_type] || 'text-ide-muted'}` }, ev.type || ev.event_type || 'event'),
     h('span', { class: 'truncate text-ide-faint', dir: 'ltr' }, ev.data ? JSON.stringify(ev.data).slice(0, 100) : ev.payload ? JSON.stringify(ev.payload).slice(0, 100) : ''))));
+}
+function renderManifest(m) {
+  $('agent-manifest-card').classList.toggle('hidden', !m);
+  if (!m) return;
+  $('agent-manifest-name').textContent = `${m.name}@${m.version}`;
+  $('agent-manifest-digest').textContent = m.digest || '';
+  const registered = !!m.registry_ref;
+  $('agent-manifest-state').textContent = `${registered ? 'registered' : 'inline'} · ${m.signed ? 'signed' : 'unsigned'}`;
+  $('agent-manifest-state').className = `step-chip ${m.signed ? 'text-ok border-ok/40' : 'text-warn border-warn/40'}`;
+  const rows = [
+    ['Tools', (m.tools || []).join(', ') || '—'],
+    ['Sandbox', m.sandbox || '—'],
+    ['Autonomy', m.autonomy || '—'],
+    ['Step budget', `${m.steps_used || 0} / ${m.max_steps || '—'}`],
+  ];
+  $('agent-manifest-meta').replaceChildren(...rows.flatMap(([k, v]) => [h('dt', { class: 'text-ide-faint' }, k), h('dd', { class: 'font-mono break-all', dir: 'ltr' }, v)]));
+}
+
+async function loadManifests() {
+  try { state.manifests = (await api('/v1/agents/manifests')).manifests || []; }
+  catch { state.manifests = []; }
+  const select = $('agent-manifest');
+  const previous = select.value;
+  const enabled = state.manifests.filter((m) => m.enabled);
+  select.replaceChildren(h('option', { value: '' }, 'No manifest'), ...enabled.map((m) => h('option', { value: `${m.name}@${m.version}` }, `${m.name}@${m.version} · ${m.autonomy}`)));
+  if ([...select.options].some((o) => o.value === previous)) select.value = previous;
+  syncManifestPolicy();
+}
+
+function syncManifestPolicy() {
+  const selected = $('agent-manifest').value;
+  $('agent-policy').disabled = !!selected;
+  if (selected) {
+    const manifest = state.manifests.find((m) => `${m.name}@${m.version}` === selected);
+    if (manifest) $('agent-policy').value = manifest.autonomy;
+  }
 }
 function renderApproval(s) {
   const p = s.pending_approval;
@@ -716,7 +759,7 @@ function welcomeFacts() {
   $('welcome-facts').replaceChildren(...facts.map(([k, v]) => h('div', { class: 'p-2.5 rounded-lg border border-ide-border bg-ide-sidebar/60' }, h('dt', { class: 'text-ide-faint text-[10px] uppercase tracking-wider' }, k), h('dd', { class: 'mt-0.5 font-mono truncate' }, v))));
 }
 async function startSession() {
-  await Promise.all([loadStatus(), loadTree(), loadGit()]);
+  await Promise.all([loadStatus(), loadTree(), loadGit(), loadManifests()]);
   welcomeFacts();
   switchSection(location.hash.slice(1) || 'tasks');
   if (state.ws) { const old = state.ws; state.ws = null; old.close(); }
@@ -755,6 +798,7 @@ function wire() {
   $('pay-form').addEventListener('submit', buildIntent);
   $('audit-verify').addEventListener('click', verifyAudit);
   $('agent-form').addEventListener('submit', startAgent);
+  $('agent-manifest').addEventListener('change', syncManifestPolicy);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));
   $('approve-no').addEventListener('click', () => approve(false));

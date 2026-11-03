@@ -110,8 +110,13 @@ def _default_read_roots() -> List[Path]:
     for entry in os.environ.get("PATH", "").split(os.pathsep):
         if entry:
             p = Path(entry)
-            if p.is_dir() and (home in p.resolve().parents or p.resolve() == home):
-                roots.add(p.resolve())  # tools the user put on PATH under their home (venv, ~/.local/bin)
+            try:
+                resolved = p.resolve()
+                if p.is_dir() and (home in resolved.parents or resolved == home):
+                    roots.add(resolved)  # tools the user put on PATH under their home (venv, ~/.local/bin)
+            except OSError:
+                # PATH can contain OS-managed cryptex or network mounts that this process cannot stat.
+                continue
     return sorted(roots)
 
 

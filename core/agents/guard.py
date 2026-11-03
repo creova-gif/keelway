@@ -69,6 +69,7 @@ class ManifestGuard:
         self._tools = set(manifest.tools)
         self.steps_used = 0
         self.signed = False  # set by the caller that verified a signature
+        self.registry_ref = None
 
     # ---- path handling -------------------------------------------------
     def _real_relative(self, raw: Any) -> Tuple[Optional[str], Optional[Decision]]:
@@ -132,6 +133,7 @@ class ManifestGuard:
         return {
             "name": m.name, "version": m.version, "digest": self.manifest_digest, "signed": self.signed,
             "steps_used": self.steps_used, "max_steps": m.budget.max_steps, "sandbox": m.sandbox,
+            "autonomy": m.permissions.autonomy, "tools": m.tools, "registry_ref": self.registry_ref,
         }
 
     def filter_result(self, tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]:

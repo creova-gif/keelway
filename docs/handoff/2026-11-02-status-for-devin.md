@@ -1,5 +1,11 @@
 # Status for Devin, 2026-11-02: where things stand and where to resume
 
+> **3 November continuation:** #20, #32, #18 and #16 are now merged into `main`. #32 was already merged when
+> work resumed; the remaining PRs landed as #20, #18, then #16. The website wording described in section 4 has
+> been corrected on the continuation branch. That branch also adds the next two requested slices: a workspace-local manifest registry
+> keyed by `name@version` with an audited enable/disable kill switch, and a Studio composer/detail view for
+> registered manifests. Treat the original snapshot below as historical context at commit `a8b327e`.
+
 Written after reviewing `main` @ `a8b327e` and every open PR. Verified items say how; everything else is from PR
 descriptions and is labelled.
 
