@@ -120,6 +120,50 @@ class SeatbeltBackend:
         return ["sandbox-exec", "-f", str(profile_path), *argv]
 
 
+class BubblewrapBackend:
+    name = "bubblewrap"
+    _available: Optional[bool] = None
+
+    @classmethod
+    def available(cls) -> bool:
+        if cls._available is not None:
+            return cls._available
+        if sys.platform != "linux" or shutil.which("bwrap") is None:
+            cls._available = False
+            return False
+        try:
+            res = subprocess.run(
+                ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "--", "/bin/true"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=2,
+            )
+            cls._available = (res.returncode == 0)
+        except Exception:
+            cls._available = False
+        return cls._available
+
+    @staticmethod
+    def wrap(argv: List[str], workspace: Path, tmp: Path, read_roots: Sequence[Path]) -> List[str]:
+        cmd = [
+            "bwrap",
+            "--ro-bind", "/", "/",
+            "--dev", "/dev",
+            "--proc", "/proc",
+            "--tmpfs", "/tmp",
+            "--bind", str(workspace), str(workspace),
+            "--bind", str(tmp), str(tmp),
+            "--unshare-net",
+            "--unshare-pid",
+            "--die-with-parent",
+        ]
+        for p in PROTECTED_WRITE:
+            prot = workspace / p
+            if prot.exists():
+                cmd.extend(["--tmpfs", str(prot)])
+        return [*cmd, "--", *argv]
+
+
 def _default_read_roots() -> List[Path]:
     roots = {Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve()}
     home = Path.home().resolve()
@@ -136,17 +180,28 @@ class Sandbox:
         self.workspace = Path(workspace_root).resolve()
         self.read_roots = sorted({*_default_read_roots(), *(Path(p).resolve() for p in extra_read_roots)})
         self.env_allow = tuple(env_allow)
-        self.backend_name = backend if backend is not None else (SeatbeltBackend.name if SeatbeltBackend.available() else "")
+        if backend is not None:
+            self.backend_name = backend
+        elif SeatbeltBackend.available():
+            self.backend_name = SeatbeltBackend.name
+        elif BubblewrapBackend.available():
+            self.backend_name = BubblewrapBackend.name
+        else:
+            self.backend_name = ""
         self._verified: Optional[Tuple[bool, str]] = None
 
     @property
     def available(self) -> bool:
-        return self.backend_name == SeatbeltBackend.name and SeatbeltBackend.available()
+        if self.backend_name == SeatbeltBackend.name:
+            return SeatbeltBackend.available()
+        if self.backend_name == BubblewrapBackend.name:
+            return BubblewrapBackend.available()
+        return False
 
     # ---- running -----------------------------------------------------
     def run(self, command: str, timeout: int = 30, max_output: int = 200_000) -> SandboxResult:
         if not self.available:
-            raise SandboxUnavailable("no confinement backend on this platform (only macOS seatbelt is built)")
+            raise SandboxUnavailable("no confinement backend on this platform (macOS seatbelt or Linux bubblewrap required)")
         try:
             argv = shlex.split(command)
         except ValueError as exc:
@@ -155,12 +210,19 @@ class Sandbox:
             raise ValueError("empty command")
         tmp = Path(tempfile.mkdtemp(prefix="keelway-sbx-")).resolve()
         try:
-            profile_path = tmp / "profile.sb"
-            profile_path.write_text(SeatbeltBackend.profile(self.workspace, tmp, self.read_roots), encoding="utf-8")
+            if self.backend_name == SeatbeltBackend.name:
+                profile_path = tmp / "profile.sb"
+                profile_path.write_text(SeatbeltBackend.profile(self.workspace, tmp, self.read_roots), encoding="utf-8")
+                wrapped_cmd = SeatbeltBackend.wrap(argv, profile_path)
+            elif self.backend_name == BubblewrapBackend.name:
+                wrapped_cmd = BubblewrapBackend.wrap(argv, self.workspace, tmp, self.read_roots)
+            else:
+                raise SandboxUnavailable(f"unsupported sandbox backend: {self.backend_name}")
+
             env = scrubbed_env(os.environ, tmp, self.env_allow)
             start = time.perf_counter()
             proc = subprocess.Popen(
-                SeatbeltBackend.wrap(argv, profile_path), cwd=str(self.workspace), env=env, shell=False,
+                wrapped_cmd, cwd=str(self.workspace), env=env, shell=False,
                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                 start_new_session=True,
             )

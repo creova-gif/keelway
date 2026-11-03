@@ -21,7 +21,21 @@ engine_kwargs = {
 if is_sqlite:
     sqlite_path = make_url(settings.database_url).database
     if sqlite_path and sqlite_path != ":memory:" and not sqlite_path.startswith("file:"):
-        Path(sqlite_path).expanduser().parent.mkdir(parents=True, exist_ok=True)
+        p = Path(sqlite_path).expanduser()
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            test_file = p.parent / ".perm_check"
+            test_file.touch()
+            test_file.unlink()
+        except (PermissionError, OSError):
+            fallback_dir = Path("/tmp/keelway").resolve()
+            try:
+                fallback_dir.mkdir(parents=True, exist_ok=True)
+                settings.database_url = f"sqlite+aiosqlite:///{fallback_dir}/keelway.db"
+            except Exception:
+                local_dir = Path("./.keelway").resolve()
+                local_dir.mkdir(parents=True, exist_ok=True)
+                settings.database_url = f"sqlite+aiosqlite:///{local_dir}/keelway.db"
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 else:
     engine_kwargs["pool_pre_ping"] = True

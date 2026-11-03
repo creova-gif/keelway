@@ -11,7 +11,7 @@ import pytest
 
 from core.agents import manifest as am
 from core.agents.guard import ManifestNotRunnable, loop_from_manifest
-from core.agents.sandbox import Sandbox, SandboxUnavailable, SeatbeltBackend, _sbpl_path, scrubbed_env
+from core.agents.sandbox import BubblewrapBackend, Sandbox, SandboxUnavailable, SeatbeltBackend, _sbpl_path, scrubbed_env
 from core.storage.workspace_fs import WorkspaceFilesystem
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "docs" / "spec" / "examples" / "test-fixer.agent.json"
@@ -252,3 +252,21 @@ async def test_sandbox_workspace_manifests_keep_the_old_unconfined_path(ws):
     await agent.execute_tool("run_command", {"command": "/bin/echo hi"})
     done = await agent.approve_pending(True)
     assert done["status"] == "success" and "sandbox" not in done["result"]
+
+
+def test_bubblewrap_backend_structure(tmp_path):
+    assert isinstance(BubblewrapBackend.available(), bool)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / ".git").mkdir()
+    tmp = tmp_path / "tmp"
+    tmp.mkdir()
+    wrapped = BubblewrapBackend.wrap(["/bin/echo", "hello"], ws, tmp, [Path("/usr/lib")])
+    assert wrapped[0] == "bwrap"
+    assert "--unshare-net" in wrapped
+    assert "--ro-bind" in wrapped
+    assert str(ws) in wrapped
+    assert str(tmp) in wrapped
+    assert "--" in wrapped
+    assert wrapped[-2:] == ["/bin/echo", "hello"]
+
