@@ -124,3 +124,21 @@ class AuditEventRecord(Base):
     allowed = Column(Boolean, nullable=False)
     prev_hash = Column(String(64), nullable=False, unique=True)
     entry_hash = Column(String(64), nullable=False, unique=True)
+
+
+class AgentManifestRecord(Base):
+    """Registered agent manifests with versioning and instant kill-switch."""
+
+    __tablename__ = "keelway_agent_manifests"
+
+    id = Column(String(128), primary_key=True)  # name@version
+    name = Column(String(64), nullable=False, index=True)
+    version = Column(String(32), nullable=False)
+    owner = Column(String(100), nullable=False)
+    description = Column(String(500), nullable=True)
+    digest = Column(String(64), nullable=False, index=True)
+    manifest_json = Column(Text, nullable=False)
+    enabled = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+

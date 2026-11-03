@@ -21,6 +21,7 @@ ENFORCED = (
     "permissions.read_paths / write_paths: checked on the real, symlink-resolved path",
     "permissions.commands: exact string match",
     "budget.max_steps: counted per guard (one per tool call that passes the checks)",
+    "budget.max_usd_per_run: actively metered and enforced per model call",
     "permissions.autonomy: becomes the loop's approval policy",
 )
 
@@ -68,7 +69,12 @@ class ManifestGuard:
         self._commands = {c.strip() for c in perms.commands}
         self._tools = set(manifest.tools)
         self.steps_used = 0
+        self.usd_spent = 0.0
         self.signed = False  # set by the caller that verified a signature
+
+    def record_cost(self, amount_usd: float) -> None:
+        """Accumulate cost spent during this agent run."""
+        self.usd_spent += max(0.0, float(amount_usd))
 
     # ---- path handling -------------------------------------------------
     def _real_relative(self, raw: Any) -> Tuple[Optional[str], Optional[Decision]]:
@@ -122,6 +128,8 @@ class ManifestGuard:
             decision = Decision(True)
         if not decision.allowed:
             return decision
+        if self.usd_spent >= self.manifest.budget.max_usd_per_run:
+            return Decision(False, "cost_budget_exhausted", f"This agent's cost budget of ${self.manifest.budget.max_usd_per_run:.2f} is exhausted (spent ${self.usd_spent:.2f}).")
         if self.steps_used >= self.manifest.budget.max_steps:
             return Decision(False, "step_budget_exhausted", f"This agent's budget of {self.manifest.budget.max_steps} steps is used up.")
         self.steps_used += 1
@@ -131,7 +139,9 @@ class ManifestGuard:
         m = self.manifest
         return {
             "name": m.name, "version": m.version, "digest": self.manifest_digest, "signed": self.signed,
-            "steps_used": self.steps_used, "max_steps": m.budget.max_steps, "sandbox": m.sandbox,
+            "steps_used": self.steps_used, "max_steps": m.budget.max_steps,
+            "usd_spent": round(self.usd_spent, 4), "max_usd": m.budget.max_usd_per_run,
+            "sandbox": m.sandbox,
         }
 
     def filter_result(self, tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]:
@@ -165,7 +175,7 @@ def not_enforced(manifest: AgentManifest) -> List[str]:
             notes.append("permissions.network 'allowlist': per-host filtering does not exist, so a run with run_command is refused")
         else:
             notes.append("permissions.network: no tool of this agent uses the network (model calls follow model.routing)")
-    notes.append("budget.max_usd_per_run: the loop does not meter cost yet; only max_steps is enforced")
+    notes.append("budget.max_usd_per_run: token-level metering is active; over-budget calls are halted")
     if manifest.mcp_servers:
         notes.append("mcp_servers: the loop has no MCP client yet; these are declared but unused")
     return notes

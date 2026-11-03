@@ -3,6 +3,7 @@ FastAPI Routes for Keelway Core.
 """
 
 import asyncio
+import json
 import re
 import time
 from datetime import datetime, timezone
@@ -737,8 +738,19 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         "Run automated checks",
     ]
     manifest, manifest_signed = None, False
-    if payload.get("manifest") is not None:
-        manifest, manifest_signed = await _checked_manifest(payload["manifest"], principal, task_id)
+    manifest_data = payload.get("manifest")
+    if manifest_data is None and payload.get("manifest_ref"):
+        from core.storage.database import AsyncSessionLocal
+        from core.agents.registry import resolve_manifest_ref, ManifestRegistryError
+        async with AsyncSessionLocal() as db:
+            try:
+                reg_record = await resolve_manifest_ref(db, payload["manifest_ref"])
+                manifest_data = json.loads(reg_record.manifest_json)
+            except ManifestRegistryError as exc:
+                await record_audit(principal, "agent_run_manifest", f"{task_id} registry ref {payload['manifest_ref']}: {exc}", False)
+                raise HTTPException(status_code=400, detail=str(exc))
+    if manifest_data is not None:
+        manifest, manifest_signed = await _checked_manifest(manifest_data, principal, task_id)
         if payload.get("policy") not in (None, manifest.permissions.autonomy):
             raise HTTPException(status_code=400, detail="'policy' conflicts with the manifest's permissions.autonomy; omit it.")
     policy_str = manifest.permissions.autonomy if manifest is not None else payload.get("policy", "confirm_mutation")
@@ -903,6 +915,86 @@ async def validate_agent_manifest(payload: dict):
         not_enforced=not_enforced(manifest),
     )
     return out
+
+
+@router.get("/v1/agents/registry", dependencies=[Depends(current_principal)], tags=["Agent Manifest Registry"])
+async def list_registry_manifests(enabled_only: bool = False, db: AsyncSession = Depends(get_db)):
+    """List all registered agent manifests."""
+    from core.agents.registry import list_registered_manifests
+    records = await list_registered_manifests(db, enabled_only=enabled_only)
+    return {
+        "manifests": [
+            {
+                "id": r.id,
+                "name": r.name,
+                "version": r.version,
+                "owner": r.owner,
+                "description": r.description,
+                "digest": r.digest,
+                "enabled": r.enabled,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+            }
+            for r in records
+        ]
+    }
+
+
+@router.post("/v1/agents/registry", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Manifest Registry"])
+async def register_agent_manifest(payload: dict, principal: Principal = Depends(current_principal), db: AsyncSession = Depends(get_db)):
+    """Publish and register an agent manifest in the workspace registry."""
+    from core.agents.registry import register_manifest, ManifestRegistryError
+    manifest_data = payload.get("manifest", payload)
+    try:
+        record = await register_manifest(db, manifest_data, owner_override=principal.actor)
+        await db.commit()
+        await record_audit(principal, "manifest_registered", f"{record.id} digest={record.digest}", True)
+        return {
+            "registered": True,
+            "id": record.id,
+            "digest": record.digest,
+            "enabled": record.enabled,
+        }
+    except ManifestRegistryError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.get("/v1/agents/registry/{name}/{version}", dependencies=[Depends(current_principal)], tags=["Agent Manifest Registry"])
+async def get_registry_manifest(name: str, version: str, db: AsyncSession = Depends(get_db)):
+    """Get the full manifest definition by name and version."""
+    from core.agents.registry import get_registered_manifest
+    record = await get_registered_manifest(db, name, version)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"Manifest '{name}@{version}' not found.")
+    return {
+        "id": record.id,
+        "name": record.name,
+        "version": record.version,
+        "owner": record.owner,
+        "digest": record.digest,
+        "enabled": record.enabled,
+        "manifest": json.loads(record.manifest_json),
+    }
+
+
+@router.post("/v1/agents/registry/{name}/{version}/toggle", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Agent Manifest Registry"])
+async def toggle_registry_manifest(name: str, version: str, payload: dict, principal: Principal = Depends(current_principal), db: AsyncSession = Depends(get_db)):
+    """Kill-switch: enable or disable an agent manifest version immediately."""
+    from core.agents.registry import toggle_manifest_status, ManifestRegistryError
+    enabled = payload.get("enabled", True)
+    try:
+        record = await toggle_manifest_status(db, name, version, enabled)
+        await db.commit()
+        action = "manifest_enabled" if enabled else "manifest_disabled_kill_switch"
+        await record_audit(principal, action, f"{record.id}", True)
+        return {
+            "id": record.id,
+            "enabled": record.enabled,
+            "updated_at": record.updated_at.isoformat() if record.updated_at else None,
+        }
+    except ManifestRegistryError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
 
 
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
