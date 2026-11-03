@@ -135,13 +135,44 @@ def _lan_ip() -> str | None:
         return None
 
 
-async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
+def _launch_desktop_window(url: str):
+    """Launches Keelway in a dedicated borderless application window (Chromium/Edge app mode)."""
+    import shutil
+    import subprocess
+    import sys
+
+    # 1. macOS Chrome App Mode
+    chrome_mac = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+    if sys.platform == "darwin" and chrome_mac.exists():
+        try:
+            subprocess.Popen([str(chrome_mac), f"--app={url}", "--new-window"])
+            return
+        except Exception:
+            pass
+
+    # 2. Linux / Windows Chromium or Edge app mode
+    for bin_name in ["google-chrome", "chromium-browser", "chromium", "msedge"]:
+        path = shutil.which(bin_name)
+        if path:
+            try:
+                subprocess.Popen([path, f"--app={url}", "--new-window"])
+                return
+            except Exception:
+                pass
+
+    # 3. Fallback to standard system browser
+    import webbrowser
+    webbrowser.open(url)
+
+
+async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = False):
     """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
     import threading
 
+    mode_label = "Desktop Window" if desktop else "Web Browser"
     print("\n" + "=" * 65)
-    print("  ⚡ KEELWAY STUDIO — Sovereign Agent Engineering Environment")
+    print(f"  ⚡ KEELWAY STUDIO — Sovereign Agent Engineering Environment ({mode_label})")
     from core.config import settings
     from core.security.auth import launch_token
     os.environ["KEELWAY_DEV_CLI"] = "1"
@@ -157,14 +188,18 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1"):
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
-    def auto_open_browser():
-        try:
-            webbrowser.open(f"http://{host}:{port}/?token={launch_token()}" if settings.auth_required else f"http://{host}:{port}")
-        except Exception:
-            pass
+    def auto_open_target():
+        target_url = f"http://{host}:{port}/?token={launch_token()}" if settings.auth_required else f"http://{host}:{port}"
+        if desktop:
+            _launch_desktop_window(target_url)
+        else:
+            try:
+                webbrowser.open(target_url)
+            except Exception:
+                pass
 
-    # Launch browser automatically after 0.4s
-    threading.Timer(0.4, auto_open_browser).start()
+    # Launch browser/desktop window automatically after 0.4s
+    threading.Timer(0.4, auto_open_target).start()
 
     try:
         import uvicorn
@@ -993,6 +1028,12 @@ def main():
     dev_parser = subparsers.add_parser("dev", help="Launch Keelway Studio — Local Web & Desktop UI")
     dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    dev_parser.add_argument("--desktop", "--app", dest="desktop", action="store_true", help="Launch in standalone desktop application window mode")
+
+    # desktop (dedicated alias for standalone desktop window)
+    desktop_parser = subparsers.add_parser("desktop", help="Launch Keelway Studio as a standalone desktop application window")
+    desktop_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
+    desktop_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
 
     demo_parser = subparsers.add_parser("demo", help="Seed a sample project and open the Studio on it (own folder + DB)")
     demo_parser.add_argument("--dir", type=Path, default=None, help="Demo folder (default: ~/keelway-demo)")
@@ -1219,8 +1260,9 @@ def main():
                 )
             )
         )
-    elif args.command == "dev":
-        asyncio.run(cmd_dev(args.port, args.host))
+    elif args.command in ("dev", "desktop"):
+        is_desktop = getattr(args, "desktop", False) or args.command == "desktop"
+        asyncio.run(cmd_dev(args.port, args.host, desktop=is_desktop))
     elif args.command == "demo":
         from core import demo
         sys.exit(demo.run(args.dir or demo.DEFAULT_DIR, args.port, args.host, args.reset))

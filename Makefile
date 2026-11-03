@@ -1,11 +1,14 @@
-.PHONY: test test-verbose demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify
+.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify
 
 PYTHON ?= python3
 
 help:
 	@echo "Keelway by Sorvex Labs — Developer Tasks"
-	@echo "  make test          Run full automated test suite (504 tests)"
+	@echo "  make test          Run full automated test suite (513 tests)"
 	@echo "  make test-verbose  Run pytest with verbose output"
+	@echo "  make m1            Validate Milestone M1 10-stage end-to-end developer workflow"
+	@echo "  make bench         Run golden 10-task evaluation benchmark panel"
+	@echo "  make studio        Launch Keelway Studio Web & Desktop developer environment"
 	@echo "  make demo          Run interactive developer walkthrough & tamper detection demo"
 	@echo "  make tier2-status  Show live Tier 2 Hardware Security status"
 	@echo "  make tier2-verify  Cryptographically verify all Tier 2 hardware claims"
@@ -23,6 +26,18 @@ test:
 
 test-verbose:
 	PYTHONPATH=. $(PYTHON) -m pytest tests -v
+
+m1:
+	PYTHONPATH=. $(PYTHON) cli.py m1
+
+bench:
+	PYTHONPATH=. $(PYTHON) cli.py bench
+
+studio:
+	PYTHONPATH=. $(PYTHON) cli.py dev
+
+desktop:
+	PYTHONPATH=. $(PYTHON) cli.py desktop
 
 demo:
 	PYTHONPATH=. $(PYTHON) examples/run_developer_demo.py
