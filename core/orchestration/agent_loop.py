@@ -27,6 +27,7 @@ class AgentLoopStatus(str, Enum):
     AWAITING_APPROVAL = "awaiting_approval"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
 
 class AutonomyPolicy(str, Enum):
@@ -75,6 +76,7 @@ class AutonomousAgentLoop:
         self.approval_rules = approval_rules
         self.command_runner: Optional[Any] = None  # (command, timeout) -> tool result; set when commands must run confined
         self.guard: Optional[Any] = None  # a core.agents.guard.ManifestGuard when running under an Agent Manifest
+        self.active_proc: Optional[subprocess.Popen] = None
         self.semantic_index = CodebaseSemanticIndex(self.fs)
 
         self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
@@ -199,23 +201,33 @@ class AutonomousAgentLoop:
                 if venv_bin not in clean_env["PATH"]:
                     clean_env["PATH"] = f"{venv_bin}:{clean_env['PATH']}"
 
-            proc = subprocess.run(
+            proc = subprocess.Popen(
                 exec_cmd,
                 shell=True,
                 cwd=str(self.fs.root),
                 env=clean_env,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=timeout,
             )
+            self.active_proc = proc
+            try:
+                stdout, stderr = proc.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
+                raise TimeoutError(f"Command '{cmd}' timed out after {timeout} seconds.")
+            finally:
+                self.active_proc = None
+
             dur_ms = (time.perf_counter() - start_t) * 1000.0
 
             return {
                 "env_scrubbed_count": len(dropped),
                 "command": cmd,
                 "exit_code": proc.returncode,
-                "stdout": proc.stdout[-10000:],  # Tail last 10KB
-                "stderr": proc.stderr[-10000:],
+                "stdout": stdout[-10000:],  # Tail last 10KB
+                "stderr": stderr[-10000:],
                 "duration_ms": round(dur_ms, 2),
             }
 
@@ -425,6 +437,57 @@ class AutonomousAgentLoop:
             self.status = AgentLoopStatus.FAILED
             self._record_event("tool_error", {"tool": tool.name, "error": err_msg, "duration_ms": round(dur_ms, 2)})
             return {"status": "error", "tool": tool.name, "error": err_msg}
+
+    def cancel(self) -> Dict[str, Any]:
+        """Cancels running tool execution, terminates active subprocess, and transitions to CANCELLED."""
+        if self.active_proc and self.active_proc.poll() is None:
+            try:
+                self.active_proc.terminate()
+                self.active_proc.wait(timeout=1.0)
+            except Exception:
+                try:
+                    self.active_proc.kill()
+                except Exception:
+                    pass
+        self.active_proc = None
+        pending_step_id = (self.pending_approval or {}).get("step_id")
+        self.pending_approval = None
+        self.status = AgentLoopStatus.CANCELLED
+        for s in self.plan:
+            if s.status == "running" or (s.status == "pending" and s.id == pending_step_id):
+                s.status = "failed"
+                s.observation = "Task execution cancelled by user."
+        self._record_event("task_cancelled", {"task_id": self.task_id})
+        return {"status": "cancelled", "task_id": self.task_id}
+
+    @staticmethod
+    def formulate_plan(goal: str) -> List[str]:
+        """Generates dynamic structured execution steps for a goal based on intent recognition."""
+        lower = goal.lower()
+        if "test" in lower or "fix" in lower or "bug" in lower or "discount" in lower:
+            return [
+                "Inspect source files and locate target symbols",
+                "Formulate and apply code changes",
+                "Run automated tests to verify repair",
+            ]
+        elif "refactor" in lower or "clean" in lower:
+            return [
+                "Analyze codebase architecture and dependencies",
+                "Apply structured code refactoring",
+                "Verify zero-regression with test suite",
+            ]
+        elif "feature" in lower or "add" in lower or "implement" in lower:
+            return [
+                "Examine project context and existing interfaces",
+                "Implement new feature module and endpoints",
+                "Add test coverage and run verification",
+            ]
+        return [
+            "Inspect workspace files and dependencies",
+            "Search codebase for target symbols",
+            "Formulate and verify solution patch",
+            "Run automated checks",
+        ]
 
     def _update_step_status(self, step_id: str, status: str, observation: Optional[str] = None) -> None:
         for s in self.plan:

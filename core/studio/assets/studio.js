@@ -432,8 +432,18 @@ async function runConsole(e) {
   log(`❯ ${line}`, 'text-accent');
   const [cmd, ...rest] = line.split(' ');
   const fn = COMMANDS[cmd];
-  if (!fn) { log(`unknown command '${cmd}' — try help`, 'text-warn'); return; }
-  try { await fn(rest.join(' ')); } catch (err) { log(err.message, 'text-danger'); }
+  if (fn) {
+    try { await fn(rest.join(' ')); } catch (err) { log(err.message, 'text-danger'); }
+    return;
+  }
+  try {
+    const res = await api('/v1/terminal/exec', { method: 'POST', body: { command: line } });
+    if (res.stdout) log(res.stdout, 'text-ide-fg');
+    if (res.stderr) log(res.stderr, res.exit_code === 0 ? 'text-ide-muted' : 'text-danger');
+    log(`[exited with code ${res.exit_code} in ${res.duration_ms}ms]`, res.exit_code === 0 ? 'text-ok' : 'text-danger');
+  } catch (err) {
+    log(err.message, 'text-danger');
+  }
 }
 
 // ---------- flight recorder ----------
@@ -652,6 +662,10 @@ function renderAgent(s) {
   st.className = `step-chip ${waiting ? 'text-warn border-warn/50' : s.status === 'failed' ? 'text-danger border-danger/40' : s.status === 'completed' ? 'text-ok border-ok/40' : 'text-accent border-accent/40'}`;
   $('agent-dot').className = `w-2 h-2 rounded-full ${waiting ? 'bg-warn pulse' : busy ? 'bg-accent pulse' : s.status === 'failed' ? 'bg-danger' : 'bg-ok'}`;
   $('agent-goal-label').textContent = s.goal || state.agentTask.goal || s.task_id;
+  const isRunning = !['completed', 'failed', 'cancelled'].includes(s.status);
+  if ($('cancel-task-btn')) {
+    $('cancel-task-btn').classList.toggle('hidden', !isRunning);
+  }
   const done = s.plan.filter((p) => p.status === 'completed').length;
   $('plan-progress').textContent = fmt('stepOf', { done, total: s.plan.length });
   $('agent-policy-label').textContent = `· ${t({ confirm_mutation: 'polConfirmMut', confirm_all: 'polConfirmAll', autonomous: 'polAuto' }[s.policy] || s.policy)}`;
@@ -853,6 +867,19 @@ function wire() {
         refreshView();
       } catch (err) {
         toast(`Failed to open workspace: ${err.message}`, 'err');
+      }
+    });
+  }
+  if ($('cancel-task-btn')) {
+    $('cancel-task-btn').addEventListener('click', async () => {
+      if (!state.agentTask) return;
+      try {
+        const res = await api(`/v1/agent/cancel/${encodeURIComponent(state.agentTask.id)}`, { method: 'POST' });
+        toast(`Task ${state.agentTask.id} cancelled`, 'warn');
+        renderAgent(res.agent_state);
+        loadRuns();
+      } catch (err) {
+        toast(`Failed to cancel task: ${err.message}`, 'err');
       }
     });
   }

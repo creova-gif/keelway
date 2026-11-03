@@ -3,8 +3,10 @@ FastAPI Routes for Keelway Core.
 """
 
 import asyncio
+import os
 import json
 import re
+import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +34,7 @@ from core.api.schemas import (
 from core.config import legacy_aware, settings
 from core.models.gateway import gateway
 from core.security.auth import LOCAL_OWNER, Principal, current_principal, principal_for_token, record_audit, require, token_from_headers
+from core.security.env_scrub import scrub_env
 from core.security.origin import origin_allowed
 from core.security.rbac import Permission
 from core.orchestration.state import TaskState, validate_transition, InvalidStateTransitionError
@@ -858,12 +861,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
     task_id = payload.get("task_id") or f"task_{time.time_ns()}"
     _tape_path(task_id)
     goal = payload.get("goal", "Inspect codebase and prepare solution")
-    steps = payload.get("steps") or [
-        "Inspect workspace files and dependencies",
-        "Search codebase for target symbols",
-        "Formulate and verify solution patch",
-        "Run automated checks",
-    ]
+    steps = payload.get("steps") or AutonomousAgentLoop.formulate_plan(goal)
     manifest, manifest_signed = None, False
     manifest_data = payload.get("manifest")
     if manifest_data is None and payload.get("manifest_ref"):
@@ -1020,6 +1018,75 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
         "rule": rule.to_dict() if rule else None,
         "agent_state": await _publish_agent(agent),
     }
+
+
+@router.post("/v1/agent/cancel/{task_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
+async def cancel_agent_task(task_id: str, principal: Principal = Depends(current_principal)):
+    """Cancel an active agent task and terminate any running child subprocesses."""
+    if task_id not in _active_agent_loops:
+        raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
+    agent = _active_agent_loops[task_id]
+    cancel_res = agent.cancel()
+    await record_audit(principal, "agent_task_cancel", task_id, True)
+    state = await _publish_agent(agent)
+    return {
+        "task_id": task_id,
+        "result": cancel_res,
+        "agent_state": state,
+    }
+
+
+@router.post("/v1/terminal/exec", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
+async def execute_terminal_command(payload: dict, principal: Principal = Depends(current_principal)):
+    """Execute an interactive command inside the workspace with security gating and environment scrubbing."""
+    cmd = payload.get("command", "").strip()
+    if not cmd:
+        raise HTTPException(status_code=400, detail="Missing 'command' in request payload.")
+    timeout = min(int(payload.get("timeout", 30)), 120)
+
+    # Security filters against dangerous commands
+    danger_patterns = [r"\brm\s+-rf\s+/", r">\s*/dev/sd[a-z]", r":\(\)\{ :\|:& \};:"]
+    for pat in danger_patterns:
+        if re.search(pat, cmd):
+            await record_audit(principal, "terminal_exec_denied", cmd, False)
+            raise HTTPException(status_code=403, detail=f"Command rejected by security safety gate: '{cmd}'")
+
+    exec_cmd = cmd
+    import sys
+    if exec_cmd.startswith("python3 ") or exec_cmd.startswith("python "):
+        parts = exec_cmd.split(" ", 1)
+        exec_cmd = f'"{sys.executable}" {parts[1]}'
+
+    start_t = time.perf_counter()
+    clean_env, dropped = scrub_env(os.environ)
+    if sys.prefix and "PATH" in clean_env:
+        venv_bin = str(Path(sys.prefix) / "bin")
+        if venv_bin not in clean_env["PATH"]:
+            clean_env["PATH"] = f"{venv_bin}:{clean_env['PATH']}"
+
+    try:
+        proc = subprocess.run(
+            exec_cmd,
+            shell=True,
+            cwd=str(_workspace_fs.root),
+            env=clean_env,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        dur_ms = (time.perf_counter() - start_t) * 1000.0
+        await record_audit(principal, "terminal_exec", f"{cmd} (exit {proc.returncode})", proc.returncode == 0)
+        return {
+            "command": cmd,
+            "exit_code": proc.returncode,
+            "stdout": proc.stdout[-10000:],
+            "stderr": proc.stderr[-10000:],
+            "duration_ms": round(dur_ms, 2),
+        }
+    except subprocess.TimeoutExpired:
+        dur_ms = (time.perf_counter() - start_t) * 1000.0
+        await record_audit(principal, "terminal_exec_timeout", cmd, False)
+        raise HTTPException(status_code=408, detail=f"Command '{cmd}' timed out after {timeout}s.")
 
 
 @router.post("/v1/agents/validate", dependencies=[Depends(current_principal)], tags=["Agent Manifests"])
