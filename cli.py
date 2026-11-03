@@ -1155,6 +1155,20 @@ def main():
     _t2_demo = tier2_sub.add_parser("demo", help="Run interactive developer demonstration of Tier 2 hardware verification")
     _t2_demo.add_argument("--subsystem", choices=["all", "worm", "tpm", "piv", "recovery"], default="all", help="Subsystem to demo")
 
+    # run (Enterprise Governed Run)
+    run_parser = subparsers.add_parser("run", help="Start an enterprise governed AI change run with approval gating")
+    run_parser.add_argument("--task", required=True, help="Task description for the coding agent")
+    run_parser.add_argument("--repo", default=".", help="Local repository path")
+    run_parser.add_argument("--actor", default="developer", help="Actor initiating the run")
+    run_parser.add_argument("--classification", choices=["internal", "production"], default="internal", help="Environment classification")
+
+    # runner (Customer VPC Outbound Daemon)
+    runner_parser = subparsers.add_parser("runner", help="Launch an outbound isolated customer VPC runner daemon")
+    runner_parser.add_argument("--runner-id", default="node-01", help="Unique runner node identifier")
+    runner_parser.add_argument("--org", default="default-org", help="Organization scope")
+    runner_parser.add_argument("--server", default="http://127.0.0.1:8000", help="Keelway Control Plane URL")
+    runner_parser.add_argument("--repo", default=".", help="Target repository path")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1217,6 +1231,40 @@ def main():
         asyncio.run(cmd_doctor())
     elif args.command == "tier2":
         sys.exit(asyncio.run(cmd_tier2(args.tier2_command, getattr(args, "subsystem", "all"))))
+    elif args.command == "run":
+        from keelway.audit.store import SQLiteAuditStore
+        from keelway.core.runner import GovernedRunCoordinator
+        store = SQLiteAuditStore(db_path=".keelway/keelway_audit.db")
+        coord = GovernedRunCoordinator(
+            actor_id=args.actor,
+            repo_path=args.repo,
+            classification=args.classification,
+            audit_store=store,
+        )
+        ok, msg = coord.start_run(args.task)
+        if not ok:
+            print(f"[-] Run failed: {msg}")
+            sys.exit(1)
+        print(f"[+] Governed run reached approval gate.")
+        print(f"    Run ID:         {coord.run_id}")
+        print(f"    Classification: {coord.classification.upper()}")
+        print(f"    Approval ID:    {msg}")
+        patch_hash = coord.workspace.get_patch_hash()
+        print(f"    Patch Hash:     {patch_hash[:16]}...")
+        diff = coord.workspace.get_diff()
+        print("\n--- CANDIDATE PATCH DIFF (ISOLATED WORKSPACE) ---")
+        print(diff)
+        print("-------------------------------------------------")
+    elif args.command == "runner":
+        from keelway.runner.daemon import OutboundRunnerDaemon
+        daemon = OutboundRunnerDaemon(
+            runner_id=args.runner_id,
+            org_id=args.org,
+            control_plane_url=args.server,
+            repo_dir=args.repo,
+        )
+        print(f"[+] Starting Outbound Runner Daemon '{args.runner_id}' for org '{args.org}'...")
+        daemon.start(poll_interval=5.0)
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":

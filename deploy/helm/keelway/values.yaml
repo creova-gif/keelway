@@ -1,0 +1,88 @@
+# Default values for Keelway Enterprise Helm Chart (ADR-108)
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/creova-gif/kora
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "keelway-sa"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "keelway-control-plane"
+  hosts:
+    - host: agent.yourcompany.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: keelway-tls
+      hosts:
+        - agent.yourcompany.com
+
+resources:
+  controlPlane:
+    limits:
+      cpu: 1000m
+      memory: 1536Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  runner:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+env:
+  KEELWAY_ENV: "production"
+  LOG_LEVEL: "INFO"
+  PORT: "8000"
+  OLLAMA_BASE_URL: "http://ollama-service:11434"
+
+secrets:
+  databaseUrl: "postgresql+asyncpg://keelway_admin:CHANGE_ME@postgres:5432/keelway"
+  policySigningKey: "secret_keelway_production_key_v1"
+  keelwayApiToken: ""
+
+runner:
+  enabled: true
+  replicas: 2
+  org: "enterprise-core"
+
+networkPolicy:
+  enabled: true
+  strictAirgap: false

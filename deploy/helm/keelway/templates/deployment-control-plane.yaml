@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keelway.fullname" . }}-control-plane
+  labels:
+    {{- include "keelway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: control-plane
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "keelway.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: control-plane
+  template:
+    metadata:
+      labels:
+        {{- include "keelway.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: control-plane
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: control-plane
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: KEELWAY_ENV
+              value: {{ .Values.env.KEELWAY_ENV | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.env.LOG_LEVEL | quote }}
+            - name: PORT
+              value: {{ .Values.env.PORT | quote }}
+            - name: OLLAMA_BASE_URL
+              value: {{ .Values.env.OLLAMA_BASE_URL | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keelway.fullname" . }}-secret
+                  key: database-url
+            - name: KEELWAY_POLICY_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keelway.fullname" . }}-secret
+                  key: policy-signing-key
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources.controlPlane | nindent 12 }}
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp
+      volumes:
+        - name: tmp-dir
+          emptyDir: {}

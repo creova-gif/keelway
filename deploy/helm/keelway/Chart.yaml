@@ -1,0 +1,15 @@
+apiVersion: v2
+name: keelway
+description: Enterprise Sovereign AI Agent Runtime & Governance Platform (Keelway v71 Architecture)
+type: application
+version: 0.71.0
+appVersion: "0.71.0"
+keywords:
+  - ai-agents
+  - enterprise-governance
+  - deterministic-runtime
+  - tier-2-hardware-security
+  - hash-chained-audit
+maintainers:
+  - name: Sorvex Labs
+    email: security@sorvexlabs.test

@@ -1,0 +1,50 @@
+{{- if .Values.runner.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keelway.fullname" . }}-runner
+  labels:
+    {{- include "keelway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: runner
+spec:
+  replicas: {{ .Values.runner.replicas }}
+  selector:
+    matchLabels:
+      {{- include "keelway.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: runner
+  template:
+    metadata:
+      labels:
+        {{- include "keelway.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: runner
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: runner
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - python3
+            - -m
+            - keelway.cli.main
+            - runner
+            - --runner-id
+            - helm-runner-pod
+            - --org
+            - {{ .Values.runner.org | quote }}
+            - --server
+            - "http://{{ include "keelway.fullname" . }}:8000"
+            - --repo
+            - /workspace
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources.runner | nindent 12 }}
+          volumeMounts:
+            - name: workspace-volume
+              mountPath: /workspace
+      volumes:
+        - name: workspace-volume
+          emptyDir: {}
+{{- end }}
