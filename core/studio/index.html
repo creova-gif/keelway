@@ -171,7 +171,13 @@
     <aside id="sidebar" class="w-64 shrink-0 hidden md:flex flex-col bg-ide-sidebar border-e border-ide-border" aria-labelledby="sidebar-title">
       <div class="h-9 px-3 flex items-center justify-between border-b border-ide-border">
         <h2 id="sidebar-title" class="section-title" data-i18n="explorer">Explorer</h2>
-        <button id="sidebar-refresh" type="button" class="btn-ghost px-1.5" data-i18n-label="refresh" aria-label="Refresh">↻</button>
+        <div class="flex items-center gap-1">
+          <label for="file-upload-input" class="btn-ghost px-1.5 cursor-pointer text-xs" title="Upload files or .zip project" aria-label="Upload files">
+            <svg class="w-3.5 h-3.5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <input id="file-upload-input" type="file" class="hidden" multiple accept=".zip,.py,.js,.ts,.tsx,.json,.md,.txt,.html,.css">
+          </label>
+          <button id="sidebar-refresh" type="button" class="btn-ghost px-1.5" data-i18n-label="refresh" aria-label="Refresh">↻</button>
+        </div>
       </div>
       <div class="flex-1 overflow-y-auto py-1 text-xs">
         <div id="view-explorer" class="sidebar-view"><ul id="file-tree" role="tree" class="font-mono"></ul></div>

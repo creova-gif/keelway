@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, WebSocketException
+from fastapi import APIRouter, Depends, HTTPException, Request, status, WebSocket, WebSocketDisconnect, WebSocketException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -616,6 +616,84 @@ async def save_workspace_file(payload: dict):
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
+
+@router.post("/v1/files/upload", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
+async def upload_workspace_file(request: Request):
+    """Upload a file or a .zip project archive directly into the active workspace.
+
+    Supports JSON body with base64/text or raw binary with X-Filename header.
+    Automatically unzips archives safely with ZipSlip directory traversal checks.
+    """
+    import base64
+    import io
+    import zipfile
+
+    content_type = request.headers.get("content-type", "")
+    filename = request.headers.get("x-filename", "uploaded_file")
+
+    if "application/json" in content_type:
+        body = await request.json()
+        filename = body.get("filename", filename)
+        if "content_base64" in body:
+            raw_bytes = base64.b64decode(body["content_base64"])
+        else:
+            raw_bytes = body.get("content", "").encode("utf-8")
+    else:
+        raw_bytes = await request.body()
+
+    if not raw_bytes:
+        raise HTTPException(status_code=400, detail="Empty upload payload.")
+
+    if filename.lower().endswith(".zip"):
+        extracted_files = []
+        try:
+            with zipfile.ZipFile(io.BytesIO(raw_bytes)) as zf:
+                for member in zf.infolist():
+                    if member.is_dir():
+                        continue
+                    # Security check against ZipSlip path traversal
+                    target_path = _workspace_fs.resolve_safe_path(member.filename)
+                    target_path.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(target_path, "wb") as dst:
+                        dst.write(src.read())
+                    extracted_files.append(member.filename)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to unpack zip archive: {str(e)}")
+
+        try:
+            _semantic_index.index_workspace(max_files=150)
+        except Exception:
+            pass
+
+        return {
+            "status": "success",
+            "type": "zip_archive",
+            "filename": filename,
+            "extracted_count": len(extracted_files),
+            "files": extracted_files,
+        }
+    else:
+        try:
+            target_path = _workspace_fs.resolve_safe_path(filename)
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            target_path.write_bytes(raw_bytes)
+        except WorkspaceSecurityError as e:
+            raise HTTPException(status_code=403, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save uploaded file: {str(e)}")
+
+        try:
+            _semantic_index.index_workspace(max_files=150)
+        except Exception:
+            pass
+
+        return {
+            "status": "success",
+            "type": "single_file",
+            "path": filename,
+            "size_bytes": len(raw_bytes),
+        }
 
 
 @router.get("/v1/git/status", dependencies=[Depends(current_principal)], tags=["Workspace Git"])

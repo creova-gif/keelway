@@ -841,6 +841,40 @@ function wire() {
   $('palette').addEventListener('click', (e) => { if (e.target === $('palette')) closePalette(); });
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.view)));
   $('sidebar-refresh').addEventListener('click', refreshView);
+  if ($('file-upload-input')) {
+    $('file-upload-input').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      for (const file of files) {
+        toast(`Uploading ${file.name}…`, 'info');
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const bytes = new Uint8Array(reader.result);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            const base64Content = btoa(binary);
+            const res = await api('/v1/files/upload', {
+              method: 'POST',
+              body: { filename: file.name, content_base64: base64Content }
+            });
+            if (res.type === 'zip_archive') {
+              toast(`[+] Unpacked ${res.extracted_count} files from ${file.name}`, 'ok');
+            } else {
+              toast(`[+] Uploaded ${file.name}`, 'ok');
+            }
+            refreshView();
+          } catch (err) {
+            toast(`Upload failed: ${err.message}`, 'err');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+      e.target.value = '';
+    });
+  }
   $('mode-editor').addEventListener('click', () => setMode('editor'));
   $('mode-diff').addEventListener('click', () => setMode('diff'));
   $('save-btn').addEventListener('click', saveFile);
