@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  keelway-control-plane:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: keelway-control-plane
+    ports:
+      - "8000:8000"
+    environment:
+      - KEELWAY_POLICY_SIGNING_KEY=secret_keelway_production_key_v1
+      - KEELWAY_DB_PATH=/data/keelway_audit.db
+    volumes:
+      - keelway-data:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # Outbound customer runner daemon executing in isolated container trust boundary
+  keelway-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: keelway-runner
+    entrypoint: [
+      "python3", "-m", "keelway.cli.main", "runner",
+      "--runner-id", "container_runner_01",
+      "--org", "org_sorvex_demo",
+      "--server", "http://keelway-control-plane:8000",
+      "--repo", "."
+    ]
+    depends_on:
+      - keelway-control-plane
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # Local LLM service option for air-gapped or on-prem execution
+  ollama:
+    image: ollama/ollama:latest
+    container_name: keelway-local-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  keelway-data:
+    driver: local
+  ollama-models:
+    driver: local

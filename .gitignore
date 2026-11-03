@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Keelway runtime state & local databases
+*.db
+*.db-shm
+*.db-wal
+keelway_audit.db
+keelway_audit.db-shm
+keelway_audit.db-wal
+bundle.json
+audit_bundle.json
+
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
