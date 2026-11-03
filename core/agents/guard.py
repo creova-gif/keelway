@@ -109,23 +109,35 @@ class ManifestGuard:
 
     # ---- decision ------------------------------------------------------
     def check(self, tool_name: str, arguments: Dict[str, Any]) -> Decision:
-        if tool_name not in self._tools:
-            return Decision(False, "tool_not_allowed", f"'{tool_name}' is not in this agent's tools.")
-        args = arguments if isinstance(arguments, dict) else {}
-        if tool_name == "read_file":
-            decision = self._check_path(args.get("path", ""), self._read, "read", empty_means_all=True)
-        elif tool_name == "list_dir":
-            decision = self._check_path(args.get("path", "."), self._read, "read", empty_means_all=True, is_dir=True)
-        elif tool_name in ("write_file", "edit_file"):
-            decision = self._check_path(args.get("path", ""), self._write, "write", empty_means_all=False)
-        elif tool_name == "run_command":
-            command = args.get("command")
-            if not isinstance(command, str) or command.strip() not in self._commands:
-                decision = Decision(False, "command_not_allowed", "That exact command is not in this agent's allowed commands.")
-            else:
-                decision = Decision(True)
-        else:  # search_codebase: allowed here; its results are filtered by filter_result
+        if tool_name.startswith("mcp:") or tool_name.startswith("mcp__"):
+            sep = ":" if ":" in tool_name else "__"
+            parts = tool_name.split(sep)
+            server_name = parts[1] if len(parts) > 1 else ""
+            if not self.manifest.mcp_servers or server_name not in self.manifest.mcp_servers:
+                return Decision(
+                    False,
+                    "mcp_server_not_declared",
+                    f"MCP server '{server_name}' is not in this agent's declared mcp_servers: {self.manifest.mcp_servers}",
+                )
             decision = Decision(True)
+        elif tool_name not in self._tools:
+            return Decision(False, "tool_not_allowed", f"'{tool_name}' is not in this agent's tools.")
+        else:
+            args = arguments if isinstance(arguments, dict) else {}
+            if tool_name == "read_file":
+                decision = self._check_path(args.get("path", ""), self._read, "read", empty_means_all=True)
+            elif tool_name == "list_dir":
+                decision = self._check_path(args.get("path", "."), self._read, "read", empty_means_all=True, is_dir=True)
+            elif tool_name in ("write_file", "edit_file"):
+                decision = self._check_path(args.get("path", ""), self._write, "write", empty_means_all=False)
+            elif tool_name == "run_command":
+                command = args.get("command")
+                if not isinstance(command, str) or command.strip() not in self._commands:
+                    decision = Decision(False, "command_not_allowed", "That exact command is not in this agent's allowed commands.")
+                else:
+                    decision = Decision(True)
+            else:  # search_codebase: allowed here; its results are filtered by filter_result
+                decision = Decision(True)
         if not decision.allowed:
             return decision
         if self.usd_spent >= self.manifest.budget.max_usd_per_run:
@@ -177,7 +189,7 @@ def not_enforced(manifest: AgentManifest) -> List[str]:
             notes.append("permissions.network: no tool of this agent uses the network (model calls follow model.routing)")
     notes.append("budget.max_usd_per_run: token-level metering is active; over-budget calls are halted")
     if manifest.mcp_servers:
-        notes.append("mcp_servers: the loop has no MCP client yet; these are declared but unused")
+        notes.append("mcp_servers: enforced against declared server names (undeclared servers are blocked)")
     return notes
 
 

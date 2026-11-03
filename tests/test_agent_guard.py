@@ -246,3 +246,24 @@ def test_autonomous_read_only_agent_is_allowed(ws):
     assert report.ok, report.errors
     agent = loop_from_manifest(report.manifest, "t4", WorkspaceFilesystem(str(ws)), record_flight=False)
     assert agent.policy.value == "autonomous"
+
+
+def test_mcp_servers_guard_enforcement(ws):
+    # Manifest with declared mcp_servers
+    g = guard(ws, mcp_servers=["github", "linear"])
+    assert g.check("mcp:github:create_issue", {}).allowed is True
+    assert g.check("mcp__linear__get_issue", {}).allowed is True
+    denied = g.check("mcp:aws:create_bucket", {})
+    assert denied.allowed is False
+    assert denied.code == "mcp_server_not_declared"
+
+    # Manifest with empty mcp_servers
+    g_empty = guard(ws, mcp_servers=[])
+    denied_empty = g_empty.check("mcp:github:list", {})
+    assert denied_empty.allowed is False
+    assert denied_empty.code == "mcp_server_not_declared"
+
+    # Check not_enforced note
+    notes = not_enforced(manifest(mcp_servers=["github"]))
+    assert any("mcp_servers" in n and "enforced" in n for n in notes)
+
