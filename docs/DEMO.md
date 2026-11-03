@@ -37,6 +37,19 @@ The command prints a Studio URL with a launch token. Set `KEELWAY_API_TOKEN` if 
 8. **Flight tape.** Open *Flight recorder*, pick the new tape and drag the scrubber through every decision. Use *Fork here* to branch a run from any step.
 9. **Audit.** Open *Audit* and click **Verify chain**.
 10. **Global.** Switch the language to العربية (right-to-left) and toggle the theme.
+11. **Tier 2 Hardware Verification & Sealed Export.** Run hardware attestation checks directly via CLI or API:
+    ```bash
+    python cli.py tier2 status     # View live TPM 2.0, Dual-WORM, PIV, and 2-of-3 Recovery status
+    python cli.py tier2 verify     # Run cryptographic proof verifications
+    python cli.py tier2 demo       # Interactive walkthrough of all 4 Tier 2 gates
+    python cli.py record export --out audit.record.jsonl
+    python cli.py record verify audit.record.jsonl
+    ```
+    Or via the REST API:
+    ```bash
+    curl http://127.0.0.1:8000/v1/tier2/status
+    curl -OJ http://127.0.0.1:8000/v1/audit/export?download=true
+    ```
 
 ## Cleanup
 

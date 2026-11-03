@@ -127,6 +127,11 @@ Keelway provides two unified CLI interfaces:
 ### Developer Commands (`keelway`)
 - `keelway doctor`: Verifies local environment, dependencies, and model connectivity.
 - `keelway chat [--provider local|openai]`: Interactive stateful REPL with thinking token display.
+- `keelway tier2 status`: Displays live Tier 2 Hardware Abstraction Layer status (Dual-WORM, TPM 2.0, PIV, 2-of-3 Recovery).
+- `keelway tier2 verify [--subsystem all|worm|tpm|piv|recovery]`: Cryptographically verifies hardware attestation claims.
+- `keelway tier2 demo`: Runs an interactive end-to-end hardware security verification walkthrough.
+- `keelway record export [--out FILE]`: Exports tamper-evident Keelway Record v1 JSONL.
+- `keelway record verify FILE`: Verifies Record v1 chain integrity without requiring a running server.
 - `keelway mcp --workspace <PATH>`: Serves read-only workspace tools over MCP stdio to Cursor, Claude Code, and Zed.
 - `keelway brief --title "<TITLE>"`: Generates an evidence-grounded pull request brief.
 - `keelway memory ingest <DOC> --scope <SCOPE>`: Scoped hybrid vector + lexical document search.
