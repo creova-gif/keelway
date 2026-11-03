@@ -108,3 +108,20 @@ async def list_audit_events(
 @router.get("/v1/audit/verify")
 async def verify_audit(_: Principal = Depends(require(Permission.VIEW_AUDIT_LOGS))) -> Dict[str, Any]:
     return await verify_audit_chain()
+
+
+@router.get("/v1/audit/export")
+async def export_audit(
+    download: bool = False,
+    _: Principal = Depends(require(Permission.VIEW_AUDIT_LOGS)),
+) -> Any:
+    """Export the live audit log in portable Keelway Record v1 JSONL format."""
+    from fastapi.responses import Response
+    from core.security.record_export import export_record
+
+    res = await export_record()
+    headers = {"Content-Type": "application/x-ndjson; charset=utf-8"}
+    if download:
+        headers["Content-Disposition"] = "attachment; filename=keelway-audit.record.jsonl"
+    return Response(content=res["text"], media_type="application/x-ndjson", headers=headers)
+

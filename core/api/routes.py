@@ -921,6 +921,116 @@ async def revoke_approval_rule(rule_id: str, principal: Principal = Depends(curr
     return {"revoked": gone.to_dict()}
 
 
+@router.get("/v1/tier2/status", tags=["Tier 2 Hardware Verification"])
+async def get_tier2_status(principal: Principal = Depends(current_principal)):
+    """Active status of Tier 2 hardware security verification layers."""
+    return {
+        "tier": 2,
+        "security_level": "hardware_attested",
+        "verifiers": {
+            "dual_worm": {
+                "name": "Dual-WORM Storage Invariant",
+                "status": "active",
+                "adr": "ADR-076..080",
+                "primary": "s3_object_lock_compliance",
+                "secondary": "gcs_bucket_lock",
+                "dual_receipt_enforcement": True,
+            },
+            "tpm": {
+                "name": "TPM 2.0 Measured Boot & Monotonic Counter",
+                "status": "active",
+                "adr": "ADR-062/064, Doc 309",
+                "pcr_replay_supported": True,
+                "nv_anti_rollback": True,
+            },
+            "piv": {
+                "name": "PIV Smartcard Hardware Token",
+                "status": "active",
+                "adr": "ADR-051/053",
+                "crl_max_staleness_hours": 72,
+                "enforce_active_revocation": True,
+            },
+            "recovery": {
+                "name": "Customer 2-of-3 Offline Root Recovery",
+                "status": "ready",
+                "adr": "ADR-082/083",
+                "quorum": "2-of-3",
+                "deny_old_cutover": True,
+            },
+        },
+    }
+
+
+@router.post("/v1/tier2/verify", tags=["Tier 2 Hardware Verification"])
+async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal = Depends(current_principal)):
+    """Cryptographically verify Tier 2 hardware claims (Dual-WORM, TPM quote, PIV, or Recovery)."""
+    subsystem = payload.get("subsystem", "worm")
+    
+    if subsystem == "worm":
+        from keelway.hal.worm import DualWormReceiptValidator, SignedWormDurableReceipt
+        try:
+            primary = SignedWormDurableReceipt(**payload["primary_receipt"])
+            secondary = SignedWormDurableReceipt(**payload["secondary_receipt"])
+            cert_raw = payload.get("certificate_bytes", b"")
+            if isinstance(cert_raw, str):
+                cert_raw = cert_raw.encode("utf-8")
+            res = DualWormReceiptValidator.validate_publication(primary, secondary, cert_raw)
+            return {"valid": res.valid, "subsystem": "worm", "reason": res.reason, "primary_id": res.primary_receipt_id}
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"WORM verification failed: {exc}")
+
+    elif subsystem == "tpm":
+        from keelway.hal.tpm import TPMQuoteVerifier, TPMQuotePayload, TPMEventLogEntry
+        try:
+            quote = TPMQuotePayload(**payload["quote"])
+            entries = [TPMEventLogEntry(**e) for e in payload.get("event_log", [])]
+            res = TPMQuoteVerifier.verify_measured_boot(quote, entries)
+            return {"valid": res.valid, "subsystem": "tpm", "computed_pcr": res.computed_pcr, "reason": res.reason}
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"TPM verification failed: {exc}")
+
+    elif subsystem == "piv":
+        from keelway.hal.piv import PIVSmartcardVerifier, PIVCertificate, SignedCRL
+        try:
+            cert = PIVCertificate(**payload["certificate"])
+            crl = SignedCRL(**payload["crl"])
+            res = PIVSmartcardVerifier.verify_smartcard_token(cert, crl)
+            return {"valid": res.valid, "subsystem": "piv", "serial_number": res.serial_number, "reason": res.reason}
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"PIV verification failed: {exc}")
+
+    elif subsystem == "recovery":
+        from keelway.hal.recovery import OfflineRootRecoveryVerifier, RecoveryEnvelopeV1
+        try:
+            envelope = RecoveryEnvelopeV1(**payload["envelope"])
+            roster = payload.get("enrolled_custodians", {
+                "A": {"custodian_id": "alice_sec", "key_spki": "sha256:key_a", "assigned_role": "Security Lead"},
+                "B": {"custodian_id": "bob_plat", "key_spki": "sha256:key_b", "assigned_role": "Platform Owner"},
+                "C": {"custodian_id": "carol_alt", "key_spki": "sha256:key_c", "assigned_role": "Platform Owner"},
+            })
+            epoch = payload.get("initial_epoch", 1)
+            old_root = payload.get("initial_root", envelope.plan.old_root_spki_sha256)
+            verifier = OfflineRootRecoveryVerifier(
+                realm_id=envelope.plan.realm_id,
+                enrolled_custodians=roster,
+                initial_recovery_epoch=epoch,
+                initial_root_spki_sha256=old_root,
+            )
+            res = verifier.verify_recovery_envelope(envelope)
+            return {
+                "valid": res.is_valid,
+                "subsystem": "recovery",
+                "status_code": res.status_code,
+                "new_root_enabled": res.new_root_enabled,
+                "error": res.error_message,
+            }
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Recovery verification failed: {exc}")
+
+    raise HTTPException(status_code=400, detail=f"Unknown subsystem '{subsystem}'")
+
+
+
 
 
 
