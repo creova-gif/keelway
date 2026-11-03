@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
+from core.security.env_scrub import scrub_env
 from core.orchestration.worktree import EphemeralWorktreeManager, WorktreeSession
 
 
@@ -150,7 +151,7 @@ class SelfHealingLoop:
             parts = test_cmd.split(" ", 1)
             test_cmd = f"{sys.executable} {parts[1]}"
 
-        sub_env = dict(os.environ)
+        sub_env, _ = scrub_env(os.environ)  # patched code runs in these tests: it must not see API keys
         sub_env["PYTHONPATH"] = f"{target_dir}:{sub_env.get('PYTHONPATH', '')}"
 
         proc = await asyncio.create_subprocess_shell(

@@ -14,6 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable, Awaitable
 
+from core.security.env_scrub import scrub_env
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
 from core.storage.ast_index import CodebaseSemanticIndex
 from core.orchestration.flight_recorder import FlightRecorder, FlightEvent
@@ -181,10 +182,12 @@ class AutonomousAgentLoop:
                     raise PermissionError(f"Command rejected by safety gate: '{cmd}'")
 
             start_t = time.perf_counter()
+            clean_env, dropped = scrub_env(os.environ)  # an agent-chosen command must not inherit API keys or tokens
             proc = subprocess.run(
                 cmd,
                 shell=True,
                 cwd=str(self.fs.root),
+                env=clean_env,
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -192,6 +195,7 @@ class AutonomousAgentLoop:
             dur_ms = (time.perf_counter() - start_t) * 1000.0
 
             return {
+                "env_scrubbed_count": len(dropped),
                 "command": cmd,
                 "exit_code": proc.returncode,
                 "stdout": proc.stdout[-10000:],  # Tail last 10KB
