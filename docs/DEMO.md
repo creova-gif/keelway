@@ -42,13 +42,21 @@ The command prints a Studio URL with a launch token. Set `KEELWAY_API_TOKEN` if 
     python cli.py tier2 status     # View live TPM 2.0, Dual-WORM, PIV, and 2-of-3 Recovery status
     python cli.py tier2 verify     # Run cryptographic proof verifications
     python cli.py tier2 demo       # Interactive walkthrough of all 4 Tier 2 gates
+    python cli.py record anchor --out audit.anchor.json # Anchor head & publish Git note
     python cli.py record export --out audit.record.jsonl
-    python cli.py record verify audit.record.jsonl
+    python cli.py record verify audit.record.jsonl --anchor audit.anchor.json # Detect tail truncation
     ```
     Or via the REST API:
     ```bash
     curl http://127.0.0.1:8000/v1/tier2/status
+    curl -X POST http://127.0.0.1:8000/v1/audit/anchor
     curl -OJ http://127.0.0.1:8000/v1/audit/export?download=true
+    ```
+12. **Agent Manifests & Cost Metering.** Validate and sign manifests with strict budget guardrails:
+    ```bash
+    python cli.py agent validate docs/spec/examples/test-fixer.agent.json
+    python cli.py agent sign docs/spec/examples/test-fixer.agent.json
+    python cli.py agent verify docs/spec/examples/test-fixer.agent.json
     ```
 
 ## Cleanup

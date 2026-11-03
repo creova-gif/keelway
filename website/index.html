@@ -122,8 +122,10 @@
       <h2 id="trust-h">An audit trail your security team can check</h2>
       <p class="sub">Every approval and permission decision is recorded in a form you can verify independently.</p>
       <div class="grid">
-        <article class="card feat"><h3>Hash-chained audit log</h3><p>Each permission decision is linked to the one before, so any edit or deletion breaks the chain. You can verify it from Studio or the API.</p></article>
-        <article class="card feat"><h3>Flight tapes</h3><p>Append-only, sealed run records with secrets removed. Open one to see exactly what the agent saw and did.</p></article>
+        <article class="card feat"><h3>Hash-chained audit log</h3><p>Each permission decision is linked to the one before, so any edit or deletion breaks the chain. Head anchoring publishes signed receipts to Git notes to prevent tail truncation.</p></article>
+        <article class="card feat"><h3>Flight tapes</h3><p>Append-only, sealed run records with secrets removed. Open one to see exactly what the agent saw and did, cryptographically bound into the audit chain.</p></article>
+        <article class="card feat"><h3>Tier 2 Hardware Security</h3><p>Dual-WORM storage receipts, TPM 2.0 measured boot and PCR quote replay, PIV smartcards with strict 72h CRL freshness, and 2-of-3 offline Shamir root recovery.</p></article>
+        <article class="card feat"><h3>Manifest Registry &amp; Cost Metering</h3><p>Cryptographically signed manifests with instant kill switches, allowed tool/path fences, and per-run USD cost limits enforced fail-closed.</p></article>
         <article class="card feat"><h3>Tokens and roles</h3><p>Every API route needs a token. Owner, admin, engineer and auditor roles. Only hashes of tokens are stored.</p></article>
         <article class="card feat"><h3>Scoped standing approvals</h3><p>"Allow always" saves one narrow rule: one tool, in one workspace, for an exact command or a single path pattern. Each use is logged, and you can revoke it.</p></article>
         <article class="card feat"><h3>Protected paths</h3><p><code>.git</code> and Keelway's own state always ask for approval, so an agent can never approve itself.</p></article>
@@ -168,10 +170,13 @@
           <tbody>
             <tr><td>State-machine runs, approval gates, scoped "Allow always" rules</td><td><span class="pill teal">Available</span></td></tr>
             <tr><td>Hash-chained audit log, flight tapes, API tokens and roles</td><td><span class="pill teal">Available</span></td></tr>
+            <tr><td>Head anchoring, Git note publishing and portable Record v1 verification</td><td><span class="pill teal">Available</span></td></tr>
+            <tr><td>Tier 2 Hardware Security (Dual-WORM, TPM 2.0, PIV, 2-of-3 Recovery)</td><td><span class="pill teal">Available</span></td></tr>
+            <tr><td>Agent Manifest Registry, cryptographic Ed25519 signing and cost metering</td><td><span class="pill teal">Available</span></td></tr>
             <tr><td>Local models (Ollama, vLLM, llama.cpp, LM Studio) and air-gap mode</td><td><span class="pill teal">Available</span></td></tr>
             <tr><td>MCP stdio server, Telegram and WhatsApp approvals</td><td><span class="pill teal">Available</span></td></tr>
+            <tr><td>OS-level command sandbox (macOS seatbelt + Linux bubblewrap)</td><td><span class="pill teal">Available</span></td></tr>
             <tr><td>Phone app (Expo)</td><td><span class="pill amber">Preview</span></td></tr>
-            <tr><td>OS-level command sandbox (macOS, then Linux)</td><td><span class="pill amber">In progress</span></td></tr>
             <tr><td><code>keelway replay</code>: re-run a recorded tape deterministically</td><td><span class="pill muted">Planned</span></td></tr>
             <tr><td>Paid plans: any local bank card, signed licences that work offline</td><td><span class="pill muted">Planned</span></td></tr>
           </tbody>

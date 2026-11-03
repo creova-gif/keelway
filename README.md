@@ -7,7 +7,7 @@
 [![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
 [![Security Invariants](https://img.shields.io/badge/security-12%20Fail--Closed%20Invariants-orange.svg)](docs/SECURITY_INVARIANTS_AND_AUDIT_REPORT.md)
 [![Hardware Attestation](https://img.shields.io/badge/hardware-Tier%202%20HAL%20(WORM%2FTPM%2FPIV)-purple.svg)](keelway/hal/)
-[![Automated Tests](https://img.shields.io/badge/tests-79%20passed%20(100%25)-brightgreen.svg)](tests/)
+[![Automated Tests](https://img.shields.io/badge/tests-504%20passed%20(100%25)-brightgreen.svg)](tests/)
 
 *Built for zero vendor lock-in, fail-closed security invariants, immutable hash-chained audit trails, and hardware-attested trust.*
 
@@ -97,7 +97,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-### 2. Run All Automated Tests (79 Tests)
+### 2. Run All Automated Tests (504 Tests)
 ```bash
 make test
 # Or with pytest directly:
@@ -126,12 +126,17 @@ Keelway provides two unified CLI interfaces:
 
 ### Developer Commands (`keelway`)
 - `keelway doctor`: Verifies local environment, dependencies, and model connectivity.
+- `keelway bench`: Runs 10-task golden evaluation benchmark (Pass@1, latency, security).
 - `keelway chat [--provider local|openai]`: Interactive stateful REPL with thinking token display.
 - `keelway tier2 status`: Displays live Tier 2 Hardware Abstraction Layer status (Dual-WORM, TPM 2.0, PIV, 2-of-3 Recovery).
 - `keelway tier2 verify [--subsystem all|worm|tpm|piv|recovery]`: Cryptographically verifies hardware attestation claims.
 - `keelway tier2 demo`: Runs an interactive end-to-end hardware security verification walkthrough.
+- `keelway record anchor [--out FILE]`: Anchors audit head to signed receipt and Git note (`refs/notes/keelway/audit`).
 - `keelway record export [--out FILE]`: Exports tamper-evident Keelway Record v1 JSONL.
-- `keelway record verify FILE`: Verifies Record v1 chain integrity without requiring a running server.
+- `keelway record verify FILE [--anchor ANCHOR]`: Verifies Record v1 chain integrity and checks for dropped tail entries.
+- `keelway agent validate <FILE>`: Validates an Agent Manifest against schema rules.
+- `keelway agent sign <FILE>`: Cryptographically signs a manifest with the workspace Ed25519 key.
+- `keelway agent verify <FILE>`: Verifies signature and digest of an agent manifest.
 - `keelway mcp --workspace <PATH>`: Serves read-only workspace tools over MCP stdio to Cursor, Claude Code, and Zed.
 - `keelway brief --title "<TITLE>"`: Generates an evidence-grounded pull request brief.
 - `keelway memory ingest <DOC> --scope <SCOPE>`: Scoped hybrid vector + lexical document search.
@@ -177,13 +182,13 @@ keelway/
 ├── Makefile                               # Developer workflow tasks
 ├── pyproject.toml                         # Unified packaging & test configuration
 ├── core/                                  # Core AI runtime, models, orchestration & studio
-│   ├── agents/                            # Manifests, runtime guard, and macOS command sandbox
-│   ├── api/                               # REST API, studio, approval relays (Telegram/WhatsApp)
+│   ├── agents/                            # Manifests, registry, runtime guard, cost metering, and multi-OS sandbox
+│   ├── api/                               # REST API, studio, approval relays (Telegram/WhatsApp), tier2 & audit routes
 │   ├── models/                            # Gateway & adapters (Local, Anthropic, OpenAI, Gemini)
 │   ├── orchestration/                     # Agent loop, flight recorder, MCP, worktrees
-│   ├── security/                          # Firewall, redaction, approval rules, air-gap
+│   ├── security/                          # Firewall, redaction, approval rules, air-gap, head anchoring
 │   ├── storage/                           # Database, memory, workspace fs, ledger
-│   └── studio/                            # Web IDE & Mission Control studio
+│   └── studio/                            # Web IDE, Mission Control, Tier 2 HAL & Manifest Registry UI
 ├── keelway/                               # Enterprise Core Governance Platform (v71)
 │   ├── hal/                               # Tier 2 Hardware Abstraction Layer
 │   │   ├── worm.py                        # Dual-WORM independent receipt validator (ADR-076)
@@ -201,5 +206,5 @@ keelway/
 ├── website/                               # Static landing page for Keelway by Sorvex Labs
 ├── docs/                                  # Specifications, ADRs, and developer quickstart guides
 ├── examples/                              # Sample demo service & interactive walkthrough scripts
-└── tests/                                 # Full automated test suite (79 verified tests)
+└── tests/                                 # Full automated test suite (504 verified tests)
 ```
