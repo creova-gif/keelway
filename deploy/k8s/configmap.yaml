@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keelway-config
+  namespace: keelway
+data:
+  KEELWAY_ENV: "production"
+  LOG_LEVEL: "INFO"
+  PORT: "8000"
+  OLLAMA_BASE_URL: "http://ollama-service.keelway.svc.cluster.local:11434"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keelway-secrets
+  namespace: keelway
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql+asyncpg://keelway_admin:CHANGE_ME_PASSWORD@postgres.keelway.svc.cluster.local:5432/keelway"
+  KEELWAY_POLICY_SIGNING_KEY: "CHANGE_ME_ED25519_KEY"
+  KEELWAY_API_TOKEN: "CHANGE_ME_OWNER_TOKEN"

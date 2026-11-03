@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keelway-control-plane
+  namespace: keelway
+  labels:
+    app: keelway-control-plane
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  selector:
+    app: keelway-control-plane
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keelway-ingress
+  namespace: keelway
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "keelway-control-plane"
+spec:
+  tls:
+    - hosts:
+        - agent.yourcompany.com
+      secretName: keelway-tls
+  rules:
+    - host: agent.yourcompany.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keelway-control-plane
+                port:
+                  number: 8000

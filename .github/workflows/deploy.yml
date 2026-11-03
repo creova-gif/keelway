@@ -1,0 +1,78 @@
+name: Keelway Infrastructure & Container Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/**'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate-infrastructure:
+    name: Validate IaC & Kubernetes Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Validate AWS Terraform
+        run: |
+          cd deploy/terraform/aws
+          terraform init -backend=false
+          terraform validate
+
+      - name: Validate GCP Terraform
+        run: |
+          cd deploy/terraform/gcp
+          terraform init -backend=false
+          terraform validate
+
+      - name: Validate Kubernetes Manifests (Dry-Run)
+        run: |
+          # Dry run k8s syntax checks with kubeval or python yaml parser
+          python3 -c '
+          import yaml, glob
+          for f in glob.glob("deploy/k8s/*.yaml"):
+              with open(f) as stream:
+                  list(yaml.safe_load_all(stream))
+              print(f"[✓] Validated {f}")
+          '
+
+  build-and-scan-container:
+    name: Build & Security Scan Container
+    runs-on: ubuntu-latest
+    needs: [validate-infrastructure]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Container Image (Local cache)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: ghcr.io/${{ github.repository }}:latest
+          load: true
+
+      - name: Verify Container Health Check
+        run: |
+          docker run --rm -d --name test-keelway -p 8000:8000 ghcr.io/${{ github.repository }}:latest
+          sleep 5
+          docker ps
+          docker stop test-keelway

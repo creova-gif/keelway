@@ -1,0 +1,69 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keelway-control-plane-netpol
+  namespace: keelway
+spec:
+  podSelector:
+    matchLabels:
+      app: keelway-control-plane
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow internal database connection
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow internal local Ollama inference
+    - to:
+        - podSelector:
+            matchLabels:
+              app: ollama
+      ports:
+        - protocol: TCP
+          port: 11434
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keelway-runner-netpol
+  namespace: keelway
+spec:
+  podSelector:
+    matchLabels:
+      app: keelway-runner
+  policyTypes:
+    - Ingress
+    - Egress
+  # Outbound-only runner: No ingress allowed from anywhere
+  ingress: []
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: keelway-control-plane
+      ports:
+        - protocol: TCP
+          port: 8000
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
