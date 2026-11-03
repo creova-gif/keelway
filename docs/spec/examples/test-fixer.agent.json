@@ -1,0 +1,19 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "test-fixer",
+  "version": "0.1.0",
+  "owner": "platform-team",
+  "description": "Finds the cause of a failing test and proposes a minimal fix.",
+  "instructions": "Run the failing test, read the traceback, find the smallest change that fixes it, and explain the change. Never edit tests to make them pass.",
+  "model": { "routing": "local_first" },
+  "tools": ["read_file", "edit_file", "run_command", "search_codebase", "list_dir"],
+  "permissions": {
+    "autonomy": "confirm_mutation",
+    "read_paths": ["src/**", "tests/**"],
+    "write_paths": ["src/**"],
+    "commands": ["pytest -q"],
+    "network": "none"
+  },
+  "budget": { "max_usd_per_run": 0.5, "max_steps": 40 },
+  "sandbox": "worktree"
+}

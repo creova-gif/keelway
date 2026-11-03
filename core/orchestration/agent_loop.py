@@ -73,6 +73,8 @@ class AutonomousAgentLoop:
         self.events: List[Dict[str, Any]] = []
         self.pending_approval: Optional[Dict[str, Any]] = None
         self.approval_rules = approval_rules
+        self.command_runner: Optional[Any] = None  # (command, timeout) -> tool result; set when commands must run confined
+        self.guard: Optional[Any] = None  # a core.agents.guard.ManifestGuard when running under an Agent Manifest
         self.semantic_index = CodebaseSemanticIndex(self.fs)
 
         self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
@@ -180,6 +182,9 @@ class AutonomousAgentLoop:
             for pat in danger_patterns:
                 if re.search(pat, cmd):
                     raise PermissionError(f"Command rejected by safety gate: '{cmd}'")
+
+            if self.command_runner is not None:
+                return self.command_runner(cmd, timeout)
 
             start_t = time.perf_counter()
             clean_env, dropped = scrub_env(os.environ)  # an agent-chosen command must not inherit API keys or tokens
@@ -305,6 +310,18 @@ class AutonomousAgentLoop:
 
         tool = self.tools[tool_name]
 
+        # An Agent Manifest can only narrow what is allowed: it denies before approvals are even considered.
+        if self.guard is not None:
+            decision = self.guard.check(tool_name, arguments)
+            if not decision.allowed:
+                self._record_event("policy_denied", {
+                    "task_id": self.task_id, "tool_name": tool_name, "arguments": arguments, "step_id": step_id,
+                    "code": decision.code, "reason": decision.reason, "manifest_digest": self.guard.manifest_digest,
+                })
+                if step_id:
+                    self._update_step_status(step_id, "failed", f"Blocked by agent manifest: {decision.reason}")
+                return {"status": "denied_by_manifest", "code": decision.code, "reason": decision.reason}
+
         # Permission check
         needs_approval = (
             self.policy == AutonomyPolicy.CONFIRM_ALL
@@ -366,6 +383,8 @@ class AutonomousAgentLoop:
         start_time = time.perf_counter()
         try:
             result = await tool.handler(arguments)
+            if self.guard is not None:
+                result = self.guard.filter_result(tool.name, result)
             dur_ms = (time.perf_counter() - start_time) * 1000.0
 
             if self.flight_recorder:
@@ -433,4 +452,5 @@ class AutonomousAgentLoop:
             "pending_approval": self.pending_approval,
             "events_count": len(self.events),
             "recent_events": self.events[-10:],
+            "manifest": self.guard.summary() if self.guard is not None else None,
         }

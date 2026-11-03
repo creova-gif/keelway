@@ -2,11 +2,12 @@
 FastAPI Routes for Keelway Core.
 """
 
+import asyncio
 import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, WebSocketException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -669,6 +670,8 @@ async def refresh_codebase_index(max_files: int = 200):
 # =====================================================================
 
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
+from core.agents import manifest as agent_manifest
+from core.agents.guard import ManifestNotRunnable, loop_from_manifest, not_enforced, preflight
 from core.security.approval_rules import ApprovalRuleError, ApprovalRuleStore, validate_scope
 
 _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
@@ -689,6 +692,38 @@ async def _publish_agent(agent: AutonomousAgentLoop) -> Dict[str, Any]:
     return state
 
 
+def _signature_state(manifest: "agent_manifest.AgentManifest") -> Tuple[str, str]:
+    """('unsigned'|'valid'|'invalid'|'no_key', reason) for a manifest against this workspace's signing key."""
+    if manifest.signature is None:
+        return "unsigned", ""
+    key_path = Path(_workspace_fs.root) / ".keelway" / agent_manifest.KEY_FILE
+    if not key_path.exists():
+        return "no_key", "this workspace has no signing key, so the signature cannot be checked"
+    try:
+        key = bytes.fromhex(key_path.read_text().strip())
+    except ValueError:
+        return "no_key", "this workspace's signing key file is unreadable"
+    ok, reason = agent_manifest.verify(manifest, key)
+    return ("valid", "") if ok else ("invalid", reason)
+
+
+async def _checked_manifest(raw: Any, principal: Principal, task_id: str) -> Tuple["agent_manifest.AgentManifest", bool]:
+    """Validate and signature-check an inline manifest, auditing every refusal. Returns (manifest, signed)."""
+    report = agent_manifest.validate(raw)
+    if not report.ok:
+        await record_audit(principal, "agent_run_manifest", f"{task_id} invalid manifest: {report.errors[0]}", False)
+        raise HTTPException(status_code=422, detail={"message": "Invalid agent manifest.", "errors": report.errors})
+    manifest = report.manifest
+    state, reason = _signature_state(manifest)
+    if state in ("invalid", "no_key"):
+        await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} signature {state}", False)
+        raise HTTPException(status_code=400, detail=f"Manifest signature check failed: {reason}")
+    if state == "unsigned" and settings.require_signed_manifests:
+        await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} unsigned", False)
+        raise HTTPException(status_code=400, detail="This server only runs signed agent manifests (require_signed_manifests).")
+    return manifest, state == "valid"
+
+
 @router.post("/v1/agent/run", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
 async def run_agent_task(payload: dict, principal: Principal = Depends(current_principal)):
     """Initialize and run an autonomous agent engineering task."""
@@ -701,7 +736,12 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         "Formulate and verify solution patch",
         "Run automated checks",
     ]
-    policy_str = payload.get("policy", "confirm_mutation")
+    manifest, manifest_signed = None, False
+    if payload.get("manifest") is not None:
+        manifest, manifest_signed = await _checked_manifest(payload["manifest"], principal, task_id)
+        if payload.get("policy") not in (None, manifest.permissions.autonomy):
+            raise HTTPException(status_code=400, detail="'policy' conflicts with the manifest's permissions.autonomy; omit it.")
+    policy_str = manifest.permissions.autonomy if manifest is not None else payload.get("policy", "confirm_mutation")
     policy = AutonomyPolicy(policy_str) if policy_str in [p.value for p in AutonomyPolicy] else AutonomyPolicy.CONFIRM_MUTATION
     if policy == AutonomyPolicy.AUTONOMOUS:
         allowed = principal.can(Permission.APPROVE_TIER3)
@@ -712,22 +752,37 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
                 detail="The 'autonomous' policy skips approvals and requires 'approve_tier3' (admin or owner).",
             )
 
+    agent = None
+    if manifest is not None:
+        try:  # off the event loop: the sandbox self-test starts processes
+            agent = await asyncio.to_thread(loop_from_manifest, manifest, task_id, _workspace_fs, True, ApprovalRuleStore(_workspace_fs.root))
+        except ManifestNotRunnable as exc:
+            await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} not runnable: {exc}", False)
+            raise HTTPException(status_code=422, detail=str(exc))
+        agent.guard.signed = manifest_signed
+
     # No await between this check and registration, so concurrent runs can't both claim the id.
     if task_id in _active_agent_loops or _tape_path(task_id).exists():
         raise HTTPException(status_code=409, detail=f"Agent task {task_id} already exists.")
-    agent = AutonomousAgentLoop(
-        task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True,
-        approval_rules=ApprovalRuleStore(_workspace_fs.root),
-    )
+    if agent is None:
+        agent = AutonomousAgentLoop(
+            task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True,
+            approval_rules=ApprovalRuleStore(_workspace_fs.root),
+        )
     agent.initialize_plan(goal=goal, steps=steps)
     _active_agent_loops[task_id] = agent
 
-    return {
+    response: Dict[str, Any] = {
         "task_id": task_id,
         "goal": goal,
         "policy": agent.policy.value,
-        "state": await _publish_agent(agent),
     }
+    if manifest is not None:
+        await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} {agent.guard.manifest_digest}", True)
+        response["manifest"] = agent.guard.summary()
+        response["not_enforced"] = not_enforced(manifest)
+    response["state"] = await _publish_agent(agent)
+    return response
 
 
 @router.get("/v1/agent/runs", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
@@ -780,6 +835,8 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
             )
     try:
         res = await agent.execute_tool(tool_name=tool_name, arguments=arguments, step_id=step_id)
+        if isinstance(res, dict) and res.get("status") == "denied_by_manifest" and agent.guard is not None:
+            await record_audit(principal, "manifest_denied", f"{task_id} {tool_name}: {res.get('code')} [{agent.guard.manifest_digest[:19]}]", False)
         state = await _publish_agent(agent)
         from core.api.messaging_routes import notify_if_paused
         await notify_if_paused(res)
@@ -824,6 +881,28 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
         "rule": rule.to_dict() if rule else None,
         "agent_state": await _publish_agent(agent),
     }
+
+
+@router.post("/v1/agents/validate", dependencies=[Depends(current_principal)], tags=["Agent Manifests"])
+async def validate_agent_manifest(payload: dict):
+    """Dry run: is this manifest valid, signed correctly, and runnable on this machine? Starts nothing."""
+    report = agent_manifest.validate(payload.get("manifest", payload))
+    out: Dict[str, Any] = {"valid": report.ok, "errors": report.errors, "warnings": report.warnings}
+    if not report.ok:
+        return out
+    manifest = report.manifest
+    state, reason = _signature_state(manifest)
+    reason_not_runnable = await asyncio.to_thread(preflight, manifest, Path(_workspace_fs.root))
+    out.update(
+        digest=agent_manifest.digest(manifest),
+        signature={"state": state, "reason": reason},
+        requires_signature=settings.require_signed_manifests,
+        runnable=reason_not_runnable is None and state not in ("invalid", "no_key")
+        and not (state == "unsigned" and settings.require_signed_manifests),
+        runnable_reason=reason_not_runnable,
+        not_enforced=not_enforced(manifest),
+    )
+    return out
 
 
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])

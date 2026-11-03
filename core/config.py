@@ -43,6 +43,10 @@ class Settings(BaseSettings):
         default=True,
         description="Require an API token on every /v1 route (set false only for throwaway local hacking)",
     )
+    require_signed_manifests: bool = Field(
+        default=False,
+        description="Reject agent runs whose manifest is not signed with this workspace's key",
+    )
     keelway_api_token: Optional[str] = Field(
         default=None,
         description="Fixed owner token for this server process; a random one is generated per launch if unset",
