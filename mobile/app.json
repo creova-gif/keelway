@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Keelway Mobile",
+    "slug": "keelway-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "keelway",
+    "splash": {
+      "backgroundColor": "#0B0F14"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.keelway.mobile",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Keelway asks for Face ID before approving an agent action from your phone.",
+        "NSLocalNetworkUsageDescription": "Keelway connects to the Keelway running on your computer over your local network.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0F14"
+      },
+      "package": "dev.keelway.mobile",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "INTERNET"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0B0F14">
+  <title>Keelway Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 rx=%2211%22 fill=%22%232DD4BF%22/%3E%3Cpath d=%22M10 17h28M24 17v17l-6 6%22 stroke=%22%230B0F14%22 stroke-width=%224.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/%3E%3C/svg%3E">
+  <link rel="preload" href="/studio/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/studio/assets/studio.css">
+  <link rel="stylesheet" href="/studio/assets/monaco/vs/editor/editor.main.css">
+</head>
+<body class="h-screen flex flex-col overflow-hidden font-sans text-sm antialiased bg-ide-bg text-ide-fg">
+  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-50 btn-primary" data-i18n="skip">Skip to content</a>
+
+  <header class="h-12 shrink-0 flex items-center justify-between gap-3 px-3 bg-ide-activity border-b border-ide-border">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <svg class="w-7 h-7 shrink-0" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" style="fill:rgb(var(--accent))"/><path d="M10 17h28" style="stroke:rgb(var(--on-accent))" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" style="stroke:rgb(var(--on-accent))" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <h1 class="text-[15px] font-semibold tracking-tight whitespace-nowrap">Keelway <span class="hidden sm:inline text-ide-muted font-normal">Studio</span></h1>
+      <span class="hidden md:inline text-ide-faint" aria-hidden="true">/</span>
+      <span id="ws-name" class="hidden md:inline font-mono text-xs text-ide-muted truncate max-w-[12rem]">workspace</span>
+      <span id="git-branch" class="hidden sm:inline-flex chip border-ide-border text-ide-muted font-mono">—</span>
+    </div>
+    <button id="palette-btn" type="button" class="hidden md:flex items-center justify-between gap-2 w-80 px-3 py-1.5 rounded-md bg-ide-sidebar border border-ide-border text-ide-faint hover:text-ide-fg text-xs" aria-haspopup="dialog">
+      <span class="flex items-center gap-2"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="search">Search files, symbols and commands</span></span>
+      <kbd class="font-mono text-[10px] px-1.5 rounded bg-ide-bg border border-ide-border">Ctrl K</kbd>
+    </button>
+    <div class="flex items-center gap-1">
+      <button id="airgap-btn" type="button" aria-pressed="false" class="chip h-7 px-2 border-ide-border text-ide-muted" title="Air-Gapped: Zero-Egress (Alt+A)">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/></svg>
+        <span id="airgap-label" class="hidden sm:inline">…</span>
+      </button>
+      <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
+      <select id="lang-select" class="h-7 rounded-md bg-ide-sidebar border border-ide-border text-xs text-ide-muted px-1"></select>
+      <button id="theme-btn" type="button" class="btn-ghost h-7 w-7 p-0" data-i18n-label="theme" aria-label="Theme">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+      <button id="sound-btn" type="button" aria-pressed="true" class="btn-ghost h-7 w-7 p-0 hidden sm:inline-flex" data-i18n-label="sounds" aria-label="Sounds">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+      </button>
+      <span id="role-chip" class="hidden lg:inline-flex chip border-ide-border text-ide-muted"></span>
+      <button id="signout-btn" type="button" class="btn-ghost h-7 whitespace-nowrap" data-i18n="signOut">Sign out</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex min-h-0 pb-14 md:pb-0">
+    <nav id="rail" class="fixed md:static bottom-0 inset-x-0 z-30 h-14 md:h-auto md:w-16 shrink-0 flex md:flex-col gap-1 p-1 md:py-2 bg-ide-activity border-t md:border-t-0 md:border-e border-ide-border" data-i18n-label="views" aria-label="Views">
+      <button type="button" class="rail-btn" data-section="tasks" aria-current="false" aria-keyshortcuts="Alt+1"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg><span data-i18n="tasks">Tasks</span><span id="rail-approval-dot" class="hidden absolute top-1 end-2 md:end-3 min-w-[1rem] h-4 px-1 rounded-full bg-warn text-[9px] leading-4 font-bold text-on-accent text-center" aria-hidden="true"></span></button>
+      <button type="button" class="rail-btn" data-section="files" aria-current="false" aria-keyshortcuts="Alt+2"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span data-i18n="files">Files</span></button>
+      <button type="button" class="rail-btn" data-section="record" aria-current="false" aria-keyshortcuts="Alt+3"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span data-i18n="record">Record</span></button>
+      <button type="button" class="rail-btn" data-section="labs" aria-current="false" aria-keyshortcuts="Alt+4"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7.5 15h9"/></svg><span data-i18n="labs">Labs</span></button>
+    </nav>
+
+    <div id="main" class="flex-1 flex min-w-0 min-h-0" tabindex="-1">
+    <!-- ===== Tasks (home) ===== -->
+    <section id="sec-tasks" class="section flex-1 flex min-w-0 min-h-0" data-detail="false" aria-labelledby="tasks-title">
+      <aside id="task-col" class="w-full md:w-72 lg:w-80 shrink-0 flex flex-col bg-ide-sidebar md:border-e border-ide-border min-h-0">
+        <div class="h-11 px-3 flex items-center justify-between border-b border-ide-border">
+          <h2 id="tasks-title" class="font-semibold" data-i18n="tasks">Tasks</h2>
+          <button id="new-run-btn" type="button" class="btn-outline h-7"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="newTask">New task</span></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-4">
+          <section aria-labelledby="runs-title">
+            <h3 id="runs-title" class="section-title px-1 mb-1.5" data-i18n="runs">Agent runs</h3>
+            <ul id="run-list" class="space-y-1"></ul>
+          </section>
+          <section aria-labelledby="backlog-title" class="space-y-1.5">
+            <h3 id="backlog-title" class="section-title px-1" data-i18n="backlog">Backlog</h3>
+            <form id="task-form" class="flex gap-1" autocomplete="off">
+              <label for="task-title" class="sr-only" data-i18n="newTask">New task</label>
+              <input id="task-title" required minlength="3" class="input flex-1" data-i18n-ph="newTaskPh" placeholder="New task…">
+              <button class="btn-outline" type="submit" data-i18n="add">Add</button>
+            </form>
+            <ul id="task-list" class="space-y-1.5"></ul>
+          </section>
+        </div>
+        <dl id="sidebar-foot" class="p-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-[11px] font-mono border-t border-ide-border bg-ide-activity"></dl>
+      </aside>
+
+      <main id="task-pane" class="flex-1 flex flex-col min-w-0 min-h-0 bg-ide-editor">
+        <section id="task-empty" class="flex-1 overflow-auto aurora flex items-center justify-center p-6">
+          <div class="max-w-xl w-full space-y-6 enter">
+            <div>
+              <p class="section-title text-accent" data-i18n="tagline">Local-first · Deterministic · Yours</p>
+              <h2 class="mt-2 text-2xl md:text-3xl font-semibold tracking-tight" data-i18n="welcomeTitle">Build with agents that never leave your machine.</h2>
+              <p class="mt-2 text-ide-muted" data-i18n="welcomeBody">Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.</p>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-2" id="welcome-actions"></div>
+            <dl id="welcome-facts" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs"></dl>
+          </div>
+        </section>
+
+        <div id="task-detail" class="hidden flex-1 overflow-y-auto">
+          <div class="sticky top-0 z-10 px-4 md:px-6 py-3 bg-ide-editor/95 backdrop-blur border-b border-ide-border">
+            <div class="flex items-start gap-3">
+              <button id="task-back" type="button" class="md:hidden btn-ghost h-7 w-7 p-0 shrink-0" data-i18n-label="back" aria-label="Back"><svg class="w-4 h-4 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span id="agent-dot" class="w-2 h-2 rounded-full bg-ide-faint" aria-hidden="true"></span>
+                  <h2 id="agent-goal-label" class="font-semibold text-[15px] leading-snug" data-i18n="noGoal">No goal yet.</h2>
+                  <span id="agent-status" class="step-chip border-ide-border text-ide-muted" data-i18n="idle">idle</span>
+                </div>
+                <p class="mt-1 text-xs text-ide-muted"><span id="plan-progress" class="font-mono"></span> <span id="agent-policy-label"></span></p>
+              </div>
+              <div class="flex gap-1.5 shrink-0">
+                <button id="review-btn" type="button" class="btn-outline h-7"><span data-i18n="reviewChanges">Review changes</span></button>
+                <button id="open-record-btn" type="button" class="btn-ghost h-7 hidden sm:inline-flex"><span data-i18n="record">Record</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="px-4 md:px-6 py-4 space-y-3 max-w-4xl">
+            <section id="agent-approval" class="hidden rounded-lg border border-warn/50 bg-warn/[.06] p-4 space-y-3 enter" role="alert" aria-labelledby="approval-title">
+              <div class="flex items-center justify-between gap-2">
+                <span class="step-chip text-warn border-warn/50" data-i18n="needsApproval">Needs approval</span>
+                <span id="approval-step" class="font-mono text-[11px] text-ide-faint"></span>
+              </div>
+              <h3 id="approval-title" class="font-semibold text-[15px]"></h3>
+              <dl id="approval-meta" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs"></dl>
+              <div id="approval-preview" class="rounded-md border border-ide-border bg-ide-bg font-mono text-[11.5px] overflow-auto max-h-64" dir="ltr"></div>
+              <pre id="agent-approval-desc" class="sr-only"></pre>
+              <form id="always-form" class="hidden rounded-md border border-ide-border bg-ide-bg p-3 space-y-2" autocomplete="off">
+                <label for="always-scope" class="label" data-i18n="alwaysScope">Scope</label>
+                <input id="always-scope" required class="input w-full font-mono" dir="ltr" spellcheck="false">
+                <p id="always-help" class="text-[11px] text-ide-muted"></p>
+                <div class="flex gap-2"><button id="always-confirm" type="submit" class="btn-primary h-7" data-i18n="alwaysConfirm">Allow and remember</button><button id="always-cancel" type="button" class="btn-ghost h-7" data-i18n="cancel">Cancel</button></div>
+              </form>
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="approve-yes" class="btn-primary h-8 px-3"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg><span data-i18n="allowOnce">Allow once</span></button>
+                <button id="approve-always" type="button" class="btn-outline h-8 px-3" aria-expanded="false" aria-controls="always-form"><span data-i18n="allowAlways">Allow always…</span></button>
+                <button id="approve-no" class="btn-outline h-8 px-3 text-danger"><span data-i18n="deny">Deny</span></button>
+                <span class="text-[11px] text-ide-muted" data-i18n="approvalNote">Your decision is sealed into the record.</span>
+              </div>
+            </section>
+
+            <section aria-labelledby="plan-title" class="space-y-2">
+              <h3 id="plan-title" class="section-title" data-i18n="plan">Plan</h3>
+              <ol id="agent-plan" class="space-y-2"></ol>
+            </section>
+
+            <section aria-labelledby="events-title" class="space-y-1.5 pt-2">
+              <h3 id="events-title" class="section-title" data-i18n="activity">Activity</h3>
+              <ol id="agent-events" class="space-y-1 text-[11px]" aria-live="polite"></ol>
+            </section>
+          </div>
+        </div>
+
+        <form id="agent-form" class="shrink-0 m-3 md:mx-6 md:mb-4 p-2.5 rounded-xl border border-ide-border bg-ide-sidebar space-y-2 focus-within:border-accent/70">
+          <label for="agent-goal" class="sr-only" data-i18n="goal">Goal</label>
+          <textarea id="agent-goal" rows="2" required class="w-full resize-none bg-transparent outline-none text-sm placeholder-ide-faint" data-i18n-ph="composerPh" placeholder="Ask Keelway to change something…"></textarea>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="composer-model" class="step-chip text-accent border-accent/40 font-mono truncate max-w-[14rem]">local</span>
+              <label for="agent-policy" class="sr-only">Policy</label>
+              <select id="agent-policy" class="input py-1 text-[11px]"><option value="confirm_mutation" data-i18n="polConfirmMut">Ask before changes</option><option value="confirm_all" data-i18n="polConfirmAll">Ask before every step</option><option value="autonomous" data-i18n="polAuto">Autonomous (admin)</option></select>
+            </div>
+            <button class="btn-primary h-8 px-3" type="submit"><span data-i18n="start">Start</span><kbd class="text-[9px] opacity-70 font-mono">Ctrl ↵</kbd></button>
+          </div>
+        </form>
+      </main>
+    </section>
+
+    <!-- ===== Files ===== -->
+    <section id="sec-files" class="section hidden flex-1 min-w-0 min-h-0">
+    <nav class="w-11 shrink-0 flex flex-col items-center py-1 bg-ide-activity border-e border-ide-border" data-i18n-label="views" aria-label="Views">
+      <button class="act" data-view="explorer" aria-pressed="true" data-i18n-label="explorer" aria-label="Explorer"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></button>
+      <button class="act" data-view="git" aria-pressed="false" data-i18n-label="changes" aria-label="Changes"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M18 11c0 4-6 3-10 6"/></svg><span id="git-dot" class="hidden absolute top-2 end-2 w-2 h-2 rounded-full bg-warn"></span></button>
+      <button class="act" data-view="memory" aria-pressed="false" data-i18n-label="memory" aria-label="Memory"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 2 1 3 2 4v3h8v-3c1-1 2-2 2-4a6 6 0 0 0-6-6ZM9 20h6"/></svg></button>
+    </nav>
+
+    <aside id="sidebar" class="w-64 shrink-0 hidden md:flex flex-col bg-ide-sidebar border-e border-ide-border" aria-labelledby="sidebar-title">
+      <div class="h-9 px-3 flex items-center justify-between border-b border-ide-border">
+        <h2 id="sidebar-title" class="section-title" data-i18n="explorer">Explorer</h2>
+        <button id="sidebar-refresh" type="button" class="btn-ghost px-1.5" data-i18n-label="refresh" aria-label="Refresh">↻</button>
+      </div>
+      <div class="flex-1 overflow-y-auto py-1 text-xs">
+        <div id="view-explorer" class="sidebar-view"><ul id="file-tree" role="tree" class="font-mono"></ul></div>
+        <div id="view-git" class="sidebar-view hidden"><ul id="git-files" class="px-1 space-y-0.5"></ul></div>
+        <div id="view-memory" class="sidebar-view hidden px-2 space-y-2">
+          <form id="memory-form" class="space-y-1 pt-1" autocomplete="off">
+            <label for="memory-key" class="sr-only">key</label>
+            <input id="memory-key" required class="input w-full" placeholder="key">
+            <label for="memory-content" class="sr-only" data-i18n="memory">Memory</label>
+            <textarea id="memory-content" required rows="2" class="input w-full resize-none" data-i18n-ph="rememberPh" placeholder="Remember that…"></textarea>
+            <button class="btn-primary w-full" type="submit" data-i18n="save">Save</button>
+          </form>
+          <ul id="memory-list" class="space-y-1.5"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <main id="editor-region" class="flex-1 flex flex-col min-w-0 bg-ide-editor" tabindex="-1">
+      <div class="h-9 shrink-0 flex items-stretch justify-between bg-ide-sidebar border-b border-ide-border">
+        <div id="editor-tabs" role="tablist" data-i18n-label="openFiles" aria-label="Open files" class="flex items-stretch overflow-x-auto no-scrollbar"></div>
+        <div class="flex items-center gap-1.5 px-2">
+          <div role="group" class="flex rounded-md border border-ide-border overflow-hidden text-[11px]" data-i18n-label="viewMode" aria-label="View mode">
+            <button id="mode-editor" type="button" aria-pressed="true" class="px-2 py-1 aria-pressed:bg-ide-fg/10" data-i18n="code">Code</button>
+            <button id="mode-diff" type="button" aria-pressed="false" class="px-2 py-1 aria-pressed:bg-ide-fg/10" title="Diffs (Unified &amp; Split)" data-i18n="diff">Diff</button>
+          </div>
+          <button id="save-btn" type="button" class="btn-primary" disabled><span data-i18n="save">Save</span><kbd class="text-[9px] opacity-70">Ctrl S</kbd></button>
+        </div>
+      </div>
+      <div class="h-6 shrink-0 px-4 flex items-center gap-2 text-[11px] font-mono text-ide-faint border-b border-ide-border/60">
+        <span id="crumb">—</span><span id="crumb-status" class="text-ok"></span>
+      </div>
+      <div class="flex-1 relative min-h-0">
+        <div id="monaco-mount" class="absolute inset-0 hidden"></div>
+        <textarea id="fallback-editor" class="absolute inset-0 hidden w-full h-full p-4 bg-ide-editor font-mono text-xs resize-none outline-none" spellcheck="false" data-i18n-label="editor" aria-label="Editor"></textarea>
+        <div id="diff-view" class="absolute inset-0 hidden overflow-auto font-mono text-xs"></div>
+        <section id="welcome" class="absolute inset-0 overflow-auto flex items-center justify-center p-6">
+          <p class="text-ide-muted text-center max-w-sm" data-i18n="filesEmpty">Open a file from the explorer, or press Ctrl K to search.</p>
+        </section>
+      </div>
+
+      <section id="panel" class="h-48 shrink-0 flex flex-col bg-ide-panel border-t border-ide-border" aria-label="Console">
+        <div role="tablist" id="panel-tabs" data-i18n-label="panel" aria-label="Panel" class="h-8 shrink-0 flex items-stretch px-2 overflow-x-auto no-scrollbar border-b border-ide-border"></div>
+        <div id="panel-console" role="tabpanel" class="panel-pane flex-1 flex-col min-h-0 hidden">
+          <div id="console-log" role="log" aria-live="polite" class="flex-1 overflow-auto p-3 font-mono text-xs space-y-0.5"></div>
+          <form id="console-form" class="h-8 px-3 flex items-center gap-2 border-t border-ide-border" autocomplete="off">
+            <span class="font-mono text-xs text-ok" aria-hidden="true">keelway ❯</span>
+            <label for="console-input" class="sr-only">Console</label>
+            <input id="console-input" spellcheck="false" class="flex-1 bg-transparent font-mono text-xs outline-none" placeholder="help">
+          </form>
+        </div>
+      </section>
+    </main>
+    </section>
+
+    <!-- ===== Record ===== -->
+    <section id="sec-record" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="record-title">
+      <div class="px-4 md:px-6 pt-5 pb-3 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="record-title" class="text-lg font-semibold tracking-tight" data-i18n="record">Record</h2>
+          <p class="text-xs text-ide-muted" data-i18n="recordBody">Every agent step and permission decision, sealed and replayable.</p>
+        </div>
+        <button id="audit-verify" type="button" class="btn-primary h-8 px-3"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span data-i18n="verify">Verify chain</span></button>
+      </div>
+      <div class="px-4 md:px-6">
+        <p id="audit-chain" class="rounded-md border border-ide-border bg-ide-sidebar px-3 py-2 text-xs text-ide-muted" role="status" data-i18n="auditHint">Every permission decision is appended to a SHA-256 hash chain.</p>
+      </div>
+      <div class="px-4 md:px-6 pt-4">
+        <section class="card" aria-labelledby="rules-title">
+          <div class="px-3 py-2 border-b border-ide-border flex items-center justify-between"><h3 id="rules-title" class="section-title" data-i18n="rulesTitle">Standing approvals</h3><span class="text-[11px] text-ide-faint" data-i18n="rulesHint">Only for "Ask before changes" runs. Keelway and git internals always ask.</span></div>
+          <ul id="rule-list" class="divide-y divide-ide-border text-xs"></ul>
+        </section>
+      </div>
+      <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">
+        <section class="card flex flex-col min-h-[20rem] overflow-hidden" aria-labelledby="flight-title">
+          <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border">
+            <h3 id="flight-title" class="section-title me-auto" data-i18n="flight">Flight tapes</h3>
+            <label for="tape-select" class="sr-only" data-i18n="flight">Flight tapes</label>
+            <select id="tape-select" class="input py-1 max-w-[14rem]"></select>
+            <button id="flight-fork" type="button" class="btn-outline" disabled data-i18n="fork">Fork here</button>
+          </div>
+          <div class="px-3 py-2 flex items-center gap-2 border-b border-ide-border">
+            <label for="flight-scrubber" class="sr-only">Position</label>
+            <input id="flight-scrubber" type="range" min="0" max="0" value="0" class="flex-1 accent-teal-400" disabled>
+            <span id="flight-step" class="font-mono text-[11px] text-ide-muted w-16 text-end">0 / 0</span>
+          </div>
+          <div class="flex-1 grid grid-cols-2 min-h-0">
+            <ol id="flight-events" class="overflow-auto p-2 space-y-0.5 border-e border-ide-border max-h-[28rem]"></ol>
+            <pre id="flight-payload" class="overflow-auto p-3 font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-[28rem]" dir="ltr"></pre>
+          </div>
+        </section>
+        <section class="card flex flex-col min-h-[20rem] overflow-hidden" aria-labelledby="audit-title">
+          <div class="px-3 py-2 border-b border-ide-border"><h3 id="audit-title" class="section-title" data-i18n="auditTitle">Permission log</h3></div>
+          <div class="flex-1 overflow-auto max-h-[32rem]"><table class="w-full text-[11px]"><tbody id="audit-body"></tbody></table></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ===== Labs ===== -->
+    <section id="sec-labs" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="labs-title">
+      <div class="px-4 md:px-6 pt-5 pb-3">
+        <h2 id="labs-title" class="text-lg font-semibold tracking-tight" data-i18n="labs">Labs</h2>
+        <p class="text-xs text-ide-muted" data-i18n="labsBody">Experiments. Anything marked Simulated never touches real systems or money.</p>
+      </div>
+      <div class="px-4 md:px-6 pb-6 grid lg:grid-cols-2 gap-4">
+        <section class="card p-4 space-y-2" aria-labelledby="heal-title">
+          <div class="flex items-center justify-between gap-2"><h3 id="heal-title" class="font-semibold" data-i18n="healing">Self-healing</h3><span class="step-chip text-warn border-warn/50" data-i18n="real">Runs for real</span></div>
+        <div id="lab-healing" class="space-y-2">
+          <p class="text-xs text-warn" data-i18n="healWarn">Runs the command in this repository. A passing patch is applied to your working tree.</p>
+          <form id="heal-form" class="flex flex-wrap gap-2 items-end">
+            <div class="flex-1 min-w-[12rem]"><label for="heal-cmd" class="label" data-i18n="testCommand">Test command</label><input id="heal-cmd" class="input w-full font-mono" value="pytest -q" required></div>
+            <div><label for="heal-attempts" class="label" data-i18n="attempts">Attempts</label><input id="heal-attempts" type="number" min="1" max="5" value="3" class="input w-20 font-mono"></div>
+            <button id="heal-run" class="btn-primary h-8" type="submit" data-i18n="runRepair">Run repair cycle</button>
+          </form>
+          <pre id="heal-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </div>
+        </section>
+        <section class="card p-4 space-y-2" aria-labelledby="pay-title">
+          <div class="flex items-center justify-between gap-2"><h3 id="pay-title" class="font-semibold" data-i18n="ledger">Payments</h3><span class="step-chip text-ide-muted border-ide-border" data-i18n="simulated">Simulated</span></div>
+        <div id="lab-ledger" class="space-y-2">
+          <p class="text-xs text-ide-muted" data-i18n="paySim">Simulated: builds a payment payload only. No money moves.</p>
+          <form id="pay-form" class="flex flex-wrap gap-2 items-end">
+            <div><label for="pay-rail" class="label" data-i18n="rail">Rail</label><select id="pay-rail" class="input"><option value="mpesa">M-Pesa</option><option value="pix">Pix</option><option value="upi">UPI</option><option value="lightning_l402">Lightning L402</option><option value="offline_voucher">Offline voucher</option></select></div>
+            <div><label for="pay-amount" class="label" data-i18n="amount">Amount</label><input id="pay-amount" type="number" min="0.01" step="0.01" value="5" class="input w-24 font-mono"></div>
+            <div><label for="pay-currency" class="label" data-i18n="currency">Currency</label><input id="pay-currency" value="USD" maxlength="3" class="input w-16 font-mono uppercase"></div>
+            <div class="flex-1 min-w-[10rem]"><label for="pay-recipient" class="label" data-i18n="recipient">Recipient</label><input id="pay-recipient" required class="input w-full font-mono" placeholder="+254700000000"></div>
+            <button class="btn-primary h-8" type="submit" data-i18n="buildIntent">Build intent</button>
+          </form>
+          <pre id="pay-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </div>
+        </section>
+      </div>
+    </section>
+    </div>
+  </div>
+
+  <footer class="hidden md:flex h-7 shrink-0 items-center justify-between gap-3 px-3 text-[11px] font-mono bg-ide-status border-t border-ide-border text-ide-faint whitespace-nowrap overflow-hidden">
+    <div class="flex items-center gap-3 min-w-0 overflow-hidden"><span id="sb-egress"></span><span id="sb-sent"></span><button id="sb-approval" type="button" class="hidden text-warn hover:underline"></button><span id="sb-branch" class="truncate"></span><span id="sb-changes"></span></div>
+    <div class="flex items-center gap-3 shrink-0"><span id="sb-model"></span><span id="sb-db" class="hidden lg:inline"></span><span id="sb-hw" class="hidden lg:inline"></span><span id="sb-mesh" class="hidden lg:inline"></span><span id="sb-ws"></span></div>
+  </footer>
+
+  <div id="palette" class="fixed inset-0 z-50 hidden items-start justify-center pt-[12vh] bg-black/60" role="dialog" aria-modal="true" aria-labelledby="palette-label">
+    <div class="w-[min(36rem,92vw)] rounded-xl border border-ide-border bg-ide-sidebar shadow-2xl overflow-hidden enter">
+      <label id="palette-label" for="palette-input" class="sr-only">Command palette</label>
+      <input id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" class="w-full px-4 py-3 bg-transparent border-b border-ide-border outline-none" data-i18n-ph="search" placeholder="Search files, symbols and commands">
+      <ul id="palette-list" role="listbox" class="max-h-80 overflow-y-auto py-1"></ul>
+    </div>
+  </div>
+
+  <div id="signin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 aurora bg-ide-bg" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+    <form id="signin-form" class="w-[min(26rem,100%)] rounded-2xl border border-ide-border bg-ide-sidebar/90 p-6 space-y-4 shadow-2xl enter">
+      <svg class="w-10 h-10" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" style="fill:rgb(var(--accent))"/><path d="M10 17h28" style="stroke:rgb(var(--on-accent))" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" style="stroke:rgb(var(--on-accent))" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <div><h2 id="signin-title" class="text-lg font-semibold" data-i18n="signInTitle">Sign in to Keelway</h2><p class="text-xs text-ide-muted" data-i18n="signInBody">Open the link printed by keelway dev, or paste a token from keelway token create.</p></div>
+      <div><label for="signin-token" class="label" data-i18n="apiToken">API token</label><input id="signin-token" type="password" required autocomplete="off" spellcheck="false" class="input w-full font-mono" placeholder="keelway_…"></div>
+      <p id="signin-error" class="hidden text-xs text-danger" role="alert"></p>
+      <button class="btn-primary w-full h-9" type="submit" data-i18n="signIn">Sign in</button>
+    </form>
+  </div>
+
+  <div id="onboard" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/60" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
+    <div class="w-[min(30rem,100%)] rounded-2xl border border-ide-border bg-ide-sidebar p-6 space-y-4 shadow-2xl enter">
+      <p id="onboard-step" class="section-title text-accent"></p>
+      <h2 id="onboard-title" class="text-lg font-semibold"></h2>
+      <p id="onboard-body" class="text-sm text-ide-muted"></p>
+      <div class="flex justify-between"><button id="onboard-skip" class="btn-ghost" data-i18n="skipTour">Skip</button><button id="onboard-next" class="btn-primary" data-i18n="next">Next</button></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" class="fixed bottom-16 md:bottom-9 end-4 z-50 px-3 py-2 rounded-lg border border-ide-border bg-ide-sidebar text-xs shadow-xl opacity-0 pointer-events-none transition-opacity"></div>
+
+  <script src="/studio/assets/monaco/vs/loader.js"></script>
+  <script src="/studio/assets/studio.js"></script>
+</body>
+</html>

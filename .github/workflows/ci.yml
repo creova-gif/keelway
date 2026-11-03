@@ -1,43 +1,28 @@
-name: Keelway Continuous Integration & Governance Gates
+name: Keelway CI & Governance Gates
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
 
 jobs:
-  test-and-verify:
-    name: Run Test Suite & Audit Invariant Gates
+  test:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.14"]
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.14"
-
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e keelway
-          pip install pytest pytest-asyncio httpx aiosqlite
-
-      - name: Execute Full Test Suite
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Lint check
+        run: ruff check .
+      - name: Run Test Suites
         env:
-          PYTHONPATH: keelway
-        run: |
-          pytest keelway/tests -v --durations=10
-
-      - name: Verify CLI Help and Package Integrity
-        run: |
-          python -m keelway.cli.main --help
-
-      - name: Build Container Image
-        run: |
-          docker build -t keelway-control-plane:ci keelway/
+          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
+          PYTHONPATH: .
+        run: pytest -v

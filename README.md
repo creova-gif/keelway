@@ -1,189 +1,200 @@
-# Keelway by Sorvex Labs
+<div align="center">
 
-> **Customer-Managed Local Governance Platform for AI-Powered Software Change**  
-> *Production Engineering Implementation — Fully Tested Commercial Release*
+# ⚡ Keelway by Sorvex Labs
+### Sovereign Local-First AI Agent Runtime & Enterprise Governance Platform
 
----
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
+[![Security Invariants](https://img.shields.io/badge/security-12%20Fail--Closed%20Invariants-orange.svg)](docs/SECURITY_INVARIANTS_AND_AUDIT_REPORT.md)
+[![Hardware Attestation](https://img.shields.io/badge/hardware-Tier%202%20HAL%20(WORM%2FTPM%2FPIV)-purple.svg)](keelway/hal/)
+[![Automated Tests](https://img.shields.io/badge/tests-79%20passed%20(100%25)-brightgreen.svg)](tests/)
 
-## 1. Overview & Golden Path
-
-Keelway provides a fail-closed, customer-managed governance envelope around AI coding agents. It ensures that no agent can directly mutate a customer's production repository, bypass policy checks, or deploy code without verified human approval, paired evaluation scoring, and an immutable cryptographic audit trail.
-
-### The Golden Path (PRD-001)
-1. **Local Authentication & Context Binding:** Enforces org, project, actor, and least-privilege repository scope.
-2. **Signed Policy Bundle Distribution (`keelway.policy.bundle`):** Cryptographically signed corporate policy bundles with anti-rollback monotonic epochs (ADR-061).
-3. **Policy Pre-Flight (`POST /v1/policy/decide`):** Deny-by-default tool authorization. Egress network calls and sensitive file targets (`.env`, `credentials`, `id_rsa`) are blocked before invocation.
-4. **MCP Tool Governance Bridge (`keelway.mcp.bridge`):** Intercepts all Model Context Protocol tool requests, evaluating action digests and paths fail-closed.
-5. **Isolated Workspace:** Uses lightweight, zero-copy shared git clones (`--shared`) to guarantee the host repository is never touched or dirtied.
-6. **Model Gateway & Budget Enforcement:** Bounded token ceiling and cost monitoring with hard cancellation stops. Supports local Ollama (`localhost:11434`), local vLLM (`localhost:8000`), OpenAI-compatible providers, and an offline deterministic mock adapter.
-7. **Paired Multi-Trial Evaluation Runner (`keelway.evals.suite`):** Automatically scores candidate patches over repeated trials, computing mean, standard deviation, and 95% confidence intervals against baseline quality thresholds.
-8. **Two-Human Quorum Approval Gate (ADR-045/ADR-046):** For production changes, mandates independent cryptographic approvals from two distinct authorized humans: **Security Lead** AND **Platform Owner**. Rejects self-quorum (same person holding multiple roles cannot count twice) and automated agent identities.
-9. **PR & Staging Promotion:** Generates customer-owned Git pull requests and triggers staging CI webhooks with immutable receipt digests.
-10. **Cryptographic Audit Trail:** Append-only hash-chained event recorder (`seq`, `prev_hash`, `payload_digest`, `hash`) backed by SQLite in WAL mode with crash-recovery and full mathematical verification.
-11. **GitHub App Webhooks:** Ingests and verifies `X-Hub-Signature-256` signed webhooks to reconcile PR status and CI check runs into the audit trail.
-12. **Customer Runner Daemon:** Outbound-only VPC/on-prem agent daemon with time-bound cryptographic enrollment, repo allowlists, and cross-org job isolation.
-13. **Security Quarantine & Revocation (`keelway.security.quarantine`):** Revokes compromised credentials and freezes compromised runs with forensic event retention.
-14. **Bounded Retries & Idempotency (`keelway.core.retry`):** Bounded exponential retries for idempotent actions; strictly prohibits automatic retries for side-effecting operations to prevent double tool execution.
-15. **Sealed Audit Export (FR-09):** Export sealed, portable verification bundles with prompt redaction and digital signatures for compliance audits.
+*Built for zero vendor lock-in, fail-closed security invariants, immutable hash-chained audit trails, and hardware-attested trust.*
 
 ---
 
-## 2. Directory Layout
+</div>
 
+## 📌 Executive Summary
+
+Modern AI agent frameworks suffer from systemic security and governance flaws:
+1. **Unconstrained Execution**: Direct host mutation rights without air-gapped sandboxing or workspace boundaries.
+2. **Opaque Approvals & Loop Runaways**: Automated self-approvals, infinite recursive tool loops, and unchecked budget drains.
+3. **Malleable Audit Records**: Plain-text logs that can be rewritten or deleted after a security incident.
+
+**Keelway** is a hardened, production-ready sovereign agent runtime and enterprise governance platform implementing the cumulative **Keelway v71 Architecture Specification**:
+- **Zero-Copy Sandbox:** Lightweight `--shared` clones isolate code generation completely from host repositories.
+- **Deny-by-Default Policy Engine:** Pre-flight checks deny sensitive files (`.env`, `credentials`, `id_rsa`) and unknown tools before execution.
+- **Mandatory Two-Human Quorum (ADR-045/046):** Production changes require two distinct cryptographic approvals: **Security Lead** AND **Platform Owner** (self-quorum is strictly prohibited).
+- **Cryptographic Audit Trail (FR-05/09):** Tamper-evident hash-chained event logger backed by SQLite in WAL mode with sealed compliance export bundles.
+- **Tier 2 Hardware Attestation (ADR-051..083):** Real protocol wire schemas and conformance verifiers for Dual-WORM durable storage, TPM 2.0 quote/PCR replay, PIV smartcards with strict 72-hour CRL caps, and customer 2-of-3 offline root recovery.
+
+---
+
+## 🏛️ System Architecture
+
+```text
+                               ┌──────────────────────────────────────────────┐
+                               │       Client Interfaces & Access Layers       │
+                               │   CLI Tool  •  Web Dashboard  •  REST API    │
+                               │           (http://127.0.0.1:8000)            │
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+                                                      ▼
+                               ┌──────────────────────────────────────────────┐
+                               │     Policy Pre-Flight & MCP Tool Bridge      │
+                               │   • Deny-by-default tool authorization       │
+                               │   • Egress blocking & sensitive file guard   │
+                               │   • Signed Policy Bundles (anti-rollback)    │
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+                       ┌──────────────────────────────┴──────────────────────────────┐
+                       ▼                                                             ▼
+        ┌─────────────────────────────┐                               ┌─────────────────────────────┐
+        │     Isolated Workspace      │                               │   Paired Multi-Trial Eval   │
+        │  • git clone --shared       │                               │   • Candidate scoring       │
+        │  • Detached base commit     │                               │   • Mean, Std Dev, 95% CI   │
+        └──────────────┬──────────────┘                               └──────────────┬──────────────┘
+                       │                                                             │
+                       └──────────────────────────────┬──────────────────────────────┘
+                                                      │
+                                                      ▼
+                               ┌──────────────────────────────────────────────┐
+                               │          Human Review Approval Gate          │
+                               │   • Single human review (internal / dev)     │
+                               │   • Mandatory Two-Human Quorum (production)  │
+                               │   • Patch hash binding (mutation invalidates)│
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+                                                      ▼
+                               ┌──────────────────────────────────────────────┐
+                               │        Append-Only Audit & Export (FR-09)    │
+                               │   • SHA-256 hash chaining (seq:hash:prev)    │
+                               │   • SQLite WAL crash-resilient storage       │
+                               │   • Sealed compliance bundle with redaction  │
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+                                                      ▼
+                               ┌──────────────────────────────────────────────┐
+                               │      Tier 2 Hardware Attestation (HAL)       │
+                               │   • Dual-WORM independent receipts (ADR-076) │
+                               │   • TPM 2.0 Quote Verifier & PCR replay      │
+                               │   • PIV smartcard strict 72h CRL cap         │
+                               │   • 2-of-3 offline root recovery (ADR-082)   │
+                               └──────────────────────────────────────────────┘
 ```
+
+---
+
+## ⚡ Fast Quickstart
+
+### 1. Environment Setup
+```bash
+git clone https://github.com/creova-gif/kora.git
+cd keelway
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+### 2. Run All Automated Tests (79 Tests)
+```bash
+make test
+# Or with pytest directly:
+PYTHONPATH=. pytest tests -v
+```
+
+### 3. One-Click Interactive Developer Demo
+Demonstrates the full 9-phase governed workflow and simulates an attacker trying to tamper with SQLite audit records:
+```bash
+make demo
+```
+
+### 4. Start Local Control Plane & Operator Dashboard
+```bash
+make serve
+```
+Open **`http://127.0.0.1:8000`** in your browser.
+
+---
+
+## 💻 CLI Commands Reference
+
+Keelway provides two unified CLI interfaces:
+1. `keelway` (`cli.py`): Developer REPL, MCP server, diagnostics, workflows, memory, datasets.
+2. `keelway-core` (`keelway.cli.main`): Governed run lifecycle, approval gates, verification, export, customer runner daemon.
+
+### Developer Commands (`keelway`)
+- `keelway doctor`: Verifies local environment, dependencies, and model connectivity.
+- `keelway chat [--provider local|openai]`: Interactive stateful REPL with thinking token display.
+- `keelway mcp --workspace <PATH>`: Serves read-only workspace tools over MCP stdio to Cursor, Claude Code, and Zed.
+- `keelway brief --title "<TITLE>"`: Generates an evidence-grounded pull request brief.
+- `keelway memory ingest <DOC> --scope <SCOPE>`: Scoped hybrid vector + lexical document search.
+- `keelway dataset export`: Exports fine-tuning datasets from verified traces.
+
+### Enterprise Governance Commands (`keelway-core`)
+- `keelway-core init-demo --dir examples/demo_service`: Scaffolds sample Git repo.
+- `keelway-core run --repo <PATH> --task "<TASK>" [--classification internal|production]`: Launches governed run.
+- `keelway-core status --run-id <RUN_ID>`: Displays run metadata, token consumption, and audit events.
+- `keelway-core verify --run-id <RUN_ID>`: Verifies mathematical integrity of the cryptographic audit chain.
+- `keelway-core export --run-id <RUN_ID> --out bundle.json`: Exports sealed compliance bundle.
+- `keelway-core runner --runner-id node-01 --org org_sorvex_demo`: Starts outbound customer runner daemon.
+
+---
+
+## 🔒 Security Invariants & Compliance
+
+| # | Security Invariant | Specification Reference | Code Enforcement Module | Conformance Test Suite |
+|:---|:---|:---|:---|:---|
+| **1** | **Zero Unapproved Repository Mutations** | PRD-001 FR-02, ADR-002 | `keelway.sandbox.workspace` | `test_end_to_end_workflow.py` |
+| **2** | **Deny-by-Default Policy Pre-Flight** | PRD-001 TB2/TB3 | `keelway.policy.engine` | `test_policy_engine.py` |
+| **3** | **Anti-Rollback Monotonic Policy Epochs** | ADR-061 | `keelway.policy.bundle` | `test_policy_bundle.py` |
+| **4** | **No Agent Self-Approval** | PRD-001 FR-07, ADR-046 | `keelway.approvals.service` | `test_approvals.py` |
+| **5** | **Two-Human Quorum for Production** | ADR-045, ADR-046 | `keelway.approvals.quorum` | `test_quorum.py`, `test_production_quorum_run.py` |
+| **6** | **Tamper-Evident Hash-Chained Audit Trail** | PRD-001 FR-05 | `keelway.audit.recorder` | `test_audit_chain.py` |
+| **7** | **Crash-Resilient SQLite WAL Storage** | ADR-003 | `keelway.audit.store` | `test_audit_store.py` |
+| **8** | **Sealed Compliance Export with Redaction** | PRD-001 FR-09 | `keelway.audit.export` | `test_audit_export.py` |
+| **9** | **Outbound-Only Cross-Org Runner Isolation** | PRD-001 Sec 94-108, ADR-004 | `keelway.runner.daemon` | `test_runner_daemon.py` |
+| **10** | **Quarantine & Credential Fencing** | PRD-001 Edge Cases, ADR-060 | `keelway.security.quarantine` | `test_quarantine.py` |
+| **11** | **No Double Tool Execution** | PRD-001 Edge Cases | `keelway.core.retry` | `test_retry.py` |
+| **12** | **Hard Token Ceilings & Budget Caps** | PRD-001 FR-10 | `keelway.models.gateway` | `test_model_gateway.py` |
+
+---
+
+## 📂 Project Organization
+
+```text
 keelway/
-├── Dockerfile                   # Hardened multi-stage non-root container image (UID 10001)
-├── docker-compose.yml           # Local control plane & Ollama orchestration
-├── pyproject.toml               # Package definition and test runners
-├── .github/workflows/ci.yml     # Automated CI verification workflow
-├── keelway/
-│   ├── core/
-│   │   ├── models.py            # Pydantic schemas (RunManifest, AuditEvent, etc.)
-│   │   ├── database.py          # Relational multi-tenant metadata storage (orgs, projects, envs)
-│   │   ├── retry.py             # Bounded retries and idempotency handler
-│   │   └── runner.py            # GovernedRunCoordinator runtime supervisor
-│   ├── audit/
-│   │   ├── recorder.py          # Tamper-evident hash-chained event log & verifier
-│   │   ├── store.py             # Crash-resilient SQLite WAL store with monotonic checks
-│   │   └── export.py            # Cryptographic audit export bundle & prompt redactor
-│   ├── policy/
-│   │   ├── engine.py            # Deny-by-default policy engine & decision signers
-│   │   └── bundle.py            # Central signed policy bundles & anti-rollback epochs
-│   ├── sandbox/
-│   │   └── workspace.py         # Isolated git workspace & bounded command runner
-│   ├── mcp/
-│   │   └── bridge.py            # MCP JSON-RPC tool interception and policy governance
-│   ├── models/
-│   │   └── gateway.py           # Model gateway (Ollama, vLLM, OpenAI, Mock) & token ceilings
-│   ├── evals/
-│   │   ├── engine.py            # Paired evaluation runner against golden fixtures
-│   │   └── suite.py             # Multi-trial statistical evaluator (mean, std dev, 95% CI)
-│   ├── approvals/
-│   │   ├── service.py           # Single-human approval service & patch hash binding
-│   │   └── quorum.py            # Two-Human Quorum approval engine (ADR-045, ADR-046)
-│   ├── git_ci/
-│   │   ├── service.py           # Governed PR creation & staging CI notifications
-│   │   └── github.py            # GitHub App webhook signature verification & event parsing
-│   ├── runner/
-│   │   └── daemon.py            # Customer VPC/on-prem outbound runner daemon
-│   ├── security/
-│   │   └── quarantine.py        # Credential revocation, run freezing & forensic retention
-│   ├── hal/
-│   │   ├── worm.py              # Dual independent WORM storage receipts & publication cert validator (ADR-076)
-│   │   ├── tpm.py               # TPM 2.0 quote verifier, measured boot event-log replay & monotonic NV counters (ADR-062/064)
-│   │   ├── piv.py               # PIV smartcard verifier & strict 72-hour CRL staleness cap (ADR-051/053)
-│   │   └── recovery.py          # Customer 2-of-3 offline root recovery verifier & DENY_OLD transition (ADR-082/083)
-│   ├── api/
-
-│   │   ├── routes.py            # FastAPI endpoints matching API contracts, webhooks & hardware status
-│   │   └── app.py               # Main application & operator web dashboard
-│   └── cli/
-│       └── main.py              # Local operator CLI (`keelway run`, `keelway serve`, etc.)
-└── tests/
-    ├── test_approvals.py        # Single-human gate, no self-approval, mutation rejection
-    ├── test_audit_chain.py      # SHA-256 hash chaining & tamper detection
-    ├── test_audit_export.py     # Export bundle sealing, redaction & signature
-    ├── test_audit_store.py      # SQLite WAL persistence & crash recovery
-    ├── test_end_to_end_workflow.py # Full golden path, REST API, and hardware status endpoints
-    ├── test_eval_gating.py      # Evaluation score thresholds and blocking
-    ├── test_github_webhooks.py  # GitHub App webhook HMAC verification & CI reconciliation
-    ├── test_mcp_bridge.py       # MCP tool interception, denial & execution
-    ├── test_metadata_db.py      # Multi-tenant relational persistence & isolation
-    ├── test_model_gateway.py    # Model routing, capabilities, and token budget cutoff
-    ├── test_multi_trial_eval.py # Multi-trial statistics & confidence interval gating
-    ├── test_policy_bundle.py    # Signed policy bundles & monotonic anti-rollback
-    ├── test_policy_engine.py    # Deny-by-default rules and signature verification
-    ├── test_production_quorum_run.py # Full production run with ADR-045 two-human quorum
-    ├── test_quarantine.py       # Credential revocation & run freezing
-    ├── test_quorum.py           # Two-human quorum, self-quorum block & bot rejection
-    ├── test_retry.py            # Bounded idempotent retries & no double tool execution
-    ├── test_runner_daemon.py    # Customer runner enrollment, allowlists & cross-org blocking
-    ├── test_tier2_worm.py       # Tier 2 Dual-WORM independent receipt verification & emulator rejection
-    ├── test_tier2_tpm.py        # Tier 2 TPM 2.0 quote verification, event-log replay & anti-replay nonces
-    ├── test_tier2_piv.py        # Tier 2 PIV hardware key verification & strict 72-hour CRL staleness rejection
-    └── test_tier2_recovery.py   # Tier 2 2-of-3 offline root recovery, role separation & DENY_OLD cutover
+├── bin/keelway                            # Executable CLI launcher
+├── cli.py                                 # Central developer CLI dispatcher
+├── Dockerfile                             # Hardened multi-stage non-root container (UID 10001)
+├── docker-compose.yml                     # Multi-container orchestration (Control Plane, Runner, Ollama)
+├── Makefile                               # Developer workflow tasks
+├── pyproject.toml                         # Unified packaging & test configuration
+├── core/                                  # Core AI runtime, models, orchestration & studio
+│   ├── agents/                            # Manifests, runtime guard, and macOS command sandbox
+│   ├── api/                               # REST API, studio, approval relays (Telegram/WhatsApp)
+│   ├── models/                            # Gateway & adapters (Local, Anthropic, OpenAI, Gemini)
+│   ├── orchestration/                     # Agent loop, flight recorder, MCP, worktrees
+│   ├── security/                          # Firewall, redaction, approval rules, air-gap
+│   ├── storage/                           # Database, memory, workspace fs, ledger
+│   └── studio/                            # Web IDE & Mission Control studio
+├── keelway/                               # Enterprise Core Governance Platform (v71)
+│   ├── hal/                               # Tier 2 Hardware Abstraction Layer
+│   │   ├── worm.py                        # Dual-WORM independent receipt validator (ADR-076)
+│   │   ├── tpm.py                         # TPM 2.0 quote verifier & PCR event-log replay (ADR-062/064)
+│   │   ├── piv.py                         # PIV smartcard verifier & 72h CRL cap (ADR-051/053)
+│   │   └── recovery.py                    # 2-of-3 offline root recovery verifier (ADR-082/083)
+│   ├── core/                              # State machines, metadata DB, retry idempotency
+│   ├── audit/                             # Hash-chained recorder, SQLite WAL store, sealed exporter
+│   ├── policy/                            # Deny-by-default engine & signed policy bundles
+│   ├── approvals/                         # Two-human quorum (ADR-045) & single human review
+│   ├── evals/                             # Paired multi-trial statistical evaluation suite
+│   ├── runner/                            # Customer VPC outbound runner daemon
+│   └── api/                               # FastAPI control plane & hardware status routes
+├── mobile/                                # Runnable React Native Expo mobile app (biometric approvals)
+├── website/                               # Static landing page for Keelway by Sorvex Labs
+├── docs/                                  # Specifications, ADRs, and developer quickstart guides
+├── examples/                              # Sample demo service & interactive walkthrough scripts
+└── tests/                                 # Full automated test suite (79 verified tests)
 ```
-
----
-
-## 3. Running Keelway
-
-### Running the Full Test Suite (79 Tests)
-```bash
-PYTHONPATH=keelway pytest keelway/tests -v
-```
-All 79 automated tests across Tier 0 (Core MVP), Tier 1 (Production Foundations), and Tier 2 (Hardware Abstraction Layer & Conformance Verifiers) run and pass without external network dependencies.
-
-
-
-### Starting the Web Dashboard & Local Control Plane
-```bash
-PYTHONPATH=keelway python -m keelway.cli.main serve --host 127.0.0.1 --port 8000
-```
-Open your browser to `http://127.0.0.1:8000` to access the interactive operator dashboard, launch runs, review diffs, grant single or two-human approvals, and verify audit chains.
-
-### Running a Governed Change via CLI
-```bash
-# 1. Scaffold a demo repository
-PYTHONPATH=keelway python -m keelway.cli.main init-demo --dir examples/demo_service
-
-# 2. Launch governed change against the demo repository
-PYTHONPATH=keelway python -m keelway.cli.main run --repo examples/demo_service --task "Add telemetry healthcheck"
-```
-
-### Running an Outbound Customer Runner Daemon
-```bash
-PYTHONPATH=keelway python -m keelway.cli.main runner --runner-id node-01 --org org_sorvex_demo --server http://127.0.0.1:8000
-```
-
-
-### Verifying and Exporting Audit Logs
-```bash
-# Verify integrity of a run
-PYTHONPATH=keelway python -m keelway.cli.main verify --run-id <RUN_ID>
-
-# Export sealed audit bundle for compliance
-PYTHONPATH=keelway python -m keelway.cli.main export --run-id <RUN_ID> --out audit_bundle.json
-```
-
-### Running via Docker Compose
-```bash
-cd keelway && docker compose up -d
-```
-
----
-
-## 4. Security Invariants Enforced
-
-| Invariant | Specification Reference | Implementation Status |
-|:---|:---|:---|
-| **Zero Unapproved Mutations** | PRD-001, ADR-002 | **ENFORCED** (Shared workspace clone, diff must be approved before PR) |
-| **Two-Human Quorum (Prod)** | ADR-045, ADR-046 | **ENFORCED** (Requires Security Lead AND Platform Owner; no single person counts twice) |
-| **No Agent Self-Approval** | PRD-001 FR-07, ADR-046 | **ENFORCED** (Rejects any automated identity, bot, or agent) |
-| **MCP Tool Interception** | PRD-001 TB2/TB3 | **ENFORCED** (Intercepts external MCP tools, checking arguments & paths fail-closed) |
-| **Monotonic Anti-Rollback** | ADR-061 | **ENFORCED** (Policy bundle loader rejects any version `< highest_accepted_epoch`) |
-| **Signed Policy Bundles** | PRD-001, ADR-061 | **ENFORCED** (HMAC-SHA256 signature verification over canonical bundle JSON) |
-| **Tenant DB Partitioning** | 04_API_AND_DATA_CONTRACTS | **ENFORCED** (SQLite WAL metadata database scoped strictly by `org_id`) |
-| **Tamper-Evident Audit Chain** | PRD-001 FR-05, FR-09 | **ENFORCED** (Sequential block hash verification detects any altered or dropped events) |
-| **Durable Audit Store** | PRD-001 FR-05, ADR-003 | **ENFORCED** (SQLite WAL store with crash recovery and chain discontinuity checks) |
-| **Sealed Audit Bundle Export** | PRD-001 FR-09 | **ENFORCED** (Portable compliance export with root hash seal and prompt redaction) |
-| **Outbound Customer Runner** | PRD-001 v2, ADR-004 | **ENFORCED** (Outbound-only agent daemon with repo allowlists and cross-org blocking) |
-| **Credential Revocation** | PRD-001 Edge Cases, ADR-060 | **ENFORCED** (Quarantine service fences compromised tokens and freezes active runs) |
-| **No Double Tool Execution** | PRD-001 Edge Cases | **ENFORCED** (Idempotency handler prohibits retries on side-effecting operations) |
-| **Multi-Trial Eval Gating** | PRD-001 Section 76 | **ENFORCED** (Statistical confidence interval checks eliminate eval nondeterminism) |
-| **Budget Hard Stop** | PRD-001 FR-10 | **ENFORCED** (`BudgetExceededError` terminates run on ceiling breach) |
-
----
-
-## 5. Scope Boundaries & Tier 2 Hardware Integration Strategy
-
-- **P0 MVP (100% Implemented & Passing):** Core governed workflow, policy pre-flight, sandboxed workspace, model gateway, eval engine, human approval gate, PR/staging notifications, hash-chained audit logging, REST API, CLI, and interactive web dashboard.
-- **P1 Production Foundations (100% Implemented & Passing):** Persistent SQLite WAL audit store with monotonic crash recovery, GitHub App HMAC webhook reconciliation, local Ollama/vLLM adapters, customer runner daemon with cross-org isolation, exportable compliance bundles, two-human quorum (ADR-045/ADR-046), signed policy bundles with anti-rollback epochs (ADR-061), MCP tool interception bridge, credential quarantine service, idempotent retry engine, and containerization manifests (Dockerfile + docker-compose.yml + ci.yml).
-- **Tier 2 Enterprise Hardware Integration (HAL Implemented & Conformance Tested):**
-  Rather than falsely simulating physical hardware and marking it as certified, Keelway implements an authentic **Hardware Abstraction Layer (HAL)** in `keelway.hal.*` alongside strict negative oracle test suites:
-  1. **Dual Independent WORM Storage (`keelway.hal.worm`):** Enforces dual signed durable receipts from independent storage failure domains before authorizing publication certificates. Strictly rejects unqualified software emulators when production hardware is required (`ERR_WORM_UNQUALIFIED_EMULATOR_PROHIBITED_IN_PROD`).
-  2. **TPM 2.0 Quote Verifier & Measured Boot Replay (`keelway.hal.tpm`):** Implements normative PCR event-log replay (`PCR_extend(PCR_n, event_digest) = SHA256(PCR_n || event_digest)`), golden boot profile matching, single-use anti-replay nonce consumption, and monotonic NV counter rollback prevention.
-  3. **PIV Smartcard PKI Verifier & 72-Hour CRL Engine (`keelway.hal.piv`):** Verifies hardware-held smartcard credentials (prohibiting software private keys per ADR-051) and enforces a strict, fail-closed 72-hour maximum CRL staleness ceiling (`ERR_CRL_STALE_EXCEEDS_72_HOURS` per ADR-053).
-  4. **Customer 2-of-3 Offline Root Recovery Protocol (`keelway.hal.recovery`):** Implements ADR-082 and ADR-083 for emergency controller root key replacement. Mandates two distinct hardware-held signatures from three enrolled custodians, guarantees role separation (Security Lead + Platform Owner), prevents epoch rollback, and enforces `DENY_OLD` before `ENABLE_NEW` transition execution.
-  5. **Hardware Status Observability (`GET /v1/system/hardware-status`):** Exposes live qualification metadata so operators and compliance auditors can distinguish certified physical appliances from staging emulators.
-

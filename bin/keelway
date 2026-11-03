@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON_EXEC="$DIR/.venv/bin/python"
+if [ ! -f "$PYTHON_EXEC" ]; then
+    PYTHON_EXEC="$(command -v python3 || command -v python)"
+fi
+PYTHONPATH="$DIR" exec "$PYTHON_EXEC" "$DIR/cli.py" "$@"

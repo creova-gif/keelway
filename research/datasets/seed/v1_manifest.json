@@ -1,0 +1,14 @@
+{
+  "dataset_file": "v1.jsonl",
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sample_count": 0,
+  "created_at": "2026-10-29T21:05:20.244153+00:00",
+  "source_description": "Keelway verified traces (all-workflows)",
+  "license": "Keelway-Internal-Proprietary",
+  "data_governance": {
+    "secrets_redacted": true,
+    "dlp_scanned": true,
+    "injection_checked": true,
+    "consent_verified": true
+  }
+}

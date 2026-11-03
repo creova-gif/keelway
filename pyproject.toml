@@ -1,23 +1,45 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "keelway"
 version = "0.71.0"
 description = "Customer-managed governance and audit platform for AI-powered software change (Sorvex Labs)"
-authors = [{ name = "Sorvex Labs Founding Engineering Team" }]
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110.0",
-    "uvicorn>=0.28.0",
+    "uvicorn[standard]>=0.28.0",
     "pydantic>=2.6.0",
+    "pydantic-settings",
+    "sqlalchemy[asyncio]",
+    "aiosqlite",
+    "greenlet",
     "httpx>=0.27.0",
+    "python-dotenv",
 ]
 
+[project.optional-dependencies]
+postgres = ["asyncpg"]
+dev = ["pytest", "pytest-asyncio", "ruff"]
+
 [project.scripts]
-keelway = "keelway.cli.main:main"
+keelway = "cli:main"
+keelway-core = "keelway.cli.main:main"
+
+[tool.setuptools]
+py-modules = ["cli"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "keelway*", "research*", "evaluations*"]
+
+[tool.setuptools.package-data]
+core = ["studio/*.html", "studio/assets/*", "studio/assets/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]
