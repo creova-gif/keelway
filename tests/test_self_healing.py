@@ -113,6 +113,20 @@ FAIL src/calc.test.ts
 
         asyncio.run(_run_async_test())
 
+    def test_execute_test_resolves_virtualenv_for_pytest(self):
+        async def _test():
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_path = Path(tmpdir)
+                test_file = tmp_path / "test_sample.py"
+                test_file.write_text("def test_ok(): assert True\n", encoding="utf-8")
+
+                loop = SelfHealingLoop(repo_root=tmp_path)
+                code, out, err = await loop.execute_test("pytest -q", cwd=tmp_path)
+                self.assertEqual(code, 0)
+                self.assertIn("passed", out)
+
+        asyncio.run(_test())
+
 
 if __name__ == "__main__":
     unittest.main()

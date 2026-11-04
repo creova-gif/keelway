@@ -144,14 +144,21 @@ class SelfHealingLoop:
         }
 
     async def execute_test(self, test_cmd: str, cwd: Optional[Path] = None) -> Tuple[int, str, str]:
-        """Runs a test command in the given directory."""
+        """Runs a test command in the given directory using the active Python virtual environment."""
         target_dir = cwd or self.repo_root
         import sys
-        if test_cmd.startswith("python3 ") or test_cmd.startswith("python "):
+        if test_cmd.startswith("pytest ") or test_cmd == "pytest":
+            rest = test_cmd[6:].strip() if test_cmd.startswith("pytest ") else ""
+            test_cmd = f"{sys.executable} -m pytest {rest}".strip()
+        elif test_cmd.startswith("python3 ") or test_cmd.startswith("python "):
             parts = test_cmd.split(" ", 1)
             test_cmd = f"{sys.executable} {parts[1]}"
 
         sub_env, _ = scrub_env(os.environ)  # patched code runs in these tests: it must not see API keys
+        if sys.prefix and "PATH" in sub_env:
+            venv_bin = str(Path(sys.prefix) / "bin")
+            if venv_bin not in sub_env["PATH"]:
+                sub_env["PATH"] = f"{venv_bin}:{sub_env['PATH']}"
         sub_env["PYTHONPATH"] = f"{target_dir}:{sub_env.get('PYTHONPATH', '')}"
 
         proc = await asyncio.create_subprocess_shell(
