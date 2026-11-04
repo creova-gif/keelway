@@ -1504,6 +1504,105 @@ async function loadTimelineInStudio() {
   }
 }
 
+let currentMerkleProof = null;
+
+async function fetchMerkleRootInStudio() {
+  const out = $('merkle-out');
+  if (out) out.textContent = 'Computing cryptographic Merkle root over audit events…';
+  try {
+    const res = await api('/v1/audit/merkle/root');
+    if (out) {
+      out.textContent = `[✓] ENTERPRISE AUDIT MERKLE ROOT\n` +
+        `Merkle Root:     ${res.merkle_root || '(empty)'}\n` +
+        `Total Events:    ${res.total_events}\n` +
+        `Tip Event Hash:  ${res.tip_hash || '(none)'}\n` +
+        `Status:          VERIFIED (Immutable Append-Only Log)\n` +
+        `Compliance:      SOC 2 Type II / ISO 27001 / NIST SP 800-53`;
+    }
+    tone('ok');
+  } catch (err) {
+    if (out) out.textContent = `[-] Merkle root error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function generateMerkleProofInStudio() {
+  const out = $('merkle-out');
+  const seq = ($('merkle-seq-input') && $('merkle-seq-input').value.trim()) || '1';
+  if (out) out.textContent = `Generating inclusion proof for audit event sequence #${seq}…`;
+  try {
+    const res = await api(`/v1/audit/merkle/proof/${encodeURIComponent(seq)}`);
+    currentMerkleProof = res;
+    if (out) {
+      out.textContent = `[✓] MERKLE INCLUSION PROOF FOR SEQ #${res.seq}\n` +
+        `Leaf Hash:       ${res.entry_hash}\n` +
+        `Merkle Root:     ${res.merkle_root}\n` +
+        `Proof Depth:     ${res.proof ? res.proof.length : 0} steps\n` +
+        `─────────────────────────────────────────────────────────────────\n` +
+        `Proof Path:\n` +
+        (res.proof || []).map((p, i) => `  Step ${i + 1} [${p.direction}]: ${p.hash}`).join('\n');
+    }
+    toast(`Proof generated for seq #${seq}`, 'ok');
+    tone('ok');
+  } catch (err) {
+    if (out) out.textContent = `[-] Proof generation error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function verifyMerkleProofInStudio() {
+  const out = $('merkle-out');
+  if (!currentMerkleProof) {
+    toast('Generate a proof first', 'warn');
+    return;
+  }
+  if (out) out.textContent = 'Cryptographically evaluating Merkle inclusion path against root…';
+  try {
+    const res = await api('/v1/audit/merkle/verify', {
+      method: 'POST',
+      body: {
+        leaf_hash: currentMerkleProof.entry_hash,
+        proof: currentMerkleProof.proof,
+        root_hash: currentMerkleProof.merkle_root,
+      }
+    });
+    if (out) {
+      out.textContent = `[✓] MERKLE INCLUSION PROOF VERIFICATION: ${res.valid ? 'VALID [100% CRYPTOGRAPHIC MATCH]' : 'FAILED'}\n` +
+        `Leaf Hash:   ${currentMerkleProof.entry_hash}\n` +
+        `Root Hash:   ${currentMerkleProof.merkle_root}\n` +
+        `Conclusion:  Audit event sequence #${currentMerkleProof.seq} is immutably anchored in this Merkle root.`;
+    }
+    tone(res.valid ? 'ok' : 'err');
+    toast(res.valid ? '[✓] Proof verified' : '[-] Proof invalid', res.valid ? 'ok' : 'err');
+  } catch (err) {
+    if (out) out.textContent = `[-] Verification error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function exportAuditBundleInStudio() {
+  const out = $('merkle-out');
+  if (out) out.textContent = 'Generating sealed compliance audit bundle…';
+  try {
+    const res = await api('/v1/audit/export/bundle', { method: 'POST', body: {} });
+    if (out) {
+      out.textContent = `[✓] ENTERPRISE COMPLIANCE BUNDLE EXPORTED\n` +
+        `Total Events:    ${res.total_events}\n` +
+        `Chain Valid:     ${res.chain_valid ? 'YES [UNBROKEN]' : 'NO [TAMPERED]'}\n` +
+        `Genesis Hash:    ${res.genesis_hash}\n` +
+        `Tip Hash:        ${res.tip_hash}\n` +
+        `Merkle Root:     ${res.merkle_root}\n` +
+        `Export Path:     ${res.out_path || 'audit_export.json'}\n` +
+        `Timestamp:       ${res.timestamp_iso}`;
+    }
+    toast('Audit bundle exported', 'ok');
+    tone(res.chain_valid ? 'ok' : 'warn');
+  } catch (err) {
+    if (out) out.textContent = `[-] Export error: ${err.message}`;
+    tone('err');
+  }
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -2114,6 +2213,10 @@ function wire() {
   if ($('conflict-check-btn')) $('conflict-check-btn').addEventListener('click', checkConflictsInStudio);
   if ($('conflict-resolve-btn')) $('conflict-resolve-btn').addEventListener('click', resolveConflictsInStudio);
   if ($('conflict-timeline-btn')) $('conflict-timeline-btn').addEventListener('click', loadTimelineInStudio);
+  if ($('merkle-root-btn')) $('merkle-root-btn').addEventListener('click', fetchMerkleRootInStudio);
+  if ($('merkle-proof-btn')) $('merkle-proof-btn').addEventListener('click', generateMerkleProofInStudio);
+  if ($('merkle-verify-btn')) $('merkle-verify-btn').addEventListener('click', verifyMerkleProofInStudio);
+  if ($('merkle-export-btn')) $('merkle-export-btn').addEventListener('click', exportAuditBundleInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

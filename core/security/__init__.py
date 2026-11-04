@@ -26,6 +26,10 @@ from .sbom import (
     SBOMVerifier,
     SBOMManifest,
 )
+from .merkle_audit import (
+    AuditMerkleTree,
+    EnterpriseAuditExporter,
+)
 
 __all__ = [
     "DLPScanner",
@@ -46,4 +50,6 @@ __all__ = [
     "SBOMGenerator",
     "SBOMVerifier",
     "SBOMManifest",
+    "AuditMerkleTree",
+    "EnterpriseAuditExporter",
 ]

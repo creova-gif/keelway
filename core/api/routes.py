@@ -2895,6 +2895,68 @@ async def cancel_kflow_dag(
     return {"status": "cancelled", "flow_id": flow_id}
 
 
+# ---------------------------------------------------------------------------
+# Enterprise Audit Merkle Tree & Inclusion Proofs
+# ---------------------------------------------------------------------------
+
+@router.get("/v1/audit/merkle/root", tags=["Enterprise Audit"])
+async def get_audit_merkle_root(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve current Merkle root and tip hash of the enterprise audit chain."""
+    from core.security.merkle_audit import EnterpriseAuditExporter
+    from core.storage.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as session:
+        bundle = await EnterpriseAuditExporter.export_bundle(session)
+    return {
+        "merkle_root": bundle["merkle_root"],
+        "total_events": bundle["total_events"],
+        "tip_hash": bundle["tip_hash"],
+    }
+
+
+@router.get("/v1/audit/merkle/proof/{seq}", tags=["Enterprise Audit"])
+async def get_audit_merkle_proof(
+    seq: int,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve cryptographic Merkle inclusion proof for a given audit sequence number."""
+    from core.security.merkle_audit import EnterpriseAuditExporter
+    from core.storage.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as session:
+        try:
+            return await EnterpriseAuditExporter.get_inclusion_proof_for_seq(session, seq)
+        except KeyError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/v1/audit/merkle/verify", tags=["Enterprise Audit"])
+async def verify_audit_merkle_proof(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Cryptographically verify a Merkle inclusion proof against a specified root hash."""
+    from core.security.merkle_audit import AuditMerkleTree
+    leaf_hash = payload.get("leaf_hash", "")
+    proof = payload.get("proof", [])
+    root_hash = payload.get("root_hash", "")
+    is_valid = AuditMerkleTree.verify_proof(leaf_hash, proof, root_hash)
+    return {"valid": is_valid}
+
+
+@router.post("/v1/audit/export/bundle", tags=["Enterprise Audit"])
+async def export_audit_bundle(
+    payload: Optional[Dict[str, Any]] = None,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Export complete Enterprise Audit Merkle Bundle with chain validity check."""
+    from core.security.merkle_audit import EnterpriseAuditExporter
+    from core.storage.database import AsyncSessionLocal
+    out_path = (payload or {}).get("out_path")
+    async with AsyncSessionLocal() as session:
+        return await EnterpriseAuditExporter.export_bundle(session, out_file=out_path)
+
+
 
 
 

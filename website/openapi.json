@@ -5053,6 +5053,173 @@
         }
       }
     },
+    "/v1/audit/merkle/root": {
+      "get": {
+        "tags": [
+          "Enterprise Audit"
+        ],
+        "summary": "Get Audit Merkle Root",
+        "description": "Retrieve current Merkle root and tip hash of the enterprise audit chain.",
+        "operationId": "get_audit_merkle_root_v1_audit_merkle_root_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Audit Merkle Root V1 Audit Merkle Root Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit/merkle/proof/{seq}": {
+      "get": {
+        "tags": [
+          "Enterprise Audit"
+        ],
+        "summary": "Get Audit Merkle Proof",
+        "description": "Retrieve cryptographic Merkle inclusion proof for a given audit sequence number.",
+        "operationId": "get_audit_merkle_proof_v1_audit_merkle_proof__seq__get",
+        "parameters": [
+          {
+            "name": "seq",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Seq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Audit Merkle Proof V1 Audit Merkle Proof  Seq  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit/merkle/verify": {
+      "post": {
+        "tags": [
+          "Enterprise Audit"
+        ],
+        "summary": "Verify Audit Merkle Proof",
+        "description": "Cryptographically verify a Merkle inclusion proof against a specified root hash.",
+        "operationId": "verify_audit_merkle_proof_v1_audit_merkle_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Verify Audit Merkle Proof V1 Audit Merkle Verify Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit/export/bundle": {
+      "post": {
+        "tags": [
+          "Enterprise Audit"
+        ],
+        "summary": "Export Audit Bundle",
+        "description": "Export complete Enterprise Audit Merkle Bundle with chain validity check.",
+        "operationId": "export_audit_bundle_v1_audit_export_bundle_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Export Audit Bundle V1 Audit Export Bundle Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/studio/status": {
       "get": {
         "tags": [

@@ -855,6 +855,25 @@
             <pre id="conflict-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Enterprise Merkle Audit & Proof Verifier Card -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="merkle-card-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="merkle-card-title" class="font-semibold">Enterprise Merkle Audit &amp; Cryptographic Proofs</h3>
+            <span class="step-chip text-accent border-accent/50">SOC 2 / ISO 27001 Merkle Root</span>
+          </div>
+          <div id="lab-merkle-audit" class="space-y-3">
+            <p class="text-xs text-ide-muted">Verify immutable append-only hash chains, compute cryptographic Merkle roots over immutable audit events, and generate inclusion proofs for auditors.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="merkle-root-btn" type="button" class="btn-primary h-8 text-xs">Fetch Current Merkle Root</button>
+              <input id="merkle-seq-input" class="input w-28 font-mono text-xs" placeholder="Sequence #" value="1">
+              <button id="merkle-proof-btn" type="button" class="btn-outline h-8 text-xs">Generate Inclusion Proof</button>
+              <button id="merkle-verify-btn" type="button" class="btn-outline h-8 text-xs">Verify Cryptographic Proof</button>
+              <button id="merkle-export-btn" type="button" class="btn-outline h-8 text-xs">Export Compliance Bundle</button>
+            </div>
+            <pre id="merkle-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

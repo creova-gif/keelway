@@ -1229,9 +1229,67 @@ def cmd_git(action: str, msg: str = "", path: Optional[str] = None, base: str = 
     return 0
 
 
-async def cmd_record(action: str, path: Optional[Path] = None, anchor: Optional[Path] = None) -> int:
-    """Export the audit log as a portable Keelway Record file, anchor the head, or verify one (no server needed)."""
+async def cmd_audit(
+    action: str,
+    path: Optional[Path] = None,
+    anchor: Optional[Path] = None,
+    seq: Optional[int] = None,
+    leaf_hash: Optional[str] = None,
+    proof: Optional[str] = None,
+    root_hash: Optional[str] = None,
+    is_record: bool = False,
+) -> int:
+    """Export the audit log, generate/verify Merkle inclusion proofs, anchor the head, or verify."""
     from core.security import record_format
+
+    if action == "proof":
+        if seq is None:
+            print("[-] Error: seq number is required for proof.")
+            return 1
+        from core.security.merkle_audit import EnterpriseAuditExporter
+        from core.storage.database import AsyncSessionLocal, init_db
+        import json
+
+        await init_db()
+        async with AsyncSessionLocal() as session:
+            try:
+                res = await EnterpriseAuditExporter.get_inclusion_proof_for_seq(session, seq)
+                print(f"[+] Cryptographic Inclusion Proof for seq={res['seq']}:")
+                print(f"    Leaf Entry Hash: {res['entry_hash']}")
+                print(f"    Merkle Root:     {res['merkle_root']}")
+                print(f"    Proof Steps:     {len(res['proof'])}")
+                print(json.dumps(res, indent=2))
+                return 0
+            except Exception as e:
+                print(f"[-] Proof retrieval failed: {e}")
+                return 1
+
+    if action == "verify-proof":
+        if not leaf_hash or not proof or not root_hash:
+            print("[-] Error: leaf_hash, proof, and root_hash are required.")
+            return 1
+        from core.security.merkle_audit import AuditMerkleTree
+        import json
+
+        try:
+            proof_raw = proof.strip()
+            if proof_raw.startswith("[") or proof_raw.startswith("{"):
+                proof_data = json.loads(proof_raw)
+            else:
+                proof_data = json.loads(Path(proof_raw).read_text(encoding="utf-8"))
+            if isinstance(proof_data, dict) and "proof" in proof_data:
+                proof_data = proof_data["proof"]
+
+            is_valid = AuditMerkleTree.verify_proof(leaf_hash, proof_data, root_hash)
+            if is_valid:
+                print(f"[✓] Merkle inclusion proof VERIFIED against root {root_hash[:16]}...")
+                return 0
+            else:
+                print(f"[✗] Merkle inclusion proof REJECTED against root {root_hash[:16]}...")
+                return 1
+        except Exception as e:
+            print(f"[-] Proof verification failed: {e}")
+            return 1
 
     if action == "verify":
         argv = ["verify", str(path)]
@@ -1252,16 +1310,45 @@ async def cmd_record(action: str, path: Optional[Path] = None, anchor: Optional[
             print(f"    Receipt written to {path}")
         return 0
 
-    from core.security.record_export import export_record
-    from core.storage.database import init_db
+    if action == "export":
+        if is_record or (path is not None and str(path).endswith(".jsonl")):
+            from core.security.record_export import export_record
+            from core.storage.database import init_db
 
-    await init_db()
-    result = await export_record(path)
-    if path is None:
-        sys.stdout.write(result["text"])
-    else:
-        print(f"[+] Wrote {result['entries']} entries to {path} (chain {'valid' if result['valid'] else 'BROKEN'}).")
-    return 0 if result["valid"] else 1
+            await init_db()
+            result = await export_record(path)
+            if path is None:
+                sys.stdout.write(result["text"])
+            else:
+                print(f"[+] Wrote {result['entries']} entries to {path} (chain {'valid' if result['valid'] else 'BROKEN'}).")
+            return 0 if result["valid"] else 1
+
+        from core.security.merkle_audit import EnterpriseAuditExporter
+        from core.storage.database import AsyncSessionLocal, init_db
+
+        await init_db()
+        async with AsyncSessionLocal() as session:
+            bundle = await EnterpriseAuditExporter.export_bundle(session, out_file=path)
+            print(f"[+] Exported Enterprise Audit Merkle Bundle ({bundle['total_events']} events):")
+            print(f"    Merkle Root: {bundle['merkle_root']}")
+            print(f"    Tip Hash:    {bundle['tip_hash']}")
+            print(f"    Chain Valid: {bundle['chain_valid']}")
+            if path is not None:
+                print(f"    Saved to:    {path}")
+            return 0 if bundle["chain_valid"] else 1
+
+    print(f"[-] Unknown audit action: {action}")
+    return 1
+
+
+async def cmd_record(
+    action: str,
+    path: Optional[Path] = None,
+    anchor: Optional[Path] = None,
+    **kwargs,
+) -> int:
+    """Export or verify audit records in portable Record JSONL format."""
+    return await cmd_audit(action=action, path=path, anchor=anchor, is_record=True, **kwargs)
 
 
 async def cmd_token(action: str, name: str = "", role: str = "engineer", token_id: str = ""):
@@ -2908,6 +2995,12 @@ def build_parser() -> argparse.ArgumentParser:
     _a_ver = audit_sub.add_parser("verify", help="Verify integrity of an audit record file")
     _a_ver.add_argument("path", type=Path, help="Path to audit record file")
     _a_ver.add_argument("--anchor", type=Path, default=None, help="Cross-verify against an anchor receipt JSON")
+    _a_prf = audit_sub.add_parser("proof", help="Get cryptographic Merkle inclusion proof for audit sequence number")
+    _a_prf.add_argument("seq", type=int, help="Sequence number of audit event")
+    _a_vpf = audit_sub.add_parser("verify-proof", help="Cryptographically verify a Merkle inclusion proof against root")
+    _a_vpf.add_argument("leaf_hash", help="SHA-256 leaf entry hash")
+    _a_vpf.add_argument("proof", help="JSON string or file path containing Merkle proof list")
+    _a_vpf.add_argument("root_hash", help="Expected Merkle root hash")
 
     # receipt (Offline Cryptographic Verification Engine)
     receipt_parser = subparsers.add_parser("receipt", help="Offline cryptographic verification of evaluation, build, mesh, and tape receipts")
@@ -3266,10 +3359,15 @@ def main(argv=None):
         act = getattr(args, "record_command", None) or getattr(args, "audit_command", "export")
         sys.exit(
             asyncio.run(
-                cmd_record(
+                cmd_audit(
                     act,
                     path=getattr(args, "path", None) or getattr(args, "out", None),
                     anchor=getattr(args, "anchor", None),
+                    seq=getattr(args, "seq", None),
+                    leaf_hash=getattr(args, "leaf_hash", None),
+                    proof=getattr(args, "proof", None),
+                    root_hash=getattr(args, "root_hash", None),
+                    is_record=(args.command == "record"),
                 )
             )
         )

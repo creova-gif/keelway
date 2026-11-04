@@ -86,6 +86,8 @@
     <button type="button" class="tag-btn active" data-tag="ALL">All Categories</button>
     <button type="button" class="tag-btn" data-tag="Agent Builder">Agent Builder</button>
     <button type="button" class="tag-btn" data-tag="KHub Universal Skills">KHub Universal Skills</button>
+    <button type="button" class="tag-btn" data-tag="KSpaces Multi-Tenant">KSpaces Multi-Tenant</button>
+    <button type="button" class="tag-btn" data-tag="Enterprise Audit">Enterprise Audit</button>
     <button type="button" class="tag-btn" data-tag="KStack">KStack Roles</button>
     <button type="button" class="tag-btn" data-tag="KBrain">KBrain Memory</button>
     <button type="button" class="tag-btn" data-tag="KHub">KHub Importer</button>
@@ -182,6 +184,120 @@
         </div>
       </div>
     </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/kspaces/{space_id}/conflicts/check</span>
+        </div>
+        <span class="endpoint-tag">KSpaces Multi-Tenant</span>
+      </div>
+      <p class="endpoint-desc">Perform 3-way AST merge conflict analysis between base, left, and right branch contents.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "base_text": "...", "left_text": "...", "right_text": "...", "file_path": "service.py" }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "has_conflicts": false, "auto_resolvable": true, "summary": "...", "hunks": [...] }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/kspaces/{space_id}/conflicts/resolve</span>
+        </div>
+        <span class="endpoint-tag">KSpaces Multi-Tenant</span>
+      </div>
+      <p class="endpoint-desc">Synthesize resolved file content using automated AST strategy or specific branch priority.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "base_text": "...", "left_text": "...", "right_text": "...", "strategy": "auto" }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "status": "resolved", "resolved_text": "..." }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-GET">GET</span>
+          <span class="endpoint-path">/v1/kspaces/{space_id}/timeline</span>
+        </div>
+        <span class="endpoint-tag">KSpaces Multi-Tenant</span>
+      </div>
+      <p class="endpoint-desc">Retrieve chronological human and autonomous agent activity event logs.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box" style="grid-column: 1 / -1;">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "space_id": "...", "events": [...] }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-GET">GET</span>
+          <span class="endpoint-path">/v1/audit/merkle/root</span>
+        </div>
+        <span class="endpoint-tag">Enterprise Audit</span>
+      </div>
+      <p class="endpoint-desc">Retrieve current Merkle tree root hash and total event count for SOC 2 Type II compliance.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box" style="grid-column: 1 / -1;">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "merkle_root": "...", "total_events": 42, "tip_hash": "..." }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-GET">GET</span>
+          <span class="endpoint-path">/v1/audit/merkle/proof/{seq}</span>
+        </div>
+        <span class="endpoint-tag">Enterprise Audit</span>
+      </div>
+      <p class="endpoint-desc">Generate cryptographic Merkle inclusion proof for a specific audit sequence.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box" style="grid-column: 1 / -1;">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "seq": 10, "entry_hash": "...", "proof": [...], "merkle_root": "..." }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/audit/merkle/verify</span>
+        </div>
+        <span class="endpoint-tag">Enterprise Audit</span>
+      </div>
+      <p class="endpoint-desc">Cryptographically verify a Merkle inclusion proof against a root hash.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "leaf_hash": "...", "proof": [...], "root_hash": "..." }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "valid": true }</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -202,24 +318,71 @@ let activeTag = "ALL";
 
 const ENDPOINT_EXTRA = {
   "/v1/agent/builder/pack": {
+    method: "POST",
+    tags: ["Agent Builder"],
     desc: "Pack an agent directory into a signed distributable .tar.gz bundle with SHA-256 digests and directory traversal protection.",
     req: '{ "source_dir": "agents/my-agent", "output_archive": "exports/my-agent.tar.gz" }',
     res: '{ "status": "packed", "archive_path": "exports/my-agent.tar.gz", "manifest": { "bundle_name": "...", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }'
   },
   "/v1/agent/builder/unpack": {
+    method: "POST",
+    tags: ["Agent Builder"],
     desc: "Unpack and cryptographically verify an agent bundle archive with anti-tamper checking.",
     req: '{ "archive_path": "exports/my-agent.tar.gz", "destination_dir": "agents/unpacked" }',
     res: '{ "status": "unpacked", "destination_dir": "agents/unpacked", "manifest": {...} }'
   },
   "/v1/khub/bundle/export": {
+    method: "POST",
+    tags: ["KHub Universal Skills"],
     desc: "Export a skill directory or SKILL.md into a verified .skill.tar.gz bundle with SHA-256 member hashing.",
     req: '{ "skill_path": ".agents/skills/review", "output_archive": "exports/review.skill.tar.gz" }',
     res: '{ "status": "exported", "archive_path": "exports/review.skill.tar.gz", "manifest": { "skill_name": "review", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }'
   },
   "/v1/khub/bundle/import": {
+    method: "POST",
+    tags: ["KHub Universal Skills"],
     desc: "Import and cryptographically verify a portable .skill.tar.gz bundle into workspace skills with anti-tamper checking.",
     req: '{ "archive_path": "exports/review.skill.tar.gz", "destination_dir": ".agents/skills/imported_review" }',
     res: '{ "status": "imported", "destination_dir": ".agents/skills/imported_review", "manifest": {...} }'
+  },
+  "/v1/kspaces/{space_id}/conflicts/check": {
+    method: "POST",
+    tags: ["KSpaces Multi-Tenant"],
+    desc: "Perform 3-way AST merge conflict analysis between base, left, and right branch contents.",
+    req: '{ "base_text": "...", "left_text": "...", "right_text": "...", "file_path": "service.py" }',
+    res: '{ "has_conflicts": false, "auto_resolvable": true, "summary": "...", "hunks": [...] }'
+  },
+  "/v1/kspaces/{space_id}/conflicts/resolve": {
+    method: "POST",
+    tags: ["KSpaces Multi-Tenant"],
+    desc: "Synthesize resolved file content using automated AST strategy or specific branch priority.",
+    req: '{ "base_text": "...", "left_text": "...", "right_text": "...", "strategy": "auto" }',
+    res: '{ "status": "resolved", "resolved_text": "..." }'
+  },
+  "/v1/kspaces/{space_id}/timeline": {
+    method: "GET",
+    tags: ["KSpaces Multi-Tenant"],
+    desc: "Retrieve chronological human and autonomous agent activity event logs.",
+    res: '{ "space_id": "...", "events": [...] }'
+  },
+  "/v1/audit/merkle/root": {
+    method: "GET",
+    tags: ["Enterprise Audit"],
+    desc: "Retrieve current Merkle tree root hash and total event count for SOC 2 Type II compliance.",
+    res: '{ "merkle_root": "...", "total_events": 42, "tip_hash": "..." }'
+  },
+  "/v1/audit/merkle/proof/{seq}": {
+    method: "GET",
+    tags: ["Enterprise Audit"],
+    desc: "Generate cryptographic Merkle inclusion proof for a specific audit sequence.",
+    res: '{ "seq": 10, "entry_hash": "...", "proof": [...], "merkle_root": "..." }'
+  },
+  "/v1/audit/merkle/verify": {
+    method: "POST",
+    tags: ["Enterprise Audit"],
+    desc: "Cryptographically verify a Merkle inclusion proof against a root hash.",
+    req: '{ "leaf_hash": "...", "proof": [...], "root_hash": "..." }',
+    res: '{ "valid": true }'
   }
 };
 
@@ -245,35 +408,27 @@ async function loadOpenApi() {
       }
     }
 
+    for (const [extraPath, extraMeta] of Object.entries(ENDPOINT_EXTRA)) {
+      if (!allEndpoints.some(ep => ep.path === extraPath)) {
+        allEndpoints.push({
+          path: extraPath,
+          method: extraMeta.method || "POST",
+          summary: extraMeta.desc,
+          tags: extraMeta.tags || ["General"],
+          opId: ""
+        });
+      }
+    }
+
     document.getElementById("total-count").textContent = allEndpoints.length;
     renderEndpoints();
   } catch (err) {
-    allEndpoints = [
-      {
-        path: "/v1/agent/builder/pack",
-        method: "POST",
-        summary: ENDPOINT_EXTRA["/v1/agent/builder/pack"].desc,
-        tags: ["Agent Builder"]
-      },
-      {
-        path: "/v1/agent/builder/unpack",
-        method: "POST",
-        summary: ENDPOINT_EXTRA["/v1/agent/builder/unpack"].desc,
-        tags: ["Agent Builder"]
-      },
-      {
-        path: "/v1/khub/bundle/export",
-        method: "POST",
-        summary: ENDPOINT_EXTRA["/v1/khub/bundle/export"].desc,
-        tags: ["KHub Universal Skills"]
-      },
-      {
-        path: "/v1/khub/bundle/import",
-        method: "POST",
-        summary: ENDPOINT_EXTRA["/v1/khub/bundle/import"].desc,
-        tags: ["KHub Universal Skills"]
-      }
-    ];
+    allEndpoints = Object.entries(ENDPOINT_EXTRA).map(([p, m]) => ({
+      path: p,
+      method: m.method || "POST",
+      summary: m.desc,
+      tags: m.tags || ["General"]
+    }));
     renderEndpoints();
   }
 }
@@ -283,10 +438,13 @@ function renderEndpoints() {
   const listEl = document.getElementById("endpoints-list");
   
   const filtered = allEndpoints.filter(ep => {
-    const matchesTag = (activeTag === "ALL") || ep.tags.some(t => t.toLowerCase().includes(activeTag.toLowerCase()));
+    const extra = ENDPOINT_EXTRA[ep.path];
+    const tags = (extra && extra.tags) ? extra.tags : ep.tags;
+    const desc = extra ? extra.desc : ep.summary;
+    const matchesTag = (activeTag === "ALL") || tags.some(t => t.toLowerCase().includes(activeTag.toLowerCase()));
     const matchesQuery = !query || ep.path.toLowerCase().includes(query) || 
-                         ep.summary.toLowerCase().includes(query) || 
-                         ep.tags.some(t => t.toLowerCase().includes(query));
+                         desc.toLowerCase().includes(query) || 
+                         tags.some(t => t.toLowerCase().includes(query));
     return matchesTag && matchesQuery;
   });
 
@@ -298,17 +456,31 @@ function renderEndpoints() {
   listEl.innerHTML = filtered.map(ep => {
     const extra = ENDPOINT_EXTRA[ep.path];
     const desc = extra ? extra.desc : ep.summary;
-    const schemasHtml = extra ? `
-      <div class="endpoint-schemas">
-        <div class="schema-box">
-          <div class="schema-label"><span>Request JSON schema:</span></div>
-          <pre class="schema-code">${escapeHtml(extra.req)}</pre>
-        </div>
-        <div class="schema-box">
-          <div class="schema-label"><span>Response JSON:</span></div>
-          <pre class="schema-code">${escapeHtml(extra.res)}</pre>
-        </div>
-      </div>` : '';
+    const tags = (extra && extra.tags) ? extra.tags : ep.tags;
+    let schemasHtml = '';
+    if (extra) {
+      if (extra.req && extra.res) {
+        schemasHtml = `
+          <div class="endpoint-schemas">
+            <div class="schema-box">
+              <div class="schema-label"><span>Request JSON schema:</span></div>
+              <pre class="schema-code">${escapeHtml(extra.req)}</pre>
+            </div>
+            <div class="schema-box">
+              <div class="schema-label"><span>Response JSON:</span></div>
+              <pre class="schema-code">${escapeHtml(extra.res)}</pre>
+            </div>
+          </div>`;
+      } else if (extra.res) {
+        schemasHtml = `
+          <div class="endpoint-schemas">
+            <div class="schema-box" style="grid-column: 1 / -1;">
+              <div class="schema-label"><span>Response JSON:</span></div>
+              <pre class="schema-code">${escapeHtml(extra.res)}</pre>
+            </div>
+          </div>`;
+      }
+    }
 
     return `
     <div class="endpoint-card">
@@ -317,7 +489,7 @@ function renderEndpoints() {
           <span class="method-pill method-${ep.method}">${ep.method}</span>
           <span class="endpoint-path">${escapeHtml(ep.path)}</span>
         </div>
-        <span class="endpoint-tag">${escapeHtml(ep.tags.join(", "))}</span>
+        <span class="endpoint-tag">${escapeHtml(tags.join(", "))}</span>
       </div>
       <p class="endpoint-desc">${escapeHtml(desc)}</p>
       ${schemasHtml}
