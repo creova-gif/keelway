@@ -1251,6 +1251,61 @@ def cmd_models(action: str, export_path: Optional[Path] = None, format_type: str
     return 0
 
 
+async def cmd_team(action: str, goal: str, auto_approve: bool = True) -> int:
+    """Multi-agent crew orchestration: DAG planning and deterministic execution."""
+    from core.orchestration.multi_agent import MultiAgentCoordinator
+
+    coordinator = MultiAgentCoordinator()
+    print("=" * 76)
+    print("  KEELWAY MULTI-AGENT CREW ORCHESTRATION")
+    print(f"  Goal: {goal}")
+    print("=" * 76)
+
+    try:
+        plan = coordinator.plan_team_workflow(goal)
+    except Exception as exc:
+        print(f"[-] Team planning failed: {exc}")
+        return 1
+
+    print(f"\n[+] Generated Multi-Agent DAG Plan (Team ID: {plan.team_id}):")
+    order = plan.topological_order()
+    for idx, nid in enumerate(order, 1):
+        node = plan.nodes[nid]
+        deps_str = f" [depends on: {', '.join(node.depends_on)}]" if node.depends_on else ""
+        print(f"  {idx}. [{node.id}] Role: {node.role.value:<18} | {node.title}{deps_str}")
+        print(f"     Description: {node.description}")
+
+    if action == "plan":
+        print("\n[+] Plan formulation complete. Execute with: keelway team run \"<goal>\"")
+        return 0
+
+    print("\n[+] Starting Multi-Agent Crew Execution...")
+    try:
+        res = await coordinator.execute_team_workflow(plan, auto_approve=auto_approve)
+    except Exception as exc:
+        print(f"[-] Multi-agent execution failed: {exc}")
+        return 1
+
+    status_tag = "SUCCESS [✓]" if res.status == "succeeded" else f"FAILED [{res.status.upper()}]"
+    print("\n" + "=" * 76)
+    print(f"  CREW EXECUTION RESULT: {status_tag} ({res.nodes_executed}/{len(plan.nodes)} nodes executed in {res.duration_ms:.1f}ms)")
+    print("=" * 76)
+    for nid, node in plan.nodes.items():
+        state_icon = "✓" if node.state.value == "succeeded" else "✗"
+        print(f"  [{state_icon}] {node.id:<10} ({node.role.value:<16}): {node.state.value.upper()} ({node.duration_ms}ms)")
+        if node.error:
+            print(f"      Error: {node.error}")
+        elif node.outputs:
+            summary_keys = [f"{k}={str(v)[:40]}" for k, v in list(node.outputs.items())[:3]]
+            print(f"      Outputs: {', '.join(summary_keys)}")
+
+    if res.flight_tape_sha256:
+        print(f"\n[+] Sealed Multi-Agent Flight Tape: {plan.flight_tape_path}")
+        print(f"    Tape SHA-256: {res.flight_tape_sha256}")
+    print("=" * 76)
+    return 0 if res.status == "succeeded" else 1
+
+
 def main():
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1477,6 +1532,15 @@ def main():
     _m_ledger.add_argument("--format", choices=["json", "jsonl", "csv"], default="jsonl", help="Export format")
     _m_ledger.add_argument("--reset", action="store_true", help="Reset ledger entries")
 
+    # team (Multi-Agent Crew Orchestration)
+    team_parser = subparsers.add_parser("team", help="Plan and execute multi-agent crew workflows with specialized roles")
+    team_sub = team_parser.add_subparsers(dest="team_command", required=True)
+    _t_plan = team_sub.add_parser("plan", help="Decompose goal into a multi-agent DAG plan")
+    _t_plan.add_argument("goal", help="Engineering goal or feature objective")
+    _t_run = team_sub.add_parser("run", help="Execute multi-agent crew workflow end-to-end")
+    _t_run.add_argument("goal", help="Engineering goal or feature objective")
+    _t_run.add_argument("--approve", action="store_true", help="Auto-approve non-critical steps")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1583,6 +1647,8 @@ def main():
         sys.exit(asyncio.run(run_m1_cli(args.repo)))
     elif args.command == "models":
         sys.exit(cmd_models(args.models_command, export_path=args.export, format_type=args.format, reset=args.reset))
+    elif args.command == "team":
+        sys.exit(asyncio.run(cmd_team(args.team_command, args.goal, auto_approve=getattr(args, "approve", True))))
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":

@@ -11,6 +11,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
+from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, WebSocket, WebSocketDisconnect, WebSocketException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -1615,6 +1616,55 @@ async def reset_model_cost_ledger(
     from core.models.cost_ledger import cost_ledger
     cost_ledger.reset()
     return {"status": "ok", "message": "Model cost ledger reset"}
+
+
+# ==============================================================================
+# Multi-Agent Team Coordination & Execution Endpoints
+# ==============================================================================
+
+class TeamPlanRequest(BaseModel):
+    goal: str = Field(..., min_length=3, description="Overall goal or objective for the agent team")
+    custom_subtasks: Optional[List[Dict[str, Any]]] = None
+
+
+class TeamExecuteRequest(BaseModel):
+    goal: str = Field(..., min_length=3, description="Overall goal or objective for the agent team")
+    custom_subtasks: Optional[List[Dict[str, Any]]] = None
+    auto_approve: bool = Field(default=True, description="Whether to auto-approve non-critical steps")
+
+
+@router.post("/v1/orchestration/team/plan", tags=["Multi-Agent Orchestration"])
+async def plan_team_workflow(
+    request: TeamPlanRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Decompose developer goal into a topologically sound multi-agent DAG."""
+    from core.orchestration.multi_agent import MultiAgentCoordinator
+    coordinator = MultiAgentCoordinator(workspace_fs=_workspace_fs)
+    try:
+        plan = coordinator.plan_team_workflow(request.goal, custom_subtasks=request.custom_subtasks)
+        return plan.to_dict()
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+
+
+@router.post("/v1/orchestration/team/execute", tags=["Multi-Agent Orchestration"])
+async def execute_team_workflow(
+    request: TeamExecuteRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Execute a multi-agent team workflow with role specialization and flight tape sealing."""
+    from core.orchestration.multi_agent import MultiAgentCoordinator
+    coordinator = MultiAgentCoordinator(workspace_fs=_workspace_fs)
+    try:
+        plan = coordinator.plan_team_workflow(request.goal, custom_subtasks=request.custom_subtasks)
+        result = await coordinator.execute_team_workflow(plan, auto_approve=request.auto_approve)
+        return result.to_dict()
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Multi-agent execution failure: {exc}")
+
 
 
 
