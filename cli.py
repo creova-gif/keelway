@@ -1724,7 +1724,10 @@ def main():
     mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
 
     # bench (Production 10-Task Golden Evaluation Benchmark)
-    subparsers.add_parser("bench", help="Run 10-task golden evaluation panel (Pass@1, latency, security)")
+    bench_parser = subparsers.add_parser("bench", help="Run 10-task golden evaluation panel (Pass@1, latency, security, drift)")
+    bench_parser.add_argument("--receipt", action="store_true", help="Generate and persist signed EvaluationReceipt")
+    bench_parser.add_argument("--drift", action="store_true", help="Compare run against historical baseline to detect regressions and latency drift")
+    bench_parser.add_argument("--history", action="store_true", help="Display historical evaluation receipts")
 
     # tier2 (Tier 2 Hardware Security & Root Recovery)
     tier2_parser = subparsers.add_parser("tier2", help="Tier 2 Hardware Security: TPM 2.0, Dual-WORM, PIV Smartcard, 2-of-3 Recovery")
@@ -1833,18 +1836,58 @@ def main():
     elif args.command == "pull":
         asyncio.run(cmd_pull(args.model))
     elif args.command == "bench":
-        from evals.eval_runner import ProductionEvalHarness
-        harness = ProductionEvalHarness()
-        summary = asyncio.run(harness.run_all())
+        from evals.drift_detector import DriftDetector, EvaluationReceiptStore
+        store = EvaluationReceiptStore()
+
+        if getattr(args, "history", False):
+            receipts = store.list_receipts()
+            print("=" * 76)
+            print("  KEELWAY EVALUATION RUN HISTORY")
+            print("=" * 76)
+            if not receipts:
+                print("  No evaluation receipts recorded yet.")
+                print("  Generate a receipt with: keelway bench --receipt")
+            for r in receipts:
+                print(f"  • {r['eval_run_id']:<20} Pass@1: {r['pass_rate_pct']}% | p50: {r['p50_latency_ms']}ms | Total: {r['total_duration_ms']}ms")
+                print(f"    Timestamp: {r['timestamp_utc']} | SHA-256: {r['receipt_sha256'][:16]}...")
+            print("=" * 76)
+            sys.exit(0)
+
+        latest_base = store.get_latest_baseline() if getattr(args, "drift", False) else None
+        receipt = asyncio.run(DriftDetector.run_evaluation_and_create_receipt(
+            store=store if getattr(args, "receipt", False) or getattr(args, "drift", False) else None
+        ))
+
         print("\n" + "=" * 65)
         print("  🏆 KEELWAY GOLDEN EVALUATION BENCHMARK REPORT")
-        print(f"  Passed: {summary['passed_tasks']}/{summary['total_tasks']} ({summary['pass_rate_pct']}%)")
-        print(f"  Duration: {summary['total_duration_ms']:.2f} ms")
+        print(f"  Passed: {receipt.passed_tasks}/{receipt.total_tasks} ({receipt.pass_rate_pct}%)")
+        print(f"  Duration: {receipt.total_duration_ms:.2f} ms | p50: {receipt.p50_latency_ms:.2f} ms | p95: {receipt.p95_latency_ms:.2f} ms")
         print("=" * 65 + "\n")
-        for t in summary["tasks"]:
+        for t in receipt.task_results:
             status_badge = "[✓ PASS]" if t["passed"] else "[✕ FAIL]"
             print(f"  {status_badge} {t['task_id']}: {t['name']:<42} ({t['duration_ms']:.2f} ms)")
         print()
+
+        if getattr(args, "receipt", False):
+            print(f"[+] Signed Evaluation Receipt Persisted: {receipt.eval_run_id}")
+            print(f"    Receipt SHA-256: {receipt.receipt_sha256}\n")
+
+        if getattr(args, "drift", False):
+            if latest_base and latest_base.eval_run_id != receipt.eval_run_id:
+                analysis = DriftDetector.compare(baseline=latest_base, candidate=receipt)
+                status_tag = f"DRIFT DETECTED [{analysis.drift_severity}]" if analysis.drift_detected else "NO DRIFT DETECTED [✓]"
+                print("=" * 65)
+                print(f"  DRIFT ANALYSIS (vs {latest_base.eval_run_id}): {status_tag}")
+                print(f"  Pass@1 Delta:       {analysis.pass_rate_delta:+.1f}%")
+                print(f"  p50 Latency Delta:  {analysis.latency_p50_delta_pct:+.1f}%")
+                if analysis.regressed_tasks:
+                    print(f"  Regressed Tasks:    {', '.join(analysis.regressed_tasks)}")
+                if analysis.alert_reasons:
+                    for alert in analysis.alert_reasons:
+                        print(f"  Alert: {alert}")
+                print("=" * 65 + "\n")
+            else:
+                print("[+] Candidate established as new baseline receipt (no prior run to compare).\n")
     elif args.command == "agent":
         sys.exit(cmd_agent(args.agent_command, getattr(args, "path", None), getattr(args, "by", ""), getattr(args, "out", None)))
     elif args.command == "project":

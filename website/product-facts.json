@@ -82,6 +82,12 @@
       "evidence_command": "keelway bench",
       "code_path": "evals/eval_runner.py"
     },
+    "evaluation_receipts_and_drift_detection": {
+      "status": "AVAILABLE",
+      "claim": "Continuous evaluation receipts with SHA-256 seals, Pass@1 stability tracking, and p50/p95 latency degradation drift alerts",
+      "evidence_test": "tests/test_eval_drift.py",
+      "code_path": "evals/drift_detector.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",

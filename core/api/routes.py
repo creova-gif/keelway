@@ -1904,6 +1904,80 @@ async def verify_airgap_bundle(
         raise HTTPException(status_code=500, detail=f"Bundle verification error: {exc}")
 
 
+# ==============================================================================
+# Continuous Evaluation, Reliability & Drift Detection Endpoints
+# ==============================================================================
+
+class EvalRunRequest(BaseModel):
+    model_name: str = Field(default="keelway-local-default", description="Model identifier evaluated")
+    save_receipt: bool = Field(default=True, description="Whether to persist signed evaluation receipt")
+
+
+class DriftCompareRequest(BaseModel):
+    candidate_run_id: str = Field(..., description="Run ID of the candidate evaluation receipt")
+    baseline_run_id: Optional[str] = Field(default=None, description="Optional baseline run ID (defaults to latest)")
+    max_latency_degradation_pct: float = Field(default=25.0, description="Latency drift threshold percentage")
+
+
+@router.post("/v1/evals/run", tags=["Evaluation & Drift Detection"])
+async def run_evaluation_benchmark(
+    request: EvalRunRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Execute 10-task golden benchmark and generate a cryptographic EvaluationReceipt."""
+    from evals.drift_detector import DriftDetector, EvaluationReceiptStore
+    store = EvaluationReceiptStore() if request.save_receipt else None
+    receipt = await DriftDetector.run_evaluation_and_create_receipt(
+        model_name=request.model_name,
+        store=store,
+    )
+    return receipt.to_dict()
+
+
+@router.get("/v1/evals/history", tags=["Evaluation & Drift Detection"])
+async def list_evaluation_history(
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """List historical evaluation receipts with Pass@1 rates and latency percentiles."""
+    from evals.drift_detector import EvaluationReceiptStore
+    store = EvaluationReceiptStore()
+    return store.list_receipts()
+
+
+@router.post("/v1/evals/drift/compare", tags=["Evaluation & Drift Detection"])
+async def compare_evaluation_drift(
+    request: DriftCompareRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Compare candidate evaluation receipt against baseline to detect quality regressions."""
+    from evals.drift_detector import DriftDetector, EvaluationReceiptStore
+    store = EvaluationReceiptStore()
+
+    candidate = store.get_receipt(request.candidate_run_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail=f"Candidate receipt '{request.candidate_run_id}' not found.")
+
+    if request.baseline_run_id:
+        baseline = store.get_receipt(request.baseline_run_id)
+        if not baseline:
+            raise HTTPException(status_code=404, detail=f"Baseline receipt '{request.baseline_run_id}' not found.")
+    else:
+        # Pick the most recent receipt that isn't the candidate
+        all_r = store.list_receipts()
+        other_r = [r for r in all_r if r["eval_run_id"] != request.candidate_run_id]
+        if not other_r:
+            raise HTTPException(status_code=400, detail="No historical baseline receipt available for comparison.")
+        baseline = store.get_receipt(other_r[0]["eval_run_id"])
+
+    analysis = DriftDetector.compare(
+        baseline=baseline,
+        candidate=candidate,
+        max_latency_degradation_pct=request.max_latency_degradation_pct,
+    )
+    return analysis.to_dict()
+
+
+
 
 
 
