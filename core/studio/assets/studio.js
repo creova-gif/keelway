@@ -16,7 +16,7 @@ function h(tag, attrs = {}, ...kids) {
 
 // ---------- i18n ----------
 const STRINGS = {
-  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Air-gapped', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
+  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', home: 'Home', workspace: 'Workspace', openWorkspace: 'Open workspace', skills: 'Skills', settings: 'Settings', developerLabs: 'Developer Labs', evidence: 'Evidence', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Air-gapped', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
     tour: [['Welcome to Keelway', 'A local-first, deterministic agent workspace. Your code, models and data stay on this machine.'], ['Agents you can trust', 'Agents propose a plan, ask before changing files, and every step lands in a replayable flight tape.'], ['Audit everything', 'Tokens, roles and a tamper-evident audit log make Keelway safe to share with your team.']] },
   es: { search: 'Buscar archivos, símbolos y comandos', signOut: 'Cerrar sesión', explorer: 'Explorador', changes: 'Cambios', tasks: 'Tareas', memory: 'Memoria', save: 'Guardar', tagline: 'Local · Determinista · Tuyo', welcomeTitle: 'Construye con agentes que nunca salen de tu equipo.', welcomeBody: 'Cada paso queda registrado, reproducible y auditable.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Inicia sesión en Keelway', next: 'Siguiente', done: 'Empezar', skipTour: 'Omitir', airOn: 'Aislado', airOff: 'Nube permitida', plan: 'Plan', activity: 'Actividad', allow: 'Permitir', deny: 'Denegar', openFile: 'Abrir un archivo', giveGoal: 'Dar un objetivo', reviewChanges: 'Revisar cambios' },
   fr: { search: 'Rechercher fichiers, symboles et commandes', signOut: 'Déconnexion', explorer: 'Explorateur', changes: 'Modifications', tasks: 'Tâches', memory: 'Mémoire', save: 'Enregistrer', tagline: 'Local · Déterministe · À vous', welcomeTitle: 'Des agents qui ne quittent jamais votre machine.', welcomeBody: 'Chaque étape est enregistrée, rejouable et auditable.', start: 'Démarrer', signIn: 'Se connecter', signInTitle: 'Connexion à Keelway', next: 'Suivant', done: 'Commencer', skipTour: 'Passer', airOn: 'Isolé', airOff: 'Cloud autorisé', activity: 'Activité', allow: 'Autoriser', deny: 'Refuser', openFile: 'Ouvrir un fichier', giveGoal: 'Donner un objectif', reviewChanges: 'Voir les modifications' },
@@ -202,8 +202,16 @@ async function loadProjectInfo() {
 }
 
 function renderWelcome() {
-  const acts = [[t('openFile'), () => switchSection('files')], [t('giveGoal'), () => $('agent-goal').focus()], [t('reviewChanges'), () => { switchSection('files'); setMode('diff'); }]];
-  $('welcome-actions').replaceChildren(...acts.map(([label, fn]) => h('button', { type: 'button', class: 'btn-outline justify-start h-10', onclick: fn }, label)));
+  const acts = [
+    [t('openWorkspace') || 'Open Workspace', () => switchSection('workspace')],
+    [t('newTask') || 'New Task', () => { switchSection('tasks'); newRun(); }],
+    [t('runs') || 'Evidence', () => switchSection('runs')],
+    [t('reviewChanges') || 'Review Changes', () => { switchSection('workspace'); setMode('diff'); }]
+  ];
+  const el = $('welcome-actions');
+  if (el) {
+    el.replaceChildren(...acts.map(([label, fn]) => h('button', { type: 'button', class: 'btn-outline justify-start h-10', onclick: fn }, label)));
+  }
 }
 
 // ---------- file tree ----------
@@ -353,17 +361,59 @@ async function loadTasks() {
 }
 
 // ---------- sections + agent runs ----------
-const SECTIONS = ['tasks', 'files', 'record', 'labs'];
+const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'settings'];
+const SECTION_ALIASES = {
+  files: 'workspace',
+  evidence: 'runs',
+  record: 'runs'
+};
+
+function toggleLabsDrawer(open) {
+  const drawer = $('labs-drawer');
+  const backdrop = $('labs-backdrop');
+  if (!drawer || !backdrop) return;
+  const isCurrentlyOpen = drawer.classList.contains('translate-x-0');
+  const shouldOpen = open !== undefined ? Boolean(open) : !isCurrentlyOpen;
+  if (shouldOpen) {
+    drawer.classList.remove('translate-x-full');
+    drawer.classList.add('translate-x-0');
+    backdrop.classList.remove('hidden');
+    backdrop.classList.add('block');
+  } else {
+    drawer.classList.add('translate-x-full');
+    drawer.classList.remove('translate-x-0');
+    backdrop.classList.add('hidden');
+    backdrop.classList.remove('block');
+  }
+}
+
 function switchSection(sec) {
-  if (!SECTIONS.includes(sec)) sec = 'tasks';
+  if (sec === 'labs') {
+    toggleLabsDrawer(true);
+    if (!state.section) sec = 'home';
+    else return;
+  }
+  if (SECTION_ALIASES[sec]) sec = SECTION_ALIASES[sec];
+  if (!SECTIONS.includes(sec)) sec = 'home';
   state.section = sec;
-  SECTIONS.forEach((x) => { const el = $(`sec-${x}`); el.classList.toggle('hidden', x !== sec); el.classList.toggle('flex', x === sec); });
-  document.querySelectorAll('[data-section]').forEach((b) => b.setAttribute('aria-current', b.dataset.section === sec ? 'page' : 'false'));
+  SECTIONS.forEach((x) => {
+    const el = $(`sec-${x}`);
+    if (el) {
+      el.classList.toggle('hidden', x !== sec);
+      el.classList.toggle('flex', x === sec);
+    }
+  });
+  document.querySelectorAll('[data-section]').forEach((b) => {
+    const bSec = SECTION_ALIASES[b.dataset.section] || b.dataset.section;
+    b.setAttribute('aria-current', bSec === sec ? 'page' : 'false');
+  });
   if (location.hash !== `#${sec}`) history.replaceState(null, '', `#${sec}`);
-  if (sec === 'tasks') { loadRuns(); loadTasks(); }
-  if (sec === 'files') { refreshView(); if (editor) editor.layout(); }
-  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadTier2Status(); loadManifestRegistry(); loadCostLedger(); }
-  if (sec === 'labs') { loadPlugins(); }
+  if (sec === 'home') { welcomeFacts(); }
+  if (sec === 'workspace') { refreshView(); if (editor) editor.layout(); }
+  if (sec === 'tasks') { loadRuns(); loadTasks(); loadManifestRegistry(); }
+  if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadCostLedger(); loadEvidenceSummary(); }
+  if (sec === 'skills') { loadPlugins(); loadKStackSkillsInStudio(); }
+  if (sec === 'settings') { loadTier2Status(); loadMeshStatus(); loadSyncStatusInStudio(); }
 }
 async function loadRules() {
   try {
@@ -2183,10 +2233,23 @@ let paletteItems = [], paletteIdx = 0, fileIndex = [];
 function flatten(n, out = []) { (n.children || []).forEach((c) => (c.type === 'directory' ? flatten(c, out) : out.push(c.path))); return out; }
 function commands() {
   return [
-    ['Go to Tasks', () => switchSection('tasks')], ['Go to Files', () => switchSection('files')], ['Go to Record', () => switchSection('record')], ['Go to Labs', () => switchSection('labs')],
-    ['New task', newRun], ['Explorer', () => { switchSection('files'); switchView('explorer'); }], ['Changes', () => { switchSection('files'); switchView('git'); }], ['Memory', () => { switchSection('files'); switchView('memory'); }],
-    ['Show diff of working tree', () => { switchSection('files'); setMode('diff'); }], ['Toggle air-gap', toggleAirGap], ['Toggle theme', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')],
-    ['Verify audit chain', () => switchSection('record')], ['Replay product tour', startTour], ['Sign out', signOut],
+    ['Go to Home', () => switchSection('home')],
+    ['Go to Workspace', () => switchSection('workspace')],
+    ['Go to Tasks', () => switchSection('tasks')],
+    ['Go to Evidence', () => switchSection('runs')],
+    ['Go to Skills', () => switchSection('skills')],
+    ['Go to Settings', () => switchSection('settings')],
+    ['Open Developer Labs', () => toggleLabsDrawer(true)],
+    ['New task', newRun],
+    ['Explorer', () => { switchSection('workspace'); switchView('explorer'); }],
+    ['Changes', () => { switchSection('workspace'); switchView('git'); }],
+    ['Memory', () => { switchSection('workspace'); switchView('memory'); }],
+    ['Show diff of working tree', () => { switchSection('workspace'); setMode('diff'); }],
+    ['Toggle air-gap', toggleAirGap],
+    ['Toggle theme', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')],
+    ['Verify audit chain', () => { switchSection('runs'); verifyAudit(); }],
+    ['Replay product tour', startTour],
+    ['Sign out', signOut],
   ].map(([label, run]) => ({ label, run, kind: '⌘' }));
 }
 async function openPalette() {
@@ -2230,7 +2293,7 @@ function welcomeFacts() {
 async function startSession() {
   await Promise.all([loadStatus(), loadProjectInfo(), loadTree(), loadGit(), loadMeshStatus()]);
   welcomeFacts();
-  switchSection(location.hash.slice(1) || 'tasks');
+  switchSection(location.hash.slice(1) || 'home');
   if (state.ws) { const old = state.ws; state.ws = null; old.close(); }
   connectWs();
   if (!localStorage.getItem('keelway.onboarded')) startTour();
@@ -2436,21 +2499,33 @@ function wire() {
   $('always-cancel').addEventListener('click', () => { $('always-form').classList.add('hidden'); $('approve-always').setAttribute('aria-expanded', 'false'); });
   $('always-form').addEventListener('submit', (e) => { e.preventDefault(); const scope = $('always-scope').value.trim(); if (!scope) { $('always-scope').focus(); toast(t('scopeRequired'), 'err'); return; } approve(true, scope); });
   document.querySelectorAll('[data-section]').forEach((b) => b.addEventListener('click', () => switchSection(b.dataset.section)));
+  $('rail-labs-btn')?.addEventListener('click', () => toggleLabsDrawer(true));
+  $('labs-close-btn')?.addEventListener('click', () => toggleLabsDrawer(false));
+  $('labs-backdrop')?.addEventListener('click', () => toggleLabsDrawer(false));
+  $('settings-open-labs-btn')?.addEventListener('click', () => toggleLabsDrawer(true));
   $('new-run-btn').addEventListener('click', newRun);
   $('task-back').addEventListener('click', () => { $('sec-tasks').dataset.detail = 'false'; });
-  $('review-btn').addEventListener('click', () => { switchSection('files'); setMode('diff'); });
-  $('open-record-btn').addEventListener('click', () => switchSection('record'));
+  $('review-btn').addEventListener('click', () => { switchSection('workspace'); setMode('diff'); });
+  $('open-record-btn').addEventListener('click', () => switchSection('runs'));
   $('sb-approval').addEventListener('click', () => { const r = state.runs.find((x) => x.pending_approval); switchSection('tasks'); if (r) selectRun(r.task_id, r.goal); });
   $('onboard-skip').addEventListener('click', endTour);
   $('onboard-next').addEventListener('click', () => { if (tourStep >= t('tour').length - 1) endTour(); else { tourStep += 1; renderTour(); } });
+  window.addEventListener('hashchange', () => {
+    const h = location.hash.slice(1);
+    if (h) switchSection(h);
+  });
   document.addEventListener('keydown', (e) => {
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
     else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); }
-    else if (e.altKey && /^[1-4]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
+    else if (e.altKey && /^[1-6]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
     else if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); toggleAirGap(); }
     else if (mod && e.key === 'j') { e.preventDefault(); $('panel').classList.toggle('hidden'); }
-    else if (e.key === 'Escape') { closePalette(); if (!$('onboard').classList.contains('hidden')) endTour(); }
+    else if (e.key === 'Escape') {
+      closePalette();
+      if (!$('onboard').classList.contains('hidden')) endTour();
+      toggleLabsDrawer(false);
+    }
   });
 }
 
