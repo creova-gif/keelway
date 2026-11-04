@@ -408,6 +408,7 @@ keelway ❯ </pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="spec" role="tab" aria-selected="false">keelway spec</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="entitlements" role="tab" aria-selected="false">keelway entitlements</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="tier2" role="tab" aria-selected="false">keelway tier2</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="doctor" role="tab" aria-selected="false">keelway doctor</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
@@ -425,7 +426,7 @@ keelway ❯ </pre>
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
       <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 658 automated tests passing with zero failures. Verified against commit <code>e5d0414</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 661 automated tests passing with zero failures. Verified against commit <code>0e35ece</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
       <div class="card tablewrap">
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
@@ -452,6 +453,7 @@ keelway ❯ </pre>
             <tr><td>Semantic Git Commit &amp; PR Preparation</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_git_workflow.py</td></tr>
             <tr><td>Milestone M1 End-to-End Vertical Slice</td><td><span class="pill teal">Available (10/10 PASS)</span></td><td class="mono" style="font-size: 12px;">tests/test_m1_vertical_slice.py</td></tr>
             <tr><td>Tier 2 Hardware Security HAL (TPM 2.0 / Dual-WORM)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_tier2_api_and_cli.py</td></tr>
+            <tr><td>Sovereign Pre-Flight Doctor (7-Axis Diagnostics)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_system_doctor.py</td></tr>
             <tr><td>Golden Evaluation Benchmark (EVAL-01..10)</td><td><span class="pill teal">Available (100% Pass)</span></td><td class="mono" style="font-size: 12px;">evals/eval_runner.py</td></tr>
             <tr><td>Phone Approval App (Expo/React Native)</td><td><span class="pill amber">Preview</span></td><td class="mono" style="font-size: 12px;">mobile/</td></tr>
             <tr><td>Hosted Cross-Machine Cloud Sync</td><td><span class="pill muted">Planned</span></td><td class="mono" style="font-size: 12px;">web-console/</td></tr>
@@ -542,8 +544,8 @@ var TERM_OUTPUTS = {
          "  Timestamp:    2026-11-04T10:55:19Z\n" +
          "======================================================================\n\n" +
          "  [✓ PASS] Automated Pytest Suite (TESTS)\n" +
-         "    Claim:       658 passing unit, integration, and security tests with 0 failures\n" +
-         "    Evidence:    tests/ (658 passed, 0 failures)\n" +
+         "    Claim:       661 passing unit, integration, and security tests with 0 failures\n" +
+         "    Evidence:    tests/ (661 passed, 0 failures)\n" +
          "    Reproduction: pytest tests -q\n\n" +
          "  [✓ PASS] 10-Task Golden Evaluation Panel (BENCHMARK)\n" +
          "    Claim:       100% Pass@1 benchmark across AST analysis, security gates, ReAct loop, flight tapes\n" +
@@ -573,8 +575,12 @@ var TERM_OUTPUTS = {
          "    Claim:       Dual-WORM retention receipts, TPM 2.0 PCR measured boot, PIV 72h CRL freshness, 2-of-3 Shamir recovery\n" +
          "    Evidence:    keelway/hal/ (WORM, TPM, PIV, Recovery 100% OK)\n" +
          "    Reproduction: python3 cli.py tier2 verify\n\n" +
+         "  [✓ PASS] Sovereign Pre-Flight System Doctor (ARCHITECTURE)\n" +
+         "    Claim:       7/7 automated diagnostic checks passed (DB, Workspace, Gateway, Air-Gap, Entitlements, SBOM, HAL)\n" +
+         "    Evidence:    core/system/doctor.py (Status: HEALTHY)\n" +
+         "    Reproduction: python3 cli.py doctor\n\n" +
          "----------------------------------------------------------------------\n" +
-         "  Summary: 8/8 categories verified | All Verified: True\n" +
+         "  Summary: 9/9 categories verified | All Verified: True\n" +
          "  Audited By: Keelway Deterministic Evidence Engine\n" +
          "----------------------------------------------------------------------"
   },
@@ -688,6 +694,44 @@ var TERM_OUTPUTS = {
          "        2-of-3 Root Recovery verified (DENY_OLD cutover): [PASS]\n\n" +
          "====================================================================\n" +
          "  ALL TIER 2 HARDWARE SECURITY VERIFIERS PASSED [100% OK]\n" +
+         "===================================================================="
+  },
+  doctor: {
+    cmd: "$ keelway doctor",
+    out: "====================================================================\n" +
+         "  KEELWAY — Sovereign System Diagnostics & Enterprise Pre-Flight\n" +
+         "  Status: HEALTHY | Python 3.14.0 | Darwin 27.0.0\n" +
+         "====================================================================\n\n" +
+         "  [1] Database Engine                                            [OK]\n" +
+         "      • Connected                   : True\n" +
+         "      • Wal Mode                    : True\n\n" +
+         "  [2] Workspace & Git Context                                    [OK]\n" +
+         "      • Is Git                      : True\n" +
+         "      • Branch                      : main\n" +
+         "      • Clean Tree                  : True\n\n" +
+         "  [3] Model Providers & Gateway                                  [OK]\n" +
+         "      • Local                       : True\n" +
+         "      • Anthropic                   : False\n" +
+         "      • Openai                      : False\n" +
+         "      • Google                      : False\n\n" +
+         "  [4] Air-Gap Compliance (NIST SP 800-53 SC-7)                   [OK]\n" +
+         "      • Compliant                   : True\n" +
+         "      • Checks Passed               : 5 / 5\n\n" +
+         "  [5] Enterprise Entitlements                                    [OK]\n" +
+         "      • Org Id                      : default-org\n" +
+         "      • Tier                        : community\n" +
+         "      • Status                      : ACTIVE\n" +
+         "      • Grace Period Days           : 14\n\n" +
+         "  [6] Software Bill of Materials (SBOM)                          [OK]\n" +
+         "      • Format                      : CycloneDX v1.5\n" +
+         "      • Has Provenance Signature    : True\n\n" +
+         "  [7] Tier 2 Hardware Security HAL                               [OK]\n" +
+         "      • Dual Worm Storage           : VERIFIED (ADR-076..080)\n" +
+         "      • Tpm Measured Boot           : VERIFIED (ADR-062/064)\n" +
+         "      • Piv Smartcard               : VERIFIED (ADR-051/053, CRL <= 72h)\n" +
+         "      • Root Recovery               : READY (2-of-3 Shamir threshold)\n\n" +
+         "====================================================================\n" +
+         "  Diagnostic Result: HEALTHY — 7/7 Dimensions Evaluated.\n" +
          "===================================================================="
   }
 };

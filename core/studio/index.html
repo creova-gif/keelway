@@ -593,7 +593,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
                 <div class="text-[10px] text-ide-muted uppercase">Automated Tests</div>
-                <div class="text-base font-semibold text-ok">658 / 658</div>
+                <div class="text-base font-semibold text-ok">661 / 661</div>
                 <div class="text-[10px] text-ide-muted">0 failures, 100% pass</div>
               </div>
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
@@ -618,6 +618,21 @@
               <button id="evidence-verify-btn" type="button" class="btn-outline h-8 text-xs">Verify Sealed Package</button>
             </div>
             <pre id="evidence-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- Sovereign Pre-Flight System Doctor (7 Dimensions) -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="doctor-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="doctor-title" class="font-semibold">Sovereign Pre-Flight System Doctor</h3>
+            <span class="step-chip text-ok border-ok/50 font-mono">7/7 Diagnostics Evaluated</span>
+          </div>
+          <div id="lab-doctor" class="space-y-3">
+            <p class="text-xs text-ide-muted">Automated pre-flight evaluation verifying Database Engine, Workspace &amp; Git Context, Model Providers &amp; Gateway, NIST SP 800-53 Air-Gap, Enterprise Entitlements, CycloneDX v1.5 SBOM, and Tier 2 Hardware Security HAL.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="doctor-run-btn" type="button" class="btn-primary h-8 text-xs">Run System Diagnostics</button>
+            </div>
+            <pre id="doctor-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
       </div>

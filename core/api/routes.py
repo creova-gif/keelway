@@ -2237,3 +2237,18 @@ async def get_cyclonedx_sbom(
     sbom = SBOMGenerator.generate()
     return sbom.to_dict()
 
+
+# ---------------------------------------------------------------------------
+# Sovereign System Diagnostics & Doctor
+# ---------------------------------------------------------------------------
+
+@router.get("/v1/system/doctor", tags=["System Diagnostics"])
+async def get_system_doctor_report(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Execute enterprise sovereign system diagnostics across all 7 core platform dimensions."""
+    from core.system.doctor import SystemDoctor
+    report = await SystemDoctor.run_diagnostics()
+    return report.to_dict()
+
+

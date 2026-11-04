@@ -821,6 +821,27 @@ async function verifyEvidencePackage() {
   }
 }
 
+async function runDoctorDiagnostics() {
+  const out = $('doctor-out');
+  if (!out) return;
+  out.textContent = 'Running sovereign enterprise system diagnostics across 7 dimensions…';
+  try {
+    const report = await api('/v1/system/doctor');
+    out.textContent = `[✓] SOVEREIGN SYSTEM DIAGNOSTICS (${report.overall_status})\n` +
+      `Timestamp:   ${report.timestamp_utc}\n` +
+      `Python:      ${report.python_version} (${report.os_platform})\n` +
+      `Environment: ${report.environment}\n\n` +
+      report.sections.map((s, idx) => `[${idx + 1}] ${s.name} [${s.status}]\n` +
+        Object.entries(s.details).map(([k, v]) => `    • ${k.replace(/_/g, ' ')}: ${v}`).join('\n')
+      ).join('\n\n');
+    tone('ok');
+    toast(`Diagnostics complete: ${report.overall_status}`, 'ok');
+  } catch (err) {
+    out.textContent = `[-] Diagnostics error: ${err.message}`;
+    tone('err');
+  }
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -1386,6 +1407,7 @@ function wire() {
   if ($('evidence-summary-btn')) $('evidence-summary-btn').addEventListener('click', loadEvidenceSummary);
   if ($('evidence-seal-btn')) $('evidence-seal-btn').addEventListener('click', sealEvidencePackage);
   if ($('evidence-verify-btn')) $('evidence-verify-btn').addEventListener('click', verifyEvidencePackage);
+  if ($('doctor-run-btn')) $('doctor-run-btn').addEventListener('click', runDoctorDiagnostics);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

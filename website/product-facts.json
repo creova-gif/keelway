@@ -142,6 +142,12 @@
       "evidence_test": "tests/test_evidence_room.py",
       "code_path": "core/eval/evidence_room.py"
     },
+    "sovereign_system_doctor": {
+      "status": "AVAILABLE",
+      "claim": "Comprehensive 7-axis pre-flight system diagnostics covering DB engine, git workspace, model gateway, air-gap, entitlements, SBOM, and Tier 2 HAL",
+      "evidence_test": "tests/test_system_doctor.py",
+      "code_path": "core/system/doctor.py"
+    },
     "speculative_decoding_acceleration": {
       "status": "AVAILABLE",
       "claim": "Tandem draft/target speculative decoding (0.5B draft + 7B target) achieving 2.5x to 3.8x local token speedups",

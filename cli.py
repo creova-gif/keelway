@@ -1371,26 +1371,31 @@ async def cmd_tier2(action: str, subsystem: str = "all") -> int:
     return 0
 
 
-async def cmd_doctor():
-    """Check health of environment, database, and providers."""
-    print("\n[+] Running Keelway System Diagnostics (keelway doctor)...\n")
+async def cmd_doctor(json_output: bool = False):
+    """Check health across all 7 sovereign enterprise dimensions."""
+    from core.system.doctor import SystemDoctor
+    report = await SystemDoctor.run_diagnostics()
 
-    # 1. Environment & DB
-    print(f"  • Environment:     {settings.env}")
-    print(f"  • Database URL:    {settings.database_url.split('@')[-1] if '@' in settings.database_url else settings.database_url}")
-    db_ok = await check_db_health()
-    db_status = "CONNECTED [OK]" if db_ok else "UNAVAILABLE (run docker compose or check DB) [WARN]"
-    print(f"  • Database State:  {db_status}")
+    if json_output:
+        import json
+        print(json.dumps(report.to_dict(), indent=2))
+        return 0
 
-    # 2. Providers
-    print("\n  • Model Providers:")
-    for prov in [Provider.ANTHROPIC, Provider.GOOGLE, Provider.OPENAI, Provider.LOCAL]:
-        adapter = gateway.adapters.get(prov)
-        avail = adapter.is_available() if adapter else False
-        status_str = "CONFIGURED [OK]" if avail else "NOT CONFIGURED (missing API key/url)"
-        print(f"    - {prov.value.upper():<10}: {status_str}")
+    print("\n" + "=" * 68)
+    print("  KEELWAY — Sovereign System Diagnostics & Enterprise Pre-Flight")
+    print(f"  Status: {report.overall_status} | Python {report.python_version} | {report.os_platform}")
+    print("=" * 68)
 
-    print("\n[+] Diagnostics complete.\n")
+    for i, section in enumerate(report.sections, 1):
+        status_badge = f"[{section.status}]"
+        print(f"\n  [{i}] {section.name:<44} {status_badge:>18}")
+        for k, v in section.details.items():
+            print(f"      • {k.replace('_', ' ').title():<28}: {v}")
+
+    print("\n" + "=" * 68)
+    print(f"  Diagnostic Result: {report.overall_status} — 7/7 Dimensions Evaluated.")
+    print("=" * 68 + "\n")
+    return 0
 
 
 async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
@@ -1905,7 +1910,8 @@ def main():
     demo_parser.add_argument("--reset", action="store_true", help="Delete and re-seed the demo folder")
 
     # doctor
-    subparsers.add_parser("doctor", help="Run system and provider diagnostics")
+    doctor_parser = subparsers.add_parser("doctor", help="Run sovereign enterprise system diagnostics across 7 dimensions")
+    doctor_parser.add_argument("--json", action="store_true", help="Output diagnostics report in JSON format")
 
     token_parser = subparsers.add_parser("token", help="Manage API tokens (auth + RBAC)")
     token_sub = token_parser.add_subparsers(dest="token_command", required=True)
@@ -2370,7 +2376,7 @@ def main():
             token_id=getattr(args, "token_id", ""),
         ))
     elif args.command == "doctor":
-        asyncio.run(cmd_doctor())
+        asyncio.run(cmd_doctor(json_output=getattr(args, "json", False)))
     elif args.command == "tier2":
         sys.exit(asyncio.run(cmd_tier2(args.tier2_command, getattr(args, "subsystem", "all"))))
     elif args.command == "run":

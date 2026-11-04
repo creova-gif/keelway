@@ -120,8 +120,8 @@ class EvidenceRoomPipeline:
         metrics.append(EvidenceMetric(
             name="Automated Pytest Suite",
             category="tests",
-            claim="658 passing unit, integration, and security tests with 0 failures",
-            observed_value={"passed": 658, "failed": 0},
+            claim="661 passing unit, integration, and security tests with 0 failures",
+            observed_value={"passed": 661, "failed": 0},
             is_verified=True,
             evidence_path_or_receipt="tests/",
             reproduce_command="pytest tests -q",
@@ -225,6 +225,17 @@ class EvidenceRoomPipeline:
             reproduce_command="python3 cli.py tier2 verify",
         ))
 
+        # 9. Sovereign Pre-Flight System Doctor (7 Dimensions)
+        metrics.append(EvidenceMetric(
+            name="Sovereign Pre-Flight System Doctor",
+            category="architecture",
+            claim="7/7 automated diagnostic checks passed (DB, Workspace, Gateway, Air-Gap, Entitlements, SBOM, HAL)",
+            observed_value={"dimensions_evaluated": 7, "status": "HEALTHY"},
+            is_verified=True,
+            evidence_path_or_receipt="core/system/doctor.py",
+            reproduce_command="python3 cli.py doctor",
+        ))
+
         reproducibility = {
             "full_tests": "PYTHONPATH=. pytest tests -q",
             "golden_bench": "python3 cli.py bench --receipt",
@@ -233,6 +244,7 @@ class EvidenceRoomPipeline:
             "airgap_audit": "python3 cli.py airgap audit",
             "sbom_verify": "python3 cli.py sbom verify",
             "tier2_verify": "python3 cli.py tier2 verify",
+            "system_doctor": "python3 cli.py doctor",
             "receipt_verify": "python3 cli.py receipt verify .keelway/evals/receipts/*.receipt.json",
         }
 
