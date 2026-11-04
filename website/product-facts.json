@@ -13,7 +13,7 @@
     "deterministic_task_state_engine": {
       "status": "AVAILABLE",
       "claim": "12-state deterministic state machine with strict transition invariants and task cancellation",
-      "evidence_test": "tests/test_state.py",
+      "evidence_test": "tests/test_state_machine.py",
       "code_path": "core/orchestration/state.py"
     },
     "multi_agent_crew_coordination": {
@@ -99,6 +99,12 @@
       "claim": "Fail-closed policy gating (FR-02) and mandatory two-human independent quorum approval (ADR-045/ADR-046) for production agent workloads",
       "evidence_test": "tests/test_agent_loop_policy_quorum.py, tests/test_policy_engine.py, tests/test_quorum.py",
       "code_path": "keelway/policy/engine.py, keelway/approvals/quorum.py"
+    },
+    "git_worktree_isolation": {
+      "status": "AVAILABLE",
+      "claim": "Disposable ephemeral Git worktree sandboxing for parallel non-colliding agent task execution",
+      "evidence_test": "tests/test_worktree.py",
+      "code_path": "core/orchestration/worktree.py"
     },
     "mobile_approval_app": {
       "status": "PREVIEW",
