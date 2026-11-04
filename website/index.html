@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kora &amp; Keelway by Sorvex Labs: Local-First AI Agent Infrastructure</title>
+<title>Keelway by Sorvex Labs: Local-First AI Agent Infrastructure</title>
 <meta name="description" content="Local-first, deterministic AI agent infrastructure for developers. Explicit state machines, human approval gates, hash-chained audit logs, and replayable flight tapes.">
 <link rel="canonical" href="https://kora-sable.vercel.app/">
-<meta property="og:title" content="Kora &amp; Keelway by Sorvex Labs">
+<meta property="og:title" content="Keelway by Sorvex Labs">
 <meta property="og:description" content="Build with agents. Stay in control. Local-first AI agent infrastructure and enterprise developer platform.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kora-sable.vercel.app/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kora &amp; Keelway by Sorvex Labs">
+<meta name="twitter:title" content="Keelway by Sorvex Labs">
 <meta name="twitter:description" content="Build with agents. Stay in control. Local-first AI agent infrastructure and enterprise developer platform.">
 <meta name="theme-color" content="#0B0F14">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -25,18 +25,15 @@
   <div class="wrap">
     <a class="brand" href="#" aria-label="Keelway home">
       <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <span>Kora &amp; Keelway <small>by Sorvex Labs</small></span>
+      <span>Keelway <small>by Sorvex Labs</small></span>
     </a>
     <nav class="links" aria-label="Primary">
-      <a href="#promises">Core Promises</a>
-      <a href="#developer-loop">Workflow</a>
-      <a href="#local">Local-First &amp; Privacy</a>
-      <a href="#entry-points">Three Entry Points</a>
-      <a href="#app-builder" style="color: var(--teal); font-weight: 600;">App Builder</a>
-      <a href="#pricing">Pricing &amp; Open-Core</a>
+      <a href="#features">Features</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="docs.html" id="documentation" style="color: var(--teal); font-weight: 600;">Documentation</a>
+      <a href="api.html" id="api">API Reference</a>
       <a href="#status">Readiness Status</a>
-      <a href="docs.html" style="color: var(--teal); font-weight: 600;">Docs</a>
-      <a href="api.html">API Reference</a>
     </nav>
     <a class="btn primary" href="#quickstart">Quickstart</a>
   </div>
@@ -46,12 +43,12 @@
   <!-- HERO -->
   <div class="wrap hero">
     <div>
-      <span class="eyebrow">Local-First · Deterministic · Open-Core Infrastructure</span>
+      <span class="eyebrow">Local-First · Deterministic · Sovereign Agent Infrastructure</span>
       <h1>Build with agents. <em>Stay in control.</em></h1>
       <p class="lede">Run AI development workflows locally or with approved cloud models. Plan changes, review permissions, verify code with automated tests, and inspect tamper-evident audit tapes—from your terminal to an enterprise developer platform.</p>
       <div class="cta">
         <a class="btn primary" href="#quickstart">Try Quickstart</a>
-        <a class="btn" href="#developer-loop">Explore the Workflow</a>
+        <a class="btn" href="#workflow">Explore the Workflow</a>
         <a class="btn" href="#early-access">Request Early Access</a>
       </div>
     </div>
@@ -76,10 +73,11 @@
     </figure>
   </div>
 
-  <!-- THE THREE CORE PROMISES -->
-  <section id="promises" aria-labelledby="promises-h">
+  <!-- THE THREE CORE PROMISES / FEATURES -->
+  <section id="features" aria-labelledby="features-h">
+    <a id="promises"></a>
     <div class="wrap">
-      <h2 id="promises-h">The Three Non-Negotiable Invariants</h2>
+      <h2 id="features-h">The Three Non-Negotiable Invariants</h2>
       <p class="sub">Software development demands accountability. Keelway guarantees deterministic execution semantics, explicit human oversight, and verifiable evidence at every step.</p>
       <div class="grid">
         <article class="card feat">
@@ -101,8 +99,9 @@
     </div>
   </section>
 
-  <!-- INTERACTIVE DEVELOPER LOOP -->
-  <section id="developer-loop" aria-labelledby="loop-h">
+  <!-- INTERACTIVE DEVELOPER WORKFLOW -->
+  <section id="workflow" aria-labelledby="loop-h">
+    <a id="developer-loop"></a>
     <div class="wrap">
       <h2 id="loop-h">The Verifiable Developer Loop</h2>
       <p class="sub">From requirement to verified patch. Click each phase to inspect real execution artifacts captured from our Milestone M1 benchmark run.</p>
@@ -302,101 +301,93 @@ keelway ❯ </pre>
     </div>
   </section>
 
-  <!-- OPEN-CORE PRICING & COMMERCIAL MATRIX -->
-  <section id="pricing" aria-labelledby="pricing-h">
-    <div class="wrap">
-      <h2 id="pricing-h">Transparent Open-Core Commercialization</h2>
-      <p class="sub">The local engine is free forever. Pay only when you need managed convenience, cross-machine collaboration, or enterprise security guarantees.</p>
-      
-      <div class="pricing-grid">
-        <div class="card plan-card">
-          <div>
-            <div class="plan-name">Community</div>
-            <p style="font-size: 13px; color: var(--muted); margin: 0;">Open source core for independent developers.</p>
-            <div class="plan-price">$0 <small>/ forever</small></div>
-            <ul class="plan-features">
-              <li>Local-first ReAct agent runtime</li>
-              <li>Deterministic 12-state engine</li>
-              <li>Unlimited local open-weight models</li>
-              <li>Interactive diff &amp; approval gates</li>
-              <li>Cryptographic flight tapes</li>
-              <li>Keelway Studio Desktop UI</li>
-              <li>Basic eval benchmarks</li>
-            </ul>
-          </div>
-          <a class="btn" href="#quickstart" style="width: 100%; justify-content: center;">Install Open Core</a>
-        </div>
-
-        <div class="card plan-card featured">
-          <span class="plan-badge">Popular</span>
-          <div>
-            <div class="plan-name">Pro</div>
-            <p style="font-size: 13px; color: var(--muted); margin: 0;">For power developers &amp; professional creators.</p>
-            <div class="plan-price">$20 <small>/ month</small></div>
-            <ul class="plan-features">
-              <li>Everything in Community</li>
-              <li>Encrypted cloud workspace sync</li>
-              <li>Cross-device execution history</li>
-              <li>Curated agent builder templates</li>
-              <li>Optional managed cloud agents</li>
-              <li>Priority community support</li>
-            </ul>
-          </div>
-          <a class="btn primary" href="#early-access" style="width: 100%; justify-content: center;">Start Pro Trial</a>
-        </div>
-
-        <div class="card plan-card">
-          <div>
-            <div class="plan-name">Team</div>
-            <p style="font-size: 13px; color: var(--muted); margin: 0;">For engineering teams &amp; agent crews.</p>
-            <div class="plan-price">$49 <small>/ seat / mo</small></div>
-            <ul class="plan-features">
-              <li>Everything in Pro</li>
-              <li>Multi-agent crew coordination DAG</li>
-              <li>Shared workspace review queues</li>
-              <li>Team manifest registry &amp; kill-switches</li>
-              <li>Centralized model cost ledger</li>
-              <li>Role-based access control (RBAC)</li>
-            </ul>
-          </div>
-          <a class="btn" href="#early-access" style="width: 100%; justify-content: center;">Contact Team Sales</a>
-        </div>
-
-        <div class="card plan-card">
-          <div>
-            <div class="plan-name">Enterprise</div>
-            <p style="font-size: 13px; color: var(--muted); margin: 0;">For security-conscious institutions &amp; banks.</p>
-            <div class="plan-price">Custom</div>
-            <ul class="plan-features">
-              <li>Everything in Team</li>
-              <li>Customer-owned outbound VPC runners</li>
-              <li>SSO / SAML / SCIM integration</li>
-              <li>Tier 2 Hardware Security &amp; HAL</li>
-              <li>Dual-WORM compliance storage</li>
-              <li>24/7 dedicated support SLA</li>
-            </ul>
-          </div>
-          <a class="btn" href="#early-access" style="width: 100%; justify-content: center;">Request Pilot</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- QUICKSTART -->
+  <!-- DEVELOPER QUICKSTART & EARLY ACCESS -->
   <section id="quickstart" aria-labelledby="qs-h">
+    <a id="pricing"></a>
     <div class="wrap">
-      <h2 id="qs-h">Run in 60 Seconds</h2>
-      <p class="sub">Bootstrap the developer environment locally. All packages run offline with local SQLite storage.</p>
-      <div class="card term">
-        <div class="bar"><span class="mono">terminal</span><button class="copy" type="button" data-copy="qs">Copy</button></div>
-<pre class="mono" id="qs"><span class="c"># Clone repository and set up clean environment</span>
-<span class="p">$ </span>git clone https://github.com/creova-gif/kora.git keelway &amp;&amp; cd keelway
-<span class="p">$ </span>python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -e .
+      <div style="margin-bottom: 32px;">
+        <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Zero-Telemetry · Local-First Runtime</span>
+        <h2 id="qs-h" style="margin-top: 6px;">Developer Quickstart &amp; Early Access</h2>
+        <p class="sub" style="margin-bottom: 0;">Run Keelway locally in 60 seconds with zero cloud dependencies, or join the private beta for team workspaces, customer-owned VPC runner fleets, and compliance automation.</p>
+      </div>
 
-<span class="c"># Launch Studio Desktop UI or run Golden Benchmarks</span>
-<span class="p">$ </span>keelway dev --desktop   <span class="c"># Opens standalone desktop window</span>
-<span class="p">$ </span>keelway bench           <span class="c"># Executes 10/10 golden evaluation benchmarks</span>
-<span class="p">$ </span>keelway team run "Analyze symbols"  <span class="c"># Dispatches 4-agent crew</span></pre>
+      <div class="grid two" style="gap: 24px; align-items: stretch;">
+        <!-- DEVELOPER QUICKSTART CARD -->
+        <div class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <span class="pill teal">Developer Quickstart</span>
+              <span class="pill muted mono">Single Binary / PyPI</span>
+            </div>
+            <h3 style="font-size: 20px; margin: 0 0 8px;">Run Locally in 60 Seconds</h3>
+            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Bootstrap Keelway on your local machine. Operates offline with local SQLite WAL persistence, zero-mock deterministic execution, and zero external telemetry.</p>
+            
+            <div class="card term" style="margin-bottom: 16px; border: 1px solid var(--line);">
+              <div class="bar">
+                <span class="mono">terminal</span>
+                <button class="copy" type="button" data-copy="qs">Copy</button>
+              </div>
+<pre class="mono" id="qs"><span class="c"># Verified one-line install script</span>
+<span class="p">$ </span>curl -fsSL https://keelway.dev/install.sh | bash
+
+<span class="c"># Or install via pip</span>
+<span class="p">$ </span>pip install keelway
+
+<span class="c"># Launch Studio Desktop IDE or run Golden Benchmarks</span>
+<span class="p">$ </span>keelway dev --desktop   <span class="c"># Opens standalone desktop IDE</span>
+<span class="p">$ </span>keelway bench           <span class="c"># Executes 10/10 golden benchmarks</span>
+<span class="p">$ </span>keelway doctor          <span class="c"># 7-axis pre-flight environment verification</span></pre>
+            </div>
+
+            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Local-first ReAct agent runtime with 12 deterministic states</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Zero external token billing: connects to Ollama, vLLM, or LM Studio</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Human-in-the-loop approval gates &amp; AST unified diff reviews</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Cryptographically sealed flight tapes (SHA-256 hash chains)</li>
+            </ul>
+          </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a class="btn primary" href="docs.html" style="flex: 1; justify-content: center;">Explore Documentation</a>
+            <a class="btn" href="#playground" style="flex: 1; justify-content: center;">Try Live Proofs</a>
+          </div>
+        </div>
+
+        <!-- EARLY ACCESS & ENTERPRISE CARD -->
+        <div class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-color: color-mix(in srgb, var(--teal) 40%, var(--line));">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <span class="pill amber">Private Beta</span>
+              <span class="pill muted mono">Enterprise Ready</span>
+            </div>
+            <h3 style="font-size: 20px; margin: 0 0 8px;">Early Access &amp; Enterprise Fleets</h3>
+            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Deploy sovereign agent governance across your organization. Policy flows down, hashes flow up, and source code never leaves your VPC boundary.</p>
+
+            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 10px;">
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Customer Outbound VPC Runners:</strong> Zero inbound firewall ports, outbound HTTPS polling with HMAC-SHA256 tokens.</span></li>
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Team Workspaces &amp; Multi-Agent DAGs:</strong> Collaborative review queues, agent registry, and instant kill-switches.</span></li>
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Tier 2 Hardware Security HAL:</strong> Dual-WORM compliance storage, TPM 2.0 PCR measured boot, and 2-of-3 Shamir recovery.</span></li>
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Enterprise Merkle Audit &amp; SOC 2:</strong> Tamper-evident evidence export with cryptographic provenance.</span></li>
+            </ul>
+
+            <!-- Early Access Invitation Form in Card -->
+            <div style="background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--fg);">Request Private Beta Invitation</div>
+              <form id="qs-access-form" onsubmit="event.preventDefault(); document.getElementById('qs-form-feedback').style.display = 'block';">
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                  <input type="email" id="qs-work-email" class="form-input" required placeholder="work-email@company.com" style="flex: 1; padding: 8px 12px; font-size: 13px;">
+                  <button type="submit" class="btn primary" style="padding: 8px 16px; font-size: 13px; font-weight: 600; white-space: nowrap;">Request Invite</button>
+                </div>
+                <div id="qs-form-feedback" class="pill teal" style="display: none; text-align: center; padding: 6px; font-size: 11px;">
+                  ✓ Invitation requested. Our team will provision your credentials shortly.
+                </div>
+              </form>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a class="btn primary" href="#early-access" style="flex: 1; justify-content: center;">Early Access Details</a>
+            <a class="btn" href="mailto:enterprise@keelway.dev" style="flex: 1; justify-content: center;">Contact Enterprise Sales</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -605,7 +596,7 @@ keelway ❯ </pre>
 
 <footer>
   <div class="wrap">
-    <span>&copy; 2026 Sorvex Labs. Kora and Keelway are trademarks of Sorvex Labs.</span>
+    <span>&copy; 2026 Sorvex Labs. Keelway by Sorvex Labs.</span>
     <span>Zero third-party trackers. Zero unsolicited code telemetry.</span>
   </div>
 </footer>
