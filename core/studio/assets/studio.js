@@ -650,6 +650,116 @@ async function checkDriftRadar() {
   finally { btn.disabled = false; }
 }
 
+// ---------- local team mesh ----------
+async function loadMeshStatus() {
+  const badge = $('mesh-pooled-badge');
+  const list = $('mesh-peers-list');
+  try {
+    const s = await api('/v1/mesh/status');
+    const p = await api('/v1/mesh/peers');
+    if (badge) badge.textContent = `${s.total_pooled_vram_mb} MB Pooled (${s.active_peers_count + 1} Nodes)`;
+    if (!list) return;
+    list.innerHTML = '';
+
+    const loc = p.local_node;
+    const locDiv = h('div', { class: 'p-1.5 rounded bg-ide-surface border border-accent/40 flex justify-between items-center' },
+      h('div', {},
+        h('div', { class: 'font-semibold text-accent' }, `⚡ ${loc.node_id} (Local: ${loc.hostname})`),
+        h('div', { class: 'text-[10px] text-ide-muted' }, `mDNS: ${loc.service_type} · VRAM: ${loc.vram_mb} MB · ${loc.tailscale_ip || 'LAN only'}`)),
+      h('span', { class: 'step-chip text-accent border-accent text-[10px]' }, 'LOCAL')
+    );
+    list.appendChild(locDiv);
+
+    if (!p.peers || p.peers.length === 0) {
+      list.appendChild(h('div', { class: 'text-ide-muted text-[11px] p-1' }, 'No remote peers broadcasting on local subnet.'));
+    } else {
+      p.peers.forEach((peer) => {
+        const isAlive = peer.is_alive;
+        const peerDiv = h('div', { class: 'p-1.5 rounded bg-ide-surface border border-ide-border flex justify-between items-center' },
+          h('div', {},
+            h('div', { class: 'font-medium' }, `${peer.hostname} (${peer.node_id})`),
+            h('div', { class: 'text-[10px] text-ide-muted' }, `${peer.lan_ip}:${peer.port} · ${peer.available_vram_mb} MB · Tasks: ${peer.active_tasks}${peer.tailscale_ip ? ` · TS: ${peer.tailscale_ip}` : ''}`)),
+          h('span', { class: `badge text-[10px] ${isAlive ? 'text-ok border-ok' : 'text-danger border-danger'}` }, isAlive ? 'ALIVE' : 'OFFLINE')
+        );
+        list.appendChild(peerDiv);
+      });
+    }
+  } catch (err) {
+    if (list) list.innerHTML = `<div class="text-danger text-xs">[-] Error loading mesh: ${err.message}</div>`;
+  }
+}
+
+async function dispatchMeshDelegation(e) {
+  e.preventDefault();
+  const intentInput = $('mesh-intent-input');
+  const vramInput = $('mesh-vram-input');
+  const out = $('mesh-out');
+  const intent = intentInput.value.trim();
+  const minVram = Number(vramInput.value) || 4096;
+  if (!intent) return;
+  out.textContent = `Routing task '${intent}' across local mesh (min ${minVram} MB VRAM)…`;
+  try {
+    const res = await api('/v1/mesh/delegate', {
+      method: 'POST',
+      body: { intent, min_vram_mb: minVram, allow_local_fallback: true }
+    });
+    const r = res.receipt;
+    out.textContent = `[✓] TASK DELEGATED: ${r.delegation_id}\n` +
+      `Target Node:     ${r.target_hostname} (${r.target_node_id})\n` +
+      `Allocated VRAM:  ${r.allocated_vram_mb} MB\n` +
+      `Status:          ${r.status.toUpperCase()}\n` +
+      `Execution Time:  ${r.duration_ms || 0.0} ms\n` +
+      `HMAC Signature:  ${r.signature.slice(0, 16)}…${r.signature.slice(-8)}`;
+    tone('ok');
+    loadMeshStatus();
+  } catch (err) {
+    out.textContent = `[-] Delegation error: ${err.message}`;
+    tone('err');
+  }
+}
+
+// ---------- two-human quorum approvals ----------
+async function submitQuorumSign(role) {
+  const out = $('quorum-out');
+  const principalId = role === 'Security Lead' ? $('quorum-sec-id').value.trim() : $('quorum-plat-id').value.trim();
+  if (!principalId) {
+    toast(`Please provide a principal ID for ${role}`, 'err');
+    return;
+  }
+  const activeTask = state.runs.find((r) => r.pending_approval && r.pending_approval.requires_quorum) || state.runs[0];
+  if (!activeTask) {
+    out.textContent = '[-] No active production agent task currently paused for quorum approval.';
+    toast('No task awaiting quorum', 'warn');
+    return;
+  }
+  out.textContent = `Submitting cryptographic ${role} signature for task '${activeTask.task_id}' as '${principalId}'…`;
+  try {
+    const res = await api(`/v1/agent/quorum-approve/${activeTask.task_id}`, {
+      method: 'POST',
+      body: { role, principal_id: principalId }
+    });
+    const q = res.quorum_result;
+    out.textContent = `[✓] QUORUM SIGNATURE RECORDED\n` +
+      `Status:   ${q.status.toUpperCase()}\n` +
+      `Quorum:   ${q.quorum_id}\n` +
+      (q.signatures_collected ? `Signed:   ${q.signatures_collected.join(', ')}\n` : '') +
+      (q.signatures_remaining ? `Pending:  ${q.signatures_remaining.join(', ')}\n` : '') +
+      `Message:  ${q.message || 'Signature accepted.'}`;
+    if (role === 'Security Lead') {
+      $('quorum-sec-badge').textContent = '✓ SIGNED';
+      $('quorum-sec-badge').className = 'badge text-[10px] text-ok border-ok';
+    } else {
+      $('quorum-plat-badge').textContent = '✓ SIGNED';
+      $('quorum-plat-badge').className = 'badge text-[10px] text-ok border-ok';
+    }
+    tone('ok');
+    await loadRuns();
+  } catch (err) {
+    out.textContent = `[-] Quorum signing error: ${err.message}`;
+    tone('err');
+  }
+}
+
 // ---------- audit ----------
 async function loadAudit() {
   const body = $('audit-body');
@@ -1060,7 +1170,7 @@ function welcomeFacts() {
   $('welcome-facts').replaceChildren(...facts.map(([k, v]) => h('div', { class: 'p-2.5 rounded-lg border border-ide-border bg-ide-sidebar/60' }, h('dt', { class: 'text-ide-faint text-[10px] uppercase tracking-wider' }, k), h('dd', { class: 'mt-0.5 font-mono truncate' }, v))));
 }
 async function startSession() {
-  await Promise.all([loadStatus(), loadProjectInfo(), loadTree(), loadGit()]);
+  await Promise.all([loadStatus(), loadProjectInfo(), loadTree(), loadGit(), loadMeshStatus()]);
   welcomeFacts();
   switchSection(location.hash.slice(1) || 'tasks');
   if (state.ws) { const old = state.ws; state.ws = null; old.close(); }
@@ -1207,6 +1317,10 @@ function wire() {
   if ($('plugin-install-form')) $('plugin-install-form').addEventListener('submit', installPluginForm);
   if ($('eval-run-btn')) $('eval-run-btn').addEventListener('click', runEvalRadar);
   if ($('eval-drift-btn')) $('eval-drift-btn').addEventListener('click', checkDriftRadar);
+  if ($('mesh-refresh-btn')) $('mesh-refresh-btn').addEventListener('click', loadMeshStatus);
+  if ($('mesh-delegate-form')) $('mesh-delegate-form').addEventListener('submit', dispatchMeshDelegation);
+  if ($('quorum-sign-sec-btn')) $('quorum-sign-sec-btn').addEventListener('click', () => submitQuorumSign('Security Lead'));
+  if ($('quorum-sign-plat-btn')) $('quorum-sign-plat-btn').addEventListener('click', () => submitQuorumSign('Platform Owner'));
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

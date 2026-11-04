@@ -512,6 +512,75 @@
             <pre id="eval-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-52 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Local Team Mesh & GPU Resource Pooling -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="mesh-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="mesh-title" class="font-semibold">Local Team Mesh &amp; GPU Resource Pooling</h3>
+            <div class="flex items-center gap-2">
+              <span id="mesh-pooled-badge" class="step-chip text-accent border-accent/50 font-mono">0 MB Pooled</span>
+              <button id="mesh-refresh-btn" type="button" class="btn-ghost text-xs h-6 px-2">Refresh</button>
+            </div>
+          </div>
+          <div id="lab-mesh" class="space-y-3">
+            <p class="text-xs text-ide-muted">Zero-cloud peer-to-peer compute discovery, GPU VRAM pooling, and cryptographically signed task routing across local Wi-Fi or Tailscale overlay.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="space-y-2">
+                <div class="text-xs font-medium text-ide-fg">Local Node &amp; Discovered Peers</div>
+                <div id="mesh-peers-list" class="space-y-2 max-h-48 overflow-y-auto text-xs font-mono bg-ide-bg p-2.5 rounded border border-ide-border">
+                  <div class="text-ide-muted">Discovering mesh workstations…</div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="text-xs font-medium text-ide-fg">Dispatch Delegated Task</div>
+                <form id="mesh-delegate-form" class="space-y-2">
+                  <input id="mesh-intent-input" class="input w-full text-xs font-mono" placeholder="Task intent (e.g. Fine-tune 14B AST model)" required>
+                  <div class="flex gap-2">
+                    <input id="mesh-vram-input" type="number" class="input w-36 text-xs font-mono" value="8192" placeholder="Min VRAM MB">
+                    <button id="mesh-delegate-btn" type="submit" class="btn-primary flex-1 h-8 text-xs">Route &amp; Delegate</button>
+                  </div>
+                </form>
+                <pre id="mesh-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-36 overflow-y-auto bg-ide-bg p-2 rounded border border-ide-border" aria-live="polite"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Two-Human Quorum Approvals (Production Governance) -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="quorum-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="quorum-title" class="font-semibold">Two-Human Quorum Governance (ADR-045 / ADR-046)</h3>
+            <span class="step-chip text-warn border-warn/50 font-mono">Independent Dual-Signatures</span>
+          </div>
+          <div id="lab-quorum" class="space-y-3">
+            <p class="text-xs text-ide-muted">Production-scoped mutations require mandatory independent human sign-offs from both Security Lead and Platform Owner. Automated bots and self-quorum are strictly prohibited.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="border border-ide-border rounded p-3 space-y-2 bg-ide-bg/50">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-semibold">Security Lead Role</span>
+                  <span id="quorum-sec-badge" class="badge text-[10px] text-ide-muted border-ide-border">Awaiting Signature</span>
+                </div>
+                <p class="text-[11px] text-ide-muted">Verifies policy compliance, sensitive data scrubbing, and network egress boundaries.</p>
+                <div class="flex gap-2">
+                  <input id="quorum-sec-id" class="input flex-1 text-xs font-mono" placeholder="security_lead_id" value="alice_security_lead">
+                  <button id="quorum-sign-sec-btn" type="button" class="btn-outline h-7 text-xs">Sign as Security Lead</button>
+                </div>
+              </div>
+              <div class="border border-ide-border rounded p-3 space-y-2 bg-ide-bg/50">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-semibold">Platform Owner Role</span>
+                  <span id="quorum-plat-badge" class="badge text-[10px] text-ide-muted border-ide-border">Awaiting Signature</span>
+                </div>
+                <p class="text-[11px] text-ide-muted">Verifies system stability, runtime compute allocation, and target repository integrity.</p>
+                <div class="flex gap-2">
+                  <input id="quorum-plat-id" class="input flex-1 text-xs font-mono" placeholder="platform_owner_id" value="bob_platform_owner">
+                  <button id="quorum-sign-plat-btn" type="button" class="btn-outline h-7 text-xs">Sign as Platform Owner</button>
+                </div>
+              </div>
+            </div>
+            <pre id="quorum-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-36 overflow-y-auto bg-ide-bg p-2 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

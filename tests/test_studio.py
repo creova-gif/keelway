@@ -21,3 +21,11 @@ async def test_keelway_dev_studio_html_endpoint():
         assert resp_studio.status_code == 200
         assert "Keelway Studio" in resp_studio.text
         assert "Diffs (Unified &amp; Split)" in resp_studio.text
+        assert "Local Team Mesh &amp; GPU Resource Pooling" in resp_studio.text
+        assert "Two-Human Quorum Governance (ADR-045 / ADR-046)" in resp_studio.text
+
+        # Check studio.js static asset
+        resp_js = await client.get("/studio/assets/studio.js")
+        assert resp_js.status_code == 200
+        assert "dispatchMeshDelegation" in resp_js.text
+        assert "submitQuorumSign" in resp_js.text
