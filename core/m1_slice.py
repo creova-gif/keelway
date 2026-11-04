@@ -29,6 +29,7 @@ from core.storage.workspace_fs import WorkspaceFilesystem
 from core.storage.ast_index import CodebaseSemanticIndex
 from core.storage.database import check_db_health, init_db
 from core.orchestration.flight_recorder import FlightRecorder
+from core.orchestration.project_adapter import ProjectAdapter
 
 
 SAMPLE_REPO_FILES = {
@@ -214,7 +215,8 @@ class MilestoneM1Runner:
         # -------------------------------------------------------------
         # Stage 9: Run the project's test command
         # -------------------------------------------------------------
-        cmd = "python3 -m unittest -q test_pricing.py"
+        proj_meta = ProjectAdapter.inspect(self.workspace_path)
+        cmd = proj_meta.detected_test_command or "python3 -m unittest -q test_pricing.py"
         test_pause = await agent.execute_tool("run_command", {"command": cmd}, step_id="step_3")
         assert test_pause["status"] == "paused_for_approval"
         # Authorize running tests

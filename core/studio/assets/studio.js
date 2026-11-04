@@ -162,6 +162,36 @@ async function loadStatus() {
   } catch { /* shown via sign-in or status bar */ }
 }
 
+async function loadProjectInfo() {
+  try {
+    const meta = await api('/v1/project/info');
+    state.projectMeta = meta;
+    const badge = $('project-badge');
+    if (badge) {
+      if (meta.project_type && meta.project_type !== 'generic') {
+        const fw = meta.frameworks && meta.frameworks.length ? ` · ${meta.frameworks.slice(0, 2).join(', ')}` : '';
+        badge.textContent = `${meta.project_type}${fw}`;
+        badge.classList.remove('hidden');
+        badge.title = meta.summary || meta.project_type;
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+    const runBtn = $('run-test-btn');
+    if (runBtn) {
+      if (meta.detected_test_command) {
+        runBtn.classList.remove('hidden');
+        runBtn.title = `Run detected tests: ${meta.detected_test_command}`;
+        if ($('run-test-label')) $('run-test-label').textContent = meta.detected_test_command;
+      } else {
+        runBtn.classList.add('hidden');
+      }
+    }
+  } catch (err) {
+    console.debug('Project info skipped', err);
+  }
+}
+
 function renderWelcome() {
   const acts = [[t('openFile'), () => switchSection('files')], [t('giveGoal'), () => $('agent-goal').focus()], [t('reviewChanges'), () => { switchSection('files'); setMode('diff'); }]];
   $('welcome-actions').replaceChildren(...acts.map(([label, fn]) => h('button', { type: 'button', class: 'btn-outline justify-start h-10', onclick: fn }, label)));
@@ -863,7 +893,7 @@ function welcomeFacts() {
   $('welcome-facts').replaceChildren(...facts.map(([k, v]) => h('div', { class: 'p-2.5 rounded-lg border border-ide-border bg-ide-sidebar/60' }, h('dt', { class: 'text-ide-faint text-[10px] uppercase tracking-wider' }, k), h('dd', { class: 'mt-0.5 font-mono truncate' }, v))));
 }
 async function startSession() {
-  await Promise.all([loadStatus(), loadTree(), loadGit()]);
+  await Promise.all([loadStatus(), loadProjectInfo(), loadTree(), loadGit()]);
   welcomeFacts();
   switchSection(location.hash.slice(1) || 'tasks');
   if (state.ws) { const old = state.ws; state.ws = null; old.close(); }
@@ -886,6 +916,26 @@ function wire() {
   $('palette-input').addEventListener('input', () => { paletteIdx = 0; renderPalette(); });
   $('palette-input').addEventListener('keydown', paletteKey);
   $('palette').addEventListener('click', (e) => { if (e.target === $('palette')) closePalette(); });
+  if ($('run-test-btn')) {
+    $('run-test-btn').addEventListener('click', async () => {
+      if (!state.projectMeta || !state.projectMeta.detected_test_command) return;
+      const cmd = state.projectMeta.detected_test_command;
+      switchPanel('console');
+      log(`❯ ${cmd}`, 'text-accent font-semibold');
+      try {
+        const res = await api('/v1/terminal/exec', { method: 'POST', body: { command: cmd } });
+        if (res.stdout) {
+          res.stdout.split('\n').forEach((l) => l && log(l, 'text-ide-fg'));
+        }
+        if (res.stderr) {
+          res.stderr.split('\n').forEach((l) => l && log(l, res.exit_code === 0 ? 'text-ide-muted' : 'text-danger'));
+        }
+        log(`[Test runner exited with code ${res.exit_code} in ${res.duration_ms}ms]`, res.exit_code === 0 ? 'text-ok font-semibold' : 'text-danger font-semibold');
+      } catch (err) {
+        log(`Failed to execute tests: ${err.message}`, 'text-danger');
+      }
+    });
+  }
   document.querySelectorAll('#mode-selector .mode-tab').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#mode-selector .mode-tab').forEach((b) => {
@@ -915,6 +965,7 @@ function wire() {
         const res = await api('/v1/workspace/open', { method: 'POST', body: { path: chosen.trim() } });
         toast(`[+] Opened workspace: ${res.name}`, 'ok');
         $('ws-name').textContent = res.name;
+        await loadProjectInfo();
         refreshView();
       } catch (err) {
         toast(`Failed to open workspace: ${err.message}`, 'err');

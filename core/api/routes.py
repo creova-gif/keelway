@@ -654,6 +654,7 @@ async def list_mesh_peers():
 # =====================================================================
 
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
+from core.orchestration.project_adapter import ProjectAdapter
 
 _workspace_fs = WorkspaceFilesystem()
 
@@ -670,12 +671,21 @@ async def get_workspace_info():
     """Retrieve active workspace directory path, git repository status, and metadata."""
     is_git = (_workspace_fs.root / ".git").exists()
     tree = _workspace_fs.get_file_tree()
+    meta = ProjectAdapter.inspect(_workspace_fs.root)
     return {
         "root": str(_workspace_fs.root),
         "name": _workspace_fs.root.name,
         "is_git": is_git,
         "files_count": len(tree.get("tree", {}).get("children", [])),
+        "project": meta.to_dict(),
     }
+
+
+@router.get("/v1/project/info", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
+async def get_project_info():
+    """Deterministically inspect the active workspace to detect project runtime, frameworks, and test runners."""
+    meta = ProjectAdapter.inspect(_workspace_fs.root)
+    return meta.to_dict()
 
 
 @router.post("/v1/workspace/open", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
@@ -693,11 +703,13 @@ async def open_workspace(payload: dict, principal: Principal = Depends(current_p
     _semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
     await record_audit(principal, "workspace_open", str(target), True)
 
+    meta = ProjectAdapter.inspect(_workspace_fs.root)
     return {
         "status": "opened",
         "root": str(_workspace_fs.root),
         "name": _workspace_fs.root.name,
         "is_git": (_workspace_fs.root / ".git").exists(),
+        "project": meta.to_dict(),
     }
 
 

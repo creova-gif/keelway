@@ -21,6 +21,7 @@
       <span class="hidden md:inline text-ide-faint" aria-hidden="true">/</span>
       <span id="ws-name" class="hidden md:inline font-mono text-xs text-ide-muted truncate max-w-[12rem]">workspace</span>
       <span id="git-branch" class="hidden sm:inline-flex chip border-ide-border text-ide-muted font-mono">—</span>
+      <span id="project-badge" class="hidden lg:inline-flex chip border-ide-border text-ide-accent font-mono text-[11px]" title="Detected framework"></span>
     </div>
     <button id="palette-btn" type="button" class="hidden md:flex items-center justify-between gap-2 w-80 px-3 py-1.5 rounded-md bg-ide-sidebar border border-ide-border text-ide-faint hover:text-ide-fg text-xs" aria-haspopup="dialog">
       <span class="flex items-center gap-2"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="search">Search files, symbols and commands</span></span>
@@ -209,6 +210,10 @@
       <div class="h-9 shrink-0 flex items-stretch justify-between bg-ide-sidebar border-b border-ide-border">
         <div id="editor-tabs" role="tablist" data-i18n-label="openFiles" aria-label="Open files" class="flex items-stretch overflow-x-auto no-scrollbar"></div>
         <div class="flex items-center gap-1.5 px-2">
+          <button id="run-test-btn" type="button" class="btn-ghost text-[11px] gap-1 px-2 border border-ide-border hidden" title="Run detected project tests">
+            <svg class="w-3.5 h-3.5 text-ok" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="run-test-label">Run Tests</span>
+          </button>
           <div role="group" class="flex rounded-md border border-ide-border overflow-hidden text-[11px]" data-i18n-label="viewMode" aria-label="View mode">
             <button id="mode-editor" type="button" aria-pressed="true" class="px-2 py-1 aria-pressed:bg-ide-fg/10" data-i18n="code">Code</button>
             <button id="mode-diff" type="button" aria-pressed="false" class="px-2 py-1 aria-pressed:bg-ide-fg/10" title="Diffs (Unified &amp; Split)" data-i18n="diff">Diff</button>

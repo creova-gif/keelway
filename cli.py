@@ -499,12 +499,36 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
         print(f"    Or manually run: `ollama pull {model}`\n")
 
 
-def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None) -> int:
-    """Validate, sign or verify an Agent Manifest (docs/spec/agent-manifest-v1.md)."""
+def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optional[Path] = None) -> int:
+    """Validate, sign, verify, register, or list Agent Manifests (docs/spec/agent-manifest-v1.md)."""
     from core.agents import manifest as am
 
+    if action == "list":
+        async def _list():
+            from core.agents.registry import list_registered_manifests
+            from core.storage.database import init_db, AsyncSessionLocal
+            await init_db()
+            async with AsyncSessionLocal() as session:
+                records = await list_registered_manifests(session)
+                print("\n" + "=" * 65)
+                print(f"  🤖 KEELWAY REGISTERED AGENT MANIFESTS ({len(records)})")
+                print("=" * 65 + "\n")
+                if not records:
+                    print("  No agent manifests registered yet.")
+                for r in records:
+                    status = "ENABLED" if r.enabled else "DISABLED [KILL-SWITCH]"
+                    print(f"  • {r.id:<28} [{status:<8}] Owner: {r.owner:<12} Digest: {r.digest[:16]}...")
+                print()
+                return 0
+        return asyncio.run(_list())
+
+    if path is None:
+        print("[-] Path to agent manifest file is required.")
+        return 1
+
     try:
-        report = am.validate(am.load_file(path))
+        raw_data = am.load_file(path)
+        report = am.validate(raw_data)
     except (OSError, ValueError) as exc:
         print(f"[-] {exc}")
         return 2
@@ -516,6 +540,7 @@ def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None)
         print(f"[-] {path} is not a valid agent manifest ({len(report.errors)} problem(s)).")
         return 1
     manifest = report.manifest
+
     if action == "validate":
         from core.agents.guard import not_enforced
 
@@ -523,6 +548,23 @@ def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None)
         for note in not_enforced(manifest):
             print(f"  note: {note}")
         return 0
+
+    if action == "register":
+        async def _register():
+            from core.agents.registry import register_manifest
+            from core.storage.database import init_db, AsyncSessionLocal
+            await init_db()
+            async with AsyncSessionLocal() as session:
+                async with session.begin():
+                    try:
+                        record = await register_manifest(session, raw_data)
+                        print(f"[+] Successfully registered manifest '{record.id}' (digest: {record.digest[:16]}...)")
+                        return 0
+                    except Exception as exc:
+                        print(f"[-] Registration failed: {exc}")
+                        return 1
+        return asyncio.run(_register())
+
     key = am.load_or_create_key(Path.cwd()) if action == "sign" else None
     if action == "sign":
         signed = am.sign(manifest, key, by or os.environ.get("USER", "unknown"))
@@ -537,6 +579,47 @@ def cmd_agent(action: str, path: Path, by: str = "", out: Optional[Path] = None)
     ok, reason = am.verify(manifest, bytes.fromhex(key_path.read_text().strip()))
     print(f"[+] Signature valid ({manifest.signature.signed_by}, {manifest.signature.signed_at})" if ok else f"[-] Signature check failed: {reason}")
     return 0 if ok else 1
+
+
+def cmd_project(action: str, path: Optional[Path] = None) -> int:
+    """Inspect or execute project framework tasks."""
+    from core.orchestration.project_adapter import ProjectAdapter
+    target = path or Path.cwd()
+    meta = ProjectAdapter.inspect(target)
+    if action == "info":
+        print("\n" + "=" * 65)
+        print("  📦 KEELWAY PROJECT & FRAMEWORK INSPECTOR")
+        print("=" * 65)
+        print(f"  Root:           {meta.root_path}")
+        print(f"  Project Type:   {meta.project_type.upper()}")
+        print(f"  Frameworks:     {', '.join(meta.frameworks) if meta.frameworks else 'None'}")
+        print(f"  Package Mgr:    {meta.package_manager or 'None'}")
+        print(f"  Test Command:   {meta.detected_test_command or 'None detected'}")
+        print(f"  Entrypoints:    {', '.join(meta.entrypoints) if meta.entrypoints else 'None'}")
+        print(f"  Git Repo:       {'Yes' if meta.has_git else 'No'}")
+        print(f"  Summary:        {meta.summary}")
+        print("=" * 65 + "\n")
+        return 0
+    elif action == "test":
+        if not meta.detected_test_command:
+            print("[-] No automated test command detected for this project.")
+            return 1
+        print(f"[+] Running detected project tests: {meta.detected_test_command}")
+        import subprocess
+        import time
+        from core.security.env_scrub import scrub_env
+        clean_env = scrub_env(dict(os.environ))
+        start_t = time.perf_counter()
+        proc = subprocess.run(meta.detected_test_command, shell=True, cwd=meta.root_path, env=clean_env, capture_output=True, text=True)
+        dur = (time.perf_counter() - start_t) * 1000
+        if proc.stdout:
+            print(proc.stdout)
+        if proc.stderr:
+            print(proc.stderr)
+        status_tag = "PASSED [OK]" if proc.returncode == 0 else "FAILED [!]"
+        print(f"\n[+] Test Execution {status_tag} (Exit {proc.returncode}, Duration: {dur:.2f}ms)\n")
+        return proc.returncode
+    return 0
 
 
 async def cmd_record(action: str, path: Optional[Path] = None, anchor: Optional[Path] = None) -> int:
@@ -1162,14 +1245,22 @@ def main():
     pull_parser = subparsers.add_parser("pull", help="Download and verify local LLM into Ollama")
     pull_parser.add_argument("model", nargs="?", default="qwen2.5-coder:7b", help="Model identifier to pull")
 
-    agent_parser = subparsers.add_parser("agent", help="Validate, sign or verify an Agent Manifest")
+    agent_parser = subparsers.add_parser("agent", help="Validate, sign, verify, register or list Agent Manifests")
     agent_sub = agent_parser.add_subparsers(dest="agent_command", required=True)
-    for _name, _help in (("validate", "Check a manifest file"), ("sign", "Sign a manifest with the workspace key"), ("verify", "Verify a signed manifest")):
+    for _name, _help in (("validate", "Check a manifest file"), ("sign", "Sign a manifest with the workspace key"), ("verify", "Verify a signed manifest"), ("register", "Register a manifest into the local database registry")):
         _p = agent_sub.add_parser(_name, help=_help)
         _p.add_argument("path", type=Path, help="Path to the .agent.json file")
         if _name == "sign":
             _p.add_argument("--by", default="", help="Who is signing (default: $USER)")
             _p.add_argument("--out", type=Path, default=None, help="Write here instead of overwriting the input")
+    agent_sub.add_parser("list", help="List all registered agent manifests in the database")
+
+    project_parser = subparsers.add_parser("project", help="Inspect project runtime, frameworks, and run tests")
+    project_sub = project_parser.add_subparsers(dest="project_command", required=True)
+    _p_info = project_sub.add_parser("info", help="Inspect project frameworks and detected test command")
+    _p_info.add_argument("--path", type=Path, default=None, help="Target project root directory (default: current dir)")
+    _p_test = project_sub.add_parser("test", help="Execute the detected project test runner")
+    _p_test.add_argument("--path", type=Path, default=None, help="Target project root directory (default: current dir)")
 
     record_parser = subparsers.add_parser("record", help="Export or verify the audit log as a portable Record file")
     record_sub = record_parser.add_subparsers(dest="record_command", required=True)
@@ -1249,7 +1340,9 @@ def main():
             print(f"  {status_badge} {t['task_id']}: {t['name']:<42} ({t['duration_ms']:.2f} ms)")
         print()
     elif args.command == "agent":
-        sys.exit(cmd_agent(args.agent_command, args.path, getattr(args, "by", ""), getattr(args, "out", None)))
+        sys.exit(cmd_agent(args.agent_command, getattr(args, "path", None), getattr(args, "by", ""), getattr(args, "out", None)))
+    elif args.command == "project":
+        sys.exit(cmd_project(args.project_command, getattr(args, "path", None)))
     elif args.command == "record":
         sys.exit(
             asyncio.run(
