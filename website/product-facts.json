@@ -52,6 +52,12 @@
       "evidence_test": "tests/test_mcp_client_and_plugins.py",
       "code_path": "core/plugins/manager.py"
     },
+    "airgap_sovereign_bundle_suite": {
+      "status": "AVAILABLE",
+      "claim": "5-point NIST SP 800-53 SC-7 pre-flight compliance audit, cryptographic attestation, and offline self-contained bundle exporter with SHA256SUMS",
+      "evidence_test": "tests/test_airgap_bundle.py",
+      "code_path": "core/security/airgap_auditor.py"
+    },
     "git_governance_and_pr_prep": {
       "status": "AVAILABLE",
       "claim": "Semantic commit proposals, verified local commit, and Pull Request preparation",

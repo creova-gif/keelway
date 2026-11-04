@@ -10,6 +10,13 @@ from .firewall import (
     SecurityGateway,
     SecurityCheckResult,
 )
+from .airgap import AirGapEnforcer, AirGapViolationError
+from .airgap_auditor import AirGapAuditor, AirGapAuditReport, AuditCheckResult
+from .bundle_exporter import (
+    AirGapBundleExporter,
+    BundleExportReceipt,
+    BundleVerificationResult,
+)
 
 __all__ = [
     "DLPScanner",
@@ -17,4 +24,12 @@ __all__ = [
     "ToolPolicyGuard",
     "SecurityGateway",
     "SecurityCheckResult",
+    "AirGapEnforcer",
+    "AirGapViolationError",
+    "AirGapAuditor",
+    "AirGapAuditReport",
+    "AuditCheckResult",
+    "AirGapBundleExporter",
+    "BundleExportReceipt",
+    "BundleVerificationResult",
 ]

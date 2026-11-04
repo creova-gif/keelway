@@ -1844,6 +1844,67 @@ async def call_mcp_tool(
         raise HTTPException(status_code=500, detail=f"MCP tool invocation failed: {exc}")
 
 
+# ==============================================================================
+# Sovereign Air-Gap Audit & Bundle Deployment Endpoints
+# ==============================================================================
+
+class BundleExportRequest(BaseModel):
+    bundle_name: Optional[str] = Field(default=None, description="Custom identifier for the sovereign bundle")
+    output_dir: Optional[str] = Field(default=None, description="Target export directory")
+    include_tar: bool = Field(default=True, description="Whether to compile into a .tar.gz archive")
+
+
+class BundleVerifyRequest(BaseModel):
+    bundle_path: str = Field(..., description="Filesystem path to bundle directory or .tar.gz archive")
+
+
+@router.get("/v1/airgap/audit", tags=["Air-Gap & Sovereign Deployment"])
+async def run_airgap_audit(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Execute pre-flight air-gap compliance audit and generate signed attestation."""
+    from core.security.airgap_auditor import AirGapAuditor
+    report = AirGapAuditor.audit_environment()
+    return report.to_dict()
+
+
+@router.post("/v1/airgap/bundle/export", tags=["Air-Gap & Sovereign Deployment"])
+async def export_airgap_bundle(
+    request: BundleExportRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Package a self-contained, offline-deployable sovereign bundle with SHA-256 manifest."""
+    from core.security.bundle_exporter import AirGapBundleExporter
+    out_path = Path(request.output_dir) if request.output_dir else None
+    try:
+        receipt = AirGapBundleExporter.export_bundle(
+            output_dir=out_path,
+            bundle_name=request.bundle_name,
+            include_tar=request.include_tar,
+        )
+        return receipt.to_dict()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Bundle export failed: {exc}")
+
+
+@router.post("/v1/airgap/bundle/verify", tags=["Air-Gap & Sovereign Deployment"])
+async def verify_airgap_bundle(
+    request: BundleVerifyRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Verify cryptographic integrity of an offline sovereign deployment bundle."""
+    from core.security.bundle_exporter import AirGapBundleExporter
+    target_path = Path(request.bundle_path)
+    if not target_path.exists():
+        raise HTTPException(status_code=404, detail=f"Bundle file not found: {request.bundle_path}")
+    try:
+        result = AirGapBundleExporter.verify_bundle(target_path)
+        return result.to_dict()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Bundle verification error: {exc}")
+
+
+
 
 
 

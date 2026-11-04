@@ -1465,6 +1465,76 @@ async def cmd_plugins(action: str, target: Optional[str] = None) -> int:
     return 1
 
 
+def cmd_airgap(
+    action: str,
+    subaction: Optional[str] = None,
+    target: Optional[str] = None,
+    out: Optional[Path] = None,
+    name: Optional[str] = None,
+) -> int:
+    """Air-Gap Zero-Egress audit and sovereign bundle packaging CLI handler."""
+    from core.security.airgap_auditor import AirGapAuditor
+    from core.security.bundle_exporter import AirGapBundleExporter
+
+    if action == "audit":
+        report = AirGapAuditor.audit_environment()
+        print("=" * 76)
+        print("  KEELWAY AIR-GAP ZERO-EGRESS PRE-FLIGHT AUDIT")
+        print(f"  Standard: {report.compliance_standard}")
+        print("=" * 76)
+        for check in report.checks:
+            badge = "[✓ PASS]" if check.passed else "[✗ FAIL]"
+            print(f"  {badge:<10} [{check.check_id}] {check.title}")
+            print(f"             Details: {check.details}")
+        print("=" * 76)
+        status_tag = "COMPLIANT [✓]" if report.overall_compliant else "NON-COMPLIANT [✗]"
+        print(f"  OVERALL STATUS:       {status_tag}")
+        print(f"  ATTESTATION SHA-256:  {report.attestation_sha256}")
+        print("=" * 76)
+        return 0 if report.overall_compliant else 1
+
+    if action == "bundle":
+        if subaction == "export":
+            print("[+] Exporting self-contained sovereign deployment bundle...")
+            receipt = AirGapBundleExporter.export_bundle(output_dir=out, bundle_name=name)
+            print("=" * 76)
+            print("  SOVEREIGN AIR-GAP BUNDLE EXPORTED")
+            print("=" * 76)
+            print(f"  Bundle ID:       {receipt.bundle_id}")
+            print(f"  Bundle Archive:  {receipt.bundle_path}")
+            print(f"  Total Files:     {receipt.total_files}")
+            print(f"  Uncompressed:    {receipt.uncompressed_bytes / 1024:.1f} KB")
+            if receipt.compressed_bytes:
+                print(f"  Compressed:      {receipt.compressed_bytes / 1024:.1f} KB")
+            print(f"  Root Digest:     {receipt.root_digest_sha256}")
+            print(f"  Duration:        {receipt.duration_ms:.1f} ms")
+            print("=" * 76)
+            return 0
+
+        if subaction == "verify":
+            if not target:
+                print("[-] Usage: keelway airgap bundle verify <bundle_path_or_tar>")
+                return 1
+            print(f"[+] Verifying cryptographic integrity of: {target}...")
+            res = AirGapBundleExporter.verify_bundle(Path(target))
+            print("=" * 76)
+            print(f"  SOVEREIGN BUNDLE INTEGRITY VERIFICATION: {res.bundle_id}")
+            print("=" * 76)
+            print(f"  Status:          {'VERIFIED [✓]' if res.is_valid else 'TAMPERED / INVALID [✗]'}")
+            print(f"  Matched Files:   {res.matched_files} / {res.total_files}")
+            if res.mismatched_files:
+                print(f"  Mismatched:      {', '.join(res.mismatched_files)}")
+            if res.missing_files:
+                print(f"  Missing:         {', '.join(res.missing_files)}")
+            print(f"  Root Digest:     {res.root_digest_sha256}")
+            print(f"  Verification:    {res.duration_ms:.1f} ms")
+            print("=" * 76)
+            return 0 if res.is_valid else 1
+
+    print(f"[-] Unknown airgap action: {action}")
+    return 1
+
+
 def main():
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1729,6 +1799,18 @@ def main():
     _p_deact = plugins_sub.add_parser("deactivate", help="Deactivate an installed plugin")
     _p_deact.add_argument("target", help="Name of plugin to deactivate")
 
+    # airgap (Sovereign Air-Gap Audit & Bundle Deployment)
+    airgap_parser = subparsers.add_parser("airgap", help="Air-Gap zero-egress audit and sovereign bundle packaging")
+    airgap_sub = airgap_parser.add_subparsers(dest="airgap_command", required=True)
+    airgap_sub.add_parser("audit", help="Run 5-point NIST SP 800-53 SC-7 pre-flight air-gap audit")
+    _ag_bundle = airgap_sub.add_parser("bundle", help="Manage sovereign deployment bundles")
+    _ag_bundle_sub = _ag_bundle.add_subparsers(dest="bundle_command", required=True)
+    _ag_b_exp = _ag_bundle_sub.add_parser("export", help="Export sovereign offline deployment bundle")
+    _ag_b_exp.add_argument("--name", default=None, help="Custom bundle identifier")
+    _ag_b_exp.add_argument("--out", type=Path, default=None, help="Output destination folder")
+    _ag_b_ver = _ag_bundle_sub.add_parser("verify", help="Verify cryptographic integrity of bundle directory or archive")
+    _ag_b_ver.add_argument("target", help="Path to bundle directory or .tar.gz archive")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1851,6 +1933,16 @@ def main():
         )
     elif args.command == "plugins":
         sys.exit(asyncio.run(cmd_plugins(args.plugins_command, getattr(args, "target", None))))
+    elif args.command == "airgap":
+        sys.exit(
+            cmd_airgap(
+                args.airgap_command,
+                subaction=getattr(args, "bundle_command", None),
+                target=getattr(args, "target", None),
+                out=getattr(args, "out", None),
+                name=getattr(args, "name", None),
+            )
+        )
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":
