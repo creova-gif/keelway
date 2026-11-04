@@ -21,6 +21,11 @@ from .receipt_verifier import (
     ReceiptVerifier,
     ReceiptVerificationReport,
 )
+from .sbom import (
+    SBOMGenerator,
+    SBOMVerifier,
+    SBOMManifest,
+)
 
 __all__ = [
     "DLPScanner",
@@ -38,4 +43,7 @@ __all__ = [
     "BundleVerificationResult",
     "ReceiptVerifier",
     "ReceiptVerificationReport",
+    "SBOMGenerator",
+    "SBOMVerifier",
+    "SBOMManifest",
 ]

@@ -1,0 +1,62 @@
+========================================================================
+Keelway / Kora Software System Notice & Attribution
+========================================================================
+
+Copyright (c) 2026 Sorvex Labs & Kora Technologies Contributors.
+All rights reserved.
+
+This product includes software developed by:
+- Sorvex Labs (Keelway developer software, sovereign enterprise governance,
+  hardware security HAL, and customer runner fleet architecture)
+- Kora Technologies (Kora AI agent runtime, local model engine, and state machine)
+
+========================================================================
+TRADEMARKS AND BRAND IDENTITIES
+========================================================================
+- "Keelway" is a trademark of Sorvex Labs.
+- "Kora", "Kora AI", and "Kora Dev" are trademarks of Kora Technologies.
+- The use of these trademarks without prior written permission is strictly
+  prohibited, except as permitted under Section 6 of the Apache 2.0 License.
+
+========================================================================
+OPEN-CORE AND COMMERCIAL BOUNDARIES
+========================================================================
+The open-core repository consists of:
+1. Open-Source Core (Apache License 2.0):
+   - Kora AI Core agent runtime, ReAct execution loop, and local model gateway.
+   - Keelway Core reference workflow engine (keelway_core).
+   - Local command-line interfaces (CLI) and project adapters.
+   - Universal MCP bridge and plugin execution harness.
+
+2. Enterprise Governance & Sovereign Infrastructure:
+   - Two-Human Quorum service (keelway.approvals.quorum).
+   - Tier 2 Hardware Security HAL (TPM 2.0, Dual-WORM, PIV CRL, 2-of-3 recovery).
+   - Customer-isolated outbound VPC runner daemon (keelway.runner.daemon).
+   - Enterprise multi-workspace registry and policy engine (keelway.policy.engine).
+   - Air-gap sovereign export bundles (NIST SP 800-53 SC-7).
+   These components are governed by Sorvex Labs Enterprise License agreements.
+
+========================================================================
+THIRD-PARTY NOTICES AND LICENSES
+========================================================================
+This software bundles or links to the following third-party components:
+
+1. Monaco Editor (Microsoft Corporation)
+   License: MIT License
+   Website: https://github.com/microsoft/monaco-editor
+
+2. JetBrains Mono Font (JetBrains s.r.o.)
+   License: Apache License 2.0
+   Website: https://www.jetbrains.com/lp/mono/
+
+3. Inter Font (Rasmus Andersson)
+   License: SIL Open Font License, Version 1.1
+   Website: https://rsms.me/inter/
+
+4. Pydantic (Samuel Colvin and contributors)
+   License: MIT License
+   Website: https://github.com/pydantic/pydantic
+
+5. FastAPI & Starlette (Sebastián Ramírez and Encode OSS)
+   License: MIT License
+   Website: https://fastapi.tiangolo.com/

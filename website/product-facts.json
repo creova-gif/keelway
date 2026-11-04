@@ -124,6 +124,18 @@
       "evidence_test": "tests/test_keelway_core_engine.py, tests/test_keelway_core_cli.py",
       "code_path": "keelway_core/engine.py, keelway_core/cli.py"
     },
+    "enterprise_entitlements_and_gating": {
+      "status": "AVAILABLE",
+      "claim": "Signed offline entitlement certificates, grace-period policy, seat enforcement, and replay-protected webhooks",
+      "evidence_test": "tests/test_entitlements_and_sbom.py",
+      "code_path": "core/billing/entitlements.py"
+    },
+    "software_bill_of_materials": {
+      "status": "AVAILABLE",
+      "claim": "CycloneDX-compatible Software Bill of Materials (SBOM) with cryptographic supply chain provenance",
+      "evidence_test": "tests/test_entitlements_and_sbom.py",
+      "code_path": "core/security/sbom.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",

@@ -112,6 +112,8 @@ class ReceiptVerifier:
             return cls._verify_bundle_export_receipt(data, target_path)
         elif "flight_tape_sha256" in data and "app_name" in data and "template" in data:
             return cls._verify_app_build_receipt(data, target_path)
+        elif data.get("bom_format") == "CycloneDX" or ("components" in data and "root_digest_sha256" in data and "provenance_signature" in data):
+            return cls._verify_sbom_manifest(data, secret_key=secret_key)
         elif "manifest_digest" in data and "spec_name" in data and "receipt_sha256" in data:
             return cls._verify_agent_build_receipt(data)
         else:
@@ -402,3 +404,20 @@ class ReceiptVerifier:
             },
             errors=errors,
         )
+
+    @classmethod
+    def _verify_sbom_manifest(cls, data: Dict[str, Any], secret_key: Optional[bytes] = None) -> ReceiptVerificationReport:
+        from core.security.sbom import SBOMVerifier, DEFAULT_PROVENANCE_KEY
+        key = secret_key or DEFAULT_PROVENANCE_KEY
+        valid, status, details = SBOMVerifier.verify(data, signing_key=key)
+        errors = [] if valid else [f"SBOM provenance verification failed: {status}"]
+        return ReceiptVerificationReport(
+            receipt_type="sbom_manifest",
+            is_valid=valid,
+            receipt_id=data.get("serial_number", "unknown_sbom"),
+            digest_calculated=details.get("root_digest", ""),
+            digest_claimed=data.get("root_digest_sha256", ""),
+            details=details,
+            errors=errors,
+        )
+

@@ -56,6 +56,7 @@ keelway_audit.db-shm
 keelway_audit.db-wal
 bundle.json
 audit_bundle.json
+keelway-sbom.json
 
 # Logs & temp
 *.log

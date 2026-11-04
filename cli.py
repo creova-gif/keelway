@@ -876,6 +876,69 @@ def cmd_flight(action: str, target: str, show_events: bool = False) -> int:
     return 0
 
 
+def cmd_sbom(action: str = "generate", out: Optional[Path] = None, target: Optional[str] = None) -> int:
+    """Generate or verify CycloneDX-compatible Software Bill of Materials (SBOM)."""
+    import json
+    from core.security.sbom import SBOMGenerator, SBOMVerifier
+    if action == "generate":
+        manifest = SBOMGenerator.generate()
+        out_path = out or Path("keelway-sbom.json")
+        out_path.write_text(json.dumps(manifest.to_dict(), indent=2), encoding="utf-8")
+        print("\n" + "=" * 65)
+        print("  📦 KEELWAY SOFTWARE BILL OF MATERIALS (SBOM) GENERATED")
+        print("=" * 65)
+        print(f"  Format:       {manifest.bom_format} v{manifest.spec_version}")
+        print(f"  Serial:       {manifest.serial_number}")
+        print(f"  Components:   {len(manifest.components)}")
+        print(f"  Root Digest:  {manifest.root_digest_sha256[:24]}...")
+        print(f"  Signature:    {manifest.provenance_signature[:24]}...")
+        print(f"  Destination:  {out_path}\n")
+        return 0
+    elif action == "verify":
+        t_path = Path(target or out or "keelway-sbom.json")
+        if not t_path.exists():
+            print(f"[-] SBOM file not found: {t_path}")
+            return 1
+        data = json.loads(t_path.read_text(encoding="utf-8"))
+        valid, status, details = SBOMVerifier.verify(data)
+        print("\n" + "=" * 65)
+        print("  🔍 KEELWAY SUPPLY CHAIN PROVENANCE VERIFICATION")
+        print("=" * 65)
+        print(f"  Target:       {t_path}")
+        print(f"  Status:       {'[✓] VERIFIED' if valid else '[✗] FAILED: ' + status}")
+        print(f"  Components:   {details.get('components_count', 0)}")
+        print(f"  Root Digest:  {details.get('root_digest', '')[:24]}...\n")
+        return 0 if valid else 1
+    return 1
+
+
+def cmd_entitlements(action: str = "status", org: str = "default-org", feature: Optional[str] = None) -> int:
+    """Inspect or verify active organization entitlements and feature gates."""
+    import time
+    from core.billing.entitlements import get_shared_entitlement_manager
+    mgr = get_shared_entitlement_manager()
+
+    if action == "check" and feature:
+        allowed, reason = mgr.check_feature_access(org, feature)
+        badge = "[✓ GRANTED]" if allowed else "[✗ DENIED]"
+        print(f"{badge} Feature '{feature}' for org '{org}': {reason}")
+        return 0 if allowed else 1
+
+    cert = mgr.get_certificate(org)
+    valid, status = cert.is_valid()
+    print("\n" + "=" * 65)
+    print("  📜 KEELWAY ENTERPRISE ENTITLEMENTS & LICENSE")
+    print("=" * 65)
+    print(f"  Organization: {cert.org_name} [{cert.org_id}]")
+    print(f"  Tier:         {cert.tier.value.upper()}")
+    print(f"  Status:       {'[✓] ' + status if valid else '[✗] ' + status}")
+    print(f"  Seats:        {cert.seats}")
+    print(f"  Features:     {', '.join(sorted(cert.allowed_features))}")
+    print(f"  Expires:      {time.strftime('%Y-%m-%d %H:%M:%SZ', time.gmtime(cert.expires_at))}")
+    print(f"  Grace Period: {cert.grace_period_days} days\n")
+    return 0
+
+
 def cmd_git(action: str, msg: str = "", path: Optional[str] = None, base: str = "main") -> int:
     """Execute local Git operations with governance and safety boundaries."""
     from core.storage.workspace_fs import WorkspaceFilesystem
@@ -2079,6 +2142,23 @@ def main():
     _ag_b_ver = _ag_bundle_sub.add_parser("verify", help="Verify cryptographic integrity of bundle directory or archive")
     _ag_b_ver.add_argument("target", help="Path to bundle directory or .tar.gz archive")
 
+    # sbom (Software Bill of Materials & Provenance)
+    sbom_parser = subparsers.add_parser("sbom", help="Generate or verify CycloneDX Software Bill of Materials")
+    sbom_sub = sbom_parser.add_subparsers(dest="sbom_command", required=True)
+    _sb_gen = sbom_sub.add_parser("generate", help="Generate CycloneDX SBOM manifest with cryptographic root digest")
+    _sb_gen.add_argument("--out", type=Path, default=None, help="Output JSON path (default: keelway-sbom.json)")
+    _sb_ver = sbom_sub.add_parser("verify", help="Cryptographically verify an SBOM manifest against components")
+    _sb_ver.add_argument("target", nargs="?", default="keelway-sbom.json", help="Path to SBOM JSON manifest")
+
+    # entitlements (Enterprise License & Feature Gating)
+    ent_parser = subparsers.add_parser("entitlements", help="Inspect enterprise license tier, feature gates, and seats")
+    ent_sub = ent_parser.add_subparsers(dest="entitlements_command", required=True)
+    _ent_st = ent_sub.add_parser("status", help="Display organization license tier and active features")
+    _ent_st.add_argument("--org", default="default-org", help="Target organization ID")
+    _ent_chk = ent_sub.add_parser("check", help="Check if a specific feature is permitted")
+    _ent_chk.add_argument("feature", help="Feature key to evaluate")
+    _ent_chk.add_argument("--org", default="default-org", help="Target organization ID")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -2357,6 +2437,22 @@ def main():
                 print(f"    License: {manifest['license']}")
                 print(f"    DLP Scanned: {manifest['data_governance']['dlp_scanned']}\n")
         asyncio.run(run_dataset())
+    elif args.command == "sbom":
+        sys.exit(
+            cmd_sbom(
+                action=getattr(args, "sbom_command", "generate"),
+                out=getattr(args, "out", None),
+                target=getattr(args, "target", None),
+            )
+        )
+    elif args.command == "entitlements":
+        sys.exit(
+            cmd_entitlements(
+                action=getattr(args, "entitlements_command", "status"),
+                org=getattr(args, "org", "default-org"),
+                feature=getattr(args, "feature", None),
+            )
+        )
 
 
 if __name__ == "__main__":
