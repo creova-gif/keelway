@@ -2252,3 +2252,81 @@ async def get_system_doctor_report(
     return report.to_dict()
 
 
+# ---------------------------------------------------------------------------
+# Sovereign Cross-Machine Encrypted Sync & Web Console Endpoints
+# ---------------------------------------------------------------------------
+
+class SyncMutateRequest(BaseModel):
+    entity_type: str
+    task_id: str
+    payload: Dict[str, Any]
+    workspace_id: str = "default_workspace"
+
+
+@router.get("/v1/sync/status", tags=["Cross-Machine Sync"])
+async def get_sync_status(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve operational state, logical Lamport counter, and vector clocks."""
+    from core.sync.engine import get_shared_sync_engine
+    engine = get_shared_sync_engine()
+    return engine.get_status()
+
+
+@router.post("/v1/sync/mutate", tags=["Cross-Machine Sync"])
+async def record_sync_mutation(
+    req: SyncMutateRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Record a local state mutation into the append-only sync journal."""
+    from core.sync.engine import get_shared_sync_engine
+    engine = get_shared_sync_engine()
+    rec = engine.record_mutation(
+        entity_type=req.entity_type,
+        task_id=req.task_id,
+        payload=req.payload,
+        workspace_id=req.workspace_id,
+    )
+    return {"status": "RECORDED", "record": rec.to_dict()}
+
+
+@router.post("/v1/sync/export", tags=["Cross-Machine Sync"])
+async def export_sync_envelope(
+    since_lamport: int = 0,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Package un-synced journal records into an authenticated encrypted envelope."""
+    from core.sync.engine import get_shared_sync_engine
+    engine = get_shared_sync_engine()
+    envelope = engine.export_envelope(since_lamport=since_lamport)
+    return envelope.to_dict()
+
+
+class SyncImportRequest(BaseModel):
+    envelope: Dict[str, Any]
+
+
+@router.post("/v1/sync/import", tags=["Cross-Machine Sync"])
+async def import_sync_envelope(
+    req: SyncImportRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Decrypt, verify, and deterministically merge an inbound sync envelope."""
+    from core.sync.engine import get_shared_sync_engine, EncryptedSyncEnvelope
+    engine = get_shared_sync_engine()
+    env = EncryptedSyncEnvelope.from_dict(req.envelope)
+    return engine.import_envelope(env)
+
+
+@router.get("/v1/sync/records", tags=["Cross-Machine Sync"])
+async def list_sync_records(
+    limit: int = 100,
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """Retrieve the sorted append-only sync journal audit trail."""
+    from core.sync.engine import get_shared_sync_engine
+    engine = get_shared_sync_engine()
+    return [r.to_dict() for r in engine.journal[-limit:]]
+
+
+

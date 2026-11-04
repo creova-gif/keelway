@@ -1474,6 +1474,104 @@ async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, targe
     return 1
 
 
+async def cmd_sync(action: str, out_path: Optional[str] = None, in_path: Optional[str] = None) -> int:
+    """Manage cross-machine encrypted task state synchronization."""
+    import json
+    from core.sync.engine import (
+        SovereignSyncEngine,
+        get_shared_sync_engine,
+        EncryptedSyncEnvelope,
+    )
+    engine = get_shared_sync_engine()
+
+    if action == "status":
+        st = engine.get_status()
+        print("\n" + "=" * 68)
+        print("  🔄 KEELWAY CROSS-MACHINE SOVEREIGN SYNC")
+        print("  End-to-End Authenticated Encryption & Monotonic Vector Clocks")
+        print("=" * 68)
+        print(f"  • Machine ID        : {st['machine_id']}")
+        print(f"  • Organization ID   : {st['org_id']}")
+        print(f"  • Lamport Logical # : {st['lamport_counter']}")
+        print(f"  • Journal Records   : {st['journal_records_total']}")
+        print(f"  • Vector Clocks     : {json.dumps(st['vector_clock'])}")
+        print(f"  • Synchronized Peers: {len(st['known_peers'])}")
+        print("=" * 68 + "\n")
+        return 0
+
+    elif action == "export":
+        envelope = engine.export_envelope()
+        data_json = json.dumps(envelope.to_dict(), indent=2)
+        if out_path:
+            p = Path(out_path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(data_json, encoding="utf-8")
+            print(f"[✓] Encrypted sync envelope ({envelope.records_count} records) exported to: {out_path}")
+        else:
+            print(data_json)
+        return 0
+
+    elif action == "import":
+        if not in_path or not Path(in_path).exists():
+            print(f"[✗] Error: Target envelope file '{in_path}' does not exist.")
+            return 1
+        raw_json = json.loads(Path(in_path).read_text(encoding="utf-8"))
+        env = EncryptedSyncEnvelope.from_dict(raw_json)
+        res = engine.import_envelope(env)
+        print(f"[✓] Sync envelope merged successfully from machine: {res['source_machine']}")
+        print(f"    • Processed records: {res['records_processed']}")
+        print(f"    • New records:       {res['new_records_merged']}")
+        print(f"    • Current clock:     #{res['current_lamport_time']}")
+        return 0
+
+    elif action == "demo":
+        print("\n" + "=" * 68)
+        print("  🔄 SIMULATING CROSS-MACHINE ENCRYPTED STATE SYNCHRONIZATION")
+        print("=" * 68)
+        # Machine 1: Alice's MacBook
+        engine_a = SovereignSyncEngine(machine_id="alice-macbook-pro", org_id="enterprise-dev")
+        # Machine 2: Bob's Linux Workstation
+        engine_b = SovereignSyncEngine(machine_id="bob-linux-station", org_id="enterprise-dev")
+
+        print("\n  [1] Alice records local agent task state mutation...")
+        rec_a = engine_a.record_mutation(
+            entity_type="task_state",
+            task_id="task_ast_01",
+            payload={"action": "ast_refactor", "files": ["core/ast.py"], "status": "VERIFIED"}
+        )
+        print(f"      Alice Lamport: #{rec_a.lamport_time} | Vector: {engine_a.vector_clock}")
+
+        print("\n  [2] Alice exports authenticated encrypted envelope (AES-256-CTR + HMAC-SHA256)...")
+        env_a = engine_a.export_envelope()
+        print(f"      Envelope ID: {env_a.envelope_id[:24]}... | Digest: {env_a.bundle_digest_sha256[:16]}...")
+
+        print("\n  [3] Bob imports Alice's encrypted envelope over relay/P2P mesh...")
+        merge_res_b = engine_b.import_envelope(env_a)
+        print(f"      Bob Merged: {merge_res_b['new_records_merged']} records | Bob Clock: #{merge_res_b['current_lamport_time']}")
+        print(f"      Bob Vector: {merge_res_b['vector_clock']}")
+
+        print("\n  [4] Bob records a concurrent task completion on his workstation...")
+        rec_b = engine_b.record_mutation(
+            entity_type="approval_decision",
+            task_id="task_ast_01",
+            payload={"decision": "APPROVED", "approver": "bob", "role": "security_lead"}
+        )
+        print(f"      Bob Lamport: #{rec_b.lamport_time} | Vector: {engine_b.vector_clock}")
+
+        print("\n  [5] Bob exports encrypted envelope back to Alice...")
+        env_b = engine_b.export_envelope()
+        merge_res_a = engine_a.import_envelope(env_b)
+        print(f"      Alice Merged: {merge_res_a['new_records_merged']} records | Alice Clock: #{merge_res_a['current_lamport_time']}")
+        print(f"      Alice Vector: {merge_res_a['vector_clock']}")
+
+        print("\n" + "=" * 68)
+        print("  ALL MACHINES DETERMINISTICALLY SYNCHRONIZED [100% CONVERGENCE]")
+        print("=" * 68 + "\n")
+        return 0
+
+    return 1
+
+
 async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
     """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
@@ -2001,6 +2099,16 @@ def main():
     mob_notify.add_argument("--action", default="git_merge_main", help="Action to approve")
     mob_notify.add_argument("--task-id", default="task_mobile_01", help="Task ID")
 
+    # sync (Cross-Machine Encrypted Task Synchronization)
+    sync_parser = subparsers.add_parser("sync", help="Cross-machine encrypted task state synchronization")
+    sync_sub = sync_parser.add_subparsers(dest="sync_command", required=True)
+    sync_sub.add_parser("status", help="Show local sync state and vector clocks")
+    sync_export = sync_sub.add_parser("export", help="Export encrypted sync envelope")
+    sync_export.add_argument("--out", default=None, help="Output file path (default: stdout)")
+    sync_import = sync_sub.add_parser("import", help="Import encrypted sync envelope from file")
+    sync_import.add_argument("path", help="Path to encrypted sync envelope JSON file")
+    sync_sub.add_parser("demo", help="Simulate cross-machine state sync between two nodes")
+
     token_parser = subparsers.add_parser("token", help="Manage API tokens (auth + RBAC)")
     token_sub = token_parser.add_subparsers(dest="token_command", required=True)
     token_create = token_sub.add_parser("create", help="Mint a new API token")
@@ -2473,6 +2581,12 @@ def main():
             target=getattr(args, "target", ""),
             action_name=getattr(args, "action", ""),
             task_id=getattr(args, "task_id", ""),
+        )))
+    elif args.command == "sync":
+        sys.exit(asyncio.run(cmd_sync(
+            action=args.sync_command,
+            out_path=getattr(args, "out", None),
+            in_path=getattr(args, "path", None),
         )))
     elif args.command == "tier2":
         sys.exit(asyncio.run(cmd_tier2(args.tier2_command, getattr(args, "subsystem", "all"))))

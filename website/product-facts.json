@@ -161,9 +161,10 @@
       "code_path": "mobile/, cli.py"
     },
     "hosted_cloud_sync_workspace": {
-      "status": "PLANNED",
-      "claim": "Cross-device encrypted task sync and team collaboration workspace",
-      "code_path": "web-console/"
+      "status": "AVAILABLE",
+      "claim": "Cross-machine encrypted task sync, monotonic vector clocks, and self-contained team web console",
+      "evidence_test": "tests/test_sync_engine.py",
+      "code_path": "core/sync/engine.py, web-console/index.html"
     }
   }
 }

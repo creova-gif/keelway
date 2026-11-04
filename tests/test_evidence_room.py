@@ -53,14 +53,14 @@ def test_evidence_room_package_sealing():
 
 
 def test_assemble_evidence_package():
-    """Verify end-to-end evidence gathering across all 9 verification categories."""
+    """Verify end-to-end evidence gathering across all 10 verification categories."""
     pkg = EvidenceRoomPipeline.assemble_package()
     assert pkg.package_id.startswith("evd_")
     assert pkg.commit_sha != ""
     assert pkg.package_sha256 != ""
-    assert len(pkg.metrics) == 9
+    assert len(pkg.metrics) == 10
     assert pkg.summary["all_verified"] is True
-    assert pkg.summary["total_verified_metrics"] == 9
+    assert pkg.summary["total_verified_metrics"] == 10
 
     # Validate each expected category is represented
     categories = {m["category"] for m in pkg.metrics}
@@ -81,7 +81,7 @@ def test_evidence_api_endpoints():
     sum_data = resp_sum.json()
     assert "package_id" in sum_data
     assert "metrics" in sum_data
-    assert len(sum_data["metrics"]) == 9
+    assert len(sum_data["metrics"]) == 10
 
     # 2. Generate
     resp_gen = client.post("/v1/evidence/generate")

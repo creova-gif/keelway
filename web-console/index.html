@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Keelway — Sovereign Cross-Machine Sync Console</title>
+  <style>
+    :root {
+      --bg: #0c0e14;
+      --card: #151822;
+      --border: #232838;
+      --fg: #e2e8f0;
+      --muted: #8492a6;
+      --accent: #38bdf8;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --err: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 24px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .brand { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+    .brand span { color: var(--accent); }
+    .pill {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      font-family: monospace;
+    }
+    .pill.ok { border-color: var(--ok); color: var(--ok); }
+    .pill.accent { border-color: var(--accent); color: var(--accent); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .metric { font-size: 24px; font-weight: 700; font-family: monospace; color: var(--accent); }
+    .metric-sub { font-size: 11px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
+    th { text-align: left; padding: 8px; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 11px; }
+    td { padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    button {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: monospace;
+      transition: all 0.15s ease;
+    }
+    button:hover { border-color: var(--accent); color: var(--accent); }
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+    pre {
+      background: #08090d;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--muted);
+      max-height: 240px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">KEELWAY <span>SYNC</span></div>
+      <div style="font-size: 12px; color: var(--muted);">Cross-Machine Encrypted Task Synchronization &amp; Team Console</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <span class="pill ok">End-to-End Encrypted</span>
+      <span class="pill accent">Monotonic Vector Clock</span>
+      <span class="pill" id="node-id-pill">Node: local</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Local Node State</h3>
+      <div class="metric" id="lamport-clock">0</div>
+      <div class="metric-sub">Monotonic Logical Time (Lamport Counter)</div>
+      <div style="margin-top: 12px; font-family: monospace; font-size: 11px;">
+        <div>Machine: <span id="machine-id" style="color: var(--accent);">-</span></div>
+        <div>Org ID: <span id="org-id" style="color: var(--fg);">-</span></div>
+        <div>Journal Entries: <span id="journal-count" style="color: var(--ok);">-</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Vector Clocks (Peer Mesh)</h3>
+      <pre id="vector-clocks">{"local": 0}</pre>
+    </div>
+
+    <div class="card">
+      <h3>Synchronized Machine Peers</h3>
+      <div id="peer-list" style="font-family: monospace; font-size: 12px; color: var(--muted);">No external peers synced yet. Export or import an encrypted sync envelope to exchange state.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 24px;">
+    <h3>
+      <span>Encrypted Transmission Envelope Actions</span>
+      <span style="font-size: 11px; text-transform: none; color: var(--ok);">AES-256-CTR + HMAC-SHA256 Encrypt-then-MAC</span>
+    </h3>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <button class="primary" id="btn-refresh">Refresh Sync State</button>
+      <button id="btn-export">Export Encrypted Envelope</button>
+      <button id="btn-demo">Simulate Cross-Machine Peer</button>
+    </div>
+    <pre id="output-log">// Ready for peer state synchronization...</pre>
+  </div>
+
+  <div class="card">
+    <h3>Synchronized State Journal (Append-Only Audit Chain)</h3>
+    <table id="records-table">
+      <thead>
+        <tr>
+          <th>Time (UTC)</th>
+          <th>Machine ID</th>
+          <th>Task ID</th>
+          <th>Entity Type</th>
+          <th>Lamport #</th>
+          <th>Payload Digest</th>
+        </tr>
+      </thead>
+      <tbody id="records-tbody">
+        <tr><td colspan="6" style="color: var(--muted); text-align: center;">No sync records recorded yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function api(path, options = {}) {
+      const res = await fetch(path, options);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    async function loadSyncState() {
+      try {
+        const data = await api('/v1/sync/status');
+        document.getElementById('machine-id').textContent = data.machine_id;
+        document.getElementById('node-id-pill').textContent = `Node: ${data.machine_id.slice(0, 16)}`;
+        document.getElementById('org-id').textContent = data.org_id;
+        document.getElementById('lamport-clock').textContent = data.lamport_counter;
+        document.getElementById('journal-count').textContent = data.journal_records_total;
+        document.getElementById('vector-clocks').textContent = JSON.stringify(data.vector_clock, null, 2);
+
+        const peerKeys = Object.keys(data.known_peers);
+        const peerListEl = document.getElementById('peer-list');
+        if (peerKeys.length > 0) {
+          peerListEl.innerHTML = peerKeys.map(k => `<div>• <b>${k}</b>: last seen ${data.known_peers[k].last_seen_utc} (${data.known_peers[k].records_received} records)</div>`).join('');
+        } else {
+          peerListEl.textContent = 'No external peers synced yet. Export or import an encrypted sync envelope to exchange state.';
+        }
+      } catch (e) {
+        document.getElementById('output-log').textContent = `[!] Sync status error: ${e.message}`;
+      }
+    }
+
+    async function loadRecords() {
+      try {
+        const records = await api('/v1/sync/records');
+        const tbody = document.getElementById('records-tbody');
+        if (!records || records.length === 0) return;
+        tbody.innerHTML = records.map(r => `
+          <tr>
+            <td>${r.timestamp_utc}</td>
+            <td>${r.machine_id.slice(0, 12)}</td>
+            <td>${r.task_id}</td>
+            <td><span class="pill accent">${r.entity_type}</span></td>
+            <td>#${r.lamport_time}</td>
+            <td><code>${r.payload_sha256.slice(0, 12)}...</code></td>
+          </tr>
+        `).join('');
+      } catch (e) {}
+    }
+
+    document.getElementById('btn-refresh').addEventListener('click', () => {
+      loadSyncState();
+      loadRecords();
+    });
+
+    document.getElementById('btn-export').addEventListener('click', async () => {
+      try {
+        const env = await api('/v1/sync/export', { method: 'POST' });
+        document.getElementById('output-log').textContent = `[✓] ENCRYPTED SYNC ENVELOPE EXPORTED\n` +
+          `Envelope ID:    ${env.envelope_id}\n` +
+          `Records Count:  ${env.records_count}\n` +
+          `Cipher:         ${env.cipher}\n` +
+          `Digest SHA-256: ${env.bundle_digest_sha256}\n` +
+          `Auth Tag:       ${env.auth_tag}`;
+        loadSyncState();
+      } catch (e) {
+        document.getElementById('output-log').textContent = `[!] Export error: ${e.message}`;
+      }
+    });
+
+    document.getElementById('btn-demo').addEventListener('click', async () => {
+      try {
+        // Record mutation first
+        await api('/v1/sync/mutate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entity_type: 'task_state',
+            task_id: `task_${Date.now()}`,
+            payload: { status: 'COMPLETED', test_results: '100% PASS' }
+          })
+        });
+        document.getElementById('output-log').textContent = `[✓] Local state mutation recorded and synced to monotonic journal.`;
+        loadSyncState();
+        loadRecords();
+      } catch (e) {
+        document.getElementById('output-log').textContent = `[!] Mutation error: ${e.message}`;
+      }
+    });
+
+    loadSyncState();
+    loadRecords();
+  </script>
+</body>
+</html>
