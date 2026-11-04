@@ -63,6 +63,7 @@
       <h4>Core Architecture</h4>
       <a href="#state-machine">Deterministic State Engine</a>
       <a href="#flight-recorder">Flight Tapes &amp; Time Travel</a>
+      <a href="#dual-mode-sync">Dual-Mode IDE &amp; Sync Bridge</a>
       <a href="#policy-engine">Fail-Closed Policy &amp; Quorum</a>
 
       <h4>K-Series Extensions</h4>
@@ -159,6 +160,24 @@ $ keelway dev --desktop</pre>
     <section id="flight-recorder">
       <h2>5. Flight Tapes &amp; Time-Travel Debugging</h2>
       <p>Every agent step, AST transformation, tool invocation, and terminal execution is recorded chronologically in an immutable <code>.flight.json</code> tape. The Studio interface features a deterministic flight replay visualizer with frame stepping (<code>⏮</code>, <code>◀</code>, <code>▶</code>, <code>⏭</code>), syntax-highlighted diffs, and live cryptographic seal verification.</p>
+    </section>
+
+    <!-- 5B. DUAL-MODE SOVEREIGN IDE & SYNC BRIDGE -->
+    <section id="dual-mode-sync">
+      <h2>6. Dual-Mode Sovereign IDE &amp; External Editor Sync</h2>
+      <p>Developers shouldn't have to choose between a dedicated AI-native IDE and their existing muscle memory in VS Code or Cursor. Keelway operates as a <strong>Dual-Mode Sovereign IDE</strong>:</p>
+      <ul>
+        <li><strong>Mode 1 (Sovereign Standalone IDE):</strong> Complete built-in Monaco editor, integrated terminal, Git visualizer, and agent task board with zero external dependencies.</li>
+        <li><strong>Mode 2 (External Editor Sync Bridge):</strong> 1-click launch into VS Code (<code>code -r</code>) or Cursor (<code>cursor -r</code>) with sub-150ms debounced bidirectional filesystem synchronization.</li>
+        <li><strong>Pessimistic Pause &amp; Prompt:</strong> When an external developer mutates a file with an active agent lease, Keelway automatically pauses the agent, emits an <code>EXTERNAL_CONCURRENT_MUTATION</code> event to the flight recorder tape, and presents a 3-way visual resolution dialog.</li>
+      </ul>
+      <div class="card term">
+        <div class="bar"><span class="mono">bash</span></div>
+        <pre class="mono"><span class="c"># Launch workspace directly in your preferred editor</span>
+$ curl -X POST http://localhost:7420/v1/editor-sync/open-in-editor \
+    -H "Authorization: Bearer $KEELWAY_TOKEN" \
+    -d '{"editor": "vscode", "relative_path": ""}'</pre>
+      </div>
     </section>
 
     <!-- 6. KSTACK -->

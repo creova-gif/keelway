@@ -76,6 +76,12 @@
       "evidence_test": "tests/test_git_workflow.py",
       "code_path": "core/storage/workspace_fs.py"
     },
+    "dual_mode_external_editor_sync": {
+      "status": "AVAILABLE",
+      "claim": "Dual-mode sovereign IDE with seamless 1-click external editor bridge (VS Code, Cursor), sub-150ms debouncing, and pessimistic pause-and-prompt conflict policy with flight recorder audit trail",
+      "evidence_test": "tests/test_editor_sync_bridge.py",
+      "code_path": "core/sync/bridge.py, core/api/sync_routes.py, core/studio/assets/studio.js"
+    },
     "framework_autodetection": {
       "status": "AVAILABLE",
       "claim": "Automatic detection of Python, Node, Rust, Go, and Make test commands",
