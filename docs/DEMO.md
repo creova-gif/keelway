@@ -58,6 +58,14 @@ The command prints a Studio URL with a launch token. Set `KEELWAY_API_TOKEN` if 
     python cli.py agent sign docs/spec/examples/test-fixer.agent.json
     python cli.py agent verify docs/spec/examples/test-fixer.agent.json
     ```
+13. **KStack, KBrain, KHub, KSpaces & KFlow Governance.** Inspect role skills, DLP fact memory, team spaces, and DAG proofs:
+    ```bash
+    python cli.py skill list           # List pinned role skills (plan, review, qa, security)
+    python cli.py brain query          # Query scope-governed knowledge facts
+    python cli.py hub list            # Discover imported third-party skills and prompt rules
+    python cli.py space list          # List collaborative team workspaces and RBAC roles
+    python cli.py flow run             # Execute deterministic DAG workflow with sealed proof packet
+    ```
 
 ## Cleanup
 
