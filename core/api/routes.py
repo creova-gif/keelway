@@ -846,6 +846,48 @@ async def get_workspace_git_diff(path: Optional[str] = None):
         raise HTTPException(status_code=403, detail=str(e))
 
 
+@router.get("/v1/git/proposal", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
+async def get_git_commit_proposal():
+    """Generates a structured semantic commit message and diff metrics from uncommitted workspace changes."""
+    try:
+        return _workspace_fs.prepare_commit_proposal()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/v1/git/commit", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
+async def create_local_git_commit(payload: dict, principal: Principal = Depends(current_principal)):
+    """Creates a verified local Git commit. Pushing to remote is never performed automatically."""
+    message = payload.get("message", "")
+    author_name = payload.get("author_name", principal.actor)
+    author_email = payload.get("author_email", f"{principal.actor}@keelway.local")
+
+    try:
+        res = _workspace_fs.create_local_commit(
+            message=message,
+            author_name=author_name,
+            author_email=author_email,
+        )
+        await record_audit(principal, "git_local_commit", f"{res['commit_sha'][:8]} {message.splitlines()[0]}", True)
+        return res
+    except ValueError as e:
+        await record_audit(principal, "git_local_commit_rejected", str(e), False)
+        raise HTTPException(status_code=400, detail=str(e))
+    except subprocess.CalledProcessError as e:
+        err = e.stderr.decode() if isinstance(e.stderr, bytes) else str(e)
+        await record_audit(principal, "git_local_commit_failed", err, False)
+        raise HTTPException(status_code=500, detail=f"Git commit failed: {err}")
+
+
+@router.get("/v1/git/pr/proposal", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
+async def get_git_pr_proposal(base_branch: str = "main"):
+    """Generates a structured Pull Request proposal with change summary and test evidence."""
+    try:
+        return _workspace_fs.prepare_pr_proposal(base_branch=base_branch)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # =====================================================================
 # Codebase Semantic Index & RepoMap Endpoints
 # =====================================================================
