@@ -2387,7 +2387,23 @@ def cmd_airgap(
     return 1
 
 
-def main():
+def cmd_openapi(out_path: Path = Path("website/openapi.json"), to_stdout: bool = False) -> int:
+    """Export the OpenAPI 3.1 schema of Keelway Core to JSON or stdout."""
+    import json
+    from core.main import app
+
+    schema = app.openapi()
+    if to_stdout:
+        print(json.dumps(schema, indent=2))
+    else:
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
+        print(f"[+] Exported OpenAPI 3.1 schema ({len(schema.get('paths', {}))} endpoints) to {out_path}")
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -2700,8 +2716,8 @@ def main():
     _t_run.add_argument("--approve", action="store_true", help="Auto-approve non-critical steps")
 
     # build (Prompt-to-App Guided Builder)
-    build_parser = subparsers.add_parser("build", help="Scaffold, verify, and flight-record full applications from prompt or template")
-    build_sub = build_parser.add_subparsers(dest="build_command", required=True)
+    build_cmd_parser = subparsers.add_parser("build", help="Scaffold, verify, and flight-record full applications from prompt or template")
+    build_sub = build_cmd_parser.add_subparsers(dest="build_command", required=True)
     build_sub.add_parser("templates", help="List available application templates")
     _b_plan = build_sub.add_parser("plan", help="Synthesize architecture plan from prompt or template")
     _b_plan.add_argument("intent", help="Application requirements or description")
@@ -2832,9 +2848,40 @@ def main():
     _fl_run = flow_sub.add_parser("run", help="Execute governed task DAG and generate proof packet")
     _fl_run.add_argument("--flow-id", default="flow_demo", help="Flow identifier")
 
-    args = parser.parse_args()
+    # openapi / api export
+    openapi_parser = subparsers.add_parser("openapi", help="Export OpenAPI 3.1 JSON schema for Keelway Core")
+    openapi_parser.add_argument("--out", type=Path, default=Path("website/openapi.json"), help="Output path for openapi.json")
+    openapi_parser.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
 
-    if args.command == "mcp":
+    api_parser = subparsers.add_parser("api", help="Manage and export API specifications")
+    api_sub = api_parser.add_subparsers(dest="api_command", required=True)
+    api_export = api_sub.add_parser("export", help="Export OpenAPI 3.1 JSON schema")
+    api_export.add_argument("--out", type=Path, default=Path("website/openapi.json"), help="Output path for openapi.json")
+    api_export.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
+
+    return parser
+
+
+def main(argv=None):
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.command == "openapi":
+        sys.exit(
+            cmd_openapi(
+                out_path=getattr(args, "out", Path("website/openapi.json")),
+                to_stdout=getattr(args, "stdout", False),
+            )
+        )
+    elif args.command == "api":
+        if getattr(args, "api_command", None) == "export":
+            sys.exit(
+                cmd_openapi(
+                    out_path=getattr(args, "out", Path("website/openapi.json")),
+                    to_stdout=getattr(args, "stdout", False),
+                )
+            )
+    elif args.command == "mcp":
         from core.orchestration.mcp import build_workspace_server, serve_stdio
         asyncio.run(serve_stdio(build_workspace_server(args.workspace)))
     elif args.command == "mesh":

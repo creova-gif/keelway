@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keelway REST API Reference — 119 Verified Endpoints</title>
+<meta name="description" content="Complete REST API reference for Keelway Core, KStack, KBrain, KHub, KSpaces, Flight Recorder, and Tier 2 Hardware Security HAL.">
+<link rel="canonical" href="https://kora-sable.vercel.app/api.html">
+<meta property="og:title" content="Keelway REST API Reference">
+<meta property="og:description" content="119 verified endpoints covering sovereign agent execution, role skills, DLP fact memory, and cryptographic proofs.">
+<meta property="og:type" content="article">
+<meta name="theme-color" content="#0B0F14">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<style>
+.api-header { padding: 48px 0 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+.api-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; font-size: 14px; color: var(--muted); }
+.api-stats span { display: flex; align-items: center; gap: 6px; }
+.search-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+.search-input { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; color: var(--fg); font: 15px/1.5 Inter, sans-serif; }
+.search-input:focus { outline: 2px solid var(--teal); outline-offset: -1px; }
+.tag-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.tag-btn { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.tag-btn:hover, .tag-btn.active { background: color-mix(in srgb, var(--teal) 15%, transparent); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+.endpoint-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; transition: border-color 0.15s; }
+.endpoint-card:hover { border-color: color-mix(in srgb, var(--teal) 50%, var(--line)); }
+.endpoint-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.endpoint-path { font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: 600; color: var(--fg); }
+.method-pill { font: 700 11px/1 "JetBrains Mono", monospace; padding: 5px 8px; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+.method-GET { background: rgba(45, 212, 191, 0.15); color: #2DD4BF; border: 1px solid rgba(45, 212, 191, 0.3); }
+.method-POST { background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); }
+.method-DELETE { background: rgba(248, 113, 113, 0.15); color: #F87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+.method-PUT, .method-PATCH { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.endpoint-desc { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+.endpoint-tag { font-size: 11px; font-family: "JetBrains Mono", monospace; color: var(--muted); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Keelway home">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <span>Kora &amp; Keelway <small>API Reference</small></span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href="index.html">Overview</a>
+      <a href="index.html#status">Readiness</a>
+      <a href="docs.html">Docs</a>
+      <a href="api.html" style="color: var(--teal); font-weight: 600;">API Explorer</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="openapi.json" target="_blank" rel="noopener">Raw OpenAPI</a>
+    </nav>
+    <a class="btn primary" href="index.html#quickstart">Launch Studio</a>
+  </div>
+</header>
+
+<main id="main" class="wrap" style="padding-bottom: 64px;">
+  <div class="api-header">
+    <span class="eyebrow">Interactive REST Catalog</span>
+    <h1 style="margin-top: 12px; font-size: 32px;">Keelway Core REST API Reference</h1>
+    <p class="lede" style="margin-bottom: 12px;">Browse, filter, and inspect all 119 verified REST endpoints powering the local agent runtime, role skills, fact memory, and sovereign hardware governance.</p>
+    <div class="api-stats">
+      <span><strong style="color: var(--teal);" id="total-count">119</strong> Endpoints</span>
+      <span>•</span>
+      <span>OpenAPI 3.1.0 Compliant</span>
+      <span>•</span>
+      <span>Strict Bearer &amp; Studio Token RBAC</span>
+      <span>•</span>
+      <span><a href="openapi.json" download style="color: var(--teal); text-decoration: underline;">Download openapi.json</a></span>
+    </div>
+  </div>
+
+  <!-- SEARCH & FILTER -->
+  <div class="search-bar">
+    <input type="text" id="api-search" class="search-input" placeholder="Search endpoints by path, tag, or description... (e.g. /v1/kstack, flight, task)">
+  </div>
+
+  <div class="tag-pills" id="tag-pills">
+    <button type="button" class="tag-btn active" data-tag="ALL">All Categories</button>
+    <button type="button" class="tag-btn" data-tag="KStack">KStack Roles</button>
+    <button type="button" class="tag-btn" data-tag="KBrain">KBrain Memory</button>
+    <button type="button" class="tag-btn" data-tag="KHub">KHub Importer</button>
+    <button type="button" class="tag-btn" data-tag="KSpaces">KSpaces Workspaces</button>
+    <button type="button" class="tag-btn" data-tag="Deterministic Flight Recorder">Flight Recorder</button>
+    <button type="button" class="tag-btn" data-tag="Model Economics & ROI Analytics">Model Economics</button>
+    <button type="button" class="tag-btn" data-tag="Tier 2 Hardware Security HAL">Tier 2 HAL</button>
+    <button type="button" class="tag-btn" data-tag="NIST Air-Gap Compliance & Sovereign Bundles">Air-Gap Audit</button>
+    <button type="button" class="tag-btn" data-tag="Tasks">Agent Tasks</button>
+  </div>
+
+  <!-- ENDPOINTS LIST -->
+  <div id="endpoints-list">
+    <p style="color: var(--muted);">Loading verified endpoints from openapi.json...</p>
+  </div>
+</main>
+
+<footer style="border-top: 1px solid var(--line); padding: 48px 0;">
+  <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <p style="margin: 0; color: var(--muted); font-size: 14px;">&copy; 2026 Sorvex Labs &amp; Kora Technologies. 119 Verified REST Endpoints.</p>
+    <div style="display: flex; gap: 20px; font-size: 14px;">
+      <a href="index.html" style="color: var(--muted); text-decoration: none;">Overview</a>
+      <a href="docs.html" style="color: var(--muted); text-decoration: none;">Docs</a>
+      <a href="openapi.json" style="color: var(--muted); text-decoration: none;">OpenAPI Spec</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+let allEndpoints = [];
+let activeTag = "ALL";
+
+async function loadOpenApi() {
+  try {
+    const res = await fetch("openapi.json");
+    const data = await res.json();
+    const listEl = document.getElementById("endpoints-list");
+    const paths = data.paths || {};
+    allEndpoints = [];
+
+    for (const [path, methods] of Object.entries(paths)) {
+      for (const [method, op] of Object.entries(methods)) {
+        if (["get", "post", "put", "delete", "patch"].includes(method.toLowerCase())) {
+          allEndpoints.push({
+            path: path,
+            method: method.toUpperCase(),
+            summary: op.summary || op.description || "Endpoint operation",
+            tags: op.tags || ["General"],
+            opId: op.operationId || ""
+          });
+        }
+      }
+    }
+
+    document.getElementById("total-count").textContent = allEndpoints.length;
+    renderEndpoints();
+  } catch (err) {
+    document.getElementById("endpoints-list").innerHTML = '<p style="color: var(--red);">Failed to load openapi.json.</p>';
+  }
+}
+
+function renderEndpoints() {
+  const query = document.getElementById("api-search").value.toLowerCase().trim();
+  const listEl = document.getElementById("endpoints-list");
+  
+  const filtered = allEndpoints.filter(ep => {
+    const matchesTag = (activeTag === "ALL") || ep.tags.some(t => t.toLowerCase().includes(activeTag.toLowerCase()));
+    const matchesQuery = !query || ep.path.toLowerCase().includes(query) || 
+                         ep.summary.toLowerCase().includes(query) || 
+                         ep.tags.some(t => t.toLowerCase().includes(query));
+    return matchesTag && matchesQuery;
+  });
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="card" style="padding: 32px; text-align: center; color: var(--muted);">No matching endpoints found.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(ep => `
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-${ep.method}">${ep.method}</span>
+          <span class="endpoint-path">${escapeHtml(ep.path)}</span>
+        </div>
+        <span class="endpoint-tag">${escapeHtml(ep.tags.join(", "))}</span>
+      </div>
+      <p class="endpoint-desc">${escapeHtml(ep.summary)}</p>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(str) {
+  return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+document.getElementById("api-search").addEventListener("input", renderEndpoints);
+
+document.querySelectorAll(".tag-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tag-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activeTag = btn.getAttribute("data-tag");
+    renderEndpoints();
+  });
+});
+
+loadOpenApi();
+</script>
+</body>
+</html>

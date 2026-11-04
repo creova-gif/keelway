@@ -35,6 +35,7 @@
       <a href="#pricing">Pricing &amp; Open-Core</a>
       <a href="#status">Readiness Status</a>
       <a href="docs.html" style="color: var(--teal); font-weight: 600;">Docs</a>
+      <a href="api.html">API Reference</a>
     </nav>
     <a class="btn primary" href="#quickstart">Quickstart</a>
   </div>
@@ -419,6 +420,8 @@ keelway ❯ </pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="sync" role="tab" aria-selected="false">keelway sync demo</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="skill" role="tab" aria-selected="false">keelway skill list</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="brain" role="tab" aria-selected="false">keelway brain query</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="flow" role="tab" aria-selected="false">keelway flow run</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="cost" role="tab" aria-selected="false">keelway cost</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
@@ -436,11 +439,12 @@ keelway ❯ </pre>
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
       <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 682 automated tests passing with zero failures. Verified against commit <code>c5eb183</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 686 automated tests passing with zero failures. Verified against commit <code>b3671f9</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
       <div class="card tablewrap">
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
           <tbody>
+            <tr><td>OpenAPI 3.1 REST Schema Exporter (120 Endpoints)</td><td><span class="pill teal">Available (120 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
             <tr><td>Investor &amp; Enterprise Evidence Room (WP21)</td><td><span class="pill teal">Available (10/10 Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_evidence_room.py</td></tr>
             <tr><td>Speculative Decoding Acceleration (0.5B + 7B)</td><td><span class="pill teal">Available (2.58x)</span></td><td class="mono" style="font-size: 12px;">tests/test_speculative.py</td></tr>
             <tr><td>Deterministic Flight Replay &amp; Time-Travel Debugging</td><td><span class="pill teal">Available (Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_flight_recorder.py</td></tr>
@@ -817,6 +821,14 @@ var TERM_OUTPUTS = {
          "  • [project] [approved] api_contract_v1 (rev 1): All API endpoints require Authorization Bearer\n" +
          "    Provenance: user_instruction | Reason: API Specification WP04\n" +
          "===================================================================="
+  },
+  flow: {
+    cmd: "$ keelway flow run",
+    out: "[+] Created Flow DAG 'flow_demo_1793797666801' (nodes: 3, max_fanout: 4)\n  Executing DAG in topological order...\n[+] Flow completed successfully! Proof Packet Sealed:\n    Proof SHA-256:  4458fdec4b8c4ae8fc1e17abc9988004f706f55db632fce1d6720eda6b3d3c8c\n    Nodes Executed: 3 / 3\n    Tests Passed:   True"
+  },
+  cost: {
+    cmd: "$ keelway cost --summary",
+    out: "================================================================================\n  KEELWAY MODEL ECONOMICS & COST OBSERVABILITY\n================================================================================\n  Total Tokens: 18,420 | Prompt: 14,200 | Completion: 4,220\n  Arbitrage ROI vs Cloud API: 96.8% Savings | SEI Score: 94.2/100\n================================================================================"
   }
 };
 

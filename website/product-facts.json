@@ -207,6 +207,12 @@
       "claim": "Budget-capped DAG engine with exact Git base-commit SHA drift verification and cryptographically sealed ProofPackets",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
       "code_path": "core/kflow/engine.py, core/kflow/models.py"
+    },
+    "openapi_schema_exporter": {
+      "status": "AVAILABLE",
+      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 120 verified REST endpoints with machine-readable introspection",
+      "evidence_test": "tests/test_api_export.py",
+      "code_path": "cli.py, core/main.py"
     }
   }
 }

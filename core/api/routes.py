@@ -2251,6 +2251,7 @@ async def get_cyclonedx_sbom(
 # Sovereign System Diagnostics & Doctor
 # ---------------------------------------------------------------------------
 
+@router.get("/v1/doctor", tags=["System Diagnostics"])
 @router.get("/v1/system/doctor", tags=["System Diagnostics"])
 async def get_system_doctor_report(
     principal: Principal = Depends(current_principal),
