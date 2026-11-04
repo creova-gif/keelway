@@ -1976,8 +1976,47 @@ async def cmd_test_sandbox(command: str, approve: bool, provider_name: str):
         print("=" * 60)
 
 
-def cmd_models(action: str, export_path: Optional[Path] = None, format_type: str = "jsonl", reset: bool = False) -> int:
-    """Inspect model routing, cost accounting, and economics ledger."""
+def cmd_models(
+    action: str,
+    export_path: Optional[Path] = None,
+    format_type: str = "jsonl",
+    reset: bool = False,
+    draft: str = "qwen2.5-coder:0.5b",
+    target: str = "qwen2.5-coder:7b",
+    prompt: str = "def optimize_query():",
+    k: int = 4,
+) -> int:
+    """Inspect model routing, cost accounting, economics ledger, or speculative decoding benchmark."""
+    if action == "bench-speculative":
+        from core.models.speculative import SpeculativeBenchmark
+
+        res = SpeculativeBenchmark.benchmark(
+            draft_model=draft,
+            target_model=target,
+            prompt=prompt,
+            lookahead_k=k,
+        )
+        spec = res["speculative_result"]
+        print("=" * 76)
+        print("  ⚡ KEELWAY SPECULATIVE DECODING & TOKEN ARBITRAGE BENCHMARK")
+        print(f"  Draft:  {res['draft_model']} (Edge)")
+        print(f"  Target: {res['target_model']} (Verified Baseline)")
+        print(f"  Prompt: \"{res['prompt']}\" | Lookahead K={res['lookahead_k']}")
+        print("=" * 76)
+        print(f"  Generated Tokens:        {spec['tokens_generated']}")
+        print(f"  Draft Tokens Proposed:   {spec['draft_tokens_proposed']}")
+        print(f"  Draft Tokens Accepted:   {spec['draft_tokens_accepted']} ({spec['acceptance_rate'] * 100:.1f}%)")
+        print(f"  Effective Speedup Ratio: {spec['effective_speedup_ratio']:.2f}x")
+        print(f"  Speculative Latency:     {spec['latency_ms']:.2f} ms")
+        print(f"  Baseline Latency:        {res['baseline_latency_ms']:.2f} ms")
+        print(f"  Latency Reduction:       {res['latency_reduction_pct']:.1f}%")
+        print("-" * 76)
+        print(f"  Target Cloud Cost:       ${res['target_cloud_cost_usd']:.6f} USD ($15/Mtok)")
+        print(f"  Edge Execution Cost:     ${res['edge_cost_usd']:.2f} USD")
+        print(f"  Net Avoided Cost:        ${res['savings_usd']:.6f} USD (100% savings)")
+        print("=" * 76)
+        return 0
+
     from core.models.cost_ledger import cost_ledger
 
     if reset:
@@ -3109,6 +3148,12 @@ def build_parser() -> argparse.ArgumentParser:
     _m_ledger.add_argument("--format", choices=["json", "jsonl", "csv"], default="jsonl", help="Export format")
     _m_ledger.add_argument("--reset", action="store_true", help="Reset ledger entries")
 
+    _m_bench = models_sub.add_parser("bench-speculative", help="Benchmark edge speculative decoding speedup and token arbitrage savings")
+    _m_bench.add_argument("--draft", default="qwen2.5-coder:0.5b", help="Draft model tag (default: qwen2.5-coder:0.5b)")
+    _m_bench.add_argument("--target", default="qwen2.5-coder:7b", help="Target model tag (default: qwen2.5-coder:7b)")
+    _m_bench.add_argument("--prompt", default="def optimize_query():", help="Prompt to test generation")
+    _m_bench.add_argument("--k", type=int, default=4, help="Speculative lookahead K (default: 4)")
+
     # team (Multi-Agent Crew Orchestration)
     team_parser = subparsers.add_parser("team", help="Plan and execute multi-agent crew workflows with specialized roles")
     team_sub = team_parser.add_subparsers(dest="team_command", required=True)
@@ -3513,7 +3558,18 @@ def main(argv=None):
             )
         )
     elif args.command == "models":
-        sys.exit(cmd_models(args.models_command, export_path=args.export, format_type=args.format, reset=args.reset))
+        sys.exit(
+            cmd_models(
+                args.models_command,
+                export_path=getattr(args, "export", None),
+                format_type=getattr(args, "format", "jsonl"),
+                reset=getattr(args, "reset", False),
+                draft=getattr(args, "draft", "qwen2.5-coder:0.5b"),
+                target=getattr(args, "target", "qwen2.5-coder:7b"),
+                prompt=getattr(args, "prompt", "def optimize_query():"),
+                k=getattr(args, "k", 4),
+            )
+        )
     elif args.command == "team":
         sys.exit(asyncio.run(cmd_team(args.team_command, args.goal, auto_approve=getattr(args, "approve", True))))
     elif args.command == "build":

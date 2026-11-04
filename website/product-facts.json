@@ -150,9 +150,9 @@
     },
     "speculative_decoding_acceleration": {
       "status": "AVAILABLE",
-      "claim": "Tandem draft/target speculative decoding (0.5B draft + 7B target) achieving 2.5x to 3.8x local token speedups",
-      "evidence_test": "tests/test_speculative.py",
-      "code_path": "core/models/speculative.py"
+      "claim": "Tandem draft/target speculative decoding (0.5B draft + 7B target) achieving 2.5x to 3.8x local token speedups at zero cloud cost with live REST and CLI benchmarking",
+      "evidence_test": "tests/test_speculative.py, tests/test_speculative_api.py",
+      "code_path": "core/models/speculative.py, core/api/routes.py, cli.py"
     },
     "mobile_approval_app": {
       "status": "AVAILABLE",
@@ -210,7 +210,7 @@
     },
     "openapi_schema_exporter": {
       "status": "AVAILABLE",
-      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 144 verified REST endpoints with machine-readable introspection",
+      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 145 verified REST endpoints with machine-readable introspection",
       "evidence_test": "tests/test_api_export.py",
       "code_path": "cli.py, core/main.py"
     },

@@ -3169,6 +3169,52 @@
         }
       }
     },
+    "/v1/models/speculative/benchmark": {
+      "post": {
+        "tags": [
+          "Models & Economics"
+        ],
+        "summary": "Benchmark Speculative Decoding",
+        "description": "Execute speculative decoding edge benchmark and compute token arbitrage savings.",
+        "operationId": "benchmark_speculative_decoding_v1_models_speculative_benchmark_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Benchmark Speculative Decoding V1 Models Speculative Benchmark Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/orchestration/team/plan": {
       "post": {
         "tags": [

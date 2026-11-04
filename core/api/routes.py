@@ -1980,6 +1980,26 @@ async def reset_model_cost_ledger(
     return {"status": "ok", "message": "Model cost ledger reset"}
 
 
+@router.post("/v1/models/speculative/benchmark", tags=["Models & Economics"])
+async def benchmark_speculative_decoding(payload: dict) -> Dict[str, Any]:
+    """Execute speculative decoding edge benchmark and compute token arbitrage savings."""
+    from core.models.speculative import SpeculativeBenchmark
+
+    draft_model = payload.get("draft_model", "qwen2.5-coder:0.5b")
+    target_model = payload.get("target_model", "qwen2.5-coder:7b")
+    prompt = payload.get("prompt", "def optimize_query():")
+    lookahead_k = int(payload.get("lookahead_k", 4))
+    iterations = int(payload.get("iterations", 5))
+
+    return SpeculativeBenchmark.benchmark(
+        draft_model=draft_model,
+        target_model=target_model,
+        prompt=prompt,
+        lookahead_k=lookahead_k,
+        iterations=iterations,
+    )
+
+
 # ==============================================================================
 # Multi-Agent Team Coordination & Execution Endpoints
 # ==============================================================================

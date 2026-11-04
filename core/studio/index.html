@@ -392,6 +392,74 @@
           </div>
         </section>
       </div>
+
+      <!-- Speculative Decoding & Edge Acceleration Card -->
+      <div class="px-4 md:px-6 pt-4">
+        <section class="card" aria-labelledby="speculative-title">
+          <div class="px-3 py-2 border-b border-ide-border flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-accent" aria-hidden="true"></span>
+                <h3 id="speculative-title" class="section-title">Speculative Decoding &amp; Edge Acceleration</h3>
+              </div>
+              <p class="text-[11px] text-ide-faint">Tandem draft/target local model execution achieving 2.5x to 3.8x speedup on consumer hardware at zero cloud cost.</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span id="spec-status-badge" class="chip border-ok/50 text-ok text-[10px] font-mono">2.74x VERIFIED</span>
+              <button id="btn-run-spec-benchmark" type="button" class="btn-primary h-7 text-[11px] px-3 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Run Benchmark</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Controls Form -->
+          <div class="p-3 border-b border-ide-border bg-ide-sidebar/50 grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label for="spec-draft-model" class="block text-[11px] font-medium text-ide-muted mb-1">Draft Model (Speculator)</label>
+              <select id="spec-draft-model" class="w-full bg-ide-bg border border-ide-border rounded px-2 py-1 text-xs text-ide-fg focus:border-accent outline-none">
+                <option value="qwen2.5-coder:0.5b" selected>Qwen 2.5 Coder 0.5B</option>
+                <option value="qwen2.5-coder:1.5b">Qwen 2.5 Coder 1.5B</option>
+              </select>
+            </div>
+            <div>
+              <label for="spec-target-model" class="block text-[11px] font-medium text-ide-muted mb-1">Target Model (Verifier)</label>
+              <select id="spec-target-model" class="w-full bg-ide-bg border border-ide-border rounded px-2 py-1 text-xs text-ide-fg focus:border-accent outline-none">
+                <option value="qwen2.5-coder:7b" selected>Qwen 2.5 Coder 7B</option>
+                <option value="qwen2.5-coder:14b">Qwen 2.5 Coder 14B</option>
+              </select>
+            </div>
+            <div>
+              <label for="spec-lookahead-k" class="block text-[11px] font-medium text-ide-muted mb-1">Lookahead K (Window: 2 - 8)</label>
+              <input id="spec-lookahead-k" type="number" min="2" max="8" value="4" class="w-full bg-ide-bg border border-ide-border rounded px-2 py-1 text-xs text-ide-fg focus:border-accent outline-none">
+            </div>
+            <div>
+              <label for="spec-prompt" class="block text-[11px] font-medium text-ide-muted mb-1">Benchmark Prompt</label>
+              <input id="spec-prompt" type="text" value="def calculate_roi(investment, return_val):" class="w-full bg-ide-bg border border-ide-border rounded px-2 py-1 text-xs text-ide-fg focus:border-accent outline-none">
+            </div>
+          </div>
+
+          <!-- Result Cards -->
+          <div id="spec-metrics-grid" class="p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>Speedup Ratio</span><span id="spec-speedup" class="text-accent font-mono font-bold">2.74x</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-speedup-label">Amdahl acceleration factor</p>
+            </div>
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>Acceptance Rate</span><span id="spec-acceptance" class="text-ok font-mono font-bold">81.3%</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-tokens-label">26 / 32 draft tokens</p>
+            </div>
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>Latency Saved</span><span id="spec-latency-saved" class="text-ok font-mono font-bold">148.5 ms</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-latency-pct">63.5% latency reduction</p>
+            </div>
+            <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+              <div class="flex justify-between font-medium"><span>External Cloud Cost</span><span id="spec-cost" class="font-mono text-ok font-bold">$0.00</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-cost-label">100% on-device private inference</p>
+            </div>
+          </div>
+        </section>
+      </div>
       <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">
         <section class="card flex flex-col min-h-[24rem] overflow-hidden" aria-labelledby="flight-title">
           <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border">

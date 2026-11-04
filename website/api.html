@@ -337,6 +337,62 @@
         </div>
       </div>
     </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/models/speculative/benchmark</span>
+        </div>
+        <span class="endpoint-tag">Model Economics &amp; ROI Analytics</span>
+      </div>
+      <p class="endpoint-desc">Benchmark local speculative decoding acceleration combining a fast draft model with a target verification model (2.5x - 3.8x speedup at zero cloud token cost).</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{
+  "draft_model": "qwen2.5-coder:0.5b",
+  "target_model": "qwen2.5-coder:7b",
+  "prompt": "def calculate_roi(investment, return_val):",
+  "lookahead_k": 4
+}</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{
+  "draft_model": "qwen2.5-coder:0.5b",
+  "target_model": "qwen2.5-coder:7b",
+  "prompt": "def calculate_roi(investment, return_val):",
+  "lookahead_k": 4,
+  "speculative_result": {
+    "tokens_generated": 28,
+    "draft_tokens_proposed": 32,
+    "draft_tokens_accepted": 26,
+    "acceptance_rate": 0.813,
+    "effective_speedup_ratio": 2.74,
+    "latency_ms": 357.66
+  },
+  "baseline_latency_ms": 980.0,
+  "latency_reduction_pct": 63.5,
+  "target_cloud_cost_usd": 0.00042,
+  "edge_cost_usd": 0.00,
+  "savings_usd": 0.00042
+}</pre>
+        </div>
+        <div class="schema-box" style="grid-column: 1 / -1;">
+          <div class="schema-label"><span>cURL Example</span></div>
+          <pre class="schema-code">curl -X POST https://127.0.0.1:7420/v1/models/speculative/benchmark \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $KEELWAY_TOKEN" \
+  -d '{
+    "draft_model": "qwen2.5-coder:0.5b",
+    "target_model": "qwen2.5-coder:7b",
+    "prompt": "def calculate_roi(investment, return_val):",
+    "lookahead_k": 4
+  }'</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -435,6 +491,14 @@ const ENDPOINT_EXTRA = {
     tags: ["Customer Runner"],
     desc: "Retrieve pending offline spool queue backlog status for a specific customer runner.",
     res: '{ "runner_id": "vpc_node_01", "pending_count": 0, "total_spooled": 12 }'
+  },
+  "/v1/models/speculative/benchmark": {
+    method: "POST",
+    tags: ["Model Economics & ROI Analytics"],
+    desc: "Benchmark local speculative decoding acceleration combining a fast draft model with a target verification model (2.5x - 3.8x speedup at zero cloud token cost).",
+    req: '{\n  "draft_model": "qwen2.5-coder:0.5b",\n  "target_model": "qwen2.5-coder:7b",\n  "prompt": "def calculate_roi(investment, return_val):",\n  "lookahead_k": 4\n}',
+    res: '{\n  "draft_model": "qwen2.5-coder:0.5b",\n  "target_model": "qwen2.5-coder:7b",\n  "prompt": "def calculate_roi(investment, return_val):",\n  "lookahead_k": 4,\n  "speculative_result": {\n    "tokens_generated": 28,\n    "draft_tokens_proposed": 32,\n    "draft_tokens_accepted": 26,\n    "acceptance_rate": 0.813,\n    "effective_speedup_ratio": 2.74,\n    "latency_ms": 357.66\n  },\n  "baseline_latency_ms": 980.0,\n  "latency_reduction_pct": 63.5,\n  "target_cloud_cost_usd": 0.00042,\n  "edge_cost_usd": 0.00,\n  "savings_usd": 0.00042\n}',
+    curl: 'curl -X POST https://127.0.0.1:7420/v1/models/speculative/benchmark \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer $KEELWAY_TOKEN" \\\n  -d \'{\n    "draft_model": "qwen2.5-coder:0.5b",\n    "target_model": "qwen2.5-coder:7b",\n    "prompt": "def calculate_roi(investment, return_val):",\n    "lookahead_k": 4\n  }\''
   }
 };
 
@@ -530,6 +594,13 @@ function renderEndpoints() {
               <div class="schema-label"><span>Response JSON:</span></div>
               <pre class="schema-code">${escapeHtml(extra.res)}</pre>
             </div>
+          </div>`;
+      }
+      if (extra.curl) {
+        schemasHtml += `
+          <div class="schema-box" style="margin-top: 12px;">
+            <div class="schema-label"><span>cURL Example</span></div>
+            <pre class="schema-code">${escapeHtml(extra.curl)}</pre>
           </div>`;
       }
     }
