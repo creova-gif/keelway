@@ -7,6 +7,13 @@ from .multi_agent import (
     TeamExecutionResult,
     MultiAgentCoordinator,
 )
+from .guided_builder import (
+    AppArchitecturePlan,
+    AppTaskStep,
+    AppVerificationResult,
+    AppBuildReceipt,
+    GuidedAppBuilder,
+)
 
 __all__ = [
     "TaskState",
@@ -19,5 +26,10 @@ __all__ = [
     "TeamExecutionPlan",
     "TeamExecutionResult",
     "MultiAgentCoordinator",
+    "AppArchitecturePlan",
+    "AppTaskStep",
+    "AppVerificationResult",
+    "AppBuildReceipt",
+    "GuidedAppBuilder",
 ]
 

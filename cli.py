@@ -1306,6 +1306,80 @@ async def cmd_team(action: str, goal: str, auto_approve: bool = True) -> int:
     return 0 if res.status == "succeeded" else 1
 
 
+def cmd_build(
+    action: str,
+    intent: str = "",
+    template: Optional[str] = None,
+    name: Optional[str] = None,
+    out: Optional[Path] = None,
+    no_verify: bool = False,
+    no_git: bool = False,
+) -> int:
+    """Prompt-to-App Guided Builder CLI handler."""
+    from core.orchestration.guided_builder import GuidedAppBuilder
+
+    if action in ("templates", "list-templates"):
+        templates = GuidedAppBuilder.list_templates()
+        print("=" * 76)
+        print("  KEELWAY GUIDED APP BUILDER ARCHETYPES")
+        print("=" * 76)
+        for t in templates:
+            print(f"  • {t['id']:<20} | {t['name']}")
+            print(f"    Description:  {t['description']}")
+            print(f"    Dependencies: {', '.join(t['dependencies'])}")
+            print(f"    Files:        {t['file_count']} files scaffolded")
+            print()
+        print("=" * 76)
+        return 0
+
+    if action == "plan":
+        plan = GuidedAppBuilder.synthesize_plan(intent=intent, app_name=name, template_id=template)
+        print("=" * 76)
+        print("  KEELWAY GUIDED APP ARCHITECTURE PLAN")
+        print(f"  Application:  {plan.app_name}")
+        print(f"  Archetype:    {plan.template}")
+        print(f"  Plan SHA-256: {plan.plan_sha256[:16]}...")
+        print("=" * 76)
+        print("\n[+] Target Filesystem Layout:")
+        for f in plan.file_tree:
+            desc = plan.modules.get(f, "")
+            print(f"  • {f:<24} - {desc}")
+        print("\n[+] Verification Plan:")
+        for t in plan.test_plan:
+            print(f"  ✓ {t}")
+        print("=" * 76)
+        return 0
+
+    if action in ("app", "generate"):
+        print("=" * 76)
+        print("  KEELWAY PROMPT-TO-APP GUIDED BUILDER")
+        print(f"  Intent: {intent}")
+        print("=" * 76)
+        receipt = GuidedAppBuilder.build_and_export(
+            intent=intent,
+            app_name=name,
+            template_id=template,
+            target_dir=out,
+            run_verification=not no_verify,
+            init_git=not no_git,
+        )
+        status_tag = "PASSED [✓]" if receipt.tests_passed else "FAILED [✗]"
+        print(f"\n[+] Application Built Successfully: {receipt.app_name} ({receipt.template})")
+        print(f"    Target Directory:   {receipt.export_dir}")
+        print(f"    Files Scaffolded:   {len(receipt.files_scaffolded)}")
+        print(f"    Test Verification:  {status_tag} ({receipt.verification.get('tests_count', 0)} tests passed in {receipt.verification.get('duration_ms', 0):.1f}ms)")
+        if receipt.git_commit_sha:
+            print(f"    Git Initialized:    {receipt.git_commit_sha[:10]}")
+        print(f"    Flight Tape:        {receipt.flight_tape_path}")
+        print(f"    Tape SHA-256:       {receipt.flight_tape_sha256}")
+        print(f"    Total Duration:     {receipt.duration_ms:.1f}ms")
+        print("=" * 76)
+        return 0 if receipt.tests_passed else 1
+
+    print(f"[-] Unknown builder action: {action}")
+    return 1
+
+
 def main():
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1541,6 +1615,22 @@ def main():
     _t_run.add_argument("goal", help="Engineering goal or feature objective")
     _t_run.add_argument("--approve", action="store_true", help="Auto-approve non-critical steps")
 
+    # build (Prompt-to-App Guided Builder)
+    build_parser = subparsers.add_parser("build", help="Scaffold, verify, and flight-record full applications from prompt or template")
+    build_sub = build_parser.add_subparsers(dest="build_command", required=True)
+    build_sub.add_parser("templates", help="List available application templates")
+    _b_plan = build_sub.add_parser("plan", help="Synthesize architecture plan from prompt or template")
+    _b_plan.add_argument("intent", help="Application requirements or description")
+    _b_plan.add_argument("--template", default=None, help="Template archetype (fastapi-service, cli-tool, agent-microservice)")
+    _b_plan.add_argument("--name", default=None, help="Application slug name")
+    _b_app = build_sub.add_parser("app", help="Scaffold, test, and export complete application")
+    _b_app.add_argument("intent", help="Application requirements or description")
+    _b_app.add_argument("--template", default=None, help="Template archetype (fastapi-service, cli-tool, agent-microservice)")
+    _b_app.add_argument("--name", default=None, help="Application slug name")
+    _b_app.add_argument("--out", type=Path, default=None, help="Target export directory")
+    _b_app.add_argument("--no-verify", action="store_true", help="Skip automated test harness execution")
+    _b_app.add_argument("--no-git", action="store_true", help="Skip git repository initialization")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1649,6 +1739,18 @@ def main():
         sys.exit(cmd_models(args.models_command, export_path=args.export, format_type=args.format, reset=args.reset))
     elif args.command == "team":
         sys.exit(asyncio.run(cmd_team(args.team_command, args.goal, auto_approve=getattr(args, "approve", True))))
+    elif args.command == "build":
+        sys.exit(
+            cmd_build(
+                args.build_command,
+                intent=getattr(args, "intent", ""),
+                template=getattr(args, "template", None),
+                name=getattr(args, "name", None),
+                out=getattr(args, "out", None),
+                no_verify=getattr(args, "no_verify", False),
+                no_git=getattr(args, "no_git", False),
+            )
+        )
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":

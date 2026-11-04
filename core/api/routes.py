@@ -1666,6 +1666,75 @@ async def execute_team_workflow(
         raise HTTPException(status_code=500, detail=f"Multi-agent execution failure: {exc}")
 
 
+# ==============================================================================
+# Prompt-to-App Guided Builder Endpoints
+# ==============================================================================
+
+class AppPlanRequest(BaseModel):
+    intent: str = Field(..., min_length=3, description="Natural language prompt or requirements for the application")
+    app_name: Optional[str] = Field(default=None, description="Optional custom application slug")
+    template_id: Optional[str] = Field(default=None, description="Optional template archetype (fastapi-service, cli-tool, agent-microservice)")
+
+
+class AppGenerateRequest(BaseModel):
+    intent: str = Field(..., min_length=3, description="Natural language prompt or requirements for the application")
+    app_name: Optional[str] = Field(default=None, description="Optional custom application slug")
+    template_id: Optional[str] = Field(default=None, description="Optional template archetype")
+    target_dir: Optional[str] = Field(default=None, description="Target filesystem directory")
+    run_verification: bool = Field(default=True, description="Whether to execute automated test harness")
+    init_git: bool = Field(default=True, description="Whether to initialize git repo and create commit")
+
+
+@router.get("/v1/builder/app/templates", tags=["Guided App Builder"])
+async def list_app_templates(
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """List available application templates for the Guided App Builder."""
+    from core.orchestration.guided_builder import GuidedAppBuilder
+    return GuidedAppBuilder.list_templates()
+
+
+@router.post("/v1/builder/app/plan", tags=["Guided App Builder"])
+async def synthesize_app_plan(
+    request: AppPlanRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Synthesize architecture plan, modules, and test harness from intent or template."""
+    from core.orchestration.guided_builder import GuidedAppBuilder
+    try:
+        plan = GuidedAppBuilder.synthesize_plan(
+            intent=request.intent,
+            app_name=request.app_name,
+            template_id=request.template_id,
+        )
+        return plan.to_dict()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"App plan synthesis failed: {exc}")
+
+
+@router.post("/v1/builder/app/generate", tags=["Guided App Builder"])
+async def generate_app(
+    request: AppGenerateRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Scaffold complete application, execute test harness, and seal flight recorder receipt."""
+    from core.orchestration.guided_builder import GuidedAppBuilder
+    target_path = Path(request.target_dir) if request.target_dir else None
+    try:
+        receipt = GuidedAppBuilder.build_and_export(
+            intent=request.intent,
+            app_name=request.app_name,
+            template_id=request.template_id,
+            target_dir=target_path,
+            run_verification=request.run_verification,
+            init_git=request.init_git,
+        )
+        return receipt.to_dict()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"App generation failed: {exc}")
+
+
+
 
 
 

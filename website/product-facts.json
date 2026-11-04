@@ -40,6 +40,12 @@
       "evidence_test": "tests/test_agent_builder.py",
       "code_path": "core/agents/builder.py"
     },
+    "guided_app_builder": {
+      "status": "AVAILABLE",
+      "claim": "Prompt-to-app synthesis, multi-archetype scaffolding (FastAPI, CLI, Agent), automated test verification, and sealed receipts",
+      "evidence_test": "tests/test_guided_builder.py",
+      "code_path": "core/orchestration/guided_builder.py"
+    },
     "git_governance_and_pr_prep": {
       "status": "AVAILABLE",
       "claim": "Semantic commit proposals, verified local commit, and Pull Request preparation",
