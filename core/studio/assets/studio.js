@@ -1099,6 +1099,97 @@ async function showMobilePairingInStudio() {
   toast('Mobile link ready', 'ok');
 }
 
+async function loadKStackSkillsInStudio() {
+  const out = $('kstack-out');
+  if (!out) return;
+  out.textContent = 'Querying KStack role skills registry…';
+  try {
+    const data = await api('/v1/kstack/skills');
+    const skills = Array.isArray(data) ? data : (data.skills || []);
+    out.textContent = `[✓] KSTACK ACTIVE ROLE SKILLS (${skills.length} Loaded)\n` +
+      `─────────────────────────────────────────────────────────────────\n` +
+      skills.map(s => `• ${s.name.padEnd(20)} [${s.role}] (v${s.version})\n    Perms: ${s.permissions.join(', ')} | Status: ${s.pinned ? 'PINNED' : 'ACTIVE'}`).join('\n\n');
+    tone('ok');
+    toast(`${skills.length} role skills loaded`, 'ok');
+  } catch (err) {
+    out.textContent = `[-] KStack error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function scanKHubInStudio() {
+  const out = $('kstack-out');
+  if (!out) return;
+  out.textContent = 'Scanning external directories (.claude, .cursor, .codex) for skills…';
+  try {
+    const res = await api('/v1/khub/scan', { method: 'POST', body: { root_dir: '.' } });
+    out.textContent = `[✓] KHUB EXTERNAL SKILL DISCOVERY SCAN COMPLETE\n` +
+      `Total Discovered: ${res.discovered_count}\n` +
+      `Rules Filtered:   ${res.rules_isolated_count} (.cursor/rules isolated)\n` +
+      `Drift Detected:   ${res.drift_count}\n` +
+      (res.skills && res.skills.length ? '\n' + res.skills.map(s => `  • ${s.id}: ${s.name} (${s.source_platform})`).join('\n') : '\n  (all skills up to date)');
+    tone('ok');
+    toast(`KHub scan complete: ${res.discovered_count} found`, 'ok');
+  } catch (err) {
+    out.textContent = `[-] KHub scan error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function recordKBrainFactInStudio() {
+  const out = $('kbrain-out');
+  const scope = $('kbrain-scope') ? $('kbrain-scope').value : 'project';
+  const key = $('kbrain-key') ? $('kbrain-key').value.trim() : '';
+  const statement = $('kbrain-statement') ? $('kbrain-statement').value.trim() : '';
+  if (!key || !statement) {
+    toast('Key and Statement are required', 'err');
+    return;
+  }
+  if (/sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{20,}|bearer\s+[a-zA-Z0-9_\-\.]{20,}/i.test(statement)) {
+    toast('Security alert: Potential raw secret detected in statement!', 'err');
+  }
+  out.textContent = `Recording fact '${key}' in scope [${scope}]…`;
+  try {
+    const fact = await api('/v1/kbrain/fact', {
+      method: 'POST',
+      body: { key, statement, scope, provenance_reason: 'Studio manual entry' }
+    });
+    out.textContent = `[✓] KBRAIN FACT RECORDED & VERIFIED\n` +
+      `ID:          ${fact.id}\n` +
+      `Scope:       ${fact.scope}\n` +
+      `Key:         ${fact.key}\n` +
+      `Statement:   ${fact.statement}\n` +
+      `Status:      ${fact.status}\n` +
+      `Revision:    #${fact.revision}\n` +
+      `SHA-256:     ${fact.sha256}`;
+    $('kbrain-key').value = '';
+    $('kbrain-statement').value = '';
+    tone('ok');
+    toast(`Fact recorded: ${fact.key}`, 'ok');
+  } catch (err) {
+    out.textContent = `[-] Fact recording error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function queryKBrainFactsInStudio() {
+  const out = $('kbrain-out');
+  const scope = $('kbrain-scope') ? $('kbrain-scope').value : 'project';
+  out.textContent = `Querying KBrain facts (Scope <= ${scope})…`;
+  try {
+    const facts = await api(`/v1/kbrain/facts?scope=${encodeURIComponent(scope)}`);
+    const list = Array.isArray(facts) ? facts : (facts.facts || []);
+    out.textContent = `[✓] KBRAIN FACTS QUERY (Scope <= ${scope}, Total: ${list.length})\n` +
+      `─────────────────────────────────────────────────────────────────\n` +
+      (list.length ? list.map(f => `• [${f.scope}] [${f.status}] ${f.key} (rev ${f.revision}):\n    "${f.statement}"\n    Provenance: ${f.provenance_reason} | Hash: ${f.sha256.slice(0, 16)}…`).join('\n\n') : '  (no facts recorded in this scope)');
+    tone('ok');
+    toast(`${list.length} facts retrieved`, 'ok');
+  } catch (err) {
+    out.textContent = `[-] KBrain query error: ${err.message}`;
+    tone('err');
+  }
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -1693,6 +1784,10 @@ function wire() {
   if ($('sync-status-btn')) $('sync-status-btn').addEventListener('click', loadSyncStatusInStudio);
   if ($('sync-export-btn')) $('sync-export-btn').addEventListener('click', exportSyncEnvelopeInStudio);
   if ($('sync-mobile-btn')) $('sync-mobile-btn').addEventListener('click', showMobilePairingInStudio);
+  if ($('kstack-list-btn')) $('kstack-list-btn').addEventListener('click', loadKStackSkillsInStudio);
+  if ($('khub-scan-btn')) $('khub-scan-btn').addEventListener('click', scanKHubInStudio);
+  if ($('kbrain-record-btn')) $('kbrain-record-btn').addEventListener('click', recordKBrainFactInStudio);
+  if ($('kbrain-query-btn')) $('kbrain-query-btn').addEventListener('click', queryKBrainFactsInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

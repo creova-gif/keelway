@@ -672,6 +672,57 @@
             <pre id="sync-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- KStack Composable Role Skills & KHub Registry -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="kstack-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="kstack-title" class="font-semibold">KStack Composable Role Skills &amp; KHub Importer</h3>
+            <span class="step-chip text-accent border-accent/50 font-mono">Pinned Roles &amp; Signatures</span>
+          </div>
+          <div id="lab-kstack" class="space-y-3">
+            <p class="text-xs text-ide-muted">Role skill governance (Architect, Reviewer, QA Lead, Security Lead), version pinning, and universal importer across Claude, Cursor, and Codex skills with prompt rules isolation.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="kstack-list-btn" type="button" class="btn-primary h-8 text-xs">List Active Role Skills</button>
+              <button id="khub-scan-btn" type="button" class="btn-outline h-8 text-xs">Scan External Skills (KHub)</button>
+            </div>
+            <pre id="kstack-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- KBrain Scope-Aware Fact Memory & DLP Scanner -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="kbrain-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="kbrain-title" class="font-semibold">KBrain Scope-Aware Fact Memory &amp; DLP Scanner</h3>
+            <span class="step-chip text-ok border-ok/50 font-mono">Regex DLP Guard Active</span>
+          </div>
+          <div id="lab-kbrain" class="space-y-3">
+            <p class="text-xs text-ide-muted">Hierarchical knowledge facts (LOCAL_SESSION &lt; PROJECT &lt; TEAM &lt; ORG), conflict detection, and pre-flight DLP scanning preventing credentials (sk-, ghp-, Bearer, private keys) from entering memory stores.</p>
+            <div class="grid sm:grid-cols-4 gap-2">
+              <div>
+                <label for="kbrain-scope" class="label">Scope</label>
+                <select id="kbrain-scope" class="input w-full">
+                  <option value="project">PROJECT</option>
+                  <option value="local_session">LOCAL_SESSION</option>
+                  <option value="team">TEAM</option>
+                  <option value="org">ORG</option>
+                </select>
+              </div>
+              <div>
+                <label for="kbrain-key" class="label">Key</label>
+                <input id="kbrain-key" class="input w-full font-mono" placeholder="e.g. api_port">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="kbrain-statement" class="label">Fact Statement</label>
+                <input id="kbrain-statement" class="input w-full" placeholder="e.g. Services communicate over port 8080">
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="kbrain-record-btn" type="button" class="btn-primary h-8 text-xs">Record Fact</button>
+              <button id="kbrain-query-btn" type="button" class="btn-outline h-8 text-xs">Query Facts</button>
+            </div>
+            <pre id="kbrain-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>
