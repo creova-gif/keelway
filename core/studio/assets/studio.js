@@ -711,10 +711,29 @@ function seek(i) {
 }
 
 async function forkTape() {
+  if (!state.tapeId || state.cursor === undefined) return;
+  const btn = $('flight-fork');
+  if (btn) btn.disabled = true;
   try {
-    const r = await api('/v1/flight/fork', { method: 'POST', body: { task_id: state.tapeId, at_index: state.cursor + 1 } });
-    toast(`${t('fork')} → ${r.forked_task_id}`); state.tapeId = r.forked_task_id; loadTapes();
-  } catch (err) { toast(err.message, 'err'); }
+    const r = await api(`/v1/flight/tape/${encodeURIComponent(state.tapeId)}/fork`, {
+      method: 'POST',
+      body: { event_index: state.cursor }
+    });
+    toast(`Workspace forked at event #${state.cursor} to ${r.destination || 'worktree'}`, 'ok');
+    tone('ok');
+  } catch (err) {
+    try {
+      const r2 = await api('/v1/flight/fork', { method: 'POST', body: { task_id: state.tapeId, at_index: state.cursor + 1 } });
+      toast(`${t('fork')} → ${r2.forked_task_id}`, 'ok');
+      state.tapeId = r2.forked_task_id;
+      loadTapes();
+    } catch (err2) {
+      toast(err2.message, 'err');
+      tone('err');
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ---------- self-healing / ledger ----------
