@@ -80,3 +80,4 @@ Thumbs.db
 # Investor, Pitch, and Private Walkthrough materials
 LOCAL_DEMO*.md
 PITCH_AND_JUDGE_QA.md
+.vercel
