@@ -4,6 +4,18 @@
   "last_verified_at": "2026-11-03T22:00:00Z",
   "source_repository": "https://github.com/creova-gif/kora.git",
   "features": {
+    "client_sdk": {
+      "status": "AVAILABLE",
+      "claim": "Synchronous and asynchronous Python client SDK with typed exceptions and complete daemon interface",
+      "evidence_test": "tests/test_sdk.py",
+      "code_path": "core/sdk/"
+    },
+    "full_beta_developer_journey": {
+      "status": "AVAILABLE",
+      "claim": "End-to-end 20-stage developer journey covering install, doctor, model, agents, repair, and export",
+      "evidence_test": "tests/test_full_beta_developer_journey.py",
+      "code_path": "core/orchestration/"
+    },
     "local_agent_runtime": {
       "status": "AVAILABLE",
       "claim": "Local-first ReAct agent runtime with native workspace tools and flight tapes",
