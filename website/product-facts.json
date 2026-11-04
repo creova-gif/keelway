@@ -118,6 +118,12 @@
       "evidence_test": "tests/test_receipt_verifier.py",
       "code_path": "core/security/receipt_verifier.py"
     },
+    "reference_workflow_engine": {
+      "status": "AVAILABLE",
+      "claim": "Standalone local reference workflow engine with plan digests, approvals, atomic proposals, and 40 unit tests",
+      "evidence_test": "tests/test_keelway_core_engine.py, tests/test_keelway_core_cli.py",
+      "code_path": "keelway_core/engine.py, keelway_core/cli.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",
