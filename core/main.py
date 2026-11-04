@@ -17,6 +17,7 @@ from core.api.routes import router
 from core.api.studio import router as studio_router
 from core.api.auth_routes import router as auth_router
 from core.api.messaging_routes import relay, router as messaging_router
+from core.api.sync_routes import router as sync_router
 import asyncio
 from core.security.auth import launch_token
 import os
@@ -102,6 +103,7 @@ app.include_router(router)
 app.include_router(studio_router)
 app.include_router(auth_router)
 app.include_router(messaging_router)
+app.include_router(sync_router)
 
 # Mount Keelway Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"

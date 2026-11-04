@@ -66,6 +66,25 @@ class FlightRecorder:
         self.events.append(event)
         return event
 
+    def record_concurrent_mutation(
+        self,
+        file_path: str,
+        external_content: str,
+        agent_content: str = "",
+        base_content: str = "",
+    ) -> FlightEvent:
+        """Records an EXTERNAL_CONCURRENT_MUTATION event when external editor mutates a file during an agent run."""
+        return self.record_event(
+            event_type="EXTERNAL_CONCURRENT_MUTATION",
+            payload={
+                "file_path": file_path,
+                "agent_content_len": len(agent_content),
+                "external_content_len": len(external_content),
+                "base_content_len": len(base_content),
+                "status": "agent_paused_on_conflict",
+            },
+        )
+
     def get_tape(self) -> "FlightRecorder":
         return self
 

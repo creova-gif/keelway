@@ -278,6 +278,10 @@
         <div class="h-9 shrink-0 flex items-stretch justify-between bg-ide-sidebar border-b border-ide-border">
           <div id="editor-tabs" role="tablist" data-i18n-label="openFiles" aria-label="Open files" class="flex items-stretch overflow-x-auto no-scrollbar"></div>
           <div class="flex items-center gap-1.5 px-2">
+            <button id="open-editor-btn" type="button" class="btn-ghost text-[11px] gap-1 px-2 border border-ide-border text-ide-muted hover:text-ide-fg flex items-center" title="Open workspace in external editor (VS Code / Cursor)">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span id="open-editor-label">Open in VS Code</span>
+            </button>
             <button id="run-test-btn" type="button" class="btn-ghost text-[11px] gap-1 px-2 border border-ide-border hidden" title="Run detected project tests">
               <svg class="w-3.5 h-3.5 text-ok" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               <span id="run-test-label">Run Tests</span>

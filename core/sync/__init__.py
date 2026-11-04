@@ -1,5 +1,6 @@
 """
-Keelway Sovereign Cross-Machine Encrypted Task Sync package.
+Keelway Sovereign Sync Package
+Supports cross-machine encrypted task sync and external editor sync bridge.
 """
 from core.sync.engine import (
     EncryptedSyncEnvelope,
@@ -9,6 +10,7 @@ from core.sync.engine import (
     encrypt_payload,
     get_shared_sync_engine,
 )
+from core.sync.bridge import ExternalEditorSyncBridge, ConcurrentEditConflict
 
 __all__ = [
     "EncryptedSyncEnvelope",
@@ -17,4 +19,6 @@ __all__ = [
     "decrypt_payload",
     "encrypt_payload",
     "get_shared_sync_engine",
+    "ExternalEditorSyncBridge",
+    "ConcurrentEditConflict",
 ]

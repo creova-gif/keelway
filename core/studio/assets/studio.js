@@ -2533,6 +2533,27 @@ function wire() {
   $('labs-backdrop')?.addEventListener('click', () => toggleLabsDrawer(false));
   $('settings-open-labs-btn')?.addEventListener('click', () => toggleLabsDrawer(true));
   $('new-run-btn').addEventListener('click', newRun);
+  $('open-editor-btn')?.addEventListener('click', async () => {
+    try {
+      const res = await api('/v1/editor-sync/open-in-editor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ editor: 'vscode', relative_path: state.active || '' })
+      });
+      toast(`Launched ${res.editor}: ${res.target.split('/').pop() || 'workspace'}`);
+    } catch (e) {
+      try {
+        const res = await api('/v1/editor-sync/open-in-editor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ editor: 'cursor', relative_path: state.active || '' })
+        });
+        toast(`Launched Cursor: ${res.target.split('/').pop() || 'workspace'}`);
+      } catch (err) {
+        toast(e.message || 'External editor not found in PATH', 'err');
+      }
+    }
+  });
   $('task-back').addEventListener('click', () => { $('sec-tasks').dataset.detail = 'false'; });
   $('review-btn').addEventListener('click', () => { switchSection('workspace'); setMode('diff'); });
   $('open-record-btn').addEventListener('click', () => switchSection('runs'));
