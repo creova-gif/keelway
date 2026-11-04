@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keelway Documentation — Sovereign Developer Agent Infrastructure</title>
+<meta name="description" content="Technical documentation, CLI reference, and architecture guides for Keelway: local-first developer agent infrastructure, KStack, KBrain, and KFlow.">
+<link rel="canonical" href="https://kora-sable.vercel.app/docs.html">
+<meta property="og:title" content="Keelway Documentation">
+<meta property="og:description" content="Technical documentation, CLI reference, and architecture guides for Keelway.">
+<meta property="og:type" content="article">
+<meta name="theme-color" content="#0B0F14">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<style>
+.docs-layout { display: grid; grid-template-columns: 260px 1fr; gap: 40px; padding: 48px 0; }
+@media (max-width: 860px) { .docs-layout { grid-template-columns: 1fr; } .docs-sidebar { display: none; } }
+.docs-sidebar { position: sticky; top: 88px; height: calc(100vh - 120px); overflow-y: auto; padding-right: 16px; border-right: 1px solid var(--line); }
+.docs-nav h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 24px 0 8px; }
+.docs-nav h4:first-child { margin-top: 0; }
+.docs-nav a { display: block; font-size: 14px; color: var(--muted); text-decoration: none; padding: 6px 0; transition: color 0.15s; }
+.docs-nav a:hover, .docs-nav a.active { color: var(--teal); font-weight: 500; }
+.docs-content section { padding: 32px 0; border-top: 1px solid var(--line); }
+.docs-content section:first-child { padding-top: 0; border-top: none; }
+.docs-content h2 { font-size: 26px; margin: 0 0 16px; }
+.docs-content h3 { font-size: 19px; margin: 24px 0 10px; color: var(--teal); }
+.docs-content p { color: var(--muted); line-height: 1.7; margin-bottom: 16px; font-size: 15px; }
+.docs-content code { background: var(--surface-2); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--fg); }
+.callout { background: var(--surface-2); border-left: 3px solid var(--teal); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+.callout.amber { border-left-color: var(--amber); }
+.callout p { margin: 0; font-size: 14px; color: var(--fg); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Keelway home">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <span>Kora &amp; Keelway <small>Documentation</small></span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href="index.html">Overview</a>
+      <a href="index.html#status">Readiness</a>
+      <a href="docs.html" style="color: var(--teal); font-weight: 600;">Docs</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="https://github.com/creova-gif/kora.git" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <a class="btn primary" href="index.html#quickstart">Launch Studio</a>
+  </div>
+</header>
+
+<main id="main" class="wrap docs-layout">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="docs-sidebar">
+    <nav class="docs-nav">
+      <h4>Getting Started</h4>
+      <a href="#quickstart">Quickstart (60s)</a>
+      <a href="#doctor">System Doctor Diagnostics</a>
+      <a href="#m1-workflow">Milestone M1 Slice</a>
+
+      <h4>Core Architecture</h4>
+      <a href="#state-machine">Deterministic State Engine</a>
+      <a href="#flight-recorder">Flight Tapes &amp; Time Travel</a>
+      <a href="#policy-engine">Fail-Closed Policy &amp; Quorum</a>
+
+      <h4>K-Series Extensions</h4>
+      <a href="#kstack">KStack Composable Role Skills</a>
+      <a href="#kbrain">KBrain Memory &amp; DLP Scanner</a>
+      <a href="#khub">KHub Universal Importer</a>
+      <a href="#kspaces">KSpaces Team Workspaces</a>
+      <a href="#kflow">KFlow Deterministic DAG Engine</a>
+
+      <h4>Security &amp; Hardware</h4>
+      <a href="#tier2-hal">Tier 2 Hardware Security HAL</a>
+      <a href="#airgap">NIST Air-Gap Bundle Exporter</a>
+      <a href="#economics">Sovereign Economics &amp; ROI</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN DOCUMENTATION CONTENT -->
+  <article class="docs-content">
+    <header style="margin-bottom: 32px;">
+      <span class="eyebrow">Enterprise Developer Guide</span>
+      <h1 style="margin-top: 12px; font-size: 34px;">Keelway Architecture &amp; Developer Reference</h1>
+      <p class="lede">Learn how to build, orchestrate, and verify software using local-first autonomous developer agents, deterministic state machines, and cryptographic proof packets.</p>
+    </header>
+
+    <!-- 1. QUICKSTART -->
+    <section id="quickstart">
+      <h2>1. Quickstart &amp; Installation</h2>
+      <p>Keelway runs 100% locally on macOS and Linux with zero external cloud dependencies. You can install and bootstrap the runtime in under 60 seconds.</p>
+      
+      <div class="card term">
+        <div class="bar"><span class="mono">bash</span></div>
+        <pre class="mono"><span class="c"># Clone repository and set up isolated virtualenv</span>
+$ git clone https://github.com/creova-gif/kora.git keelway && cd keelway
+$ python3 -m venv .venv && source .venv/bin/activate
+$ pip install -e .
+
+<span class="c"># Verify system health across 7 dimensions</span>
+$ keelway doctor
+
+<span class="c"># Launch the local Studio UI</span>
+$ keelway dev --desktop</pre>
+      </div>
+    </section>
+
+    <!-- 2. SYSTEM DOCTOR -->
+    <section id="doctor">
+      <h2>2. Pre-Flight System Doctor</h2>
+      <p>The <code>keelway doctor</code> command performs comprehensive pre-flight verification across seven critical axes before agent execution:</p>
+      <ul>
+        <li><strong>Database Engine:</strong> Validates SQLite WAL mode, connection pool, and migrations.</li>
+        <li><strong>Workspace Context:</strong> Ensures clean Git HEAD, root paths, and safe permissions.</li>
+        <li><strong>Model Gateway:</strong> Confirms local Ollama / GGUF model readiness and optional cloud adapters.</li>
+        <li><strong>Air-Gap Compliance:</strong> Runs 5-point NIST SP 800-53 SC-7 socket and adapter checks.</li>
+        <li><strong>Entitlements:</strong> Checks signed enterprise license certificate and offline grace status.</li>
+        <li><strong>Supply Chain SBOM:</strong> Validates CycloneDX v1.5 SBOM signatures and root digests.</li>
+        <li><strong>Tier 2 Hardware HAL:</strong> Verifies TPM 2.0 PCR quotes, Dual-WORM receipts, and PIV tokens.</li>
+      </ul>
+    </section>
+
+    <!-- 3. MILESTONE M1 -->
+    <section id="m1-workflow">
+      <h2>3. Milestone M1 Developer Journey</h2>
+      <p>Execute the canonical 10-stage end-to-end developer workflow via <code>keelway m1</code>. It launches an agent inside a restricted test fixture, diagnoses a 10% discount bug, plans a patch, presents an inspectable diff, requires human approval, applies the edit, executes the repo's real unit tests, and seals a tamper-evident flight tape.</p>
+      
+      <div class="card term">
+        <div class="bar"><span class="mono">bash</span></div>
+        <pre class="mono">$ keelway m1
+<span class="c">[+] Executing Milestone M1 10-Stage Vertical Slice...</span>
+  │ [Stage 1/10] Launch Keelway Core Engine       [OK]
+  │ [Stage 2/10] Open Local Source Repository     [OK]
+  │ [Stage 3/10] Project Explorer Loaded          [OK]
+  │ [Stage 4/10] Submit Agent Task Goal           [OK]
+  │ [Stage 5/10] Formulate Plan & Step 1 Read     [OK]
+  │ [Stage 6/10] Review Sandboxed Unified Diff    [OK]
+  │ [Stage 7/10] Human Approver Grants Mutation   [OK]
+  │ [Stage 8/10] Apply Authorized Changes to Disk [OK]
+  │ [Stage 9/10] Run Repo Tests (unittest -q)     [OK]
+  │ [Stage 10/10] Complete & Seal Flight Tape     [OK]
+<span class="c">✅ All 10 stages verified. Flight tape SHA-256 sealed.</span></pre>
+      </div>
+    </section>
+
+    <!-- 4. DETERMINISTIC STATE MACHINE -->
+    <section id="state-machine">
+      <h2>4. Deterministic State Engine &amp; Cancellation</h2>
+      <p>Unlike uncontrolled LLM loops that can loop infinitely, Keelway enforces an immutable 12-state deterministic state machine with strict transition guards:</p>
+      <div class="callout">
+        <p class="mono">CREATED ➔ CONTEXT_READY ➔ PLANNED ➔ AWAITING_APPROVAL ➔ RUNNING ➔ VERIFYING ➔ COMPLETED</p>
+      </div>
+      <p>Operators can cancel long-running agent tasks at any point via <code>POST /v1/tasks/{task_id}/cancel</code> or pressing <code>Ctrl+C</code> in the CLI. In-flight operations roll back safely without leaving partial hunks.</p>
+    </section>
+
+    <!-- 5. FLIGHT RECORDER -->
+    <section id="flight-recorder">
+      <h2>5. Flight Tapes &amp; Time-Travel Debugging</h2>
+      <p>Every agent step, AST transformation, tool invocation, and terminal execution is recorded chronologically in an immutable <code>.flight.json</code> tape. The Studio interface features a deterministic flight replay visualizer with frame stepping (<code>⏮</code>, <code>◀</code>, <code>▶</code>, <code>⏭</code>), syntax-highlighted diffs, and live cryptographic seal verification.</p>
+    </section>
+
+    <!-- 6. KSTACK -->
+    <section id="kstack">
+      <h2>6. KStack Composable Role Skills</h2>
+      <p>KStack standardizes agent roles as version-controlled <code>SKILL.md</code> definitions. Keelway ships with four first-party built-in skills:</p>
+      <ul>
+        <li><code>kstack/plan</code> (Role: Architect) — Deconstructs intent into discrete, bounded, testable steps.</li>
+        <li><code>kstack/review</code> (Role: Reviewer) — Pre-landing code inspection for subtle edge cases and regressions.</li>
+        <li><code>kstack/qa</code> (Role: QA Lead) — Surfaces test plans, boundary conditions, and test execution.</li>
+        <li><code>kstack/security</code> (Role: Security Lead) — Checks threat models, input validation, and credential leaks.</li>
+      </ul>
+      <p>Manage skills using <code>keelway skill inspect|import|validate|list|pin|export|revoke</code>.</p>
+    </section>
+
+    <!-- 7. KBRAIN -->
+    <section id="kbrain">
+      <h2>7. KBrain Scope-Aware Knowledge &amp; DLP Memory</h2>
+      <p>KBrain provides hierarchical fact and decision memory with strict scoping boundaries: <code>LOCAL_SESSION</code> &lt; <code>PROJECT</code> &lt; <code>TEAM</code> &lt; <code>ORG</code>. Before storing any fact, an automated regex DLP pre-flight scanner validates the payload, immediately throwing <code>SecretLeakDetectedError</code> if raw API keys (<code>sk-</code>, <code>ghp_</code>, <code>Bearer </code>, private keys) are present.</p>
+    </section>
+
+    <!-- 8. KHUB -->
+    <section id="khub">
+      <h2>8. KHub Universal Skills Importer</h2>
+      <p>KHub scans and imports agent skills from external platforms, including <code>.claude/skills</code>, <code>.cursor/skills</code>, <code>.cursor/rules</code>, <code>.agents/skills</code>, and <code>.codex/skills</code>. Files under <code>.cursor/rules</code> are strictly classified as non-executable prompt rules (<code>is_rule_only=True</code>) to prevent accidental execution as tool skills. Upstream content changes are actively monitored via SHA-256 drift radar.</p>
+    </section>
+
+    <!-- 9. KSPACES -->
+    <section id="kspaces">
+      <h2>9. KSpaces Collaborative Workspaces &amp; RBAC</h2>
+      <p>KSpaces introduces enterprise team collaboration with four RBAC roles: <code>OWNER</code>, <code>AGENT_MANAGER</code>, <code>CONTRIBUTOR</code>, and <code>VIEWER</code>. Agents receive time-bound service account credentials (<code>sa_&lt;id&gt;</code>) with automatic TTL expiration. All proposed branch changes require explicit <code>AGENT_MANAGER</code> review and approval.</p>
+    </section>
+
+    <!-- 10. KFLOW -->
+    <section id="kflow">
+      <h2>10. KFlow Deterministic DAG Engine</h2>
+      <p>KFlow coordinates parallel multi-agent task execution using a topological DAG scheduler with strict maximum dollar budget and fanout constraints. Prior to applying changes, KFlow checks that the working tree matches the approved base Git commit SHA, raising <code>BaseShaDriftError</code> if concurrent edits occurred. Execution produces a cryptographically sealed <code>ProofPacket</code>.</p>
+    </section>
+
+    <!-- 11. TIER 2 HAL -->
+    <section id="tier2-hal">
+      <h2>11. Tier 2 Hardware Security HAL</h2>
+      <p>For high-security defense, banking, and critical infrastructure deployments, Keelway implements a Tier 2 Hardware Abstraction Layer:</p>
+      <ul>
+        <li><strong>TPM 2.0 PCR Quotes:</strong> Cryptographic attestation of measured boot and firmware integrity.</li>
+        <li><strong>Dual-WORM Storage:</strong> Dual Write-Once-Read-Many append-only storage for immutable audit receipts.</li>
+        <li><strong>PIV Smartcard Verification:</strong> Hardware smartcard token authentication with CRL revocation checks &lt;= 72 hours.</li>
+        <li><strong>2-of-3 Shamir Recovery:</strong> Distributed cryptographic threshold key reconstruction for disaster recovery.</li>
+      </ul>
+    </section>
+
+    <!-- 12. SOVEREIGN ECONOMICS -->
+    <section id="economics">
+      <h2>12. Sovereign Economics &amp; Rate Cards</h2>
+      <p>Track token expenditure in real time with <code>keelway cost</code>. Keelway incorporates rate cards across Anthropic, OpenAI, Google, DeepSeek, and local inference engines, automatically calculating your local GPU arbitrage ROI and Sovereign Efficiency Index (SEI) score.</p>
+    </section>
+  </article>
+</main>
+
+<footer style="border-top: 1px solid var(--line); padding: 48px 0; margin-top: 64px;">
+  <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <p style="margin: 0; color: var(--muted); font-size: 14px;">&copy; 2026 Sorvex Labs &amp; Kora Technologies. Deterministic Local-First Infrastructure.</p>
+    <div style="display: flex; gap: 20px; font-size: 14px;">
+      <a href="index.html" style="color: var(--muted); text-decoration: none;">Overview</a>
+      <a href="product-facts.json" style="color: var(--muted); text-decoration: none;">Product Facts</a>
+      <a href="https://github.com/creova-gif/kora.git" target="_blank" rel="noopener" style="color: var(--muted); text-decoration: none;">GitHub</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -41,3 +41,20 @@ def test_website_html_references_valid_assets():
     assert "product-facts.json" in content
     assert "Verified against commit" in content
     assert "585 automated tests" in content or "tests passing" in content
+    assert "docs.html" in content
+
+    # Assert SEO & documentation files exist
+    docs_file = Path("website/docs.html")
+    assert docs_file.exists(), "website/docs.html must exist"
+    docs_content = docs_file.read_text(encoding="utf-8")
+    assert "Keelway Architecture" in docs_content
+    assert "kstack" in docs_content
+    assert "kbrain" in docs_content
+
+    robots_file = Path("website/robots.txt")
+    assert robots_file.exists(), "website/robots.txt must exist"
+    assert "sitemap.xml" in robots_file.read_text(encoding="utf-8")
+
+    sitemap_file = Path("website/sitemap.xml")
+    assert sitemap_file.exists(), "website/sitemap.xml must exist"
+    assert "https://kora-sable.vercel.app/" in sitemap_file.read_text(encoding="utf-8")
