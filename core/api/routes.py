@@ -639,15 +639,85 @@ async def fork_flight_tape(payload: dict):
     }
 
 
+# =====================================================================
+# Local Team Mesh & Pooled Compute Endpoints (Section 13)
+# =====================================================================
+
+from core.orchestration.p2p_mesh import get_shared_mesh, MeshPeer, MeshDelegationReceipt
+
+
+@router.get("/v1/mesh/status", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
+async def mesh_status():
+    """Returns local node advertisement, active peers count, and total pooled compute VRAM."""
+    mesh = get_shared_mesh()
+    active = mesh.active_peers()
+    return {
+        "local_node": mesh.get_local_advertisement(),
+        "active_peers_count": len(active),
+        "total_pooled_vram_mb": mesh.total_pooled_vram_mb(),
+        "delegation_history_count": len(mesh.delegation_history),
+    }
+
+
 @router.get("/v1/mesh/peers", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
 async def list_mesh_peers():
     """List peer developer workstations discovered on local Wi-Fi / Tailscale."""
-    from core.orchestration.p2p_mesh import LocalTeamMesh
-    mesh = LocalTeamMesh()
+    mesh = get_shared_mesh()
     return {
         "local_node": mesh.get_local_advertisement(),
-        "peers": [p.__dict__ for p in mesh.peers.values()],
+        "peers": [p.to_dict() for p in mesh.peers.values()],
+        "active_peers": [p.to_dict() for p in mesh.active_peers()],
+        "total_pooled_vram_mb": mesh.total_pooled_vram_mb(),
     }
+
+
+@router.post("/v1/mesh/heartbeat", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
+async def mesh_heartbeat(payload: dict):
+    """Registers or refreshes heartbeat from a peer node on the local mesh."""
+    mesh = get_shared_mesh()
+    required = ["node_id", "hostname", "lan_ip", "port", "available_vram_mb"]
+    for req_f in required:
+        if req_f not in payload:
+            raise HTTPException(status_code=400, detail=f"Missing required field: {req_f}")
+    peer = mesh.register_peer(
+        node_id=payload["node_id"],
+        hostname=payload["hostname"],
+        lan_ip=payload["lan_ip"],
+        port=int(payload["port"]),
+        available_vram_mb=int(payload["available_vram_mb"]),
+        active_tasks=int(payload.get("active_tasks", 0)),
+        tailscale_ip=payload.get("tailscale_ip"),
+    )
+    return {"status": "registered", "peer": peer.to_dict(), "total_pooled_vram_mb": mesh.total_pooled_vram_mb()}
+
+
+@router.post("/v1/mesh/delegate", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Local Team Mesh"])
+async def mesh_delegate(payload: dict):
+    """Delegates a heavy compute/agent task across the local Wi-Fi / Tailscale team mesh."""
+    mesh = get_shared_mesh()
+    task_intent = payload.get("intent", "Heavy agent task")
+    min_vram_mb = int(payload.get("min_vram_mb", 4096))
+    allow_fallback = bool(payload.get("allow_local_fallback", True))
+    task_payload = payload.get("payload", {})
+    receipt = mesh.delegate_task(
+        task_intent=task_intent,
+        min_vram_mb=min_vram_mb,
+        payload=task_payload,
+        allow_local_fallback=allow_fallback,
+    )
+    if receipt.status == "local_fallback":
+        receipt = mesh.execute_task(receipt)
+    return {"status": "ok", "receipt": receipt.to_dict()}
+
+
+@router.post("/v1/mesh/prune", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Local Team Mesh"])
+async def mesh_prune(payload: dict = None):
+    """Prunes expired peer workstations from the mesh registry."""
+    mesh = get_shared_mesh()
+    timeout = float((payload or {}).get("timeout_sec", 30.0))
+    pruned = mesh.prune_expired_peers(timeout_sec=timeout)
+    return {"pruned_count": pruned, "active_peers_count": len(mesh.active_peers())}
+
 
 
 # =====================================================================
@@ -1033,9 +1103,27 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
     if task_id in _active_agent_loops or _tape_path(task_id).exists():
         raise HTTPException(status_code=409, detail=f"Agent task {task_id} already exists.")
     if agent is None:
+        pol_engine = None
+        if payload.get("governed") or payload.get("policy_version"):
+            from keelway.policy.engine import PolicyEngine
+            pol_engine = PolicyEngine(policy_id=payload.get("policy_version", "default_governed_v1"))
+
+        q_service = None
+        env_mode = payload.get("environment", "internal")
+        if env_mode == "production" or payload.get("quorum"):
+            from keelway.approvals.quorum import TwoHumanQuorumService
+            q_service = TwoHumanQuorumService()
+
         agent = AutonomousAgentLoop(
-            task_id=task_id, workspace_fs=_workspace_fs, policy=policy, record_flight=True,
+            task_id=task_id,
+            workspace_fs=_workspace_fs,
+            policy=policy,
+            record_flight=True,
             approval_rules=ApprovalRuleStore(_workspace_fs.root),
+            policy_engine=pol_engine,
+            quorum_service=q_service,
+            environment=env_mode,
+            actor_id=principal.actor,
         )
     agent.initialize_plan(goal=goal, steps=steps)
     _active_agent_loops[task_id] = agent
@@ -1164,6 +1252,27 @@ async def cancel_agent_task(task_id: str, principal: Principal = Depends(current
         "task_id": task_id,
         "result": cancel_res,
         "agent_state": state,
+    }
+
+
+@router.post("/v1/agent/quorum-approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
+async def quorum_approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
+    """Enterprise two-human quorum approval: submit role signature (Security Lead or Platform Owner)."""
+    if task_id not in _active_agent_loops:
+        raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
+    agent = _active_agent_loops[task_id]
+    principal_id = payload.get("principal_id") or principal.actor
+    role = payload.get("role")
+    if not role:
+        raise HTTPException(status_code=400, detail="Missing required 'role' for quorum approval.")
+    res = agent.submit_quorum_approval(principal_id=principal_id, role=role)
+    if res.get("status") == "error":
+        raise HTTPException(status_code=400, detail=res.get("message", "Quorum approval error"))
+    await record_audit(principal, "agent_quorum_approval", f"{task_id}:{role}:{principal_id}", True)
+    return {
+        "task_id": task_id,
+        "quorum_result": res,
+        "agent_state": await _publish_agent(agent),
     }
 
 

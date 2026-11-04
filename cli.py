@@ -65,25 +65,92 @@ async def cmd_heal(test_cmd: str, max_attempts: int = 3):
         print(f"    Diagnosis: {result.verification_output}\n")
 
 
-async def cmd_mesh():
-    """List local team mesh nodes and pooled GPU VRAM."""
-    from core.orchestration.p2p_mesh import LocalTeamMesh
-    mesh = LocalTeamMesh()
-    print("\n" + "=" * 65)
-    print("  🌐 KEELWAY PEER-TO-PEER LOCAL TEAM MESH")
-    print("=" * 65)
+async def cmd_mesh(
+    action: str = "status",
+    node_id: Optional[str] = None,
+    host: Optional[str] = None,
+    lan_ip: str = "127.0.0.1",
+    port: int = 7420,
+    vram: int = 8192,
+    tailscale_ip: Optional[str] = None,
+    intent: str = "Heavy AST optimization",
+    min_vram: int = 6000,
+    timeout: float = 30.0,
+) -> int:
+    """Manage local team mesh discovery, peer heartbeats, and pooled GPU VRAM delegation."""
+    from core.orchestration.p2p_mesh import get_shared_mesh
+    mesh = get_shared_mesh()
+    default_mesh_store = Path(".keelway/mesh/peers.json")
+
+    # Auto-load cached peers if available
+    if default_mesh_store.is_file() and not mesh.peers:
+        mesh.load_peers(default_mesh_store)
+
+    if action == "register":
+        nid = node_id or f"peer_{host or 'node'}_{port}"
+        peer = mesh.register_peer(
+            node_id=nid,
+            hostname=host or f"peer-{nid}.local",
+            lan_ip=lan_ip,
+            port=port,
+            available_vram_mb=vram,
+            tailscale_ip=tailscale_ip,
+        )
+        mesh.save_peers(default_mesh_store)
+        print(f"[+] Successfully registered peer '{peer.node_id}' ({peer.hostname} at {peer.lan_ip}:{peer.port}) with {peer.available_vram_mb} MB VRAM.")
+        return 0
+
+    elif action == "delegate":
+        print(f"[*] Evaluating mesh routing for task: '{intent}' (min VRAM: {min_vram} MB)...")
+        receipt = mesh.delegate_task(task_intent=intent, min_vram_mb=min_vram)
+        if receipt.status == "local_fallback":
+            receipt = mesh.execute_task(receipt)
+        print(f"[+] Task delegation completed: {receipt.delegation_id}")
+        print(f"    Target Node:     {receipt.target_hostname} ({receipt.target_node_id})")
+        print(f"    Allocated VRAM:  {receipt.allocated_vram_mb} MB")
+        print(f"    Status:          {receipt.status.upper()}")
+        print(f"    Duration:        {receipt.duration_ms or 0.0} ms")
+        print(f"    Signature:       {receipt.signature[:16]}...{receipt.signature[-8:]}")
+        return 0
+
+    elif action == "prune":
+        pruned = mesh.prune_expired_peers(timeout_sec=timeout)
+        mesh.save_peers(default_mesh_store)
+        print(f"[+] Pruned {pruned} expired peers (heartbeat elapsed > {timeout}s). Active peers remaining: {len(mesh.active_peers())}.")
+        return 0
+
+    elif action == "save":
+        mesh.save_peers(default_mesh_store)
+        print(f"[+] Saved {len(mesh.peers)} peers to {default_mesh_store}.")
+        return 0
+
+    elif action == "load":
+        loaded = mesh.load_peers(default_mesh_store)
+        print(f"[+] Loaded {loaded} peers from {default_mesh_store}.")
+        return 0
+
+    # Default: "status" or "peers"
+    print("\n" + "=" * 68)
+    print("  🌐 KEELWAY PEER-TO-PEER LOCAL TEAM MESH & GPU VRAM POOLING")
+    print("=" * 68)
     local = mesh.get_local_advertisement()
-    print(f"  Local Node ID: {local['node_id']} ({local['hostname']})")
-    print(f"  mDNS Service:  {local['service_type']}")
-    print(f"  Local VRAM:    {local['vram_mb']} MB")
-    print(f"  Tailscale:     {local['tailscale_ip'] or 'Not Configured (LAN only)'}")
+    active_peers = mesh.active_peers()
+    total_vram = mesh.total_pooled_vram_mb()
+    print(f"  Local Node ID:     {local['node_id']} ({local['hostname']})")
+    print(f"  mDNS Service:      {local['service_type']}")
+    print(f"  Local VRAM:        {local['vram_mb']} MB")
+    print(f"  Tailscale Address: {local['tailscale_ip'] or 'LAN only (WireGuard inactive)'}")
+    print(f"  Pooled Mesh VRAM:  {total_vram} MB across {len(active_peers) + 1} workstation(s)")
     print("\n[+] Discovered Peer Workstations:")
     if not mesh.peers:
         print("  • No active remote peers broadcasting on local subnet. Local standalone mode.")
     else:
         for p in mesh.peers.values():
-            print(f"  • [{p.node_id}] {p.hostname} ({p.lan_ip}:{p.port}) - VRAM: {p.available_vram_mb} MB")
+            alive_badge = "🟢 ALIVE" if p.is_alive() else "🔴 OFFLINE"
+            ts_str = f" [TS: {p.tailscale_ip}]" if p.tailscale_ip else ""
+            print(f"  • {alive_badge} [{p.node_id}] {p.hostname} ({p.lan_ip}:{p.port}){ts_str} - {p.available_vram_mb} MB VRAM (Tasks: {p.active_tasks})")
     print()
+    return 0
 
 
 async def cmd_spec():
@@ -1639,7 +1706,17 @@ def main():
     dataset_export_parser.add_argument("--limit", type=int, default=100, help="Max samples to export")
 
     # mesh (Peer-to-peer local team GPU/VRAM mesh)
-    subparsers.add_parser("mesh", help="Discover peer workstations and pooled VRAM on local Wi-Fi")
+    mesh_parser = subparsers.add_parser("mesh", help="Discover peer workstations and pooled VRAM on local Wi-Fi")
+    mesh_parser.add_argument("action", nargs="?", default="status", choices=["status", "peers", "register", "delegate", "prune", "save", "load"], help="Mesh action")
+    mesh_parser.add_argument("--node-id", default=None, help="Peer node identifier")
+    mesh_parser.add_argument("--host", default=None, help="Peer hostname")
+    mesh_parser.add_argument("--lan-ip", default="127.0.0.1", help="Peer LAN IP address")
+    mesh_parser.add_argument("--port", type=int, default=7420, help="Peer port")
+    mesh_parser.add_argument("--vram", type=int, default=8192, help="Available VRAM in MB")
+    mesh_parser.add_argument("--tailscale-ip", default=None, help="Optional Tailscale IP")
+    mesh_parser.add_argument("--intent", default="Heavy AST optimization", help="Task intent for delegation")
+    mesh_parser.add_argument("--min-vram", type=int, default=6000, help="Minimum VRAM in MB required for task delegation")
+    mesh_parser.add_argument("--timeout", type=float, default=30.0, help="Heartbeat timeout for pruning")
 
     # spec (Speculative decoding benchmark)
     subparsers.add_parser("spec", help="Run speculative decoding tandem acceleration benchmark")
@@ -1820,7 +1897,18 @@ def main():
         from core.orchestration.mcp import build_workspace_server, serve_stdio
         asyncio.run(serve_stdio(build_workspace_server(args.workspace)))
     elif args.command == "mesh":
-        asyncio.run(cmd_mesh())
+        asyncio.run(cmd_mesh(
+            action=getattr(args, "action", "status"),
+            node_id=getattr(args, "node_id", None),
+            host=getattr(args, "host", None),
+            lan_ip=getattr(args, "lan_ip", "127.0.0.1"),
+            port=getattr(args, "port", 7420),
+            vram=getattr(args, "vram", 8192),
+            tailscale_ip=getattr(args, "tailscale_ip", None),
+            intent=getattr(args, "intent", "Heavy AST optimization"),
+            min_vram=getattr(args, "min_vram", 6000),
+            timeout=getattr(args, "timeout", 30.0),
+        ))
     elif args.command == "spec":
         asyncio.run(cmd_spec())
     elif args.command == "heal":

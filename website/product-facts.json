@@ -88,6 +88,18 @@
       "evidence_test": "tests/test_eval_drift.py",
       "code_path": "evals/drift_detector.py"
     },
+    "p2p_team_mesh_and_compute_pooling": {
+      "status": "AVAILABLE",
+      "claim": "Zero-cloud peer-to-peer developer mesh, mDNS discovery, GPU VRAM pooling, and cryptographically signed task delegation across LAN and Tailscale",
+      "evidence_test": "tests/test_p2p_mesh.py, tests/test_mesh_api.py",
+      "code_path": "core/orchestration/p2p_mesh.py"
+    },
+    "policy_engine_and_two_human_quorum": {
+      "status": "AVAILABLE",
+      "claim": "Fail-closed policy gating (FR-02) and mandatory two-human independent quorum approval (ADR-045/ADR-046) for production agent workloads",
+      "evidence_test": "tests/test_agent_loop_policy_quorum.py, tests/test_policy_engine.py, tests/test_quorum.py",
+      "code_path": "keelway/policy/engine.py, keelway/approvals/quorum.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",

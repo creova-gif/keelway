@@ -4,6 +4,8 @@ Implements the multi-step Observe -> Plan -> Tool Call -> Observation -> Verify 
 with native workspace tools, deterministic flight recording, and human-in-the-loop safety controls.
 """
 
+import hashlib
+import json
 import os
 import re
 import shlex
@@ -18,6 +20,7 @@ from core.security.env_scrub import scrub_env
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
 from core.storage.ast_index import CodebaseSemanticIndex
 from core.orchestration.flight_recorder import FlightRecorder, FlightEvent
+from keelway.core.models import DecisionEnum, ToolAuthorizationRequest
 
 
 class AgentLoopStatus(str, Enum):
@@ -64,10 +67,19 @@ class AutonomousAgentLoop:
         policy: AutonomyPolicy = AutonomyPolicy.CONFIRM_MUTATION,
         record_flight: bool = True,
         approval_rules: Optional[Any] = None,
+        policy_engine: Optional[Any] = None,
+        quorum_service: Optional[Any] = None,
+        environment: str = "internal",
+        actor_id: str = "local_engineer",
     ):
         self.task_id = task_id
         self.fs = workspace_fs or WorkspaceFilesystem()
         self.policy = policy
+        self.policy_engine = policy_engine
+        self.quorum_service = quorum_service
+        self.environment = environment
+        self.actor_id = actor_id
+        self.active_quorum_id: Optional[str] = None
         self.goal = ""
         self.status = AgentLoopStatus.IDLE
         self.plan: List[PlanStep] = []
@@ -345,6 +357,73 @@ class AutonomousAgentLoop:
                     self._update_step_status(step_id, "failed", f"Blocked by agent manifest: {decision.reason}")
                 return {"status": "denied_by_manifest", "code": decision.code, "reason": decision.reason}
 
+        # Policy Engine Evaluation (FR-02)
+        if self.policy_engine is not None:
+            tool_policy_map = {
+                "read_file": "git.read",
+                "write_file": "git.write_patch",
+                "edit_file": "git.write_patch",
+                "exec_command": "sandbox.exec_test",
+                "list_dir": "git.read",
+                "eval_benchmark": "eval.run",
+            }
+            active_rule = self.policy_engine.rules.get(getattr(self.policy_engine, "policy_id", "default_governed_v1"))
+            policy_tool = tool_name
+            if active_rule and tool_name not in active_rule.allowed_tools and tool_name in tool_policy_map:
+                policy_tool = tool_policy_map[tool_name]
+
+            action_bytes = json.dumps({"tool": policy_tool, "args": arguments}, sort_keys=True).encode("utf-8")
+            action_digest = hashlib.sha256(action_bytes).hexdigest()
+            auth_req = ToolAuthorizationRequest(
+                run_id=self.task_id,
+                tool=policy_tool,
+                action_digest=f"sha256:{action_digest}",
+                scope={"path": arguments.get("path", ""), "repo": arguments.get("repo", "."), "network_egress": arguments.get("network_egress", False)},
+                actor_id=self.actor_id,
+                policy_version=getattr(self.policy_engine, "policy_id", "default_governed_v1"),
+            )
+            policy_decision = self.policy_engine.evaluate(auth_req)
+            if policy_decision.decision == DecisionEnum.DENY:
+                self._record_event("policy_denied", {
+                    "task_id": self.task_id, "tool_name": tool_name, "policy_tool": policy_tool,
+                    "arguments": arguments, "step_id": step_id,
+                    "reason_code": policy_decision.reason_code, "decision_id": policy_decision.decision_id,
+                })
+                if step_id:
+                    self._update_step_status(step_id, "failed", f"Denied by policy engine: {policy_decision.reason_code}")
+                return {
+                    "status": "denied_by_policy",
+                    "reason_code": policy_decision.reason_code,
+                    "decision_id": policy_decision.decision_id,
+                    "signature": policy_decision.signature,
+                }
+            elif policy_decision.decision == DecisionEnum.REQUIRE_APPROVAL:
+                # Production Quorum Gate (ADR-045 / ADR-046)
+                if self.environment == "production" and self.quorum_service is not None:
+                    q_req = self.quorum_service.create_quorum_request(
+                        run_id=self.task_id,
+                        patch_hash=f"sha256:{action_digest}",
+                        environment=self.environment,
+                    )
+                    self.active_quorum_id = q_req.id
+                    self.status = AgentLoopStatus.AWAITING_APPROVAL
+                    self.pending_approval = {
+                        "task_id": self.task_id,
+                        "tool_name": tool_name,
+                        "policy_tool": policy_tool,
+                        "arguments": arguments,
+                        "is_mutation": tool.is_mutation,
+                        "step_id": step_id,
+                        "requires_quorum": True,
+                        "quorum_id": q_req.id,
+                        "required_roles": list(q_req.required_roles),
+                        "decision_id": policy_decision.decision_id,
+                    }
+                    self._record_event("quorum_approval_requested", self.pending_approval)
+                    return {"status": "paused_for_quorum", "pending": self.pending_approval}
+                else:
+                    needs_approval = True
+
         # Permission check
         needs_approval = (
             self.policy == AutonomyPolicy.CONFIRM_ALL
@@ -376,6 +455,43 @@ class AutonomousAgentLoop:
 
         return await self._run_approved_tool(tool, arguments, step_id)
 
+    def submit_quorum_approval(self, principal_id: str, role: str) -> Dict[str, Any]:
+        """Submits an independent human signature toward achieving two-human quorum (ADR-045)."""
+        if not self.quorum_service or not self.active_quorum_id:
+            return {"status": "no_active_quorum"}
+
+        q_req = self.quorum_service.get_request(self.active_quorum_id)
+        if not q_req:
+            return {"status": "quorum_request_not_found"}
+
+        try:
+            ok, msg = self.quorum_service.submit_role_approval(
+                request_id=self.active_quorum_id,
+                principal_id=principal_id,
+                role=role,
+                current_patch_hash=q_req.patch_hash,
+            )
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+        if not ok:
+            return {"status": "error", "message": msg}
+
+        if q_req.is_fully_approved:
+            self._record_event("quorum_fully_approved", {
+                "quorum_id": q_req.id,
+                "signatures": {k: sig.model_dump() for k, sig in q_req.signatures.items()},
+            })
+            return {"status": "fully_approved", "quorum_id": q_req.id, "message": msg}
+
+        return {
+            "status": "pending_remaining_approvers",
+            "quorum_id": q_req.id,
+            "message": msg,
+            "signatures_collected": list(q_req.signatures.keys()),
+            "signatures_remaining": list(q_req.required_roles - set(q_req.signatures.keys())),
+        }
+
     async def approve_pending(self, approved: bool) -> Dict[str, Any]:
         """User grants or denies permission for pending tool execution."""
         if not self.pending_approval:
@@ -390,6 +506,22 @@ class AutonomousAgentLoop:
             if pending.get("step_id"):
                 self._update_step_status(pending["step_id"], "failed", "User denied permission.")
             return {"status": "denied", "tool_name": pending["tool_name"]}
+
+        # If pending item requires two-human quorum, verify that quorum is fully satisfied
+        if pending.get("requires_quorum"):
+            if not self.quorum_service:
+                return {"status": "error", "message": "Quorum service unavailable"}
+            q_req = self.quorum_service.get_request(pending["quorum_id"])
+            if not q_req or not q_req.is_fully_approved:
+                # Restore pending approval and reject execution until quorum is achieved
+                self.pending_approval = pending
+                self.status = AgentLoopStatus.AWAITING_APPROVAL
+                pending_roles = list(q_req.required_roles - set(q_req.signatures.keys())) if q_req else []
+                return {
+                    "status": "quorum_not_satisfied",
+                    "quorum_id": pending["quorum_id"],
+                    "pending_roles": pending_roles,
+                }
 
         self._record_event("approval_granted", pending)
         tool = self.tools[pending["tool_name"]]

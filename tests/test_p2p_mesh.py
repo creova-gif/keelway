@@ -7,6 +7,17 @@ import unittest
 from core.orchestration.p2p_mesh import LocalTeamMesh, MeshPeer
 
 
+"""
+Standard library unit tests for Keelway Peer-to-Peer Local Team Mesh.
+"""
+
+import tempfile
+import time
+import unittest
+from pathlib import Path
+from core.orchestration.p2p_mesh import LocalTeamMesh, MeshPeer, get_shared_mesh
+
+
 class TestLocalTeamMesh(unittest.TestCase):
     def test_local_advertisement(self):
         mesh = LocalTeamMesh(node_name="macbook-pro", port=7420, vram_mb=16384)
@@ -64,6 +75,65 @@ class TestLocalTeamMesh(unittest.TestCase):
         self.assertIsNotNone(best_worker)
         self.assertEqual(best_worker.node_id, "desktop_heavy")
         self.assertEqual(best_worker.hostname, "mac-studio.local")
+
+    def test_total_pooled_vram_and_active_peers(self):
+        mesh = LocalTeamMesh(vram_mb=8192)
+        mesh.register_peer("peer_a", "peer-a.local", "192.168.1.2", 7420, 16384)
+        mesh.register_peer("peer_b", "peer-b.local", "192.168.1.3", 7420, 32768)
+
+        self.assertEqual(len(mesh.active_peers()), 2)
+        self.assertEqual(mesh.total_pooled_vram_mb(), 8192 + 16384 + 32768)
+
+    def test_prune_expired_peers(self):
+        mesh = LocalTeamMesh()
+        p1 = mesh.register_peer("peer_alive", "alive.local", "192.168.1.2", 7420, 8192)
+        p2 = mesh.register_peer("peer_dead", "dead.local", "192.168.1.3", 7420, 8192)
+        p2.last_heartbeat = time.time() - 60.0
+
+        pruned = mesh.prune_expired_peers(timeout_sec=30.0)
+        self.assertEqual(pruned, 1)
+        self.assertIn("peer_alive", mesh.peers)
+        self.assertNotIn("peer_dead", mesh.peers)
+
+    def test_task_delegation_and_execution(self):
+        mesh = LocalTeamMesh(node_name="local-worker", vram_mb=8192)
+        mesh.register_peer("gpu_server", "gpu.local", "192.168.1.50", 7420, 49152)
+
+        # Delegation routes to high-capacity peer
+        receipt = mesh.delegate_task("Train AST Embedding", min_vram_mb=32000)
+        self.assertEqual(receipt.status, "delegated")
+        self.assertEqual(receipt.target_node_id, "gpu_server")
+        self.assertTrue(len(receipt.signature) > 20)
+
+        # Fallback to local node when no peer satisfies heavy requirement but allow_local_fallback=True
+        local_receipt = mesh.delegate_task("Local Linting", min_vram_mb=60000, allow_local_fallback=True)
+        self.assertEqual(local_receipt.status, "local_fallback")
+        self.assertEqual(local_receipt.target_node_id, mesh.node_id)
+
+        # Execution of local task
+        executed = mesh.execute_task(local_receipt)
+        self.assertEqual(executed.status, "completed")
+        self.assertIsNotNone(executed.completed_at)
+        self.assertGreaterEqual(executed.duration_ms, 0.0)
+
+    def test_save_and_load_peers(self):
+        with tempfile.TemporaryDirectory() as td:
+            store_file = Path(td) / "peers.json"
+            mesh1 = LocalTeamMesh()
+            mesh1.register_peer("p1", "h1.local", "192.168.1.10", 7420, 16384)
+            mesh1.register_peer("p2", "h2.local", "192.168.1.11", 7420, 32768, tailscale_ip="100.64.0.1")
+            mesh1.save_peers(store_file)
+
+            mesh2 = LocalTeamMesh()
+            loaded = mesh2.load_peers(store_file)
+            self.assertEqual(loaded, 2)
+            self.assertIn("p1", mesh2.peers)
+            self.assertEqual(mesh2.peers["p2"].tailscale_ip, "100.64.0.1")
+
+    def test_shared_mesh_singleton(self):
+        m1 = get_shared_mesh()
+        m2 = get_shared_mesh()
+        self.assertIs(m1, m2)
 
 
 if __name__ == "__main__":
