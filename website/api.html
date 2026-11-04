@@ -85,6 +85,7 @@
   <div class="tag-pills" id="tag-pills">
     <button type="button" class="tag-btn active" data-tag="ALL">All Categories</button>
     <button type="button" class="tag-btn" data-tag="Agent Builder">Agent Builder</button>
+    <button type="button" class="tag-btn" data-tag="KHub Universal Skills">KHub Universal Skills</button>
     <button type="button" class="tag-btn" data-tag="KStack">KStack Roles</button>
     <button type="button" class="tag-btn" data-tag="KBrain">KBrain Memory</button>
     <button type="button" class="tag-btn" data-tag="KHub">KHub Importer</button>
@@ -139,6 +140,48 @@
         </div>
       </div>
     </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/khub/bundle/export</span>
+        </div>
+        <span class="endpoint-tag">KHub Universal Skills</span>
+      </div>
+      <p class="endpoint-desc">Export a skill directory or SKILL.md into a verified .skill.tar.gz bundle with SHA-256 member hashing.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "skill_path": ".agents/skills/review", "output_archive": "exports/review.skill.tar.gz" }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "status": "exported", "archive_path": "exports/review.skill.tar.gz", "manifest": { "skill_name": "review", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/khub/bundle/import</span>
+        </div>
+        <span class="endpoint-tag">KHub Universal Skills</span>
+      </div>
+      <p class="endpoint-desc">Import and cryptographically verify a portable .skill.tar.gz bundle into workspace skills with anti-tamper checking.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "archive_path": "exports/review.skill.tar.gz", "destination_dir": ".agents/skills/imported_review" }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "status": "imported", "destination_dir": ".agents/skills/imported_review", "manifest": {...} }</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -167,6 +210,16 @@ const ENDPOINT_EXTRA = {
     desc: "Unpack and cryptographically verify an agent bundle archive with anti-tamper checking.",
     req: '{ "archive_path": "exports/my-agent.tar.gz", "destination_dir": "agents/unpacked" }',
     res: '{ "status": "unpacked", "destination_dir": "agents/unpacked", "manifest": {...} }'
+  },
+  "/v1/khub/bundle/export": {
+    desc: "Export a skill directory or SKILL.md into a verified .skill.tar.gz bundle with SHA-256 member hashing.",
+    req: '{ "skill_path": ".agents/skills/review", "output_archive": "exports/review.skill.tar.gz" }',
+    res: '{ "status": "exported", "archive_path": "exports/review.skill.tar.gz", "manifest": { "skill_name": "review", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }'
+  },
+  "/v1/khub/bundle/import": {
+    desc: "Import and cryptographically verify a portable .skill.tar.gz bundle into workspace skills with anti-tamper checking.",
+    req: '{ "archive_path": "exports/review.skill.tar.gz", "destination_dir": ".agents/skills/imported_review" }',
+    res: '{ "status": "imported", "destination_dir": ".agents/skills/imported_review", "manifest": {...} }'
   }
 };
 
@@ -207,6 +260,18 @@ async function loadOpenApi() {
         method: "POST",
         summary: ENDPOINT_EXTRA["/v1/agent/builder/unpack"].desc,
         tags: ["Agent Builder"]
+      },
+      {
+        path: "/v1/khub/bundle/export",
+        method: "POST",
+        summary: ENDPOINT_EXTRA["/v1/khub/bundle/export"].desc,
+        tags: ["KHub Universal Skills"]
+      },
+      {
+        path: "/v1/khub/bundle/import",
+        method: "POST",
+        summary: ENDPOINT_EXTRA["/v1/khub/bundle/import"].desc,
+        tags: ["KHub Universal Skills"]
       }
     ];
     renderEndpoints();

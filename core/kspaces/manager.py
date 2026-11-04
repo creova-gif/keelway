@@ -27,6 +27,7 @@ class KSpacesManager:
     def __init__(self, persistence_path: Optional[Path] = None):
         self._lock = Lock()
         self._spaces: Dict[str, KSpace] = {}
+        self._timelines: Dict[str, List[Dict[str, Any]]] = {}
         self.persistence_path = persistence_path or Path(".keelway/kspaces/spaces.json")
         if self.persistence_path and self.persistence_path.exists():
             self._load()
@@ -37,7 +38,10 @@ class KSpacesManager:
         try:
             self.persistence_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.persistence_path, "w", encoding="utf-8") as f:
-                json.dump({"spaces": {sid: s.to_dict() for sid, s in self._spaces.items()}}, f, indent=2)
+                json.dump({
+                    "spaces": {sid: s.to_dict() for sid, s in self._spaces.items()},
+                    "timeline": self._timelines,
+                }, f, indent=2)
         except Exception:
             pass
 
@@ -45,6 +49,7 @@ class KSpacesManager:
         try:
             with open(self.persistence_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                self._timelines = data.get("timeline", {})
                 for sid, sdata in data.get("spaces", {}).items():
                     members = {uid: SpaceRole(r) for uid, r in sdata.get("members", {}).items()}
                     agents = {}
@@ -232,6 +237,35 @@ class KSpacesManager:
             task.approved_for_merge_by = manager_id
             self._save()
             return True
+
+    def record_timeline_event(
+        self,
+        space_id: str,
+        actor: str,
+        event_type: str,
+        details: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Record an activity timeline event in the specified space."""
+        with self._lock:
+            if space_id not in self._timelines:
+                self._timelines[space_id] = []
+            event = {
+                "event_id": f"evt_{int(time.time() * 1000)}_{len(self._timelines[space_id])}",
+                "space_id": space_id,
+                "actor": actor,
+                "event_type": event_type,
+                "details": details,
+                "timestamp_epoch": time.time(),
+            }
+            self._timelines[space_id].append(event)
+            self._save()
+            return event
+
+    def get_timeline(self, space_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieve recent activity timeline events for a space."""
+        with self._lock:
+            events = self._timelines.get(space_id, [])
+            return list(events[-limit:])
 
 
 # Singleton instance

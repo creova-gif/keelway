@@ -210,7 +210,7 @@
     },
     "openapi_schema_exporter": {
       "status": "AVAILABLE",
-      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 135 verified REST endpoints with machine-readable introspection",
+      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 138 verified REST endpoints with machine-readable introspection",
       "evidence_test": "tests/test_api_export.py",
       "code_path": "cli.py, core/main.py"
     },
@@ -237,6 +237,12 @@
       "claim": "Universal skill bundle export and import with SHA-256 member hashing, anti-tamper checking, and directory traversal rejection",
       "evidence_test": "tests/test_khub_bundle_sync.py",
       "code_path": "core/khub/sync.py, cli.py, core/api/routes.py"
+    },
+    "kspaces_conflict_and_timeline": {
+      "status": "AVAILABLE",
+      "claim": "Multi-agent 3-way Git merge conflict detection, non-overlapping AST auto-resolution, and chronological team timeline tracking",
+      "evidence_test": "tests/test_kspaces_conflict.py",
+      "code_path": "core/kspaces/conflict.py, core/kspaces/manager.py, core/api/routes.py, cli.py"
     }
   }
 }

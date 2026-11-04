@@ -2726,6 +2726,78 @@ async def create_kspace(
         raise HTTPException(status_code=409, detail=str(e))
 
 
+@router.post("/v1/kspaces/{space_id}/conflicts/check", tags=["KSpaces Multi-Tenant"])
+async def check_kspace_conflicts(
+    space_id: str,
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Analyze a 3-way git merge between base, left, and right texts for conflicts."""
+    from core.kspaces.conflict import ConflictDetector
+    from core.kspaces.manager import kspaces_manager
+
+    base_text = payload.get("base_text", "")
+    left_text = payload.get("left_text", "")
+    right_text = payload.get("right_text", "")
+    file_path = payload.get("file_path", "")
+
+    report = ConflictDetector.detect_3way(base_text, left_text, right_text, file_path=file_path)
+
+    actor = principal.id if hasattr(principal, "id") else getattr(principal, "actor_id", "user")
+    kspaces_manager.record_timeline_event(
+        space_id=space_id,
+        actor=actor,
+        event_type="conflict_check",
+        details={
+            "file_path": file_path,
+            "has_conflicts": report.has_conflicts,
+            "auto_resolvable": report.auto_resolvable,
+        },
+    )
+    return report.to_dict()
+
+
+@router.post("/v1/kspaces/{space_id}/conflicts/resolve", tags=["KSpaces Multi-Tenant"])
+async def resolve_kspace_conflicts(
+    space_id: str,
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Autonomously resolve a 3-way merge conflict using specified strategy."""
+    from core.kspaces.conflict import ConflictDetector
+    from core.kspaces.manager import kspaces_manager
+
+    base_text = payload.get("base_text", "")
+    left_text = payload.get("left_text", "")
+    right_text = payload.get("right_text", "")
+    strategy = payload.get("strategy", "auto")
+
+    try:
+        resolved_text = ConflictDetector.resolve_3way(base_text, left_text, right_text, strategy=strategy)
+        actor = principal.id if hasattr(principal, "id") else getattr(principal, "actor_id", "user")
+        kspaces_manager.record_timeline_event(
+            space_id=space_id,
+            actor=actor,
+            event_type="conflict_resolved",
+            details={"strategy": strategy},
+        )
+        return {"status": "resolved", "resolved_text": resolved_text}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Conflict resolution failed: {e}")
+
+
+@router.get("/v1/kspaces/{space_id}/timeline", tags=["KSpaces Multi-Tenant"])
+async def get_kspace_timeline(
+    space_id: str,
+    limit: int = 50,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve activity timeline events for a team collaborative space."""
+    from core.kspaces.manager import kspaces_manager
+    events = kspaces_manager.get_timeline(space_id, limit=limit)
+    return {"space_id": space_id, "events": events}
+
+
 @router.get("/v1/kflow/dags", tags=["KFlow"])
 async def list_kflow_dags(
     principal: Principal = Depends(current_principal),

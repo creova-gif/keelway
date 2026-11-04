@@ -2222,6 +2222,11 @@ def cmd_space(
     caller_id: str = "engineer",
     agent_name: str = "",
     task_id: str = "",
+    base: Optional[Path] = None,
+    left: Optional[Path] = None,
+    right: Optional[Path] = None,
+    strategy: str = "auto",
+    limit: int = 50,
 ) -> int:
     """KSpaces: Collaborative team workspaces & agent governance."""
     from core.kspaces import kspaces_manager, SpaceRole
@@ -2269,6 +2274,52 @@ def cmd_space(
         except Exception as e:
             print(f"[-] Merge approval failed: {e}")
             return 1
+    elif action == "conflict":
+        from core.kspaces.conflict import ConflictDetector
+        if not base or not left or not right:
+            print("[-] Error: --base, --left, and --right files are required for conflict check.")
+            return 1
+        base_path = Path(base)
+        left_path = Path(left)
+        right_path = Path(right)
+        if not base_path.exists() or not left_path.exists() or not right_path.exists():
+            print("[-] Error: One or more input files do not exist.")
+            return 1
+        b_txt = base_path.read_text(encoding="utf-8")
+        l_txt = left_path.read_text(encoding="utf-8")
+        r_txt = right_path.read_text(encoding="utf-8")
+        report = ConflictDetector.detect_3way(b_txt, l_txt, r_txt, file_path=str(left_path))
+        print("=" * 80)
+        print("  KEELWAY MULTI-AGENT GIT CONFLICT ANALYSIS")
+        print("=" * 80)
+        print(f"  Has Conflicts:    {'YES [!]' if report.has_conflicts else 'NO [CLEAN]'}")
+        print(f"  Auto-Resolvable:  {report.auto_resolvable}")
+        print(f"  Hunks Count:      {len(report.hunks)}")
+        print(f"  Summary:          {report.summary}")
+        print("=" * 80)
+        resolved = ConflictDetector.resolve_3way(b_txt, l_txt, r_txt, strategy=strategy)
+        if not report.has_conflicts or report.auto_resolvable:
+            print("[+] Synthesized Resolution:")
+            print(resolved)
+            return 0
+        else:
+            print("[!] Unresolved Overlapping Conflict with Markers:")
+            print(resolved)
+            return 1
+    elif action == "timeline":
+        events = kspaces_manager.get_timeline(space_id, limit=limit)
+        print("=" * 80)
+        print(f"  KEELWAY KSPACES ACTIVITY TIMELINE ({space_id})")
+        print("=" * 80)
+        for ev in events:
+            ts = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(ev.get("timestamp_epoch", 0)))
+            print(f"  • [{ts}] [{ev.get('event_type')}] Actor: {ev.get('actor')}")
+            if ev.get("details"):
+                print(f"    Details: {ev.get('details')}")
+        if not events:
+            print("  (no activity events recorded for this space yet)")
+        print("=" * 80)
+        return 0
     return 0
 
 
@@ -3067,6 +3118,14 @@ def build_parser() -> argparse.ArgumentParser:
     _sp_mrg = space_sub.add_parser("merge", help="Approve task for merge (Agent Manager role required)")
     _sp_mrg.add_argument("space_id", help="Space identifier")
     _sp_mrg.add_argument("task_id", help="Task ID")
+    _sp_cnf = space_sub.add_parser("conflict", help="Detect and resolve 3-way multi-agent git conflicts")
+    _sp_cnf.add_argument("--base", type=Path, required=True, help="Base ancestor file path")
+    _sp_cnf.add_argument("--left", type=Path, required=True, help="Left/ours branch file path")
+    _sp_cnf.add_argument("--right", type=Path, required=True, help="Right/theirs branch file path")
+    _sp_cnf.add_argument("--strategy", default="auto", choices=["auto", "left", "right", "base"], help="Resolution strategy")
+    _sp_tml = space_sub.add_parser("timeline", help="Display space activity timeline")
+    _sp_tml.add_argument("space_id", help="Space identifier")
+    _sp_tml.add_argument("--limit", type=int, default=50, help="Max events to display")
 
     # flow (KFlow Durable Task DAG Orchestration)
     flow_parser = subparsers.add_parser("flow", help="KFlow: Durable task DAG orchestration and proof packets")
@@ -3474,6 +3533,11 @@ def main(argv=None):
                 name=getattr(args, "name", ""),
                 agent_name=getattr(args, "agent_name", ""),
                 task_id=getattr(args, "task_id", ""),
+                base=getattr(args, "base", None),
+                left=getattr(args, "left", None),
+                right=getattr(args, "right", None),
+                strategy=getattr(args, "strategy", "auto"),
+                limit=getattr(args, "limit", 50),
             )
         )
     elif args.command == "flow":

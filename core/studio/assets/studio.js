@@ -1429,6 +1429,81 @@ async function unpackAgentBundleInStudio() {
   }
 }
 
+async function checkConflictsInStudio() {
+  const out = $('conflict-out');
+  const base = $('conflict-base-input') ? $('conflict-base-input').value : '';
+  const left = $('conflict-left-input') ? $('conflict-left-input').value : '';
+  const right = $('conflict-right-input') ? $('conflict-right-input').value : '';
+  const sid = ($('conflict-space-id') && $('conflict-space-id').value.trim()) || 'default_space';
+  if (out) out.textContent = 'Analyzing 3-way branch conflict semantics…';
+  try {
+    const res = await api(`/v1/kspaces/${encodeURIComponent(sid)}/conflicts/check`, {
+      method: 'POST',
+      body: { base_text: base, left_text: left, right_text: right, file_path: 'service.py' }
+    });
+    if (out) {
+      out.textContent = `[✓] CONFLICT ANALYSIS REPORT (Space: ${sid})\n` +
+        `Has Conflicts:   ${res.has_conflicts ? 'YES [COLLISION DETECTED]' : 'NO [CLEAN MERGE]'}\n` +
+        `Auto-Resolvable: ${res.auto_resolvable ? 'YES (Non-Overlapping)' : 'NO (Manual Review Required)'}\n` +
+        `Summary:         ${res.summary}\n` +
+        `Hunks Analyzed:  ${res.hunks ? res.hunks.length : 0}\n` +
+        `─────────────────────────────────────────────────────────────────\n` +
+        (res.hunks || []).map((h, i) => `Hunk #${i + 1} [${h.conflict_type}]:\n  Clean: ${h.is_clean}\n  Preview: ${JSON.stringify(h.resolved_content || '(conflict)')}`).join('\n');
+    }
+    tone(res.has_conflicts && !res.auto_resolvable ? 'warn' : 'ok');
+  } catch (err) {
+    if (out) out.textContent = `[-] Conflict check error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function resolveConflictsInStudio() {
+  const out = $('conflict-out');
+  const base = $('conflict-base-input') ? $('conflict-base-input').value : '';
+  const left = $('conflict-left-input') ? $('conflict-left-input').value : '';
+  const right = $('conflict-right-input') ? $('conflict-right-input').value : '';
+  const sid = ($('conflict-space-id') && $('conflict-space-id').value.trim()) || 'default_space';
+  if (out) out.textContent = 'Applying automated AST-guided conflict resolution…';
+  try {
+    const res = await api(`/v1/kspaces/${encodeURIComponent(sid)}/conflicts/resolve`, {
+      method: 'POST',
+      body: { base_text: base, left_text: left, right_text: right, strategy: 'auto' }
+    });
+    if (out) {
+      out.textContent = `[✓] RESOLVED CONTENT (Strategy: auto):\n` +
+        `─────────────────────────────────────────────────────────────────\n` +
+        res.resolved_text;
+    }
+    toast('Conflicts resolved', 'ok');
+    tone('ok');
+  } catch (err) {
+    if (out) out.textContent = `[-] Resolution error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function loadTimelineInStudio() {
+  const out = $('conflict-out');
+  const sid = ($('conflict-space-id') && $('conflict-space-id').value.trim()) || 'default_space';
+  if (out) out.textContent = `Fetching team activity timeline for '${sid}'…`;
+  try {
+    const res = await api(`/v1/kspaces/${encodeURIComponent(sid)}/timeline`);
+    if (!res.events || !res.events.length) {
+      if (out) out.textContent = `[i] No recorded timeline events for space '${sid}'.`;
+      return;
+    }
+    if (out) {
+      out.textContent = `[✓] KSPACES TIMELINE (${res.events.length} events for '${sid}')\n` +
+        `─────────────────────────────────────────────────────────────────\n` +
+        res.events.map(e => `• [${new Date((e.timestamp_epoch || Date.now() / 1000) * 1000).toISOString()}] [${e.event_type}] ${e.actor}\n    Details: ${JSON.stringify(e.details)}`).join('\n\n');
+    }
+    tone('ok');
+  } catch (err) {
+    if (out) out.textContent = `[-] Timeline error: ${err.message}`;
+    tone('err');
+  }
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -2036,6 +2111,9 @@ function wire() {
   if ($('code-intel-graph-btn')) $('code-intel-graph-btn').addEventListener('click', viewModuleGraphInStudio);
   if ($('bundle-pack-btn')) $('bundle-pack-btn').addEventListener('click', packAgentBundleInStudio);
   if ($('bundle-unpack-btn')) $('bundle-unpack-btn').addEventListener('click', unpackAgentBundleInStudio);
+  if ($('conflict-check-btn')) $('conflict-check-btn').addEventListener('click', checkConflictsInStudio);
+  if ($('conflict-resolve-btn')) $('conflict-resolve-btn').addEventListener('click', resolveConflictsInStudio);
+  if ($('conflict-timeline-btn')) $('conflict-timeline-btn').addEventListener('click', loadTimelineInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

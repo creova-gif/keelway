@@ -425,6 +425,7 @@ keelway ❯ </pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="cost" role="tab" aria-selected="false">keelway cost</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="code" role="tab" aria-selected="false">keelway code refs</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="pack" role="tab" aria-selected="false">keelway agent pack</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="hubpack" role="tab" aria-selected="false">keelway hub pack</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
@@ -511,12 +512,13 @@ keelway ❯ </pre>
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
       <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 711 automated tests passing with zero failures. Verified against commit <code>879ddf6</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 719 automated tests passing with zero failures. Verified against commit <code>a846247</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
       <div class="card tablewrap">
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
           <tbody>
-            <tr><td>OpenAPI 3.1 REST Schema Exporter (135 Endpoints)</td><td><span class="pill teal">Available (135 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>OpenAPI 3.1 REST Schema Exporter (138 Endpoints)</td><td><span class="pill teal">Available (138 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>Multi-Agent Git Conflict &amp; Team Timeline Gate</td><td><span class="pill teal">Available (3-Way Merge)</span></td><td class="mono" style="font-size: 12px;">tests/test_kspaces_conflict.py</td></tr>
             <tr><td>KHub Universal Skill Bundle Packaging &amp; Sync</td><td><span class="pill teal">Available (Portable Bundles)</span></td><td class="mono" style="font-size: 12px;">tests/test_khub_bundle_sync.py</td></tr>
             <tr><td>Agent Bundle Packaging &amp; Cryptographic Verification</td><td><span class="pill teal">Available (.tar.gz Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_packaging.py</td></tr>
             <tr><td>Codebase Intelligence &amp; Call Hierarchy Engine</td><td><span class="pill teal">Available (AST Graph)</span></td><td class="mono" style="font-size: 12px;">tests/test_codebase_intelligence.py</td></tr>
@@ -919,6 +921,16 @@ var TERM_OUTPUTS = {
          "    Bundle Digest: a9f3e58b104928db... [SHA-256 SEALED]\n" +
          "    Manifest:      test-fixer@1.0.0 (digest: 7c4e2091...)\n" +
          "[✓] Ready for sovereign offline air-gap distribution."
+  },
+  hubpack: {
+    cmd: "$ keelway hub pack .agents/skills/investigate",
+    out: "[+] Packaging KHub universal skill '.agents/skills/investigate'...\n" +
+         "[✓] Verified SKILL.md, prompts, and tool adapters (4 member files)\n" +
+         "[+] Output Archive: exports/investigate.skill.tar.gz\n" +
+         "    Files Packed:  4\n" +
+         "    Bundle Digest: e2b89f01c4a56d88... [SHA-256 SEALED]\n" +
+         "    Compatibility: Claude Code, Cursor, Codex, and AGY native runtimes\n" +
+         "[✓] Ready for sovereign offline team sync."
   }
 };
 

@@ -4661,6 +4661,175 @@
         }
       }
     },
+    "/v1/kspaces/{space_id}/conflicts/check": {
+      "post": {
+        "tags": [
+          "KSpaces Multi-Tenant"
+        ],
+        "summary": "Check Kspace Conflicts",
+        "description": "Analyze a 3-way git merge between base, left, and right texts for conflicts.",
+        "operationId": "check_kspace_conflicts_v1_kspaces__space_id__conflicts_check_post",
+        "parameters": [
+          {
+            "name": "space_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Space Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Check Kspace Conflicts V1 Kspaces  Space Id  Conflicts Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kspaces/{space_id}/conflicts/resolve": {
+      "post": {
+        "tags": [
+          "KSpaces Multi-Tenant"
+        ],
+        "summary": "Resolve Kspace Conflicts",
+        "description": "Autonomously resolve a 3-way merge conflict using specified strategy.",
+        "operationId": "resolve_kspace_conflicts_v1_kspaces__space_id__conflicts_resolve_post",
+        "parameters": [
+          {
+            "name": "space_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Space Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Resolve Kspace Conflicts V1 Kspaces  Space Id  Conflicts Resolve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kspaces/{space_id}/timeline": {
+      "get": {
+        "tags": [
+          "KSpaces Multi-Tenant"
+        ],
+        "summary": "Get Kspace Timeline",
+        "description": "Retrieve activity timeline events for a team collaborative space.",
+        "operationId": "get_kspace_timeline_v1_kspaces__space_id__timeline_get",
+        "parameters": [
+          {
+            "name": "space_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Space Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Kspace Timeline V1 Kspaces  Space Id  Timeline Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/kflow/dags": {
       "get": {
         "tags": [

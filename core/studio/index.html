@@ -823,6 +823,38 @@
             <pre id="bundle-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Multi-Agent Conflict Detection & Team Timeline Card -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="conflict-card-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="conflict-card-title" class="font-semibold">Multi-Agent Workspace Conflict &amp; Team Timeline</h3>
+            <span class="step-chip text-accent border-accent/50">3-Way AST Merge Gate</span>
+          </div>
+          <div id="lab-conflict-resolver" class="space-y-3">
+            <p class="text-xs text-ide-muted">Detect concurrent agent/human file edit collisions, resolve non-overlapping additions automatically, and inspect the chronological team timeline.</p>
+            <div class="grid sm:grid-cols-3 gap-2">
+              <div>
+                <label for="conflict-base-input" class="label">Base Content / Branch</label>
+                <textarea id="conflict-base-input" class="input w-full font-mono text-[11px] h-24" placeholder="def calculate(): return 10"></textarea>
+              </div>
+              <div>
+                <label for="conflict-left-input" class="label">Left (Agent A Branch)</label>
+                <textarea id="conflict-left-input" class="input w-full font-mono text-[11px] h-24" placeholder="def calculate(): return 10&#10;def agent_a(): pass"></textarea>
+              </div>
+              <div>
+                <label for="conflict-right-input" class="label">Right (Agent B Branch)</label>
+                <textarea id="conflict-right-input" class="input w-full font-mono text-[11px] h-24" placeholder="def calculate(): return 10&#10;def agent_b(): pass"></textarea>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+              <input id="conflict-space-id" class="input w-40 font-mono text-xs" placeholder="space_id (default: default_space)" value="default_space">
+              <button id="conflict-check-btn" type="button" class="btn-primary h-8 text-xs">Analyze 3-Way Conflicts</button>
+              <button id="conflict-resolve-btn" type="button" class="btn-outline h-8 text-xs">Auto-Resolve Hunks</button>
+              <button id="conflict-timeline-btn" type="button" class="btn-outline h-8 text-xs">Fetch Team Timeline</button>
+            </div>
+            <pre id="conflict-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

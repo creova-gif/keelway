@@ -12,6 +12,7 @@ from core.kspaces.models import (
     TaskStatus,
 )
 from core.kspaces.manager import KSpacesManager, kspaces_manager
+from core.kspaces.conflict import ConflictDetector, ConflictHunk, ConflictReport
 
 __all__ = [
     "AgentIdentityStatus",
@@ -23,4 +24,7 @@ __all__ = [
     "TaskStatus",
     "KSpacesManager",
     "kspaces_manager",
+    "ConflictDetector",
+    "ConflictHunk",
+    "ConflictReport",
 ]
