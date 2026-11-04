@@ -255,6 +255,12 @@
       "claim": "Durable customer runner offline spooling, deterministic batch sync, cryptographic batch receipts, and status CLI/REST endpoints",
       "evidence_test": "tests/test_runner_spool.py",
       "code_path": "core/runner/spool.py, core/api/routes.py, cli.py"
+    },
+    "investor_milestone_developer_journey": {
+      "status": "AVAILABLE",
+      "claim": "Automated 12-step end-to-end milestone developer journey: install, launch, workspace selection, local model selection, plan initialization, AST diff review, approval execution, patch application, test running, and flight replay recovery",
+      "evidence_test": "tests/test_e2e_investor_journey.py",
+      "code_path": "core/orchestration/agent_loop.py, core/storage/workspace_fs.py, core/orchestration/flight_recorder.py"
     }
   }
 }
