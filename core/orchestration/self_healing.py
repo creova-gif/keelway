@@ -147,18 +147,29 @@ class SelfHealingLoop:
         """Runs a test command in the given directory using the active Python virtual environment."""
         target_dir = cwd or self.repo_root
         import sys
+
+        # Resolve python executable: check virtual environment in workspace, adjacent venvs, or sys.prefix
+        py_exe = sys.executable
+        candidate_venvs = [
+            target_dir / ".venv" / "bin" / "python",
+            target_dir.parent / "kora-ai.nosync" / ".venv" / "bin" / "python",
+            Path(os.environ.get("VIRTUAL_ENV", "")) / "bin" / "python"
+        ]
+        for cv in candidate_venvs:
+            if cv.exists() and os.access(cv, os.X_OK):
+                py_exe = str(cv)
+                break
+
         if test_cmd.startswith("pytest ") or test_cmd == "pytest":
             rest = test_cmd[6:].strip() if test_cmd.startswith("pytest ") else ""
-            test_cmd = f"{sys.executable} -m pytest {rest}".strip()
+            test_cmd = f"{py_exe} -m pytest {rest}".strip()
         elif test_cmd.startswith("python3 ") or test_cmd.startswith("python "):
             parts = test_cmd.split(" ", 1)
-            test_cmd = f"{sys.executable} {parts[1]}"
+            test_cmd = f"{py_exe} {parts[1]}"
 
         sub_env, _ = scrub_env(os.environ)  # patched code runs in these tests: it must not see API keys
-        if sys.prefix and "PATH" in sub_env:
-            venv_bin = str(Path(sys.prefix) / "bin")
-            if venv_bin not in sub_env["PATH"]:
-                sub_env["PATH"] = f"{venv_bin}:{sub_env['PATH']}"
+        py_bin_dir = str(Path(py_exe).parent)
+        sub_env["PATH"] = f"{py_bin_dir}:{sub_env.get('PATH', '')}"
         sub_env["PYTHONPATH"] = f"{target_dir}:{sub_env.get('PYTHONPATH', '')}"
 
         proc = await asyncio.create_subprocess_shell(

@@ -53,11 +53,39 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-label]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nLabel)); });
 }
 
-// ---------- theme & sound ----------
+// ---------- theme, density & sound ----------
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem('keelway.theme', theme);
   if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : 'keelwayDark');
+}
+
+function setDensity(density) {
+  document.documentElement.dataset.density = density;
+  localStorage.setItem('keelway.density', density);
+  const lbl = $('density-label');
+  if (lbl) lbl.textContent = density === 'compact' ? 'Compact' : density === 'comfortable' ? 'Comfort' : 'Normal';
+}
+
+function cycleDensity() {
+  const current = document.documentElement.dataset.density || 'default';
+  const next = current === 'default' ? 'compact' : current === 'compact' ? 'comfortable' : 'default';
+  setDensity(next);
+  toast(`Density: ${next.charAt(0).toUpperCase() + next.slice(1)} (keelway.fig)`, 'tick');
+}
+
+function toggleStatusBarPopover() {
+  const pop = $('sb-popover');
+  if (!pop) return;
+  const isHidden = pop.classList.contains('hidden');
+  pop.classList.toggle('hidden', !isHidden);
+  if (isHidden && state.status) {
+    if ($('pop-model')) $('pop-model').textContent = state.status.local_model || 'qwen2.5-coder:14b';
+    if ($('pop-hw')) $('pop-hw').textContent = `${state.status.cpu_arch || 'Apple Silicon arm64'}`;
+    if ($('pop-ram')) $('pop-ram').textContent = `${state.status.ram_total_gb ? state.status.ram_total_gb + ' GB RAM' : 'Unified Memory'}`;
+    if ($('pop-airgap')) $('pop-airgap').textContent = state.status.air_gapped ? 'Zero-Egress Active' : 'Cloud Egress Permitted';
+    if ($('pop-mesh-nodes')) $('pop-mesh-nodes').textContent = `${(state.meshNodes && state.meshNodes.length) || 1} Node Connected`;
+  }
 }
 let sound = localStorage.getItem('keelway.sound') !== 'off';
 let audioCtx = null;
@@ -2305,6 +2333,7 @@ function wire() {
   $('lang-select').value = lang;
   $('lang-select').addEventListener('change', (e) => { lang = e.target.value; localStorage.setItem('keelway.lang', lang); relabel(); });
   $('theme-btn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
+  if ($('density-btn')) $('density-btn').addEventListener('click', cycleDensity);
   $('sound-btn').setAttribute('aria-pressed', String(sound));
   $('sound-btn').addEventListener('click', () => { sound = !sound; localStorage.setItem('keelway.sound', sound ? 'on' : 'off'); $('sound-btn').setAttribute('aria-pressed', String(sound)); tone('tick'); });
   $('airgap-btn').addEventListener('click', toggleAirGap);
@@ -2530,7 +2559,8 @@ function wire() {
 }
 
 async function boot() {
-  setTheme(localStorage.getItem('keelway.theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  setTheme(localStorage.getItem('keelway.theme') || 'dark');
+  setDensity(localStorage.getItem('keelway.density') || 'default');
   wire(); relabel(); switchPanel('console'); initMonaco();
   log('Keelway Studio · type help', 'text-ide-muted');
   try { await loadMe(); } catch { if (!signInOpen()) showSignIn(); return; }
