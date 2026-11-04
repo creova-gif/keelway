@@ -19,6 +19,7 @@ class SpeculativeResult:
     acceptance_rate: float
     effective_speedup_ratio: float
     latency_ms: float
+    token_stream: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class SpeculativeDecoder:
@@ -90,6 +91,7 @@ class SpeculativeDecoder:
         accumulated_tokens: List[str] = []
         total_proposed = 0
         total_accepted = 0
+        token_stream: List[Dict[str, Any]] = []
 
         # Default heuristic mock generators if functions not supplied (used for unit testing)
         def default_draft(p: str, k: int) -> List[str]:
@@ -102,17 +104,36 @@ class SpeculativeDecoder:
         draft_fn = draft_generator_fn or default_draft
         target_fn = target_validator_fn or default_target
 
-        for _ in range(max_iterations):
-            accepted, proposed_cnt, accepted_cnt = self.execute_speculation_step(
-                prompt + "".join(accumulated_tokens),
-                draft_fn,
-                target_fn
-            )
-            accumulated_tokens.extend(accepted)
-            total_proposed += proposed_cnt
-            total_accepted += accepted_cnt
+        for step_idx in range(max_iterations):
+            current_prompt = prompt + "".join(accumulated_tokens)
+            draft_tokens = draft_fn(current_prompt, self.lookahead_k)
+            verdicts = target_fn(draft_tokens)
 
-            if accepted_cnt < proposed_cnt:
+            accepted: List[str] = []
+            prefix_valid = True
+            for tok_idx, (tok, is_valid) in enumerate(zip(draft_tokens, verdicts)):
+                if prefix_valid and is_valid:
+                    accepted.append(tok)
+                    token_stream.append({
+                        "token": tok,
+                        "status": "accepted",
+                        "step": step_idx,
+                        "draft_index": tok_idx,
+                    })
+                else:
+                    prefix_valid = False
+                    token_stream.append({
+                        "token": tok,
+                        "status": "rejected",
+                        "step": step_idx,
+                        "draft_index": tok_idx,
+                    })
+
+            accumulated_tokens.extend(accepted)
+            total_proposed += len(draft_tokens)
+            total_accepted += len(accepted)
+
+            if len(accepted) < len(draft_tokens):
                 # Reached a branch/correction
                 break
 
@@ -131,6 +152,7 @@ class SpeculativeDecoder:
             acceptance_rate=round(acceptance_rate, 3),
             effective_speedup_ratio=round(speedup, 2),
             latency_ms=round(elapsed_ms, 2),
+            token_stream=token_stream,
         )
 
 
@@ -220,6 +242,7 @@ class SpeculativeBenchmark:
                 "acceptance_rate": res.acceptance_rate,
                 "effective_speedup_ratio": res.effective_speedup_ratio,
                 "latency_ms": speculative_latency_ms,
+                "token_stream": res.token_stream,
             },
             "baseline_latency_ms": baseline_latency_ms,
             "latency_reduction_pct": latency_reduction_pct,

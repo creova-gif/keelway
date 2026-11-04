@@ -458,6 +458,24 @@
               <p class="text-[11px] text-ide-muted font-mono" id="spec-cost-label">100% on-device private inference</p>
             </div>
           </div>
+
+          <!-- Speculative Token Stream Visualizer -->
+          <div class="px-3 pb-3 border-t border-ide-border/50 pt-2 bg-ide-sidebar/20">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-medium text-ide-muted flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true"></span>
+                <span>Live Speculative Token Stream &amp; Tandem Verification</span>
+              </span>
+              <div class="flex items-center gap-2.5 text-[10px] font-mono text-ide-faint">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-amber-400/30 border border-amber-400"></span>Draft (Amber)</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-teal-400/30 border border-teal-400"></span>Verified (Teal)</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-rose-500/30 border border-rose-500"></span>Rejected (Rose)</span>
+              </div>
+            </div>
+            <div id="spec-token-stream" class="p-2.5 rounded bg-ide-bg border border-ide-border min-h-[52px] flex flex-wrap gap-1.5 items-center font-mono text-xs overflow-x-auto">
+              <span class="text-ide-faint text-[11px] italic">Click "Run Benchmark" to observe draft token speculation and parallel target verification.</span>
+            </div>
+          </div>
         </section>
       </div>
       <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">

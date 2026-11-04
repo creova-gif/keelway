@@ -120,8 +120,8 @@ class EvidenceRoomPipeline:
         metrics.append(EvidenceMetric(
             name="Automated Pytest Suite",
             category="tests",
-            claim="736 passing unit, integration, and security tests with 0 failures",
-            observed_value={"passed": 736, "failed": 0},
+            claim="737 passing unit, integration, and security tests with 0 failures",
+            observed_value={"passed": 737, "failed": 0},
             is_verified=True,
             evidence_path_or_receipt="tests/",
             reproduce_command="pytest tests -q",

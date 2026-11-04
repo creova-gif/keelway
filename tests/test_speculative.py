@@ -40,6 +40,22 @@ class TestSpeculativeDecoder(unittest.TestCase):
         self.assertEqual(result.acceptance_rate, 1.0)
         self.assertGreater(result.effective_speedup_ratio, 2.0)
         self.assertEqual(result.generated_text, "return True")
+        self.assertEqual(len(result.token_stream), 3)
+        self.assertEqual(result.token_stream[0]["status"], "accepted")
+
+    def test_speculative_run_token_stream_partial_rejection(self):
+        decoder = SpeculativeDecoder(lookahead_k=4)
+        result = decoder.run(
+            prompt="def solve():",
+            max_iterations=1,
+            draft_generator_fn=lambda p, k: ["return", " ", "42", ";"],
+            target_validator_fn=lambda tokens: [True, True, False, True][:len(tokens)],
+        )
+        self.assertEqual(len(result.token_stream), 4)
+        self.assertEqual(result.token_stream[0]["status"], "accepted")
+        self.assertEqual(result.token_stream[1]["status"], "accepted")
+        self.assertEqual(result.token_stream[2]["status"], "rejected")
+        self.assertEqual(result.token_stream[3]["status"], "rejected")
 
 
 if __name__ == "__main__":

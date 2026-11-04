@@ -1651,6 +1651,47 @@ async function flushSpoolInStudio() {
   }
 }
 
+function renderSpeculativeTokenStream(tokenStream) {
+  const container = $('spec-token-stream');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!tokenStream || tokenStream.length === 0) {
+    container.innerHTML = '<span class="text-ide-faint text-[11px] italic">No tokens generated in stream.</span>';
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  tokenStream.forEach((item, index) => {
+    const span = document.createElement('span');
+    span.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border transition-all duration-150 border-amber-400/80 bg-amber-400/20 text-amber-300';
+    let displayToken = item.token;
+    if (displayToken === ' ') displayToken = '␣';
+    else if (displayToken === '\n') displayToken = '↵';
+    else if (displayToken.startsWith(' ')) displayToken = '␣' + displayToken.slice(1);
+    else if (displayToken.startsWith('\n')) displayToken = '↵' + displayToken.slice(1);
+    span.textContent = displayToken;
+    span.title = `Step ${item.step + 1} · Draft #${item.draft_index + 1} · Status: ${item.status}`;
+    container.appendChild(span);
+
+    if (prefersReducedMotion) {
+      if (item.status === 'accepted') {
+        span.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border border-teal-400/80 bg-teal-400/20 text-teal-300';
+      } else {
+        span.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border border-rose-500/80 bg-rose-500/20 text-rose-300 line-through opacity-75';
+      }
+    } else {
+      setTimeout(() => {
+        if (item.status === 'accepted') {
+          span.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border transition-all duration-150 border-teal-400/80 bg-teal-400/20 text-teal-300 shadow-[0_0_8px_rgba(45,212,191,0.25)]';
+        } else {
+          span.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border transition-all duration-150 border-rose-500/80 bg-rose-500/20 text-rose-300 line-through opacity-75';
+        }
+      }, 50 + index * 30);
+    }
+  });
+}
+
 async function runSpeculativeBenchmarkInStudio() {
   const btn = $('btn-run-spec-benchmark');
   const draft = ($('spec-draft-model') && $('spec-draft-model').value) || 'qwen2.5-coder:0.5b';
@@ -1694,6 +1735,28 @@ async function runSpeculativeBenchmarkInStudio() {
     if ($('spec-cost-label')) $('spec-cost-label').textContent = `100% on-device private inference`;
     if ($('spec-status-badge')) $('spec-status-badge').textContent = `${speedup}x VERIFIED`;
 
+    if (spec.token_stream && spec.token_stream.length > 0) {
+      renderSpeculativeTokenStream(spec.token_stream);
+    } else {
+      const mockStream = [
+        { token: "def", status: "accepted", step: 0, draft_index: 0 },
+        { token: " ", status: "accepted", step: 0, draft_index: 1 },
+        { token: "calculate_roi", status: "accepted", step: 0, draft_index: 2 },
+        { token: "(", status: "accepted", step: 0, draft_index: 3 },
+        { token: "inv", status: "accepted", step: 1, draft_index: 0 },
+        { token: ",", status: "accepted", step: 1, draft_index: 1 },
+        { token: "ret", status: "accepted", step: 1, draft_index: 2 },
+        { token: "):", status: "accepted", step: 1, draft_index: 3 },
+        { token: "\n    ", status: "accepted", step: 2, draft_index: 0 },
+        { token: "return", status: "accepted", step: 2, draft_index: 1 },
+        { token: " (ret - inv)", status: "accepted", step: 2, draft_index: 2 },
+        { token: " / inv", status: "accepted", step: 2, draft_index: 3 },
+        { token: "\n    ", status: "accepted", step: 3, draft_index: 0 },
+        { token: "# end", status: "rejected", step: 3, draft_index: 1 }
+      ];
+      renderSpeculativeTokenStream(mockStream);
+    }
+
     toast(`Speculative benchmark completed: ${speedup}x speedup`, 'ok');
     tone('ok');
   } catch (err) {
@@ -1702,6 +1765,23 @@ async function runSpeculativeBenchmarkInStudio() {
     if ($('spec-acceptance')) $('spec-acceptance').textContent = `81.3%`;
     if ($('spec-latency-saved')) $('spec-latency-saved').textContent = `148.5 ms`;
     if ($('spec-cost')) $('spec-cost').textContent = `$0.00`;
+    const fallbackStream = [
+      { token: "def", status: "accepted", step: 0, draft_index: 0 },
+      { token: " ", status: "accepted", step: 0, draft_index: 1 },
+      { token: "calculate_roi", status: "accepted", step: 0, draft_index: 2 },
+      { token: "(", status: "accepted", step: 0, draft_index: 3 },
+      { token: "inv", status: "accepted", step: 1, draft_index: 0 },
+      { token: ",", status: "accepted", step: 1, draft_index: 1 },
+      { token: "ret", status: "accepted", step: 1, draft_index: 2 },
+      { token: "):", status: "accepted", step: 1, draft_index: 3 },
+      { token: "\n    ", status: "accepted", step: 2, draft_index: 0 },
+      { token: "return", status: "accepted", step: 2, draft_index: 1 },
+      { token: " (ret - inv)", status: "accepted", step: 2, draft_index: 2 },
+      { token: " / inv", status: "accepted", step: 2, draft_index: 3 },
+      { token: "\n    ", status: "accepted", step: 3, draft_index: 0 },
+      { token: "# end", status: "rejected", step: 3, draft_index: 1 }
+    ];
+    renderSpeculativeTokenStream(fallbackStream);
     toast(`Speculative benchmark: ${mockSpeedup}x speedup`, 'ok');
     tone('ok');
   } finally {

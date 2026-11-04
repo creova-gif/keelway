@@ -31,6 +31,7 @@ async def test_keelway_dev_studio_html_endpoint():
         assert "submitQuorumSign" in resp_js.text
         assert "loadSyncStatusInStudio" in resp_js.text
         assert "showMobilePairingInStudio" in resp_js.text
+        assert "renderSpeculativeTokenStream" in resp_js.text
 
         # Check /console and /web-console
         resp_console = await client.get("/console")
