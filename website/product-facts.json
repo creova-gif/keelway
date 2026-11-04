@@ -112,6 +112,12 @@
       "evidence_test": "tests/test_workspace_registry.py",
       "code_path": "core/storage/workspace_registry.py"
     },
+    "cryptographic_receipt_verifier": {
+      "status": "AVAILABLE",
+      "claim": "Offline cryptographic verification of evaluation receipts, flight tapes, bundle manifests, and head anchors",
+      "evidence_test": "tests/test_receipt_verifier.py",
+      "code_path": "core/security/receipt_verifier.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",

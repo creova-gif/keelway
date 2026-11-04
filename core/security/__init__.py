@@ -17,6 +17,10 @@ from .bundle_exporter import (
     BundleExportReceipt,
     BundleVerificationResult,
 )
+from .receipt_verifier import (
+    ReceiptVerifier,
+    ReceiptVerificationReport,
+)
 
 __all__ = [
     "DLPScanner",
@@ -32,4 +36,6 @@ __all__ = [
     "AirGapBundleExporter",
     "BundleExportReceipt",
     "BundleVerificationResult",
+    "ReceiptVerifier",
+    "ReceiptVerificationReport",
 ]

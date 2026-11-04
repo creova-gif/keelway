@@ -12,7 +12,7 @@ from pathlib import Path
 
 from core.config import legacy_aware
 from core.security.redact import redact_payload
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 
 @dataclass
@@ -102,6 +102,26 @@ class FlightPlayer:
     def rewind(self, to_index: int = 0) -> None:
         """Rewinds timeline to an earlier step."""
         self.cursor = max(0, min(to_index, len(self.events)))
+
+    def verify_integrity(self) -> Tuple[bool, str, str]:
+        """Validates that the recorded tape matches its cryptographic SHA-256 seal."""
+        canonical_data = {
+            "task_id": self.task_id,
+            "event_count": len(self.events),
+            "events": self.events,
+        }
+        serialized = json.dumps(canonical_data, indent=2, sort_keys=True)
+        calculated = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        claimed = self.tape_data.get("tape_sha256", "")
+        return (calculated == claimed, calculated, claimed)
+
+    def replay_all(self) -> List[Dict[str, Any]]:
+        """Replays all events in deterministic chronological order from cursor position 0."""
+        self.cursor = 0
+        replayed = []
+        while ev := self.step_forward():
+            replayed.append(ev)
+        return replayed
 
     def fork(self, at_index: int, new_task_id: str) -> FlightRecorder:
         """Forks the flight timeline at step N to test alternative prompts or tools."""

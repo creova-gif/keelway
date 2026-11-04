@@ -790,6 +790,92 @@ def cmd_workspace(
     return 0
 
 
+def cmd_receipt(action: str, target: str, key: Optional[str] = None) -> int:
+    """Verify cryptographic execution receipts, benchmarks, or flight tapes offline."""
+    from core.security.receipt_verifier import ReceiptVerifier
+    secret_bytes = key.encode("utf-8") if key else None
+    report = ReceiptVerifier.verify(target, secret_key=secret_bytes)
+
+    print("\n" + "=" * 70)
+    print("  🔏 KEELWAY CRYPTOGRAPHIC RECEIPT VERIFICATION")
+    print("=" * 70)
+    print(f"  Target:     {target}")
+    print(f"  Type:       {report.receipt_type.upper()}")
+    print(f"  Receipt ID: {report.receipt_id}")
+
+    if report.digest_claimed:
+        print(f"  Claimed:    {report.digest_claimed[:24]}...")
+    if report.digest_calculated:
+        print(f"  Calculated: {report.digest_calculated[:24]}...")
+
+    if report.details:
+        print("\n  Details:")
+        for k, v in report.details.items():
+            print(f"    • {k}: {v}")
+
+    if report.is_valid:
+        print("\n  [✓] VERIFICATION SUCCESS: Cryptographic seal verified.\n")
+        return 0
+    else:
+        print("\n  [✗] VERIFICATION FAILED:")
+        for err in report.errors:
+            print(f"    ! {err}")
+        print()
+        return 1
+
+
+def cmd_flight(action: str, target: str, show_events: bool = False) -> int:
+    """Inspect, verify, or replay deterministic execution flight tapes."""
+    import json
+    from core.orchestration.flight_recorder import FlightPlayer
+    p = Path(target)
+    if not p.exists():
+        print(f"[-] Flight tape not found: {target}")
+        return 1
+
+    try:
+        player = FlightPlayer(p)
+    except Exception as e:
+        print(f"[-] Failed to load flight tape: {e}")
+        return 1
+
+    valid, calculated, claimed = player.verify_integrity()
+    events = player.events
+
+    if action == "verify":
+        print(f"\n[+] Flight Tape Integrity: {p.name}")
+        print(f"    Task ID:    {player.task_id}")
+        print(f"    Events:     {len(events)}")
+        print(f"    Claimed:    {claimed}")
+        print(f"    Calculated: {calculated}")
+        if valid:
+            print("    Status:     [✓] SEAL VERIFIED\n")
+            return 0
+        else:
+            print("    Status:     [✗] TAMPER DETECTED / CHECKSUM MISMATCH\n")
+            return 1
+
+    # Replay
+    print("\n" + "=" * 70)
+    print(f"  ✈️  DETERMINISTIC FLIGHT REPLAY: {player.task_id}")
+    print(f"  Tape: {p} ({'✓ SEALED' if valid else '! UNVERIFIED'})")
+    print("=" * 70)
+
+    for ev in events:
+        idx = ev.get("event_index", 0)
+        etype = ev.get("event_type", "event")
+        payload = ev.get("payload", {})
+        print(f"  [{idx:02d}] {etype.upper():<16}")
+        if show_events or etype in ("tool_call", "state_transition", "tool_result"):
+            detail_str = json.dumps(payload, indent=4)
+            for line in detail_str.splitlines()[:6]:
+                print(f"       {line}")
+            if len(detail_str.splitlines()) > 6:
+                print("       ...")
+    print(f"\n[✓] Replayed {len(events)} events deterministically.\n")
+    return 0
+
+
 def cmd_git(action: str, msg: str = "", path: Optional[str] = None, base: str = "main") -> int:
     """Execute local Git operations with governance and safety boundaries."""
     from core.storage.workspace_fs import WorkspaceFilesystem
@@ -1872,6 +1958,33 @@ def main():
     _verify.add_argument("path", type=Path, help="Path to the .jsonl Record file")
     _verify.add_argument("--anchor", type=Path, default=None, help="Cross-verify head against an anchor receipt JSON")
 
+    # audit (Unified audit export, verification, and Merkle head anchoring)
+    audit_parser = subparsers.add_parser("audit", help="Export, anchor, or verify cryptographic audit logs")
+    audit_sub = audit_parser.add_subparsers(dest="audit_command", required=True)
+    _a_exp = audit_sub.add_parser("export", help="Export audit log as Keelway Record JSONL")
+    _a_exp.add_argument("--out", type=Path, default=None, help="Output destination file")
+    _a_anc = audit_sub.add_parser("anchor", help="Anchor current audit head to signed receipt and Git note")
+    _a_anc.add_argument("--out", type=Path, default=None, help="Output JSON receipt file")
+    _a_ver = audit_sub.add_parser("verify", help="Verify integrity of an audit record file")
+    _a_ver.add_argument("path", type=Path, help="Path to audit record file")
+    _a_ver.add_argument("--anchor", type=Path, default=None, help="Cross-verify against an anchor receipt JSON")
+
+    # receipt (Offline Cryptographic Verification Engine)
+    receipt_parser = subparsers.add_parser("receipt", help="Offline cryptographic verification of evaluation, build, mesh, and tape receipts")
+    receipt_sub = receipt_parser.add_subparsers(dest="receipt_command", required=True)
+    _r_ver = receipt_sub.add_parser("verify", help="Cryptographically verify a receipt file or directory")
+    _r_ver.add_argument("target", help="Path to receipt JSON or bundle archive")
+    _r_ver.add_argument("--key", default=None, help="Optional HMAC secret key for signed receipts")
+
+    # flight (Deterministic Flight Recorder & Replay Engine)
+    flight_parser = subparsers.add_parser("flight", help="Deterministic execution flight recorder inspection and replay")
+    flight_sub = flight_parser.add_subparsers(dest="flight_command", required=True)
+    _fl_ver = flight_sub.add_parser("verify", help="Verify cryptographic SHA-256 seal of a flight tape")
+    _fl_ver.add_argument("target", help="Path to .flight.json tape")
+    _fl_rep = flight_sub.add_parser("replay", help="Replay flight tape events deterministically")
+    _fl_rep.add_argument("target", help="Path to .flight.json tape")
+    _fl_rep.add_argument("--events", action="store_true", help="Display verbose event payloads")
+
     mcp_parser = subparsers.add_parser("mcp", help="Serve read-only workspace tools to MCP clients over stdio (Cursor, Claude Code, Zed)")
     mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
 
@@ -2064,14 +2177,31 @@ def main():
         ))
     elif args.command == "git":
         sys.exit(cmd_git(args.git_command, msg=getattr(args, "message", ""), path=getattr(args, "path", None), base=getattr(args, "base", "main")))
-    elif args.command == "record":
+    elif args.command in ("record", "audit"):
+        act = getattr(args, "record_command", None) or getattr(args, "audit_command", "export")
         sys.exit(
             asyncio.run(
                 cmd_record(
-                    args.record_command,
+                    act,
                     path=getattr(args, "path", None) or getattr(args, "out", None),
                     anchor=getattr(args, "anchor", None),
                 )
+            )
+        )
+    elif args.command == "receipt":
+        sys.exit(
+            cmd_receipt(
+                action=getattr(args, "receipt_command", "verify"),
+                target=getattr(args, "target", ""),
+                key=getattr(args, "key", None),
+            )
+        )
+    elif args.command == "flight":
+        sys.exit(
+            cmd_flight(
+                action=getattr(args, "flight_command", "verify"),
+                target=getattr(args, "target", ""),
+                show_events=getattr(args, "events", False),
             )
         )
     elif args.command in ("dev", "desktop"):
