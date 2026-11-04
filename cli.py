@@ -1380,6 +1380,91 @@ def cmd_build(
     return 1
 
 
+async def cmd_plugins(action: str, target: Optional[str] = None) -> int:
+    """Plugin and MCP extension CLI command handler."""
+    from core.plugins.manager import PluginManager
+    from core.plugins.manifest import PluginManifest
+    pm = PluginManager()
+
+    if action == "list":
+        plugins = pm.list_plugins()
+        print("=" * 76)
+        print("  KEELWAY PLUGINS & MCP EXTENSIONS")
+        print("=" * 76)
+        if not plugins:
+            print("  No plugins installed in .keelway/plugins.")
+            print("  Install a plugin with: keelway plugins install <path_to_plugin.json>")
+        for p in plugins:
+            status_tag = f"[{p['status']}]"
+            print(f"  • {p['name']:<20} {status_tag:<12} v{p['version']} by {p['author']}")
+            print(f"    Description: {p['description']}")
+            if p['active_tools']:
+                print(f"    Active Tools: {', '.join(p['active_tools'])}")
+            if p.get('error'):
+                print(f"    Error: {p['error']}")
+            print(f"    Digest SHA:   {p['digest_sha256'][:16]}...")
+            print()
+        print("=" * 76)
+        return 0
+
+    if action == "install":
+        if not target:
+            print("[-] Usage: keelway plugins install <path_to_plugin.json_or_dir>")
+            return 1
+        print(f"[+] Installing plugin from: {target}...")
+        try:
+            record = await pm.install_plugin(Path(target), activate=True)
+            print(f"[✓] Successfully installed plugin '{record.manifest.name}' v{record.manifest.version}!")
+            print(f"    Status:       {record.status}")
+            print(f"    Install Dir:  {record.install_dir}")
+            print(f"    Digest SHA:   {record.manifest.digest_sha256}")
+            if record.active_tools:
+                print(f"    Active Tools: {', '.join(record.active_tools)}")
+            return 0
+        except Exception as exc:
+            print(f"[-] Plugin installation failed: {exc}")
+            return 1
+
+    if action == "verify":
+        if not target:
+            print("[-] Usage: keelway plugins verify <path_to_plugin.json>")
+            return 1
+        try:
+            manifest = PluginManifest.load_file(Path(target))
+            calculated = manifest.calculate_digest()
+            match = (calculated == manifest.digest_sha256)
+            print("=" * 76)
+            print(f"  PLUGIN INTEGRITY VERIFICATION: {manifest.name} v{manifest.version}")
+            print("=" * 76)
+            print(f"  Recorded SHA-256:   {manifest.digest_sha256}")
+            print(f"  Calculated SHA-256: {calculated}")
+            print(f"  Status:             {'INTEGRITY VERIFIED [✓]' if match else 'DIGEST MISMATCH [✗]'}")
+            print("=" * 76)
+            return 0 if match else 1
+        except Exception as exc:
+            print(f"[-] Verification error: {exc}")
+            return 1
+
+    if action in ("activate", "deactivate"):
+        if not target:
+            print(f"[-] Usage: keelway plugins {action} <plugin_name>")
+            return 1
+        try:
+            if action == "activate":
+                rec = await pm.activate_plugin(target)
+                print(f"[✓] Activated plugin '{target}' ({rec.status}). Active tools: {', '.join(rec.active_tools)}")
+            else:
+                rec = await pm.deactivate_plugin(target)
+                print(f"[✓] Deactivated plugin '{target}' ({rec.status}).")
+            return 0
+        except Exception as exc:
+            print(f"[-] Plugin {action} failed: {exc}")
+            return 1
+
+    print(f"[-] Unknown plugins action: {action}")
+    return 1
+
+
 def main():
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1631,6 +1716,19 @@ def main():
     _b_app.add_argument("--no-verify", action="store_true", help="Skip automated test harness execution")
     _b_app.add_argument("--no-git", action="store_true", help="Skip git repository initialization")
 
+    # plugins (Plugin & MCP Extension System)
+    plugins_parser = subparsers.add_parser("plugins", help="Manage plugins, extensions, and external MCP tool integrations")
+    plugins_sub = plugins_parser.add_subparsers(dest="plugins_command", required=True)
+    plugins_sub.add_parser("list", help="List installed plugins and active MCP tools")
+    _p_install = plugins_sub.add_parser("install", help="Install a plugin manifest JSON or package directory")
+    _p_install.add_argument("target", help="Path to plugin manifest JSON or directory")
+    _p_verify = plugins_sub.add_parser("verify", help="Verify cryptographic integrity of a plugin manifest")
+    _p_verify.add_argument("target", help="Path to plugin manifest JSON")
+    _p_act = plugins_sub.add_parser("activate", help="Activate an installed plugin")
+    _p_act.add_argument("target", help="Name of plugin to activate")
+    _p_deact = plugins_sub.add_parser("deactivate", help="Deactivate an installed plugin")
+    _p_deact.add_argument("target", help="Name of plugin to deactivate")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1751,6 +1849,8 @@ def main():
                 no_git=getattr(args, "no_git", False),
             )
         )
+    elif args.command == "plugins":
+        sys.exit(asyncio.run(cmd_plugins(args.plugins_command, getattr(args, "target", None))))
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":

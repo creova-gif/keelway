@@ -1734,6 +1734,117 @@ async def generate_app(
         raise HTTPException(status_code=500, detail=f"App generation failed: {exc}")
 
 
+# ==============================================================================
+# Plugin Extension & External MCP Bridge Endpoints
+# ==============================================================================
+
+_plugin_manager: Optional[Any] = None
+
+def get_plugin_manager():
+    global _plugin_manager
+    if _plugin_manager is None:
+        from core.plugins.manager import PluginManager
+        _plugin_manager = PluginManager()
+    return _plugin_manager
+
+
+class PluginInstallRequest(BaseModel):
+    manifest: Dict[str, Any] = Field(..., description="Plugin manifest JSON object")
+    activate: bool = Field(default=True, description="Whether to activate immediately")
+
+
+class MCPToolCallRequest(BaseModel):
+    server_id: str = Field(..., description="Registered MCP server identifier")
+    tool_name: str = Field(..., description="Tool name exposed by the MCP server")
+    arguments: Dict[str, Any] = Field(default_factory=dict, description="Tool invocation parameters")
+
+
+@router.get("/v1/plugins", tags=["Plugins & MCP Extensions"])
+async def list_plugins(
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """List all installed plugins, active MCP servers, and available tools."""
+    pm = get_plugin_manager()
+    return pm.list_plugins()
+
+
+@router.post("/v1/plugins/install", tags=["Plugins & MCP Extensions"])
+async def install_plugin(
+    request: PluginInstallRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Install and optionally activate a new Keelway plugin manifest."""
+    pm = get_plugin_manager()
+    try:
+        record = await pm.install_plugin(request.manifest, activate=request.activate)
+        return record.to_dict()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Plugin installation failed: {exc}")
+
+
+@router.post("/v1/plugins/{plugin_name}/activate", tags=["Plugins & MCP Extensions"])
+async def activate_plugin(
+    plugin_name: str,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Activate an installed plugin and connect its declared MCP server processes."""
+    pm = get_plugin_manager()
+    try:
+        record = await pm.activate_plugin(plugin_name)
+        return record.to_dict()
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Activation error: {exc}")
+
+
+@router.post("/v1/plugins/{plugin_name}/deactivate", tags=["Plugins & MCP Extensions"])
+async def deactivate_plugin(
+    plugin_name: str,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Deactivate a plugin and disconnect its MCP server processes."""
+    pm = get_plugin_manager()
+    try:
+        record = await pm.deactivate_plugin(plugin_name)
+        return record.to_dict()
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Deactivation error: {exc}")
+
+
+@router.delete("/v1/plugins/{plugin_name}", tags=["Plugins & MCP Extensions"])
+async def uninstall_plugin(
+    plugin_name: str,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Uninstall and delete a plugin from the local workspace."""
+    pm = get_plugin_manager()
+    success = await pm.uninstall_plugin(plugin_name)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.")
+    return {"status": "uninstalled", "plugin_name": plugin_name}
+
+
+@router.post("/v1/plugins/mcp/call", tags=["Plugins & MCP Extensions"])
+async def call_mcp_tool(
+    request: MCPToolCallRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Directly call an external MCP tool via the MCP client manager."""
+    pm = get_plugin_manager()
+    client = await pm.mcp_manager.get_client(request.server_id)
+    if not client:
+        raise HTTPException(status_code=404, detail=f"MCP server '{request.server_id}' not connected.")
+    try:
+        res = await client.call_tool(request.tool_name, request.arguments)
+        return {"server_id": request.server_id, "tool_name": request.tool_name, "result": res}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"MCP tool invocation failed: {exc}")
+
+
+
 
 
 

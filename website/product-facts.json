@@ -46,6 +46,12 @@
       "evidence_test": "tests/test_guided_builder.py",
       "code_path": "core/orchestration/guided_builder.py"
     },
+    "plugin_extension_and_mcp_client": {
+      "status": "AVAILABLE",
+      "claim": "Universal MCP client bridge, stdio/in-process transport, plugin manifest SHA-256 verification, and dynamic agent tool mounting",
+      "evidence_test": "tests/test_mcp_client_and_plugins.py",
+      "code_path": "core/plugins/manager.py"
+    },
     "git_governance_and_pr_prep": {
       "status": "AVAILABLE",
       "claim": "Semantic commit proposals, verified local commit, and Pull Request preparation",
