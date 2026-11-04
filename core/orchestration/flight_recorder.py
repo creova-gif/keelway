@@ -34,19 +34,29 @@ class FlightEvent:
 class FlightRecorder:
     """Records every step of an agent run into an immutable, cryptographic execution tape."""
 
-    def __init__(self, task_id: str, recordings_dir: Optional[Path] = None):
+    def __init__(self, task_id: str, recordings_dir: Optional[Path] = None, db_path: Optional[Any] = None, **kwargs):
         self.task_id = task_id
+        self.db_path = db_path
         self.recordings_dir = recordings_dir or legacy_aware(Path(".keelway/recordings"), Path(".kora/recordings"))
         self.events: List[FlightEvent] = []
         self.current_index = 0
         self.redactions = 0  # credentials removed from what this tape stores
         self.tape_sha256: Optional[str] = None
 
-    def record_event(self, event_type: str, payload: Dict[str, Any]) -> FlightEvent:
+    def record_event(
+        self,
+        event_type: str,
+        payload: Dict[str, Any],
+        event_index: Optional[int] = None,
+        **kwargs,
+    ) -> FlightEvent:
         # An agent can read .env or print secrets; the tape is exported, forked and shared, so it never stores them.
         payload, removed = redact_payload(payload)
         self.redactions += removed
-        self.current_index += 1
+        if event_index is not None:
+            self.current_index = event_index
+        else:
+            self.current_index += 1
         event = FlightEvent(
             event_index=self.current_index,
             event_type=event_type,
@@ -55,6 +65,51 @@ class FlightRecorder:
         )
         self.events.append(event)
         return event
+
+    def get_tape(self) -> "FlightRecorder":
+        return self
+
+    def seal_tape(self) -> "FlightRecorder":
+        """Calculates cryptographic seal and saves tape to disk."""
+        data = {
+            "task_id": self.task_id,
+            "event_count": len(self.events),
+            "events": [e.to_dict() for e in self.events],
+        }
+        serialized = json.dumps(data, indent=2, sort_keys=True)
+        self.tape_sha256 = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        try:
+            self.save_tape()
+        except Exception:
+            pass
+        return self
+
+    def fork_checkpoint(self, event_index: int, destination_path: Path) -> Dict[str, Any]:
+        """Forks workspace files captured at or prior to the specified event index into an isolated directory."""
+        tape = self.get_tape()
+        dest_path = Path(destination_path)
+        dest_path.mkdir(parents=True, exist_ok=True)
+        files_restored: List[str] = []
+
+        for ev in sorted(tape.events, key=lambda e: e.event_index):
+            if ev.event_index > event_index:
+                break
+            payload = ev.payload or {}
+            # Restore files written or modified up to this checkpoint
+            if "path" in payload and "content" in payload:
+                file_rel = payload["path"]
+                dest_file = dest_path / file_rel
+                dest_file.parent.mkdir(parents=True, exist_ok=True)
+                dest_file.write_text(payload["content"], encoding="utf-8")
+                files_restored.append(file_rel)
+
+        return {
+            "status": "success",
+            "task_id": self.task_id,
+            "event_index": event_index,
+            "destination": str(dest_path),
+            "files_restored": files_restored,
+        }
 
     def save_tape(self) -> Path:
         """Saves tape to disk with SHA-256 seal."""
