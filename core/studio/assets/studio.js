@@ -771,7 +771,7 @@ async function loadEvidenceSummary() {
       `Package ID:   ${pkg.package_id}\n` +
       `Commit SHA:   ${pkg.commit_sha.slice(0, 16)} (${pkg.git_branch})\n` +
       `Sealed Hash:  ${pkg.package_sha256.slice(0, 24)}…\n` +
-      `All Verified: ${pkg.summary.all_verified ? 'TRUE (7/7 categories)' : 'FALSE'}\n\n` +
+      `All Verified: ${pkg.summary.all_verified ? 'TRUE (' + pkg.metrics.length + '/' + pkg.metrics.length + ' categories)' : 'FALSE'}\n\n` +
       pkg.metrics.map((m) => `• [${m.is_verified ? '✓ PASS' : '✗ FAIL'}] ${m.name} (${m.category.toUpperCase()}):\n  ${m.claim}\n  Repro: ${m.reproduce_command}`).join('\n\n');
     tone('ok');
   } catch (err) {

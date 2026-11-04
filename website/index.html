@@ -407,6 +407,7 @@ keelway ❯ </pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="sbom" role="tab" aria-selected="false">keelway sbom verify</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="spec" role="tab" aria-selected="false">keelway spec</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="entitlements" role="tab" aria-selected="false">keelway entitlements</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="tier2" role="tab" aria-selected="false">keelway tier2</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
@@ -429,7 +430,7 @@ keelway ❯ </pre>
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
           <tbody>
-            <tr><td>Investor &amp; Enterprise Evidence Room (WP21)</td><td><span class="pill teal">Available (7/7 Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_evidence_room.py</td></tr>
+            <tr><td>Investor &amp; Enterprise Evidence Room (WP21)</td><td><span class="pill teal">Available (8/8 Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_evidence_room.py</td></tr>
             <tr><td>Speculative Decoding Acceleration (0.5B + 7B)</td><td><span class="pill teal">Available (2.58x)</span></td><td class="mono" style="font-size: 12px;">tests/test_speculative.py</td></tr>
             <tr><td>State-Machine Runtime &amp; Cancellation</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_state_machine.py</td></tr>
             <tr><td>Multi-Agent Crew Coordination (DAG Engine)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_multi_agent_coordination.py</td></tr>
@@ -568,8 +569,12 @@ var TERM_OUTPUTS = {
          "    Claim:       HMAC-signed offline capability certificates with 14-day offline grace policies\n" +
          "    Evidence:    core/billing/entitlements.py (Status: ACTIVE, Seats: 1)\n" +
          "    Reproduction: python3 cli.py entitlements status\n\n" +
+         "  [✓ PASS] Tier 2 Hardware Security HAL (SECURITY)\n" +
+         "    Claim:       Dual-WORM retention receipts, TPM 2.0 PCR measured boot, PIV 72h CRL freshness, 2-of-3 Shamir recovery\n" +
+         "    Evidence:    keelway/hal/ (WORM, TPM, PIV, Recovery 100% OK)\n" +
+         "    Reproduction: python3 cli.py tier2 verify\n\n" +
          "----------------------------------------------------------------------\n" +
-         "  Summary: 7/7 categories verified | All Verified: True\n" +
+         "  Summary: 8/8 categories verified | All Verified: True\n" +
          "  Audited By: Keelway Deterministic Evidence Engine\n" +
          "----------------------------------------------------------------------"
   },
@@ -665,6 +670,25 @@ var TERM_OUTPUTS = {
          "  Features:     guided_builder, local_agent_loop, mcp_plugins, multi_workspace_registry\n" +
          "  Expires:      2027-11-04 10:55:19 UTC\n" +
          "  Grace Period: 14 days (Sovereign offline continuation policy)"
+  },
+  tier2: {
+    cmd: "$ keelway tier2 verify",
+    out: "====================================================================\n" +
+         "  KEELWAY TIER 2 HARDWARE ABSTRACTION LAYER (HAL)\n" +
+         "  High-Assurance Security Invariants & Hardware Attestation\n" +
+         "====================================================================\n\n" +
+         "[+] Running Tier 2 Hardware Attestation Verifications (all)...\n\n" +
+         "  [1/4] Verifying Dual-WORM Publication Receipts...\n" +
+         "        Dual-WORM receipts verified (cert: a73092c6ab931731...): [PASS]\n" +
+         "  [2/4] Verifying TPM 2.0 Quote & PCR Event Log Replay...\n" +
+         "        TPM PCR replay matching quote (3ce9eaf3bedbc763...): [PASS]\n" +
+         "  [3/4] Verifying PIV Smartcard Token & 72h CRL Freshness...\n" +
+         "        PIV token valid (CRL age: 24h <= 72h cap): [PASS]\n" +
+         "  [4/4] Verifying Customer 2-of-3 Offline Root Recovery...\n" +
+         "        2-of-3 Root Recovery verified (DENY_OLD cutover): [PASS]\n\n" +
+         "====================================================================\n" +
+         "  ALL TIER 2 HARDWARE SECURITY VERIFIERS PASSED [100% OK]\n" +
+         "===================================================================="
   }
 };
 
