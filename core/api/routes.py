@@ -606,6 +606,17 @@ async def get_flight_tape(task_id: str):
     return json.loads(tape_file.read_text(encoding="utf-8"))
 
 
+@router.post("/v1/flight/tape/{task_id}/fork", tags=["Flight Recorder"])
+async def fork_flight_tape_endpoint(task_id: str, payload: dict) -> Dict[str, Any]:
+    """Fork an isolated workspace state from a specific historical flight tape event index."""
+    import tempfile
+    from core.orchestration.flight_recorder import FlightRecorder
+    event_index = (payload or {}).get("event_index", 0)
+    fork_root = tempfile.mkdtemp(prefix=f"keelway_fork_{task_id}_")
+    result = FlightRecorder(task_id=task_id).fork_checkpoint(event_index=event_index, destination_path=Path(fork_root))
+    return result
+
+
 @router.post("/v1/flight/fork", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Deterministic Flight Recorder"])
 async def fork_flight_tape(payload: dict):
     """Fork an execution timeline at a specific step index to explore alternative solutions."""
