@@ -62,6 +62,21 @@ class WorkspaceFilesystem:
             )
         return candidate
 
+    def list_files(self, subpath: str = ".") -> List[str]:
+        """Lists relative paths of regular files in workspace root or subpath."""
+        base = self.resolve_safe_path(subpath)
+        if not base.exists():
+            return []
+        files = []
+        for path in base.rglob("*"):
+            if path.is_file():
+                try:
+                    rel = str(path.relative_to(self.root))
+                    files.append(rel)
+                except ValueError:
+                    files.append(path.name)
+        return sorted(files)
+
     def get_file_tree(self, subpath: str = ".", max_depth: int = 4, max_files: int = 500) -> Dict[str, Any]:
         """
         Recursively scans workspace directory, respecting ignore lists.

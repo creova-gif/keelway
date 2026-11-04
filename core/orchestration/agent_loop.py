@@ -4,6 +4,7 @@ Implements the multi-step Observe -> Plan -> Tool Call -> Observation -> Verify 
 with native workspace tools, deterministic flight recording, and human-in-the-loop safety controls.
 """
 
+import difflib
 import hashlib
 import json
 import os
@@ -47,6 +48,15 @@ class PlanStep:
     tool_call: Optional[Dict[str, Any]] = None
     observation: Optional[str] = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "description": self.description,
+            "status": self.status,
+            "tool_call": self.tool_call,
+            "observation": self.observation,
+        }
+
 
 @dataclass
 class AgentTool:
@@ -71,6 +81,7 @@ class AutonomousAgentLoop:
         quorum_service: Optional[Any] = None,
         environment: str = "internal",
         actor_id: str = "local_engineer",
+        flight_recorder: Optional[FlightRecorder] = None,
     ):
         self.task_id = task_id
         self.fs = workspace_fs or WorkspaceFilesystem()
@@ -91,7 +102,10 @@ class AutonomousAgentLoop:
         self.active_proc: Optional[subprocess.Popen] = None
         self.semantic_index = CodebaseSemanticIndex(self.fs)
 
-        self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
+        if flight_recorder is not None:
+            self.flight_recorder = flight_recorder
+        else:
+            self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
         self.tools: Dict[str, AgentTool] = {}
         self._register_default_tools()
 
@@ -326,15 +340,61 @@ class AutonomousAgentLoop:
             handler=_h_search,
         )
 
-    def initialize_plan(self, goal: str, steps: List[str]) -> None:
+    def initialize_plan(
+        self,
+        goal: Optional[str] = None,
+        steps: Optional[List[str]] = None,
+        *,
+        intent: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Initializes a structured multi-step execution plan."""
-        self.goal = goal
+        effective_goal = goal or intent or ""
+        if steps is None:
+            steps = AutonomousAgentLoop.formulate_plan(effective_goal)
+        self.goal = effective_goal
         self.plan = [
             PlanStep(id=f"step_{idx+1}", description=desc, status="pending")
             for idx, desc in enumerate(steps)
         ]
         self.status = AgentLoopStatus.PLANNING
-        self._record_event("plan_initialized", {"goal": goal, "step_count": len(steps)})
+        self._record_event("plan_initialized", {"goal": effective_goal, "step_count": len(steps)})
+        return {
+            "status": "plan_ready",
+            "goal": effective_goal,
+            "steps": [s.to_dict() for s in self.plan],
+        }
+
+    async def propose_diff(self, file_path: str, old_content: Any, new_content: str) -> Dict[str, Any]:
+        """Generates a unified diff for human inspection and records diff_proposed event."""
+        if isinstance(old_content, dict):
+            old_content = old_content.get("content", "")
+        if isinstance(new_content, dict):
+            new_content = new_content.get("content", "")
+
+        old_lines = str(old_content).splitlines(keepends=True)
+        new_lines = str(new_content).splitlines(keepends=True)
+        diff_lines = list(difflib.unified_diff(
+            old_lines,
+            new_lines,
+            fromfile=f"a/{file_path}",
+            tofile=f"b/{file_path}",
+        ))
+        diff_text = "".join(diff_lines)
+        lines_added = sum(1 for line in diff_lines if line.startswith("+") and not line.startswith("+++"))
+        lines_removed = sum(1 for line in diff_lines if line.startswith("-") and not line.startswith("---"))
+
+        self._record_event("diff_proposed", {
+            "file_path": file_path,
+            "diff": diff_text,
+            "lines_added": lines_added,
+            "lines_removed": lines_removed,
+        })
+
+        return {
+            "status": "diff_proposed",
+            "file_path": file_path,
+            "diff": diff_text,
+        }
 
     async def execute_tool(self, tool_name: str, arguments: Dict[str, Any], step_id: Optional[str] = None) -> Dict[str, Any]:
         """

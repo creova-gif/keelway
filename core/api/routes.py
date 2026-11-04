@@ -1935,6 +1935,21 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
 # Model Economics & Cost Ledger Endpoints
 # ==============================================================================
 
+@router.get("/v1/models/local", tags=["Models"])
+async def get_local_model_config() -> Dict[str, Any]:
+    """Inspect and resolve local edge model runtime and hardware profile."""
+    from core.models.edge_loader import EdgeRuntimeManager
+    manager = EdgeRuntimeManager()
+    resolved = manager.resolve_runtime()
+    hw = resolved.get("hardware")
+    if hasattr(hw, "__dict__"):
+        resolved["hardware"] = hw.__dict__
+    return {
+        "status": "configured",
+        "runtime": resolved,
+    }
+
+
 @router.get("/v1/models/ledger", tags=["Models"])
 async def get_model_cost_ledger(
     limit: int = 100,
