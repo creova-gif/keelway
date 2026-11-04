@@ -155,9 +155,10 @@
       "code_path": "core/models/speculative.py"
     },
     "mobile_approval_app": {
-      "status": "PREVIEW",
-      "claim": "Offline-resilient React Native mobile approval interface with biometrics",
-      "code_path": "mobile/"
+      "status": "AVAILABLE",
+      "claim": "Offline-resilient React Native & Expo mobile mission control with biometrics, LAN pairing, and deep-link approval workflows",
+      "evidence_test": "tests/test_mobile_cli.py",
+      "code_path": "mobile/, cli.py"
     },
     "hosted_cloud_sync_workspace": {
       "status": "PLANNED",

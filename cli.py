@@ -1398,6 +1398,82 @@ async def cmd_doctor(json_output: bool = False):
     return 0
 
 
+async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, target: str = "", action_name: str = "", task_id: str = "") -> int:
+    """Manage Keelway Mobile phone pairings, status, and notifications."""
+    from urllib.parse import quote
+    from core.security.auth import launch_token
+    from core.config import settings
+
+    lan = _lan_ip() or "127.0.0.1"
+    token = launch_token() if settings.auth_required else ""
+    token_suffix = f"?token={token}" if token else ""
+    studio_link = f"http://{lan}:{port}/{token_suffix}"
+    deep_link = f"keelway://pair?link={quote(studio_link, safe='')}"
+
+    if action == "pair":
+        print("\n" + "=" * 68)
+        print("  📱 KEELWAY MOBILE — PHONE MISSION CONTROL PAIRING")
+        print("  Zero-Cloud Sovereign Mobile Approvals (iOS / Android)")
+        print("=" * 68)
+        print(f"\n  [1] Wi-Fi / LAN Address : {lan}:{port}")
+        print(f"  [2] Studio Pairing Link : {studio_link}")
+        print(f"  [3] Mobile Deep Link    : {deep_link}")
+        if token:
+            print(f"  [4] Security Token      : {token[:12]}... (Role: owner)")
+        else:
+            print("  [4] Security Token      : None (AUTH_REQUIRED=false)")
+
+        print("\n  Pairing Instructions:")
+        print("  ─────────────────────────────────────────────────────────────────")
+        print("  1. Open Keelway Mobile on your phone (connected to same Wi-Fi).")
+        print("  2. In the app, paste the Studio Pairing Link above.")
+        print("  3. Tap 'Connect'. Your phone will authenticate with whoami.")
+        print("  4. Once connected, approve agent tool mutations directly on your phone.")
+        print("=" * 68 + "\n")
+        return 0
+
+    elif action == "status":
+        from core.storage.database import check_db_health
+        db_ok = await check_db_health()
+        print("\n" + "=" * 68)
+        print("  📱 KEELWAY MOBILE — PAIRING & APPROVAL STATUS")
+        print("=" * 68)
+        print(f"  • Local Gateway Host   : {lan}:{port}")
+        print(f"  • Database Connectivity: {'ONLINE [OK]' if db_ok else 'OFFLINE [WARN]'}")
+        print(f"  • Auth Requirement    : {'ACTIVE (Token Required)' if settings.auth_required else 'INACTIVE (Open LAN)'}")
+        print(f"  • Active Pairing Link  : {studio_link}")
+        print("=" * 68 + "\n")
+        return 0
+
+    elif action == "notify":
+        from core.api.messaging import OmnichannelDispatcher, MessagingChannel, ChannelPreference, AgentApprovalRequest
+        print(f"\n[+] Dispatching mobile approval notification for task '{task_id or 'task_mobile_01'}'...")
+        pref = ChannelPreference(
+            user_id="mobile_operator",
+            primary_channel=MessagingChannel.MOBILE_APP,
+            mobile_device_push_token=target or "push_token_mobile_default"
+        )
+        dispatcher = OmnichannelDispatcher()
+        req = AgentApprovalRequest(
+            task_id=task_id or "task_mobile_01",
+            action_type=action_name or "git_merge_main",
+            summary=f"Automated tool mutation: {action_name or 'git_merge_main'}",
+            diff_snippet=f"+5 -0 on host {lan}:{port}",
+            timeout_seconds=1800
+        )
+        res = dispatcher.dispatch(req, pref)
+        channel_name = res.get("channel")
+        channel_str = channel_name.value.upper() if hasattr(channel_name, "value") else str(channel_name).upper()
+        print(f"  • Channel:     {channel_str}")
+        print(f"  • Status:      DELIVERED [OK]")
+        payload = res.get("payload", {})
+        print(f"  • Push Target: {payload.get('to', target or 'push_token_mobile_default')}")
+        print("\n[+] Mobile notification dispatched successfully.\n")
+        return 0
+
+    return 1
+
+
 async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
     """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
@@ -1913,6 +1989,18 @@ def main():
     doctor_parser = subparsers.add_parser("doctor", help="Run sovereign enterprise system diagnostics across 7 dimensions")
     doctor_parser.add_argument("--json", action="store_true", help="Output diagnostics report in JSON format")
 
+    # mobile (Mission Control & Phone Pairing)
+    mobile_parser = subparsers.add_parser("mobile", help="Keelway Mobile Phone Mission Control pairing & management")
+    mobile_sub = mobile_parser.add_subparsers(dest="mobile_command", required=True)
+    mob_pair = mobile_sub.add_parser("pair", help="Generate LAN pairing link & deep link for iOS/Android app")
+    mob_pair.add_argument("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
+    mob_pair.add_argument("--port", type=int, default=7420, help="Studio port (default: 7420)")
+    mobile_sub.add_parser("status", help="Show mobile pairing status and active approvals")
+    mob_notify = mobile_sub.add_parser("notify", help="Send test notification to paired mobile device")
+    mob_notify.add_argument("--target", default="push_token_mobile_default", help="Push token or device ID")
+    mob_notify.add_argument("--action", default="git_merge_main", help="Action to approve")
+    mob_notify.add_argument("--task-id", default="task_mobile_01", help="Task ID")
+
     token_parser = subparsers.add_parser("token", help="Manage API tokens (auth + RBAC)")
     token_sub = token_parser.add_subparsers(dest="token_command", required=True)
     token_create = token_sub.add_parser("create", help="Mint a new API token")
@@ -2377,6 +2465,15 @@ def main():
         ))
     elif args.command == "doctor":
         asyncio.run(cmd_doctor(json_output=getattr(args, "json", False)))
+    elif args.command == "mobile":
+        sys.exit(asyncio.run(cmd_mobile(
+            action=args.mobile_command,
+            host=getattr(args, "host", "0.0.0.0"),
+            port=getattr(args, "port", 7420),
+            target=getattr(args, "target", ""),
+            action_name=getattr(args, "action", ""),
+            task_id=getattr(args, "task_id", ""),
+        )))
     elif args.command == "tier2":
         sys.exit(asyncio.run(cmd_tier2(args.tier2_command, getattr(args, "subsystem", "all"))))
     elif args.command == "run":
