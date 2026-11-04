@@ -147,6 +147,12 @@
         </div>
 
         <form id="agent-form" class="shrink-0 m-3 md:mx-6 md:mb-4 p-2.5 rounded-xl border border-ide-border bg-ide-sidebar space-y-2 focus-within:border-accent/70">
+          <div id="mode-selector" class="flex items-center gap-1.5 pb-1 border-b border-ide-border/40 text-xs">
+            <button type="button" class="mode-tab active px-2.5 py-0.5 rounded text-[11px] font-medium bg-accent/20 text-accent border border-accent/40" data-mode="agent">Agent</button>
+            <button type="button" class="mode-tab px-2.5 py-0.5 rounded text-[11px] font-medium text-ide-muted hover:text-ide-fg hover:bg-ide-bg" data-mode="ask">Ask</button>
+            <button type="button" class="mode-tab px-2.5 py-0.5 rounded text-[11px] font-medium text-ide-muted hover:text-ide-fg hover:bg-ide-bg" data-mode="plan">Plan</button>
+            <button type="button" class="mode-tab px-2.5 py-0.5 rounded text-[11px] font-medium text-ide-muted hover:text-ide-fg hover:bg-ide-bg" data-mode="edit">Edit</button>
+          </div>
           <label for="agent-goal" class="sr-only" data-i18n="goal">Goal</label>
           <textarea id="agent-goal" rows="2" required class="w-full resize-none bg-transparent outline-none text-sm placeholder-ide-faint" data-i18n-ph="composerPh" placeholder="Ask Keelway to change something…"></textarea>
           <div class="flex flex-wrap items-center justify-between gap-2">

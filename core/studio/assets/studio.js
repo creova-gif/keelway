@@ -645,11 +645,44 @@ function defaultArgs(tool, goal) {
 async function startAgent(e) {
   e.preventDefault();
   const goal = $('agent-goal').value.trim(); if (!goal) return;
-  try {
-    const r = await api('/v1/agent/run', { method: 'POST', body: { goal, policy: $('agent-policy').value } });
-    state.agentTask = { id: r.task_id, goal };
-    $('agent-goal').value = ''; tone('ok'); renderAgent(r.state); loadRuns();
-  } catch (err) { toast(err.message, 'err'); }
+  const mode = state.chatMode || 'agent';
+  if (mode === 'agent') {
+    try {
+      const r = await api('/v1/agent/run', { method: 'POST', body: { goal, policy: $('agent-policy').value } });
+      state.agentTask = { id: r.task_id, goal };
+      $('agent-goal').value = ''; tone('ok'); renderAgent(r.state); loadRuns();
+    } catch (err) { toast(err.message, 'err'); }
+  } else {
+    try {
+      toast(`[${mode.toUpperCase()}] Consulting Keelway…`, 'info');
+      const r = await api('/v1/chat/message', {
+        method: 'POST',
+        body: { message: goal, mode, target_file: state.active }
+      });
+      log(`[${r.mode.toUpperCase()}] ${r.content}`, 'text-ide-fg');
+      if (r.memory_citations && r.memory_citations.length) {
+        log(`Citations: ${r.memory_citations.map((c) => c.citation).join(', ')}`, 'text-ide-muted text-[11px]');
+      }
+      if (r.structured_plan) {
+        toast(`[+] Plan generated: ${r.structured_plan.steps.length} steps`, 'ok');
+        state.agentTask = { id: `task_plan_${Date.now()}`, goal };
+        renderAgent({
+          task_id: state.agentTask.id,
+          goal,
+          status: 'plan_ready',
+          policy: 'confirm_mutation',
+          plan: r.structured_plan.steps.map((st, i) => ({ id: `step_${i+1}`, description: st, status: 'pending' })),
+          pending_approval: null,
+          recent_events: [{ type: 'plan_formulated', payload: r.structured_plan }],
+        });
+      } else if (r.edit_proposal) {
+        toast(`[+] Edit proposed on ${r.edit_proposal.file_path}`, 'ok');
+        setMode('diff');
+        loadDiff();
+      }
+      $('agent-goal').value = '';
+    } catch (err) { toast(err.message, 'err'); }
+  }
 }
 const STEP_CHIP = { completed: ['doneStep', 'text-ok border-ok/40'], running: ['running', 'text-accent border-accent/40'], failed: ['failedStep', 'text-danger border-danger/40'] };
 function renderAgent(s) {
@@ -853,6 +886,24 @@ function wire() {
   $('palette-input').addEventListener('input', () => { paletteIdx = 0; renderPalette(); });
   $('palette-input').addEventListener('keydown', paletteKey);
   $('palette').addEventListener('click', (e) => { if (e.target === $('palette')) closePalette(); });
+  document.querySelectorAll('#mode-selector .mode-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#mode-selector .mode-tab').forEach((b) => {
+        b.classList.remove('active', 'bg-accent/20', 'text-accent', 'border-accent/40');
+        b.classList.add('text-ide-muted');
+      });
+      btn.classList.add('active', 'bg-accent/20', 'text-accent', 'border-accent/40');
+      btn.classList.remove('text-ide-muted');
+      state.chatMode = btn.dataset.mode;
+      const phMap = {
+        agent: 'Ask Keelway to execute an autonomous engineering task…',
+        ask: 'Ask a question about repository code or architecture (read-only)…',
+        plan: 'Describe what you want to build or refactor (produces structured plan)…',
+        edit: 'Describe specific code changes or patch to formulate…',
+      };
+      if ($('agent-goal')) $('agent-goal').placeholder = phMap[state.chatMode] || phMap.agent;
+    });
+  });
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.view)));
   $('sidebar-refresh').addEventListener('click', refreshView);
   if ($('open-repo-btn')) {

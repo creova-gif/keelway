@@ -11,10 +11,18 @@ from typing import Dict, Set
 
 class TaskState(str, Enum):
     CREATED = "created"
+    CONTEXT_LOADING = "context_loading"
+    PLANNING = "planning"
     PLANNED = "planned"
+    PLAN_READY = "plan_ready"
     AWAITING_APPROVAL = "awaiting_approval"
     RUNNING = "running"
+    EXECUTING = "executing"
     VERIFYING = "verifying"
+    PAUSED = "paused"
+    BLOCKED = "blocked"
+    AWAITING_RETRY = "awaiting_retry"
+    TIMED_OUT = "timed_out"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
@@ -30,14 +38,22 @@ class InvalidStateTransitionError(Exception):
         self.target_state = target_state
 
 
-# Explicit deterministic transition graph
+# Explicit deterministic transition graph (PRD-001 & Section 7.2)
 VALID_TRANSITIONS: Dict[TaskState, Set[TaskState]] = {
-    TaskState.CREATED: {TaskState.PLANNED, TaskState.CANCELLED},
-    TaskState.PLANNED: {TaskState.AWAITING_APPROVAL, TaskState.RUNNING, TaskState.CANCELLED},
-    TaskState.AWAITING_APPROVAL: {TaskState.RUNNING, TaskState.CANCELLED},
-    TaskState.RUNNING: {TaskState.VERIFYING, TaskState.FAILED, TaskState.CANCELLED},
+    TaskState.CREATED: {TaskState.PLANNED, TaskState.CONTEXT_LOADING, TaskState.PLANNING, TaskState.CANCELLED},
+    TaskState.CONTEXT_LOADING: {TaskState.PLANNING, TaskState.FAILED, TaskState.CANCELLED},
+    TaskState.PLANNING: {TaskState.PLANNED, TaskState.PLAN_READY, TaskState.FAILED, TaskState.CANCELLED},
+    TaskState.PLANNED: {TaskState.AWAITING_APPROVAL, TaskState.RUNNING, TaskState.EXECUTING, TaskState.CANCELLED},
+    TaskState.PLAN_READY: {TaskState.AWAITING_APPROVAL, TaskState.RUNNING, TaskState.EXECUTING, TaskState.CANCELLED},
+    TaskState.AWAITING_APPROVAL: {TaskState.RUNNING, TaskState.EXECUTING, TaskState.BLOCKED, TaskState.CANCELLED},
+    TaskState.RUNNING: {TaskState.VERIFYING, TaskState.PAUSED, TaskState.BLOCKED, TaskState.TIMED_OUT, TaskState.FAILED, TaskState.CANCELLED},
+    TaskState.EXECUTING: {TaskState.VERIFYING, TaskState.PAUSED, TaskState.BLOCKED, TaskState.TIMED_OUT, TaskState.FAILED, TaskState.CANCELLED},
+    TaskState.PAUSED: {TaskState.RUNNING, TaskState.EXECUTING, TaskState.CANCELLED},
+    TaskState.BLOCKED: {TaskState.AWAITING_APPROVAL, TaskState.RUNNING, TaskState.FAILED, TaskState.CANCELLED},
     TaskState.VERIFYING: {TaskState.COMPLETED, TaskState.FAILED, TaskState.PLANNED},
-    TaskState.FAILED: {TaskState.PLANNED, TaskState.CANCELLED},  # Retry loops back to planned
+    TaskState.FAILED: {TaskState.PLANNED, TaskState.AWAITING_RETRY, TaskState.CANCELLED},
+    TaskState.AWAITING_RETRY: {TaskState.PLANNED, TaskState.RUNNING, TaskState.CANCELLED},
+    TaskState.TIMED_OUT: {TaskState.PLANNED, TaskState.AWAITING_RETRY, TaskState.CANCELLED},
     TaskState.COMPLETED: set(),  # Terminal state
     TaskState.CANCELLED: set(),  # Terminal state
 }

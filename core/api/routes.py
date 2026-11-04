@@ -38,6 +38,8 @@ from core.security.env_scrub import scrub_env
 from core.security.origin import origin_allowed
 from core.security.rbac import Permission
 from core.orchestration.state import TaskState, validate_transition, InvalidStateTransitionError
+from core.orchestration.chat import InteractiveChatSession, ConversationMode
+from core.api.schemas import Provider
 from core.orchestration.workflows import (
     EngineeringBriefWorkflow,
     ResearchSummaryWorkflow,
@@ -74,6 +76,80 @@ async def create_completion(request: CompletionRequestSchema) -> CompletionRespo
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Inference failure: {str(e)}",
         )
+
+
+@router.get("/v1/chat/modes", dependencies=[Depends(current_principal)], tags=["AI Assistant"])
+async def list_chat_modes():
+    """List available conversation modes and their governance constraints (Section 6.1)."""
+    return {
+        "modes": [
+            {
+                "id": ConversationMode.ASK.value,
+                "name": "Ask Mode",
+                "description": "Read-only explanations, architecture queries, symbol lookup, and error diagnosis.",
+                "mutates_files": False,
+                "requires_approval": False,
+            },
+            {
+                "id": ConversationMode.PLAN.value,
+                "name": "Plan Mode",
+                "description": "Produces a structured, reviewable implementation plan grounded in repository code.",
+                "mutates_files": False,
+                "requires_approval": False,
+            },
+            {
+                "id": ConversationMode.EDIT.value,
+                "name": "Edit Mode",
+                "description": "Formulates workspace-scoped code patches with diff previews and conflict detection.",
+                "mutates_files": False,
+                "requires_approval": True,
+            },
+            {
+                "id": ConversationMode.AGENT.value,
+                "name": "Agent Mode",
+                "description": "Executes approved multi-step engineering workflows with deterministic flight recording.",
+                "mutates_files": True,
+                "requires_approval": True,
+            },
+        ]
+    }
+
+
+@router.post("/v1/chat/message", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["AI Assistant"])
+async def send_chat_message(payload: dict, principal: Principal = Depends(current_principal)):
+    """Send a message to the AI Assistant in one of the 4 conversation modes."""
+    message = payload.get("message", "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="Missing required 'message' field.")
+
+    mode_str = payload.get("mode", "ask").lower()
+    try:
+        mode = ConversationMode(mode_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid mode '{mode_str}'. Must be one of: ask, plan, edit, agent.")
+
+    provider_str = payload.get("provider", "local").lower()
+    try:
+        provider = Provider(provider_str)
+    except ValueError:
+        provider = Provider.LOCAL
+
+    use_memory = bool(payload.get("use_memory", True))
+    target_file = payload.get("target_file")
+
+    session = InteractiveChatSession(
+        provider=provider,
+        mode=mode,
+        workspace_fs=_workspace_fs,
+    )
+    result = await session.step(
+        user_message=message,
+        use_memory=use_memory,
+        mode=mode,
+        target_file=target_file,
+    )
+    await record_audit(principal, f"chat_message_{mode.value}", message[:100], True)
+    return result
 
 
 @router.post("/v1/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, tags=["Tasks"])
