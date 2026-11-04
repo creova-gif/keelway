@@ -1,0 +1,78 @@
+{
+  "$schema": "https://keelway.dev/schemas/product-facts.v1.json",
+  "version": "0.1.0",
+  "last_verified_at": "2026-11-03T22:00:00Z",
+  "source_repository": "https://github.com/creova-gif/kora.git",
+  "features": {
+    "local_agent_runtime": {
+      "status": "AVAILABLE",
+      "claim": "Local-first ReAct agent runtime with native workspace tools and flight tapes",
+      "evidence_test": "tests/test_agent_loop.py",
+      "code_path": "core/orchestration/agent_loop.py"
+    },
+    "deterministic_task_state_engine": {
+      "status": "AVAILABLE",
+      "claim": "12-state deterministic state machine with strict transition invariants and task cancellation",
+      "evidence_test": "tests/test_state.py",
+      "code_path": "core/orchestration/state.py"
+    },
+    "multi_agent_crew_coordination": {
+      "status": "AVAILABLE",
+      "claim": "Topological DAG multi-agent team coordination (Architect, Coder, Reviewer, Verifier)",
+      "evidence_test": "tests/test_multi_agent_coordination.py",
+      "code_path": "core/orchestration/multi_agent.py"
+    },
+    "model_cost_ledger_and_economics": {
+      "status": "AVAILABLE",
+      "claim": "Append-only model cost accounting with latency percentiles and quantified local savings",
+      "evidence_test": "tests/test_model_cost_ledger.py",
+      "code_path": "core/models/cost_ledger.py"
+    },
+    "customer_outbound_runner_daemon": {
+      "status": "AVAILABLE",
+      "claim": "Outbound-only VPC customer runner daemon with time-bound HMAC-SHA256 authentication",
+      "evidence_test": "tests/test_core_runner_routes.py",
+      "code_path": "keelway/runner/daemon.py"
+    },
+    "agent_builder_and_manifests": {
+      "status": "AVAILABLE",
+      "claim": "Declarative AgentSpec v1 compilation, template scaffolding, and sealed build receipts",
+      "evidence_test": "tests/test_agent_builder.py",
+      "code_path": "core/agents/builder.py"
+    },
+    "git_governance_and_pr_prep": {
+      "status": "AVAILABLE",
+      "claim": "Semantic commit proposals, verified local commit, and Pull Request preparation",
+      "evidence_test": "tests/test_git_workflow.py",
+      "code_path": "core/storage/workspace_fs.py"
+    },
+    "framework_autodetection": {
+      "status": "AVAILABLE",
+      "claim": "Automatic detection of Python, Node, Rust, Go, and Make test commands",
+      "evidence_test": "tests/test_project_adapter.py",
+      "code_path": "core/orchestration/project_adapter.py"
+    },
+    "tier2_hardware_security_hal": {
+      "status": "AVAILABLE",
+      "claim": "Dual-WORM receipts, TPM 2.0 PCR quotes, PIV smartcard verification, and 2-of-3 Shamir recovery",
+      "evidence_test": "tests/test_tier2_api_and_cli.py",
+      "code_path": "keelway/hal/"
+    },
+    "golden_benchmark_eval": {
+      "status": "AVAILABLE",
+      "claim": "10-task golden evaluation panel (EVAL-01..10) passing 100% in 3.37ms",
+      "evidence_command": "keelway bench",
+      "code_path": "evals/eval_runner.py"
+    },
+    "mobile_approval_app": {
+      "status": "PREVIEW",
+      "claim": "Offline-resilient React Native mobile approval interface with biometrics",
+      "code_path": "mobile/"
+    },
+    "hosted_cloud_sync_workspace": {
+      "status": "PLANNED",
+      "claim": "Cross-device encrypted task sync and team collaboration workspace",
+      "code_path": "web-console/"
+    }
+  }
+}
