@@ -98,6 +98,77 @@ class PythonASTExtractor:
 
         return symbols
 
+    @staticmethod
+    def extract_imports(source_code: str, file_path: str) -> List[Dict[str, Any]]:
+        imports: List[Dict[str, Any]] = []
+        try:
+            tree = ast.parse(source_code, filename=file_path)
+        except SyntaxError:
+            return imports
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imports.append({
+                        "module": alias.name,
+                        "name": alias.asname or alias.name,
+                        "line": node.lineno,
+                    })
+            elif isinstance(node, ast.ImportFrom):
+                mod = node.module or ""
+                for alias in node.names:
+                    full_name = f"{mod}.{alias.name}" if mod else alias.name
+                    imports.append({
+                        "module": mod,
+                        "name": alias.name,
+                        "full_import": full_name,
+                        "line": node.lineno,
+                    })
+        return imports
+
+    @staticmethod
+    def extract_calls(source_code: str, file_path: str) -> List[Dict[str, Any]]:
+        calls: List[Dict[str, Any]] = []
+        try:
+            tree = ast.parse(source_code, filename=file_path)
+        except SyntaxError:
+            return calls
+
+        class CallVisitor(ast.NodeVisitor):
+            def __init__(self):
+                self.current_caller: Optional[str] = None
+                self.found_calls: List[Dict[str, Any]] = []
+
+            def visit_FunctionDef(self, node):
+                prev = self.current_caller
+                self.current_caller = node.name
+                self.generic_visit(node)
+                self.current_caller = prev
+
+            def visit_AsyncFunctionDef(self, node):
+                prev = self.current_caller
+                self.current_caller = node.name
+                self.generic_visit(node)
+                self.current_caller = prev
+
+            def visit_Call(self, node):
+                callee_name = ""
+                if isinstance(node.func, ast.Name):
+                    callee_name = node.func.id
+                elif isinstance(node.func, ast.Attribute):
+                    callee_name = node.func.attr
+                if callee_name:
+                    self.found_calls.append({
+                        "caller": self.current_caller or "<module>",
+                        "callee": callee_name,
+                        "line": node.lineno,
+                    })
+                self.generic_visit(node)
+
+        v = CallVisitor()
+        v.visit(tree)
+        return v.found_calls
+
 
 class TypeScriptRegexExtractor:
     """Extracts symbols from TypeScript and JavaScript using structural regex grammar."""
@@ -107,6 +178,8 @@ class TypeScriptRegexExtractor:
     TYPE_RE = re.compile(r"^(?:export\s+)?type\s+([A-Za-z0-9_$]+)\s*=", re.MULTILINE)
     FUNCTION_RE = re.compile(r"^(?:export\s+)?(?:async\s+)?function\s+([A-Za-z0-9_$]+)\s*\(([^)]*)\)", re.MULTILINE)
     ARROW_RE = re.compile(r"^(?:export\s+)?const\s+([A-Za-z0-9_$]+)\s*=\s*(?:async\s*)?\(([^)]*)\)\s*(?::\s*[^=]+)?=>", re.MULTILINE)
+    IMPORT_RE = re.compile(r"^(?:import\s+(?:(?:\{[^}]*\}|\*\s+as\s+[A-Za-z0-9_$]+|[A-Za-z0-9_$]+)\s*,?\s*)*(?:from\s+)?['\"]([^'\"]+)['\"])", re.MULTILINE)
+    CALL_RE = re.compile(r"\b([A-Za-z0-9_$]+)\s*\(", re.MULTILINE)
 
     @classmethod
     def extract_symbols(cls, source_code: str, file_path: str) -> List[CodeSymbol]:
@@ -146,14 +219,41 @@ class TypeScriptRegexExtractor:
 
         return symbols
 
+    @classmethod
+    def extract_imports(cls, source_code: str, file_path: str) -> List[Dict[str, Any]]:
+        imports: List[Dict[str, Any]] = []
+        for idx, line in enumerate(source_code.splitlines(), 1):
+            m = cls.IMPORT_RE.match(line.strip())
+            if m:
+                imports.append({"module": m.group(1), "name": m.group(1).split("/")[-1], "line": idx})
+        return imports
+
+    @classmethod
+    def extract_calls(cls, source_code: str, file_path: str) -> List[Dict[str, Any]]:
+        calls: List[Dict[str, Any]] = []
+        current_fn = "<module>"
+        for idx, line in enumerate(source_code.splitlines(), 1):
+            s = line.strip()
+            fn_m = cls.FUNCTION_RE.match(s) or cls.ARROW_RE.match(s)
+            if fn_m:
+                current_fn = fn_m.group(1)
+            for m in cls.CALL_RE.finditer(s):
+                callee = m.group(1)
+                if callee not in ("if", "for", "while", "switch", "catch", "function", "import"):
+                    calls.append({"caller": current_fn, "callee": callee, "line": idx})
+        return calls
+
 
 class CodebaseSemanticIndex:
-    """Maintains indexed AST symbols, vector embeddings, and condensed RepoMap across workspace files."""
+    """Maintains indexed AST symbols, vector embeddings, call hierarchy, and dependency graphs across workspace files."""
 
     def __init__(self, workspace_fs: Optional[WorkspaceFilesystem] = None):
         self.fs = workspace_fs or WorkspaceFilesystem()
         self.symbols: Dict[str, List[CodeSymbol]] = {}  # file_path -> symbols
         self.file_hashes: Dict[str, str] = {}           # file_path -> sha256
+        self.file_contents: Dict[str, str] = {}         # file_path -> full content
+        self.file_imports: Dict[str, List[Dict[str, Any]]] = {}  # file_path -> imports
+        self.file_calls: Dict[str, List[Dict[str, Any]]] = {}    # file_path -> calls
 
     def index_file(self, relative_path: str) -> List[CodeSymbol]:
         """Extracts and vector-indexes symbols for a single file if changed."""
@@ -171,10 +271,17 @@ class CodebaseSemanticIndex:
             return self.symbols[relative_path]
 
         symbols: List[CodeSymbol] = []
+        imports: List[Dict[str, Any]] = []
+        calls: List[Dict[str, Any]] = []
+
         if relative_path.endswith(".py"):
             symbols = PythonASTExtractor.extract_symbols(content, relative_path)
+            imports = PythonASTExtractor.extract_imports(content, relative_path)
+            calls = PythonASTExtractor.extract_calls(content, relative_path)
         elif relative_path.endswith((".ts", ".tsx", ".js", ".jsx")):
             symbols = TypeScriptRegexExtractor.extract_symbols(content, relative_path)
+            imports = TypeScriptRegexExtractor.extract_imports(content, relative_path)
+            calls = TypeScriptRegexExtractor.extract_calls(content, relative_path)
 
         # Generate dense embeddings for each symbol
         for sym in symbols:
@@ -183,6 +290,9 @@ class CodebaseSemanticIndex:
 
         self.symbols[relative_path] = symbols
         self.file_hashes[relative_path] = content_hash
+        self.file_contents[relative_path] = content
+        self.file_imports[relative_path] = imports
+        self.file_calls[relative_path] = calls
         return symbols
 
     def index_workspace(self, max_files: int = 200) -> Dict[str, Any]:
@@ -279,3 +389,132 @@ class CodebaseSemanticIndex:
                 "parent_symbol": sym.parent_symbol,
             })
         return results
+
+    def find_references(self, symbol_name: str) -> List[Dict[str, Any]]:
+        """Finds all occurrences, call sites, imports, and definitions of a symbol across the workspace."""
+        if not symbol_name or not symbol_name.strip():
+            return []
+        sym = symbol_name.strip()
+        pattern = re.compile(r"\b" + re.escape(sym) + r"\b")
+        references: List[Dict[str, Any]] = []
+
+        # Find exact symbol definition lines
+        def_lines: Dict[str, Set[int]] = {}
+        for path, syms in self.symbols.items():
+            def_lines[path] = {s.line_number for s in syms if s.name == sym}
+
+        for path, content in self.file_contents.items():
+            lines = content.splitlines()
+            for line_no, line in enumerate(lines, 1):
+                if pattern.search(line):
+                    is_def = line_no in def_lines.get(path, set())
+                    kind = "definition" if is_def else "reference"
+                    stripped = line.strip()
+                    if not is_def:
+                        if stripped.startswith(("import ", "from ")):
+                            kind = "import"
+                        elif "(" in stripped:
+                            kind = "call"
+                    references.append({
+                        "file_path": path,
+                        "line_number": line_no,
+                        "snippet": stripped,
+                        "kind": kind,
+                    })
+        return references
+
+    def get_call_hierarchy(self, symbol_name: str) -> Dict[str, Any]:
+        """Returns incoming callers and outgoing callees for a given function or method."""
+        sym = symbol_name.strip()
+        callers: List[Dict[str, Any]] = []
+        callees: List[Dict[str, Any]] = []
+
+        for path, calls in self.file_calls.items():
+            for c in calls:
+                if c["callee"] == sym:
+                    callers.append({
+                        "caller": c["caller"],
+                        "file_path": path,
+                        "line_number": c["line"],
+                    })
+                if c["caller"] == sym:
+                    callees.append({
+                        "callee": c["callee"],
+                        "file_path": path,
+                        "line_number": c["line"],
+                    })
+        return {
+            "symbol": sym,
+            "callers": callers,
+            "callees": callees,
+        }
+
+    def get_module_dependency_graph(self) -> Dict[str, Any]:
+        """Constructs a directed module dependency graph across indexed files with cycle detection."""
+        nodes = sorted(list(self.symbols.keys()))
+        edges: List[Dict[str, Any]] = []
+        adjacency: Dict[str, List[str]] = {n: [] for n in nodes}
+
+        # Build module mapping (e.g. core/storage/ast_index.py -> core.storage.ast_index)
+        mod_to_file: Dict[str, str] = {}
+        for n in nodes:
+            clean = n.replace("/", ".").replace("\\", ".")
+            if clean.endswith(".py"):
+                clean = clean[:-3]
+            elif clean.endswith((".ts", ".js")):
+                clean = clean[:-3]
+            mod_to_file[clean] = n
+            mod_to_file[Path(n).stem] = n
+
+        for src, imps in self.file_imports.items():
+            for imp in imps:
+                raw_mod = imp.get("module", "")
+                target_file = mod_to_file.get(raw_mod) or mod_to_file.get(raw_mod.split(".")[-1])
+                if target_file and target_file != src:
+                    edge = {"source": src, "target": target_file, "module": raw_mod}
+                    if edge not in edges:
+                        edges.append(edge)
+                        if target_file not in adjacency[src]:
+                            adjacency[src].append(target_file)
+
+        # Detect cycles using DFS
+        cycles: List[List[str]] = []
+        visited: Dict[str, int] = {n: 0 for n in nodes}
+
+        def dfs(curr: str, path: List[str]):
+            visited[curr] = 1
+            path.append(curr)
+            for neighbor in adjacency.get(curr, []):
+                if visited.get(neighbor) == 1:
+                    cycle_start = path.index(neighbor)
+                    cycles.append(path[cycle_start:] + [neighbor])
+                elif visited.get(neighbor) == 0:
+                    dfs(neighbor, path)
+            path.pop()
+            visited[curr] = 2
+
+        for n in nodes:
+            if visited[n] == 0:
+                dfs(n, [])
+
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "has_cycles": len(cycles) > 0,
+            "cycles": cycles,
+        }
+
+    def get_definition(self, symbol_name: str) -> Optional[Dict[str, Any]]:
+        """Returns the precise definition location and signature of a symbol."""
+        sym = symbol_name.strip()
+        candidates: List[CodeSymbol] = []
+        for sym_list in self.symbols.values():
+            for s in sym_list:
+                if s.name == sym:
+                    candidates.append(s)
+
+        if not candidates:
+            return None
+        candidates.sort(key=lambda s: 0 if s.kind in ("class", "function", "interface") else 1)
+        return candidates[0].to_dict()
+

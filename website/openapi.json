@@ -1707,6 +1707,243 @@
         }
       }
     },
+    "/v1/codebase/symbols": {
+      "get": {
+        "tags": [
+          "Codebase Intelligence"
+        ],
+        "summary": "Codebase Symbols",
+        "description": "Search codebase symbols with hybrid vector and lexical ranking.",
+        "operationId": "codebase_symbols_v1_codebase_symbols_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "top_k",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15,
+              "title": "Top K"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/codebase/repomap": {
+      "get": {
+        "tags": [
+          "Codebase Intelligence"
+        ],
+        "summary": "Codebase Repomap",
+        "description": "Retrieve condensed repository map for prompt context augmentation.",
+        "operationId": "codebase_repomap_v1_codebase_repomap_get",
+        "parameters": [
+          {
+            "name": "max_tokens",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1500,
+              "title": "Max Tokens"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/codebase/references": {
+      "get": {
+        "tags": [
+          "Codebase Intelligence"
+        ],
+        "summary": "Codebase References",
+        "description": "Find all usages, call sites, imports, and definitions of a symbol across the workspace.",
+        "operationId": "codebase_references_v1_codebase_references_get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Symbol"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/codebase/hierarchy": {
+      "get": {
+        "tags": [
+          "Codebase Intelligence"
+        ],
+        "summary": "Codebase Call Hierarchy",
+        "description": "Inspect callers and callees for a specific function or method.",
+        "operationId": "codebase_call_hierarchy_v1_codebase_hierarchy_get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Symbol"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/codebase/graph": {
+      "get": {
+        "tags": [
+          "Codebase Intelligence"
+        ],
+        "summary": "Codebase Dependency Graph",
+        "description": "Retrieve module-level import dependency DAG with cycle detection.",
+        "operationId": "codebase_dependency_graph_v1_codebase_graph_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/codebase/definition": {
+      "get": {
+        "tags": [
+          "Codebase Intelligence"
+        ],
+        "summary": "Codebase Definition",
+        "description": "Locate the exact definition, signature, and file location for a symbol.",
+        "operationId": "codebase_definition_v1_codebase_definition_get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Symbol"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/agent/run": {
       "post": {
         "tags": [

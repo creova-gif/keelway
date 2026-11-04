@@ -361,15 +361,16 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = Fal
                     self.end_headers()
                     self.wfile.write(json.dumps({"status": "idle", "plan": []}).encode("utf-8"))
                 elif self.path.startswith("/v1/index/repomap"):
+                    import json
                     from core.storage.ast_index import CodebaseSemanticIndex
                     idx = CodebaseSemanticIndex()
-                    idx.index_workspace(max_files=100)
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
                     self.wfile.write(json.dumps({"repo_map": idx.generate_repo_map()}).encode("utf-8"))
                 elif self.path.startswith("/v1/index/search"):
                     import urllib.parse
+                    import json
                     from core.storage.ast_index import CodebaseSemanticIndex
                     parsed = urllib.parse.urlparse(self.path)
                     params = urllib.parse.parse_qs(parsed.query)
@@ -493,6 +494,7 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
 
 async def cmd_repomap(max_tokens: int = 1500):
     """Generate condensed codebase repository map for prompt augmentation."""
+    import json
     from core.storage.ast_index import CodebaseSemanticIndex
     idx = CodebaseSemanticIndex()
     stats = idx.index_workspace(max_files=150)
@@ -506,6 +508,7 @@ async def cmd_repomap(max_tokens: int = 1500):
 
 async def cmd_search(query: str, top_k: int = 10):
     """Search workspace symbols using hybrid semantic vector and lexical matching."""
+    import json
     from core.storage.ast_index import CodebaseSemanticIndex
     idx = CodebaseSemanticIndex()
     idx.index_workspace(max_files=150)
@@ -521,6 +524,116 @@ async def cmd_search(query: str, top_k: int = 10):
         if r.get('docstring'):
             print(f"    Docstring: {r['docstring'][:70]}...")
         print()
+
+
+def cmd_code(
+    action: str = "search",
+    target: str = "",
+    top_k: int = 10,
+    max_tokens: int = 1500,
+    format_type: str = "text",
+) -> int:
+    """Enterprise Codebase Intelligence CLI (search, references, hierarchy, graph, definition)."""
+    import json
+    from core.storage.ast_index import CodebaseSemanticIndex
+    idx = CodebaseSemanticIndex()
+    idx.index_workspace(max_files=200)
+
+    act = (action or "search").lower().strip()
+
+    if act == "search":
+        q = target or "agent"
+        results = idx.search_symbols(query=q, top_k=top_k)
+        print("\n" + "=" * 70)
+        print(f"  🔍 KEELWAY CODE SEARCH: '{q}' ({len(results)} matches)")
+        print("=" * 70 + "\n")
+        for r in results:
+            print(f"  • [{r['kind'].upper()}] {r['name']} -> {r['file_path']}:{r['line_number']}")
+            print(f"    {r['signature']}")
+        print()
+        return 0
+
+    elif act in ("refs", "references"):
+        if not target:
+            print("[-] Error: Symbol name required for references check.")
+            return 1
+        refs = idx.find_references(symbol_name=target)
+        print("\n" + "=" * 70)
+        print(f"  🔗 KEELWAY CROSS-FILE REFERENCES: '{target}' ({len(refs)} matches)")
+        print("=" * 70 + "\n")
+        for ref in refs:
+            print(f"  • [{ref['kind'].upper()}] {ref['file_path']}:{ref['line_number']}")
+            print(f"    {ref['snippet']}")
+        print()
+        return 0
+
+    elif act in ("hierarchy", "calls"):
+        if not target:
+            print("[-] Error: Symbol name required for call hierarchy.")
+            return 1
+        h = idx.get_call_hierarchy(symbol_name=target)
+        print("\n" + "=" * 70)
+        print(f"  📞 KEELWAY CALL HIERARCHY: '{target}'")
+        print("=" * 70)
+        print(f"  Callers ({len(h['callers'])}):")
+        for c in h["callers"]:
+            print(f"    ← {c['caller']}() in {c['file_path']}:{c['line_number']}")
+        print(f"  Callees ({len(h['callees'])}):")
+        for c in h["callees"]:
+            print(f"    → {c['callee']}() in {c['file_path']}:{c['line_number']}")
+        print()
+        return 0
+
+    elif act in ("graph", "deps"):
+        graph = idx.get_module_dependency_graph()
+        if format_type == "json":
+            print(json.dumps(graph, indent=2))
+            return 0
+        print("\n" + "=" * 70)
+        print(f"  🕸️  KEELWAY MODULE DEPENDENCY GRAPH")
+        print(f"  Nodes: {len(graph['nodes'])} | Edges: {len(graph['edges'])} | Cycles: {len(graph['cycles'])}")
+        print("=" * 70 + "\n")
+        for edge in graph["edges"][:30]:
+            print(f"  {edge['source']} → {edge['target']} ({edge['module']})")
+        if len(graph["edges"]) > 30:
+            print(f"  ... and {len(graph['edges']) - 30} more dependencies")
+        if graph["has_cycles"]:
+            print("\n  ⚠️  CIRCULAR DEPENDENCIES DETECTED:")
+            for cyc in graph["cycles"]:
+                print(f"    • {' -> '.join(cyc)}")
+        else:
+            print("\n  [✓] Zero circular dependency cycles detected.")
+        print()
+        return 0
+
+    elif act in ("def", "definition"):
+        if not target:
+            print("[-] Error: Symbol name required for definition lookup.")
+            return 1
+        defn = idx.get_definition(symbol_name=target)
+        if not defn:
+            print(f"[-] Symbol '{target}' not found.")
+            return 1
+        print("\n" + "=" * 70)
+        print(f"  📍 KEELWAY SYMBOL DEFINITION: '{target}'")
+        print("=" * 70 + "\n")
+        print(f"  Name:      {defn['name']}")
+        print(f"  Kind:      {defn['kind'].upper()}")
+        print(f"  Location:  {defn['file_path']}:{defn['line_number']}-{defn['end_line']}")
+        print(f"  Signature: {defn['signature']}")
+        if defn.get("docstring"):
+            print(f"  Docstring: {defn['docstring']}")
+        print()
+        return 0
+
+    elif act in ("repomap", "outline"):
+        print(idx.generate_repo_map(max_tokens=max_tokens))
+        return 0
+
+    else:
+        print(f"[-] Unknown code action: {action}. Use: search, refs, hierarchy, graph, def, repomap")
+        return 1
+
 
 
 async def cmd_pull(model: str = "qwen2.5-coder:7b"):
@@ -2574,6 +2687,28 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("query", help="Symbol or concept search query")
     search_parser.add_argument("--top-k", type=int, default=10, help="Number of matches to return")
 
+    # code (Enterprise Codebase Intelligence & Graph)
+    code_parser = subparsers.add_parser("code", help="Enterprise codebase intelligence (search, refs, hierarchy, graph, def, repomap)")
+    code_sub = code_parser.add_subparsers(dest="code_command", required=True)
+    _c_search = code_sub.add_parser("search", help="Search codebase symbols")
+    _c_search.add_argument("target", nargs="?", default="", help="Symbol or concept query")
+    _c_search.add_argument("--top-k", type=int, default=10, help="Max results")
+
+    _c_refs = code_sub.add_parser("refs", help="Find all usages and references of a symbol")
+    _c_refs.add_argument("target", help="Symbol name")
+
+    _c_hier = code_sub.add_parser("hierarchy", help="Inspect caller/callee hierarchy")
+    _c_hier.add_argument("target", help="Function or method name")
+
+    _c_graph = code_sub.add_parser("graph", help="Generate module import dependency graph")
+    _c_graph.add_argument("--format", dest="format_type", default="text", choices=["text", "json"], help="Output format")
+
+    _c_def = code_sub.add_parser("def", help="Locate symbol definition and signature")
+    _c_def.add_argument("target", help="Symbol name")
+
+    _c_repo = code_sub.add_parser("repomap", help="Generate condensed repo map")
+    _c_repo.add_argument("--tokens", dest="max_tokens", type=int, default=1500, help="Token budget")
+
     # pull (Zero-Config Model Streaming Downloader)
     pull_parser = subparsers.add_parser("pull", help="Download and verify local LLM into Ollama")
     pull_parser.add_argument("model", nargs="?", default="qwen2.5-coder:7b", help="Model identifier to pull")
@@ -3251,6 +3386,16 @@ def main(argv=None):
             cmd_flow(
                 action=getattr(args, "flow_command", "demo"),
                 flow_id=getattr(args, "flow_id", "demo_flow"),
+            )
+        )
+    elif args.command == "code":
+        sys.exit(
+            cmd_code(
+                action=getattr(args, "code_command", "search"),
+                target=getattr(args, "target", ""),
+                top_k=getattr(args, "top_k", 10),
+                max_tokens=getattr(args, "max_tokens", 1500),
+                format_type=getattr(args, "format_type", "text"),
             )
         )
 

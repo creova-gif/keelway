@@ -1283,6 +1283,91 @@ function resetKFlowNodesInStudio() {
   if (out) out.textContent = 'KFlow node visual state reset to PENDING.';
 }
 
+// ---------- Codebase Intelligence & Graph ----------
+async function searchCodebaseInStudio() {
+  const out = $('code-intel-out');
+  const q = $('code-intel-query') ? $('code-intel-query').value.trim() : 'CodeSymbol';
+  if (!out) return;
+  out.textContent = `Searching codebase symbols matching '${q}'…`;
+  try {
+    const res = await api(`/v1/codebase/symbols?q=${encodeURIComponent(q)}&top_k=10`);
+    if (!res.results || !res.results.length) {
+      out.textContent = `[i] No symbols found for '${q}'.`;
+      return;
+    }
+    out.textContent = `[✓] SYMBOL SEARCH: '${q}' (${res.results.length} matches across ${res.total_files} files)\n` +
+      `─────────────────────────────────────────────────────────────────\n` +
+      res.results.map(r => `• [${r.kind.toUpperCase()}] ${r.name}\n    Location:  ${r.file_path}:${r.line_number}\n    Signature: ${r.signature}` + (r.docstring ? `\n    Docstring: ${r.docstring.slice(0, 60)}…` : '')).join('\n\n');
+    tone('ok');
+  } catch (err) {
+    out.textContent = `[-] Code search error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function findReferencesInStudio() {
+  const out = $('code-intel-out');
+  const sym = $('code-intel-query') ? $('code-intel-query').value.trim() : 'CodeSymbol';
+  if (!out) return;
+  out.textContent = `Scanning cross-file references for '${sym}'…`;
+  try {
+    const res = await api(`/v1/codebase/references?symbol=${encodeURIComponent(sym)}`);
+    if (!res.references || !res.references.length) {
+      out.textContent = `[i] No references found for '${sym}'.`;
+      return;
+    }
+    out.textContent = `[✓] CROSS-FILE REFERENCES: '${sym}' (${res.references.length} occurrences)\n` +
+      `─────────────────────────────────────────────────────────────────\n` +
+      res.references.slice(0, 20).map(r => `• [${r.kind.toUpperCase()}] ${r.file_path}:${r.line_number}\n    ${r.snippet}`).join('\n\n') +
+      (res.references.length > 20 ? `\n\n  ... and ${res.references.length - 20} more references.` : '');
+    tone('ok');
+  } catch (err) {
+    out.textContent = `[-] References error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function viewCallHierarchyInStudio() {
+  const out = $('code-intel-out');
+  const sym = $('code-intel-query') ? $('code-intel-query').value.trim() : 'extract_symbols';
+  if (!out) return;
+  out.textContent = `Tracing caller/callee hierarchy for '${sym}'…`;
+  try {
+    const res = await api(`/v1/codebase/hierarchy?symbol=${encodeURIComponent(sym)}`);
+    out.textContent = `[✓] CALL HIERARCHY: '${sym}'\n` +
+      `─────────────────────────────────────────────────────────────────\n` +
+      `INCOMING CALLERS (${res.callers.length}):\n` +
+      (res.callers.length ? res.callers.map(c => `  ← ${c.caller}() at ${c.file_path}:${c.line_number}`).join('\n') : '  (no incoming callers found)\n') +
+      `\nOUTGOING CALLEES (${res.callees.length}):\n` +
+      (res.callees.length ? res.callees.map(c => `  → ${c.callee}() at ${c.file_path}:${c.line_number}`).join('\n') : '  (no outgoing callees found)');
+    tone('ok');
+  } catch (err) {
+    out.textContent = `[-] Hierarchy error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function viewModuleGraphInStudio() {
+  const out = $('code-intel-out');
+  if (!out) return;
+  out.textContent = 'Resolving module import dependency DAG…';
+  try {
+    const g = await api('/v1/codebase/graph');
+    out.textContent = `[✓] MODULE DEPENDENCY GRAPH\n` +
+      `Nodes (Files): ${g.nodes.length}\n` +
+      `Edges (Deps):  ${g.edges.length}\n` +
+      `Cycles:        ${g.has_cycles ? g.cycles.length : '0 (Cycle-Free Clean Architecture)'}\n` +
+      `─────────────────────────────────────────────────────────────────\n` +
+      `Sample Dependency Edges:\n` +
+      g.edges.slice(0, 15).map(e => `• ${e.source} → ${e.target} (${e.module})`).join('\n') +
+      (g.edges.length > 15 ? `\n  ... and ${g.edges.length - 15} more edges.` : '');
+    tone('ok');
+  } catch (err) {
+    out.textContent = `[-] Module graph error: ${err.message}`;
+    tone('err');
+  }
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -1884,6 +1969,10 @@ function wire() {
   if ($('kflow-run-btn')) $('kflow-run-btn').addEventListener('click', runKFlowDAGInStudio);
   if ($('kflow-list-btn')) $('kflow-list-btn').addEventListener('click', listKFlowDAGsInStudio);
   if ($('kflow-reset-btn')) $('kflow-reset-btn').addEventListener('click', resetKFlowNodesInStudio);
+  if ($('code-intel-search-btn')) $('code-intel-search-btn').addEventListener('click', searchCodebaseInStudio);
+  if ($('code-intel-refs-btn')) $('code-intel-refs-btn').addEventListener('click', findReferencesInStudio);
+  if ($('code-intel-hier-btn')) $('code-intel-hier-btn').addEventListener('click', viewCallHierarchyInStudio);
+  if ($('code-intel-graph-btn')) $('code-intel-graph-btn').addEventListener('click', viewModuleGraphInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

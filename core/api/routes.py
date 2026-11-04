@@ -1067,6 +1067,71 @@ async def refresh_codebase_index(max_files: int = 200):
     return {"status": "indexed", "stats": res}
 
 
+@router.get("/v1/codebase/symbols", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
+async def codebase_symbols(q: str = "", top_k: int = 15):
+    """Search codebase symbols with hybrid vector and lexical ranking."""
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    results = _semantic_index.search_symbols(query=q, top_k=top_k) if q else []
+    return {"query": q, "total_files": len(_semantic_index.symbols), "results": results}
+
+
+@router.get("/v1/codebase/repomap", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
+async def codebase_repomap(max_tokens: int = 1500):
+    """Retrieve condensed repository map for prompt context augmentation."""
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    return {
+        "repo_map": _semantic_index.generate_repo_map(max_tokens=max_tokens),
+        "total_files": len(_semantic_index.symbols),
+    }
+
+
+@router.get("/v1/codebase/references", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
+async def codebase_references(symbol: str):
+    """Find all usages, call sites, imports, and definitions of a symbol across the workspace."""
+    if not symbol:
+        raise HTTPException(status_code=400, detail="Query parameter 'symbol' is required.")
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    refs = _semantic_index.find_references(symbol_name=symbol)
+    return {"symbol": symbol, "count": len(refs), "references": refs}
+
+
+@router.get("/v1/codebase/hierarchy", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
+async def codebase_call_hierarchy(symbol: str):
+    """Inspect callers and callees for a specific function or method."""
+    if not symbol:
+        raise HTTPException(status_code=400, detail="Query parameter 'symbol' is required.")
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    hierarchy = _semantic_index.get_call_hierarchy(symbol_name=symbol)
+    return hierarchy
+
+
+@router.get("/v1/codebase/graph", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
+async def codebase_dependency_graph():
+    """Retrieve module-level import dependency DAG with cycle detection."""
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    graph = _semantic_index.get_module_dependency_graph()
+    return graph
+
+
+@router.get("/v1/codebase/definition", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
+async def codebase_definition(symbol: str):
+    """Locate the exact definition, signature, and file location for a symbol."""
+    if not symbol:
+        raise HTTPException(status_code=400, detail="Query parameter 'symbol' is required.")
+    if not _semantic_index.symbols:
+        _semantic_index.index_workspace(max_files=150)
+    defn = _semantic_index.get_definition(symbol_name=symbol)
+    if not defn:
+        raise HTTPException(status_code=404, detail=f"Symbol '{symbol}' not found in indexed codebase.")
+    return {"symbol": symbol, "definition": defn}
+
+
+
 # =====================================================================
 # Autonomous ReAct Agent Loop Endpoints
 # =====================================================================

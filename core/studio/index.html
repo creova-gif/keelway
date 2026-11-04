@@ -774,6 +774,25 @@
             <pre id="kflow-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Codebase Intelligence & Symbol Call Graph -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="code-intel-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="code-intel-title" class="font-semibold">Repository Intelligence &amp; Symbol Call Graph</h3>
+            <span class="step-chip text-ok border-ok/50 font-mono">AST &amp; Call Hierarchy</span>
+          </div>
+          <div id="lab-code-intel" class="space-y-3">
+            <p class="text-xs text-ide-muted">AST symbol extraction, cross-file reference tracking, caller/callee hierarchy, and module dependency DAG resolution.</p>
+            <div class="flex gap-2">
+              <input id="code-intel-query" class="input flex-1 text-xs font-mono" placeholder="Symbol name (e.g. CodeSymbol, FlightRecorder, execute_dag)" value="CodeSymbol">
+              <button id="code-intel-search-btn" type="button" class="btn-primary h-8 text-xs">Search Symbol</button>
+              <button id="code-intel-refs-btn" type="button" class="btn-outline h-8 text-xs">Find References</button>
+              <button id="code-intel-hier-btn" type="button" class="btn-outline h-8 text-xs">Call Hierarchy</button>
+              <button id="code-intel-graph-btn" type="button" class="btn-outline h-8 text-xs">Module Graph</button>
+            </div>
+            <pre id="code-intel-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

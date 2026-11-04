@@ -423,6 +423,7 @@ keelway ❯ </pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="brain" role="tab" aria-selected="false">keelway brain query</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="flow" role="tab" aria-selected="false">keelway flow run</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="cost" role="tab" aria-selected="false">keelway cost</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="code" role="tab" aria-selected="false">keelway code refs</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
@@ -509,12 +510,13 @@ keelway ❯ </pre>
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
       <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 690 automated tests passing with zero failures. Verified against commit <code>b3671f9</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 695 automated tests passing with zero failures. Verified against commit <code>520f3e1</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
       <div class="card tablewrap">
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
           <tbody>
-            <tr><td>OpenAPI 3.1 REST Schema Exporter (125 Endpoints)</td><td><span class="pill teal">Available (125 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>OpenAPI 3.1 REST Schema Exporter (131 Endpoints)</td><td><span class="pill teal">Available (131 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>Codebase Intelligence &amp; Call Hierarchy Engine</td><td><span class="pill teal">Available (AST Graph)</span></td><td class="mono" style="font-size: 12px;">tests/test_codebase_intelligence.py</td></tr>
             <tr><td>KFlow REST API &amp; Topological DAG Dispatch</td><td><span class="pill teal">Available (Proof-Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_kflow_api.py</td></tr>
             <tr><td>Investor &amp; Enterprise Evidence Room (WP21)</td><td><span class="pill teal">Available (10/10 Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_evidence_room.py</td></tr>
             <tr><td>Speculative Decoding Acceleration (0.5B + 7B)</td><td><span class="pill teal">Available (2.58x)</span></td><td class="mono" style="font-size: 12px;">tests/test_speculative.py</td></tr>
@@ -900,6 +902,10 @@ var TERM_OUTPUTS = {
   cost: {
     cmd: "$ keelway cost --summary",
     out: "================================================================================\n  KEELWAY MODEL ECONOMICS & COST OBSERVABILITY\n================================================================================\n  Total Tokens: 18,420 | Prompt: 14,200 | Completion: 4,220\n  Arbitrage ROI vs Cloud API: 96.8% Savings | SEI Score: 94.2/100\n================================================================================"
+  },
+  code: {
+    cmd: "$ keelway code refs CodeSymbol",
+    out: "======================================================================\n  🔗 KEELWAY CROSS-FILE REFERENCES: 'CodeSymbol' (32 matches)\n======================================================================\n\n  • [DEFINITION] core/storage/ast_index.py:21\n    class CodeSymbol:\n\n  • [IMPORT] core/storage/ast_index.py:16\n    from core.storage.ast_index import CodeSymbol\n\n  • [CALL] core/storage/ast_index.py:88\n    symbols.append(CodeSymbol(name=node.name, kind=\"function\"))\n\n  • [REFERENCE] tests/test_codebase_intelligence.py:12\n    from core.storage.ast_index import CodebaseSemanticIndex, CodeSymbol\n\n======================================================================\n  Module Dependency Graph: 110 Nodes | 288 Edges | 0 Cycles (Clean)\n======================================================================"
   }
 };
 
