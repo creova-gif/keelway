@@ -793,6 +793,36 @@
             <pre id="code-intel-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Agent Distribution & Bundle Packaging Card -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="agent-bundle-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="agent-bundle-title" class="font-semibold">Agent Bundle Packaging &amp; Cryptographic Verification</h3>
+            <span class="step-chip text-accent border-accent/50">SHA-256 Verified Archive</span>
+          </div>
+          <div id="lab-agent-bundle" class="space-y-3">
+            <p class="text-xs text-ide-muted">Pack declarative agent workspaces into signed, portable distribution bundles (.tar.gz) or cryptographically verify and unpack bundles.</p>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div class="space-y-2 bg-ide-sidebar p-3 rounded border border-ide-border">
+                <div class="text-xs font-semibold text-ide-text">📦 Pack Agent Bundle</div>
+                <label for="bundle-src-input" class="label">Source Agent Directory</label>
+                <input id="bundle-src-input" class="input w-full text-xs font-mono" placeholder="agents/test-fixer" value="agents/test-fixer">
+                <label for="bundle-out-archive" class="label">Output Archive Path (optional)</label>
+                <input id="bundle-out-archive" class="input w-full text-xs font-mono" placeholder="exports/test-fixer.tar.gz">
+                <button id="bundle-pack-btn" type="button" class="btn-primary h-8 text-xs w-full mt-1">Pack &amp; Seal Agent Bundle</button>
+              </div>
+              <div class="space-y-2 bg-ide-sidebar p-3 rounded border border-ide-border">
+                <div class="text-xs font-semibold text-ide-text">🛡️ Unpack &amp; Verify Bundle</div>
+                <label for="bundle-archive-input" class="label">Archive Path (.tar.gz)</label>
+                <input id="bundle-archive-input" class="input w-full text-xs font-mono" placeholder="exports/test-fixer.tar.gz">
+                <label for="bundle-dest-input" class="label">Destination Directory (optional)</label>
+                <input id="bundle-dest-input" class="input w-full text-xs font-mono" placeholder="agents/unpacked-agent">
+                <button id="bundle-unpack-btn" type="button" class="btn-outline h-8 text-xs w-full mt-1">Verify Digest &amp; Unpack</button>
+              </div>
+            </div>
+            <pre id="bundle-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

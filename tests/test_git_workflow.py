@@ -35,10 +35,14 @@ def git_repo_dir(tmp_path):
 
 @pytest.fixture
 def git_client(git_repo_dir, monkeypatch):
+    prev_fs = routes._workspace_fs
     monkeypatch.chdir(git_repo_dir)
     routes.set_workspace_fs(WorkspaceFilesystem(root_dir=str(git_repo_dir)))
-    with TestClient(app) as client:
-        yield client
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        routes.set_workspace_fs(prev_fs)
 
 
 def test_prepare_commit_proposal_clean_and_modified(git_repo_dir):

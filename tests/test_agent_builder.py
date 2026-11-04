@@ -21,10 +21,14 @@ from core.api import routes
 
 @pytest.fixture
 def test_client(tmp_path, monkeypatch):
+    prev_fs = routes._workspace_fs
     monkeypatch.chdir(tmp_path)
     routes.set_workspace_fs(WorkspaceFilesystem(root_dir=str(tmp_path)))
-    with TestClient(app) as client:
-        yield client
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        routes.set_workspace_fs(prev_fs)
 
 
 def test_agent_spec_compilation():

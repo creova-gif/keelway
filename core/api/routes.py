@@ -1619,6 +1619,87 @@ async def scaffold_agent(payload: dict, principal: Principal = Depends(current_p
     }
 
 
+@router.post("/v1/agent/builder/pack", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
+async def pack_agent_bundle(payload: dict, principal: Principal = Depends(current_principal)):
+    """Pack an agent directory into a distributable .tar.gz bundle with SHA-256 digests."""
+    from core.agents.builder import AgentBundlePacker
+
+    source_dir_str = payload.get("source_dir")
+    if not source_dir_str:
+        raise HTTPException(status_code=400, detail="Missing required 'source_dir' field.")
+
+    try:
+        source_dir = _workspace_fs.resolve_safe_path(source_dir_str)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid source directory: {exc}")
+
+    if not source_dir.is_dir():
+        raise HTTPException(status_code=404, detail=f"Source directory '{source_dir_str}' does not exist.")
+
+    out_archive_str = payload.get("output_archive")
+    if out_archive_str:
+        try:
+            output_archive = _workspace_fs.resolve_safe_path(out_archive_str)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid output archive path: {exc}")
+    else:
+        output_archive = source_dir.parent / f"{source_dir.name}.tar.gz"
+
+    try:
+        manifest = AgentBundlePacker.pack(source_dir, output_archive)
+        rel_archive = str(output_archive.relative_to(_workspace_fs.root))
+        await record_audit(principal, "agent_pack", f"{source_dir_str} -> {rel_archive}", True)
+        return {
+            "status": "packed",
+            "archive_path": rel_archive,
+            "manifest": manifest,
+        }
+    except Exception as exc:
+        await record_audit(principal, "agent_pack", f"{source_dir_str}", False)
+        raise HTTPException(status_code=500, detail=f"Packaging failed: {exc}")
+
+
+@router.post("/v1/agent/builder/unpack", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
+async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(current_principal)):
+    """Unpack and cryptographically verify an agent bundle archive."""
+    from core.agents.builder import AgentBundlePacker
+
+    archive_str = payload.get("archive_path")
+    if not archive_str:
+        raise HTTPException(status_code=400, detail="Missing required 'archive_path' field.")
+
+    try:
+        archive_path = _workspace_fs.resolve_safe_path(archive_str)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
+
+    if not archive_path.is_file():
+        raise HTTPException(status_code=404, detail=f"Archive file '{archive_str}' does not exist.")
+
+    dest_str = payload.get("destination_dir")
+    if dest_str:
+        try:
+            destination_dir = _workspace_fs.resolve_safe_path(dest_str)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid destination directory: {exc}")
+    else:
+        bundle_stem = archive_path.name.replace(".tar.gz", "").replace(".tar", "")
+        destination_dir = _workspace_fs.root / "agents" / bundle_stem
+
+    try:
+        manifest = AgentBundlePacker.unpack(archive_path, destination_dir, verify=True)
+        rel_dest = str(destination_dir.relative_to(_workspace_fs.root))
+        await record_audit(principal, "agent_unpack", f"{archive_str} -> {rel_dest}", True)
+        return {
+            "status": "unpacked",
+            "destination_dir": rel_dest,
+            "manifest": manifest,
+        }
+    except Exception as exc:
+        await record_audit(principal, "agent_unpack", f"{archive_str}", False)
+        raise HTTPException(status_code=400, detail=f"Unpacking verification failed: {exc}")
+
+
 # =====================================================================
 # Customer Outbound Runner Endpoints (WP10 / WP11)
 # =====================================================================

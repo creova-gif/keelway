@@ -22,12 +22,16 @@ from core.api import routes
 
 @pytest.fixture
 def test_client(tmp_path, monkeypatch):
+    prev_fs = routes._workspace_fs
     monkeypatch.chdir(tmp_path)
     (tmp_path / "main.py").write_text("print('hello')\n")
     (tmp_path / "requirements.txt").write_text("fastapi>=0.100.0\npytest>=8.0.0\n")
     routes.set_workspace_fs(WorkspaceFilesystem(root_dir=str(tmp_path)))
-    with TestClient(app) as client:
-        yield client
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        routes.set_workspace_fs(prev_fs)
 
 
 def test_python_project_detection(tmp_path):

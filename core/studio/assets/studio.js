@@ -1368,6 +1368,67 @@ async function viewModuleGraphInStudio() {
   }
 }
 
+async function packAgentBundleInStudio() {
+  const out = $('bundle-out');
+  const src = $('bundle-src-input') ? $('bundle-src-input').value.trim() : '';
+  const outArch = $('bundle-out-archive') ? $('bundle-out-archive').value.trim() : '';
+  if (!src) { toast('Source directory is required', 'warn'); return; }
+  if (out) out.textContent = `Packaging agent bundle from '${src}'…`;
+  try {
+    const payload = { source_dir: src };
+    if (outArch) payload.output_archive = outArch;
+    const res = await api('/v1/agent/builder/pack', { method: 'POST', body: payload });
+    if (out) {
+      out.textContent = `[✓] AGENT BUNDLE PACKED SUCCESSFULLY\n` +
+        `Bundle Name:     ${res.manifest.bundle_name}\n` +
+        `Archive Path:    ${res.archive_path}\n` +
+        `Bundle Digest:   ${res.manifest.bundle_digest_sha256}\n` +
+        `Manifest Digest: ${res.manifest.manifest_digest || '(none)'}\n` +
+        `Files Packed:    ${Object.keys(res.manifest.files).length}\n` +
+        `Created At:      ${res.manifest.created_at_iso}\n` +
+        `─────────────────────────────────────────────────────────────────\n` +
+        `Files Included:\n` +
+        Object.entries(res.manifest.files).map(([f, h]) => `  • ${f.padEnd(25)} ${h.slice(0, 16)}…`).join('\n');
+    }
+    toast(`[✓] Bundle packed: ${res.archive_path}`, 'ok');
+    tone('ok');
+  } catch (err) {
+    if (out) out.textContent = `[-] Pack error: ${err.message}`;
+    toast(`Pack error: ${err.message}`, 'err');
+    tone('err');
+  }
+}
+
+async function unpackAgentBundleInStudio() {
+  const out = $('bundle-out');
+  const arch = $('bundle-archive-input') ? $('bundle-archive-input').value.trim() : '';
+  const dest = $('bundle-dest-input') ? $('bundle-dest-input').value.trim() : '';
+  if (!arch) { toast('Archive path is required', 'warn'); return; }
+  if (out) out.textContent = `Verifying and unpacking bundle '${arch}'…`;
+  try {
+    const payload = { archive_path: arch };
+    if (dest) payload.destination_dir = dest;
+    const res = await api('/v1/agent/builder/unpack', { method: 'POST', body: payload });
+    if (out) {
+      out.textContent = `[✓] AGENT BUNDLE VERIFIED & UNPACKED\n` +
+        `Bundle Name:     ${res.manifest.bundle_name}\n` +
+        `Destination Dir: ${res.destination_dir}\n` +
+        `Bundle Digest:   ${res.manifest.bundle_digest_sha256} [VERIFIED]\n` +
+        `Files Unpacked:  ${Object.keys(res.manifest.files).length}\n` +
+        `─────────────────────────────────────────────────────────────────\n` +
+        `Verified Files:\n` +
+        Object.keys(res.manifest.files).map(f => `  ✓ ${f}`).join('\n');
+    }
+    toast(`[✓] Bundle unpacked to ${res.destination_dir}`, 'ok');
+    tone('ok');
+    loadTree();
+  } catch (err) {
+    if (out) out.textContent = `[-] Unpack error: ${err.message}`;
+    toast(`Unpack error: ${err.message}`, 'err');
+    tone('err');
+  }
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -1973,6 +2034,8 @@ function wire() {
   if ($('code-intel-refs-btn')) $('code-intel-refs-btn').addEventListener('click', findReferencesInStudio);
   if ($('code-intel-hier-btn')) $('code-intel-hier-btn').addEventListener('click', viewCallHierarchyInStudio);
   if ($('code-intel-graph-btn')) $('code-intel-graph-btn').addEventListener('click', viewModuleGraphInStudio);
+  if ($('bundle-pack-btn')) $('bundle-pack-btn').addEventListener('click', packAgentBundleInStudio);
+  if ($('bundle-unpack-btn')) $('bundle-unpack-btn').addEventListener('click', unpackAgentBundleInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

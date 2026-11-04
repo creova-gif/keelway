@@ -734,6 +734,46 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
                 return 0
         return asyncio.run(_list())
 
+    if action == "pack":
+        from core.agents.builder import AgentBundlePacker
+        if path is None:
+            print("[-] Path to agent directory is required.")
+            return 1
+        source_dir = Path(path).resolve()
+        if not source_dir.is_dir():
+            print(f"[-] Source directory '{source_dir}' does not exist.")
+            return 1
+        out_archive = Path(out).resolve() if out else (Path.cwd() / f"{source_dir.name}.tar.gz")
+        try:
+            manifest = AgentBundlePacker.pack(source_dir, out_archive)
+            print(f"[+] Successfully packed agent bundle '{manifest['bundle_name']}' into {out_archive}")
+            print(f"[+] Files included:  {len(manifest['files'])}")
+            print(f"[+] Bundle digest:   {manifest['bundle_digest_sha256'][:16]}...")
+            return 0
+        except Exception as exc:
+            print(f"[-] Packaging failed: {exc}")
+            return 1
+
+    if action == "unpack":
+        from core.agents.builder import AgentBundlePacker
+        if path is None:
+            print("[-] Path to agent archive (.tar.gz) is required.")
+            return 1
+        archive_file = Path(path).resolve()
+        if not archive_file.is_file():
+            print(f"[-] Archive file '{archive_file}' does not exist.")
+            return 1
+        dest_dir = Path(out).resolve() if out else (Path.cwd() / "agents" / archive_file.stem.replace(".tar", ""))
+        try:
+            manifest = AgentBundlePacker.unpack(archive_file, dest_dir, verify=True)
+            print(f"[+] Successfully verified and unpacked '{manifest['bundle_name']}' into {dest_dir}")
+            print(f"[+] Files unpacked:  {len(manifest['files'])}")
+            print(f"[+] Bundle digest:   {manifest['bundle_digest_sha256'][:16]}... [VERIFIED]")
+            return 0
+        except Exception as exc:
+            print(f"[-] Unpacking failed: {exc}")
+            return 1
+
     if path is None:
         print("[-] Path to agent manifest file is required.")
         return 1
@@ -2727,6 +2767,12 @@ def build_parser() -> argparse.ArgumentParser:
     _init.add_argument("path", nargs="?", default="test-fixer", help="Template ID (default: test-fixer)")
     _init.add_argument("--by", "--name", dest="by", default="", help="Custom agent name (default: template ID)")
     _init.add_argument("--out", type=Path, default=None, help="Target scaffolding directory")
+    _pack = agent_sub.add_parser("pack", help="Package an agent directory into a distributable .tar.gz bundle")
+    _pack.add_argument("path", type=Path, help="Agent directory containing .agent.json")
+    _pack.add_argument("--out", type=Path, default=None, help="Output archive path (default: <agent_name>.tar.gz)")
+    _unpack = agent_sub.add_parser("unpack", help="Unpack and cryptographically verify an agent bundle")
+    _unpack.add_argument("path", type=Path, help="Agent archive file (.tar.gz)")
+    _unpack.add_argument("--out", "--dest", dest="out", type=Path, default=None, help="Destination directory (default: ./agents/<bundle_name>)")
 
     project_parser = subparsers.add_parser("project", help="Inspect project runtime, frameworks, and run tests")
     project_sub = project_parser.add_subparsers(dest="project_command", required=True)

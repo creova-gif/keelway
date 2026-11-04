@@ -2587,6 +2587,90 @@
         }
       }
     },
+    "/v1/agent/builder/pack": {
+      "post": {
+        "tags": [
+          "Agent Builder"
+        ],
+        "summary": "Pack Agent Bundle",
+        "description": "Pack an agent directory into a distributable .tar.gz bundle with SHA-256 digests.",
+        "operationId": "pack_agent_bundle_v1_agent_builder_pack_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agent/builder/unpack": {
+      "post": {
+        "tags": [
+          "Agent Builder"
+        ],
+        "summary": "Unpack Agent Bundle",
+        "description": "Unpack and cryptographically verify an agent bundle archive.",
+        "operationId": "unpack_agent_bundle_v1_agent_builder_unpack_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/runner/jobs/enqueue": {
       "post": {
         "tags": [

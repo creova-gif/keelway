@@ -334,3 +334,109 @@ python3 run_{spec.name.replace('-', '_')}.py "Your task description"
             duration_ms=dur_ms,
             receipt_sha256=receipt_sha256,
         )
+
+
+@dataclass
+class AgentBundleManifest:
+    bundle_name: str
+    version: str
+    manifest_digest: str
+    created_at_iso: str
+    files: Dict[str, str]
+    bundle_digest_sha256: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+class AgentBundlePacker:
+    """Packages and unpackages declarative agent distributions with cryptographic digests."""
+
+    @staticmethod
+    def pack(source_dir: Path, output_archive: Path) -> Dict[str, Any]:
+        import io
+        import tarfile
+        from datetime import datetime, timezone
+
+        source_dir = Path(source_dir).resolve()
+        output_archive = Path(output_archive).resolve()
+        output_archive.parent.mkdir(parents=True, exist_ok=True)
+
+        if not source_dir.is_dir():
+            raise FileNotFoundError(f"Source directory '{source_dir}' does not exist.")
+
+        file_digests: Dict[str, str] = {}
+        for root, _, files in os.walk(source_dir):
+            for file in sorted(files):
+                if file.endswith((".pyc", ".tar.gz", ".DS_Store")) or file == "bundle_manifest.json":
+                    continue
+                fpath = Path(root) / file
+                rel = str(fpath.relative_to(source_dir))
+                file_digests[rel] = hashlib.sha256(fpath.read_bytes()).hexdigest()
+
+        manifest_files = [f for f in file_digests if f.endswith(".agent.json")]
+        manifest_digest = file_digests[manifest_files[0]] if manifest_files else ""
+        bundle_name = source_dir.name
+        created_at_iso = datetime.now(timezone.utc).isoformat()
+        canonical_payload = json.dumps(file_digests, sort_keys=True)
+        bundle_digest = hashlib.sha256(canonical_payload.encode()).hexdigest()
+
+        bundle_manifest = AgentBundleManifest(
+            bundle_name=bundle_name,
+            version="1.0.0",
+            manifest_digest=manifest_digest,
+            created_at_iso=created_at_iso,
+            files=file_digests,
+            bundle_digest_sha256=bundle_digest,
+        )
+
+        with tarfile.open(output_archive, "w:gz") as tar:
+            manifest_bytes = json.dumps(bundle_manifest.to_dict(), indent=2).encode("utf-8")
+            ti = tarfile.TarInfo(name="bundle_manifest.json")
+            ti.size = len(manifest_bytes)
+            ti.mtime = int(time.time())
+            tar.addfile(ti, io.BytesIO(manifest_bytes))
+
+            for rel in sorted(file_digests.keys()):
+                tar.add(source_dir / rel, arcname=rel)
+
+        return bundle_manifest.to_dict()
+
+    @staticmethod
+    def unpack(archive_path: Path, destination_dir: Path, verify: bool = True) -> Dict[str, Any]:
+        import tarfile
+
+        archive_path = Path(archive_path).resolve()
+        destination_dir = Path(destination_dir).resolve()
+        destination_dir.mkdir(parents=True, exist_ok=True)
+
+        if not archive_path.is_file():
+            raise FileNotFoundError(f"Archive file '{archive_path}' does not exist.")
+
+        with tarfile.open(archive_path, "r:gz") as tar:
+            # Prevent zip-slip
+            for member in tar.getmembers():
+                target_p = (destination_dir / member.name).resolve()
+                if not str(target_p).startswith(str(destination_dir)):
+                    raise PermissionError(f"Directory traversal attack detected in tar member: {member.name}")
+
+            try:
+                bm_file = tar.extractfile("bundle_manifest.json")
+                if not bm_file:
+                    raise ValueError("bundle_manifest.json not found in archive.")
+                bundle_manifest = json.loads(bm_file.read().decode("utf-8"))
+            except Exception as e:
+                raise ValueError(f"Corrupted or missing bundle_manifest.json: {e}")
+
+            tar.extractall(path=destination_dir)
+
+        if verify:
+            for rel, expected_hash in bundle_manifest.get("files", {}).items():
+                fpath = destination_dir / rel
+                if not fpath.is_file():
+                    raise FileNotFoundError(f"Missing file declared in bundle manifest: {rel}")
+                actual_hash = hashlib.sha256(fpath.read_bytes()).hexdigest()
+                if actual_hash != expected_hash:
+                    raise ValueError(f"Tampered file detected: {rel} (expected {expected_hash}, got {actual_hash})")
+
+        return bundle_manifest

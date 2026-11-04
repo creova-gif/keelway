@@ -67,6 +67,8 @@ class WorkspaceFilesystem:
         Recursively scans workspace directory, respecting ignore lists.
         Returns a hierarchical JSON-ready tree structure.
         """
+        if not self.root.is_dir():
+            self.root = Path.cwd().resolve()
         target_dir = self.resolve_safe_path(subpath)
         if not target_dir.is_dir():
             raise ValueError(f"Target '{subpath}' is not a directory.")
