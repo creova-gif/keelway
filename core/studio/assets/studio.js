@@ -363,6 +363,7 @@ function switchSection(sec) {
   if (sec === 'tasks') { loadRuns(); loadTasks(); }
   if (sec === 'files') { refreshView(); if (editor) editor.layout(); }
   if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadTier2Status(); loadManifestRegistry(); loadCostLedger(); }
+  if (sec === 'labs') { loadPlugins(); }
 }
 async function loadRules() {
   try {
@@ -538,6 +539,115 @@ async function buildIntent(e) {
     const r = await api('/v1/payments/intent', { method: 'POST', body: { rail: $('pay-rail').value, amount: Number($('pay-amount').value), currency: $('pay-currency').value.toUpperCase(), recipient: $('pay-recipient').value } });
     $('pay-out').textContent = JSON.stringify(r, null, 2); tone('ok');
   } catch (err) { $('pay-out').textContent = err.message; tone('err'); }
+}
+
+// ---------- builder, plugins, eval ----------
+async function planApp() {
+  const intent = $('app-intent').value.trim();
+  if (!intent) { toast('Please enter an app intent or requirements', 'warn'); return; }
+  const btn = $('app-plan-btn'); btn.disabled = true; $('app-out').textContent = 'Synthesizing architecture plan…';
+  try {
+    const r = await api('/v1/builder/app/plan', {
+      method: 'POST',
+      body: { intent, template_id: $('app-template').value, app_name: $('app-name').value.trim() || undefined }
+    });
+    $('app-out').textContent = `[✓] ARCHITECTURE BLUEPRINT: ${r.app_name} (${r.template})\nPlan SHA-256: ${r.plan_sha256}\n\nFiles Planned:\n${r.file_tree.map((f) => `  • ${f} - ${r.modules[f] || ''}`).join('\n')}\n\nVerification Steps:\n${r.test_plan.map((s) => `  ✓ ${s}`).join('\n')}`;
+    tone('ok');
+  } catch (err) { $('app-out').textContent = `[-] Plan synthesis error: ${err.message}`; tone('err'); }
+  finally { btn.disabled = false; }
+}
+
+async function generateApp() {
+  const intent = $('app-intent').value.trim();
+  if (!intent) { toast('Please enter an app intent or requirements', 'warn'); return; }
+  const btn = $('app-generate-btn'); btn.disabled = true; $('app-out').textContent = 'Scaffolding codebase & executing automated test harness…';
+  try {
+    const r = await api('/v1/builder/app/generate', {
+      method: 'POST',
+      body: { intent, template_id: $('app-template').value, app_name: $('app-name').value.trim() || undefined, run_verification: true, init_git: true }
+    });
+    const testStatus = r.tests_passed ? 'PASSED [✓]' : 'FAILED [✗]';
+    $('app-out').textContent = `[✓] APPLICATION BUILT SUCCESSFULLY: ${r.app_name} (${r.template})\n` +
+      `Export Directory:  ${r.export_dir}\n` +
+      `Files Created:     ${r.files_scaffolded.length}\n` +
+      `Test Suite:        ${testStatus} (${r.verification.tests_count || 0} passed in ${(r.verification.duration_ms || 0).toFixed(1)}ms)\n` +
+      `Flight Tape:       ${r.flight_tape_path}\n` +
+      `Tape SHA-256:      ${r.flight_tape_sha256}\n` +
+      `Total Duration:    ${r.duration_ms.toFixed(1)}ms`;
+    tone(r.tests_passed ? 'ok' : 'warn'); loadGit();
+  } catch (err) { $('app-out').textContent = `[-] Build error: ${err.message}`; tone('err'); }
+  finally { btn.disabled = false; }
+}
+
+async function loadPlugins() {
+  const listEl = $('plugins-list'); if (!listEl) return;
+  try {
+    const plugins = await api('/v1/plugins');
+    if (!plugins || plugins.length === 0) {
+      listEl.innerHTML = '<p class="text-ide-muted font-sans text-xs">No active plugins found in .keelway/plugins.</p>';
+      return;
+    }
+    listEl.innerHTML = plugins.map((p) => `
+      <div class="p-2 rounded bg-ide-bg border border-ide-border space-y-1">
+        <div class="flex items-center justify-between font-semibold">
+          <span>${p.name} <span class="text-ide-faint font-normal">v${p.version}</span></span>
+          <span class="chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}">${p.status}</span>
+        </div>
+        <p class="text-ide-muted font-sans text-[11px]">${p.description || ''}</p>
+        ${p.active_tools && p.active_tools.length ? `<p class="text-[10px] text-ide-accent">Tools: ${p.active_tools.join(', ')}</p>` : ''}
+      </div>
+    `).join('');
+  } catch (err) { listEl.innerHTML = `<p class="text-danger">${err.message}</p>`; }
+}
+
+async function installPluginForm(e) {
+  e.preventDefault();
+  const input = $('plugin-path-input'); const p = input.value.trim();
+  if (!p) return;
+  const out = $('plugin-out'); out.textContent = 'Installing plugin…';
+  try {
+    let manifest;
+    if (p.startsWith('{')) { manifest = JSON.parse(p); }
+    else { manifest = { name: p.replace(/[^a-zA-Z0-9_-]/g, '_'), version: '0.1.0', description: `Plugin from ${p}`, author: 'Developer' }; }
+    const r = await api('/v1/plugins/install', { method: 'POST', body: { manifest, activate: true } });
+    out.textContent = `[✓] Installed and activated plugin '${r.name}' (Digest: ${r.digest_sha256.slice(0, 16)}…)`;
+    tone('ok'); input.value = ''; loadPlugins();
+  } catch (err) { out.textContent = `[-] Plugin install error: ${err.message}`; tone('err'); }
+}
+
+async function runEvalRadar() {
+  const btn = $('eval-run-btn'); btn.disabled = true; $('eval-out').textContent = 'Executing 10-task golden evaluation panel…';
+  try {
+    const r = await api('/v1/evals/run', { method: 'POST', body: { model_name: 'keelway-local-default', save_receipt: true } });
+    $('eval-out').textContent = `[✓] 10-TASK GOLDEN BENCHMARK COMPLETE (Run ID: ${r.eval_run_id})\n` +
+      `Pass@1 Rate:     ${r.pass_rate_pct}% (${r.passed_tasks}/${r.total_tasks} passed)\n` +
+      `Duration:        ${r.total_duration_ms.toFixed(2)}ms (p50: ${r.p50_latency_ms.toFixed(2)}ms, p95: ${r.p95_latency_ms.toFixed(2)}ms)\n` +
+      `Receipt SHA-256: ${r.receipt_sha256}\n\n` +
+      `Tasks Verified:\n` +
+      r.task_results.map((t) => `  ${t.passed ? '[✓]' : '[✗]'} ${t.task_id}: ${t.name} (${t.duration_ms.toFixed(2)}ms)`).join('\n');
+    tone(r.pass_rate_pct === 100 ? 'ok' : 'warn');
+  } catch (err) { $('eval-out').textContent = `[-] Eval error: ${err.message}`; tone('err'); }
+  finally { btn.disabled = false; }
+}
+
+async function checkDriftRadar() {
+  const btn = $('eval-drift-btn'); btn.disabled = true; $('eval-out').textContent = 'Running benchmark & comparing against historical baseline…';
+  try {
+    const cand = await api('/v1/evals/run', { method: 'POST', body: { model_name: 'keelway-local-default', save_receipt: true } });
+    const drift = await api('/v1/evals/drift/compare', { method: 'POST', body: { candidate_run_id: cand.eval_run_id } });
+    const tag = drift.drift_detected ? `DRIFT DETECTED [${drift.drift_severity}]` : 'NO DRIFT DETECTED [✓]';
+    $('eval-out').textContent = `====================================================\n` +
+      `  DRIFT RADAR ANALYSIS: ${tag}\n` +
+      `====================================================\n` +
+      `Candidate:          ${drift.candidate_run_id} (${drift.candidate_pass_rate}% Pass@1)\n` +
+      `Baseline:           ${drift.baseline_run_id} (${drift.baseline_pass_rate}% Pass@1)\n` +
+      `Pass@1 Delta:       ${drift.pass_rate_delta > 0 ? '+' : ''}${drift.pass_rate_delta.toFixed(1)}%\n` +
+      `p50 Latency Delta:  ${drift.latency_p50_delta_pct > 0 ? '+' : ''}${drift.latency_p50_delta_pct.toFixed(1)}%\n` +
+      (drift.regressed_tasks && drift.regressed_tasks.length ? `Regressed Tasks:    ${drift.regressed_tasks.join(', ')}\n` : '') +
+      (drift.alert_reasons && drift.alert_reasons.length ? `Alerts:\n` + drift.alert_reasons.map((a) => `  • ${a}`).join('\n') : 'All metrics within stability threshold.');
+    tone(drift.drift_detected ? 'warn' : 'ok');
+  } catch (err) { $('eval-out').textContent = `[-] Drift check error: ${err.message}`; tone('err'); }
+  finally { btn.disabled = false; }
 }
 
 // ---------- audit ----------
@@ -1091,6 +1201,12 @@ function wire() {
   $('audit-verify').addEventListener('click', verifyAudit);
   if ($('audit-anchor-btn')) $('audit-anchor-btn').addEventListener('click', anchorAudit);
   if ($('tier2-verify-btn')) $('tier2-verify-btn').addEventListener('click', verifyTier2);
+  if ($('app-plan-btn')) $('app-plan-btn').addEventListener('click', planApp);
+  if ($('app-generate-btn')) $('app-generate-btn').addEventListener('click', generateApp);
+  if ($('plugins-refresh-btn')) $('plugins-refresh-btn').addEventListener('click', loadPlugins);
+  if ($('plugin-install-form')) $('plugin-install-form').addEventListener('submit', installPluginForm);
+  if ($('eval-run-btn')) $('eval-run-btn').addEventListener('click', runEvalRadar);
+  if ($('eval-drift-btn')) $('eval-drift-btn').addEventListener('click', checkDriftRadar);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

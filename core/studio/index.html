@@ -448,6 +448,70 @@
           <pre id="pay-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </div>
         </section>
+
+        <!-- Prompt-to-App Guided Builder -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="builder-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="builder-title" class="font-semibold">Prompt-to-App Guided Builder</h3>
+            <span class="step-chip text-accent border-accent/50">Verified Harness</span>
+          </div>
+          <div id="lab-app-builder" class="space-y-3">
+            <p class="text-xs text-ide-muted">Synthesize typed architecture plans, scaffold complete codebases, run automated test suites, and seal flight tapes.</p>
+            <div class="grid sm:grid-cols-3 gap-2">
+              <div class="sm:col-span-2">
+                <label for="app-intent" class="label">Developer Intent / Prompt</label>
+                <input id="app-intent" class="input w-full" placeholder="e.g. Build an inventory management REST service with JWT auth">
+              </div>
+              <div>
+                <label for="app-template" class="label">Archetype</label>
+                <select id="app-template" class="input w-full">
+                  <option value="fastapi-service">FastAPI REST Service</option>
+                  <option value="cli-tool">Deterministic CLI Tool</option>
+                  <option value="agent-microservice">Autonomous Agent Microservice</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+              <input id="app-name" class="input w-48 font-mono text-xs" placeholder="custom_app_slug (optional)">
+              <button id="app-plan-btn" type="button" class="btn-outline h-8">Synthesize Plan</button>
+              <button id="app-generate-btn" type="button" class="btn-primary h-8">Scaffold &amp; Verify App</button>
+            </div>
+            <pre id="app-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-60 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- Plugins & MCP Extensions -->
+        <section class="card p-4 space-y-2" aria-labelledby="plugins-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="plugins-title" class="font-semibold">Plugins &amp; MCP Extensions</h3>
+            <button id="plugins-refresh-btn" type="button" class="btn-ghost text-xs h-6 px-2">Refresh</button>
+          </div>
+          <div id="lab-plugins" class="space-y-3">
+            <p class="text-xs text-ide-muted">Universal Model Context Protocol client bridge and declared agent tool extensions.</p>
+            <div id="plugins-list" class="space-y-2 max-h-48 overflow-y-auto text-xs font-mono"></div>
+            <form id="plugin-install-form" class="flex gap-2 items-end pt-2 border-t border-ide-border">
+              <input id="plugin-path-input" required class="input flex-1 font-mono text-xs" placeholder="path/to/plugin.json">
+              <button class="btn-outline h-8" type="submit">Install Plugin</button>
+            </form>
+            <pre id="plugin-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- Evaluation & Drift Radar -->
+        <section class="card p-4 space-y-2" aria-labelledby="eval-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="eval-title" class="font-semibold">Evaluation &amp; Drift Radar</h3>
+            <span class="step-chip text-accent border-accent/50">10-Task Golden Suite</span>
+          </div>
+          <div id="lab-eval-drift" class="space-y-3">
+            <p class="text-xs text-ide-muted">Continuous benchmark verification, Pass@1 tracking, p50/p95 latency stability, and drift alerts.</p>
+            <div class="flex flex-wrap gap-2">
+              <button id="eval-run-btn" type="button" class="btn-primary h-8">Run Benchmark &amp; Seal Receipt</button>
+              <button id="eval-drift-btn" type="button" class="btn-outline h-8">Check Drift vs Baseline</button>
+            </div>
+            <pre id="eval-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-52 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>
