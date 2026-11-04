@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-from fastapi import APIRouter, Depends, HTTPException, Request, status, WebSocket, WebSocketDisconnect, WebSocketException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, WebSocket, WebSocketDisconnect, WebSocketException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -1564,6 +1564,58 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
             raise HTTPException(status_code=400, detail=f"Recovery verification failed: {exc}")
 
     raise HTTPException(status_code=400, detail=f"Unknown subsystem '{subsystem}'")
+
+
+# ==============================================================================
+# Model Economics & Cost Ledger Endpoints
+# ==============================================================================
+
+@router.get("/v1/models/ledger", tags=["Models"])
+async def get_model_cost_ledger(
+    limit: int = 100,
+    offset: int = 0,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve summary metrics and audit entries from the model cost ledger."""
+    from core.models.cost_ledger import cost_ledger
+    return {
+        "summary": cost_ledger.get_summary(),
+        "entries": cost_ledger.list_entries(limit=limit, offset=offset),
+    }
+
+
+@router.get("/v1/models/ledger/export", tags=["Models"])
+async def export_model_cost_ledger(
+    format: str = "json",
+    principal: Principal = Depends(current_principal),
+) -> Response:
+    """Export the model cost ledger in json, jsonl, or csv format."""
+    from core.models.cost_ledger import cost_ledger
+    fmt = format.lower().strip()
+    content = cost_ledger.export(fmt)
+    media_types = {
+        "json": "application/json",
+        "jsonl": "application/x-ndjson",
+        "csv": "text/csv",
+    }
+    media_type = media_types.get(fmt, "text/plain")
+    filename = f"keelway_model_ledger.{fmt}"
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/v1/models/ledger/reset", tags=["Models"])
+async def reset_model_cost_ledger(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Reset the model cost ledger entries."""
+    from core.models.cost_ledger import cost_ledger
+    cost_ledger.reset()
+    return {"status": "ok", "message": "Model cost ledger reset"}
+
 
 
 

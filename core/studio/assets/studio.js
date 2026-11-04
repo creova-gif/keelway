@@ -158,7 +158,16 @@ async function loadStatus() {
     $('sb-db').textContent = s.database_connected ? '● db' : '○ db';
     $('sb-hw').textContent = `${s.hardware.arch} · ${s.hardware.ram_gb} GB RAM`;
     const foot = $('sidebar-foot');
-    foot.replaceChildren(...[['RAM', `${s.hardware.ram_gb} GB`], ['CPU', s.hardware.arch], ['Model', s.hardware.recommended_model], ['Tasks', s.tasks.total]].flatMap(([k, v]) => [h('dt', { class: 'text-ide-faint' }, k), h('dd', { class: 'text-end truncate' }, v)]));
+    const econ = s.economics || {};
+    const footItems = [
+      ['RAM', `${s.hardware.ram_gb} GB`],
+      ['CPU', s.hardware.arch],
+      ['Model', s.hardware.recommended_model],
+      ['Tokens', (econ.total_tokens || 0).toLocaleString()],
+      ['Savings', `$${(econ.total_cloud_savings_usd || 0).toFixed(2)}`],
+      ['Tasks', s.tasks.total],
+    ];
+    foot.replaceChildren(...footItems.flatMap(([k, v]) => [h('dt', { class: 'text-ide-faint' }, k), h('dd', { class: 'text-end truncate' }, v)]));
   } catch { /* shown via sign-in or status bar */ }
 }
 
@@ -353,7 +362,7 @@ function switchSection(sec) {
   if (location.hash !== `#${sec}`) history.replaceState(null, '', `#${sec}`);
   if (sec === 'tasks') { loadRuns(); loadTasks(); }
   if (sec === 'files') { refreshView(); if (editor) editor.layout(); }
-  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadTier2Status(); loadManifestRegistry(); }
+  if (sec === 'record') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadTier2Status(); loadManifestRegistry(); loadCostLedger(); }
 }
 async function loadRules() {
   try {
@@ -656,6 +665,54 @@ async function loadManifestRegistry() {
     tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-danger text-center font-mono">${err.message}</td></tr>`;
   }
 }
+
+async function loadCostLedger() {
+  const tbody = $('econ-tbody');
+  if (!tbody) return;
+  try {
+    const res = await api('/v1/models/ledger?limit=25');
+    const summary = res.summary || {};
+    const entries = res.entries || [];
+
+    if ($('econ-inferences-badge')) $('econ-inferences-badge').textContent = `${summary.total_inferences || 0} inferences`;
+    if ($('econ-local-ratio')) $('econ-local-ratio').textContent = `${((summary.local_inference_ratio || 1.0) * 100).toFixed(1)}%`;
+    if ($('econ-billing-label')) $('econ-billing-label').textContent = `${summary.local_inferences || 0} local inferences · no billed external API tokens`;
+    if ($('econ-ext-cost')) $('econ-ext-cost').textContent = `$${(summary.total_external_cost_usd || 0).toFixed(4)}`;
+    if ($('econ-total-tokens')) $('econ-total-tokens').textContent = `${(summary.total_tokens || 0).toLocaleString()} tokens total`;
+    if ($('econ-savings')) $('econ-savings').textContent = `$${(summary.total_cloud_savings_usd || 0).toFixed(4)}`;
+    if ($('econ-savings-baseline')) $('econ-savings-baseline').textContent = `Baseline: ${summary.savings_baseline_model || 'Claude 3.5'}`;
+    if ($('econ-latency')) $('econ-latency').textContent = `${summary.latency_p50_ms || 0} / ${summary.latency_p95_ms || 0} ms`;
+    if ($('econ-local-dur')) $('econ-local-dur').textContent = `${(summary.total_local_duration_ms || 0).toFixed(1)} ms device runtime`;
+
+    if (!entries.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-ide-muted font-mono">No model inferences recorded in ledger yet. Run chat, agent, or evaluation tasks to populate.</td></tr>';
+      return;
+    }
+
+    tbody.replaceChildren(...entries.slice().reverse().map((e) => {
+      const isLocal = e.provider === 'local';
+      const badgeCls = isLocal ? 'border-ok/40 text-ok bg-ok/5' : 'border-ide-border text-ide-muted bg-ide-sidebar';
+      const costDisplay = isLocal
+        ? `+$${(e.estimated_cloud_savings_usd || 0).toFixed(4)} saved`
+        : `-$${(e.estimated_external_cost_usd || 0).toFixed(4)}`;
+      const costCls = isLocal ? 'text-ok font-medium' : 'text-danger font-medium';
+
+      return h('tr', { class: 'hover:bg-ide-sidebar/50' },
+        h('td', { class: 'px-3 py-2 font-mono text-ide-faint' }, e.id),
+        h('td', { class: 'px-2 py-2' },
+          h('span', { class: `chip ${badgeCls}` }, e.provider)),
+        h('td', { class: 'px-2 py-2 font-mono text-ide-muted truncate max-w-[10rem]', title: e.model }, e.model),
+        h('td', { class: 'px-2 py-2 font-mono text-[11px]' }, `${e.prompt_tokens.toLocaleString()} / ${e.completion_tokens.toLocaleString()}`),
+        h('td', { class: 'px-2 py-2 font-mono text-ide-muted' }, `${e.latency_ms} ms`),
+        h('td', { class: 'px-2 py-2 font-mono text-[10.5px] text-ide-muted' }, e.billing_label),
+        h('td', { class: `px-3 py-2 text-right font-mono text-xs ${costCls}` }, costDisplay)
+      );
+    }));
+  } catch {
+    /* quiet fail */
+  }
+}
+
 
 // ---------- agent ----------
 const TOOLS = ['list_dir', 'search_codebase', 'read_file', 'edit_file', 'write_file', 'run_command'];

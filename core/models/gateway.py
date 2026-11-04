@@ -15,6 +15,7 @@ from core.models.adapters.openai import OpenAIAdapter
 from core.security.firewall import SecurityGateway
 from core.security.airgap import AirGapEnforcer
 from core.security.style import StyleEngine, VoiceStyle
+from core.models.cost_ledger import cost_ledger
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +122,19 @@ class ModelGateway:
                     logger.info(f"StyleEngine pruned {len(slop_found)} AI slop tokens from output")
                 if provider != provider_order[0]:
                     reason = f"{reason}; fell back to {provider.value}"
+
+                try:
+                    cost_ledger.record_completion(
+                        provider=provider,
+                        model=response.model,
+                        usage=response.usage,
+                        latency_ms=response.latency_ms,
+                        cost_usd=response.cost_usd,
+                        routing_reason=reason,
+                    )
+                except Exception as rec_err:
+                    logger.warning(f"Failed to record in cost ledger: {rec_err}")
+
                 return response.model_copy(update={"content": clean_content, "routing_reason": reason})
             except Exception as e:
                 logger.warning(f"Provider {provider.value} failed: {e}. Attempting fallback...")

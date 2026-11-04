@@ -1209,6 +1209,48 @@ async def cmd_test_sandbox(command: str, approve: bool, provider_name: str):
         print("=" * 60)
 
 
+def cmd_models(action: str, export_path: Optional[Path] = None, format_type: str = "jsonl", reset: bool = False) -> int:
+    """Inspect model routing, cost accounting, and economics ledger."""
+    from core.models.cost_ledger import cost_ledger
+
+    if reset:
+        cost_ledger.reset()
+        print("[+] Model cost ledger successfully reset.")
+        return 0
+
+    if export_path is not None:
+        data = cost_ledger.export(format_type)
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        export_path.write_text(data, encoding="utf-8")
+        print(f"[+] Model cost ledger exported to '{export_path}' (format: {format_type}).")
+        return 0
+
+    summary = cost_ledger.get_summary()
+    print("=" * 76)
+    print("  KEELWAY MODEL ECONOMICS & COST LEDGER")
+    print(f"  Price Source: {summary['price_source_version']} | Savings Baseline: {summary['savings_baseline_model']}")
+    print("=" * 76)
+    print(f"  Total Inferences:        {summary['total_inferences']}")
+    print(f"  Local Inferences:        {summary['local_inferences']} ({summary['local_inference_ratio'] * 100:.1f}%) [no billed external API tokens]")
+    print(f"  Cloud Inferences:        {summary['cloud_inferences']}")
+    print(f"  Total Prompt Tokens:     {summary['total_prompt_tokens']:,}")
+    print(f"  Total Completion Tokens: {summary['total_completion_tokens']:,}")
+    print(f"  Total Tokens:            {summary['total_tokens']:,}")
+    print(f"  External Cloud Cost:     ${summary['total_external_cost_usd']:.6f} USD")
+    print(f"  Local Cloud Savings:     ${summary['total_cloud_savings_usd']:.6f} USD (arbitraged locally)")
+    print(f"  Total Local Duration:    {summary['total_local_duration_ms']:.1f} ms")
+    print(f"  Latency Percentiles:     p50: {summary['latency_p50_ms']} ms | p90: {summary['latency_p90_ms']} ms | p95: {summary['latency_p95_ms']} ms | p99: {summary['latency_p99_ms']} ms")
+    print("-" * 76)
+    print(f"  {'Provider':<12} {'Calls':<7} {'In Tokens':<12} {'Out Tokens':<12} {'Ext Cost':<12} {'Savings':<10} {'p50 (ms)':<9} {'p95 (ms)':<9}")
+    print("-" * 76)
+    for p_name, p_data in summary["by_provider"].items():
+        print(f"  {p_name:<12} {p_data['inferences']:<7} {p_data['prompt_tokens']:<12,}"
+              f" {p_data['completion_tokens']:<12,} ${p_data['cost_usd']:<11.4f}"
+              f" ${p_data['savings_usd']:<9.4f} {p_data['latency_p50_ms']:<9.1f} {p_data['latency_p95_ms']:<9.1f}")
+    print("=" * 76)
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1427,6 +1469,14 @@ def main():
     m1_parser = subparsers.add_parser("m1", help="Validate Milestone M1: 10-stage end-to-end developer workflow")
     m1_parser.add_argument("--repo", default=None, help="Target local repository folder (default: fresh isolated demo repo)")
 
+    # models (Model Economics & Cost Ledger)
+    models_parser = subparsers.add_parser("models", help="Inspect model routing, cost accounting, and economics ledger")
+    models_sub = models_parser.add_subparsers(dest="models_command", required=True)
+    _m_ledger = models_sub.add_parser("ledger", help="Display model usage, latency p50/p95, cloud API costs, and local savings")
+    _m_ledger.add_argument("--export", type=Path, default=None, help="Export ledger to a file")
+    _m_ledger.add_argument("--format", choices=["json", "jsonl", "csv"], default="jsonl", help="Export format")
+    _m_ledger.add_argument("--reset", action="store_true", help="Reset ledger entries")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -1531,6 +1581,8 @@ def main():
     elif args.command == "m1":
         from core.m1_slice import run_m1_cli
         sys.exit(asyncio.run(run_m1_cli(args.repo)))
+    elif args.command == "models":
+        sys.exit(cmd_models(args.models_command, export_path=args.export, format_type=args.format, reset=args.reset))
     elif args.command == "chat":
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":

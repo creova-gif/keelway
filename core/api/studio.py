@@ -126,6 +126,8 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     local_adapter = gateway.adapters.get(Provider.LOCAL)
     local = (await asyncio.to_thread(local_adapter.describe) if hasattr(local_adapter, "describe")
              else {"up": bool(local_adapter), "available": bool(local_adapter), "api": None, "model": None})
+    from core.models.cost_ledger import cost_ledger
+    economics = cost_ledger.get_summary()
 
     return {
         "version": STUDIO_VERSION,
@@ -149,6 +151,7 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
         },
         "tasks": {"total": sum(task_counts.values()), "by_state": task_counts},
         "flight_tapes": tapes,
+        "economics": economics,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
