@@ -2137,8 +2137,16 @@ def cmd_brain(
     return 0
 
 
-def cmd_hub(action: str = "list", scan_dir: Optional[Path] = None, skill_id: str = "") -> int:
-    """KHub: Universal skills and MCP tools importer."""
+def cmd_hub(
+    action: str = "list",
+    scan_dir: Optional[Path] = None,
+    skill_id: str = "",
+    skill_path: Optional[Path] = None,
+    archive: Optional[Path] = None,
+    out: Optional[Path] = None,
+    dest: Optional[Path] = None,
+) -> int:
+    """KHub: Universal skills and MCP tools importer, packaging & synchronization."""
     from core.khub import khub_importer
     if action == "scan":
         target = scan_dir or Path(".")
@@ -2172,6 +2180,37 @@ def cmd_hub(action: str = "list", scan_dir: Optional[Path] = None, skill_id: str
             return 0
         except Exception as e:
             print(f"[-] Approval failed: {e}")
+            return 1
+    elif action == "pack":
+        from core.khub.sync import KHubBundlePacker
+        target = skill_path or scan_dir or Path(".")
+        out_archive = out or (target.parent / f"{target.name}.skill.tar.gz" if target.is_dir() else target.parent / f"{target.stem}.skill.tar.gz")
+        try:
+            res = KHubBundlePacker.pack_skill(target, out_archive)
+            print(f"[+] Successfully packed skill '{res.get('skill_name', target.name)}' into: {out_archive}")
+            print(f"    Files:        {res.get('files_count', len(res.get('files', {})))}")
+            print(f"    Total Bytes:  {res.get('total_bytes', 0)}")
+            print(f"    SHA-256:      {res.get('bundle_digest_sha256', '')}")
+            return 0
+        except Exception as e:
+            print(f"[-] Packaging failed: {e}")
+            return 1
+    elif action == "unpack":
+        from core.khub.sync import KHubBundlePacker
+        archive_file = archive or skill_path
+        if not archive_file:
+            print("[-] Error: archive path is required for unpack.")
+            return 1
+        dest_dir = dest or Path(".keelway/khub/unpacked") / archive_file.name.replace(".skill.tar.gz", "").replace(".tar.gz", "")
+        try:
+            res = KHubBundlePacker.unpack_skill(archive_file, dest_dir, verify=True)
+            print(f"[+] Successfully unpacked and verified skill bundle to: {dest_dir}")
+            print(f"    Skill Name:   {res.get('skill_name', dest_dir.name)}")
+            print(f"    Files:        {len(res.get('unpacked_files', []))}")
+            print(f"    Digest:       {res.get('bundle_digest_sha256', '')}")
+            return 0
+        except Exception as e:
+            print(f"[-] Unpack verification failed: {e}")
             return 1
     return 0
 
@@ -3008,6 +3047,12 @@ def build_parser() -> argparse.ArgumentParser:
     hub_sub.add_parser("list", help="List imported skills and approval status")
     _hb_app = hub_sub.add_parser("approve", help="Grant human execution approval to an imported skill")
     _hb_app.add_argument("skill_id", help="ID of imported skill to approve")
+    _hb_pck = hub_sub.add_parser("pack", help="Pack a portable skill into a verified .skill.tar.gz bundle")
+    _hb_pck.add_argument("skill_path", type=Path, help="Path to skill directory or SKILL.md")
+    _hb_pck.add_argument("--out", type=Path, default=None, help="Output archive path (.skill.tar.gz)")
+    _hb_unp = hub_sub.add_parser("unpack", help="Unpack and verify a portable skill bundle archive")
+    _hb_unp.add_argument("archive", type=Path, help="Path to skill bundle archive (.tar.gz)")
+    _hb_unp.add_argument("--dest", type=Path, default=None, help="Destination directory to unpack skill")
 
     # space (KSpaces Team Workspaces & Governance)
     space_parser = subparsers.add_parser("space", help="KSpaces: Collaborative team workspaces & agent governance")
@@ -3415,6 +3460,10 @@ def main(argv=None):
                 action=getattr(args, "hub_command", "list"),
                 scan_dir=getattr(args, "dir", None),
                 skill_id=getattr(args, "skill_id", ""),
+                skill_path=getattr(args, "skill_path", None),
+                archive=getattr(args, "archive", None),
+                out=getattr(args, "out", None),
+                dest=getattr(args, "dest", None),
             )
         )
     elif args.command == "space":

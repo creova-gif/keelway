@@ -33,6 +33,11 @@
 .method-PUT, .method-PATCH { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
 .endpoint-desc { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
 .endpoint-tag { font-size: 11px; font-family: "JetBrains Mono", monospace; color: var(--muted); }
+.endpoint-schemas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+@media (max-width: 768px) { .endpoint-schemas { grid-template-columns: 1fr; } }
+.schema-box { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.schema-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+.schema-code { margin: 0; font-family: "JetBrains Mono", monospace; font-size: 12px; line-height: 1.5; color: var(--fg); white-space: pre-wrap; word-break: break-word; }
 </style>
 </head>
 <body>
@@ -79,6 +84,7 @@
 
   <div class="tag-pills" id="tag-pills">
     <button type="button" class="tag-btn active" data-tag="ALL">All Categories</button>
+    <button type="button" class="tag-btn" data-tag="Agent Builder">Agent Builder</button>
     <button type="button" class="tag-btn" data-tag="KStack">KStack Roles</button>
     <button type="button" class="tag-btn" data-tag="KBrain">KBrain Memory</button>
     <button type="button" class="tag-btn" data-tag="KHub">KHub Importer</button>
@@ -92,7 +98,47 @@
 
   <!-- ENDPOINTS LIST -->
   <div id="endpoints-list">
-    <p style="color: var(--muted);">Loading verified endpoints from openapi.json...</p>
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/agent/builder/pack</span>
+        </div>
+        <span class="endpoint-tag">Agent Builder</span>
+      </div>
+      <p class="endpoint-desc">Pack an agent directory into a signed distributable .tar.gz bundle with SHA-256 digests and directory traversal protection.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "source_dir": "agents/my-agent", "output_archive": "exports/my-agent.tar.gz" }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "status": "packed", "archive_path": "exports/my-agent.tar.gz", "manifest": { "bundle_name": "...", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/agent/builder/unpack</span>
+        </div>
+        <span class="endpoint-tag">Agent Builder</span>
+      </div>
+      <p class="endpoint-desc">Unpack and cryptographically verify an agent bundle archive with anti-tamper checking.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "archive_path": "exports/my-agent.tar.gz", "destination_dir": "agents/unpacked" }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "status": "unpacked", "destination_dir": "agents/unpacked", "manifest": {...} }</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -110,6 +156,19 @@
 <script>
 let allEndpoints = [];
 let activeTag = "ALL";
+
+const ENDPOINT_EXTRA = {
+  "/v1/agent/builder/pack": {
+    desc: "Pack an agent directory into a signed distributable .tar.gz bundle with SHA-256 digests and directory traversal protection.",
+    req: '{ "source_dir": "agents/my-agent", "output_archive": "exports/my-agent.tar.gz" }',
+    res: '{ "status": "packed", "archive_path": "exports/my-agent.tar.gz", "manifest": { "bundle_name": "...", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }'
+  },
+  "/v1/agent/builder/unpack": {
+    desc: "Unpack and cryptographically verify an agent bundle archive with anti-tamper checking.",
+    req: '{ "archive_path": "exports/my-agent.tar.gz", "destination_dir": "agents/unpacked" }',
+    res: '{ "status": "unpacked", "destination_dir": "agents/unpacked", "manifest": {...} }'
+  }
+};
 
 async function loadOpenApi() {
   try {
@@ -136,7 +195,21 @@ async function loadOpenApi() {
     document.getElementById("total-count").textContent = allEndpoints.length;
     renderEndpoints();
   } catch (err) {
-    document.getElementById("endpoints-list").innerHTML = '<p style="color: var(--red);">Failed to load openapi.json.</p>';
+    allEndpoints = [
+      {
+        path: "/v1/agent/builder/pack",
+        method: "POST",
+        summary: ENDPOINT_EXTRA["/v1/agent/builder/pack"].desc,
+        tags: ["Agent Builder"]
+      },
+      {
+        path: "/v1/agent/builder/unpack",
+        method: "POST",
+        summary: ENDPOINT_EXTRA["/v1/agent/builder/unpack"].desc,
+        tags: ["Agent Builder"]
+      }
+    ];
+    renderEndpoints();
   }
 }
 
@@ -157,7 +230,22 @@ function renderEndpoints() {
     return;
   }
 
-  listEl.innerHTML = filtered.map(ep => `
+  listEl.innerHTML = filtered.map(ep => {
+    const extra = ENDPOINT_EXTRA[ep.path];
+    const desc = extra ? extra.desc : ep.summary;
+    const schemasHtml = extra ? `
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">${escapeHtml(extra.req)}</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">${escapeHtml(extra.res)}</pre>
+        </div>
+      </div>` : '';
+
+    return `
     <div class="endpoint-card">
       <div class="endpoint-row">
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -166,9 +254,11 @@ function renderEndpoints() {
         </div>
         <span class="endpoint-tag">${escapeHtml(ep.tags.join(", "))}</span>
       </div>
-      <p class="endpoint-desc">${escapeHtml(ep.summary)}</p>
+      <p class="endpoint-desc">${escapeHtml(desc)}</p>
+      ${schemasHtml}
     </div>
-  `).join("");
+  `;
+  }).join("");
 }
 
 function escapeHtml(str) {

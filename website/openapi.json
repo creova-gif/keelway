@@ -4501,6 +4501,98 @@
         }
       }
     },
+    "/v1/khub/bundle/export": {
+      "post": {
+        "tags": [
+          "KHub Universal Skills"
+        ],
+        "summary": "Export Khub Skill Bundle",
+        "description": "Pack a portable skill directory or SKILL.md into a verified .skill.tar.gz bundle.",
+        "operationId": "export_khub_skill_bundle_v1_khub_bundle_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Export Khub Skill Bundle V1 Khub Bundle Export Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/khub/bundle/import": {
+      "post": {
+        "tags": [
+          "KHub Universal Skills"
+        ],
+        "summary": "Import Khub Skill Bundle",
+        "description": "Unpack and cryptographically verify a portable .skill.tar.gz bundle.",
+        "operationId": "import_khub_skill_bundle_v1_khub_bundle_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Import Khub Skill Bundle V1 Khub Bundle Import Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/kspaces": {
       "get": {
         "tags": [

@@ -424,6 +424,7 @@ keelway ❯ </pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="flow" role="tab" aria-selected="false">keelway flow run</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="cost" role="tab" aria-selected="false">keelway cost</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="code" role="tab" aria-selected="false">keelway code refs</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="pack" role="tab" aria-selected="false">keelway agent pack</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
@@ -510,12 +511,13 @@ keelway ❯ </pre>
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
       <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 702 automated tests passing with zero failures. Verified against commit <code>f6144db</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 711 automated tests passing with zero failures. Verified against commit <code>c5a109e</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
       <div class="card tablewrap">
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
           <tbody>
-            <tr><td>OpenAPI 3.1 REST Schema Exporter (133 Endpoints)</td><td><span class="pill teal">Available (133 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>OpenAPI 3.1 REST Schema Exporter (135 Endpoints)</td><td><span class="pill teal">Available (135 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>KHub Universal Skill Bundle Packaging &amp; Sync</td><td><span class="pill teal">Available (Portable Bundles)</span></td><td class="mono" style="font-size: 12px;">tests/test_khub_bundle_sync.py</td></tr>
             <tr><td>Agent Bundle Packaging &amp; Cryptographic Verification</td><td><span class="pill teal">Available (.tar.gz Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_packaging.py</td></tr>
             <tr><td>Codebase Intelligence &amp; Call Hierarchy Engine</td><td><span class="pill teal">Available (AST Graph)</span></td><td class="mono" style="font-size: 12px;">tests/test_codebase_intelligence.py</td></tr>
             <tr><td>KFlow REST API &amp; Topological DAG Dispatch</td><td><span class="pill teal">Available (Proof-Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_kflow_api.py</td></tr>
@@ -907,6 +909,16 @@ var TERM_OUTPUTS = {
   code: {
     cmd: "$ keelway code refs CodeSymbol",
     out: "======================================================================\n  🔗 KEELWAY CROSS-FILE REFERENCES: 'CodeSymbol' (32 matches)\n======================================================================\n\n  • [DEFINITION] core/storage/ast_index.py:21\n    class CodeSymbol:\n\n  • [IMPORT] core/storage/ast_index.py:16\n    from core.storage.ast_index import CodeSymbol\n\n  • [CALL] core/storage/ast_index.py:88\n    symbols.append(CodeSymbol(name=node.name, kind=\"function\"))\n\n  • [REFERENCE] tests/test_codebase_intelligence.py:12\n    from core.storage.ast_index import CodebaseSemanticIndex, CodeSymbol\n\n======================================================================\n  Module Dependency Graph: 110 Nodes | 288 Edges | 0 Cycles (Clean)\n======================================================================"
+  },
+  pack: {
+    cmd: "$ keelway agent pack agents/test-fixer",
+    out: "[+] Packaging agent bundle 'test-fixer'...\n" +
+         "[✓] Verified 6 member files with zero directory traversals\n" +
+         "[+] Output Archive: exports/test-fixer.tar.gz\n" +
+         "    Files Packed:  6\n" +
+         "    Bundle Digest: a9f3e58b104928db... [SHA-256 SEALED]\n" +
+         "    Manifest:      test-fixer@1.0.0 (digest: 7c4e2091...)\n" +
+         "[✓] Ready for sovereign offline air-gap distribution."
   }
 };
 

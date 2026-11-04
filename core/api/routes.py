@@ -2601,6 +2601,101 @@ async def approve_khub_skill(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.post("/v1/khub/bundle/export", tags=["KHub Universal Skills"])
+async def export_khub_skill_bundle(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Pack a portable skill directory or SKILL.md into a verified .skill.tar.gz bundle."""
+    from core.khub.sync import KHubBundlePacker
+
+    skill_path_str = payload.get("skill_path") or payload.get("source_dir") or payload.get("path")
+    if not skill_path_str:
+        raise HTTPException(status_code=400, detail="Missing required 'skill_path' field.")
+
+    try:
+        skill_path = _workspace_fs.resolve_safe_path(skill_path_str)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid skill path: {exc}")
+
+    if not skill_path.exists():
+        raise HTTPException(status_code=404, detail=f"Skill path '{skill_path_str}' does not exist.")
+
+    out_archive_str = payload.get("output_archive") or payload.get("out")
+    if out_archive_str:
+        try:
+            output_archive = _workspace_fs.resolve_safe_path(out_archive_str)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid output archive path: {exc}")
+    else:
+        stem = skill_path.name if skill_path.is_dir() else skill_path.stem
+        output_archive = skill_path.parent / f"{stem}.skill.tar.gz"
+
+    try:
+        manifest = KHubBundlePacker.pack_skill(skill_path, output_archive)
+        rel_archive = str(output_archive.relative_to(_workspace_fs.root))
+        return {
+            "status": "packed",
+            "archive_path": rel_archive,
+            "manifest": manifest,
+            "skill_name": manifest.get("skill_name", skill_path.name),
+            "bundle_digest_sha256": manifest.get("bundle_digest_sha256", ""),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Packaging failed: {exc}")
+
+
+@router.post("/v1/khub/bundle/import", tags=["KHub Universal Skills"])
+async def import_khub_skill_bundle(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Unpack and cryptographically verify a portable .skill.tar.gz bundle."""
+    from core.khub.sync import KHubBundlePacker
+
+    archive_str = payload.get("archive_path") or payload.get("path")
+    if not archive_str:
+        raise HTTPException(status_code=400, detail="Missing required 'archive_path' field.")
+
+    try:
+        archive_path = _workspace_fs.resolve_safe_path(archive_str)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
+
+    if not archive_path.is_file():
+        raise HTTPException(status_code=404, detail=f"Archive file '{archive_str}' does not exist.")
+
+    dest_str = payload.get("destination_dir") or payload.get("dest")
+    if dest_str:
+        try:
+            destination_dir = _workspace_fs.resolve_safe_path(dest_str)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid destination directory: {exc}")
+    else:
+        bundle_stem = archive_path.name.replace(".skill.tar.gz", "").replace(".tar.gz", "").replace(".tar", "")
+        destination_dir = _workspace_fs.root / "skills" / bundle_stem
+
+    verify = payload.get("verify", True)
+
+    try:
+        res = KHubBundlePacker.unpack_skill(archive_path, destination_dir, verify=verify)
+        rel_dest = str(destination_dir.relative_to(_workspace_fs.root))
+        return {
+            "status": "unpacked",
+            "destination_dir": rel_dest,
+            "manifest": res.get("manifest", {}),
+            "verified": res.get("verified", True),
+            "skill_name": res.get("skill_name", destination_dir.name),
+            "bundle_digest_sha256": res.get("bundle_digest_sha256", ""),
+        }
+    except PermissionError as exc:
+        raise HTTPException(status_code=400, detail=f"Directory traversal attack detected: {exc}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Integrity verification failed: {exc}")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Unpack failed: {exc}")
+
+
 @router.get("/v1/kspaces", tags=["KSpaces"])
 async def list_kspaces(
     principal: Principal = Depends(current_principal),

@@ -210,7 +210,7 @@
     },
     "openapi_schema_exporter": {
       "status": "AVAILABLE",
-      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 133 verified REST endpoints with machine-readable introspection",
+      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 135 verified REST endpoints with machine-readable introspection",
       "evidence_test": "tests/test_api_export.py",
       "code_path": "cli.py, core/main.py"
     },
@@ -231,6 +231,12 @@
       "claim": "Signed and tamper-evident agent distribution packaging (.tar.gz) with SHA-256 digests, zip-slip protection, and REST/CLI export",
       "evidence_test": "tests/test_agent_packaging.py",
       "code_path": "core/agents/builder.py, cli.py, core/api/routes.py"
+    },
+    "khub_bundle_sync": {
+      "status": "AVAILABLE",
+      "claim": "Universal skill bundle export and import with SHA-256 member hashing, anti-tamper checking, and directory traversal rejection",
+      "evidence_test": "tests/test_khub_bundle_sync.py",
+      "code_path": "core/khub/sync.py, cli.py, core/api/routes.py"
     }
   }
 }
