@@ -725,6 +725,7 @@ async def mesh_prune(payload: dict = None):
 # =====================================================================
 
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
+from core.storage.workspace_registry import get_shared_workspace_registry, WorkspaceEntry
 from core.orchestration.project_adapter import ProjectAdapter
 
 _workspace_fs = WorkspaceFilesystem()
@@ -735,6 +736,70 @@ def set_workspace_fs(fs: WorkspaceFilesystem) -> None:
     global _workspace_fs, _semantic_index
     _workspace_fs = fs
     _semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
+
+
+@router.get("/v1/workspaces", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
+async def list_workspaces():
+    """List all registered enterprise repositories and development workspaces."""
+    reg = get_shared_workspace_registry()
+    active = reg.get_active()
+    return {
+        "active_workspace_id": active.id if active else None,
+        "workspaces": [w.to_dict() for w in reg.list_all()],
+    }
+
+
+@router.post("/v1/workspaces", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
+async def register_workspace(payload: dict, principal: Principal = Depends(current_principal)):
+    """Register a new repository or workspace in the enterprise registry."""
+    path_str = payload.get("path")
+    if not path_str:
+        raise HTTPException(status_code=400, detail="Missing required 'path' field.")
+    name = payload.get("name")
+    make_active = bool(payload.get("make_active", False))
+
+    reg = get_shared_workspace_registry()
+    try:
+        entry = reg.register(path_str, name=name, make_active=make_active)
+        if make_active:
+            set_workspace_fs(WorkspaceFilesystem(root_dir=entry.path))
+            await record_audit(principal, "workspace_activate", entry.path, True)
+        else:
+            await record_audit(principal, "workspace_register", entry.path, True)
+        return {"status": "registered", "workspace": entry.to_dict()}
+    except (FileNotFoundError, NotADirectoryError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except WorkspaceSecurityError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.post("/v1/workspaces/{workspace_id}/activate", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
+async def activate_workspace(workspace_id: str, principal: Principal = Depends(current_principal)):
+    """Switch active workspace across all Keelway agent and analysis subsystems."""
+    reg = get_shared_workspace_registry()
+    try:
+        entry = reg.activate(workspace_id)
+        set_workspace_fs(WorkspaceFilesystem(root_dir=entry.path))
+        await record_audit(principal, "workspace_activate", entry.path, True)
+        meta = ProjectAdapter.inspect(_workspace_fs.root)
+        return {
+            "status": "activated",
+            "workspace": entry.to_dict(),
+            "project": meta.to_dict(),
+        }
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Workspace '{workspace_id}' not found in registry.")
+
+
+@router.delete("/v1/workspaces/{workspace_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Workspace Filesystem"])
+async def unregister_workspace(workspace_id: str, principal: Principal = Depends(current_principal)):
+    """Unregister a workspace from the enterprise registry."""
+    reg = get_shared_workspace_registry()
+    ok = reg.unregister(workspace_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Workspace '{workspace_id}' not found.")
+    await record_audit(principal, "workspace_unregister", workspace_id, True)
+    return {"status": "unregistered", "workspace_id": workspace_id}
 
 
 @router.get("/v1/workspace", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
@@ -772,6 +837,11 @@ async def open_workspace(payload: dict, principal: Principal = Depends(current_p
     global _workspace_fs, _semantic_index
     _workspace_fs = WorkspaceFilesystem(str(target))
     _semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
+    reg = get_shared_workspace_registry()
+    try:
+        reg.register(str(target), name=target.name, make_active=True)
+    except Exception:
+        pass
     await record_audit(principal, "workspace_open", str(target), True)
 
     meta = ProjectAdapter.inspect(_workspace_fs.root)

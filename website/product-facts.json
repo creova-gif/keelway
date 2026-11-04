@@ -106,6 +106,12 @@
       "evidence_test": "tests/test_worktree.py",
       "code_path": "core/orchestration/worktree.py"
     },
+    "multi_workspace_registry": {
+      "status": "AVAILABLE",
+      "claim": "Enterprise multi-repository registry, path containment security, and dynamic workspace switching",
+      "evidence_test": "tests/test_workspace_registry.py",
+      "code_path": "core/storage/workspace_registry.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",

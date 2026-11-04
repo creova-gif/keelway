@@ -721,6 +721,75 @@ def cmd_project(action: str, path: Optional[Path] = None) -> int:
     return 0
 
 
+def cmd_workspace(
+    action: str = "list",
+    path: Optional[str] = None,
+    name: Optional[str] = None,
+    target: Optional[str] = None,
+    activate: bool = False,
+) -> int:
+    """Manage registered enterprise developer workspaces and repositories."""
+    from core.storage.workspace_registry import get_shared_workspace_registry
+    reg = get_shared_workspace_registry()
+
+    if action == "add":
+        target_path = path or target
+        if not target_path:
+            print("[-] Error: 'add' requires a directory path.")
+            return 1
+        try:
+            entry = reg.register(target_path, name=name, make_active=activate)
+            act_str = " (active)" if entry.is_active else ""
+            print(f"[+] Registered workspace '{entry.name}' [{entry.id}]{act_str}: {entry.path}")
+            return 0
+        except Exception as e:
+            print(f"[-] Error registering workspace: {e}")
+            return 1
+
+    elif action == "use":
+        target_id = target or path
+        if not target_id:
+            print("[-] Error: 'use' requires a workspace ID or name.")
+            return 1
+        try:
+            entry = reg.activate(target_id)
+            print(f"[+] Activated workspace '{entry.name}' [{entry.id}]: {entry.path} (Branch: {entry.git_branch or 'N/A'}, Runtime: {entry.detected_framework.upper()})")
+            return 0
+        except Exception as e:
+            print(f"[-] Error activating workspace: {e}")
+            return 1
+
+    elif action in ("remove", "delete"):
+        target_id = target or path
+        if not target_id:
+            print("[-] Error: 'remove' requires a workspace ID.")
+            return 1
+        ok = reg.unregister(target_id)
+        if ok:
+            print(f"[+] Unregistered workspace '{target_id}'.")
+            return 0
+        else:
+            print(f"[-] Workspace '{target_id}' not found.")
+            return 1
+
+    # Default: "list"
+    workspaces = reg.list_all()
+    print("\n" + "=" * 70)
+    print("  📁 KEELWAY ENTERPRISE WORKSPACE REGISTRY")
+    print("=" * 70)
+    if not workspaces:
+        print("  • No workspaces registered.")
+    else:
+        for w in workspaces:
+            active_marker = "🟢 ACTIVE" if w.is_active else "⚪"
+            branch_str = f" ({w.git_branch})" if w.git_branch else ""
+            print(f"  {active_marker} [{w.id}] {w.name}{branch_str}")
+            print(f"       Path:      {w.path}")
+            print(f"       Runtime:   {w.detected_framework.upper()} · Last Accessed: {w.last_accessed_at[:19]}")
+    print()
+    return 0
+
+
 def cmd_git(action: str, msg: str = "", path: Optional[str] = None, base: str = "main") -> int:
     """Execute local Git operations with governance and safety boundaries."""
     from core.storage.workspace_fs import WorkspaceFilesystem
@@ -1776,6 +1845,12 @@ def main():
     _p_test = project_sub.add_parser("test", help="Execute the detected project test runner")
     _p_test.add_argument("--path", type=Path, default=None, help="Target project root directory (default: current dir)")
 
+    workspace_parser = subparsers.add_parser("workspace", help="Enterprise multi-workspace registry and switching")
+    workspace_parser.add_argument("workspace_command", nargs="?", default="list", choices=["list", "add", "use", "remove", "delete"], help="Workspace action")
+    workspace_parser.add_argument("path", nargs="?", default=None, help="Directory path or workspace ID")
+    workspace_parser.add_argument("--name", default=None, help="Human-readable workspace name")
+    workspace_parser.add_argument("--activate", action="store_true", help="Activate workspace upon registration")
+
     git_parser = subparsers.add_parser("git", help="Local Git inspection, semantic commit proposal, and PR preparation")
     git_sub = git_parser.add_subparsers(dest="git_command", required=True)
     git_sub.add_parser("status", help="Inspect live repository status and changed files")
@@ -1980,6 +2055,13 @@ def main():
         sys.exit(cmd_agent(args.agent_command, getattr(args, "path", None), getattr(args, "by", ""), getattr(args, "out", None)))
     elif args.command == "project":
         sys.exit(cmd_project(args.project_command, getattr(args, "path", None)))
+    elif args.command == "workspace":
+        sys.exit(cmd_workspace(
+            action=getattr(args, "workspace_command", "list"),
+            path=getattr(args, "path", None),
+            name=getattr(args, "name", None),
+            activate=getattr(args, "activate", False),
+        ))
     elif args.command == "git":
         sys.exit(cmd_git(args.git_command, msg=getattr(args, "message", ""), path=getattr(args, "path", None), base=getattr(args, "base", "main")))
     elif args.command == "record":
