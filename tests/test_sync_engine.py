@@ -145,3 +145,10 @@ async def test_sync_cli_commands(tmp_path, capsys):
     assert rc_imp == 0
     cap_imp = capsys.readouterr()
     assert "Sync envelope merged successfully" in cap_imp.out
+
+    # editor bridge status
+    rc_ed = await cmd_sync(action="editor")
+    assert rc_ed == 0
+    cap_ed = capsys.readouterr()
+    assert "DUAL-MODE EXTERNAL EDITOR SYNC BRIDGE" in cap_ed.out
+    assert "Debounce Interval : 150ms" in cap_ed.out

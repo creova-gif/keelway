@@ -1714,14 +1714,21 @@ async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, targe
     return 1
 
 
-async def cmd_sync(action: str, out_path: Optional[str] = None, in_path: Optional[str] = None) -> int:
-    """Manage cross-machine encrypted task state synchronization."""
+async def cmd_sync(
+    action: str,
+    out_path: Optional[str] = None,
+    in_path: Optional[str] = None,
+    editor_open: Optional[str] = None,
+    editor_file: Optional[str] = None,
+) -> int:
+    """Manage cross-machine encrypted task state synchronization and external editor sync bridge."""
     import json
     from core.sync.engine import (
         SovereignSyncEngine,
         get_shared_sync_engine,
         EncryptedSyncEnvelope,
     )
+    from core.sync.bridge import ExternalEditorSyncBridge
     engine = get_shared_sync_engine()
 
     if action == "status":
@@ -1808,6 +1815,30 @@ async def cmd_sync(action: str, out_path: Optional[str] = None, in_path: Optiona
         print("  ALL MACHINES DETERMINISTICALLY SYNCHRONIZED [100% CONVERGENCE]")
         print("=" * 68 + "\n")
         return 0
+
+    elif action == "editor":
+        bridge = ExternalEditorSyncBridge(workspace_root=Path.cwd())
+        if editor_open:
+            try:
+                res = bridge.open_in_editor(editor=editor_open, relative_path=editor_file or "")
+                print(f"[✓] Launched {res['editor']} on {res['target']}")
+                return 0
+            except Exception as e:
+                print(f"[✗] Failed to launch {editor_open}: {e}")
+                return 1
+        else:
+            st = bridge.get_status()
+            print("\n" + "=" * 68)
+            print("  ⚡ KEELWAY DUAL-MODE EXTERNAL EDITOR SYNC BRIDGE")
+            print("=" * 68)
+            print(f"  • Workspace Root    : {st['workspace_root']}")
+            print(f"  • Watching Active   : {st['watching']}")
+            print(f"  • Debounce Interval : {st['debounce_ms']}ms")
+            print(f"  • Detected Editors  : {', '.join(st['detected_editors']) if st['detected_editors'] else 'None found in PATH'}")
+            print(f"  • Active File Leases: {len(st['active_leases'])}")
+            print(f"  • Pending Conflicts : {len(st['pending_conflicts'])}")
+            print("=" * 68 + "\n")
+            return 0
 
     return 1
 
@@ -2842,6 +2873,9 @@ def build_parser() -> argparse.ArgumentParser:
     sync_parser = subparsers.add_parser("sync", help="Cross-machine encrypted task state synchronization")
     sync_sub = sync_parser.add_subparsers(dest="sync_command", required=True)
     sync_sub.add_parser("status", help="Show local sync state and vector clocks")
+    sync_editor = sync_sub.add_parser("editor", help="Dual-mode external editor sync bridge & launching")
+    sync_editor.add_argument("--open", dest="editor_open", choices=["vscode", "cursor", "vscodium", "sublime"], help="Launch workspace or file in editor")
+    sync_editor.add_argument("--file", dest="editor_file", default="", help="Relative file path to open")
     sync_export = sync_sub.add_parser("export", help="Export encrypted sync envelope")
     sync_export.add_argument("--out", default=None, help="Output file path (default: stdout)")
     sync_import = sync_sub.add_parser("import", help="Import encrypted sync envelope from file")
@@ -3500,6 +3534,8 @@ def main(argv=None):
             action=args.sync_command,
             out_path=getattr(args, "out", None),
             in_path=getattr(args, "path", None),
+            editor_open=getattr(args, "editor_open", None),
+            editor_file=getattr(args, "editor_file", None),
         )))
     elif args.command == "tier2":
         sys.exit(asyncio.run(cmd_tier2(args.tier2_command, getattr(args, "subsystem", "all"))))
