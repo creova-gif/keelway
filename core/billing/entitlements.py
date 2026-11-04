@@ -119,6 +119,12 @@ class EntitlementCertificate:
 
         return False, "EXPIRED"
 
+    def allows(self, feature: Any) -> bool:
+        """Checks if a feature is allowed under this certificate or its tier defaults."""
+        feat_str = feature.value if hasattr(feature, "value") else str(feature)
+        tier_feats = {f.value for f in TIER_DEFAULT_FEATURES.get(self.tier, set())}
+        return feat_str in self.allowed_features or feat_str in tier_feats
+
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         if isinstance(self.tier, LicenseTier):

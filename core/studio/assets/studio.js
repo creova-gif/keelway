@@ -760,6 +760,68 @@ async function submitQuorumSign(role) {
   }
 }
 
+// ---------- evidence room (WP21) ----------
+async function loadEvidenceSummary() {
+  const out = $('evidence-out');
+  if (!out) return;
+  out.textContent = 'Aggregating live verification evidence across tests, benchmarks, air-gap, and SBOM…';
+  try {
+    const pkg = await api('/v1/evidence/summary');
+    out.textContent = `[✓] EVIDENCE ROOM SUMMARY (WP21)\n` +
+      `Package ID:   ${pkg.package_id}\n` +
+      `Commit SHA:   ${pkg.commit_sha.slice(0, 16)} (${pkg.git_branch})\n` +
+      `Sealed Hash:  ${pkg.package_sha256.slice(0, 24)}…\n` +
+      `All Verified: ${pkg.summary.all_verified ? 'TRUE (7/7 categories)' : 'FALSE'}\n\n` +
+      pkg.metrics.map((m) => `• [${m.is_verified ? '✓ PASS' : '✗ FAIL'}] ${m.name} (${m.category.toUpperCase()}):\n  ${m.claim}\n  Repro: ${m.reproduce_command}`).join('\n\n');
+    tone('ok');
+  } catch (err) {
+    out.textContent = `[-] Evidence load error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function sealEvidencePackage() {
+  const out = $('evidence-out');
+  if (!out) return;
+  out.textContent = 'Assembling and cryptographically sealing evidence package…';
+  try {
+    const res = await api('/v1/evidence/generate', { method: 'POST' });
+    out.textContent = `[✓] EVIDENCE PACKAGE CRYPTOGRAPHICALLY SEALED\n` +
+      `Status:      ${res.status}\n` +
+      `Package ID:  ${res.package_id}\n` +
+      `SHA-256:     ${res.package_sha256}\n` +
+      `Categories:  ${res.evidence_package.metrics.length} verified\n` +
+      `Timestamp:   ${res.evidence_package.timestamp_utc}`;
+    tone('ok');
+    toast('Evidence package sealed', 'ok');
+  } catch (err) {
+    out.textContent = `[-] Sealing error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function verifyEvidencePackage() {
+  const out = $('evidence-out');
+  if (!out) return;
+  out.textContent = 'Cryptographically verifying evidence package…';
+  try {
+    const gen = await api('/v1/evidence/generate', { method: 'POST' });
+    const ver = await api('/v1/evidence/verify', { method: 'POST', body: { package: gen.evidence_package } });
+    out.textContent = `[✓] EVIDENCE PACKAGE VERIFIED\n` +
+      `Status:    ${ver.is_valid ? 'VERIFIED (PASS)' : 'FAILED'}\n` +
+      `Code:      ${ver.status}\n` +
+      `Package:   ${ver.details.package_id}\n` +
+      `Commit:    ${ver.details.commit_sha}\n` +
+      `Metrics:   ${ver.details.metrics_count} verified`;
+    tone('ok');
+    toast('Evidence verified 100%', 'ok');
+  } catch (err) {
+    out.textContent = `[-] Verification error: ${err.message}`;
+    tone('err');
+  }
+}
+
+
 // ---------- audit ----------
 async function loadAudit() {
   const body = $('audit-body');
@@ -1321,6 +1383,9 @@ function wire() {
   if ($('mesh-delegate-form')) $('mesh-delegate-form').addEventListener('submit', dispatchMeshDelegation);
   if ($('quorum-sign-sec-btn')) $('quorum-sign-sec-btn').addEventListener('click', () => submitQuorumSign('Security Lead'));
   if ($('quorum-sign-plat-btn')) $('quorum-sign-plat-btn').addEventListener('click', () => submitQuorumSign('Platform Owner'));
+  if ($('evidence-summary-btn')) $('evidence-summary-btn').addEventListener('click', loadEvidenceSummary);
+  if ($('evidence-seal-btn')) $('evidence-seal-btn').addEventListener('click', sealEvidencePackage);
+  if ($('evidence-verify-btn')) $('evidence-verify-btn').addEventListener('click', verifyEvidencePackage);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

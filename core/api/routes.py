@@ -2156,15 +2156,84 @@ async def compare_evaluation_drift(
     return analysis.to_dict()
 
 
+# ---------------------------------------------------------------------------
+# Investor & Enterprise Evidence Room (WP21)
+# ---------------------------------------------------------------------------
+
+@router.get("/v1/evidence/summary", tags=["Evidence Room & Audit"])
+async def get_evidence_summary(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve live verifiable evidence summary across benchmarks, tests, air-gap, and SBOM."""
+    from core.eval.evidence_room import EvidenceRoomPipeline
+    pkg = EvidenceRoomPipeline.assemble_package()
+    return pkg.to_dict()
 
 
+@router.post("/v1/evidence/generate", tags=["Evidence Room & Audit"])
+async def generate_evidence_package(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Assemble and cryptographically seal an investor and audit evidence package."""
+    from core.eval.evidence_room import EvidenceRoomPipeline
+    pkg = EvidenceRoomPipeline.assemble_package()
+    return {
+        "status": "SEALED",
+        "package_id": pkg.package_id,
+        "package_sha256": pkg.package_sha256,
+        "evidence_package": pkg.to_dict(),
+    }
 
 
+class EvidenceVerifyRequest(BaseModel):
+    package: Dict[str, Any]
 
 
+@router.post("/v1/evidence/verify", tags=["Evidence Room & Audit"])
+async def verify_evidence_package(
+    req: EvidenceVerifyRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Cryptographically verify an evidence package against its sealed hash."""
+    from core.eval.evidence_room import EvidenceRoomPipeline
+    valid, reason, details = EvidenceRoomPipeline.verify_package(req.package)
+    return {
+        "is_valid": valid,
+        "status": reason,
+        "details": details,
+    }
 
 
+# ---------------------------------------------------------------------------
+# Enterprise Entitlements & SBOM Endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/v1/entitlements/status", tags=["Enterprise Governance"])
+async def get_entitlements_status(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve current enterprise entitlement status and feature allowances."""
+    from core.billing.entitlements import get_shared_entitlement_manager
+    mgr = get_shared_entitlement_manager()
+    cert = mgr.get_certificate("default-org")
+    valid, status_str = cert.is_valid()
+    return {
+        "tier": cert.tier.value,
+        "seats": cert.seats,
+        "is_valid": valid,
+        "status": status_str,
+        "features": {f: cert.allows(f) for f in cert.allowed_features},
+        "days_offline": round((time.time() - cert.issued_at) / 86400, 2),
+        "offline_grace_days_remaining": round(max(0.0, 14.0 - (time.time() - cert.issued_at) / 86400), 2),
+    }
 
 
-
+@router.get("/v1/sbom", tags=["Enterprise Governance"])
+async def get_cyclonedx_sbom(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve CycloneDX v1.5 Software Bill of Materials with release provenance signature."""
+    from core.security.sbom import SBOMGenerator
+    sbom = SBOMGenerator.generate()
+    return sbom.to_dict()
 

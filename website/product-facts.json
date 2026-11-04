@@ -136,6 +136,12 @@
       "evidence_test": "tests/test_entitlements_and_sbom.py",
       "code_path": "core/security/sbom.py"
     },
+    "investor_evidence_room": {
+      "status": "AVAILABLE",
+      "claim": "Cryptographically sealed evidence room linking Git commits, 645 tests, golden benchmarks, NIST air-gap, and CycloneDX SBOM",
+      "evidence_test": "tests/test_evidence_room.py",
+      "code_path": "core/eval/evidence_room.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",

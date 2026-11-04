@@ -939,6 +939,69 @@ def cmd_entitlements(action: str = "status", org: str = "default-org", feature: 
     return 0
 
 
+def cmd_evidence(action: str = "summary", out: Optional[Path] = None, target: Optional[str] = None) -> int:
+    """Generate, export, or cryptographically verify investor & enterprise evidence room packages."""
+    import json
+    from core.eval.evidence_room import EvidenceRoomPipeline
+
+    if action == "export":
+        pkg = EvidenceRoomPipeline.assemble_package()
+        out_path = out or Path("keelway-evidence-package.json")
+        out_path.write_text(json.dumps(pkg.to_dict(), indent=2), encoding="utf-8")
+        print("\n" + "=" * 70)
+        print("  🏛️  KEELWAY INVESTOR & AUDIT EVIDENCE ROOM PACKAGE EXPORTED")
+        print("=" * 70)
+        print(f"  Package ID:   {pkg.package_id}")
+        print(f"  Commit SHA:   {pkg.commit_sha[:16]}")
+        print(f"  Sealed Hash:  {pkg.package_sha256[:24]}...")
+        print(f"  Metrics:      {len(pkg.metrics)} verified categories")
+        print(f"  Destination:  {out_path}\n")
+        return 0
+
+    elif action == "verify":
+        t_path = Path(target or out or "keelway-evidence-package.json")
+        if not t_path.exists():
+            print(f"[-] Evidence package file not found: {t_path}")
+            return 1
+        data = json.loads(t_path.read_text(encoding="utf-8"))
+        valid, status_str, details = EvidenceRoomPipeline.verify_package(data)
+        print("\n" + "=" * 70)
+        print("  🔍 KEELWAY EVIDENCE PACKAGE CRYPTOGRAPHIC VERIFICATION")
+        print("=" * 70)
+        print(f"  Target:       {t_path}")
+        print(f"  Status:       {'[✓] VERIFIED' if valid else '[✗] FAILED: ' + status_str}")
+        print(f"  Package ID:   {details.get('package_id', 'unknown')}")
+        print(f"  Commit SHA:   {details.get('commit_sha', 'unknown')[:16]}")
+        print(f"  Metrics:      {details.get('metrics_count', 0)}")
+        print(f"  Timestamp:    {details.get('timestamp_utc', 'unknown')}\n")
+        return 0 if valid else 1
+
+    else:  # summary / default
+        pkg = EvidenceRoomPipeline.assemble_package()
+        print("\n" + "=" * 70)
+        print("  🏛️  KEELWAY INVESTOR & AUDIT EVIDENCE ROOM (WP21)")
+        print(f"  Package ID:   {pkg.package_id}")
+        print(f"  Git Commit:   {pkg.commit_sha[:16]} ({pkg.git_branch})")
+        print(f"  Sealed Hash:  {pkg.package_sha256[:24]}...")
+        print(f"  Timestamp:    {pkg.timestamp_utc}")
+        print("=" * 70)
+
+        for m in pkg.metrics:
+            badge = "[✓ PASS]" if m["is_verified"] else "[✗ FAIL]"
+            print(f"\n  {badge} {m['name']} ({m['category'].upper()})")
+            print(f"    Claim:       {m['claim']}")
+            print(f"    Evidence:    {m['evidence_path_or_receipt']}")
+            print(f"    Observed:    {json.dumps(m['observed_value'])}")
+            print(f"    Reproduction: {m['reproduce_command']}")
+
+        print("\n" + "-" * 70)
+        print(f"  Summary: {pkg.summary['total_verified_metrics']}/{pkg.summary['total_verified_metrics']} categories verified | All Verified: {pkg.summary['all_verified']}")
+        print(f"  Audited By: {pkg.summary['audited_by']}")
+        print("-" * 70 + "\n")
+        return 0
+
+
+
 def cmd_git(action: str, msg: str = "", path: Optional[str] = None, base: str = "main") -> int:
     """Execute local Git operations with governance and safety boundaries."""
     from core.storage.workspace_fs import WorkspaceFilesystem
@@ -2159,6 +2222,15 @@ def main():
     _ent_chk.add_argument("feature", help="Feature key to evaluate")
     _ent_chk.add_argument("--org", default="default-org", help="Target organization ID")
 
+    # evidence (Investor & Enterprise Evidence Room WP21)
+    evd_parser = subparsers.add_parser("evidence", help="Inspect, export, or verify sealed investor & audit evidence packages")
+    evd_sub = evd_parser.add_subparsers(dest="evidence_command", required=False)
+    _evd_sum = evd_sub.add_parser("summary", help="Display live evidence summary across all verification categories")
+    _evd_exp = evd_sub.add_parser("export", help="Export cryptographically sealed evidence package to JSON")
+    _evd_exp.add_argument("--out", type=Path, default=None, help="Output JSON path (default: keelway-evidence-package.json)")
+    _evd_ver = evd_sub.add_parser("verify", help="Cryptographically verify a sealed evidence package")
+    _evd_ver.add_argument("target", nargs="?", default="keelway-evidence-package.json", help="Path to evidence JSON package")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -2453,6 +2525,15 @@ def main():
                 feature=getattr(args, "feature", None),
             )
         )
+    elif args.command == "evidence":
+        sys.exit(
+            cmd_evidence(
+                action=getattr(args, "evidence_command", "summary") or "summary",
+                out=getattr(args, "out", None),
+                target=getattr(args, "target", None),
+            )
+        )
+
 
 
 if __name__ == "__main__":
