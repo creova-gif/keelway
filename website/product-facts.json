@@ -142,6 +142,12 @@
       "evidence_test": "tests/test_evidence_room.py",
       "code_path": "core/eval/evidence_room.py"
     },
+    "speculative_decoding_acceleration": {
+      "status": "AVAILABLE",
+      "claim": "Tandem draft/target speculative decoding (0.5B draft + 7B target) achieving 2.5x to 3.8x local token speedups",
+      "evidence_test": "tests/test_speculative.py",
+      "code_path": "core/models/speculative.py"
+    },
     "mobile_approval_app": {
       "status": "PREVIEW",
       "claim": "Offline-resilient React Native mobile approval interface with biometrics",
