@@ -842,6 +842,68 @@ async function runDoctorDiagnostics() {
   }
 }
 
+async function loadSyncStatusInStudio() {
+  const out = $('sync-out');
+  if (!out) return;
+  out.textContent = 'Loading cross-machine sync status…';
+  try {
+    const data = await api('/v1/sync/status');
+    out.textContent = `[✓] SOVEREIGN CROSS-MACHINE SYNC STATUS\n` +
+      `Machine ID:      ${data.machine_id}\n` +
+      `Organization:    ${data.org_id}\n` +
+      `Lamport Clock:   #${data.lamport_counter}\n` +
+      `Journal Records: ${data.journal_records_total}\n` +
+      `Vector Clocks:   ${JSON.stringify(data.vector_clock)}\n` +
+      `Known Peers:     ${Object.keys(data.known_peers).length} synchronized machines\n` +
+      (data.latest_record ? `Latest Record:   [#${data.latest_record.lamport_time}] ${data.latest_record.entity_type} for task ${data.latest_record.task_id}` : '');
+    tone('ok');
+    toast('Sync state loaded', 'ok');
+  } catch (err) {
+    out.textContent = `[-] Sync status error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function exportSyncEnvelopeInStudio() {
+  const out = $('sync-out');
+  if (!out) return;
+  out.textContent = 'Assembling authenticated encrypted sync envelope…';
+  try {
+    const env = await api('/v1/sync/export', { method: 'POST' });
+    out.textContent = `[✓] ENCRYPTED SYNC ENVELOPE EXPORTED\n` +
+      `Envelope ID:    ${env.envelope_id}\n` +
+      `Cipher:         ${env.cipher}\n` +
+      `Records Count:  ${env.records_count}\n` +
+      `Bundle Digest:  ${env.bundle_digest_sha256.slice(0, 24)}…\n` +
+      `Auth Tag:       ${env.auth_tag.slice(0, 24)}…\n` +
+      `Created:        ${env.created_at_utc}`;
+    tone('ok');
+    toast('Sync envelope exported', 'ok');
+  } catch (err) {
+    out.textContent = `[-] Envelope export error: ${err.message}`;
+    tone('err');
+  }
+}
+
+async function showMobilePairingInStudio() {
+  const out = $('sync-out');
+  if (!out) return;
+  const token = state.token || '';
+  const host = window.location.host;
+  const link = `${window.location.protocol}//${host}/?token=${encodeURIComponent(token)}`;
+  const deepLink = `keelway://pair?link=${encodeURIComponent(link)}`;
+  out.textContent = `[📱] KEELWAY MOBILE MISSION CONTROL PAIRING\n` +
+    `Studio Link:     ${link}\n` +
+    `Mobile Deep Link: ${deepLink}\n` +
+    `Auth Token:      ${token ? token.slice(0, 16) + '…' : 'None (open)'}\n\n` +
+    `Instructions:\n` +
+    `1. Open Keelway Mobile on iOS / Android connected to same Wi-Fi.\n` +
+    `2. Paste the Studio Link above or open the Deep Link.\n` +
+    `3. Tap Connect to authenticate with whoami.`;
+  tone('ok');
+  toast('Mobile link ready', 'ok');
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -1408,6 +1470,9 @@ function wire() {
   if ($('evidence-seal-btn')) $('evidence-seal-btn').addEventListener('click', sealEvidencePackage);
   if ($('evidence-verify-btn')) $('evidence-verify-btn').addEventListener('click', verifyEvidencePackage);
   if ($('doctor-run-btn')) $('doctor-run-btn').addEventListener('click', runDoctorDiagnostics);
+  if ($('sync-status-btn')) $('sync-status-btn').addEventListener('click', loadSyncStatusInStudio);
+  if ($('sync-export-btn')) $('sync-export-btn').addEventListener('click', exportSyncEnvelopeInStudio);
+  if ($('sync-mobile-btn')) $('sync-mobile-btn').addEventListener('click', showMobilePairingInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

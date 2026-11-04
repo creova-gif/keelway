@@ -7,8 +7,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
-from core.orchestration.state import TaskState
-
 
 class Provider(str, Enum):
     ANTHROPIC = "anthropic"
@@ -17,6 +15,9 @@ class Provider(str, Enum):
     NVIDIA = "nvidia"
     LOCAL = "local"
     OPEN_WEIGHT = "open_weight"
+
+
+from core.orchestration.state import TaskState
 
 
 class HealthResponse(BaseModel):

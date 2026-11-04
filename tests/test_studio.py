@@ -29,3 +29,15 @@ async def test_keelway_dev_studio_html_endpoint():
         assert resp_js.status_code == 200
         assert "dispatchMeshDelegation" in resp_js.text
         assert "submitQuorumSign" in resp_js.text
+        assert "loadSyncStatusInStudio" in resp_js.text
+        assert "showMobilePairingInStudio" in resp_js.text
+
+        # Check /console and /web-console
+        resp_console = await client.get("/console")
+        assert resp_console.status_code == 200
+        assert "KEELWAY" in resp_console.text
+        assert "Cross-Machine" in resp_console.text
+
+        resp_web_console = await client.get("/web-console")
+        assert resp_web_console.status_code == 200
+        assert "Vector Clocks" in resp_web_console.text

@@ -635,6 +635,24 @@
             <pre id="doctor-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Cross-Machine Sovereign Sync & Mobile Mission Control -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="sync-card-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="sync-card-title" class="font-semibold">Cross-Machine Sovereign Sync &amp; Mobile Mission Control</h3>
+            <span class="step-chip text-accent border-accent/50 font-mono">AEAD Encrypted &amp; Vector Clock</span>
+          </div>
+          <div id="lab-sync" class="space-y-3">
+            <p class="text-xs text-ide-muted">Offline-first peer-to-peer task state synchronization with authenticated encryption (AES-256-CTR + HMAC-SHA256) and LAN deep-link pairing for iOS/Android phone approvals.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="sync-status-btn" type="button" class="btn-primary h-8 text-xs">Check Sync State</button>
+              <button id="sync-export-btn" type="button" class="btn-outline h-8 text-xs">Export Encrypted Envelope</button>
+              <button id="sync-mobile-btn" type="button" class="btn-outline h-8 text-xs">Phone Pairing Link</button>
+              <a href="/console" target="_blank" class="btn-outline h-8 text-xs inline-flex items-center px-3 hover:text-accent">Open Web Console ↗</a>
+            </div>
+            <pre id="sync-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

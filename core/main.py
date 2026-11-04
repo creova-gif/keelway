@@ -106,6 +106,7 @@ app.include_router(messaging_router)
 # Mount Keelway Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
 index_file = studio_dir / "index.html"
+web_console_file = Path(__file__).resolve().parent.parent / "web-console" / "index.html"
 app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
 
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
@@ -114,4 +115,11 @@ async def serve_studio():
     if index_file.exists():
         return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
     return HTMLResponse(content="<h1>Keelway Core</h1><p>API is active. Studio assets loading...</p>")
+
+@app.get("/console", response_class=HTMLResponse, tags=["Web Console"])
+@app.get("/web-console", response_class=HTMLResponse, tags=["Web Console"])
+async def serve_web_console():
+    if web_console_file.exists():
+        return HTMLResponse(content=web_console_file.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Keelway Web Console</h1><p>Web Console loading...</p>")
 
