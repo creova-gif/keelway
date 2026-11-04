@@ -2733,6 +2733,35 @@ def cmd_openapi(out_path: Path = Path("website/openapi.json"), to_stdout: bool =
     return 0
 
 
+def cmd_runner(
+    action: str = "status",
+    runner_id: str = "node-01",
+    subcommand: Optional[str] = None,
+    persistence_path: Optional[Path] = None,
+) -> int:
+    """Manage customer runner spool queues and offline sync."""
+    from core.runner.spool import RunnerSpoolManager
+
+    act = subcommand or action
+    if action == "spool" and subcommand:
+        act = subcommand
+
+    mgr = RunnerSpoolManager(persistence_path=persistence_path)
+    if act == "status":
+        status = mgr.get_status(runner_id)
+        print(f"[+] Runner Spool Status [{runner_id}]:")
+        print(f"    Pending Items: {status['pending_count']}")
+        print(f"    Total Spooled: {status['total_spooled']}")
+        return 0
+    elif act == "flush":
+        flushed = mgr.flush(runner_id)
+        print(f"[+] Flushed {flushed} pending item(s) for runner '{runner_id}'.")
+        return 0
+    else:
+        print(f"[-] Unknown runner action: {act}")
+        return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -3043,12 +3072,22 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--actor", default="developer", help="Actor initiating the run")
     run_parser.add_argument("--classification", choices=["internal", "production"], default="internal", help="Environment classification")
 
-    # runner (Customer VPC Outbound Daemon)
-    runner_parser = subparsers.add_parser("runner", help="Launch an outbound isolated customer VPC runner daemon")
+    # runner (Customer VPC Outbound Daemon & Offline Spool)
+    runner_parser = subparsers.add_parser("runner", help="Launch an outbound isolated customer VPC runner daemon or manage spool")
     runner_parser.add_argument("--runner-id", default="node-01", help="Unique runner node identifier")
     runner_parser.add_argument("--org", default="default-org", help="Organization scope")
     runner_parser.add_argument("--server", default="http://127.0.0.1:8000", help="Keelway Control Plane URL")
     runner_parser.add_argument("--repo", default=".", help="Target repository path")
+
+    runner_sub = runner_parser.add_subparsers(dest="runner_command", required=False)
+    spool_parser = runner_sub.add_parser("spool", help="Customer runner spool and offline sync manager")
+    spool_sub = spool_parser.add_subparsers(dest="spool_command", required=True)
+
+    _sp_status = spool_sub.add_parser("status", help="Get status of pending items in runner spool")
+    _sp_status.add_argument("--runner-id", default="node-01", help="Target runner node identifier")
+
+    _sp_flush = spool_sub.add_parser("flush", help="Flush and mark pending spooled items as synced")
+    _sp_flush.add_argument("--runner-id", default="node-01", help="Target runner node identifier")
 
     # m1 (Milestone M1 Vertical Slice Validator)
     m1_parser = subparsers.add_parser("m1", help="Validate Milestone M1: 10-stage end-to-end developer workflow")
@@ -3444,6 +3483,13 @@ def main(argv=None):
         print(diff)
         print("-------------------------------------------------")
     elif args.command == "runner":
+        if getattr(args, "runner_command", None) == "spool":
+            sys.exit(
+                cmd_runner(
+                    action=getattr(args, "spool_command", "status"),
+                    runner_id=getattr(args, "runner_id", "node-01"),
+                )
+            )
         from keelway.runner.daemon import OutboundRunnerDaemon
         daemon = OutboundRunnerDaemon(
             runner_id=args.runner_id,

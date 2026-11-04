@@ -2817,6 +2817,89 @@
         }
       }
     },
+    "/v1/runner/spool/sync": {
+      "post": {
+        "tags": [
+          "Customer Runner"
+        ],
+        "summary": "Sync Customer Runner Spool",
+        "description": "Processes an offline batch synchronization submission from a customer runner.",
+        "operationId": "sync_customer_runner_spool_v1_runner_spool_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/runner/spool/status/{runner_id}": {
+      "get": {
+        "tags": [
+          "Customer Runner"
+        ],
+        "summary": "Get Customer Runner Spool Status",
+        "description": "Retrieves pending item count and total spooled items for an outbound runner node.",
+        "operationId": "get_customer_runner_spool_status_v1_runner_spool_status__runner_id__get",
+        "parameters": [
+          {
+            "name": "runner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Runner Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/approval-rules": {
       "get": {
         "tags": [

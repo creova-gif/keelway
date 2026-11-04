@@ -1767,6 +1767,34 @@ async def get_pending_runner_jobs():
     return {"pending_jobs": RUNNER_JOBS_QUEUE, "count": len(RUNNER_JOBS_QUEUE)}
 
 
+@router.post("/v1/runner/spool/sync", tags=["Customer Runner"])
+async def sync_customer_runner_spool(payload: dict):
+    """Processes an offline batch synchronization submission from a customer runner."""
+    from core.runner.spool import RunnerSpoolManager
+
+    runner_id = payload.get("runner_id")
+    if not runner_id:
+        raise HTTPException(status_code=400, detail="Missing 'runner_id' in payload")
+    items = payload.get("items", [])
+    if not isinstance(items, list):
+        raise HTTPException(status_code=400, detail="'items' must be a list")
+
+    spool_path = _workspace_fs.root / ".keelway" / "runner_spool" / "spool.json"
+    mgr = RunnerSpoolManager(persistence_path=spool_path)
+    receipt = mgr.process_sync_batch(runner_id, items)
+    return receipt.to_dict()
+
+
+@router.get("/v1/runner/spool/status/{runner_id}", tags=["Customer Runner"])
+async def get_customer_runner_spool_status(runner_id: str):
+    """Retrieves pending item count and total spooled items for an outbound runner node."""
+    from core.runner.spool import RunnerSpoolManager
+
+    spool_path = _workspace_fs.root / ".keelway" / "runner_spool" / "spool.json"
+    mgr = RunnerSpoolManager(persistence_path=spool_path)
+    return mgr.get_status(runner_id)
+
+
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
 async def list_approval_rules():
     """Standing approvals for the open workspace."""

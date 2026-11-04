@@ -88,6 +88,7 @@
     <button type="button" class="tag-btn" data-tag="KHub Universal Skills">KHub Universal Skills</button>
     <button type="button" class="tag-btn" data-tag="KSpaces Multi-Tenant">KSpaces Multi-Tenant</button>
     <button type="button" class="tag-btn" data-tag="Enterprise Audit">Enterprise Audit</button>
+    <button type="button" class="tag-btn" data-tag="Customer Runner">Customer Runner</button>
     <button type="button" class="tag-btn" data-tag="KStack">KStack Roles</button>
     <button type="button" class="tag-btn" data-tag="KBrain">KBrain Memory</button>
     <button type="button" class="tag-btn" data-tag="KHub">KHub Importer</button>
@@ -298,6 +299,44 @@
         </div>
       </div>
     </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-POST">POST</span>
+          <span class="endpoint-path">/v1/runner/spool/sync</span>
+        </div>
+        <span class="endpoint-tag">Customer Runner</span>
+      </div>
+      <p class="endpoint-desc">Synchronize spooled offline execution traces and audit receipts from customer VPC runners.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box">
+          <div class="schema-label"><span>Request JSON schema:</span></div>
+          <pre class="schema-code">{ "runner_id": "vpc_node_01", "items": [{ "item_id": "...", "item_type": "job_result", "payload": {...} }] }</pre>
+        </div>
+        <div class="schema-box">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "batch_id": "...", "runner_id": "vpc_node_01", "accepted_count": 1, "receipt_sha256": "...", "timestamp_iso": "..." }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-row">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="method-pill method-GET">GET</span>
+          <span class="endpoint-path">/v1/runner/spool/status/{runner_id}</span>
+        </div>
+        <span class="endpoint-tag">Customer Runner</span>
+      </div>
+      <p class="endpoint-desc">Retrieve pending offline spool queue backlog status for a specific customer runner.</p>
+      <div class="endpoint-schemas">
+        <div class="schema-box" style="grid-column: 1 / -1;">
+          <div class="schema-label"><span>Response JSON:</span></div>
+          <pre class="schema-code">{ "runner_id": "vpc_node_01", "pending_count": 0, "total_spooled": 12 }</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -383,6 +422,19 @@ const ENDPOINT_EXTRA = {
     desc: "Cryptographically verify a Merkle inclusion proof against a root hash.",
     req: '{ "leaf_hash": "...", "proof": [...], "root_hash": "..." }',
     res: '{ "valid": true }'
+  },
+  "/v1/runner/spool/sync": {
+    method: "POST",
+    tags: ["Customer Runner"],
+    desc: "Synchronize spooled offline execution traces and audit receipts from customer VPC runners.",
+    req: '{ "runner_id": "vpc_node_01", "items": [{ "item_id": "...", "item_type": "job_result", "payload": {...} }] }',
+    res: '{ "batch_id": "...", "runner_id": "vpc_node_01", "accepted_count": 1, "receipt_sha256": "...", "timestamp_iso": "..." }'
+  },
+  "/v1/runner/spool/status/{runner_id}": {
+    method: "GET",
+    tags: ["Customer Runner"],
+    desc: "Retrieve pending offline spool queue backlog status for a specific customer runner.",
+    res: '{ "runner_id": "vpc_node_01", "pending_count": 0, "total_spooled": 12 }'
   }
 };
 

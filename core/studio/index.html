@@ -874,6 +874,23 @@
             <pre id="merkle-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- Customer VPC Runner Spool Monitor Card -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="spool-card-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="spool-card-title" class="font-semibold">Customer VPC Outbound Runner &amp; Offline Spool</h3>
+            <span class="step-chip text-accent border-accent/50">Air-Gap Fault Tolerant</span>
+          </div>
+          <div id="lab-runner-spool" class="space-y-3">
+            <p class="text-xs text-ide-muted">Monitor outbound runner connectivity, inspect offline spooled task execution traces, and force batch synchronization with cryptographic receipts.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <input id="spool-runner-id" class="input w-48 font-mono text-xs" placeholder="runner_id (default: vpc_us_east_1)" value="vpc_us_east_1">
+              <button id="spool-status-btn" type="button" class="btn-primary h-8 text-xs">Check Spool Backlog</button>
+              <button id="spool-flush-btn" type="button" class="btn-outline h-8 text-xs">Simulate Batch Sync</button>
+            </div>
+            <pre id="spool-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>
