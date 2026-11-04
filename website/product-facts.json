@@ -138,7 +138,7 @@
     },
     "investor_evidence_room": {
       "status": "AVAILABLE",
-      "claim": "Cryptographically sealed evidence room linking Git commits, 645 tests, golden benchmarks, NIST air-gap, and CycloneDX SBOM",
+      "claim": "Cryptographically sealed evidence room linking Git commits, 682 tests, golden benchmarks, NIST air-gap, and CycloneDX SBOM",
       "evidence_test": "tests/test_evidence_room.py",
       "code_path": "core/eval/evidence_room.py"
     },
@@ -165,6 +165,48 @@
       "claim": "Cross-machine encrypted task sync, monotonic vector clocks, and self-contained team web console",
       "evidence_test": "tests/test_sync_engine.py",
       "code_path": "core/sync/engine.py, web-console/index.html"
+    },
+    "deterministic_flight_replay": {
+      "status": "AVAILABLE",
+      "claim": "Interactive deterministic flight replay visualizer with frame stepping, AST mutation inspection, and tamper-evident SHA-256 seals",
+      "evidence_test": "tests/test_flight_recorder.py",
+      "code_path": "core/orchestration/flight_recorder.py, core/studio/assets/studio.js"
+    },
+    "sovereign_economics_and_rate_cards": {
+      "status": "AVAILABLE",
+      "claim": "Multi-provider token rate cards, local GPU arbitrage ROI calculation, Sovereign Efficiency Index (SEI), and budget alerts",
+      "evidence_test": "tests/test_model_economics.py",
+      "code_path": "core/models/cost_ledger.py"
+    },
+    "kstack_role_skills_architecture": {
+      "status": "AVAILABLE",
+      "claim": "Composable role skills architecture with first-party plan, review, qa, and security workflows, permission tiers, and signed execution proofs",
+      "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
+      "code_path": "core/kstack/registry.py, core/kstack/models.py"
+    },
+    "kbrain_scope_governed_knowledge_memory": {
+      "status": "AVAILABLE",
+      "claim": "Scope-governed fact and decision memory with DLP credential leak prevention, immutable SHA-256 revisions, and conflict detection",
+      "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
+      "code_path": "core/kbrain/store.py, core/kbrain/models.py"
+    },
+    "khub_universal_skills_importer": {
+      "status": "AVAILABLE",
+      "claim": "Cross-platform skill importer with non-executable prompt rule isolation, upstream drift tracking, and human execution gates",
+      "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
+      "code_path": "core/khub/importer.py, core/khub/models.py"
+    },
+    "kspaces_collaborative_team_workspaces": {
+      "status": "AVAILABLE",
+      "claim": "Multi-tenant team spaces with RBAC, time-bound agent service accounts, line-anchored review comments, and Agent Manager merge gates",
+      "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
+      "code_path": "core/kspaces/manager.py, core/kspaces/models.py"
+    },
+    "kflow_deterministic_dag_orchestration": {
+      "status": "AVAILABLE",
+      "claim": "Budget-capped DAG engine with exact Git base-commit SHA drift verification and cryptographically sealed ProofPackets",
+      "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
+      "code_path": "core/kflow/engine.py, core/kflow/models.py"
     }
   }
 }
