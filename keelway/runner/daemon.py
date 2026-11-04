@@ -28,15 +28,17 @@ class CustomerRunnerDaemon:
         self,
         runner_id: str,
         org_id: str,
-        secret_key: bytes,
+        secret_key: Optional[bytes] = None,
         control_plane_url: str = "http://127.0.0.1:8000",
         allowed_repos: Optional[List[str]] = None,
+        repo_dir: str = ".",
     ):
         self.runner_id = runner_id
         self.org_id = org_id
-        self.secret_key = secret_key
+        self.secret_key = secret_key or hashlib.sha256(f"{org_id}:{runner_id}".encode()).digest()
         self.control_plane_url = control_plane_url
         self.allowed_repos = allowed_repos or ["*"]
+        self.repo_dir = repo_dir
         self.status = "IDLE"
         self._local_spool: List[Dict[str, Any]] = []
 
@@ -171,4 +173,25 @@ class CustomerRunnerDaemon:
             pass
 
         return summary
+
+    def start(self, poll_interval: float = 5.0, max_iterations: Optional[int] = None):
+        """Runs the continuous outbound polling loop until interrupted or max_iterations reached."""
+        import time
+        print(f"[+] Outbound Runner Daemon active for org '{self.org_id}' on node '{self.runner_id}'")
+        print(f"    Control Plane:    {self.control_plane_url}")
+        print(f"    Working Repo:     {self.repo_dir}")
+        print(f"    Polling Interval: {poll_interval}s\n")
+        iterations = 0
+        try:
+            while max_iterations is None or iterations < max_iterations:
+                summary = self.poll_and_execute_once()
+                if summary:
+                    print(f"[✓] Executed job {summary.get('run_id')} (Status: {summary.get('status')})")
+                iterations += 1
+                time.sleep(poll_interval)
+        except KeyboardInterrupt:
+            print("\n[-] Runner daemon shutting down gracefully.")
+
+
+OutboundRunnerDaemon = CustomerRunnerDaemon
 

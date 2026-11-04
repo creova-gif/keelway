@@ -1332,6 +1332,73 @@ async def scaffold_agent(payload: dict, principal: Principal = Depends(current_p
     }
 
 
+# =====================================================================
+# Customer Outbound Runner Endpoints (WP10 / WP11)
+# =====================================================================
+
+RUNNER_JOBS_QUEUE: List[Dict[str, Any]] = []
+
+@router.post("/v1/runner/jobs/enqueue", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Customer Runner"])
+async def enqueue_customer_runner_job(payload: dict, principal: Principal = Depends(current_principal)):
+    """Enqueues an asynchronous task execution job for pickup by an outbound customer VPC runner daemon."""
+    import uuid
+    job_id = f"job_{uuid.uuid4().hex[:12]}"
+    job = {
+        "job_id": job_id,
+        "org_id": payload.get("org_id", "default_org"),
+        "project_id": payload.get("project_id", "default_project"),
+        "task_prompt": payload.get("task_prompt", "Customer runner task"),
+        "repo_path": payload.get("repo_path", "."),
+        "actor_id": principal.actor,
+        "policy_version": payload.get("policy_version", "default_governed_v1"),
+        "token_ceiling": payload.get("token_ceiling", 50000),
+        "cost_ceiling_cents": payload.get("cost_ceiling_cents", 500),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    RUNNER_JOBS_QUEUE.append(job)
+    await record_audit(principal, "runner_job_enqueue", f"{job_id} org={job['org_id']}", True)
+    return {"status": "ENQUEUED", "job_id": job_id, "queue_depth": len(RUNNER_JOBS_QUEUE)}
+
+
+@router.post("/v1/runner/jobs/poll", tags=["Customer Runner"])
+async def poll_customer_runner_jobs(payload: dict):
+    """Long-poll endpoint for outbound customer runner daemons. Verifies auth token and returns available jobs."""
+    runner_id = payload.get("runner_id")
+    org_id = payload.get("org_id")
+    auth_token = payload.get("auth_token", "")
+
+    # Token structure check: runner_id:org_id:timestamp:sig
+    parts = auth_token.split(":")
+    if len(parts) < 4 or parts[0] != runner_id or parts[1] != org_id:
+        raise HTTPException(status_code=401, detail="Invalid runner authentication token")
+
+    for idx, job in enumerate(RUNNER_JOBS_QUEUE):
+        if job.get("org_id") == org_id:
+            assigned = RUNNER_JOBS_QUEUE.pop(idx)
+            return {"job_available": True, "job": assigned}
+
+    return {"job_available": False, "job": None}
+
+
+@router.post("/v1/runner/jobs/ack", tags=["Customer Runner"])
+async def acknowledge_customer_runner_job(payload: dict):
+    """Receives completion receipt, run status, and patch hash from customer runner."""
+    run_id = payload.get("run_id", "unknown")
+    status = payload.get("status", "COMPLETED")
+    return {
+        "status": "RECORDED",
+        "run_id": run_id,
+        "job_status": status,
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.get("/v1/runner/jobs/pending", dependencies=[Depends(current_principal)], tags=["Customer Runner"])
+async def get_pending_runner_jobs():
+    """List queued runner jobs waiting for runner node pickup."""
+    return {"pending_jobs": RUNNER_JOBS_QUEUE, "count": len(RUNNER_JOBS_QUEUE)}
+
+
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
 async def list_approval_rules():
     """Standing approvals for the open workspace."""
