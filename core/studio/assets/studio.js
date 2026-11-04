@@ -486,35 +486,230 @@ async function runConsole(e) {
   }
 }
 
-// ---------- flight recorder ----------
+// ---------- flight recorder & deterministic replay visualizer ----------
+let flightReplayTimer = null;
+
 async function loadTapes() {
   try {
     const { tapes } = await api('/v1/flight/tapes');
     state.tapes = tapes.map((x) => x.task_id).sort();
     const sel = $('tape-select');
     sel.replaceChildren(...(state.tapes.length ? state.tapes.map((id) => h('option', { value: id }, id)) : [h('option', { value: '' }, t('noTapes'))]));
-    if (state.tapes.length) { const id = state.tapes.includes(state.tapeId) ? state.tapeId : state.tapes[state.tapes.length - 1]; sel.value = id; await loadTape(id); }
-    else { $('flight-events').replaceChildren(); $('flight-payload').textContent = ''; }
+    if (state.tapes.length) {
+      const id = state.tapes.includes(state.tapeId) ? state.tapeId : state.tapes[state.tapes.length - 1];
+      sel.value = id;
+      await loadTape(id);
+    } else {
+      $('flight-events').replaceChildren();
+      if ($('flight-visual-container')) $('flight-visual-container').replaceChildren();
+      $('flight-payload').textContent = '';
+      if ($('flight-seal-badge')) $('flight-seal-badge').textContent = 'NO TAPES';
+    }
   } catch { /* noop */ }
 }
+
 async function loadTape(id) {
   if (!id) return;
+  if (flightReplayTimer) { clearInterval(flightReplayTimer); flightReplayTimer = null; updatePlayButton(); }
   try {
-    state.tape = await api(`/v1/flight/tape/${encodeURIComponent(id)}`); state.tapeId = id;
-    const n = state.tape.events.length;
-    const sc = $('flight-scrubber'); sc.max = String(Math.max(n - 1, 0)); sc.disabled = n === 0; $('flight-fork').disabled = n === 0;
+    state.tape = await api(`/v1/flight/tape/${encodeURIComponent(id)}`);
+    state.tapeId = id;
+    const n = state.tape.events ? state.tape.events.length : 0;
+    const sc = $('flight-scrubber');
+    if (sc) { sc.max = String(Math.max(n - 1, 0)); sc.disabled = n === 0; }
+    if ($('flight-fork')) $('flight-fork').disabled = n === 0;
+    if ($('flight-first')) $('flight-first').disabled = n === 0;
+    if ($('flight-prev')) $('flight-prev').disabled = n === 0;
+    if ($('flight-play')) $('flight-play').disabled = n === 0;
+    if ($('flight-next')) $('flight-next').disabled = n === 0;
+    if ($('flight-last')) $('flight-last').disabled = n === 0;
+
+    const hash = state.tape.tape_sha256;
+    const sealEl = $('flight-seal-badge');
+    if (sealEl) {
+      if (hash) {
+        sealEl.textContent = `SEALED ${hash.slice(0, 10)}…`;
+        sealEl.className = 'chip border-ok/50 text-ok text-[10px] font-mono';
+        sealEl.title = `Cryptographic SHA-256 seal: ${hash}`;
+      } else {
+        sealEl.textContent = 'UNSEALED';
+        sealEl.className = 'chip border-warn/50 text-warn text-[10px] font-mono';
+      }
+    }
     seek(n ? n - 1 : 0);
   } catch (err) { toast(err.message, 'err'); }
 }
-const EVT_TONE = { prompt: 'text-accent', model_response: 'text-ide-fg', tool_call: 'text-warn', tool_result: 'text-ok', state_transition: 'text-ide-muted', approval_requested: 'text-warn', approval_denied: 'text-danger' };
+
+function updatePlayButton() {
+  const icon = $('flight-play-icon');
+  const text = $('flight-play-text');
+  if (icon && text) {
+    if (flightReplayTimer) {
+      icon.textContent = '⏸';
+      text.textContent = 'Pause';
+    } else {
+      icon.textContent = '▶';
+      text.textContent = 'Play';
+    }
+  }
+}
+
+function toggleFlightReplay() {
+  const evs = state.tape ? state.tape.events : [];
+  if (!evs.length) return;
+  if (flightReplayTimer) {
+    clearInterval(flightReplayTimer);
+    flightReplayTimer = null;
+    updatePlayButton();
+    return;
+  }
+  if (state.cursor >= evs.length - 1) {
+    seek(0);
+  }
+  updatePlayButton();
+  flightReplayTimer = setInterval(() => {
+    if (state.cursor < evs.length - 1) {
+      seek(state.cursor + 1);
+    } else {
+      clearInterval(flightReplayTimer);
+      flightReplayTimer = null;
+      updatePlayButton();
+    }
+  }, 750);
+  updatePlayButton();
+}
+
+const EVT_TONE = {
+  prompt: 'text-accent',
+  model_response: 'text-ide-fg',
+  tool_call: 'text-warn',
+  tool_result: 'text-ok',
+  state_transition: 'text-ide-muted',
+  approval_requested: 'text-warn',
+  approval_granted: 'text-ok',
+  approval_denied: 'text-danger',
+  plan_initialized: 'text-accent',
+  plan_synthesized: 'text-accent',
+  scaffolding_completed: 'text-ok',
+  verification_executed: 'text-ok',
+};
+
+function renderDiffLines(target, replacement) {
+  const container = h('div', { class: 'rounded border border-ide-border bg-ide-sidebar font-mono text-[11px] p-2 space-y-0.5 overflow-x-auto' });
+  if (target) {
+    target.split('\n').filter(Boolean).forEach((line) => {
+      container.appendChild(h('div', { class: 'text-danger bg-danger/10 px-1 rounded-sm' }, `- ${line}`));
+    });
+  }
+  if (replacement) {
+    replacement.split('\n').filter(Boolean).forEach((line) => {
+      container.appendChild(h('div', { class: 'text-ok bg-ok/10 px-1 rounded-sm' }, `+ ${line}`));
+    });
+  }
+  return container;
+}
+
+function renderVisualEvent(ev) {
+  const c = $('flight-visual-container');
+  if (!c) return;
+  c.replaceChildren();
+
+  const p = ev.payload || {};
+  const headerCard = h('div', { class: 'p-2.5 rounded border border-ide-border bg-ide-sidebar flex items-center justify-between' },
+    h('div', { class: 'flex items-center gap-2' },
+      h('span', { class: 'font-mono text-xs font-semibold' }, `#${ev.event_index}`),
+      h('span', { class: `chip font-mono text-[11px] ${EVT_TONE[ev.event_type] || 'text-ide-fg'} border-ide-border` }, ev.event_type)
+    ),
+    h('span', { class: 'font-mono text-[10.5px] text-ide-muted' }, ev.timestamp_utc ? new Date(ev.timestamp_utc * 1000).toLocaleTimeString() : '')
+  );
+  c.appendChild(headerCard);
+
+  if (p.tool_name || (ev.event_type && ev.event_type.startsWith('tool:'))) {
+    const toolName = p.tool_name || ev.event_type.replace('tool:', '');
+    const toolCard = h('div', { class: 'p-3 rounded border border-ide-border bg-ide-bg space-y-2' },
+      h('div', { class: 'flex items-center justify-between text-xs font-mono font-medium text-warn' },
+        h('span', {}, `Tool: ${toolName}`),
+        p.is_mutation ? h('span', { class: 'chip border-warn/40 text-warn bg-warn/10 text-[10px]' }, 'AST Mutation') : null
+      )
+    );
+    if (p.arguments) {
+      if (p.arguments.path) {
+        toolCard.appendChild(h('div', { class: 'font-mono text-[11px] text-ide-muted' }, `Path: ${p.arguments.path}`));
+      }
+      if (p.arguments.target !== undefined || p.arguments.replacement !== undefined) {
+        toolCard.appendChild(h('div', { class: 'text-[11px] font-semibold text-ide-muted mt-1' }, 'Diff / AST Replacement:'));
+        toolCard.appendChild(renderDiffLines(p.arguments.target, p.arguments.replacement));
+      } else if (p.arguments.content !== undefined) {
+        toolCard.appendChild(h('div', { class: 'text-[11px] font-semibold text-ide-muted mt-1' }, 'File Content Written:'));
+        toolCard.appendChild(h('pre', { class: 'p-2 rounded bg-ide-sidebar text-ide-muted text-[10.5px] font-mono max-h-40 overflow-y-auto whitespace-pre-wrap' }, String(p.arguments.content).slice(0, 500) + (p.arguments.content.length > 500 ? '…' : '')));
+      } else if (p.arguments.command !== undefined) {
+        toolCard.appendChild(h('div', { class: 'p-2 rounded bg-black/40 text-ok font-mono text-[11px]' }, `$ ${p.arguments.command}`));
+      }
+    }
+    if (p.result) {
+      toolCard.appendChild(h('div', { class: 'text-[11px] font-semibold text-ide-muted mt-2' }, 'Result:'));
+      toolCard.appendChild(h('pre', { class: 'p-2 rounded bg-ide-sidebar text-ide-muted text-[10.5px] font-mono max-h-36 overflow-y-auto whitespace-pre-wrap' }, JSON.stringify(p.result, null, 2)));
+    }
+    c.appendChild(toolCard);
+  } else if (ev.event_type === 'verification_executed') {
+    const verifCard = h('div', { class: 'p-3 rounded border border-ide-border bg-ide-bg space-y-2' },
+      h('div', { class: 'flex items-center justify-between text-xs font-mono font-medium' },
+        h('span', { class: p.passed ? 'text-ok' : 'text-danger' }, p.passed ? '✓ Tests Passed' : '✗ Tests Failed'),
+        h('span', { class: 'text-ide-muted text-[11px]' }, `Exit: ${p.exit_code} · ${Number(p.duration_ms || 0).toFixed(1)} ms`)
+      ),
+      p.test_command ? h('div', { class: 'p-1.5 rounded bg-black/40 text-ide-muted font-mono text-[10.5px]' }, `$ ${p.test_command}`) : null,
+      p.output ? h('pre', { class: 'p-2 rounded bg-ide-sidebar text-[10.5px] font-mono max-h-44 overflow-y-auto text-ide-muted whitespace-pre-wrap' }, p.output) : null
+    );
+    c.appendChild(verifCard);
+  } else if (ev.event_type === 'plan_synthesized' || ev.event_type === 'plan_initialized') {
+    const planCard = h('div', { class: 'p-3 rounded border border-ide-border bg-ide-bg space-y-2' },
+      h('div', { class: 'font-semibold text-xs text-accent' }, p.goal || p.intent || 'Architecture Plan'),
+      p.template ? h('div', { class: 'text-[11px] font-mono text-ide-muted' }, `Template: ${p.template}`) : null,
+      p.files_planned ? h('div', { class: 'space-y-1' },
+        h('div', { class: 'text-[11px] text-ide-muted font-medium' }, `Planned Files (${p.files_planned.length}):`),
+        h('ul', { class: 'list-disc list-inside font-mono text-[10.5px] text-ide-fg' },
+          ...p.files_planned.slice(0, 10).map((f) => h('li', {}, f))
+        )
+      ) : null
+    );
+    c.appendChild(planCard);
+  } else {
+    const genericCard = h('div', { class: 'p-3 rounded border border-ide-border bg-ide-bg' },
+      h('pre', { class: 'font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-60 overflow-y-auto' }, JSON.stringify(p, null, 2))
+    );
+    c.appendChild(genericCard);
+  }
+}
+
 function seek(i) {
   const evs = state.tape ? state.tape.events : [];
   state.cursor = Math.max(0, Math.min(i, evs.length - 1));
-  $('flight-scrubber').value = String(state.cursor);
-  $('flight-step').textContent = `${evs.length ? state.cursor + 1 : 0} / ${evs.length}`;
-  $('flight-events').replaceChildren(...evs.map((ev, idx) => h('li', {}, h('button', { type: 'button', 'aria-current': idx === state.cursor ? 'step' : null, class: `w-full text-start px-2 py-0.5 rounded font-mono text-[11px] ${idx === state.cursor ? 'bg-accent/15' : idx > state.cursor ? 'opacity-40' : ''} ${EVT_TONE[ev.event_type] || ''}`, onclick: () => seek(idx) }, `#${idx + 1} ${ev.event_type}`))));
-  $('flight-payload').textContent = evs.length ? JSON.stringify(evs[state.cursor], null, 2) : '';
+  const sc = $('flight-scrubber');
+  if (sc) sc.value = String(state.cursor);
+  const stepEl = $('flight-step');
+  if (stepEl) stepEl.textContent = `${evs.length ? state.cursor + 1 : 0} / ${evs.length}`;
+
+  $('flight-events').replaceChildren(...evs.map((ev, idx) =>
+    h('li', {},
+      h('button', {
+        type: 'button',
+        'aria-current': idx === state.cursor ? 'step' : null,
+        class: `w-full text-start px-2 py-0.5 rounded font-mono text-[11px] ${idx === state.cursor ? 'bg-accent/15 font-semibold' : idx > state.cursor ? 'opacity-40' : ''} ${EVT_TONE[ev.event_type] || ''}`,
+        onclick: () => seek(idx)
+      }, `#${idx + 1} ${ev.event_type}`)
+    )
+  ));
+
+  const curEv = evs[state.cursor];
+  if (curEv) {
+    renderVisualEvent(curEv);
+    $('flight-payload').textContent = JSON.stringify(curEv, null, 2);
+  } else {
+    if ($('flight-visual-container')) $('flight-visual-container').replaceChildren();
+    $('flight-payload').textContent = '';
+  }
 }
+
 async function forkTape() {
   try {
     const r = await api('/v1/flight/fork', { method: 'POST', body: { task_id: state.tapeId, at_index: state.cursor + 1 } });
@@ -1049,6 +1244,12 @@ async function loadCostLedger() {
     if ($('econ-latency')) $('econ-latency').textContent = `${summary.latency_p50_ms || 0} / ${summary.latency_p95_ms || 0} ms`;
     if ($('econ-local-dur')) $('econ-local-dur').textContent = `${(summary.total_local_duration_ms || 0).toFixed(1)} ms device runtime`;
 
+    try {
+      const econ = await api('/v1/models/economics');
+      if ($('econ-sei-badge')) $('econ-sei-badge').textContent = `SEI ${econ.sovereign_efficiency_index !== undefined ? econ.sovereign_efficiency_index : 100}/100`;
+      if ($('econ-roi-badge')) $('econ-roi-badge').textContent = `${econ.sovereign_roi_percent !== undefined ? Number(econ.sovereign_roi_percent).toFixed(0) : 100}% ROI`;
+    } catch { /* quiet fail */ }
+
     if (!entries.length) {
       tbody.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-ide-muted font-mono">No model inferences recorded in ledger yet. Run chat, agent, or evaluation tasks to populate.</td></tr>';
       return;
@@ -1451,6 +1652,25 @@ function wire() {
   $('tape-select').addEventListener('change', (e) => loadTape(e.target.value));
   $('flight-scrubber').addEventListener('input', (e) => seek(Number(e.target.value)));
   $('flight-fork').addEventListener('click', forkTape);
+  if ($('flight-first')) $('flight-first').addEventListener('click', () => seek(0));
+  if ($('flight-prev')) $('flight-prev').addEventListener('click', () => seek(state.cursor - 1));
+  if ($('flight-play')) $('flight-play').addEventListener('click', toggleFlightReplay);
+  if ($('flight-next')) $('flight-next').addEventListener('click', () => seek(state.cursor + 1));
+  if ($('flight-last')) $('flight-last').addEventListener('click', () => seek(state.tape ? state.tape.events.length - 1 : 0));
+  if ($('flight-tab-visual-btn') && $('flight-tab-raw-btn')) {
+    $('flight-tab-visual-btn').addEventListener('click', () => {
+      if ($('flight-visual-container')) $('flight-visual-container').classList.remove('hidden');
+      if ($('flight-payload')) $('flight-payload').classList.add('hidden');
+      $('flight-tab-visual-btn').className = 'chip border-accent text-accent font-medium text-[10px]';
+      $('flight-tab-raw-btn').className = 'chip border-ide-border text-ide-muted text-[10px]';
+    });
+    $('flight-tab-raw-btn').addEventListener('click', () => {
+      if ($('flight-visual-container')) $('flight-visual-container').classList.add('hidden');
+      if ($('flight-payload')) $('flight-payload').classList.remove('hidden');
+      $('flight-tab-raw-btn').className = 'chip border-accent text-accent font-medium text-[10px]';
+      $('flight-tab-visual-btn').className = 'chip border-ide-border text-ide-muted text-[10px]';
+    });
+  }
   $('heal-form').addEventListener('submit', runHeal);
   $('pay-form').addEventListener('submit', buildIntent);
   $('audit-verify').addEventListener('click', verifyAudit);

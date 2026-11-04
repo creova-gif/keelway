@@ -1787,6 +1787,15 @@ async def export_model_cost_ledger(
     )
 
 
+@router.get("/v1/models/economics", tags=["Models"])
+async def get_model_economics(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve comprehensive sovereign AI economics report, including local-first arbitrage savings, ROI analytics, and rate card breakdown."""
+    from core.models.cost_ledger import cost_ledger
+    return cost_ledger.get_economics_report()
+
+
 @router.post("/v1/models/ledger/reset", tags=["Models"])
 async def reset_model_cost_ledger(
     principal: Principal = Depends(current_principal),

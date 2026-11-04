@@ -1778,6 +1778,66 @@ def cmd_models(action: str, export_path: Optional[Path] = None, format_type: str
     return 0
 
 
+def cmd_cost(
+    summary_only: bool = False,
+    json_out: bool = False,
+    export_path: Optional[Path] = None,
+    format_type: str = "jsonl",
+    reset: bool = False,
+) -> int:
+    """Inspect model economics, token rate cards, sovereign arbitrage savings, and ROI analytics."""
+    import json
+    from core.models.cost_ledger import cost_ledger
+
+    if reset:
+        cost_ledger.reset()
+        print("[+] Model cost ledger and economics ledger successfully reset.")
+        return 0
+
+    if export_path is not None:
+        data = cost_ledger.export(format_type)
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        export_path.write_text(data, encoding="utf-8")
+        print(f"[+] Model economics ledger exported to '{export_path}' (format: {format_type}).")
+        return 0
+
+    econ = cost_ledger.get_economics_report()
+    if json_out:
+        print(json.dumps(econ, indent=2))
+        return 0
+
+    print("=" * 80)
+    print("  KEELWAY SOVEREIGN MODEL ECONOMICS & COST OBSERVABILITY")
+    print(f"  Price Source: {econ['price_source_version']} | Arbitrage Baseline: {econ['savings_baseline_model']}")
+    print("=" * 80)
+    print(f"  Total Inferences:          {econ['total_inferences']}")
+    print(f"  Sovereign Ratio:           {econ['local_inference_ratio'] * 100:.1f}% Local Autonomy [no billed external API tokens]")
+    print(f"  Sovereign Efficiency Idx: {econ['sovereign_efficiency_index']:.1f} / 100.0 (Autonomy + Cost Containment + Latency)")
+    print(f"  Total Tokens:              {econ['total_tokens']:,} ({econ['total_prompt_tokens']:,} in / {econ['total_completion_tokens']:,} out)")
+    print(f"  Billed Cloud Expenditure:  ${econ['billed_cloud_expenditure_usd']:.6f} USD")
+    print(f"  Local Arbitrage Savings:   ${econ['quantified_local_savings_usd']:.6f} USD")
+    print(f"  Net Economic Benefit:      ${econ['net_economic_benefit_usd']:.6f} USD (ROI: {econ['sovereign_roi_percent']:.1f}%)")
+    print(f"  Projected Annual Savings:  ${econ['projections']['projected_annual_savings_usd']:,.2f} USD")
+    lat = econ["latency_percentiles"]
+    print(f"  Latency Percentiles:       p50: {lat['p50_ms']} ms | p90: {lat['p90_ms']} ms | p95: {lat['p95_ms']} ms | p99: {lat['p99_ms']} ms")
+
+    if not summary_only:
+        print("-" * 80)
+        print(f"  {'Model / Provider':<28} {'Calls':<7} {'Tokens':<12} {'Ext Cost':<12} {'Savings':<10} {'p50 (ms)':<9}")
+        print("-" * 80)
+        for m_key, m_data in econ["by_model"].items():
+            print(f"  {m_key:<28} {m_data['inferences']:<7} {m_data['total_tokens']:<12,} "
+                  f"${m_data['cost_usd']:<11.4f} ${m_data['savings_usd']:<9.4f} {m_data['latency_p50_ms']:<9.1f}")
+        if not econ["by_model"]:
+            print("  (no individual model inferences recorded yet)")
+        print("-" * 80)
+        print("  Rate Cards (per 1M tokens USD):")
+        for r_name, r_rate in list(econ["rate_cards"].items())[:6]:
+            print(f"    • {r_name:<20}: in=${r_rate['input_per_mtok_usd']:.2f} / out=${r_rate['output_per_mtok_usd']:.2f}")
+    print("=" * 80)
+    return 0
+
+
 async def cmd_team(action: str, goal: str, auto_approve: bool = True) -> int:
     """Multi-agent crew orchestration: DAG planning and deterministic execution."""
     from core.orchestration.multi_agent import MultiAgentCoordinator
@@ -2349,6 +2409,14 @@ def main():
     m1_parser = subparsers.add_parser("m1", help="Validate Milestone M1: 10-stage end-to-end developer workflow")
     m1_parser.add_argument("--repo", default=None, help="Target local repository folder (default: fresh isolated demo repo)")
 
+    # cost (Model Economics, Rate Cards & Arbitrage ROI)
+    cost_parser = subparsers.add_parser("cost", help="Model economics, token rate cards, local arbitrage savings, and ROI analytics")
+    cost_parser.add_argument("--summary", action="store_true", help="Print summary without per-model breakdown")
+    cost_parser.add_argument("--json", action="store_true", help="Output full economics report as JSON")
+    cost_parser.add_argument("--export", type=Path, default=None, help="Export ledger to a file")
+    cost_parser.add_argument("--format", choices=["json", "jsonl", "csv"], default="jsonl", help="Export format")
+    cost_parser.add_argument("--reset", action="store_true", help="Reset ledger entries")
+
     # models (Model Economics & Cost Ledger)
     models_parser = subparsers.add_parser("models", help="Inspect model routing, cost accounting, and economics ledger")
     models_sub = models_parser.add_subparsers(dest="models_command", required=True)
@@ -2627,6 +2695,16 @@ def main():
     elif args.command == "m1":
         from core.m1_slice import run_m1_cli
         sys.exit(asyncio.run(run_m1_cli(args.repo)))
+    elif args.command == "cost":
+        sys.exit(
+            cmd_cost(
+                summary_only=getattr(args, "summary", False),
+                json_out=getattr(args, "json", False),
+                export_path=getattr(args, "export", None),
+                format_type=getattr(args, "format", "jsonl"),
+                reset=getattr(args, "reset", False),
+            )
+        )
     elif args.command == "models":
         sys.exit(cmd_models(args.models_command, export_path=args.export, format_type=args.format, reset=args.reset))
     elif args.command == "team":

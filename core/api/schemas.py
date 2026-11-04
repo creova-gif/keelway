@@ -15,6 +15,9 @@ class Provider(str, Enum):
     NVIDIA = "nvidia"
     LOCAL = "local"
     OPEN_WEIGHT = "open_weight"
+    DEEPSEEK = "deepseek"
+    OLLAMA = "ollama"
+    VLLM = "vllm"
 
 
 from core.orchestration.state import TaskState
