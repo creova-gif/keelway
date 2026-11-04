@@ -500,8 +500,40 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
 
 
 def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optional[Path] = None) -> int:
-    """Validate, sign, verify, register, or list Agent Manifests (docs/spec/agent-manifest-v1.md)."""
+    """Validate, sign, verify, register, list, or scaffold Agent Manifests (docs/spec/agent-manifest-v1.md)."""
     from core.agents import manifest as am
+
+    if action == "templates":
+        from core.agents.builder import AgentBuilder
+        templates = AgentBuilder.list_templates()
+        print("\n" + "=" * 65)
+        print(f"  📦 KEELWAY AGENT BUILDER TEMPLATES ({len(templates)})")
+        print("=" * 65 + "\n")
+        for t in templates:
+            print(f"  • {t['id']:<20} {t['description']}")
+            print(f"    Autonomy: {t['autonomy']:<18} Max Budget: ${t['max_budget_usd']:.2f}")
+            print(f"    Tools:    {', '.join(t['tools'])}\n")
+        return 0
+
+    if action == "init":
+        async def _init():
+            from core.agents.builder import AgentBuilder
+            tpl_id = str(path) if path else "test-fixer"
+            agent_name = by or tpl_id
+            target = out or (Path.cwd() / "agents" / agent_name)
+            author = os.environ.get("USER", "developer")
+            print(f"[+] Scaffolding agent '{agent_name}' from template '{tpl_id}' into {target}...")
+            spec = AgentBuilder.create_from_template(tpl_id, name=agent_name, author=author)
+            receipt = await AgentBuilder.build_and_register(spec, target_dir=target, register_in_db=True)
+            print(f"[✓] Created {len(receipt.files_created)} files in {target}:")
+            for f in receipt.files_created:
+                print(f"    - {f}")
+            status = "PASSED [OK]" if receipt.tests_passed else "FAILED [!]"
+            print(f"[+] Initial test harness: {status} ({receipt.duration_ms:.2f}ms)")
+            print(f"[+] Manifest digest:      {receipt.manifest_digest[:16]}...")
+            print(f"[+] Build receipt SHA256: {receipt.receipt_sha256[:16]}...\n")
+            return 0 if receipt.tests_passed else 1
+        return asyncio.run(_init())
 
     if action == "list":
         async def _list():
@@ -608,7 +640,7 @@ def cmd_project(action: str, path: Optional[Path] = None) -> int:
         import subprocess
         import time
         from core.security.env_scrub import scrub_env
-        clean_env = scrub_env(dict(os.environ))
+        clean_env, _ = scrub_env(dict(os.environ))
         start_t = time.perf_counter()
         proc = subprocess.run(meta.detected_test_command, shell=True, cwd=meta.root_path, env=clean_env, capture_output=True, text=True)
         dur = (time.perf_counter() - start_t) * 1000
@@ -1245,7 +1277,7 @@ def main():
     pull_parser = subparsers.add_parser("pull", help="Download and verify local LLM into Ollama")
     pull_parser.add_argument("model", nargs="?", default="qwen2.5-coder:7b", help="Model identifier to pull")
 
-    agent_parser = subparsers.add_parser("agent", help="Validate, sign, verify, register or list Agent Manifests")
+    agent_parser = subparsers.add_parser("agent", help="Validate, sign, verify, register, list or scaffold Agent Manifests")
     agent_sub = agent_parser.add_subparsers(dest="agent_command", required=True)
     for _name, _help in (("validate", "Check a manifest file"), ("sign", "Sign a manifest with the workspace key"), ("verify", "Verify a signed manifest"), ("register", "Register a manifest into the local database registry")):
         _p = agent_sub.add_parser(_name, help=_help)
@@ -1254,6 +1286,11 @@ def main():
             _p.add_argument("--by", default="", help="Who is signing (default: $USER)")
             _p.add_argument("--out", type=Path, default=None, help="Write here instead of overwriting the input")
     agent_sub.add_parser("list", help="List all registered agent manifests in the database")
+    agent_sub.add_parser("templates", help="List available built-in agent builder templates")
+    _init = agent_sub.add_parser("init", help="Scaffold a new agent from template and run verification test harness")
+    _init.add_argument("path", nargs="?", default="test-fixer", help="Template ID (default: test-fixer)")
+    _init.add_argument("--by", "--name", dest="by", default="", help="Custom agent name (default: template ID)")
+    _init.add_argument("--out", type=Path, default=None, help="Target scaffolding directory")
 
     project_parser = subparsers.add_parser("project", help="Inspect project runtime, frameworks, and run tests")
     project_sub = project_parser.add_subparsers(dest="project_command", required=True)

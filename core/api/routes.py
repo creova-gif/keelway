@@ -1278,6 +1278,59 @@ async def toggle_registry_manifest(name: str, version: str, payload: dict, princ
         raise HTTPException(status_code=404, detail=str(exc))
 
 
+# =====================================================================
+# Agent Builder Endpoints (Section 12)
+# =====================================================================
+
+@router.get("/v1/agent/builder/templates", dependencies=[Depends(current_principal)], tags=["Agent Builder"])
+async def list_agent_templates():
+    """List built-in agent templates for scaffolding AI agents."""
+    from core.agents.builder import AgentBuilder
+    return {"templates": AgentBuilder.list_templates()}
+
+
+@router.post("/v1/agent/builder/scaffold", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
+async def scaffold_agent(payload: dict, principal: Principal = Depends(current_principal)):
+    """Scaffold a new agent from template or spec, compile manifest, and run initial test harness."""
+    from core.agents.builder import AgentBuilder
+    from core.agents.spec import AgentSpec
+
+    template_id = payload.get("template_id")
+    name = payload.get("name")
+    if not name:
+        raise HTTPException(status_code=400, detail="Missing required 'name' field.")
+
+    target_subpath = payload.get("target_dir", f"agents/{name}")
+    target_dir = Path(_workspace_fs.root) / target_subpath
+
+    if "spec" in payload:
+        try:
+            spec = AgentSpec.from_json(payload["spec"])
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid agent spec: {exc}")
+    elif template_id:
+        try:
+            spec = AgentBuilder.create_from_template(
+                template_id=template_id,
+                name=name,
+                author=principal.actor,
+                overrides=payload.get("overrides"),
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+    else:
+        raise HTTPException(status_code=400, detail="Either 'template_id' or 'spec' must be provided.")
+
+    receipt = await AgentBuilder.build_and_register(spec, target_dir=target_dir, register_in_db=True)
+    await record_audit(principal, "agent_scaffold", f"{spec.name}@{spec.version} -> {target_subpath}", receipt.tests_passed)
+
+    return {
+        "status": "created",
+        "receipt": receipt.to_dict(),
+        "target_dir": str(target_subpath),
+        "manifest": spec.to_manifest_dict(),
+    }
+
 
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
 async def list_approval_rules():
