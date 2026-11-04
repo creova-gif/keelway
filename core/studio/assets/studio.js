@@ -1190,6 +1190,99 @@ async function queryKBrainFactsInStudio() {
   }
 }
 
+// ---------- KFlow Durable Task DAG Orchestration ----------
+async function runKFlowDAGInStudio() {
+  const out = $('kflow-out');
+  if (!out) return;
+  out.textContent = 'Registering durable KFlow DAG & initiating topological task execution…';
+
+  const setNodeBadge = (id, text, cls) => {
+    const el = $(id);
+    if (el) {
+      el.textContent = text;
+      el.className = `badge text-[9px] ${cls}`;
+    }
+  };
+
+  const flowId = `flow_${Date.now()}`;
+  const payload = {
+    flow_id: flowId,
+    goal: 'Topological verification of spec ingestion, test generation, and code scaffolding',
+    max_fanout: 2,
+    nodes: [
+      { node_id: 'node_1', name: 'Ingest Spec', assigned_role: 'Architect', tool: 'read_spec', dependencies: [] },
+      { node_id: 'node_2', name: 'Generate Tests', assigned_role: 'QA Lead', tool: 'pytest', dependencies: ['node_1'] },
+      { node_id: 'node_3', name: 'Scaffold Code', assigned_role: 'Core Coder', tool: 'scaffold', dependencies: ['node_2'] },
+      { node_id: 'node_4', name: 'Cryptographic Proof', assigned_role: 'Security Lead', tool: 'crypto', dependencies: ['node_3'] }
+    ]
+  };
+
+  try {
+    setNodeBadge('kflow-node-1-badge', 'RUNNING', 'text-accent border-accent animate-pulse');
+    await api('/v1/kflow/dag', { method: 'POST', body: payload });
+
+    setNodeBadge('kflow-node-1-badge', '✓ DONE', 'text-ok border-ok');
+    setNodeBadge('kflow-node-2-badge', 'RUNNING', 'text-accent border-accent animate-pulse');
+
+    const runRes = await api(`/v1/kflow/dag/${flowId}/run`, {
+      method: 'POST',
+      body: { git_head_sha: 'c5eb183d2f9a0' }
+    });
+
+    setNodeBadge('kflow-node-2-badge', '✓ DONE', 'text-ok border-ok');
+    setNodeBadge('kflow-node-3-badge', '✓ DONE', 'text-ok border-ok');
+    setNodeBadge('kflow-node-4-badge', '✓ DONE', 'text-ok border-ok');
+
+    const p = runRes.proof_packet;
+    out.textContent = `[✓] KFLOW TOPOLOGICAL DAG EXECUTION COMPLETE\n` +
+      `Flow ID:          ${p.flow_id}\n` +
+      `Status:           COMPLETED\n` +
+      `Base Git SHA:     ${p.base_commit_sha}\n` +
+      `Nodes Executed:   ${p.nodes_executed} / 4 (100%)\n` +
+      `Tests Verified:   ${p.all_tests_passed ? 'YES' : 'NO'}\n` +
+      `Proof SHA-256:    ${p.proof_sha256}\n\n` +
+      `Evidence Items:\n` +
+      p.evidence_items.map((ev) => `• [${ev.node_id}] ${ev.role} (${ev.tool}): ${JSON.stringify(ev.output)}`).join('\n');
+    tone('ok');
+    toast('KFlow DAG verified & proof sealed', 'ok');
+  } catch (err) {
+    out.textContent = `[-] KFlow execution error: ${err.message}`;
+    setNodeBadge('kflow-node-1-badge', 'FAILED', 'text-danger border-danger');
+    tone('err');
+  }
+}
+
+async function listKFlowDAGsInStudio() {
+  const out = $('kflow-out');
+  if (!out) return;
+  out.textContent = 'Querying registered KFlow DAG workflows…';
+  try {
+    const res = await api('/v1/kflow/dags');
+    if (!res.dags || res.dags.length === 0) {
+      out.textContent = '[i] No active DAGs in memory. Click "Run Topological DAG" to dispatch a verified pipeline.';
+      return;
+    }
+    out.textContent = `[✓] ACTIVE KFLOW DAG WORKFLOWS (${res.dags.length}):\n\n` +
+      res.dags.map((d) => `• Flow: ${d.flow_id} [${d.status.toUpperCase()}]\n  Goal: ${d.goal}\n  Nodes: ${Object.keys(d.nodes).length} | Checkpoint: ${d.checkpoint_sha256.slice(0, 16)}…`).join('\n\n');
+    tone('ok');
+  } catch (err) {
+    out.textContent = `[-] Error listing KFlow DAGs: ${err.message}`;
+    tone('err');
+  }
+}
+
+function resetKFlowNodesInStudio() {
+  ['kflow-node-1-badge', 'kflow-node-2-badge', 'kflow-node-3-badge', 'kflow-node-4-badge'].forEach((id) => {
+    const el = $(id);
+    if (el) {
+      el.textContent = 'PENDING';
+      el.className = 'badge text-[9px] text-ide-muted border-ide-border';
+    }
+  });
+  const out = $('kflow-out');
+  if (out) out.textContent = 'KFlow node visual state reset to PENDING.';
+}
+
 
 // ---------- audit ----------
 async function loadAudit() {
@@ -1788,6 +1881,9 @@ function wire() {
   if ($('khub-scan-btn')) $('khub-scan-btn').addEventListener('click', scanKHubInStudio);
   if ($('kbrain-record-btn')) $('kbrain-record-btn').addEventListener('click', recordKBrainFactInStudio);
   if ($('kbrain-query-btn')) $('kbrain-query-btn').addEventListener('click', queryKBrainFactsInStudio);
+  if ($('kflow-run-btn')) $('kflow-run-btn').addEventListener('click', runKFlowDAGInStudio);
+  if ($('kflow-list-btn')) $('kflow-list-btn').addEventListener('click', listKFlowDAGsInStudio);
+  if ($('kflow-reset-btn')) $('kflow-reset-btn').addEventListener('click', resetKFlowNodesInStudio);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

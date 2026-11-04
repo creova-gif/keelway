@@ -2485,5 +2485,103 @@ async def create_kspace(
         raise HTTPException(status_code=409, detail=str(e))
 
 
+@router.get("/v1/kflow/dags", tags=["KFlow"])
+async def list_kflow_dags(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """List all registered KFlow DAG orchestration workflows."""
+    from core.kflow import kflow_engine
+    with kflow_engine._lock:
+        dags = [dag.to_dict() for dag in kflow_engine._flows.values()]
+    return {"dags": dags}
+
+
+@router.post("/v1/kflow/dag", tags=["KFlow"])
+async def create_kflow_dag(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Register a new durable KFlow DAG with nodes, roles, tools, and dependencies."""
+    from core.kflow import kflow_engine, FlowNode
+    flow_id = payload.get("flow_id", "").strip()
+    goal = payload.get("goal", "").strip()
+    nodes_raw = payload.get("nodes", [])
+    max_fanout = int(payload.get("max_fanout", 4))
+
+    if not flow_id or not goal:
+        raise HTTPException(status_code=400, detail="Fields 'flow_id' and 'goal' are required.")
+
+    flow_nodes = []
+    for nr in nodes_raw:
+        flow_nodes.append(
+            FlowNode(
+                node_id=nr.get("node_id", ""),
+                name=nr.get("name", nr.get("node_id", "")),
+                assigned_role=nr.get("assigned_role", "core_engineer"),
+                tool=nr.get("tool", "bash"),
+                inputs=nr.get("inputs", {}),
+                dependencies=nr.get("dependencies", []),
+                exact_base_sha=nr.get("exact_base_sha", ""),
+            )
+        )
+
+    try:
+        dag = kflow_engine.create_dag(flow_id=flow_id, goal=goal, nodes=flow_nodes, max_fanout=max_fanout)
+        return dag.to_dict()
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.get("/v1/kflow/dag/{flow_id}", tags=["KFlow"])
+async def get_kflow_dag(
+    flow_id: str,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve details and status for a specific KFlow DAG."""
+    from core.kflow import kflow_engine
+    dag = kflow_engine.get_flow(flow_id)
+    if not dag:
+        raise HTTPException(status_code=404, detail=f"Flow DAG '{flow_id}' not found.")
+    return dag.to_dict()
+
+
+@router.post("/v1/kflow/dag/{flow_id}/run", tags=["KFlow"])
+async def run_kflow_dag(
+    flow_id: str,
+    payload: Optional[Dict[str, Any]] = None,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Execute a durable KFlow DAG in topological order, asserting base SHA and assembling proof packet."""
+    from core.kflow import kflow_engine
+    dag = kflow_engine.get_flow(flow_id)
+    if not dag:
+        raise HTTPException(status_code=404, detail=f"Flow DAG '{flow_id}' not found.")
+
+    current_git_head_sha = (payload or {}).get("git_head_sha", "c5eb183d2f9a0")
+    try:
+        proof = kflow_engine.execute_dag(flow_id=flow_id, current_git_head_sha=current_git_head_sha)
+        return {
+            "status": "completed",
+            "proof_packet": proof.to_dict(),
+            "dag": dag.to_dict(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/v1/kflow/dag/{flow_id}/cancel", tags=["KFlow"])
+async def cancel_kflow_dag(
+    flow_id: str,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Cancel a running or pending KFlow DAG."""
+    from core.kflow import kflow_engine
+    success = kflow_engine.cancel_flow(flow_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Flow DAG '{flow_id}' not found.")
+    return {"status": "cancelled", "flow_id": flow_id}
+
+
+
 
 

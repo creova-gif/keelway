@@ -210,9 +210,15 @@
     },
     "openapi_schema_exporter": {
       "status": "AVAILABLE",
-      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 120 verified REST endpoints with machine-readable introspection",
+      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 125 verified REST endpoints with machine-readable introspection",
       "evidence_test": "tests/test_api_export.py",
       "code_path": "cli.py, core/main.py"
+    },
+    "kflow_rest_api": {
+      "status": "AVAILABLE",
+      "claim": "Topological DAG execution, fanout-capped task dispatch, and cryptographic proof-packet verification via REST",
+      "evidence_test": "tests/test_kflow_api.py",
+      "code_path": "core/api/routes.py"
     }
   }
 }

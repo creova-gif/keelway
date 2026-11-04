@@ -723,6 +723,57 @@
             <pre id="kbrain-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+
+        <!-- KFlow Durable Task DAG Orchestration & Proof Packet -->
+        <section class="card p-4 space-y-2 lg:col-span-2" aria-labelledby="kflow-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="kflow-title" class="font-semibold">KFlow Durable Task DAG Orchestrator</h3>
+            <span class="step-chip text-accent border-accent/50 font-mono">Base SHA Drift Guard</span>
+          </div>
+          <div id="lab-kflow" class="space-y-3">
+            <p class="text-xs text-ide-muted">Topological multi-agent task execution, fanout-capped concurrency, worktree lease locking, and cryptographically sealed ProofPackets.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+              <div class="border border-ide-border rounded p-2.5 bg-ide-bg/60 space-y-1">
+                <div class="flex justify-between items-center">
+                  <span class="font-mono text-[10px] text-ide-muted">NODE 1</span>
+                  <span id="kflow-node-1-badge" class="badge text-[9px] text-ide-muted border-ide-border">PENDING</span>
+                </div>
+                <div class="font-semibold text-xs">Ingest &amp; Lint Spec</div>
+                <div class="text-[10px] text-ide-muted">Role: Architect</div>
+              </div>
+              <div class="border border-ide-border rounded p-2.5 bg-ide-bg/60 space-y-1">
+                <div class="flex justify-between items-center">
+                  <span class="font-mono text-[10px] text-ide-muted">NODE 2</span>
+                  <span id="kflow-node-2-badge" class="badge text-[9px] text-ide-muted border-ide-border">PENDING</span>
+                </div>
+                <div class="font-semibold text-xs">Generate Unit Tests</div>
+                <div class="text-[10px] text-ide-muted">Role: QA Lead</div>
+              </div>
+              <div class="border border-ide-border rounded p-2.5 bg-ide-bg/60 space-y-1">
+                <div class="flex justify-between items-center">
+                  <span class="font-mono text-[10px] text-ide-muted">NODE 3</span>
+                  <span id="kflow-node-3-badge" class="badge text-[9px] text-ide-muted border-ide-border">PENDING</span>
+                </div>
+                <div class="font-semibold text-xs">Scaffold &amp; Verify Code</div>
+                <div class="text-[10px] text-ide-muted">Role: Core Coder</div>
+              </div>
+              <div class="border border-ide-border rounded p-2.5 bg-ide-bg/60 space-y-1">
+                <div class="flex justify-between items-center">
+                  <span class="font-mono text-[10px] text-ide-muted">NODE 4</span>
+                  <span id="kflow-node-4-badge" class="badge text-[9px] text-ide-muted border-ide-border">PENDING</span>
+                </div>
+                <div class="font-semibold text-xs">Cryptographic Proof Seal</div>
+                <div class="text-[10px] text-ide-muted">Role: Security Lead</div>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="kflow-run-btn" type="button" class="btn-primary h-8 text-xs">Run Topological DAG</button>
+              <button id="kflow-list-btn" type="button" class="btn-outline h-8 text-xs">List Active DAGs</button>
+              <button id="kflow-reset-btn" type="button" class="btn-ghost h-8 text-xs">Reset Nodes</button>
+            </div>
+            <pre id="kflow-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
       </div>
     </section>
     </div>

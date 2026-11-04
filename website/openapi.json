@@ -4248,6 +4248,229 @@
         }
       }
     },
+    "/v1/kflow/dags": {
+      "get": {
+        "tags": [
+          "KFlow"
+        ],
+        "summary": "List Kflow Dags",
+        "description": "List all registered KFlow DAG orchestration workflows.",
+        "operationId": "list_kflow_dags_v1_kflow_dags_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Kflow Dags V1 Kflow Dags Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kflow/dag": {
+      "post": {
+        "tags": [
+          "KFlow"
+        ],
+        "summary": "Create Kflow Dag",
+        "description": "Register a new durable KFlow DAG with nodes, roles, tools, and dependencies.",
+        "operationId": "create_kflow_dag_v1_kflow_dag_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Kflow Dag V1 Kflow Dag Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kflow/dag/{flow_id}": {
+      "get": {
+        "tags": [
+          "KFlow"
+        ],
+        "summary": "Get Kflow Dag",
+        "description": "Retrieve details and status for a specific KFlow DAG.",
+        "operationId": "get_kflow_dag_v1_kflow_dag__flow_id__get",
+        "parameters": [
+          {
+            "name": "flow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Flow Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Kflow Dag V1 Kflow Dag  Flow Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kflow/dag/{flow_id}/run": {
+      "post": {
+        "tags": [
+          "KFlow"
+        ],
+        "summary": "Run Kflow Dag",
+        "description": "Execute a durable KFlow DAG in topological order, asserting base SHA and assembling proof packet.",
+        "operationId": "run_kflow_dag_v1_kflow_dag__flow_id__run_post",
+        "parameters": [
+          {
+            "name": "flow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Flow Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Run Kflow Dag V1 Kflow Dag  Flow Id  Run Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kflow/dag/{flow_id}/cancel": {
+      "post": {
+        "tags": [
+          "KFlow"
+        ],
+        "summary": "Cancel Kflow Dag",
+        "description": "Cancel a running or pending KFlow DAG.",
+        "operationId": "cancel_kflow_dag_v1_kflow_dag__flow_id__cancel_post",
+        "parameters": [
+          {
+            "name": "flow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Flow Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Cancel Kflow Dag V1 Kflow Dag  Flow Id  Cancel Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/studio/status": {
       "get": {
         "tags": [
