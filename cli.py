@@ -1838,6 +1838,271 @@ def cmd_cost(
     return 0
 
 
+def cmd_skill(
+    action: str = "list",
+    name: str = "",
+    path: Optional[Path] = None,
+    out: Optional[Path] = None,
+    reason: str = "user revocation",
+) -> int:
+    """KStack role skills: inspect, import, validate, list, pin, export, and revoke."""
+    import json
+    from core.kstack import kstack_registry
+    if action == "list":
+        skills = kstack_registry.list_skills(include_revoked=True)
+        print("=" * 80)
+        print("  KEELWAY KSTACK ROLE SKILLS REGISTRY")
+        print("=" * 80)
+        print(f"  {'Skill Name':<20} {'Role':<12} {'Version':<9} {'Permissions':<22} {'Status':<10}")
+        print("-" * 80)
+        for s in skills:
+            perms = ",".join(s.permissions)
+            status = "REVOKED" if s.revoked else ("PINNED" if s.pinned else "ACTIVE")
+            print(f"  {s.name:<20} {s.role:<12} {s.version:<9} {perms:<22} {status:<10}")
+        print("=" * 80)
+        return 0
+    elif action == "inspect":
+        if not name:
+            print("[-] Error: Skill name is required for inspect.")
+            return 1
+        try:
+            info = kstack_registry.inspect_skill(name)
+            print(json.dumps(info, indent=2))
+            return 0
+        except KeyError as e:
+            print(f"[-] {e}")
+            return 1
+    elif action == "validate":
+        if not path or not path.exists():
+            print(f"[-] Error: Valid path to SKILL.md required.")
+            return 1
+        ok, errors = kstack_registry.validate_skill(path.read_text(encoding="utf-8"))
+        if ok:
+            print(f"[+] Skill at '{path}' is VALID.")
+            return 0
+        else:
+            print(f"[-] Skill validation failed: {'; '.join(errors)}")
+            return 1
+    elif action == "import":
+        if not path or not path.exists():
+            print(f"[-] Error: Valid path to SKILL.md required.")
+            return 1
+        try:
+            sk = kstack_registry.import_skill(path)
+            print(f"[+] Successfully imported KStack skill '{sk.name}' (digest: {sk.digest_sha256[:12]}…)")
+            return 0
+        except Exception as e:
+            print(f"[-] Import failed: {e}")
+            return 1
+    elif action == "revoke":
+        if not name:
+            print("[-] Error: Skill name is required for revoke.")
+            return 1
+        if kstack_registry.revoke_skill(name, reason=reason):
+            print(f"[+] Skill '{name}' successfully revoked (reason: {reason}).")
+            return 0
+        else:
+            print(f"[-] Skill '{name}' not found.")
+            return 1
+    elif action == "export":
+        if not name or not out:
+            print("[-] Error: Both skill name and --out path are required.")
+            return 1
+        try:
+            p = kstack_registry.export_skill(name, out)
+            print(f"[+] Exported skill '{name}' to '{p}'.")
+            return 0
+        except Exception as e:
+            print(f"[-] Export failed: {e}")
+            return 1
+    else:
+        print(f"[-] Unknown skill action: {action}")
+        return 1
+
+
+def cmd_brain(
+    action: str = "query",
+    scope: str = "project",
+    key: str = "",
+    statement: str = "",
+    search: str = "",
+    reason: str = "",
+    fact_id: str = "",
+) -> int:
+    """KBrain: scope-aware knowledge and fact memory with DLP secret scanning."""
+    from core.kbrain import kbrain_store, KnowledgeScope, SecretLeakDetectedError
+    try:
+        k_scope = KnowledgeScope(scope)
+    except ValueError:
+        k_scope = KnowledgeScope.PROJECT
+
+    if action == "query":
+        facts = kbrain_store.query_facts(max_scope=k_scope, search_text=search or None, key=key or None)
+        print("=" * 80)
+        print(f"  KEELWAY KBRAIN KNOWLEDGE FACTS (Scope <= {k_scope.value})")
+        print("=" * 80)
+        for f in facts:
+            print(f"  • [{f.scope.value}] [{f.status.value}] {f.key} (rev {f.revision}): {f.statement}")
+            print(f"    Provenance: {f.provenance_uri} | Reason: {f.provenance_reason}")
+        if not facts:
+            print("  (no matching facts found)")
+        print("=" * 80)
+        return 0
+    elif action == "record":
+        if not key or not statement:
+            print("[-] Error: Both key and statement are required to record a fact.")
+            return 1
+        try:
+            fact = kbrain_store.record_fact(key=key, statement=statement, scope=k_scope, provenance_reason=reason or "CLI record", auto_approve=True)
+            print(f"[+] Recorded KBrain fact '{fact.key}' (id: {fact.id}, scope: {fact.scope.value}, status: {fact.status.value})")
+            return 0
+        except SecretLeakDetectedError as e:
+            print(f"[-] BLOCKED by DLP: {e}")
+            return 1
+    elif action == "correct":
+        if not fact_id or not statement:
+            print("[-] Error: Both fact_id and new statement are required for correction.")
+            return 1
+        try:
+            f = kbrain_store.correct_fact(fact_id, statement, reason=reason or "CLI correction", user="engineer")
+            print(f"[+] Corrected fact (new id: {f.id}, rev: {f.revision})")
+            return 0
+        except Exception as e:
+            print(f"[-] Correction failed: {e}")
+            return 1
+    elif action == "withdraw":
+        if not fact_id:
+            print("[-] Error: fact_id is required for withdrawal.")
+            return 1
+        try:
+            f = kbrain_store.withdraw_fact(fact_id, reason=reason or "CLI withdrawal", user="engineer")
+            print(f"[+] Withdrawn fact '{f.id}'")
+            return 0
+        except Exception as e:
+            print(f"[-] Withdrawal failed: {e}")
+            return 1
+    return 0
+
+
+def cmd_hub(action: str = "list", scan_dir: Optional[Path] = None, skill_id: str = "") -> int:
+    """KHub: Universal skills and MCP tools importer."""
+    from core.khub import khub_importer
+    if action == "scan":
+        target = scan_dir or Path(".")
+        found = khub_importer.scan_directory(target)
+        print(f"[+] KHub scanned '{target}': found {len(found)} portable skills/rules.")
+        for s in found:
+            rule_marker = " [RULE-ONLY]" if s.is_rule_only else " [SKILL]"
+            print(f"  • {s.name} ({s.source_type.value}){rule_marker} -> digest: {s.digest_sha256[:10]}…")
+        return 0
+    elif action == "list":
+        skills = khub_importer.list_imported()
+        print("=" * 80)
+        print("  KEELWAY KHUB IMPORTED SKILLS & TOOLS")
+        print("=" * 80)
+        for s in skills:
+            appr = "APPROVED" if s.approved_by_user else "PENDING_APPROVAL"
+            rule_tag = "RULE" if s.is_rule_only else "SKILL"
+            print(f"  • {s.id:<35} [{rule_tag}] [{s.source_type.value:<14}] [{appr}]")
+            print(f"    Path: {s.source_path}")
+        if not skills:
+            print("  (no skills imported yet; run 'keelway hub scan' to discover)")
+        print("=" * 80)
+        return 0
+    elif action == "approve":
+        if not skill_id:
+            print("[-] Error: skill_id is required for approval.")
+            return 1
+        try:
+            khub_importer.approve_imported_skill(skill_id)
+            print(f"[+] Approved imported skill '{skill_id}' for execution.")
+            return 0
+        except Exception as e:
+            print(f"[-] Approval failed: {e}")
+            return 1
+    return 0
+
+
+def cmd_space(
+    action: str = "list",
+    space_id: str = "default_space",
+    name: str = "",
+    caller_id: str = "engineer",
+    agent_name: str = "",
+    task_id: str = "",
+) -> int:
+    """KSpaces: Collaborative team workspaces & agent governance."""
+    from core.kspaces import kspaces_manager, SpaceRole
+    if action == "create":
+        if not space_id:
+            print("[-] Error: space_id is required.")
+            return 1
+        try:
+            sp = kspaces_manager.create_space(space_id, name or space_id, owner_id=caller_id)
+            print(f"[+] Created KSpace '{sp.space_id}' ({sp.name}) owned by {caller_id}.")
+            return 0
+        except Exception as e:
+            print(f"[-] Create space failed: {e}")
+            return 1
+    elif action == "list":
+        spaces = list(kspaces_manager._spaces.values())
+        print("=" * 80)
+        print("  KEELWAY KSPACES TEAM WORKSPACES")
+        print("=" * 80)
+        for s in spaces:
+            print(f"  • {s.space_id:<18} ({s.name}) | Owner: {s.owner_id} | Members: {len(s.members)} | Tasks: {len(s.tasks)}")
+        if not spaces:
+            print("  (no team spaces created yet; run 'keelway space create <id> <name>')")
+        print("=" * 80)
+        return 0
+    elif action == "agent":
+        if not agent_name:
+            print("[-] Error: agent_name is required.")
+            return 1
+        try:
+            sa = kspaces_manager.register_agent_identity(space_id, agent_name, owner_user_id=caller_id, role_description="Team Worker", allowed_tools=["read", "edit_file"])
+            print(f"[+] Registered agent service identity '{sa.agent_id}' (expires in 24h, owner: {caller_id})")
+            return 0
+        except Exception as e:
+            print(f"[-] Agent registration failed: {e}")
+            return 1
+    elif action == "merge":
+        if not task_id:
+            print("[-] Error: task_id is required for merge approval.")
+            return 1
+        try:
+            kspaces_manager.approve_merge(space_id, task_id, manager_id=caller_id)
+            print(f"[+] Task '{task_id}' approved for merge by Agent Manager '{caller_id}'.")
+            return 0
+        except Exception as e:
+            print(f"[-] Merge approval failed: {e}")
+            return 1
+    return 0
+
+
+def cmd_flow(action: str = "demo", flow_id: str = "demo_flow") -> int:
+    """KFlow: Durable task DAG orchestration and cryptographic proof packets."""
+    import time
+    from core.kflow import kflow_engine, FlowNode
+    if action in ("demo", "run"):
+        nodes = [
+            FlowNode(node_id="n1", name="Analyze Codebase", assigned_role="architect", tool="read_file", inputs={"path": "core/main.py"}),
+            FlowNode(node_id="n2", name="Draft Patch", assigned_role="coder", tool="edit_file", inputs={"path": "core/main.py"}, dependencies=["n1"]),
+            FlowNode(node_id="n3", name="Verify Tests", assigned_role="qa_lead", tool="run_tests", inputs={"cmd": "pytest tests/test_model_economics.py"}, dependencies=["n2"]),
+        ]
+        dag_id = f"{flow_id}_{int(time.time() * 1000)}"
+        dag = kflow_engine.create_dag(dag_id, goal="End-to-end governed DAG workflow", nodes=nodes)
+        print(f"[+] Created Flow DAG '{dag.flow_id}' (nodes: {len(dag.nodes)}, max_fanout: {dag.max_fanout})")
+        print("  Executing DAG in topological order...")
+        proof = kflow_engine.execute_dag(dag.flow_id, current_git_head_sha="523566c66529e786")
+        print(f"[+] Flow completed successfully! Proof Packet Sealed:")
+        print(f"    Proof SHA-256:  {proof.proof_sha256}")
+        print(f"    Nodes Executed: {proof.nodes_executed} / {len(dag.nodes)}")
+        print(f"    Tests Passed:   {proof.all_tests_passed}")
+        return 0
+    return 0
+
+
 async def cmd_team(action: str, goal: str, auto_approve: bool = True) -> int:
     """Multi-agent crew orchestration: DAG planning and deterministic execution."""
     from core.orchestration.multi_agent import MultiAgentCoordinator
@@ -2501,6 +2766,72 @@ def main():
     _evd_ver = evd_sub.add_parser("verify", help="Cryptographically verify a sealed evidence package")
     _evd_ver.add_argument("target", nargs="?", default="keelway-evidence-package.json", help="Path to evidence JSON package")
 
+    # skill (KStack Role Skills)
+    skill_parser = subparsers.add_parser("skill", help="KStack role skills: inspect, import, validate, list, pin, export, and revoke")
+    skill_sub = skill_parser.add_subparsers(dest="skill_command", required=True)
+    skill_sub.add_parser("list", help="List registered KStack role skills")
+    _sk_ins = skill_sub.add_parser("inspect", help="Inspect detailed contracts and instructions")
+    _sk_ins.add_argument("name", help="Name of skill (e.g. kstack/plan)")
+    _sk_val = skill_sub.add_parser("validate", help="Validate a SKILL.md file")
+    _sk_val.add_argument("path", type=Path, help="Path to SKILL.md")
+    _sk_imp = skill_sub.add_parser("import", help="Import a SKILL.md into registry")
+    _sk_imp.add_argument("path", type=Path, help="Path to SKILL.md")
+    _sk_rev = skill_sub.add_parser("revoke", help="Revoke a skill")
+    _sk_rev.add_argument("name", help="Skill name to revoke")
+    _sk_rev.add_argument("--reason", default="user revocation", help="Revocation reason")
+    _sk_exp = skill_sub.add_parser("export", help="Export skill to SKILL.md")
+    _sk_exp.add_argument("name", help="Skill name")
+    _sk_exp.add_argument("--out", type=Path, required=True, help="Destination output path")
+
+    # brain (KBrain Scope-Aware Knowledge Memory)
+    brain_parser = subparsers.add_parser("brain", help="KBrain scope-aware knowledge and fact memory with DLP scanning")
+    brain_sub = brain_parser.add_subparsers(dest="brain_command", required=True)
+    _br_qry = brain_sub.add_parser("query", help="Query facts by scope")
+    _br_qry.add_argument("--scope", default="project", choices=["local_session", "project", "team", "org"], help="Scope limit")
+    _br_qry.add_argument("--search", default="", help="Search text filter")
+    _br_qry.add_argument("--key", default="", help="Exact fact key")
+    _br_rec = brain_sub.add_parser("record", help="Record a new fact")
+    _br_rec.add_argument("key", help="Fact key")
+    _br_rec.add_argument("statement", help="Fact statement")
+    _br_rec.add_argument("--scope", default="project", choices=["local_session", "project", "team", "org"], help="Scope")
+    _br_rec.add_argument("--reason", default="", help="Provenance rationale")
+    _br_cor = brain_sub.add_parser("correct", help="Correct an existing fact (revision++)")
+    _br_cor.add_argument("fact_id", help="Fact ID to correct")
+    _br_cor.add_argument("statement", help="New corrected statement")
+    _br_cor.add_argument("--reason", default="", help="Correction rationale")
+    _br_wit = brain_sub.add_parser("withdraw", help="Withdraw a fact from retrieval")
+    _br_wit.add_argument("fact_id", help="Fact ID to withdraw")
+    _br_wit.add_argument("--reason", default="", help="Withdrawal rationale")
+
+    # hub (KHub Universal Skills Importer)
+    hub_parser = subparsers.add_parser("hub", help="KHub: Universal skills and MCP tools importer")
+    hub_sub = hub_parser.add_subparsers(dest="hub_command", required=True)
+    _hb_scn = hub_sub.add_parser("scan", help="Scan repository for portable skills (.claude, .cursor, .agents, .codex)")
+    _hb_scn.add_argument("--dir", type=Path, default=Path("."), help="Target root directory to scan")
+    hub_sub.add_parser("list", help="List imported skills and approval status")
+    _hb_app = hub_sub.add_parser("approve", help="Grant human execution approval to an imported skill")
+    _hb_app.add_argument("skill_id", help="ID of imported skill to approve")
+
+    # space (KSpaces Team Workspaces & Governance)
+    space_parser = subparsers.add_parser("space", help="KSpaces: Collaborative team workspaces & agent governance")
+    space_sub = space_parser.add_subparsers(dest="space_command", required=True)
+    space_sub.add_parser("list", help="List team spaces")
+    _sp_crt = space_sub.add_parser("create", help="Create a team space")
+    _sp_crt.add_argument("space_id", help="Space identifier")
+    _sp_crt.add_argument("--name", default="", help="Display name")
+    _sp_agt = space_sub.add_parser("agent", help="Register a time-bound agent service identity")
+    _sp_agt.add_argument("space_id", help="Space identifier")
+    _sp_agt.add_argument("agent_name", help="Agent service name")
+    _sp_mrg = space_sub.add_parser("merge", help="Approve task for merge (Agent Manager role required)")
+    _sp_mrg.add_argument("space_id", help="Space identifier")
+    _sp_mrg.add_argument("task_id", help="Task ID")
+
+    # flow (KFlow Durable Task DAG Orchestration)
+    flow_parser = subparsers.add_parser("flow", help="KFlow: Durable task DAG orchestration and proof packets")
+    flow_sub = flow_parser.add_subparsers(dest="flow_command", required=True)
+    _fl_run = flow_sub.add_parser("run", help="Execute governed task DAG and generate proof packet")
+    _fl_run.add_argument("--flow-id", default="flow_demo", help="Flow identifier")
+
     args = parser.parse_args()
 
     if args.command == "mcp":
@@ -2826,6 +3157,53 @@ def main():
                 action=getattr(args, "evidence_command", "summary") or "summary",
                 out=getattr(args, "out", None),
                 target=getattr(args, "target", None),
+            )
+        )
+    elif args.command == "skill":
+        sys.exit(
+            cmd_skill(
+                action=getattr(args, "skill_command", "list"),
+                name=getattr(args, "name", ""),
+                path=getattr(args, "path", None),
+                out=getattr(args, "out", None),
+                reason=getattr(args, "reason", "user revocation"),
+            )
+        )
+    elif args.command == "brain":
+        sys.exit(
+            cmd_brain(
+                action=getattr(args, "brain_command", "query"),
+                scope=getattr(args, "scope", "project"),
+                key=getattr(args, "key", ""),
+                statement=getattr(args, "statement", ""),
+                search=getattr(args, "search", ""),
+                reason=getattr(args, "reason", ""),
+                fact_id=getattr(args, "fact_id", ""),
+            )
+        )
+    elif args.command == "hub":
+        sys.exit(
+            cmd_hub(
+                action=getattr(args, "hub_command", "list"),
+                scan_dir=getattr(args, "dir", None),
+                skill_id=getattr(args, "skill_id", ""),
+            )
+        )
+    elif args.command == "space":
+        sys.exit(
+            cmd_space(
+                action=getattr(args, "space_command", "list"),
+                space_id=getattr(args, "space_id", "default_space"),
+                name=getattr(args, "name", ""),
+                agent_name=getattr(args, "agent_name", ""),
+                task_id=getattr(args, "task_id", ""),
+            )
+        )
+    elif args.command == "flow":
+        sys.exit(
+            cmd_flow(
+                action=getattr(args, "flow_command", "demo"),
+                flow_id=getattr(args, "flow_id", "demo_flow"),
             )
         )
 

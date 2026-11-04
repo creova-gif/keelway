@@ -2338,4 +2338,151 @@ async def list_sync_records(
     return [r.to_dict() for r in engine.journal[-limit:]]
 
 
+# =====================================================================
+# KStack, KBrain, KHub, KSpaces, and KFlow Endpoints
+# =====================================================================
+
+@router.get("/v1/kstack/skills", tags=["KStack"])
+async def list_kstack_skills(
+    include_revoked: bool = False,
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """List all registered KStack role skills."""
+    from core.kstack import kstack_registry
+    return [s.to_dict() for s in kstack_registry.list_skills(include_revoked=include_revoked)]
+
+
+@router.get("/v1/kstack/skill/{name:path}", tags=["KStack"])
+async def inspect_kstack_skill(
+    name: str,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Inspect detailed contracts and instructions for a specific KStack skill."""
+    from core.kstack import kstack_registry
+    try:
+        return kstack_registry.inspect_skill(name)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/v1/kbrain/facts", tags=["KBrain"])
+async def query_kbrain_facts(
+    scope: str = "project",
+    search: Optional[str] = None,
+    key: Optional[str] = None,
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """Query scope-governed knowledge facts with ACL boundary enforcement."""
+    from core.kbrain import kbrain_store, KnowledgeScope
+    try:
+        k_scope = KnowledgeScope(scope)
+    except ValueError:
+        k_scope = KnowledgeScope.PROJECT
+    facts = kbrain_store.query_facts(max_scope=k_scope, search_text=search, key=key)
+    return [f.to_dict() for f in facts]
+
+
+@router.post("/v1/kbrain/fact", tags=["KBrain"])
+async def record_kbrain_fact(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Record a scope-governed fact with secret leakage protection."""
+    from core.kbrain import kbrain_store, KnowledgeScope, SecretLeakDetectedError
+    key = payload.get("key", "").strip()
+    statement = payload.get("statement", "").strip()
+    if not key or not statement:
+        raise HTTPException(status_code=400, detail="Fields 'key' and 'statement' are required.")
+    scope_str = payload.get("scope", "project")
+    try:
+        k_scope = KnowledgeScope(scope_str)
+    except ValueError:
+        k_scope = KnowledgeScope.PROJECT
+
+    try:
+        fact = kbrain_store.record_fact(
+            key=key,
+            statement=statement,
+            scope=k_scope,
+            provenance_uri=payload.get("provenance_uri", ""),
+            provenance_reason=payload.get("provenance_reason", ""),
+            created_by=principal.id if hasattr(principal, "id") else "user",
+            auto_approve=bool(payload.get("auto_approve", True)),
+        )
+        return fact.to_dict()
+    except SecretLeakDetectedError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@router.get("/v1/khub/skills", tags=["KHub"])
+async def list_khub_imported_skills(
+    principal: Principal = Depends(current_principal),
+) -> List[Dict[str, Any]]:
+    """List universal imported skills and check for upstream file drift."""
+    from core.khub import khub_importer
+    skills = khub_importer.list_imported()
+    return [s.to_dict() for s in skills]
+
+
+@router.post("/v1/khub/scan", tags=["KHub"])
+async def scan_khub_directory(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Scan a repository or directory for portable skills and rules."""
+    from core.khub import khub_importer
+    root_path = Path(payload.get("path", "."))
+    scanned = khub_importer.scan_directory(root_path)
+    return {
+        "scanned_count": len(scanned),
+        "skills": [s.to_dict() for s in scanned],
+    }
+
+
+@router.post("/v1/khub/approve", tags=["KHub"])
+async def approve_khub_skill(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Grant explicit human authorization to execute an imported skill."""
+    from core.khub import khub_importer
+    skill_id = payload.get("skill_id", "")
+    try:
+        khub_importer.approve_imported_skill(skill_id)
+        return {"status": "ok", "skill_id": skill_id, "approved": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/v1/kspaces", tags=["KSpaces"])
+async def list_kspaces(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """List team collaborative spaces."""
+    from core.kspaces import kspaces_manager
+    return {
+        "spaces": [s.to_dict() for s in kspaces_manager._spaces.values()],
+    }
+
+
+@router.post("/v1/kspaces", tags=["KSpaces"])
+async def create_kspace(
+    payload: Dict[str, Any],
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Create a new collaborative team space."""
+    from core.kspaces import kspaces_manager
+    space_id = payload.get("space_id", "").strip()
+    name = payload.get("name", "").strip()
+    if not space_id or not name:
+        raise HTTPException(status_code=400, detail="Fields 'space_id' and 'name' are required.")
+    owner_id = principal.id if hasattr(principal, "id") else "owner"
+    try:
+        space = kspaces_manager.create_space(space_id, name, owner_id)
+        return space.to_dict()
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+
 
