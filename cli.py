@@ -1843,6 +1843,102 @@ async def cmd_sync(
     return 1
 
 
+async def cmd_pilot(
+    action: str,
+    candidate_id: str = "rigel_rootly",
+    target_dir: Optional[str] = None,
+    out_file: Optional[str] = None,
+) -> int:
+    """Manage customer pilot outreach, interview protocols, and simulation harnesses."""
+    import json
+    import time
+    import tempfile
+    from core.pilot.kit import (
+        get_pilot_candidates,
+        get_pilot_candidate,
+        PilotSimulationEngine,
+    )
+
+    if action == "candidates":
+        candidates = get_pilot_candidates()
+        print("\n" + "=" * 70)
+        print("  🎯 KEELWAY CUSTOMER PILOT OUTREACH — TARGET ENGINEERING LEADS")
+        print("=" * 70)
+        for i, c in enumerate(candidates, 1):
+            print(f"\n  [{i}] {c.name} — {c.title} ({c.organization})")
+            print(f"      ID          : {c.id}")
+            print(f"      Workflow    : {c.observed_workflow}")
+            print(f"      Wedge       : {c.wedge_capability}")
+            print(f"      Ask         : {c.commitment_ask}")
+        print("\n" + "=" * 70 + "\n")
+        return 0
+
+    elif action == "interview":
+        c = get_pilot_candidate(candidate_id)
+        if not c:
+            print(f"[✗] Error: Candidate '{candidate_id}' not found.")
+            return 1
+        print("\n" + "=" * 70)
+        print(f"  📋 WORKFLOW INTERVIEW PROTOCOL: {c.name.upper()} ({c.organization.upper()})")
+        print("  Methodology: The Mom Test (Behavioral Reality vs Hypothetical Opinion)")
+        print("=" * 70)
+        print(f"\n  Candidate Background:")
+        print(f"  • Title       : {c.title}")
+        print(f"  • Observed    : {c.observed_workflow}")
+        print(f"  • Wedge Focus : {c.wedge_capability}")
+        print("\n  Target Interview Questions (Ask in sequence, capture exact phrasing):")
+        for idx, q in enumerate(c.interview_questions, 1):
+            print(f"    {idx}. \"{q}\"")
+        print(f"\n  Concrete Commitment Goal:")
+        print(f"  👉 \"{c.commitment_ask}\"")
+        print("=" * 70 + "\n")
+        return 0
+
+    elif action == "run":
+        c = get_pilot_candidate(candidate_id)
+        if not c:
+            print(f"[✗] Error: Candidate '{candidate_id}' not found.")
+            return 1
+
+        sim_dir = Path(target_dir) if target_dir else Path(tempfile.mkdtemp(prefix=f"keelway_pilot_{candidate_id}_"))
+        print("\n" + "=" * 70)
+        print(f"  🚀 RUNNING ZERO-RISK PILOT SIMULATION: {c.name} ({c.organization})")
+        print(f"  Workspace: {sim_dir}")
+        print("=" * 70)
+
+        engine = PilotSimulationEngine(workspace_dir=sim_dir, candidate_id=candidate_id)
+        receipt = await engine.run_simulation()
+
+        print("\n  [✓] Simulation completed successfully:")
+        print(f"      • Receipt ID          : {receipt.receipt_id}")
+        print(f"      • Candidate Target    : {receipt.candidate_name} ({receipt.organization})")
+        print(f"      • Conflict Detected   : {receipt.conflict_detected} (Pessimistic Pause & Prompt verified)")
+        print(f"      • Resolution Applied  : {receipt.conflict_resolution}")
+        print(f"      • Unit Tests Status   : {'PASSED' if receipt.tests_passed else 'FAILED'}")
+        print(f"      • Flight Tape Seal    : {receipt.flight_tape_sha256[:16]}...")
+        print(f"      • Cryptographic Seal  : {receipt.receipt_sha256}")
+        print("\n" + "=" * 70 + "\n")
+        return 0
+
+    elif action == "export":
+        candidates = get_pilot_candidates()
+        report = {
+            "title": "Keelway Customer Pilot & Workflow Interview Kit",
+            "version": "1.0-beta",
+            "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "candidates": [c.to_dict() for c in candidates],
+        }
+        data_json = json.dumps(report, indent=2)
+        if out_file:
+            Path(out_file).write_text(data_json, encoding="utf-8")
+            print(f"[✓] Pilot kit dossier exported to: {out_file}")
+        else:
+            print(data_json)
+        return 0
+
+    return 1
+
+
 async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
     """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
@@ -2882,6 +2978,18 @@ def build_parser() -> argparse.ArgumentParser:
     sync_import.add_argument("path", help="Path to encrypted sync envelope JSON file")
     sync_sub.add_parser("demo", help="Simulate cross-machine state sync between two nodes")
 
+    # pilot (Customer Pilot Kit & Workflow Interviews)
+    pilot_parser = subparsers.add_parser("pilot", help="Customer pilot outreach, interview protocols, and simulation harnesses")
+    pilot_sub = pilot_parser.add_subparsers(dest="pilot_command", required=True)
+    pilot_sub.add_parser("candidates", help="List target prospective engineering leads and their wedge capabilities")
+    pilot_interview = pilot_sub.add_parser("interview", help="Display Mom Test workflow interview protocol")
+    pilot_interview.add_argument("--candidate", default="rigel_rootly", help="Candidate ID (default: rigel_rootly)")
+    pilot_run = pilot_sub.add_parser("run", help="Run zero-risk pilot simulation and generate sealed receipt")
+    pilot_run.add_argument("--candidate", default="rigel_rootly", help="Candidate ID (default: rigel_rootly)")
+    pilot_run.add_argument("--dir", default=None, help="Target sandbox directory (default: ephemeral tempdir)")
+    pilot_export = pilot_sub.add_parser("export", help="Export pilot dossier report as JSON")
+    pilot_export.add_argument("--out", default=None, help="Output file path (default: stdout)")
+
     token_parser = subparsers.add_parser("token", help="Manage API tokens (auth + RBAC)")
     token_sub = token_parser.add_subparsers(dest="token_command", required=True)
     token_create = token_sub.add_parser("create", help="Mint a new API token")
@@ -3536,6 +3644,13 @@ def main(argv=None):
             in_path=getattr(args, "path", None),
             editor_open=getattr(args, "editor_open", None),
             editor_file=getattr(args, "editor_file", None),
+        )))
+    elif args.command == "pilot":
+        sys.exit(asyncio.run(cmd_pilot(
+            action=args.pilot_command,
+            candidate_id=getattr(args, "candidate", "rigel_rootly"),
+            target_dir=getattr(args, "dir", None),
+            out_file=getattr(args, "out", None),
         )))
     elif args.command == "tier2":
         sys.exit(asyncio.run(cmd_tier2(args.tier2_command, getattr(args, "subsystem", "all"))))
