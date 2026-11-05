@@ -193,8 +193,15 @@ def not_enforced(manifest: AgentManifest) -> List[str]:
     return notes
 
 
-def static_refusal(manifest: AgentManifest) -> Optional[str]:
+def static_refusal(manifest: Any) -> Optional[str]:
     """Reasons a valid manifest can never run, decided without touching the machine. None means no static objection."""
+    if isinstance(manifest, dict):
+        from core.agents import manifest as am
+        report = am.validate(manifest)
+        if not report.ok:
+            return f"invalid manifest: {report.errors}"
+        manifest = report.manifest
+
     runs_commands = "run_command" in manifest.tools
     if runs_commands and manifest.sandbox == "container":
         return "sandbox 'container' is not built; use 'worktree' on macOS or drop run_command"
@@ -220,7 +227,7 @@ def preflight(manifest: AgentManifest, workspace_root: Path) -> Optional[str]:
 
 
 def loop_from_manifest(
-    manifest: AgentManifest,
+    manifest: Any,
     task_id: str,
     workspace_fs: Optional[Any] = None,
     record_flight: bool = True,
@@ -228,6 +235,13 @@ def loop_from_manifest(
 ):
     """Build an AutonomousAgentLoop that can only do what the manifest allows."""
     from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
+
+    if isinstance(manifest, dict):
+        from core.agents import manifest as am
+        report = am.validate(manifest)
+        if not report.ok:
+            raise ManifestNotRunnable(f"invalid manifest: {report.errors}")
+        manifest = report.manifest
 
     refusal = static_refusal(manifest)
     if refusal:

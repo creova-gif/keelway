@@ -734,7 +734,7 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
                 return 0
         return asyncio.run(_list())
 
-    if action == "pack":
+    if action in ("pack", "export"):
         from core.agents.builder import AgentBundlePacker
         if path is None:
             print("[-] Path to agent directory is required.")
@@ -754,7 +754,7 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
             print(f"[-] Packaging failed: {exc}")
             return 1
 
-    if action == "unpack":
+    if action in ("unpack", "import"):
         from core.agents.builder import AgentBundlePacker
         if path is None:
             print("[-] Path to agent archive (.tar.gz) is required.")
@@ -3157,9 +3157,15 @@ def build_parser() -> argparse.ArgumentParser:
     _pack = agent_sub.add_parser("pack", help="Package an agent directory into a distributable .tar.gz bundle")
     _pack.add_argument("path", type=Path, help="Agent directory containing .agent.json")
     _pack.add_argument("--out", type=Path, default=None, help="Output archive path (default: <agent_name>.tar.gz)")
+    _export = agent_sub.add_parser("export", help="Export an agent directory into a distributable .tar.gz bundle (alias for pack)")
+    _export.add_argument("path", type=Path, help="Agent directory containing .agent.json")
+    _export.add_argument("--out", type=Path, default=None, help="Output archive path (default: <agent_name>.tar.gz)")
     _unpack = agent_sub.add_parser("unpack", help="Unpack and cryptographically verify an agent bundle")
     _unpack.add_argument("path", type=Path, help="Agent archive file (.tar.gz)")
     _unpack.add_argument("--out", "--dest", dest="out", type=Path, default=None, help="Destination directory (default: ./agents/<bundle_name>)")
+    _import = agent_sub.add_parser("import", help="Import and cryptographically verify an agent bundle (alias for unpack)")
+    _import.add_argument("path", type=Path, help="Agent archive file (.tar.gz)")
+    _import.add_argument("--out", "--dest", dest="out", type=Path, default=None, help="Destination directory (default: ./agents/<bundle_name>)")
 
     project_parser = subparsers.add_parser("project", help="Inspect project runtime, frameworks, and run tests")
     project_sub = project_parser.add_subparsers(dest="project_command", required=True)

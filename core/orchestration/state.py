@@ -5,8 +5,9 @@ Explicit states, deterministic transitions, and recovery rules.
 Aligned with KEELWAY.md: 'Prefer explicit state over opaque agent loops'.
 """
 
+import time
 from enum import Enum
-from typing import Dict, Set
+from typing import Any, Dict, List, Optional, Set
 
 
 class TaskState(str, Enum):
@@ -68,3 +69,24 @@ def validate_transition(current: TaskState, target: TaskState) -> None:
     """Validate transition, raising InvalidStateTransitionError if illegal."""
     if not can_transition(current, target):
         raise InvalidStateTransitionError(current_state=current, target_state=target)
+
+
+class TaskStateMachine:
+    """State machine coordinator for deterministic task state transitions."""
+
+    def __init__(self, task_id: str, initial_state: TaskState = TaskState.CREATED):
+        self.task_id = task_id
+        self.state = initial_state
+        self.history: List[Dict[str, Any]] = [
+            {"state": initial_state.value, "timestamp": time.time(), "metadata": {}}
+        ]
+
+    def transition(self, target_state: TaskState, metadata: Optional[Dict[str, Any]] = None) -> TaskState:
+        validate_transition(self.state, target_state)
+        self.state = target_state
+        self.history.append({
+            "state": target_state.value,
+            "timestamp": time.time(),
+            "metadata": metadata or {},
+        })
+        return self.state

@@ -1,0 +1,118 @@
+# Keelway Verified Product Facts Registry
+# Schema: https://keelway.dev/schemas/product-facts.v1.yaml
+version: "0.1.0"
+last_verified_at: "2026-11-05T23:13:22Z"
+source_repository: "https://github.com/creova-gif/kora.git"
+active_commit_sha: "073d5e86e3dba727c4dd0e561e24927e98fe51db"
+local_model_target: "qwen3.5:latest (Ollama localhost:11434)"
+total_passing_tests: 766
+
+features:
+  dual_mode_agent_builder_and_cross_repo_runtime:
+    status: "AVAILABLE"
+    claim: "Cross-repository Agent Builder export/import with SHA-256 integrity validation and shared runtime policy containment"
+    evidence_test: "tests/test_dual_mode_e2e_acceptance.py"
+    code_path: "core/agents/builder.py, core/agents/guard.py"
+
+  client_sdk:
+    status: "AVAILABLE"
+    claim: "Synchronous and asynchronous Python client SDK with typed exceptions and complete daemon interface"
+    evidence_test: "tests/test_sdk.py"
+    code_path: "core/sdk/"
+
+  full_beta_developer_journey:
+    status: "AVAILABLE"
+    claim: "End-to-end 20-stage developer journey covering install, doctor, model, agents, repair, and export"
+    evidence_test: "tests/test_full_beta_developer_journey.py"
+    code_path: "core/orchestration/"
+
+  local_agent_runtime:
+    status: "AVAILABLE"
+    claim: "Local-first ReAct agent runtime with native workspace tools and flight tapes"
+    evidence_test: "tests/test_agent_loop.py"
+    code_path: "core/orchestration/agent_loop.py"
+
+  deterministic_task_state_engine:
+    status: "AVAILABLE"
+    claim: "12-state deterministic state machine with strict transition invariants and task cancellation"
+    evidence_test: "tests/test_state_machine.py"
+    code_path: "core/orchestration/state.py"
+
+  multi_agent_crew_coordination:
+    status: "AVAILABLE"
+    claim: "Topological DAG multi-agent team coordination (Architect, Coder, Reviewer, Verifier)"
+    evidence_test: "tests/test_multi_agent_coordination.py"
+    code_path: "core/orchestration/multi_agent.py"
+
+  model_cost_ledger_and_economics:
+    status: "AVAILABLE"
+    claim: "Append-only model cost accounting with latency percentiles and quantified local savings"
+    evidence_test: "tests/test_model_cost_ledger.py"
+    code_path: "core/models/cost_ledger.py"
+
+  customer_outbound_runner_daemon:
+    status: "AVAILABLE"
+    claim: "Outbound-only VPC customer runner daemon with time-bound HMAC-SHA256 authentication"
+    evidence_test: "tests/test_core_runner_routes.py"
+    code_path: "keelway/runner/daemon.py"
+
+  agent_builder_and_manifests:
+    status: "AVAILABLE"
+    claim: "Declarative AgentSpec v1 compilation, template scaffolding, and sealed build receipts"
+    evidence_test: "tests/test_agent_builder.py"
+    code_path: "core/agents/builder.py"
+
+  guided_app_builder:
+    status: "AVAILABLE"
+    claim: "Prompt-to-app synthesis, multi-archetype scaffolding (FastAPI, CLI, Agent), automated test verification, and sealed receipts"
+    evidence_test: "tests/test_guided_builder.py"
+    code_path: "core/orchestration/guided_builder.py"
+
+  plugin_extension_and_mcp_client:
+    status: "AVAILABLE"
+    claim: "Universal MCP client bridge, stdio/in-process transport, plugin manifest SHA-256 verification, and dynamic agent tool mounting"
+    evidence_test: "tests/test_mcp_client_and_plugins.py"
+    code_path: "core/plugins/manager.py"
+
+  airgap_sovereign_bundle_suite:
+    status: "AVAILABLE"
+    claim: "5-point NIST SP 800-53 SC-7 pre-flight compliance audit, cryptographic attestation, and offline self-contained bundle exporter with SHA256SUMS"
+    evidence_test: "tests/test_airgap_bundle.py"
+    code_path: "core/security/airgap_auditor.py"
+
+  git_governance_and_pr_prep:
+    status: "AVAILABLE"
+    claim: "Semantic commit proposals, verified local commit, and Pull Request preparation"
+    evidence_test: "tests/test_git_workflow.py"
+    code_path: "core/storage/workspace_fs.py"
+
+  dual_mode_external_editor_sync:
+    status: "AVAILABLE"
+    claim: "Dual-mode sovereign IDE with seamless 1-click external editor bridge (VS Code, Cursor), sub-150ms debouncing, and pessimistic pause-and-prompt conflict policy with flight recorder audit trail"
+    evidence_test: "tests/test_editor_sync_bridge.py"
+    code_path: "core/sync/bridge.py, core/api/sync_routes.py, core/studio/assets/studio.js"
+
+  framework_autodetection:
+    status: "AVAILABLE"
+    claim: "Automatic detection of Python, Node, Rust, Go, and Make test commands"
+    evidence_test: "tests/test_project_adapter.py"
+    code_path: "core/orchestration/project_adapter.py"
+
+  unified_proof_strip_ux:
+    status: "AVAILABLE"
+    claim: "Unified 6-stage Proof Strip UX (INSPECT -> PLAN -> AUTHORIZE -> EXECUTE -> VERIFY -> SEAL) shared across IDE and Agent Builder modes with zero secondary frontend state engine, W3C ARIA tablist accessibility, and cryptographic tamper detection"
+    evidence_test: "tests/test_proof_strip_ux.py"
+    code_path: "core/studio/assets/studio.js, core/studio/index.html"
+
+  tier2_hardware_security_hal:
+    status: "EXPERIMENTAL"
+    claim: "Dual-WORM receipts, TPM 2.0 PCR quotes, PIV smartcard verification, and 2-of-3 Shamir recovery"
+    evidence_test: "tests/test_tier2_api_and_cli.py"
+    code_path: "keelway/hal/"
+    qualification_note: "Model specification verified via software simulation; requires target hardware certification for field deployment."
+
+  golden_benchmark_eval:
+    status: "AVAILABLE"
+    claim: "10-task golden evaluation panel (EVAL-01..10) passing 100% in 3.37ms"
+    evidence_command: "keelway bench"
+    code_path: "evaluations/benchmarks/golden.py"
