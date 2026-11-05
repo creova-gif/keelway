@@ -17,6 +17,12 @@
       "evidence_test": "tests/test_proof_strip_ux.py",
       "code_path": "core/studio/assets/studio.js, core/studio/index.html"
     },
+    "e2e_ide_mode_usability_and_local_inference": {
+      "status": "AVAILABLE",
+      "claim": "End-to-end IDE Mode repository bug-fix workflow with real local model inference (qwen3.5:latest), human mutation approval gating, automated pytest verification, and cryptographic flight tape evidence",
+      "evidence_test": "tests/test_slice2_ide_usability_e2e.py",
+      "code_path": "core/orchestration/agent_loop.py, core/studio/assets/studio.js, core/models/adapters/local.py"
+    },
     "client_sdk": {
       "status": "AVAILABLE",
       "claim": "Synchronous and asynchronous Python client SDK with typed exceptions and complete daemon interface",

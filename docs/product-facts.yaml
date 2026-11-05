@@ -5,7 +5,7 @@ last_verified_at: "2026-11-05T23:13:22Z"
 source_repository: "https://github.com/creova-gif/kora.git"
 active_commit_sha: "073d5e86e3dba727c4dd0e561e24927e98fe51db"
 local_model_target: "qwen3.5:latest (Ollama localhost:11434)"
-total_passing_tests: 766
+total_passing_tests: 768
 
 features:
   dual_mode_agent_builder_and_cross_repo_runtime:
@@ -103,6 +103,12 @@ features:
     claim: "Unified 6-stage Proof Strip UX (INSPECT -> PLAN -> AUTHORIZE -> EXECUTE -> VERIFY -> SEAL) shared across IDE and Agent Builder modes with zero secondary frontend state engine, W3C ARIA tablist accessibility, and cryptographic tamper detection"
     evidence_test: "tests/test_proof_strip_ux.py"
     code_path: "core/studio/assets/studio.js, core/studio/index.html"
+
+  e2e_ide_mode_usability_and_local_inference:
+    status: "AVAILABLE"
+    claim: "End-to-end IDE Mode repository bug-fix workflow with real local model inference (qwen3.5:latest), human mutation approval gating, automated pytest verification, and cryptographic flight tape evidence"
+    evidence_test: "tests/test_slice2_ide_usability_e2e.py"
+    code_path: "core/orchestration/agent_loop.py, core/studio/assets/studio.js, core/models/adapters/local.py"
 
   tier2_hardware_security_hal:
     status: "EXPERIMENTAL"

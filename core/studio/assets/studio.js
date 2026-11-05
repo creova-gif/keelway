@@ -1580,9 +1580,10 @@ function getIdeStageData(s) {
 
   // 3. AUTHORIZE
   let authStatus = 'idle';
+  const hasDeniedStep = s.plan && s.plan.some(p => p.status === 'failed' && p.observation && p.observation.toLowerCase().includes('denied'));
   if (waitingApproval) {
     authStatus = 'waiting';
-  } else if (isCancelled || (isFailed && s.error && s.error.toLowerCase().includes('denied'))) {
+  } else if (isCancelled || hasDeniedStep || (isFailed && s.error && s.error.toLowerCase().includes('denied'))) {
     authStatus = 'failed';
   } else if (['executing_tool', 'running', 'verifying', 'completed'].includes(st)) {
     authStatus = 'passed';
