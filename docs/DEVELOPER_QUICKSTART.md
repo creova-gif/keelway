@@ -1,18 +1,24 @@
-# Keelway Developer Quickstart & Testing Guide
+# Keelway Developer Quickstart & Evaluation Guide
 
-Welcome to **Keelway by Sorvex Labs**. This guide helps engineers and teams test, run, and evaluate Keelway's local governance envelope around AI coding agents.
+Welcome to **Keelway by Sorvex Labs**. This guide helps software engineers, tech leads, and security professionals test, run, and evaluate Keelway's local-first developer infrastructure and multi-agent coordination engine.
 
 ---
 
-## 1. Fast Setup
+## 1. Fast Setup (Under 60 Seconds)
 
 ### Prerequisites
 - Python 3.11+ (Python 3.14 fully supported)
 - Git 2.30+
+- macOS (Apple Silicon arm64 or Intel) or Linux (x86_64 or aarch64)
 
-### Installation
+### One-Line Install Script
 ```bash
-git clone <repo-url>
+curl -fsSL https://keelway.dev/install.sh | bash
+```
+
+### Or Manual Installation
+```bash
+git clone https://github.com/creova-gif/kora.git keelway
 cd keelway
 python3 -m venv .venv
 source .venv/bin/activate
@@ -21,116 +27,122 @@ pip install -e .
 
 ---
 
-## 2. Automated Test Suite (71 Tests)
+## 2. Pre-Flight System Diagnostics (`keelway doctor`)
 
-Before making any changes, run the full automated test suite:
-
-```bash
-PYTHONPATH=keelway pytest keelway/tests -v
-```
-
-All 71 tests execute in ~7 seconds without external network dependencies.
-
----
-
-## 3. One-Click Interactive Developer Demo
-
-To immediately observe all security invariants in action (deny-by-default, isolated worktrees, evaluation gating, human review, two-human quorum, SQLite WAL persistence, and anti-tamper verification):
+Before executing agent tasks, verify your local environment across all 7 operational dimensions:
 
 ```bash
-python examples/run_developer_demo.py
+keelway doctor
 ```
 
----
-
-## 4. Testing with the Web Dashboard
-
-Keelway includes an interactive operator web dashboard for launching runs, inspecting diffs, and granting approvals.
-
-### Launch Server
-```bash
-python -m keelway.cli.main serve --host 127.0.0.1 --port 8000
-```
-Open **`http://127.0.0.1:8000`** in your browser.
-
-### Developer Test Flow in the Dashboard:
-1. **Launch an Internal Run:**
-   - Select `Internal / Dev (Single Human Review)`.
-   - Enter a task prompt (e.g. `Add telemetry endpoint`).
-   - Click **Launch Governed Run**.
-   - Notice the candidate diff rendered in real-time from the isolated worktree without dirtying your main workspace.
-   - Click **Approve Patch** -> Then click **Create Pull Request** and **Deploy to Staging**.
-   - Click **Verify Cryptographic Chain** to mathematically verify the hash-chained audit trail.
-
-2. **Launch a Production Run (Two-Human Quorum ADR-045):**
-   - Select `Production (Mandatory Two-Human Quorum ADR-045)`.
-   - Click **Launch Governed Run**.
-   - Notice that single-approval is disabled.
-   - Click **Sign as Security Lead (Alice)** -> Status updates to `pending remaining role`.
-   - Click **Sign as Platform Owner (Bob)** -> Status updates to `APPROVED`.
-
----
-
-## 5. Testing with the CLI
-
-You can also operate Keelway entirely from the command line:
-
-### 1. Scaffold a Sandbox Demo Repo
-```bash
-python -m keelway.cli.main init-demo --dir examples/demo_service
-```
-
-### 2. Run a Governed Change
-```bash
-python -m keelway.cli.main run --repo examples/demo_service --task "Add telemetry healthcheck endpoint"
-```
 Output:
 ```
-🛡️ Keelway: Initializing governed run for task: Add telemetry healthcheck endpoint
-✅ Governed run reached approval gate.
-   Run ID: <RUN_ID>
-   Approval ID: <APPROVAL_ID>
-   Candidate Patch Hash: <HASH>...
+====================================================================
+  KEELWAY — Sovereign System Diagnostics & Enterprise Pre-Flight
+  Status: HEALTHY | Python 3.14.0 | Darwin 27.0.0
+====================================================================
 
---- CANDIDATE PATCH DIFF (ISOLATED WORKSPACE) ---
-...
+  [1] Database Engine                                            [OK]
+  [2] Workspace & Git Context                                    [OK]
+  [3] Model Providers & Gateway                                  [OK]
+  [4] Air-Gap Compliance (NIST SP 800-53 SC-7)                   [OK]
+  [5] Enterprise Entitlements                                    [OK]
+  [6] Software Bill of Materials (SBOM)                          [OK]
+  [7] Tier 2 Hardware Security HAL                               [OK]
+
+====================================================================
+  Diagnostic Result: HEALTHY — 7/7 Dimensions Evaluated.
+====================================================================
 ```
 
-### 3. Inspect Run Status & Audit Trail
+---
+
+## 3. Automated Test Suite (752 Tests, 0 Failures)
+
+Run the complete zero-mock test suite:
+
 ```bash
-python -m keelway.cli.main status --run-id <RUN_ID>
+pytest tests -q
 ```
 
-### 4. Verify Cryptographic Chain Integrity
+All 752 unit, integration, and security tests execute locally without cloud egress or network dependencies.
+
+---
+
+## 4. Golden Benchmark Evaluation (`keelway bench`)
+
+Run the 10-task golden benchmark panel verifying directory traversal gates, atomic persistence, AST extraction, semantic search, ReAct loops, policy gating, prompt injection firewall, speculative decoding, payment intent, and flight tape cryptographic seals:
+
 ```bash
-python -m keelway.cli.main verify --run-id <RUN_ID>
+keelway bench
 ```
+
 Output:
 ```
-✅ Run <RUN_ID> VERIFIED: 5 events, 0 tampering detected.
-```
-
-### 5. Export Cryptographically Sealed Audit Bundle (FR-09)
-```bash
-python -m keelway.cli.main export --run-id <RUN_ID> --out audit_bundle.json
-```
-
----
-
-## 6. Inspecting Hardware Qualification Status (Tier 2)
-
-Keelway provides an explicit API endpoint reporting physical hardware readiness vs software emulators:
-
-```bash
-curl -s http://127.0.0.1:8000/v1/system/hardware-status | jq .
+=================================================================
+  🏆 KEELWAY GOLDEN EVALUATION BENCHMARK REPORT
+  Passed: 10/10 (100.0%)
+  Duration: 3.42 ms | p50: 0.28 ms | p95: 0.56 ms
+=================================================================
 ```
 
 ---
 
-## 7. Configuration & Model Switching
+## 5. Milestone M1: 10-Stage Vertical Slice (`keelway m1`)
 
-Keelway defaults to an offline deterministic mock for instant testing. To connect real LLM inference engines, set environment variables:
+Execute the canonical end-to-end autonomous developer workflow:
+1. Core Engine Launch
+2. Open Local Source Repository
+3. Project Explorer Discovery
+4. Submit Agent Goal
+5. Formulate 3-Step Plan
+6. Review Sandboxed Unified Diff
+7. Human Approver Grants Mutation
+8. Apply Authorized Changes to Disk
+9. Run Real Repo Tests (`unittest` / `pytest`)
+10. Seal Cryptographic Flight Tape with SHA-256 Hash Chain
 
-- **Local Ollama:** `export KEELWAY_MODEL_PROVIDER=ollama && export OLLAMA_HOST=http://localhost:11434`
-- **Local vLLM:** `export KEELWAY_MODEL_PROVIDER=vllm && export VLLM_HOST=http://localhost:8000/v1`
-- **OpenAI-Compatible:** `export OPENAI_API_KEY=sk-... && export KEELWAY_MODEL_PROVIDER=openai`
+```bash
+keelway m1
+```
+
+---
+
+## 6. Dual-Mode Sovereign IDE & External Editor Sync
+
+Keelway provides two seamless operational modes:
+
+### Mode 1: Sovereign Desktop IDE
+Launch the built-in Monaco editor, file tree, terminal, and agent task board:
+```bash
+keelway dev --desktop
+# Or launch the local web server at http://localhost:7420
+keelway dev
+```
+
+### Mode 2: External Editor Sync Bridge (VS Code & Cursor)
+Keep using your preferred editor with live bidirectional synchronization and pessimistic pause on concurrent mutations:
+```bash
+# Check editor sync watcher status
+keelway sync editor
+
+# Launch active workspace directly in VS Code
+keelway sync editor --open vscode
+
+# Launch active workspace directly in Cursor
+keelway sync editor --open cursor
+```
+
+When an external editor modifies a file currently being edited by an agent, Keelway automatically pauses the agent, emits an `EXTERNAL_CONCURRENT_MUTATION` flight tape event, and prompts the developer for a 3-way visual resolution.
+
+---
+
+## 7. Zero-Risk Seeded Demo (`keelway demo`)
+
+To test Keelway inside an isolated sandbox with a seeded bug (`apply_discount(1000, 10)` returning 990 instead of 900):
+
+```bash
+keelway demo
+```
+
+This launches Keelway Studio on `~/keelway-demo` without modifying your personal code repositories or global settings.

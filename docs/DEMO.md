@@ -66,6 +66,13 @@ The command prints a Studio URL with a launch token. Set `KEELWAY_API_TOKEN` if 
     python cli.py space list          # List collaborative team workspaces and RBAC roles
     python cli.py flow run             # Execute deterministic DAG workflow with sealed proof packet
     ```
+14. **Dual-Mode External Editor Sync.** Seamlessly open the seeded demo project in VS Code or Cursor:
+    ```bash
+    python cli.py sync editor                     # Inspect active watcher & debounce state
+    python cli.py sync editor --open vscode       # Launch workspace directly in VS Code
+    python cli.py sync editor --open cursor       # Launch workspace directly in Cursor
+    ```
+    Or click the **Open in VS Code** button in the top-right header of the Studio Monaco editor.
 
 ## Cleanup
 
