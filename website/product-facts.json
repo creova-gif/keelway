@@ -1,9 +1,22 @@
 {
   "$schema": "https://keelway.dev/schemas/product-facts.v1.json",
   "version": "0.1.0",
-  "last_verified_at": "2026-11-03T22:00:00Z",
+  "last_verified_at": "2026-11-05T23:45:00Z",
+  "active_commit_sha": "8f139737afafb5377da0d3e5fe7eff020860e366",
   "source_repository": "https://github.com/creova-gif/kora.git",
   "features": {
+    "dual_mode_agent_builder_and_cross_repo_runtime": {
+      "status": "AVAILABLE",
+      "claim": "Cross-repository Agent Builder export/import with SHA-256 integrity validation and shared runtime policy containment",
+      "evidence_test": "tests/test_dual_mode_e2e_acceptance.py",
+      "code_path": "core/agents/builder.py, core/agents/guard.py"
+    },
+    "unified_proof_strip_ux": {
+      "status": "AVAILABLE",
+      "claim": "Unified 6-stage Proof Strip UX (INSPECT -> PLAN -> AUTHORIZE -> EXECUTE -> VERIFY -> SEAL) shared across IDE and Agent Builder modes with zero secondary frontend state engine, W3C ARIA tablist accessibility, and cryptographic tamper detection",
+      "evidence_test": "tests/test_proof_strip_ux.py",
+      "code_path": "core/studio/assets/studio.js, core/studio/index.html"
+    },
     "client_sdk": {
       "status": "AVAILABLE",
       "claim": "Synchronous and asynchronous Python client SDK with typed exceptions and complete daemon interface",
@@ -89,10 +102,11 @@
       "code_path": "core/orchestration/project_adapter.py"
     },
     "tier2_hardware_security_hal": {
-      "status": "AVAILABLE",
+      "status": "EXPERIMENTAL",
       "claim": "Dual-WORM receipts, TPM 2.0 PCR quotes, PIV smartcard verification, and 2-of-3 Shamir recovery",
       "evidence_test": "tests/test_tier2_api_and_cli.py",
-      "code_path": "keelway/hal/"
+      "code_path": "keelway/hal/",
+      "qualification_note": "Model specification verified via software simulation; requires target hardware certification for field deployment."
     },
     "golden_benchmark_eval": {
       "status": "AVAILABLE",

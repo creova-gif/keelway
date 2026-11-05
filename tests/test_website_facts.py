@@ -31,6 +31,14 @@ def test_product_facts_manifest_integrity():
                 for c_path in code_paths:
                     assert Path(c_path).exists(), f"Code path '{c_path}' for '{feat_name}' not found on disk"
 
+        elif feat["status"] == "EXPERIMENTAL":
+            assert "qualification_note" in feat, f"Experimental feature '{feat_name}' must have a qualification_note"
+
+    # Specific checks for Dual-Mode and Proof Strip
+    assert "dual_mode_agent_builder_and_cross_repo_runtime" in features
+    assert "unified_proof_strip_ux" in features
+    assert features["tier2_hardware_security_hal"]["status"] == "EXPERIMENTAL"
+
 
 def test_website_html_references_valid_assets():
     html_file = Path("website/index.html")
@@ -40,7 +48,9 @@ def test_website_html_references_valid_assets():
     assert "styles.css" in content
     assert "product-facts.json" in content
     assert "Verified against commit" in content
-    assert "585 automated tests" in content or "tests passing" in content
+    assert "766 automated tests" in content or "tests passing" in content
+    assert "Dual-Mode Agent Builder" in content
+    assert "Unified 6-Stage Proof Strip" in content
     assert "docs.html" in content
 
     # Assert SEO & documentation files exist
@@ -48,6 +58,8 @@ def test_website_html_references_valid_assets():
     assert docs_file.exists(), "website/docs.html must exist"
     docs_content = docs_file.read_text(encoding="utf-8")
     assert "Keelway Architecture" in docs_content
+    assert "Dual-Mode Sovereign Architecture" in docs_content
+    assert "Unified 6-Stage Proof Strip UX" in docs_content
     assert "kstack" in docs_content
     assert "kbrain" in docs_content
 

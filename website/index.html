@@ -509,11 +509,13 @@ keelway ❯ </pre>
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
       <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 745 automated tests passing with zero failures. Verified against commit <code>b6617ab</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 766 automated tests passing with zero failures. Verified against commit <code>8f13973</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
       <div class="card tablewrap">
         <table class="status">
           <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
           <tbody>
+            <tr><td>Dual-Mode Agent Builder &amp; Cross-Repo Runtime</td><td><span class="pill teal">Available (Verified E2E)</span></td><td class="mono" style="font-size: 12px;">tests/test_dual_mode_e2e_acceptance.py</td></tr>
+            <tr><td>Unified 6-Stage Proof Strip UX (IDE &amp; Builder)</td><td><span class="pill teal">Available (A11y Verified)</span></td><td class="mono" style="font-size: 12px;">tests/test_proof_strip_ux.py</td></tr>
             <tr><td>12-Step Investor Milestone Developer Journey</td><td><span class="pill teal">Available (Verified E2E)</span></td><td class="mono" style="font-size: 12px;">tests/test_e2e_investor_journey.py</td></tr>
             <tr><td>OpenAPI 3.1 REST Schema Exporter (145 Endpoints)</td><td><span class="pill teal">Available (145 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
             <tr><td>Customer VPC Outbound Runner &amp; Offline Spool</td><td><span class="pill teal">Available (Batch Sync)</span></td><td class="mono" style="font-size: 12px;">tests/test_runner_spool.py</td></tr>
@@ -551,7 +553,7 @@ keelway ❯ </pre>
             <tr><td>AgentSpec v1, Catalog &amp; Scaffolding</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_builder.py</td></tr>
             <tr><td>Semantic Git Commit &amp; PR Preparation</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_git_workflow.py</td></tr>
             <tr><td>Milestone M1 End-to-End Vertical Slice</td><td><span class="pill teal">Available (10/10 PASS)</span></td><td class="mono" style="font-size: 12px;">tests/test_m1_vertical_slice.py</td></tr>
-            <tr><td>Tier 2 Hardware Security HAL (TPM 2.0 / Dual-WORM)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_tier2_api_and_cli.py</td></tr>
+            <tr><td>Tier 2 Hardware Security HAL (TPM 2.0 / Dual-WORM)</td><td><span class="pill amber">Experimental (Simulation)</span></td><td class="mono" style="font-size: 12px;">tests/test_tier2_api_and_cli.py</td></tr>
             <tr><td>Sovereign Pre-Flight Doctor (7-Axis Diagnostics)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_system_doctor.py</td></tr>
             <tr><td>Golden Evaluation Benchmark (EVAL-01..10)</td><td><span class="pill teal">Available (100% Pass)</span></td><td class="mono" style="font-size: 12px;">evals/eval_runner.py</td></tr>
             <tr><td>Phone Approval App (Expo/React Native)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">mobile/ &amp; tests/test_mobile_cli.py</td></tr>

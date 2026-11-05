@@ -63,7 +63,8 @@
       <h4>Core Architecture</h4>
       <a href="#state-machine">Deterministic State Engine</a>
       <a href="#flight-recorder">Flight Tapes &amp; Time Travel</a>
-      <a href="#dual-mode-sync">Dual-Mode IDE &amp; Sync Bridge</a>
+      <a href="#dual-mode-architecture">Dual-Mode Architecture (IDE &amp; Builder)</a>
+      <a href="#proof-strip">Unified 6-Stage Proof Strip</a>
       <a href="#policy-engine">Fail-Closed Policy &amp; Quorum</a>
 
       <h4>K-Series Extensions</h4>
@@ -162,27 +163,43 @@ $ keelway dev --desktop</pre>
       <p>Every agent step, AST transformation, tool invocation, and terminal execution is recorded chronologically in an immutable <code>.flight.json</code> tape. The Studio interface features a deterministic flight replay visualizer with frame stepping (<code>⏮</code>, <code>◀</code>, <code>▶</code>, <code>⏭</code>), syntax-highlighted diffs, and live cryptographic seal verification.</p>
     </section>
 
-    <!-- 5B. DUAL-MODE SOVEREIGN IDE & SYNC BRIDGE -->
-    <section id="dual-mode-sync">
-      <h2>6. Dual-Mode Sovereign IDE &amp; External Editor Sync</h2>
-      <p>Developers shouldn't have to choose between a dedicated AI-native IDE and their existing muscle memory in VS Code or Cursor. Keelway operates as a <strong>Dual-Mode Sovereign IDE</strong>:</p>
+    <!-- 6. DUAL-MODE SOVEREIGN ARCHITECTURE -->
+    <section id="dual-mode-architecture">
+      <h2>6. Dual-Mode Sovereign Architecture: IDE Mode &amp; Agent Builder</h2>
+      <p>Keelway is engineered as a sovereign, local-first platform supporting two first-class workflows powered by the identical underlying runtime, policy engine, and flight recorder:</p>
       <ul>
-        <li><strong>Mode 1 (Sovereign Standalone IDE):</strong> Complete built-in Monaco editor, integrated terminal, Git visualizer, and agent task board with zero external dependencies.</li>
-        <li><strong>Mode 2 (External Editor Sync Bridge):</strong> 1-click launch into VS Code (<code>code -r</code>) or Cursor (<code>cursor -r</code>) with sub-150ms debounced bidirectional filesystem synchronization.</li>
-        <li><strong>Pessimistic Pause &amp; Prompt:</strong> When an external developer mutates a file with an active agent lease, Keelway automatically pauses the agent, emits an <code>EXTERNAL_CONCURRENT_MUTATION</code> event to the flight recorder tape, and presents a 3-way visual resolution dialog.</li>
+        <li><strong>IDE Mode:</strong> Developers build and repair software interactively with local open-weight models (e.g., <code>qwen3.5:latest</code> via Ollama/MLX). The agent loads workspace AST context, formulates deterministic plans, prompts for human approval on file mutations, and verifies patches against real automated test suites with zero external telemetry.</li>
+        <li><strong>Agent Builder Mode:</strong> Developers scaffold, evaluate, version, export, and import custom autonomous agents based on the declarative <code>AgentSpec v1</code> standard. Candidate agents execute against fixed evaluation fixtures, produce cryptographic build receipts (<code>tests_passed=True</code>), and are packaged into portable, signed <code>.tar.gz</code> bundles. Bundles can be imported into second repositories without privilege escalation.</li>
+        <li><strong>Shared Runtime Invariant:</strong> Both modes execute through the exact same 12-state deterministic coordinator (<code>core/orchestration/state.py</code>) and policy enforcement boundaries (<code>core/agents/guard.py</code>), preventing dual-engine drift.</li>
       </ul>
       <div class="card term">
         <div class="bar"><span class="mono">bash</span></div>
-        <pre class="mono"><span class="c"># Launch workspace directly in your preferred editor</span>
-$ curl -X POST http://localhost:7420/v1/editor-sync/open-in-editor \
-    -H "Authorization: Bearer $KEELWAY_TOKEN" \
-    -d '{"editor": "vscode", "relative_path": ""}'</pre>
+        <pre class="mono"><span class="c"># Export custom agent bundle with cryptographic digest</span>
+$ keelway export agents/test-fixer --output dist/test-fixer-0.1.0.tar.gz
+
+<span class="c"># Import and verify in another repository without capability escalation</span>
+$ keelway import dist/test-fixer-0.1.0.tar.gz --target agents/test-fixer</pre>
       </div>
     </section>
 
-    <!-- 6. KSTACK -->
+    <!-- 7. UNIFIED PROOF STRIP UX -->
+    <section id="proof-strip">
+      <h2>7. Unified 6-Stage Proof Strip UX</h2>
+      <p>The Proof Strip (<code>core/studio/assets/studio.js</code>) provides a trustworthy, accessible visualization of real execution events across both IDE Mode and Agent Builder Mode without any secondary frontend state engine. The 6 stages map directly from the 12-state deterministic backend:</p>
+      <ul>
+        <li><strong>1. INSPECT:</strong> Validates workspace symbol ASTs, model sovereignty, and air-gap boundaries (<code>LOCAL_ONLY</code> zero-egress verified).</li>
+        <li><strong>2. PLAN:</strong> Constructs bounded execution graphs with deterministic step limits and model routing.</li>
+        <li><strong>3. AUTHORIZE:</strong> Enforces permission boundaries, 2-human quorum rules, and human approvals; pending actions surface high-contrast amber alert states (<code>△</code>).</li>
+        <li><strong>4. EXECUTE:</strong> Executes sandboxed tools, tracks file mutations, and computes unified diff statistics.</li>
+        <li><strong>5. VERIFY:</strong> Executes automated test suites (e.g. <code>pytest</code>); verifies exit code 0 and assertion logs (non-zero exits immediately trigger <code>FAILED ✕</code>).</li>
+        <li><strong>6. SEAL:</strong> Computes Merkle inclusion roots and cryptographically signs tamper-evident SHA-256 flight-tape bundles. Tampered records flag instant failure.</li>
+      </ul>
+      <p>The Proof Strip complies with W3C ARIA tablist/tab accessibility patterns, offering keyboard cyclic navigation (<code>ArrowRight</code>, <code>ArrowLeft</code>, <code>Home</code>, <code>End</code>), interactive proof drawer expansion (<code>Enter</code>/<code>Space</code>), and instant dismissal (<code>Escape</code>).</p>
+    </section>
+
+    <!-- 8. KSTACK -->
     <section id="kstack">
-      <h2>6. KStack Composable Role Skills</h2>
+      <h2>8. KStack Composable Role Skills</h2>
       <p>KStack standardizes agent roles as version-controlled <code>SKILL.md</code> definitions. Keelway ships with four first-party built-in skills:</p>
       <ul>
         <li><code>kstack/plan</code> (Role: Architect) — Deconstructs intent into discrete, bounded, testable steps.</li>
@@ -193,34 +210,34 @@ $ curl -X POST http://localhost:7420/v1/editor-sync/open-in-editor \
       <p>Manage skills using <code>keelway skill inspect|import|validate|list|pin|export|revoke</code>.</p>
     </section>
 
-    <!-- 7. KBRAIN -->
+    <!-- 9. KBRAIN -->
     <section id="kbrain">
-      <h2>7. KBrain Scope-Aware Knowledge &amp; DLP Memory</h2>
+      <h2>9. KBrain Scope-Aware Knowledge &amp; DLP Memory</h2>
       <p>KBrain provides hierarchical fact and decision memory with strict scoping boundaries: <code>LOCAL_SESSION</code> &lt; <code>PROJECT</code> &lt; <code>TEAM</code> &lt; <code>ORG</code>. Before storing any fact, an automated regex DLP pre-flight scanner validates the payload, immediately throwing <code>SecretLeakDetectedError</code> if raw API keys (<code>sk-</code>, <code>ghp_</code>, <code>Bearer </code>, private keys) are present.</p>
     </section>
 
-    <!-- 8. KHUB -->
+    <!-- 10. KHUB -->
     <section id="khub">
-      <h2>8. KHub Universal Skills Importer</h2>
+      <h2>10. KHub Universal Skills Importer</h2>
       <p>KHub scans and imports agent skills from external platforms, including <code>.claude/skills</code>, <code>.cursor/skills</code>, <code>.cursor/rules</code>, <code>.agents/skills</code>, and <code>.codex/skills</code>. Files under <code>.cursor/rules</code> are strictly classified as non-executable prompt rules (<code>is_rule_only=True</code>) to prevent accidental execution as tool skills. Upstream content changes are actively monitored via SHA-256 drift radar.</p>
     </section>
 
-    <!-- 9. KSPACES -->
+    <!-- 11. KSPACES -->
     <section id="kspaces">
-      <h2>9. KSpaces Collaborative Workspaces &amp; RBAC</h2>
+      <h2>11. KSpaces Collaborative Workspaces &amp; RBAC</h2>
       <p>KSpaces introduces enterprise team collaboration with four RBAC roles: <code>OWNER</code>, <code>AGENT_MANAGER</code>, <code>CONTRIBUTOR</code>, and <code>VIEWER</code>. Agents receive time-bound service account credentials (<code>sa_&lt;id&gt;</code>) with automatic TTL expiration. All proposed branch changes require explicit <code>AGENT_MANAGER</code> review and approval.</p>
     </section>
 
-    <!-- 10. KFLOW -->
+    <!-- 12. KFLOW -->
     <section id="kflow">
-      <h2>10. KFlow Deterministic DAG Engine</h2>
+      <h2>12. KFlow Deterministic DAG Engine</h2>
       <p>KFlow coordinates parallel multi-agent task execution using a topological DAG scheduler with strict maximum dollar budget and fanout constraints. Prior to applying changes, KFlow checks that the working tree matches the approved base Git commit SHA, raising <code>BaseShaDriftError</code> if concurrent edits occurred. Execution produces a cryptographically sealed <code>ProofPacket</code>.</p>
     </section>
 
-    <!-- 11. TIER 2 HAL -->
+    <!-- 13. TIER 2 HAL -->
     <section id="tier2-hal">
-      <h2>11. Tier 2 Hardware Security HAL</h2>
-      <p>For high-security defense, banking, and critical infrastructure deployments, Keelway implements a Tier 2 Hardware Abstraction Layer:</p>
+      <h2>13. Tier 2 Hardware Security HAL <span class="pill amber" style="font-size: 11px; vertical-align: middle; margin-left: 8px;">Experimental (Simulation)</span></h2>
+      <p>For high-security defense, banking, and critical infrastructure deployments, Keelway implements a software-simulated model specification for Tier 2 Hardware Abstraction (pending physical hardware qualification):</p>
       <ul>
         <li><strong>TPM 2.0 PCR Quotes:</strong> Cryptographic attestation of measured boot and firmware integrity.</li>
         <li><strong>Dual-WORM Storage:</strong> Dual Write-Once-Read-Many append-only storage for immutable audit receipts.</li>
@@ -229,9 +246,9 @@ $ curl -X POST http://localhost:7420/v1/editor-sync/open-in-editor \
       </ul>
     </section>
 
-    <!-- 12. SOVEREIGN ECONOMICS -->
+    <!-- 14. SOVEREIGN ECONOMICS -->
     <section id="economics">
-      <h2>12. Sovereign Economics &amp; Rate Cards</h2>
+      <h2>14. Sovereign Economics &amp; Rate Cards</h2>
       <p>Track token expenditure in real time with <code>keelway cost</code>. Keelway incorporates rate cards across Anthropic, OpenAI, Google, DeepSeek, and local inference engines, automatically calculating your local GPU arbitrage ROI and Sovereign Efficiency Index (SEI) score.</p>
     </section>
   </article>
