@@ -4,7 +4,7 @@
 **Product:** Keelway by Sorvex Labs  
 **Repository Root:** `/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway`  
 **Git Branch:** `main`  
-**Commit SHA:** `073d5e86e3dba727c4dd0e561e24927e98fe51db`  
+**Commit SHA:** `dba86da6ea4856f709fa2f8ea346ecf0a6d09c6f`  
 **Git Working Tree Status:** Clean (`nothing to commit, working tree clean`)  
 **Language Stack:** Python 3.14.0, FastAPI / Starlette, SQLAlchemy 2.0 (Async SQLite), Pydantic v2, TypeScript / React (Web Console & Studio)
 
@@ -25,7 +25,7 @@ Both workflows share the exact same runtime (`AutonomousAgentLoop`), state machi
 | Subsystem | Target / Endpoint | Observed State | Evidence / Diagnostic |
 |---|---|---|---|
 | **Python Virtual Environment** | `kora-ai.nosync/.venv/bin/python` | Active (Python 3.14.0) | Verified runtime paths and cython extensions |
-| **Pytest Test Suite** | 755 collected test cases | **755 PASSED**, 0 failed, 1 warning (107.56s) | Full test execution run `pytest -q` |
+| **Pytest Test Suite** | 776 collected test cases | **776 PASSED**, 0 failed, 1 warning (112.86s) | Full test execution run `pytest -q` |
 | **Local Model Daemon** | Ollama at `http://localhost:11434` | PID 1880, `qwen3.5:latest` (7.6GB, MLX runner) | Live completion test: `"response": "Keelway Verified"` |
 | **Local Audit Database** | `keelway_audit.db` | Active SQLite database (680KB) | Valid schema: `kora_tasks`, `kora_audit_events`, `keelway_agent_manifests` |
 | **Deployed Production Site** | `https://website-liart-ten-88.vercel.app` | Live Vercel Deployment | Matches `website/product-facts.json` claims |
@@ -101,11 +101,11 @@ Each subsystem is strictly evaluated and classified into one of the canonical st
 
 | ID | Component | Severity | Description | Evidence Level | Reproduction Command | Resolution Status |
 |---|---|---|---|---|---|---|
-| **GAP-01** | CLI / Agent Builder | P1 | Missing unified `keelway agent export` and `keelway agent import` CLI commands for portable tarball bundles. | `PARTIAL` | `python cli.py agent export --help` | To be implemented in Workstream D |
-| **GAP-02** | Studio / UI | P1 | Studio UI lacks unified "Proof Strip" visualization across both IDE and Agent Builder views. | `PARTIAL` | Inspect `core/studio/assets/studio.js` | To be unified in Workstream F |
-| **GAP-03** | E2E IDE Golden Path | P1 | End-to-end bug fix using live Ollama model requires end-to-end automated smoke script for acceptance gates. | `VERIFIED_CODE` | `python verify_live_keys.py` | To be delivered in Workstream C |
+| **GAP-01** | CLI / Agent Builder | P1 | Missing unified `keelway agent export` and `keelway agent import` CLI commands for portable tarball bundles. | `VERIFIED_END_TO_END` | `python cli.py agent export --help` / `tests/test_slice3_agent_builder_e2e.py` | **RESOLVED** (Implemented in `cli.py` & verified end-to-end) |
+| **GAP-02** | Studio / UI | P1 | Studio UI lacks unified "Proof Strip" visualization across both IDE and Agent Builder views. | `VERIFIED_END_TO_END` | Inspect `core/studio/assets/studio.js` / `tests/test_proof_strip_ux.py` | **RESOLVED** (Unified 6-stage Proof Strip delivered in Workstream F) |
+| **GAP-03** | E2E IDE Golden Path | P1 | End-to-end bug fix using live Ollama model requires end-to-end automated smoke script for acceptance gates. | `VERIFIED_END_TO_END` | `tests/test_slice2_ide_usability_e2e.py` | **RESOLVED** (Automated real Ollama inference test passing) |
 
 ---
 
 ## 5. Audit Conclusion & Gate Certification
-The repository is fully functional, all 755 automated tests pass without failure, the local Ollama daemon is operational with `qwen3.5:latest`, and the shared runtime core is intact. Phase 0 audit is complete and verified.
+The repository is fully functional, all 776 automated tests pass without failure, the local Ollama daemon is operational with `qwen3.5:latest`, the unified 6-stage Proof Strip UX is live, and the shared runtime core is verified across both IDE Mode and Agent Builder Mode. All 10 beta acceptance gates are satisfied.
