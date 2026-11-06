@@ -1987,9 +1987,10 @@ async def get_pending_runner_jobs():
     return {"pending_jobs": RUNNER_JOBS_QUEUE, "count": len(RUNNER_JOBS_QUEUE)}
 
 
-@router.post("/v1/runner/spool/sync", tags=["Customer Runner"])
-async def sync_customer_runner_spool(payload: dict):
+@router.post("/v1/runner/spool/sync", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Customer Runner"])
+async def sync_customer_runner_spool(payload: dict, principal: Principal = Depends(current_principal)):
     """Processes an offline batch synchronization submission from a customer runner."""
+    del principal
     from core.runner.spool import RunnerSpoolManager
 
     runner_id = payload.get("runner_id")
@@ -2654,13 +2655,13 @@ async def get_entitlements_status(
     from core.billing.entitlements import get_shared_entitlement_manager
     mgr = get_shared_entitlement_manager()
     cert = mgr.get_certificate("default-org")
-    valid, status_str = cert.is_valid()
+    valid, status_str = cert.is_valid(mgr.secret_key)
     return {
         "tier": cert.tier.value,
         "seats": cert.seats,
         "is_valid": valid,
         "status": status_str,
-        "features": {f: cert.allows(f) for f in cert.allowed_features},
+        "features": {f: bool(valid) and cert.allows(f) for f in cert.allowed_features},
         "days_offline": round((time.time() - cert.issued_at) / 86400, 2),
         "offline_grace_days_remaining": round(max(0.0, 14.0 - (time.time() - cert.issued_at) / 86400), 2),
     }

@@ -103,7 +103,12 @@ class EntitlementCertificate:
         """
         Validates certificate signature and checks validity against time and offline grace window.
         Returns (is_valid, status_code).
+
+        A source-default key never validates a certificate as runnable. Callers that
+        need grace-period and tamper checks pass an explicit non-default key.
         """
+        if is_source_default(secret_key):
+            return False, "SOURCE_DEFAULT_REFUSED"
         expected_sig = self.calculate_signature(secret_key)
         if not hmac.compare_digest(self.signature, expected_sig):
             return False, "INVALID_SIGNATURE"

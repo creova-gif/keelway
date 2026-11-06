@@ -20,9 +20,12 @@ from core.security.sbom import SBOMGenerator, SBOMVerifier
 from core.security.receipt_verifier import ReceiptVerifier
 
 
+_ENTITLEMENT_FIXTURE = b"package-c-explicit-entitlement-lifecycle-key"
+
+
 def test_entitlement_certificate_lifecycle_and_grace_period():
     now = time.time()
-    # 1. Active certificate
+    # 1. Active certificate signed with an explicit non-default key
     cert = EntitlementCertificate(
         org_id="org_acme_corp",
         org_name="Acme Corp",
@@ -33,15 +36,15 @@ def test_entitlement_certificate_lifecycle_and_grace_period():
         expires_at=now + 86400,
         grace_period_days=14,
     )
-    cert.sign()
-    valid, status = cert.is_valid()
+    cert.sign(_ENTITLEMENT_FIXTURE)
+    valid, status = cert.is_valid(_ENTITLEMENT_FIXTURE)
     assert valid is True
     assert status == "ACTIVE"
 
     # 2. Tampered signature fails
     cert_tampered = EntitlementCertificate.from_dict(cert.to_dict())
     cert_tampered.seats = 100  # unearned seat expansion
-    valid_tampered, status_tampered = cert_tampered.is_valid()
+    valid_tampered, status_tampered = cert_tampered.is_valid(_ENTITLEMENT_FIXTURE)
     assert valid_tampered is False
     assert status_tampered == "INVALID_SIGNATURE"
 
@@ -56,13 +59,13 @@ def test_entitlement_certificate_lifecycle_and_grace_period():
         expires_at=now - (3 * 86400),
         grace_period_days=14,
     )
-    cert_grace.sign()
-    valid_grace, status_grace = cert_grace.is_valid(now=now)
+    cert_grace.sign(_ENTITLEMENT_FIXTURE)
+    valid_grace, status_grace = cert_grace.is_valid(_ENTITLEMENT_FIXTURE, now=now)
     assert valid_grace is True
     assert status_grace == "IN_GRACE_PERIOD"
 
     # 4. Completely expired (expired 20 days ago, beyond 14-day grace)
-    valid_expired, status_expired = cert_grace.is_valid(now=now + (18 * 86400))
+    valid_expired, status_expired = cert_grace.is_valid(_ENTITLEMENT_FIXTURE, now=now + (18 * 86400))
     assert valid_expired is False
     assert status_expired == "EXPIRED"
 
