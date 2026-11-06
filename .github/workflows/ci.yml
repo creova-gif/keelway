@@ -29,7 +29,9 @@ jobs:
       # Release gate, separate from this job: rerun tests marked live_model
       # where LocalAdapter.is_available() is true for the configured local
       # model, and tests marked live_os_isolation where Sandbox.verify()
-      # succeeds (macOS seatbelt or Linux bubblewrap). Do not deselect, skip,
+      # succeeds (macOS seatbelt or Linux bubblewrap). A binary that fails
+      # that self-test is not a prerequisite, so Profile A skips those tests.
+      # Do not deselect, skip,
       # or xfail tests marked safety_negative. Those are mandatory here and
       # may stay red until package C implements the fail-closed behavior.
       - name: Run Test Suites
