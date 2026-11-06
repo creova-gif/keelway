@@ -347,3 +347,127 @@ async def test_explicit_fake_command_boundary_is_used_and_is_not_os_verification
     refused = await bare.execute_tool("run_command", {"command": "echo hi"})
     assert refused["status"] == "error"
     assert "unavailable" in refused["error"].lower()
+
+
+def test_tokenless_ack_does_not_change_runner_job_state(tmp_path):
+    """Receipt-only ack. It is not authentication and it must not dequeue or write."""
+    from keelway.api import routes as governance_routes
+    from keelway.api.app import app as governance_app
+    from core.api import routes as studio_routes
+    from core.main import app as studio_app
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "README.md").write_text("baseline\n", encoding="utf-8")
+    governance_routes.PENDING_RUNNER_JOBS.clear()
+    studio_routes.RUNNER_JOBS_QUEUE.clear()
+    governance_routes.ACTIVE_RUNS.clear()
+    gov_job = {"job_id": "gov-job", "org_id": "org_safety", "status": "QUEUED"}
+    studio_job = {"job_id": "studio-job", "org_id": "org_safety", "status": "QUEUED"}
+    governance_routes.PENDING_RUNNER_JOBS.append(gov_job)
+    studio_routes.RUNNER_JOBS_QUEUE.append(studio_job)
+    studio_routes._workspace_fs = WorkspaceFilesystem(str(repo))
+    before = {p.name: p.read_bytes() for p in repo.iterdir() if p.is_file()}
+    try:
+        with TestClient(governance_app) as governance, TestClient(studio_app) as studio:
+            missing = governance.post("/v1/runner/jobs/ack", json={
+                "runner_id": "runner-a", "org_id": "org_other", "run_id": "run-x", "status": "COMPLETED",
+            })
+            forged = governance.post("/v1/runner/jobs/ack", json={
+                "runner_id": "runner-a", "org_id": "org_safety", "run_id": "run-x",
+                "status": "CANCELLED", "patch_hash": "abc",
+            })
+            studio_ack = studio.post("/v1/runner/jobs/ack", json={
+                "runner_id": "runner-evil", "org_id": "org_other", "run_id": "run-y", "status": "COMPLETED",
+            })
+            cancel = governance.post("/v1/runs/missing-run/cancel")
+        assert missing.status_code == 200 and forged.status_code == 200 and studio_ack.status_code == 200
+        # This test is not marked auth, so the shared profile treats the caller as the local owner.
+        # A missing run is not found. It is not created, and the queued jobs stay queued.
+        assert cancel.status_code == 404
+        assert governance_routes.PENDING_RUNNER_JOBS == [gov_job]
+        assert studio_routes.RUNNER_JOBS_QUEUE == [studio_job]
+        assert governance_routes.ACTIVE_RUNS == {}
+        assert {p.name: p.read_bytes() for p in repo.iterdir() if p.is_file()} == before
+    finally:
+        governance_routes.PENDING_RUNNER_JOBS.clear()
+        studio_routes.RUNNER_JOBS_QUEUE.clear()
+
+
+@pytest.mark.auth
+def test_missing_auth_cannot_cancel_a_governance_run():
+    from keelway.api import routes as governance_routes
+    from keelway.api.app import app as governance_app
+
+    before = dict(governance_routes.ACTIVE_RUNS)
+    with TestClient(governance_app) as client:
+        response = client.post("/v1/runs/missing-run/cancel")
+    assert response.status_code == 401
+    assert governance_routes.ACTIVE_RUNS == before
+
+
+@pytest.mark.auth
+def test_unauthenticated_spool_sync_cannot_mark_an_acknowledgement_synced(tmp_path, monkeypatch):
+    from core.api import routes as studio_routes
+    from core.main import app as studio_app
+
+    spool = tmp_path / ".keelway" / "runner_spool" / "spool.json"
+    spool.parent.mkdir(parents=True)
+    original = (
+        '{"items":[{"item_id":"spool_1","runner_id":"runner_api_node","item_type":"job_ack",'
+        '"payload":{"run_id":"r"},"created_at_epoch":1,"synced":false,"sha256":"aa"}]}'
+    )
+    spool.write_text(original, encoding="utf-8")
+    monkeypatch.setattr(studio_routes, "_workspace_fs", WorkspaceFilesystem(str(tmp_path)))
+    with TestClient(studio_app) as client:
+        response = client.post(
+            "/v1/runner/spool/sync",
+            json={
+                "runner_id": "runner_api_node",
+                "items": [{
+                    "item_id": "spool_1",
+                    "runner_id": "runner_api_node",
+                    "item_type": "job_ack",
+                    "payload": {"run_id": "r"},
+                    "created_at_epoch": 1,
+                    "synced": False,
+                    "sha256": "aa",
+                }],
+            },
+        )
+    assert response.status_code in (401, 403)
+    assert spool.read_text(encoding="utf-8") == original
+
+
+def test_source_default_certificate_is_not_active_even_for_a_community_feature(tmp_path, capsys):
+    import time
+    from cli import cmd_entitlements
+
+    now = time.time()
+    certificate = EntitlementCertificate(
+        org_id="org_status",
+        org_name="Status",
+        tier=LicenseTier.COMMUNITY,
+        seats=1,
+        allowed_features=[EnterpriseFeature.GUIDED_BUILDER.value],
+        issued_at=now - 10,
+        expires_at=now + 86400,
+    )
+    certificate.sign()
+    valid, status = certificate.is_valid()
+    assert valid is False
+    assert status != "ACTIVE"
+    assert "DEFAULT" in status or "REFUS" in status
+
+    manager = EntitlementManager(storage_path=tmp_path / "entitlements.json")
+    granted, reason = manager.check_feature_access("org_status", EnterpriseFeature.GUIDED_BUILDER)
+    assert granted is False
+    assert "source-default" in reason.lower()
+    assert "community" not in reason.lower()
+    assert not (tmp_path / "entitlements.json").exists()
+
+    rc = cmd_entitlements("status", org="org-with-no-explicit-certificate")
+    printed = capsys.readouterr().out
+    assert rc == 0
+    assert "[✓] ACTIVE" not in printed
+    assert "SOURCE_DEFAULT_REFUSED" in printed

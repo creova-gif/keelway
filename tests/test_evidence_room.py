@@ -114,7 +114,9 @@ def test_evidence_api_endpoints():
     assert resp_ent.status_code == 200
     ent_data = resp_ent.json()
     assert ent_data["tier"] == "community"
-    assert ent_data["is_valid"] is True
+    assert ent_data["is_valid"] is False
+    assert ent_data["status"] == "SOURCE_DEFAULT_REFUSED"
+    assert not any(ent_data["features"].values())
 
     # 6. CycloneDX SBOM
     resp_sbom = client.get("/v1/sbom")

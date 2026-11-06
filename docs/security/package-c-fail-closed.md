@@ -60,8 +60,23 @@ restores the previous host-shell and open governance behavior.
 
 ## Limits
 
-Profile A on Linux does not prove macOS seatbelt. A passing hermetic run does
-not mean a live model or a verified OS sandbox was exercised. Runner
-acknowledgement still has no token of its own. Billing entitlements keep the
-published default in source so older certificates can be recognized as
-non-runnable rather than silently re-signed.
+This branch stays a draft. Do not merge or deploy it. Milo returned NOT READY
+on frozen A snapshot `2e0a232f`. A local pytest green against that old harness,
+including the earlier 819-pass run, is not independent acceptance. Dr Mafie is
+correcting harness false-pass risks on the integration copy only. This branch
+does not import that copy and does not edit A's frozen fixtures or profile.
+
+`POST /v1/runner/jobs/ack` returns a receipt and does not change the queue,
+active runs, or workspace files, so it has no separate runner token. When
+authentication is required, cancelling a run still requires the governance
+bearer. `POST /v1/runner/spool/sync` previously marked an acknowledgement
+synced and wrote the spool file with no credential. It now uses the existing
+Studio execute permission. That is not a new spool protocol.
+
+`EntitlementCertificate.is_valid` returns `SOURCE_DEFAULT_REFUSED` for the
+published default key, not `ACTIVE`. Feature checks refuse before tier logic,
+including for a community feature such as `guided_builder`.
+
+Profile A on Linux does not prove macOS seatbelt. Thirteen seatbelt proofs
+are not claimed here. The corrected A successor, and a host where
+`Sandbox.verify()` succeeds, remain the live-isolation gate.
