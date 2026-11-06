@@ -185,12 +185,13 @@ def test_ide_mode_lifecycle_mapping():
     """)
 
     # Inspect -> Plan -> Authorize -> Execute -> Verify -> Seal
-    assert res["created"] == ["active", "idle", "idle", "idle", "idle", "idle"]
-    assert res["planning"] == ["passed", "active", "idle", "idle", "idle", "idle"]
-    assert res["planReady"] == ["passed", "passed", "idle", "idle", "idle", "idle"]
-    assert res["executing"] == ["passed", "passed", "passed", "active", "idle", "idle"]
-    assert res["verifying"] == ["passed", "passed", "passed", "passed", "active", "idle"]
-    assert res["completed"] == ["passed", "passed", "passed", "passed", "passed", "passed"]
+    # Changed expectation: a status name is not inspection, authorization, test, or seal evidence.
+    assert res["created"] == ["active", "not_run", "not_run", "not_run", "not_run", "not_run"]
+    assert res["planning"] == ["not_run", "active", "not_run", "not_run", "not_run", "not_run"]
+    assert res["planReady"] == ["not_run", "passed", "not_run", "not_run", "not_run", "not_run"]
+    assert res["executing"] == ["not_run", "passed", "not_run", "active", "not_run", "not_run"]
+    assert res["verifying"] == ["not_run", "passed", "not_run", "passed", "active", "not_run"]
+    assert res["completed"] == ["not_run", "passed", "not_run", "passed", "passed", "passed"]
 
 
 def test_ide_mode_approval_states():
@@ -283,10 +284,10 @@ def test_airgap_and_local_model_sovereignty():
         };
     """)
     assert "qwen3.5:latest" in res["ideModel"]
-    assert res["ideEgress"] == "LOCAL_ONLY (Zero Egress Verified)"
+    assert "Verified" not in res["ideEgress"]
     assert res["ideAirgap"] is True
-    assert "Local Open-Weight" in res["builderModel"]
-    assert res["builderEgress"] == "LOCAL_ONLY (Zero Egress Verified)"
+    assert res["builderModel"] == "Not reported"
+    assert res["builderEgress"] == "Not checked"
 
 
 def test_agent_builder_stage_mapping():
@@ -331,11 +332,12 @@ def test_agent_builder_stage_mapping():
         };
     """)
 
-    assert res["successStatuses"] == ["passed", "passed", "passed", "passed", "passed", "passed"]
-    assert res["failedStatuses"] == ["passed", "passed", "passed", "passed", "failed", "failed"]
+    # Inspect and authorize stay not_run: a scaffold receipt is not an egress check or an approval.
+    assert res["successStatuses"] == ["not_run", "passed", "not_run", "passed", "passed", "passed"]
+    assert res["failedStatuses"] == ["not_run", "passed", "not_run", "not_run", "failed", "failed"]
     assert res["successAutonomy"] == "mutation_gated"
-    assert "Ready for Bundle Packaging" in res["successDistributable"]
-    assert "Blocked" in res["failedDistributable"]
+    assert "Receipt recorded" in res["successDistributable"]
+    assert res["failedDistributable"] == "Not sealed"
 
 
 def test_accessibility_and_keyboard_attributes():

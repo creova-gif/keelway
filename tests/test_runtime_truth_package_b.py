@@ -49,7 +49,8 @@ const loaded = new Function(studio + '\n; return {' +
   'speculativeViewFromResponse: window.speculativeViewFromResponse,' +
   'evidenceMetricMark: window.evidenceMetricMark,' +
   'classifyComposerResult: window.classifyComposerResult,' +
-  'presentCostLedger: window.presentCostLedger' +
+  'presentCostLedger: window.presentCostLedger,' +
+  'getIdeStageData: window.getIdeStageData' +
 '};')();
 const value = Function('api', 'return (' + expression + ');')(loaded);
 process.stdout.write(JSON.stringify(value));
@@ -93,7 +94,7 @@ def test_package_b_sources_do_not_keep_the_fabricated_claims():
 def test_studio_benchmark_helpers_do_not_invent_metrics():
     missing = _node_studio("api.speculativeViewFromResponse({})")
     assert missing["verified"] is False
-    assert missing["badge"] == "NOT VERIFIED"
+    assert missing["badge"] == "NOT A MEASUREMENT"
     assert missing["speedup"] is None
     assert missing["acceptancePct"] is None
     assert missing["proposed"] is None
@@ -101,7 +102,7 @@ def test_studio_benchmark_helpers_do_not_invent_metrics():
     assert missing["latencySaved"] is None
     assert missing["latencyPct"] is None
     assert missing["tokenStream"] is None
-    assert "synthetic" in missing["notice"].lower() or "no token stream" in missing["notice"].lower()
+    assert "no measured figures" in missing["notice"].lower()
 
     failure = _node_studio("api.speculativeViewFromFailure()")
     assert failure["badge"] == "ERROR"
@@ -114,17 +115,26 @@ def test_studio_benchmark_helpers_do_not_invent_metrics():
     assert not_run["badge"] == "NOT RUN"
     assert not_run["speedup"] is None
 
-    reported = _node_studio(
+    unmarked = _node_studio(
         "api.speculativeViewFromResponse({ speculative_result: { effective_speedup_ratio: 1.25, acceptance_rate: 0.5, draft_tokens_proposed: 4, draft_tokens_accepted: 2, token_stream: [{ token: 'x', status: 'accepted', step: 0, draft_index: 0 }] }, latency_reduction_pct: 10 })"
+    )
+    assert unmarked["kind"] == "simulation"
+    assert unmarked["speedup"] is None
+    assert unmarked["tokenStream"] is None
+    assert unmarked["verified"] is False
+    assert "SIMULATION" in unmarked["badge"]
+    assert "VERIFIED" not in unmarked["badge"]
+    assert "heuristic" in unmarked["notice"].lower()
+    reported = _node_studio(
+        "api.speculativeViewFromResponse({ measured: true, speculative_result: { effective_speedup_ratio: 1.25, acceptance_rate: 0.5, draft_tokens_proposed: 4, draft_tokens_accepted: 2, token_stream: [{ token: 'x', status: 'accepted', step: 0, draft_index: 0 }] }, latency_reduction_pct: 10 })"
     )
     assert reported["speedup"] == 1.25
     assert reported["acceptancePct"] == 50
     assert reported["proposed"] == 4
     assert reported["accepted"] == 2
     assert reported["verified"] is False
-    assert reported["badge"] == "NOT VERIFIED"
+    assert "NOT INDEPENDENTLY VERIFIED" in reported["badge"]
     assert reported["tokenStream"][0]["token"] == "x"
-    assert "not marked as measured" in reported["notice"].lower()
 
 
 def test_studio_labels_keyword_plans_and_model_failures():
@@ -233,6 +243,24 @@ def test_studio_html_is_truthful_before_javascript():
         assert f'id="{element_id}"' in without_scripts
 
 
+def test_proof_strip_does_not_invent_missing_evidence():
+    planning = _node_studio("api.getIdeStageData({ status: 'planning' })")
+    blob = json.dumps(planning)
+    for banned in ("342", "qwen3.5:latest", "12 passed", "8f4e2b", "073d5e86", "Zero Egress Verified", "100% OK"):
+        assert banned not in blob
+    assert planning[0]["status"] == "not_run"
+    assert planning[0]["details"]["symbols"] == "Not reported"
+    assert planning[0]["details"]["airgap"] is None
+    completed = _node_studio("api.getIdeStageData({ status: 'completed' })")
+    assert completed[4]["status"] == "not_run"
+    assert completed[4]["details"]["exitCode"] is None
+    assert completed[4]["details"]["testOutput"] == "Not reported"
+    assert completed[5]["status"] == "not_run"
+    assert completed[5]["details"]["merkleRoot"] is None
+    assert completed[5]["details"]["verified"] is False
+    assert completed[2]["details"]["approvalDigest"] is None
+
+
 def test_ledger_labels_do_not_invent_missing_figures():
     missing = _node_studio("api.presentCostLedger({}, null)")
     assert missing["localRatio"] == "Not run"
@@ -276,5 +304,16 @@ def test_evidence_room_leaves_unrun_checks_unverified():
     if sbom["observed_value"]["status"] == "executed":
         assert isinstance(sbom["observed_value"]["components"], int)
         assert "independent release verification" in sbom["claim"]
+    entitlement = by_name["Offline Entitlement Gating"]
+    assert entitlement["is_verified"] is False
+    assert entitlement["observed_value"]["independently_issued"] is False
+    assert entitlement["observed_value"]["provenance"] in {"stored", "in_process_fallback"}
+    benchmark = by_name["10-Task Golden Evaluation Panel"]
+    if benchmark["observed_value"]["status"] == "executed":
+        assert benchmark["is_verified"] is False
+        assert isinstance(benchmark["observed_value"]["passed_tasks"], int)
+        assert "stub generators" in benchmark["claim"]
     assert pkg.summary["all_verified"] is False
-    assert "745" not in json.dumps(pkg.to_dict())
+    claim_blob = "\n".join(metric["claim"] for metric in pkg.metrics)
+    assert "745" not in claim_blob
+    assert "745" not in json.dumps(pkg.summary)

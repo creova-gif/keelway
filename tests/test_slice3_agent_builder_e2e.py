@@ -83,10 +83,10 @@ async def test_slice3_agent_builder_scaffold_pack_import_cross_repo(tmp_path: Pa
                 sealDistributable: s[5].details.distributable
             };
         """, input_data=builder_state)
-        assert res["statuses"] == ["passed", "passed", "passed", "passed", "passed", "passed"]
-        assert "Local Open-Weight" in res["inspectModel"]
-        assert res["verifyExitCode"] == 0
-        assert "Ready for Bundle Packaging" in res["sealDistributable"]
+        assert res["statuses"] == ["not_run", "passed", "not_run", "passed", "passed", "passed"]
+        assert res["inspectModel"] == "Not reported"
+        assert res["verifyExitCode"] is None
+        assert "Receipt recorded" in res["sealDistributable"]
 
         # 4. Pack agent bundle into .tar.gz archive
         archive_path = repo_a / "dist" / f"{agent_name}.tar.gz"
