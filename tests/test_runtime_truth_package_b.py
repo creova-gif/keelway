@@ -16,6 +16,7 @@ from core.orchestration.mesh import AgentMeshDispatcher
 
 KEELWAY_ROOT = Path(__file__).parent.parent
 STUDIO_JS = KEELWAY_ROOT / "core" / "studio" / "assets" / "studio.js"
+STUDIO_HTML = KEELWAY_ROOT / "core" / "studio" / "index.html"
 EVIDENCE_PY = KEELWAY_ROOT / "core" / "eval" / "evidence_room.py"
 MESH_PY = KEELWAY_ROOT / "core" / "orchestration" / "mesh.py"
 CHAT_PY = KEELWAY_ROOT / "core" / "orchestration" / "chat.py"
@@ -47,7 +48,8 @@ const loaded = new Function(studio + '\n; return {' +
   'speculativeViewFromFailure: window.speculativeViewFromFailure,' +
   'speculativeViewFromResponse: window.speculativeViewFromResponse,' +
   'evidenceMetricMark: window.evidenceMetricMark,' +
-  'classifyComposerResult: window.classifyComposerResult' +
+  'classifyComposerResult: window.classifyComposerResult,' +
+  'presentCostLedger: window.presentCostLedger' +
 '};')();
 const value = Function('api', 'return (' + expression + ');')(loaded);
 process.stdout.write(JSON.stringify(value));
@@ -165,6 +167,90 @@ async def test_mesh_dispatch_does_not_report_executed_success():
     assert result["pipeline"]["security"]["dlp_clean"] is None
     assert result["pipeline"]["verification"]["tests_passed"] is None
     assert result["independently_approved"] is False
+
+
+def _element_text(html: str, element_id: str) -> str:
+    """Text of a single element in the static document. This is not a browser render."""
+    marker = f'id="{element_id}"'
+    start = html.find(marker)
+    assert start != -1, element_id
+    open_end = html.find(">", start)
+    close = html.find("<", open_end + 1)
+    return html[open_end + 1:close].strip()
+
+
+def test_studio_html_is_truthful_before_javascript():
+    """The file the browser parses is the no-JS and JS-failure document.
+
+    Script tags are removed before the assertion so a failed or absent
+    studio.js cannot be what makes the counts disappear.
+    """
+    raw = STUDIO_HTML.read_text(encoding="utf-8")
+    without_scripts = raw.split("<script", 1)[0]
+    assert "<script" not in without_scripts
+    for banned in (
+        "745",
+        "669",
+        "2.74",
+        "81.3",
+        "148.5",
+        "63.5",
+        "26 / 32",
+        "10 / 10",
+        "5 / 5",
+        "100% pass",
+        "100% ROI",
+        "SEI 100/100",
+        "100.0%",
+        "2.74x VERIFIED",
+        "Verified Harness",
+        "SHA-256 Verified Archive",
+        "✓ Verified",
+        "✓ Active",
+        "Live Speculative",
+    ):
+        assert banned not in without_scripts
+    assert _element_text(without_scripts, "spec-status-badge") == "NOT RUN"
+    assert _element_text(without_scripts, "spec-speedup") == "—"
+    assert _element_text(without_scripts, "spec-acceptance") == "—"
+    assert _element_text(without_scripts, "spec-latency-saved") == "—"
+    assert _element_text(without_scripts, "spec-cost") == "—"
+    assert _element_text(without_scripts, "t2-tpm-badge") == "Not run"
+    assert _element_text(without_scripts, "econ-roi-badge") == "ROI not run"
+    assert _element_text(without_scripts, "econ-sei-badge") == "SEI not run"
+    assert "Not-run checks stay unverified." in without_scripts
+    for element_id in (
+        "lab-evidence",
+        "evidence-summary-btn",
+        "evidence-seal-btn",
+        "evidence-verify-btn",
+        "spec-status-badge",
+        "btn-run-spec-benchmark",
+        "spec-token-stream",
+        "agent-form",
+        "mode-selector",
+    ):
+        assert f'id="{element_id}"' in without_scripts
+
+
+def test_ledger_labels_do_not_invent_missing_figures():
+    missing = _node_studio("api.presentCostLedger({}, null)")
+    assert missing["localRatio"] == "Not run"
+    assert missing["sei"] == "SEI not run"
+    assert missing["roi"] == "ROI not run"
+    assert missing["externalCost"] == "Not run"
+    assert "100" not in missing["localRatio"]
+    assert "100" not in missing["sei"]
+    assert "100" not in missing["roi"]
+    reported = _node_studio(
+        "api.presentCostLedger({ total_inferences: 2, local_inference_ratio: 0.5, total_external_cost_usd: 1.5, latency_p50_ms: 3, latency_p95_ms: 9 }, { sovereign_efficiency_index: 40, sovereign_roi_percent: 12.4 })"
+    )
+    assert reported["inferences"] == "2 inferences"
+    assert reported["localRatio"] == "50.0%"
+    assert reported["externalCost"] == "$1.5000"
+    assert reported["latency"] == "3 / 9 ms"
+    assert reported["sei"] == "SEI 40/100"
+    assert reported["roi"] == "12% ROI"
 
 
 def test_evidence_room_leaves_unrun_checks_unverified():

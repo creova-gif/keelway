@@ -316,7 +316,7 @@
         <section class="card p-4 space-y-2" aria-labelledby="builder-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="builder-title" class="font-semibold">Prompt-to-App Guided Builder</h3>
-            <span class="step-chip text-accent border-accent/50">Verified Harness</span>
+            <span class="step-chip text-ide-muted border-ide-border">Harness not run</span>
           </div>
           <div id="lab-app-builder" class="space-y-3">
             <p class="text-xs text-ide-muted">Synthesize typed architecture plans, scaffold complete codebases, run automated test suites, and seal flight tapes.</p>
@@ -580,7 +580,7 @@
             <section class="card p-4 space-y-2" aria-labelledby="agent-bundle-title">
               <div class="flex items-center justify-between gap-2">
                 <h3 id="agent-bundle-title" class="font-semibold">Agent Bundle Packaging &amp; Cryptographic Verification</h3>
-                <span class="step-chip text-accent border-accent/50">SHA-256 Verified Archive</span>
+                <span class="step-chip text-ide-muted border-ide-border">Archive not verified</span>
               </div>
               <div id="lab-agent-bundle" class="space-y-3">
                 <p class="text-xs text-ide-muted">Pack declarative agent workspaces into signed, portable distribution bundles (.tar.gz) or cryptographically verify and unpack bundles.</p>
@@ -712,30 +712,30 @@
         <section class="card p-4 space-y-2" aria-labelledby="evidence-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="evidence-title" class="font-semibold">Investor &amp; Enterprise Evidence Room (WP21)</h3>
-            <span class="step-chip text-accent border-accent/50 font-mono">Cryptographically Sealed (SHA-256)</span>
+            <span class="step-chip text-ide-muted border-ide-border font-mono">Not sealed</span>
           </div>
           <div id="lab-evidence" class="space-y-3">
-            <p class="text-xs text-ide-muted">Continuous sovereign evidence aggregation linking Git commit, 745 passing pytest cases, 10-task golden benchmark, standalone reference core engine, NIST SP 800-53 air-gap audit, and CycloneDX v1.5 SBOM release provenance.</p>
+            <p class="text-xs text-ide-muted">Counts appear only after a check runs and returns evidence. Not-run checks stay unverified. No pass total is claimed here.</p>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
                 <div class="text-[10px] text-ide-muted uppercase">Automated Tests</div>
-                <div class="text-base font-semibold text-ok">669 / 669</div>
-                <div class="text-[10px] text-ide-muted">0 failures, 100% pass</div>
+                <div class="text-base font-semibold text-ide-muted">Not run</div>
+                <div class="text-[10px] text-ide-muted">Unverified. Not a pass count.</div>
               </div>
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
                 <div class="text-[10px] text-ide-muted uppercase">Golden Benchmark</div>
-                <div class="text-base font-semibold text-ok">10 / 10 Pass@1</div>
-                <div class="text-[10px] text-ide-muted">EVAL-01..10 (3.8ms)</div>
+                <div class="text-base font-semibold text-ide-muted">Not run</div>
+                <div class="text-[10px] text-ide-muted">Unverified. Not a pass count.</div>
               </div>
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
                 <div class="text-[10px] text-ide-muted uppercase">Air-Gap Audit</div>
-                <div class="text-base font-semibold text-ok">5 / 5 Compliant</div>
-                <div class="text-[10px] text-ide-muted">NIST SP 800-53 SC-7</div>
+                <div class="text-base font-semibold text-ide-muted">Not run</div>
+                <div class="text-[10px] text-ide-muted">Unverified. Not a pass count.</div>
               </div>
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
                 <div class="text-[10px] text-ide-muted uppercase">Release Provenance</div>
-                <div class="text-base font-semibold text-ok">CycloneDX v1.5</div>
-                <div class="text-[10px] text-ide-muted">HMAC-SHA256 Signed</div>
+                <div class="text-base font-semibold text-ide-muted">Not run</div>
+                <div class="text-[10px] text-ide-muted">Unverified. Not a pass count.</div>
               </div>
             </div>
             <div class="flex flex-wrap gap-2 items-center">
@@ -757,10 +757,10 @@
                 <span class="w-2 h-2 rounded-full bg-accent" aria-hidden="true"></span>
                 <h3 id="speculative-title" class="section-title">Speculative Decoding &amp; Edge Acceleration</h3>
               </div>
-              <p class="text-[11px] text-ide-faint">Tandem draft/target local model execution achieving 2.5x to 3.8x speedup on consumer hardware at zero cloud cost.</p>
+              <p class="text-[11px] text-ide-faint">Benchmark has not been run. No speedup is claimed.</p>
             </div>
             <div class="flex items-center gap-1.5">
-              <span id="spec-status-badge" class="chip border-ok/50 text-ok text-[10px] font-mono">2.74x VERIFIED</span>
+              <span id="spec-status-badge" class="chip border-warn/50 text-warn text-[10px] font-mono">NOT RUN</span>
               <button id="btn-run-spec-benchmark" type="button" class="btn-primary h-7 text-[11px] px-3 flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 <span>Run Benchmark</span>
@@ -797,20 +797,20 @@
           <!-- Result Cards -->
           <div id="spec-metrics-grid" class="p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Speedup Ratio</span><span id="spec-speedup" class="text-accent font-mono font-bold">2.74x</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="spec-speedup-label">Amdahl acceleration factor</p>
+              <div class="flex justify-between font-medium"><span>Speedup Ratio</span><span id="spec-speedup" class="text-ide-muted font-mono font-bold">—</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-speedup-label">Not reported</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Acceptance Rate</span><span id="spec-acceptance" class="text-ok font-mono font-bold">81.3%</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="spec-tokens-label">26 / 32 draft tokens</p>
+              <div class="flex justify-between font-medium"><span>Acceptance Rate</span><span id="spec-acceptance" class="text-ide-muted font-mono font-bold">—</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-tokens-label">Not reported</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Latency Saved</span><span id="spec-latency-saved" class="text-ok font-mono font-bold">148.5 ms</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="spec-latency-pct">63.5% latency reduction</p>
+              <div class="flex justify-between font-medium"><span>Latency Saved</span><span id="spec-latency-saved" class="text-ide-muted font-mono font-bold">—</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-latency-pct">Not reported</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>External Cloud Cost</span><span id="spec-cost" class="font-mono text-ok font-bold">$0.00</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="spec-cost-label">100% on-device private inference</p>
+              <div class="flex justify-between font-medium"><span>External Cloud Cost</span><span id="spec-cost" class="font-mono text-ide-muted font-bold">—</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="spec-cost-label">Not measured</p>
             </div>
           </div>
 
@@ -819,16 +819,16 @@
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-[11px] font-medium text-ide-muted flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true"></span>
-                <span>Live Speculative Token Stream &amp; Tandem Verification</span>
+                <span>No token stream. Nothing has been measured.</span>
               </span>
               <div class="flex items-center gap-2.5 text-[10px] font-mono text-ide-faint">
                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-amber-400/30 border border-amber-400"></span>Draft (Amber)</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-teal-400/30 border border-teal-400"></span>Verified (Teal)</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-teal-400/30 border border-teal-400"></span>Accepted (Teal)</span>
                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-rose-500/30 border border-rose-500"></span>Rejected (Rose)</span>
               </div>
             </div>
             <div id="spec-token-stream" class="p-2.5 rounded bg-ide-bg border border-ide-border min-h-[52px] flex flex-wrap gap-1.5 items-center font-mono text-xs overflow-x-auto">
-              <span class="text-ide-faint text-[11px] italic">Click "Run Benchmark" to observe draft token speculation and parallel target verification.</span>
+              <span class="text-ide-faint text-[11px] italic">No token stream. A response is not measured evidence until the benchmark returns one.</span>
             </div>
           </div>
         </section>
@@ -910,9 +910,9 @@
               <p class="text-[11px] text-ide-faint">Append-only model ledger, latency percentiles, and quantified local-first savings (zero cloud API charges).</p>
             </div>
             <div class="flex items-center gap-1.5">
-              <span id="econ-inferences-badge" class="chip border-ide-border text-ide-muted text-[10px]">0 inferences</span>
-              <span id="econ-sei-badge" class="chip border-accent/50 text-accent text-[10px] font-mono">SEI 100/100</span>
-              <span id="econ-roi-badge" class="chip border-ok/50 text-ok text-[10px] font-mono">100% ROI</span>
+              <span id="econ-inferences-badge" class="chip border-ide-border text-ide-muted text-[10px]">Not run</span>
+              <span id="econ-sei-badge" class="chip border-ide-border text-ide-muted text-[10px] font-mono">SEI not run</span>
+              <span id="econ-roi-badge" class="chip border-ide-border text-ide-muted text-[10px] font-mono">ROI not run</span>
               <a href="/v1/models/ledger/export?format=jsonl" download class="btn-outline h-7 text-[11px] px-2 flex items-center gap-1" title="Export Ledger as JSONL">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                 <span>Export JSONL</span>
@@ -924,20 +924,20 @@
           </div>
           <div id="econ-metrics-grid" class="p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Local Inferences</span><span id="econ-local-ratio" class="text-ok">100.0%</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="econ-billing-label">no billed external API tokens</p>
+              <div class="flex justify-between font-medium"><span>Local Inferences</span><span id="econ-local-ratio" class="text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="econ-billing-label">Unverified. No ledger has been loaded.</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>External Cloud Billed</span><span id="econ-ext-cost" class="font-mono">$0.0000</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="econ-total-tokens">0 tokens total</p>
+              <div class="flex justify-between font-medium"><span>External Cloud Billed</span><span id="econ-ext-cost" class="font-mono text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="econ-total-tokens">Not run</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Arbitraged Savings</span><span id="econ-savings" class="text-ok font-mono">$0.0000</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="econ-savings-baseline">vs Claude 3.5 Sonnet</p>
+              <div class="flex justify-between font-medium"><span>Arbitraged Savings</span><span id="econ-savings" class="text-ide-muted font-mono">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="econ-savings-baseline">Baseline not reported</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Latency (p50 / p95)</span><span id="econ-latency" class="font-mono">0 / 0 ms</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="econ-local-dur">0.0 ms device runtime</p>
+              <div class="flex justify-between font-medium"><span>Latency (p50 / p95)</span><span id="econ-latency" class="font-mono text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="econ-local-dur">Not run</p>
             </div>
           </div>
           <div class="overflow-x-auto border-t border-ide-border">
@@ -1050,10 +1050,10 @@
         <section class="card p-4 space-y-2" aria-labelledby="eval-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="eval-title" class="font-semibold">Evaluation &amp; Drift Radar</h3>
-            <span class="step-chip text-accent border-accent/50">10-Task Golden Suite</span>
+            <span class="step-chip text-ide-muted border-ide-border">Panel not run</span>
           </div>
           <div id="lab-eval-drift" class="space-y-3">
-            <p class="text-xs text-ide-muted">Continuous benchmark verification, Pass@1 tracking, p50/p95 latency stability, and drift alerts.</p>
+            <p class="text-xs text-ide-muted">No benchmark result is shown until a run returns one. Pass counts stay unknown until then.</p>
             <div class="flex flex-wrap gap-2">
               <button id="eval-run-btn" type="button" class="btn-primary h-8">Run Benchmark &amp; Seal Receipt</button>
               <button id="eval-drift-btn" type="button" class="btn-outline h-8">Check Drift vs Baseline</button>
@@ -1089,20 +1089,20 @@
           </div>
           <div id="tier2-status-grid" class="p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>Dual-WORM Storage</span><span id="t2-worm-badge" class="text-ok">✓ Active</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="t2-worm-detail">Primary + Optical Secondary</p>
+              <div class="flex justify-between font-medium"><span>Dual-WORM Storage</span><span id="t2-worm-badge" class="text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-worm-detail">Unverified until a check runs.</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>TPM 2.0 Secure Enclave</span><span id="t2-tpm-badge" class="text-ok">✓ Verified</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="t2-tpm-detail">PCR0: Authenticated Boot</p>
+              <div class="flex justify-between font-medium"><span>TPM 2.0 Secure Enclave</span><span id="t2-tpm-badge" class="text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-tpm-detail">Unverified until a check runs.</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>PIV Smartcard Root</span><span id="t2-piv-badge" class="text-ok">✓ Slot 9A</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="t2-piv-detail">PIN + Physical Touch</p>
+              <div class="flex justify-between font-medium"><span>PIV Smartcard Root</span><span id="t2-piv-badge" class="text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-piv-detail">Unverified until a check runs.</p>
             </div>
             <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
-              <div class="flex justify-between font-medium"><span>2-of-3 Key Quorum</span><span id="t2-recovery-badge" class="text-ok">✓ Armed</span></div>
-              <p class="text-[11px] text-ide-muted font-mono" id="t2-recovery-detail">Shamir Secret Recovery</p>
+              <div class="flex justify-between font-medium"><span>2-of-3 Key Quorum</span><span id="t2-recovery-badge" class="text-ide-muted">Not run</span></div>
+              <p class="text-[11px] text-ide-muted font-mono" id="t2-recovery-detail">Unverified until a check runs.</p>
             </div>
           </div>
           <pre id="tier2-verify-output" class="hidden px-3 pb-3 font-mono text-[11px] text-ide-muted whitespace-pre-wrap"></pre>

@@ -2701,6 +2701,36 @@ async function loadManifestRegistry() {
   }
 }
 
+function presentCostLedger(summary, economics) {
+  const source = summary && typeof summary === 'object' ? summary : {};
+  const econ = economics && typeof economics === 'object' ? economics : null;
+  const reportedNumber = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
+  const inferences = reportedNumber(source.total_inferences);
+  const localRatio = reportedNumber(source.local_inference_ratio);
+  const localCount = reportedNumber(source.local_inferences);
+  const externalCost = reportedNumber(source.total_external_cost_usd);
+  const tokenTotal = reportedNumber(source.total_tokens);
+  const savings = reportedNumber(source.total_cloud_savings_usd);
+  const p50 = reportedNumber(source.latency_p50_ms);
+  const p95 = reportedNumber(source.latency_p95_ms);
+  const localDuration = reportedNumber(source.total_local_duration_ms);
+  const sei = econ ? reportedNumber(econ.sovereign_efficiency_index) : null;
+  const roi = econ ? reportedNumber(econ.sovereign_roi_percent) : null;
+  return {
+    inferences: inferences == null ? 'Not run' : `${inferences} inferences`,
+    localRatio: localRatio == null ? 'Not run' : `${(localRatio * 100).toFixed(1)}%`,
+    billing: localCount == null ? 'Unverified. No ledger has been loaded.' : `${localCount} local inferences recorded`,
+    externalCost: externalCost == null ? 'Not run' : `$${externalCost.toFixed(4)}`,
+    tokens: tokenTotal == null ? 'Not run' : `${tokenTotal.toLocaleString()} tokens total`,
+    savings: savings == null ? 'Not run' : `$${savings.toFixed(4)}`,
+    baseline: source.savings_baseline_model ? `Baseline: ${source.savings_baseline_model}` : 'Baseline not reported',
+    latency: p50 == null || p95 == null ? 'Not run' : `${p50} / ${p95} ms`,
+    localDuration: localDuration == null ? 'Not run' : `${localDuration.toFixed(1)} ms device runtime`,
+    sei: sei == null ? 'SEI not run' : `SEI ${sei}/100`,
+    roi: roi == null ? 'ROI not run' : `${roi.toFixed(0)}% ROI`,
+  };
+}
+
 async function loadCostLedger() {
   const tbody = $('econ-tbody');
   if (!tbody) return;
@@ -2709,21 +2739,22 @@ async function loadCostLedger() {
     const summary = res.summary || {};
     const entries = res.entries || [];
 
-    if ($('econ-inferences-badge')) $('econ-inferences-badge').textContent = `${summary.total_inferences || 0} inferences`;
-    if ($('econ-local-ratio')) $('econ-local-ratio').textContent = `${((summary.local_inference_ratio || 1.0) * 100).toFixed(1)}%`;
-    if ($('econ-billing-label')) $('econ-billing-label').textContent = `${summary.local_inferences || 0} local inferences · no billed external API tokens`;
-    if ($('econ-ext-cost')) $('econ-ext-cost').textContent = `$${(summary.total_external_cost_usd || 0).toFixed(4)}`;
-    if ($('econ-total-tokens')) $('econ-total-tokens').textContent = `${(summary.total_tokens || 0).toLocaleString()} tokens total`;
-    if ($('econ-savings')) $('econ-savings').textContent = `$${(summary.total_cloud_savings_usd || 0).toFixed(4)}`;
-    if ($('econ-savings-baseline')) $('econ-savings-baseline').textContent = `Baseline: ${summary.savings_baseline_model || 'Claude 3.5'}`;
-    if ($('econ-latency')) $('econ-latency').textContent = `${summary.latency_p50_ms || 0} / ${summary.latency_p95_ms || 0} ms`;
-    if ($('econ-local-dur')) $('econ-local-dur').textContent = `${(summary.total_local_duration_ms || 0).toFixed(1)} ms device runtime`;
-
+    let economics = null;
     try {
-      const econ = await api('/v1/models/economics');
-      if ($('econ-sei-badge')) $('econ-sei-badge').textContent = `SEI ${econ.sovereign_efficiency_index !== undefined ? econ.sovereign_efficiency_index : 100}/100`;
-      if ($('econ-roi-badge')) $('econ-roi-badge').textContent = `${econ.sovereign_roi_percent !== undefined ? Number(econ.sovereign_roi_percent).toFixed(0) : 100}% ROI`;
-    } catch { /* quiet fail */ }
+      economics = await api('/v1/models/economics');
+    } catch { /* quiet fail leaves the unloaded labels */ }
+    const view = presentCostLedger(summary, economics);
+    if ($('econ-inferences-badge')) $('econ-inferences-badge').textContent = view.inferences;
+    if ($('econ-local-ratio')) $('econ-local-ratio').textContent = view.localRatio;
+    if ($('econ-billing-label')) $('econ-billing-label').textContent = view.billing;
+    if ($('econ-ext-cost')) $('econ-ext-cost').textContent = view.externalCost;
+    if ($('econ-total-tokens')) $('econ-total-tokens').textContent = view.tokens;
+    if ($('econ-savings')) $('econ-savings').textContent = view.savings;
+    if ($('econ-savings-baseline')) $('econ-savings-baseline').textContent = view.baseline;
+    if ($('econ-latency')) $('econ-latency').textContent = view.latency;
+    if ($('econ-local-dur')) $('econ-local-dur').textContent = view.localDuration;
+    if ($('econ-sei-badge')) $('econ-sei-badge').textContent = view.sei;
+    if ($('econ-roi-badge')) $('econ-roi-badge').textContent = view.roi;
 
     if (!entries.length) {
       tbody.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-ide-muted font-mono">No model inferences recorded in ledger yet. Run chat, agent, or evaluation tasks to populate.</td></tr>';
@@ -3309,6 +3340,7 @@ if (typeof window !== 'undefined') {
   window.classifyComposerResult = classifyComposerResult;
   window.clearStaticEvidenceClaims = clearStaticEvidenceClaims;
   window.applySpeculativeView = applySpeculativeView;
+  window.presentCostLedger = presentCostLedger;
 }
 
 if (typeof window !== 'undefined' && !window.__TEST_MODE__) {
