@@ -44,12 +44,28 @@ def test_telephony_adapter_ussd_parsing_and_menus():
 @pytest.mark.asyncio
 async def test_agent_mesh_dispatcher_consensus():
     dispatcher = AgentMeshDispatcher()
+    files = ["core/storage/crdt.py", "core/api/telephony.py"]
     result = await dispatcher.dispatch_task(
         task_description="Implement CRDT sync engine",
-        files=["core/storage/crdt.py", "core/api/telephony.py"],
+        files=files,
     )
-    assert result["consensus"] == "APPROVED"
-    assert result["pipeline"]["architect"]["architecture_aligned"] is True
-    assert result["pipeline"]["security"]["dlp_clean"] is True
-    assert result["pipeline"]["verification"]["tests_passed"] is True
-    assert dispatcher.agent_registry[AgentRole.ARCHITECT]["tasks_completed"] == 1
+    assert result["consensus"] == "NOT_EXECUTED"
+    assert result["execution_state"] == "not_executed"
+    assert result["simulated"] is False
+    assert result["independently_approved"] is False
+    architect = result["pipeline"]["architect"]
+    security = result["pipeline"]["security"]
+    verification = result["pipeline"]["verification"]
+    assert architect["architecture_aligned"] is None
+    assert architect["files_approved"] == []
+    assert architect["files_received"] == files
+    assert security["dlp_clean"] is None
+    assert security["injection_risk"] is None
+    assert verification["tests_passed"] is None
+    assert verification["test_count"] is None
+    assert verification["exit_code"] is None
+    assert dispatcher.agent_registry[AgentRole.ARCHITECT]["tasks_completed"] == 0
+    assert dispatcher.agent_registry[AgentRole.SECURITY_AUDITOR]["tasks_completed"] == 0
+    assert dispatcher.agent_registry[AgentRole.VERIFICATION_ENGINEER]["tasks_completed"] == 0
+    serialized = str(result)
+    assert "APPROVED" not in serialized

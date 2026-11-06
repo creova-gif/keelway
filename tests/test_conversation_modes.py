@@ -3,12 +3,56 @@ Tests for Keelway 4 Conversation Modes (Ask, Plan, Edit, Agent) and Expanded Ent
 Section 6.1 & 7.2 of the Master Architecture Directive.
 """
 
+import json
+
 import pytest
 from starlette.testclient import TestClient
 
 from core.main import app
 from core.orchestration.chat import ConversationMode, InteractiveChatSession
 from core.orchestration.state import TaskState, can_transition, validate_transition, InvalidStateTransitionError
+
+_FAKE_OFFLINE_MODELS = {
+    "keelway-offline-engine",
+    "keelway-offline-planner",
+    "keelway-offline-patcher",
+}
+_CANNED_OFFLINE_PHRASES = (
+    "No conflicting dependencies found",
+    "Implement required logic in pricing.py",
+    "Formulated candidate patch proposal",
+    "keelway-offline-",
+)
+
+
+def assert_explicit_model_outcome(data):
+    """A turn is a real completion, an explicit failure, or a labeled keyword plan."""
+    blob = json.dumps(data)
+    for phrase in _CANNED_OFFLINE_PHRASES:
+        assert phrase not in blob
+    assert data.get("model") not in _FAKE_OFFLINE_MODELS
+    status = data.get("status")
+    if status in ("unavailable", "error"):
+        assert data["available"] is False
+        assert data["latency_ms"] is None
+        assert data["model"] is None
+        assert data["error"]["code"] in {"model_unavailable", "routing_failure", "provider_error", "planner_error"}
+        assert data["content"] == data["error"]["message"]
+        assert data["error"]["message"]
+    elif status == "ok":
+        assert data["available"] is True
+        assert isinstance(data["model"], str) and data["model"]
+        assert isinstance(data["latency_ms"], (int, float))
+    elif status == "keyword_manual":
+        assert data["planning_source"] == "keyword_manual"
+        assert data["model_generated"] is False
+        assert data["model"] is None
+        assert data["latency_ms"] is None
+    elif status == "blocked":
+        assert data["available"] is False
+        assert "[SECURITY ALERT]" in data["content"]
+    else:
+        raise AssertionError(f"missing explicit status: {status!r}")
 
 
 def test_chat_modes_metadata_endpoint():
@@ -55,6 +99,7 @@ def test_chat_message_ask_mode():
         assert "content" in data
         assert "model" in data
         assert "latency_ms" in data
+        assert_explicit_model_outcome(data)
 
 
 def test_chat_message_plan_mode():
@@ -70,11 +115,16 @@ def test_chat_message_plan_mode():
         assert res.status_code == 200
         data = res.json()
         assert data["mode"] == "plan"
+        assert_explicit_model_outcome(data)
         assert "structured_plan" in data
         plan = data["structured_plan"]
+        assert plan["planning_source"] == "keyword_manual"
+        assert plan["model_generated"] is False
         assert len(plan["steps"]) >= 3
         assert "required_permissions" in plan
         assert "test_strategy" in plan
+        if data["status"] != "ok":
+            assert "pricing.py" not in data["content"]
 
 
 def test_chat_message_edit_mode():
@@ -91,10 +141,15 @@ def test_chat_message_edit_mode():
         assert res.status_code == 200
         data = res.json()
         assert data["mode"] == "edit"
-        assert "edit_proposal" in data
-        proposal = data["edit_proposal"]
-        assert proposal["file_path"] == "pricing.py"
-        assert proposal["authorized"] is False  # Never applied without separate human authorization
+        assert_explicit_model_outcome(data)
+        if data["status"] == "ok":
+            proposal = data["edit_proposal"]
+            assert proposal["file_path"] == "pricing.py"
+            assert proposal["authorized"] is False
+            assert proposal["patch_source"] == "none"
+            assert proposal["diff"] == ""
+        else:
+            assert "edit_proposal" not in data
 
 
 def test_chat_message_agent_mode():
@@ -110,10 +165,14 @@ def test_chat_message_agent_mode():
         assert res.status_code == 200
         data = res.json()
         assert data["mode"] == "agent"
+        assert_explicit_model_outcome(data)
+        assert data["status"] == "keyword_manual"
         assert "agent_task" in data
         task = data["agent_task"]
         assert task["task_id"].startswith("task_")
+        assert task["planning_source"] == "keyword_manual"
         assert len(task["plan"]) >= 3
+        assert "not model-driven planning" in data["content"]
 
 
 def test_expanded_enterprise_task_state_machine():

@@ -2,20 +2,16 @@
 Keelway Interactive Chat Session & Stateful Agent REPL.
 Integrates Hybrid RAG Memory, Security Gateway, Multi-Provider Routing,
 and 4 Distinct Conversation Modes (Ask, Plan, Edit, Agent) per Section 6.1.
-Supports resilient local-first offline fallback using AST symbol index.
+A completed local-model response is returned as that model sent it. Provider
+failures stay unavailable and do not invent an offline completion.
 """
 
 from __future__ import annotations
 
-import difflib
-import json
 import re
-import sys
 import time
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any, Dict, List, Optional
 
 from core.api.schemas import CompletionRequestSchema, MessageSchema, Provider
 from core.models.gateway import ModelGateway, gateway as default_gateway
@@ -32,6 +28,71 @@ class ConversationMode(str, Enum):
     PLAN = "plan"     # Structured implementation plan grounded in code
     EDIT = "edit"     # Workspace-scoped code patch formulation with diff previews
     AGENT = "agent"   # Autonomous multi-step engineering loop with approval gating
+
+
+def _provider_error_payload(exc: BaseException) -> Dict[str, str]:
+    """Classify a provider failure without copying its text into the response.
+
+    Adapter and gateway exceptions can carry request bodies, prompts, or
+    credentials. Callers receive a fixed message instead of ``str(exc)``.
+    """
+    text = str(exc)
+    if "No model provider allowed" in text:
+        code = "routing_failure"
+        message = "Model routing failed before a provider completed this request."
+    elif text.startswith("All model providers failed or unavailable"):
+        code = "model_unavailable"
+        message = "No model is available to complete this request."
+    else:
+        code = "provider_error"
+        message = "The model provider failed before completing this request."
+    return {"code": code, "message": message}
+
+
+def _keyword_plan(user_message: str) -> Dict[str, Any]:
+    """Steps come from keyword matching, not from a model completion."""
+    from core.orchestration.agent_loop import AutonomousAgentLoop
+
+    return {
+        "goal": user_message,
+        "steps": AutonomousAgentLoop.formulate_plan(user_message),
+        "required_permissions": ["read_file", "edit_file", "run_command"],
+        "test_strategy": "Keyword template only. No test run is claimed.",
+        "planning_source": "keyword_manual",
+        "model_generated": False,
+    }
+
+
+def _unavailable_result(
+    mode: ConversationMode,
+    exc: BaseException,
+    memory_citations: List[Dict[str, Any]],
+    *,
+    structured_plan: Optional[Dict[str, Any]] = None,
+    workspace_observations: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    error = _provider_error_payload(exc)
+    body: Dict[str, Any] = {
+        "mode": mode.value,
+        "status": "unavailable",
+        "available": False,
+        "error": error,
+        "content": error["message"],
+        "model": None,
+        "latency_ms": None,
+        "cost_usd": None,
+        "usage": None,
+        "memory_citations": memory_citations,
+    }
+    if structured_plan is not None:
+        body["structured_plan"] = structured_plan
+    if workspace_observations:
+        body["workspace_observations"] = {
+            "source": "workspace_index",
+            "model_generated": False,
+            "items": workspace_observations,
+        }
+    return body
 
 
 MODE_SYSTEM_PROMPTS: Dict[ConversationMode, str] = {
@@ -113,10 +174,17 @@ class InteractiveChatSession:
         if not sec_result.is_safe:
             return {
                 "mode": active_mode.value,
+                "status": "blocked",
+                "available": False,
                 "content": f"[SECURITY ALERT] Message blocked: {sec_result.blocked_reason}",
-                "model": "security-firewall",
-                "latency_ms": 0.0,
-                "cost_usd": 0.0,
+                "error": {
+                    "code": "security_blocked",
+                    "message": "The message was blocked before a model was called.",
+                },
+                "model": None,
+                "latency_ms": None,
+                "cost_usd": None,
+                "usage": None,
                 "memory_citations": [],
             }
 
@@ -183,32 +251,25 @@ class InteractiveChatSession:
 
         try:
             response = await self.gateway.complete(request)
-            content = response.content
-            model_name = response.model
-            latency_ms = response.latency_ms
-            cost_usd = response.cost_usd
-            usage = response.usage
-        except Exception:
-            # Resilient local AST/workspace analysis fallback when offline
-            model_name = "keelway-offline-engine"
-            latency_ms = 2.0
-            cost_usd = 0.0
-            usage = {"prompt_tokens": len(turn_prompt.split()), "completion_tokens": 50, "total_tokens": len(turn_prompt.split()) + 50}
-            content = f"Inspected workspace analysis for '{user_message}':\n\n"
-            if context_parts:
-                content += "\n".join(context_parts)
-            else:
-                content += "Codebase inspected. No conflicting dependencies found in active workspace."
+        except Exception as exc:
+            self.history.pop()
+            return _unavailable_result(
+                ConversationMode.ASK,
+                exc,
+                memory_citations,
+                workspace_observations=list(context_parts),
+            )
 
-        self.history.append(MessageSchema(role="assistant", content=content))
-
+        self.history.append(MessageSchema(role="assistant", content=response.content))
         return {
             "mode": ConversationMode.ASK.value,
-            "content": content,
-            "model": model_name,
-            "latency_ms": latency_ms,
-            "cost_usd": cost_usd,
-            "usage": usage,
+            "status": "ok",
+            "available": True,
+            "content": response.content,
+            "model": response.model,
+            "latency_ms": response.latency_ms,
+            "cost_usd": response.cost_usd,
+            "usage": response.usage,
             "memory_citations": memory_citations,
         }
 
@@ -241,45 +302,29 @@ class InteractiveChatSession:
             max_tokens=1500,
         )
 
+        keyword_plan = _keyword_plan(user_message)
         try:
             response = await self.gateway.complete(request)
-            content = response.content
-            model_name = response.model
-            latency_ms = response.latency_ms
-            cost_usd = response.cost_usd
-        except Exception:
-            model_name = "keelway-offline-planner"
-            latency_ms = 2.0
-            cost_usd = 0.0
-            content = (
-                f"Implementation Plan for: {user_message}\n\n"
-                "- Goal: Execute requested changes reliably with full test coverage\n"
-                "- Relevant Files: pricing.py, test_pricing.py\n"
-                "- Proposed Modifications: Implement required logic in pricing.py\n"
-                "- Dependencies & Risks: Verify zero-regression against existing checkout tests\n"
-                "- Required Permissions: read_file, edit_file, run_command\n"
-                "- Test Strategy: python3 -m unittest -q test_pricing.py\n"
-                "- Expected Outcome: All automated tests pass with 0 failures"
+        except Exception as exc:
+            self.history.pop()
+            return _unavailable_result(
+                ConversationMode.PLAN,
+                exc,
+                memory_citations,
+                structured_plan=keyword_plan,
+                workspace_observations=list(context_parts),
             )
 
-        self.history.append(MessageSchema(role="assistant", content=content))
-
-        # Extract structured steps
-        from core.orchestration.agent_loop import AutonomousAgentLoop
-        steps = AutonomousAgentLoop.formulate_plan(user_message)
-
+        self.history.append(MessageSchema(role="assistant", content=response.content))
         return {
             "mode": ConversationMode.PLAN.value,
-            "content": content,
-            "structured_plan": {
-                "goal": user_message,
-                "steps": steps,
-                "required_permissions": ["read_file", "edit_file", "run_command"],
-                "test_strategy": "Run unit test suite in isolated workspace",
-            },
-            "model": model_name,
-            "latency_ms": latency_ms,
-            "cost_usd": cost_usd,
+            "status": "ok",
+            "available": True,
+            "content": response.content,
+            "structured_plan": keyword_plan,
+            "model": response.model,
+            "latency_ms": response.latency_ms,
+            "cost_usd": response.cost_usd,
             "memory_citations": memory_citations,
         }
 
@@ -290,24 +335,24 @@ class InteractiveChatSession:
         context_parts: List[str],
         memory_citations: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """Proposes workspace-scoped file edit with conflict detection and unified diff."""
+        """Asks a model for an edit. A missing model is an error, not a patch."""
         file_path = target_file
         if not file_path:
-            # Attempt to extract path from message (e.g. pricing.py)
             match = re.search(r"[\w\./-]+\.(?:py|ts|js|tsx|json|md|html|css)", user_message)
-            file_path = match.group(0) if match else "pricing.py"
+            file_path = match.group(0) if match else None
 
         original_content = ""
         exists = False
-        try:
-            file_data = self.fs.read_file(file_path)
-            original_content = file_data.get("content", "")
-            exists = True
-        except Exception:
-            pass
+        if file_path:
+            try:
+                file_data = self.fs.read_file(file_path)
+                original_content = file_data.get("content", "")
+                exists = True
+            except Exception:
+                pass
 
         turn_prompt = (
-            f"Propose code changes for '{file_path}'. User request: {user_message}\n"
+            f"Propose code changes for '{file_path or 'unspecified file'}'. User request: {user_message}\n"
             f"Original file content:\n```\n{original_content[:2000]}\n```\n"
             "Specify the exact target string to replace and the replacement string."
         )
@@ -324,54 +369,35 @@ class InteractiveChatSession:
 
         try:
             response = await self.gateway.complete(request)
-            content = response.content
-            model_name = response.model
-            latency_ms = response.latency_ms
-            cost_usd = response.cost_usd
-        except Exception:
-            model_name = "keelway-offline-patcher"
-            latency_ms = 2.0
-            cost_usd = 0.0
-            content = f"Formulated candidate patch proposal for '{file_path}'."
+        except Exception as exc:
+            self.history.pop()
+            return _unavailable_result(
+                ConversationMode.EDIT,
+                exc,
+                memory_citations,
+                workspace_observations=list(context_parts),
+            )
 
-        self.history.append(MessageSchema(role="assistant", content=content))
-
-        # Detect target and replacement in response or standard patch
-        target_str = ""
-        replacement_str = ""
-        if "return price_cents - percent" in original_content:
-            target_str = "    return price_cents - percent\n"
-            replacement_str = "    return round(price_cents * (100 - percent) / 100)\n"
-
-        conflict_detected = False
-        diff_text = ""
-        if target_str and target_str in original_content:
-            new_content = original_content.replace(target_str, replacement_str)
-            diff_lines = list(difflib.unified_diff(
-                original_content.splitlines(keepends=True),
-                new_content.splitlines(keepends=True),
-                fromfile=f"a/{file_path}",
-                tofile=f"b/{file_path}",
-            ))
-            diff_text = "".join(diff_lines)
-        elif target_str and target_str not in original_content:
-            conflict_detected = True
-
+        self.history.append(MessageSchema(role="assistant", content=response.content))
         return {
             "mode": ConversationMode.EDIT.value,
-            "content": content,
+            "status": "ok",
+            "available": True,
+            "content": response.content,
             "edit_proposal": {
                 "file_path": file_path,
                 "file_exists": exists,
-                "target": target_str,
-                "replacement": replacement_str,
-                "diff": diff_text,
-                "conflict_detected": conflict_detected,
-                "authorized": False,  # Strict: requires explicit human authorization
+                "target": "",
+                "replacement": "",
+                "diff": "",
+                "conflict_detected": False,
+                "authorized": False,
+                "patch_source": "none",
+                "note": "No structured patch was extracted from the model reply. Nothing was applied.",
             },
-            "model": model_name,
-            "latency_ms": latency_ms,
-            "cost_usd": cost_usd,
+            "model": response.model,
+            "latency_ms": response.latency_ms,
+            "cost_usd": response.cost_usd,
             "memory_citations": memory_citations,
         }
 
@@ -381,32 +407,60 @@ class InteractiveChatSession:
         context_parts: List[str],
         memory_citations: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """Initializes or coordinates an autonomous agent loop task."""
+        """Builds a keyword plan. This mode does not call a model."""
         from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
-        task_id = f"task_{int(time.time())}"
-        agent = AutonomousAgentLoop(
-            task_id=task_id,
-            workspace_fs=self.fs,
-            policy=AutonomyPolicy.CONFIRM_MUTATION,
-            record_flight=True,
-        )
-        plan_steps = AutonomousAgentLoop.formulate_plan(user_message)
-        agent.initialize_plan(goal=user_message, steps=plan_steps)
+
+        try:
+            task_id = f"task_{int(time.time())}"
+            agent = AutonomousAgentLoop(
+                task_id=task_id,
+                workspace_fs=self.fs,
+                policy=AutonomyPolicy.CONFIRM_MUTATION,
+                record_flight=True,
+            )
+            plan_steps = AutonomousAgentLoop.formulate_plan(user_message)
+            agent.initialize_plan(goal=user_message, steps=plan_steps)
+        except Exception:
+            message = "The keyword planner could not build a plan."
+            return {
+                "mode": ConversationMode.AGENT.value,
+                "status": "error",
+                "available": False,
+                "planning_source": "keyword_manual",
+                "model_generated": False,
+                "error": {"code": "planner_error", "message": message},
+                "content": message,
+                "model": None,
+                "latency_ms": None,
+                "cost_usd": None,
+                "usage": None,
+                "memory_citations": memory_citations,
+            }
 
         return {
             "mode": ConversationMode.AGENT.value,
-            "content": f"Initialized Autonomous Agent task {task_id} with {len(plan_steps)} steps.",
+            "status": "keyword_manual",
+            "available": False,
+            "planning_source": "keyword_manual",
+            "model_generated": False,
+            "content": (
+                f"Keyword/manual plan only. No model was called. "
+                f"Task {task_id} has {len(plan_steps)} steps from keyword matching, not model-driven planning."
+            ),
             "agent_task": {
                 "task_id": task_id,
                 "goal": user_message,
                 "policy": agent.policy.value,
+                "planning_source": "keyword_manual",
+                "model_generated": False,
                 "plan": [
                     {"id": s.id, "description": s.description, "status": s.status}
                     for s in agent.plan
                 ],
             },
-            "model": self.provider.value,
-            "latency_ms": 1.0,
-            "cost_usd": 0.0,
+            "model": None,
+            "latency_ms": None,
+            "cost_usd": None,
+            "usage": None,
             "memory_citations": memory_citations,
         }

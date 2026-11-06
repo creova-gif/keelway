@@ -53,19 +53,48 @@ def test_evidence_room_package_sealing():
 
 
 def test_assemble_evidence_package():
-    """Verify end-to-end evidence gathering across all 10 verification categories."""
+    """Not-run checks stay unverified and do not carry a pass count."""
     pkg = EvidenceRoomPipeline.assemble_package()
     assert pkg.package_id.startswith("evd_")
     assert pkg.commit_sha != ""
     assert pkg.package_sha256 != ""
     assert len(pkg.metrics) == 10
+    verified = [m for m in pkg.metrics if m["is_verified"] is True]
+    not_run = [m for m in pkg.metrics if m["observed_value"].get("status") == "not_run"]
+    assert pkg.summary["total_metrics"] == 10
+    assert pkg.summary["total_verified_metrics"] == len(verified)
+    assert pkg.summary["not_run_metrics"] == len(not_run)
     assert pkg.summary["all_verified"] is False
-    assert pkg.summary["total_verified_metrics"] == 10
-    benchmark = next(metric for metric in pkg.metrics if metric["category"] == "benchmark")
-    assert benchmark["is_verified"] is False
-    assert benchmark["observed_value"]["passed_tasks"] == 9
+    assert pkg.summary["simulated_metrics"] is False
+    assert not_run, "checks this call does not execute must stay explicitly not-run"
+    for metric in not_run:
+        assert metric["is_verified"] is False
+        assert metric["observed_value"]["passed"] is None
+        assert metric["observed_value"]["failed"] is None
+        assert metric["observed_value"]["count"] is None
+        assert metric["claim"].startswith("Not run.")
 
-    # Validate each expected category is represented
+    serialized = json.dumps(pkg.to_dict())
+    for banned in ("745", "40/40", "10/10 stages", "7/7", "worm_verified", "100% Pass@1", "HEALTHY"):
+        assert banned not in serialized
+
+    pytest_metric = next(m for m in pkg.metrics if m["name"] == "Automated Pytest Suite")
+    assert pytest_metric["observed_value"]["status"] == "not_run"
+    assert pytest_metric["is_verified"] is False
+
+    benchmark = next(m for m in pkg.metrics if m["category"] == "benchmark")
+    bench_status = benchmark["observed_value"]["status"]
+    assert bench_status in {"executed", "error"}
+    if bench_status == "executed":
+        passed_tasks = benchmark["observed_value"]["passed_tasks"]
+        total_tasks = benchmark["observed_value"]["total_tasks"]
+        assert isinstance(passed_tasks, int) and isinstance(total_tasks, int)
+        assert benchmark["is_verified"] is (passed_tasks == total_tasks)
+        assert benchmark["claim"].startswith("In-process golden panel finished")
+    else:
+        assert benchmark["is_verified"] is False
+        assert benchmark["observed_value"]["passed"] is None
+
     categories = {m["category"] for m in pkg.metrics}
     assert "tests" in categories
     assert "benchmark" in categories

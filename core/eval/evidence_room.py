@@ -90,7 +90,228 @@ class EvidenceRoomPackage:
 
 
 class EvidenceRoomPipeline:
-    """Gathers live verifiable receipts across the product and builds sealed evidence room packages."""
+    """Gathers receipts that this process actually produced and seals them.
+
+    A metric is verified only when this call recorded an attributable result.
+    Checks that were not executed stay ``not_run`` and unverified. This
+    assembler does not invent a pass count for them.
+    """
+
+    @staticmethod
+    def _not_run_metric(
+        *,
+        name: str,
+        category: str,
+        subject: str,
+        evidence_path_or_receipt: str,
+        reproduce_command: str,
+    ) -> EvidenceMetric:
+        return EvidenceMetric(
+            name=name,
+            category=category,
+            claim=f"Not run. No result is claimed for {subject}.",
+            observed_value={"status": "not_run", "passed": None, "failed": None, "count": None},
+            is_verified=False,
+            evidence_path_or_receipt=evidence_path_or_receipt,
+            reproduce_command=reproduce_command,
+        )
+
+    @staticmethod
+    def _check_failed_metric(
+        *,
+        name: str,
+        category: str,
+        evidence_path_or_receipt: str,
+        reproduce_command: str,
+    ) -> EvidenceMetric:
+        return EvidenceMetric(
+            name=name,
+            category=category,
+            claim="The check did not finish. No result is claimed.",
+            observed_value={"status": "error", "passed": None, "failed": None, "count": None},
+            is_verified=False,
+            evidence_path_or_receipt=evidence_path_or_receipt,
+            reproduce_command=reproduce_command,
+        )
+
+    @classmethod
+    def _golden_panel_metric(cls) -> EvidenceMetric:
+        name = "10-Task Golden Evaluation Panel"
+        category = "benchmark"
+        evidence = "evals/eval_runner.py"
+        command = "python3 cli.py bench --receipt"
+        try:
+            from evals.eval_runner import ProductionEvalHarness
+
+            bench_res = _run_coroutine_safely(ProductionEvalHarness().run_all())
+        except Exception:
+            return cls._check_failed_metric(
+                name=name,
+                category=category,
+                evidence_path_or_receipt=evidence,
+                reproduce_command=command,
+            )
+        if not isinstance(bench_res, dict):
+            return cls._check_failed_metric(
+                name=name,
+                category=category,
+                evidence_path_or_receipt=evidence,
+                reproduce_command=command,
+            )
+        passed_tasks = bench_res.get("passed_tasks")
+        total_tasks = bench_res.get("total_tasks")
+        attributable = (
+            isinstance(passed_tasks, int)
+            and isinstance(total_tasks, int)
+            and not isinstance(passed_tasks, bool)
+            and not isinstance(total_tasks, bool)
+            and total_tasks > 0
+            and 0 <= passed_tasks <= total_tasks
+        )
+        if not attributable:
+            return cls._check_failed_metric(
+                name=name,
+                category=category,
+                evidence_path_or_receipt=evidence,
+                reproduce_command=command,
+            )
+        tasks = bench_res.get("tasks") if isinstance(bench_res.get("tasks"), list) else []
+        task_ids = [
+            item.get("task_id")
+            for item in tasks
+            if isinstance(item, dict) and isinstance(item.get("task_id"), str)
+        ]
+        observed: Dict[str, Any] = {
+            "status": "executed",
+            "passed_tasks": passed_tasks,
+            "total_tasks": total_tasks,
+            "task_ids": task_ids,
+        }
+        if isinstance(bench_res.get("pass_rate_pct"), (int, float)) and not isinstance(bench_res.get("pass_rate_pct"), bool):
+            observed["pass_rate_pct"] = bench_res["pass_rate_pct"]
+        if isinstance(bench_res.get("total_duration_ms"), (int, float)) and not isinstance(bench_res.get("total_duration_ms"), bool):
+            observed["duration_ms"] = bench_res["total_duration_ms"]
+        verified = passed_tasks == total_tasks
+        return EvidenceMetric(
+            name=name,
+            category=category,
+            claim=(
+                f"In-process golden panel finished with {passed_tasks} of {total_tasks} tasks passed. "
+                "This is that harness result, not a separate certification."
+            ),
+            observed_value=observed,
+            is_verified=verified,
+            evidence_path_or_receipt=evidence,
+            reproduce_command=command,
+        )
+
+    @classmethod
+    def _airgap_metric(cls) -> EvidenceMetric:
+        name = "NIST SP 800-53 SC-7 Air-Gap Audit"
+        evidence = "core/security/airgap_auditor.py"
+        command = "python3 cli.py airgap audit"
+        try:
+            from core.security.airgap_auditor import AirGapAuditor
+
+            report = AirGapAuditor.audit_environment()
+            checks = list(getattr(report, "checks", []) or [])
+            compliant = bool(getattr(report, "overall_compliant", False))
+        except Exception:
+            return cls._check_failed_metric(
+                name=name,
+                category="compliance",
+                evidence_path_or_receipt=evidence,
+                reproduce_command=command,
+            )
+        return EvidenceMetric(
+            name=name,
+            category="compliance",
+            claim=(
+                f"In-process air-gap audit reported overall_compliant={compliant} "
+                f"across {len(checks)} checks. EvidenceRoom does not re-certify those checks."
+            ),
+            observed_value={
+                "status": "executed",
+                "overall_compliant": compliant,
+                "checks_count": len(checks),
+            },
+            is_verified=False,
+            evidence_path_or_receipt=evidence,
+            reproduce_command=command,
+        )
+
+    @classmethod
+    def _sbom_metric(cls, repo_root: Path) -> EvidenceMetric:
+        name = "CycloneDX SBOM & Provenance"
+        evidence = "core/security/sbom.py"
+        command = "python3 cli.py sbom verify"
+        try:
+            from core.security.sbom import SBOMGenerator
+
+            sbom = SBOMGenerator.generate(repo_root=repo_root)
+            component_count = len(sbom.components)
+            signature_present = bool(sbom.provenance_signature)
+            bom_format = sbom.bom_format
+        except Exception:
+            return cls._check_failed_metric(
+                name=name,
+                category="security",
+                evidence_path_or_receipt=evidence,
+                reproduce_command=command,
+            )
+        return EvidenceMetric(
+            name=name,
+            category="security",
+            claim=(
+                "An in-process SBOM document was generated. "
+                "A signature field on that document is not independent release verification."
+            ),
+            observed_value={
+                "status": "executed",
+                "components": component_count,
+                "signature_present": signature_present,
+                "format": bom_format,
+            },
+            is_verified=False,
+            evidence_path_or_receipt=evidence,
+            reproduce_command=command,
+        )
+
+    @classmethod
+    def _entitlement_metric(cls) -> EvidenceMetric:
+        name = "Offline Entitlement Gating"
+        evidence = "core/billing/entitlements.py"
+        command = "python3 cli.py entitlements status"
+        try:
+            from core.billing.entitlements import get_shared_entitlement_manager
+
+            cert = get_shared_entitlement_manager().get_certificate("default-org")
+            valid, status = cert.is_valid()
+            tier = cert.tier.value
+            seats = cert.seats
+        except Exception:
+            return cls._check_failed_metric(
+                name=name,
+                category="security",
+                evidence_path_or_receipt=evidence,
+                reproduce_command=command,
+            )
+        verified = bool(valid)
+        return EvidenceMetric(
+            name=name,
+            category="security",
+            claim=f"In-process entitlement certificate check returned {status}.",
+            observed_value={
+                "status": "executed",
+                "certificate_status": status,
+                "tier": tier,
+                "seats": seats,
+                "valid": verified,
+            },
+            is_verified=verified,
+            evidence_path_or_receipt=evidence,
+            reproduce_command=command,
+        )
 
     @classmethod
     def _get_git_info(cls, repo_root: Path) -> Tuple[str, str]:
@@ -116,133 +337,51 @@ class EvidenceRoomPipeline:
 
         metrics: List[EvidenceMetric] = []
 
-        # 1. Full Automated Pytest Suite
-        metrics.append(EvidenceMetric(
+        # Checks that this call does not execute stay explicitly not-run.
+        # No pass count is substituted for a run that did not happen.
+        metrics.append(cls._not_run_metric(
             name="Automated Pytest Suite",
             category="tests",
-            claim="745 passing unit, integration, and security tests with 0 failures",
-            observed_value={"passed": 745, "failed": 0},
-            is_verified=True,
+            subject="the automated pytest suite",
             evidence_path_or_receipt="tests/",
             reproduce_command="pytest tests -q",
         ))
-
-        # 2. Golden Evaluation Benchmark (EVAL-01..10)
-        from evals.eval_runner import ProductionEvalHarness
-        bench_res = _run_coroutine_safely(ProductionEvalHarness().run_all())
-        total_tasks = bench_res.get("total_tasks", 10)
-        passed_tasks = bench_res.get("passed_tasks", 10)
-        metrics.append(EvidenceMetric(
-            name="10-Task Golden Evaluation Panel",
-            category="benchmark",
-            claim="100% Pass@1 benchmark across AST analysis, security gates, ReAct loop, and flight tapes",
-            observed_value={
-                "passed_tasks": passed_tasks,
-                "total_tasks": total_tasks,
-                "pass_rate_pct": bench_res.get("pass_rate_pct", 100.0),
-                "duration_ms": bench_res.get("total_duration_ms", 3.5),
-            },
-            is_verified=(passed_tasks == total_tasks),
-            evidence_path_or_receipt="evals/eval_runner.py",
-            reproduce_command="python3 cli.py bench --receipt",
-        ))
-
-        # 3. Reference Core Engine (40/40 Unit Tests)
-        metrics.append(EvidenceMetric(
+        metrics.append(cls._golden_panel_metric())
+        metrics.append(cls._not_run_metric(
             name="Standalone Reference Core Engine",
             category="architecture",
-            claim="40/40 passing unit tests for proposal state, exact plan digests, path escape, and hash chain",
-            observed_value={"tests_count": 40, "passed": 40},
-            is_verified=True,
+            subject="the standalone reference core engine tests",
             evidence_path_or_receipt="keelway_core/",
             reproduce_command="pytest tests/test_keelway_core_engine.py tests/test_keelway_core_cli.py -q",
         ))
-
-        # 4. Milestone M1 10-Stage Vertical Slice
-        metrics.append(EvidenceMetric(
+        metrics.append(cls._not_run_metric(
             name="Milestone M1 Developer Workflow",
             category="tests",
-            claim="10/10 stages validated end-to-end (Explorer -> Plan -> Diff -> Approve -> Apply -> Test -> Tape)",
-            observed_value={"stages_validated": 10, "status": "PASS"},
-            is_verified=True,
-            evidence_path_or_receipt=".keelway/recordings/m1_task_*.flight.json",
+            subject="the milestone M1 developer workflow",
+            evidence_path_or_receipt=".keelway/recordings/",
             reproduce_command="python3 cli.py m1",
         ))
-
-        # 5. NIST SP 800-53 SC-7 Air-Gap Pre-Flight Audit
-        from core.security.airgap_auditor import AirGapAuditor
-        airgap_rep = AirGapAuditor.audit_environment()
-        metrics.append(EvidenceMetric(
-            name="NIST SP 800-53 SC-7 Air-Gap Audit",
-            category="compliance",
-            claim="5-point pre-flight egress enforcement: zero remote endpoints, loopback bound, models offline",
-            observed_value={"overall_compliant": airgap_rep.overall_compliant, "checks_count": len(airgap_rep.checks)},
-            is_verified=airgap_rep.overall_compliant,
-            evidence_path_or_receipt="core/security/airgap_auditor.py",
-            reproduce_command="python3 cli.py airgap audit",
-        ))
-
-        # 6. CycloneDX SBOM & Release Supply Chain Provenance
-        from core.security.sbom import SBOMGenerator
-        sbom = SBOMGenerator.generate(repo_root=root)
-        metrics.append(EvidenceMetric(
-            name="CycloneDX SBOM & Provenance",
-            category="security",
-            claim="CycloneDX v1.5 manifest with Merkle root digest and HMAC release provenance signature",
-            observed_value={
-                "components": len(sbom.components),
-                "root_digest": sbom.root_digest_sha256[:16] + "...",
-                "format": sbom.bom_format,
-            },
-            is_verified=bool(sbom.provenance_signature),
-            evidence_path_or_receipt="core/security/sbom.py",
-            reproduce_command="python3 cli.py sbom verify",
-        ))
-
-        # 7. Enterprise Entitlements & Offline Grace Policy
-        from core.billing.entitlements import get_shared_entitlement_manager
-        ent_mgr = get_shared_entitlement_manager()
-        cert = ent_mgr.get_certificate("default-org")
-        valid, status = cert.is_valid()
-        metrics.append(EvidenceMetric(
-            name="Offline Entitlement Gating",
-            category="security",
-            claim="HMAC-signed offline capability certificates with 14-day offline grace policies",
-            observed_value={"tier": cert.tier.value, "status": status, "seats": cert.seats},
-            is_verified=valid,
-            evidence_path_or_receipt="core/billing/entitlements.py",
-            reproduce_command="python3 cli.py entitlements status",
-        ))
-
-        # 8. Tier 2 Hardware Security HAL (ADR-051..083)
-        metrics.append(EvidenceMetric(
+        metrics.append(cls._airgap_metric())
+        metrics.append(cls._sbom_metric(root))
+        metrics.append(cls._entitlement_metric())
+        metrics.append(cls._not_run_metric(
             name="Tier 2 Hardware Security HAL",
             category="security",
-            claim="Dual-WORM retention receipts, TPM 2.0 PCR measured boot, PIV 72h CRL freshness, 2-of-3 Shamir recovery",
-            observed_value={"worm_verified": True, "tpm_verified": True, "piv_verified": True, "recovery_verified": True},
-            is_verified=True,
+            subject="tier 2 hardware security checks",
             evidence_path_or_receipt="keelway/hal/",
             reproduce_command="python3 cli.py tier2 verify",
         ))
-
-        # 9. Sovereign Pre-Flight System Doctor (7 Dimensions)
-        metrics.append(EvidenceMetric(
+        metrics.append(cls._not_run_metric(
             name="Sovereign Pre-Flight System Doctor",
             category="architecture",
-            claim="7/7 automated diagnostic checks passed (DB, Workspace, Gateway, Air-Gap, Entitlements, SBOM, HAL)",
-            observed_value={"dimensions_evaluated": 7, "status": "HEALTHY"},
-            is_verified=True,
+            subject="the pre-flight system doctor",
             evidence_path_or_receipt="core/system/doctor.py",
             reproduce_command="python3 cli.py doctor",
         ))
-
-        # 10. Cross-Machine Sovereign Sync Engine
-        metrics.append(EvidenceMetric(
+        metrics.append(cls._not_run_metric(
             name="Cross-Machine Sovereign Sync Engine",
             category="architecture",
-            claim="Authenticated encryption (AES-256-CTR + HMAC-SHA256) and monotonic vector clock conflict-free convergence",
-            observed_value={"cipher": "AES-256-CTR-HMAC-SHA256", "conflict_free": True},
-            is_verified=True,
+            subject="the cross-machine sync engine",
             evidence_path_or_receipt="core/sync/engine.py",
             reproduce_command="python3 cli.py sync demo",
         ))
@@ -260,15 +399,21 @@ class EvidenceRoomPipeline:
             "receipt_verify": "python3 cli.py receipt verify .keelway/evals/receipts/*.receipt.json",
         }
 
+        verified_count = sum(1 for metric in metrics if metric.is_verified)
+        not_run_count = sum(
+            1 for metric in metrics if isinstance(metric.observed_value, dict) and metric.observed_value.get("status") == "not_run"
+        )
         summary = {
             "product": "Keelway by Sorvex Labs",
             "open_core_runtime": "Kora AI Core by Kora Technologies",
             "commit_sha": commit_sha,
             "git_branch": branch,
-            "total_verified_metrics": len(metrics),
-            "all_verified": all(m.is_verified for m in metrics),
+            "total_metrics": len(metrics),
+            "total_verified_metrics": verified_count,
+            "not_run_metrics": not_run_count,
+            "all_verified": bool(metrics) and verified_count == len(metrics),
             "simulated_metrics": False,
-            "audited_by": "Keelway Deterministic Evidence Engine",
+            "audited_by": "Keelway in-process evidence assembler",
         }
 
         pkg = EvidenceRoomPackage(
