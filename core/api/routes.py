@@ -845,8 +845,11 @@ async def fork_flight_tape_endpoint(task_id: str, payload: dict) -> Dict[str, An
     return result
 
 
-@router.post("/v1/flight/fork", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Deterministic Flight Recorder"])
-async def fork_flight_tape(payload: dict):
+@router.post("/v1/flight/fork", tags=["Deterministic Flight Recorder"])
+async def fork_flight_tape(
+    payload: dict,
+    principal: Principal = Depends(require(Permission.EXECUTE_AGENT)),
+):
     """Fork an execution timeline at a specific step index to explore alternative solutions."""
     from core.orchestration.flight_recorder import FlightPlayer
     task_id = payload.get("task_id")
@@ -865,11 +868,12 @@ async def fork_flight_tape(payload: dict):
     forked_recorder = player.fork(at_index=at_index, new_task_id=new_task_id)
     forked_recorder.recordings_dir = FLIGHT_RECORDINGS_DIR
     saved_path = forked_recorder.save_tape()
+    tape_hash = None
     try:
         tape_hash = json.loads(saved_path.read_text(encoding="utf-8")).get("tape_sha256")
-        await record_audit(principal, "flight_tape_sealed", f"{new_task_id} fork_from={task_id} sha256:{tape_hash}", True)
-    except Exception:
-        pass
+    except (OSError, json.JSONDecodeError, UnicodeError):
+        tape_hash = None
+    await record_audit(principal, "flight_tape_sealed", f"{new_task_id} fork_from={task_id} sha256:{tape_hash}", True)
     return {
         "original_task_id": task_id,
         "forked_task_id": new_task_id,
