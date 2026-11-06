@@ -21,21 +21,25 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Lint check
         run: ruff check .
-      # Profile A is this job: the hermetic default. Ruff must pass with F821
-      # still selected, then pytest must actually start. Live-model and
-      # live-OS-isolation tests stay in the suite and skip themselves only when
-      # their prerequisite is absent, with the reason in the skip message. A
-      # skip is not a pass and is not a release.
-      # Release gate, separate from this job: rerun tests marked live_model
-      # where LocalAdapter.is_available() is true for the configured local
-      # model, and tests marked live_os_isolation where Sandbox.verify()
-      # succeeds (macOS seatbelt or Linux bubblewrap). A binary that fails
-      # that self-test is not a prerequisite, so Profile A skips those tests.
-      # Do not deselect, skip,
-      # or xfail tests marked safety_negative. Those are mandatory here and
-      # may stay red until package C implements the fail-closed behavior.
+      # Profile A only. A green result here is not live verification.
+      # python -m tests.release_live_gate is the fail-closed release boundary.
       - name: Run Test Suites
         env:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
           PYTHONPATH: .
         run: pytest -v
+
+  release-live-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Fail closed unless every required live proof passed
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-release.db
+          PYTHONPATH: .
+        run: python -m tests.release_live_gate

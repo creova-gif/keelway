@@ -394,21 +394,30 @@ def test_manifest_without_verified_isolation_does_not_run_a_host_command(tmp_pat
     assert not sentinel.exists()
 
 
-def _source_default_closed(factory, label: str):
+def _source_default_closed(factory):
+    """Return (object, exception). An exception is not by itself a passing refusal."""
     try:
         return factory(), None
     except Exception as exc:
-        text = f"{type(exc).__name__}: {exc}".lower()
-        assert any(word in text for word in _REFUSAL_WORDS + ("default", "explicit", "not configured")), (
-            f"{label} raised {type(exc).__name__}: {exc} without stating that the source default is refused"
-        )
         return None, exc
 
 
+def _require_source_default_refusal(exc: BaseException, label: str) -> None:
+    text = f"{type(exc).__name__}: {exc}".lower()
+    names_material = (
+        "source-default" in text or "source default" in text or "source_default" in text
+    )
+    names_refusal = any(word in text for word in ("refus", "unavailable", "disabled"))
+    assert names_material and names_refusal, (
+        f"{label} raised {type(exc).__name__} that does not refuse source-default signing material: {exc}"
+    )
+
+
 def test_source_default_approval_key_cannot_record_an_approval():
-    service, refused = _source_default_closed(ApprovalService, "ApprovalService()")
-    if service is None:
-        assert refused is not None
+    service, refused = _source_default_closed(ApprovalService)
+    if refused is not None:
+        assert service is None
+        _require_source_default_refusal(refused, "ApprovalService()")
         return
     request = service.create_request(
         run_id="pkg_a_safety",
@@ -434,9 +443,10 @@ def test_source_default_approval_key_cannot_record_an_approval():
 
 
 def test_source_default_quorum_key_cannot_approve_a_quorum():
-    service, refused = _source_default_closed(TwoHumanQuorumService, "TwoHumanQuorumService()")
-    if service is None:
-        assert refused is not None
+    service, refused = _source_default_closed(TwoHumanQuorumService)
+    if refused is not None:
+        assert service is None
+        _require_source_default_refusal(refused, "TwoHumanQuorumService()")
         return
     request = service.create_quorum_request(
         run_id="pkg_a_safety",
@@ -460,9 +470,10 @@ def test_source_default_quorum_key_cannot_approve_a_quorum():
 def test_source_default_billing_webhook_rejects_its_own_signature(tmp_path: Path):
     from core.billing.entitlements import BillingWebhookHandler
 
-    handler, refused = _source_default_closed(BillingWebhookHandler, "BillingWebhookHandler()")
-    if handler is None:
-        assert refused is not None
+    handler, refused = _source_default_closed(BillingWebhookHandler)
+    if refused is not None:
+        assert handler is None
+        _require_source_default_refusal(refused, "BillingWebhookHandler()")
         return
     payload = {"org_id": "org_safety", "seat_delta": 5}
     raw = json.dumps(payload, sort_keys=True).encode("utf-8")
@@ -483,9 +494,10 @@ def test_source_default_billing_webhook_rejects_its_own_signature(tmp_path: Path
 def test_source_default_billing_webhook_rejects_an_unsigned_event():
     from core.billing.entitlements import BillingWebhookHandler
 
-    handler, refused = _source_default_closed(BillingWebhookHandler, "BillingWebhookHandler()")
-    if handler is None:
-        assert refused is not None
+    handler, refused = _source_default_closed(BillingWebhookHandler)
+    if refused is not None:
+        assert handler is None
+        _require_source_default_refusal(refused, "BillingWebhookHandler()")
         return
     result = handler.handle_event(
         "evt_safety_unsigned",
@@ -513,13 +525,11 @@ def test_source_default_entitlement_key_cannot_register_a_certificate(tmp_path: 
     import time
 
     storage = tmp_path / "entitlements.json"
-    manager, refused = _source_default_closed(
-        lambda: EntitlementManager(storage_path=storage),
-        "EntitlementManager()",
-    )
-    if manager is None:
-        assert refused is not None
-        assert not storage.exists()
+    manager, refused = _source_default_closed(lambda: EntitlementManager(storage_path=storage))
+    assert not storage.exists()
+    if refused is not None:
+        assert manager is None
+        _require_source_default_refusal(refused, "EntitlementManager()")
         return
     assert manager.secret_key == DEFAULT_ENTITLEMENT_KEY
     now = time.time()
@@ -546,22 +556,31 @@ def test_source_default_entitlement_key_cannot_register_a_certificate(tmp_path: 
 
 
 def test_source_default_entitlement_key_cannot_grant_features(tmp_path: Path):
-    from core.billing.entitlements import EntitlementManager, EnterpriseFeature
+    from core.billing.entitlements import (
+        EntitlementManager,
+        EnterpriseFeature,
+        LicenseTier,
+        TIER_DEFAULT_FEATURES,
+    )
 
     storage = tmp_path / "entitlements.json"
-    manager, refused = _source_default_closed(
-        lambda: EntitlementManager(storage_path=storage),
-        "EntitlementManager()",
-    )
-    if manager is None:
-        assert refused is not None
-        assert not storage.exists()
+    manager, refused = _source_default_closed(lambda: EntitlementManager(storage_path=storage))
+    assert not storage.exists()
+    if refused is not None:
+        assert manager is None
+        _require_source_default_refusal(refused, "EntitlementManager()")
         return
+    # This feature is in the community tier. A tier mismatch is not the refusal under test.
+    assert EnterpriseFeature.LOCAL_AGENT_LOOP in TIER_DEFAULT_FEATURES[LicenseTier.COMMUNITY]
     granted, reason = manager.check_feature_access("org_safety", EnterpriseFeature.LOCAL_AGENT_LOOP)
+    lowered = reason.lower()
     assert granted is False, (
         "Package C dependency: core/billing/entitlements.py granted a feature from a certificate "
         f"signed with the source-default key ({reason})."
     )
+    assert "not permitted" not in lowered
+    assert "tier" not in lowered
+    assert any(word in lowered for word in ("refus", "unavailable", "disabled", "signature", "signing"))
     assert manager.active_certificates == {}
     assert not storage.exists()
 
@@ -569,16 +588,17 @@ def test_source_default_entitlement_key_cannot_grant_features(tmp_path: Path):
 def test_source_default_payment_secret_cannot_create_a_runnable_intent():
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
 
-    broker, refused = _source_default_closed(GlobalPaymentBroker, "GlobalPaymentBroker()")
-    if broker is None:
-        assert refused is not None
+    broker, refused = _source_default_closed(GlobalPaymentBroker)
+    if refused is not None:
+        assert broker is None
+        _require_source_default_refusal(refused, "GlobalPaymentBroker()")
         return
     intent = None
     try:
         intent = broker.create_intent(GlobalRail.OFFLINE_VOUCHER, 10, "USD", "safety-recipient")
     except Exception as exc:
-        text = f"{type(exc).__name__}: {exc}".lower()
-        assert any(word in text for word in _REFUSAL_WORDS + ("default", "explicit"))
+        assert broker.intents == {}
+        _require_source_default_refusal(exc, "GlobalPaymentBroker.create_intent")
         intent = None
     assert broker.intents == {}, (
         "Package C dependency: core/storage/payment_broker.py GlobalPaymentBroker() created a "
@@ -588,9 +608,10 @@ def test_source_default_payment_secret_cannot_create_a_runnable_intent():
 
 
 def test_source_default_github_webhook_cannot_process_an_event():
-    handler, refused = _source_default_closed(GitHubAppWebhookHandler, "GitHubAppWebhookHandler()")
-    if handler is None:
-        assert refused is not None
+    handler, refused = _source_default_closed(GitHubAppWebhookHandler)
+    if refused is not None:
+        assert handler is None
+        _require_source_default_refusal(refused, "GitHubAppWebhookHandler()")
         return
     payload = {
         "action": "closed",

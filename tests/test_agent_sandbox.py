@@ -15,7 +15,18 @@ from core.agents.sandbox import BubblewrapBackend, Sandbox, SandboxUnavailable, 
 from core.storage.workspace_fs import WorkspaceFilesystem
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "docs" / "spec" / "examples" / "test-fixer.agent.json"
-needs_backend = pytest.mark.skipif(not SeatbeltBackend.available(), reason="no OS sandbox backend on this platform (macOS seatbelt only)")
+def needs_backend(fn):
+    """Seatbelt-only proof. Bubblewrap does not satisfy this marker.
+
+    Profile A skips the test when sandbox-exec is absent. The release live
+    gate still requires the live_seatbelt result and treats that skip as
+    unavailable, not as a pass.
+    """
+    fn = pytest.mark.live_seatbelt(fn)
+    return pytest.mark.skipif(
+        not SeatbeltBackend.available(),
+        reason="no OS sandbox backend on this platform (macOS seatbelt only)",
+    )(fn)
 PY = shlex.quote(sys.executable)
 
 
