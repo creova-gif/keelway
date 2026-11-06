@@ -1060,12 +1060,23 @@ async function loadEvidenceSummary() {
   out.textContent = 'Aggregating live verification evidence across tests, benchmarks, air-gap, and SBOM…';
   try {
     const pkg = await api('/v1/evidence/summary');
-    out.textContent = `[✓] EVIDENCE ROOM SUMMARY (WP21)\n` +
+    const verifiedCount = pkg.summary && Number.isInteger(pkg.summary.total_verified_metrics)
+      ? pkg.summary.total_verified_metrics
+      : pkg.metrics.filter((m) => m.is_verified === true).length;
+    const notRunCount = pkg.summary && Number.isInteger(pkg.summary.not_run_metrics)
+      ? pkg.summary.not_run_metrics
+      : pkg.metrics.filter((m) => evidenceMetricMark(m).mark === 'NOT RUN').length;
+    out.textContent = `[i] EVIDENCE ROOM SUMMARY (WP21)\n` +
       `Package ID:   ${pkg.package_id}\n` +
       `Commit SHA:   ${pkg.commit_sha.slice(0, 16)} (${pkg.git_branch})\n` +
       `Sealed Hash:  ${pkg.package_sha256.slice(0, 24)}…\n` +
-      `All Verified: ${pkg.summary.all_verified ? 'TRUE (' + pkg.metrics.length + '/' + pkg.metrics.length + ' categories)' : 'FALSE'}\n\n` +
-      pkg.metrics.map((m) => `• [${m.is_verified ? '✓ PASS' : '✗ FAIL'}] ${m.name} (${m.category.toUpperCase()}):\n  ${m.claim}\n  Repro: ${m.reproduce_command}`).join('\n\n');
+      `All Verified: ${pkg.summary.all_verified === true ? 'TRUE' : 'FALSE'}\n` +
+      `Verified:     ${verifiedCount}\n` +
+      `Not run:      ${notRunCount}\n\n` +
+      pkg.metrics.map((m) => {
+        const mark = evidenceMetricMark(m);
+        return `• [${mark.mark}] ${m.name} (${m.category.toUpperCase()}):\n  ${m.claim}\n  Repro: ${m.reproduce_command}`;
+      }).join('\n\n');
     tone('ok');
   } catch (err) {
     out.textContent = `[-] Evidence load error: ${err.message}`;
@@ -1079,14 +1090,19 @@ async function sealEvidencePackage() {
   out.textContent = 'Assembling and cryptographically sealing evidence package…';
   try {
     const res = await api('/v1/evidence/generate', { method: 'POST' });
-    out.textContent = `[✓] EVIDENCE PACKAGE CRYPTOGRAPHICALLY SEALED\n` +
+    const sealedMetrics = (res.evidence_package && res.evidence_package.metrics) || [];
+    const sealedVerified = sealedMetrics.filter((m) => m.is_verified === true).length;
+    const sealedNotRun = sealedMetrics.filter((m) => evidenceMetricMark(m).mark === 'NOT RUN').length;
+    out.textContent = `[i] EVIDENCE PACKAGE SEAL RECORDED\n` +
       `Status:      ${res.status}\n` +
       `Package ID:  ${res.package_id}\n` +
       `SHA-256:     ${res.package_sha256}\n` +
-      `Categories:  ${res.evidence_package.metrics.length} verified\n` +
-      `Timestamp:   ${res.evidence_package.timestamp_utc}`;
-    tone('ok');
-    toast('Evidence package sealed', 'ok');
+      `Verified:    ${sealedVerified}\n` +
+      `Not run:     ${sealedNotRun}\n` +
+      `Timestamp:   ${res.evidence_package.timestamp_utc}\n` +
+      `Note:        A seal records the package bytes. It does not verify not-run checks.`;
+    tone('warn');
+    toast('Evidence package sealed. Not-run checks stay unverified.', 'warn');
   } catch (err) {
     out.textContent = `[-] Sealing error: ${err.message}`;
     tone('err');
@@ -1100,14 +1116,15 @@ async function verifyEvidencePackage() {
   try {
     const gen = await api('/v1/evidence/generate', { method: 'POST' });
     const ver = await api('/v1/evidence/verify', { method: 'POST', body: { package: gen.evidence_package } });
-    out.textContent = `[✓] EVIDENCE PACKAGE VERIFIED\n` +
-      `Status:    ${ver.is_valid ? 'VERIFIED (PASS)' : 'FAILED'}\n` +
+    out.textContent = `[i] EVIDENCE PACKAGE SEAL CHECK\n` +
+      `Seal:      ${ver.is_valid ? 'INTACT' : 'MISMATCH'}\n` +
       `Code:      ${ver.status}\n` +
       `Package:   ${ver.details.package_id}\n` +
       `Commit:    ${ver.details.commit_sha}\n` +
-      `Metrics:   ${ver.details.metrics_count} verified`;
-    tone('ok');
-    toast('Evidence verified 100%', 'ok');
+      `Metrics:   ${ver.details.metrics_count} recorded\n` +
+      `Note:      Seal integrity is not a claim that every metric was verified.`;
+    tone(ver.is_valid ? 'warn' : 'err');
+    toast(ver.is_valid ? 'Package seal is intact. Metrics are not re-certified.' : 'Package seal does not match.', ver.is_valid ? 'warn' : 'err');
   } catch (err) {
     out.textContent = `[-] Verification error: ${err.message}`;
     tone('err');
@@ -2309,6 +2326,214 @@ function renderSpeculativeTokenStream(tokenStream) {
   });
 }
 
+const KEYWORD_PLANNER_LABEL = 'Keyword/manual planned-tool path. Steps and tool choices are keyword matches, not model-driven planning.';
+
+function readReportedNumber(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value);
+  return null;
+}
+
+function formatBenchNumber(value, digits, suffix) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '—';
+  const body = digits === 0 && Number.isInteger(value) ? String(value) : value.toFixed(digits);
+  return suffix ? body + suffix : body;
+}
+
+function speculativeViewNotRun() {
+  return {
+    kind: 'not_run',
+    verified: false,
+    badge: 'NOT RUN',
+    speedup: null,
+    acceptancePct: null,
+    proposed: null,
+    accepted: null,
+    latencySaved: null,
+    latencyPct: null,
+    edgeCost: null,
+    tokenStream: null,
+    notice: 'Benchmark has not been run. No metrics are claimed.',
+  };
+}
+
+function speculativeViewFromFailure() {
+  return {
+    kind: 'error',
+    verified: false,
+    badge: 'ERROR',
+    speedup: null,
+    acceptancePct: null,
+    proposed: null,
+    accepted: null,
+    latencySaved: null,
+    latencyPct: null,
+    edgeCost: null,
+    tokenStream: null,
+    notice: 'Benchmark request failed. No metrics were measured.',
+  };
+}
+
+function speculativeViewFromResponse(res) {
+  const source = res && typeof res === 'object' ? res : {};
+  const spec = source.speculative_result && typeof source.speculative_result === 'object' ? source.speculative_result : {};
+  const speedup = readReportedNumber(spec.effective_speedup_ratio)
+    ?? readReportedNumber(source.effective_speedup_ratio)
+    ?? readReportedNumber(source.speedup_ratio);
+  const acceptanceRate = readReportedNumber(spec.acceptance_rate);
+  const acceptancePct = acceptanceRate != null ? acceptanceRate * 100 : readReportedNumber(source.acceptance_rate_pct);
+  const baseline = readReportedNumber(source.baseline_latency_ms);
+  const specLatency = readReportedNumber(spec.latency_ms);
+  const latencySaved = baseline != null && specLatency != null
+    ? baseline - specLatency
+    : readReportedNumber(source.latency_saved_ms);
+  const stream = Array.isArray(spec.token_stream) && spec.token_stream.length > 0 ? spec.token_stream : null;
+  return {
+    kind: 'response',
+    verified: false,
+    badge: 'NOT VERIFIED',
+    speedup,
+    acceptancePct,
+    proposed: readReportedNumber(spec.draft_tokens_proposed),
+    accepted: readReportedNumber(spec.draft_tokens_accepted),
+    latencySaved,
+    latencyPct: readReportedNumber(source.latency_reduction_pct),
+    edgeCost: readReportedNumber(source.edge_cost_usd),
+    tokenStream: stream,
+    notice: stream
+      ? 'Token stream came from the endpoint response and is not marked as measured evidence.'
+      : 'No token stream was included. No synthetic stream is shown.',
+  };
+}
+
+function applySpeculativeView(view) {
+  const badge = $('spec-status-badge');
+  if (badge) {
+    badge.textContent = view.badge;
+    badge.className = 'chip border-warn/50 text-warn text-[10px] font-mono';
+  }
+  if ($('spec-speedup')) $('spec-speedup').textContent = formatBenchNumber(view.speedup, 2, 'x');
+  if ($('spec-speedup-label')) $('spec-speedup-label').textContent = view.speedup == null ? 'Not reported' : 'Endpoint figure only. Not verified.';
+  if ($('spec-acceptance')) $('spec-acceptance').textContent = formatBenchNumber(view.acceptancePct, 1, '%');
+  if ($('spec-tokens-label')) {
+    $('spec-tokens-label').textContent = view.accepted == null || view.proposed == null
+      ? 'Not reported'
+      : `${formatBenchNumber(view.accepted, 0)} / ${formatBenchNumber(view.proposed, 0)} draft tokens reported`;
+  }
+  if ($('spec-latency-saved')) $('spec-latency-saved').textContent = formatBenchNumber(view.latencySaved, 1, ' ms');
+  if ($('spec-latency-pct')) $('spec-latency-pct').textContent = view.latencyPct == null ? 'Not reported' : `${formatBenchNumber(view.latencyPct, 1, '%')} latency reduction reported`;
+  if ($('spec-cost')) $('spec-cost').textContent = view.edgeCost == null ? '—' : `$${view.edgeCost.toFixed(2)}`;
+  if ($('spec-cost-label')) $('spec-cost-label').textContent = 'Endpoint figure only. Not verified.';
+  const stream = $('spec-token-stream');
+  if (stream) {
+    if (view.tokenStream) renderSpeculativeTokenStream(view.tokenStream);
+    else {
+      stream.innerHTML = '';
+      const empty = document.createElement('span');
+      empty.className = 'text-ide-faint text-[11px] italic';
+      empty.textContent = view.notice;
+      stream.appendChild(empty);
+    }
+    if (stream.parentElement) {
+      let note = document.getElementById('spec-token-notice');
+      if (!note) {
+        note = document.createElement('p');
+        note.id = 'spec-token-notice';
+        note.className = 'text-[11px] text-warn mb-1';
+        stream.parentElement.insertBefore(note, stream);
+      }
+      note.textContent = view.notice;
+      const captions = stream.parentElement.querySelectorAll('span');
+      captions.forEach((el) => {
+        if (el.textContent && el.textContent.indexOf('Live Speculative') !== -1) {
+          el.textContent = 'Endpoint token stream. Not marked as measured evidence.';
+        }
+      });
+    }
+  }
+  const title = $('speculative-title');
+  const blurb = title && title.parentElement ? title.parentElement.querySelector('p') : null;
+  if (blurb) blurb.textContent = 'Runs the benchmark endpoint. Missing figures stay blank. Results are not marked verified.';
+}
+
+function evidenceMetricMark(metric) {
+  const observed = metric && metric.observed_value && typeof metric.observed_value === 'object' ? metric.observed_value : {};
+  if (metric && metric.is_verified === true) return { mark: 'VERIFIED', verified: true };
+  if (observed.status === 'not_run') return { mark: 'NOT RUN', verified: false };
+  if (observed.status === 'error') return { mark: 'ERROR', verified: false };
+  return { mark: 'UNVERIFIED', verified: false };
+}
+
+function clearStaticEvidenceClaims() {
+  const root = document.getElementById('lab-evidence');
+  if (!root) return;
+  const intro = root.querySelector('p');
+  if (intro) intro.textContent = 'Counts appear only after a check runs and returns evidence. Not-run checks stay unverified. No pass total is claimed here.';
+  root.querySelectorAll('.text-base').forEach((el) => {
+    el.textContent = 'Not run';
+    el.classList.remove('text-ok');
+    const card = el.parentElement;
+    if (!card) return;
+    const lines = Array.from(card.children);
+    const subtitle = lines[lines.length - 1];
+    if (subtitle && subtitle !== el) subtitle.textContent = 'Unverified. Not a pass count.';
+  });
+}
+
+function classifyComposerResult(mode, response) {
+  const status = response && response.status;
+  const plan = response && response.structured_plan;
+  const unavailable = status === 'unavailable' || status === 'error' || (response && response.available === false && status !== 'keyword_manual');
+  const keyword = status === 'keyword_manual'
+    || (response && response.planning_source === 'keyword_manual')
+    || (plan && plan.planning_source === 'keyword_manual')
+    || mode === 'agent';
+  const serverTaskId = response && (response.task_id || (response.agent_task && response.agent_task.task_id));
+  return {
+    unavailable: Boolean(unavailable),
+    keywordManual: Boolean(keyword),
+    label: keyword ? KEYWORD_PLANNER_LABEL : '',
+    allowServerStep: mode === 'agent' && !unavailable && Boolean(serverTaskId),
+    toastKind: unavailable ? 'err' : (keyword ? 'warn' : 'ok'),
+  };
+}
+
+function installKeywordPlannerNotice() {
+  const selector = $('mode-selector');
+  if (selector && !$('keyword-planner-notice')) {
+    const note = document.createElement('p');
+    note.id = 'keyword-planner-notice';
+    note.className = 'text-[11px] text-warn font-medium';
+    note.textContent = KEYWORD_PLANNER_LABEL;
+    selector.insertAdjacentElement('afterend', note);
+  }
+  const agentTab = document.querySelector ? document.querySelector('#mode-selector .mode-tab[data-mode="agent"]') : null;
+  if (agentTab) agentTab.textContent = 'Agent (keyword tools)';
+  const planTitle = $('plan-title');
+  if (planTitle && !$('plan-source-note')) {
+    const planNote = document.createElement('p');
+    planNote.id = 'plan-source-note';
+    planNote.className = 'text-[11px] text-warn';
+    planNote.textContent = KEYWORD_PLANNER_LABEL;
+    planTitle.insertAdjacentElement('afterend', planNote);
+  }
+}
+
+function renderKeywordPreview(plan, goal) {
+  installKeywordPlannerNotice();
+  state.agentTask = null;
+  state.agentState = null;
+  if ($('agent-goal-label')) $('agent-goal-label').textContent = goal || '';
+  if ($('agent-status')) $('agent-status').textContent = 'Keyword plan (not a model)';
+  const steps = (plan && plan.steps) || [];
+  if ($('plan-progress')) $('plan-progress').textContent = `${steps.length} keyword steps`;
+  if ($('agent-plan')) {
+    $('agent-plan').replaceChildren(...steps.map((st, i) => h('li', { class: 'card p-3 space-y-1' },
+      h('span', {}, `${i + 1}. ${st}`),
+      h('span', { class: 'block text-[10px] text-warn' }, 'Keyword/manual step. Not model-driven and not an executed agent task.'))));
+  }
+}
+
 async function runSpeculativeBenchmarkInStudio() {
   const btn = $('btn-run-spec-benchmark');
   const draft = ($('spec-draft-model') && $('spec-draft-model').value) || 'qwen2.5-coder:0.5b';
@@ -2333,74 +2558,14 @@ async function runSpeculativeBenchmarkInStudio() {
       }
     });
 
-    const spec = res.speculative_result || {};
-    const speedup = (spec.effective_speedup_ratio || res.effective_speedup_ratio || res.speedup_ratio || 2.74).toFixed(2);
-    const acceptPct = spec.acceptance_rate !== undefined ? (spec.acceptance_rate * 100).toFixed(1) : (res.acceptance_rate_pct ? res.acceptance_rate_pct.toFixed(1) : '81.3');
-    const proposed = spec.draft_tokens_proposed || 32;
-    const accepted = spec.draft_tokens_accepted || 26;
-    const latencySaved = res.baseline_latency_ms && spec.latency_ms ? (res.baseline_latency_ms - spec.latency_ms).toFixed(1) : (res.latency_saved_ms ? res.latency_saved_ms.toFixed(1) : '148.5');
-    const latencyPct = res.latency_reduction_pct !== undefined ? res.latency_reduction_pct.toFixed(1) : '63.5';
-    const edgeCost = res.edge_cost_usd !== undefined ? `$${res.edge_cost_usd.toFixed(2)}` : '$0.00';
-
-    if ($('spec-speedup')) $('spec-speedup').textContent = `${speedup}x`;
-    if ($('spec-speedup-label')) $('spec-speedup-label').textContent = `${speedup}x Amdahl acceleration factor`;
-    if ($('spec-acceptance')) $('spec-acceptance').textContent = `${acceptPct}%`;
-    if ($('spec-tokens-label')) $('spec-tokens-label').textContent = `${accepted} / ${proposed} draft tokens accepted`;
-    if ($('spec-latency-saved')) $('spec-latency-saved').textContent = `${latencySaved} ms`;
-    if ($('spec-latency-pct')) $('spec-latency-pct').textContent = `${latencyPct}% latency reduction`;
-    if ($('spec-cost')) $('spec-cost').textContent = edgeCost;
-    if ($('spec-cost-label')) $('spec-cost-label').textContent = `100% on-device private inference`;
-    if ($('spec-status-badge')) $('spec-status-badge').textContent = `${speedup}x VERIFIED`;
-
-    if (spec.token_stream && spec.token_stream.length > 0) {
-      renderSpeculativeTokenStream(spec.token_stream);
-    } else {
-      const mockStream = [
-        { token: "def", status: "accepted", step: 0, draft_index: 0 },
-        { token: " ", status: "accepted", step: 0, draft_index: 1 },
-        { token: "calculate_roi", status: "accepted", step: 0, draft_index: 2 },
-        { token: "(", status: "accepted", step: 0, draft_index: 3 },
-        { token: "inv", status: "accepted", step: 1, draft_index: 0 },
-        { token: ",", status: "accepted", step: 1, draft_index: 1 },
-        { token: "ret", status: "accepted", step: 1, draft_index: 2 },
-        { token: "):", status: "accepted", step: 1, draft_index: 3 },
-        { token: "\n    ", status: "accepted", step: 2, draft_index: 0 },
-        { token: "return", status: "accepted", step: 2, draft_index: 1 },
-        { token: " (ret - inv)", status: "accepted", step: 2, draft_index: 2 },
-        { token: " / inv", status: "accepted", step: 2, draft_index: 3 },
-        { token: "\n    ", status: "accepted", step: 3, draft_index: 0 },
-        { token: "# end", status: "rejected", step: 3, draft_index: 1 }
-      ];
-      renderSpeculativeTokenStream(mockStream);
-    }
-
-    toast(`Speculative benchmark completed: ${speedup}x speedup`, 'ok');
-    tone('ok');
+    const view = speculativeViewFromResponse(res);
+    applySpeculativeView(view);
+    toast('Benchmark response received. Figures are not verified.', 'warn');
+    tone('warn');
   } catch (err) {
-    const mockSpeedup = (1.0 + (0.8 * (kVal - 1) * 0.72)).toFixed(2);
-    if ($('spec-speedup')) $('spec-speedup').textContent = `${mockSpeedup}x`;
-    if ($('spec-acceptance')) $('spec-acceptance').textContent = `81.3%`;
-    if ($('spec-latency-saved')) $('spec-latency-saved').textContent = `148.5 ms`;
-    if ($('spec-cost')) $('spec-cost').textContent = `$0.00`;
-    const fallbackStream = [
-      { token: "def", status: "accepted", step: 0, draft_index: 0 },
-      { token: " ", status: "accepted", step: 0, draft_index: 1 },
-      { token: "calculate_roi", status: "accepted", step: 0, draft_index: 2 },
-      { token: "(", status: "accepted", step: 0, draft_index: 3 },
-      { token: "inv", status: "accepted", step: 1, draft_index: 0 },
-      { token: ",", status: "accepted", step: 1, draft_index: 1 },
-      { token: "ret", status: "accepted", step: 1, draft_index: 2 },
-      { token: "):", status: "accepted", step: 1, draft_index: 3 },
-      { token: "\n    ", status: "accepted", step: 2, draft_index: 0 },
-      { token: "return", status: "accepted", step: 2, draft_index: 1 },
-      { token: " (ret - inv)", status: "accepted", step: 2, draft_index: 2 },
-      { token: " / inv", status: "accepted", step: 2, draft_index: 3 },
-      { token: "\n    ", status: "accepted", step: 3, draft_index: 0 },
-      { token: "# end", status: "rejected", step: 3, draft_index: 1 }
-    ];
-    renderSpeculativeTokenStream(fallbackStream);
-    toast(`Speculative benchmark: ${mockSpeedup}x speedup`, 'ok');
-    tone('ok');
+    applySpeculativeView(speculativeViewFromFailure());
+    toast('Benchmark failed. No metrics were measured.', 'err');
+    tone('err');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -2609,37 +2774,44 @@ async function startAgent(e) {
   e.preventDefault();
   const goal = $('agent-goal').value.trim(); if (!goal) return;
   const mode = state.chatMode || 'agent';
+  installKeywordPlannerNotice();
   if (mode === 'agent') {
     try {
       const r = await api('/v1/agent/run', { method: 'POST', body: { goal, policy: $('agent-policy').value } });
-      state.agentTask = { id: r.task_id, goal };
-      $('agent-goal').value = ''; tone('ok'); renderAgent(r.state); loadRuns();
+      const kind = classifyComposerResult(mode, r);
+      state.agentTask = { id: r.task_id, goal, planningSource: 'keyword_manual' };
+      $('agent-goal').value = '';
+      tone(kind.toastKind === 'err' ? 'err' : 'warn');
+      toast(KEYWORD_PLANNER_LABEL, 'warn');
+      renderAgent(r.state); loadRuns();
     } catch (err) { toast(err.message, 'err'); }
   } else {
     try {
-      toast(`[${mode.toUpperCase()}] Consulting Keelway…`, 'info');
+      toast(`[${mode.toUpperCase()}] Requesting a model reply…`, 'info');
       const r = await api('/v1/chat/message', {
         method: 'POST',
         body: { message: goal, mode, target_file: state.active }
       });
-      log(`[${r.mode.toUpperCase()}] ${r.content}`, 'text-ide-fg');
+      const kind = classifyComposerResult(mode, r);
+      log(`[${(r.mode || mode).toUpperCase()}] ${r.content || ''}`, kind.unavailable ? 'text-danger' : 'text-ide-fg');
       if (r.memory_citations && r.memory_citations.length) {
         log(`Citations: ${r.memory_citations.map((c) => c.citation).join(', ')}`, 'text-ide-muted text-[11px]');
       }
-      if (r.structured_plan) {
-        toast(`[+] Plan generated: ${r.structured_plan.steps.length} steps`, 'ok');
-        state.agentTask = { id: `task_plan_${Date.now()}`, goal };
-        renderAgent({
-          task_id: state.agentTask.id,
-          goal,
-          status: 'plan_ready',
-          policy: 'confirm_mutation',
-          plan: r.structured_plan.steps.map((st, i) => ({ id: `step_${i+1}`, description: st, status: 'pending' })),
-          pending_approval: null,
-          recent_events: [{ type: 'plan_formulated', payload: r.structured_plan }],
-        });
-      } else if (r.edit_proposal) {
-        toast(`[+] Edit proposed on ${r.edit_proposal.file_path}`, 'ok');
+      if (kind.unavailable) {
+        const message = (r.error && r.error.message) || r.content || 'Model unavailable.';
+        toast(message, 'err');
+        if (r.structured_plan && r.structured_plan.planning_source === 'keyword_manual') {
+          log(KEYWORD_PLANNER_LABEL, 'text-warn');
+          renderKeywordPreview(r.structured_plan, goal);
+        }
+      } else if (r.structured_plan) {
+        toast(r.structured_plan.planning_source === 'keyword_manual'
+          ? `Keyword plan: ${r.structured_plan.steps.length} steps. Not model-driven.`
+          : `Plan reply: ${r.structured_plan.steps.length} steps.`, kind.toastKind);
+        if (r.structured_plan.planning_source === 'keyword_manual') renderKeywordPreview(r.structured_plan, goal);
+      } else if (r.status === 'ok' && r.edit_proposal) {
+        const fileLabel = r.edit_proposal.file_path || 'the request';
+        toast(`Model reply received for ${fileLabel}. Nothing was applied.`, 'warn');
         setMode('diff');
         loadDiff();
       }
@@ -2726,6 +2898,7 @@ function stepRunner(step) {
   const args = h('textarea', { rows: '3', class: 'input w-full font-mono text-[10px] resize-y', spellcheck: 'false', 'aria-label': 'Arguments (JSON)', dir: 'ltr' });
   args.value = JSON.stringify(defaultArgs(tool.value, state.agentTask.goal), null, 1);
   tool.addEventListener('change', () => { args.value = JSON.stringify(defaultArgs(tool.value, state.agentTask.goal), null, 1); });
+  const hint = h('p', { class: 'text-[10px] text-warn' }, 'Keyword suggestion only. The tool is not chosen by a model.');
   const run = h('button', { type: 'button', class: 'btn-primary py-0.5 text-[11px]' }, 'Run step');
   run.addEventListener('click', async () => {
     let parsed; try { parsed = JSON.parse(args.value); } catch { toast('Arguments must be JSON', 'err'); return; }
@@ -2733,7 +2906,7 @@ function stepRunner(step) {
     try { const r = await api(`/v1/agent/step/${encodeURIComponent(state.agentTask.id)}`, { method: 'POST', body: { tool_name: tool.value, arguments: parsed, step_id: step.id } }); renderAgent(r.agent_state); afterAgentAction(r.step_result); }
     catch (err) { toast(err.message, 'err'); run.disabled = false; }
   });
-  return h('div', { class: 'ms-7 space-y-1.5' }, h('div', { class: 'flex gap-1.5' }, tool, run), args);
+  return h('div', { class: 'ms-7 space-y-1.5' }, hint, h('div', { class: 'flex gap-1.5' }, tool, run), args);
 }
 async function approve(yes, scope) {
   try {
@@ -2852,6 +3025,9 @@ async function startSession() {
 function relabel() { applyI18n(); renderPanelTabs(); renderWelcome(); renderTabs(); renderRuns(); if (state.status) { setAirGap(state.status.air_gapped); $('composer-model').textContent = `${t('localModel')} · ${state.status.local_model}`; } if (state.agentState) renderAgent(state.agentState); }
 
 function wire() {
+  clearStaticEvidenceClaims();
+  applySpeculativeView(speculativeViewNotRun());
+  installKeywordPlannerNotice();
   $('lang-select').replaceChildren(...Object.entries(LANGS).map(([k, v]) => h('option', { value: k }, v)));
   $('lang-select').value = lang;
   $('lang-select').addEventListener('change', (e) => { lang = e.target.value; localStorage.setItem('keelway.lang', lang); relabel(); });
@@ -2896,10 +3072,10 @@ function wire() {
       btn.classList.remove('text-ide-muted');
       state.chatMode = btn.dataset.mode;
       const phMap = {
-        agent: 'Ask Keelway to execute an autonomous engineering task…',
+        agent: 'Describe a task. Planning is keyword/manual, not model-driven.',
         ask: 'Ask a question about repository code or architecture (read-only)…',
-        plan: 'Describe what you want to build or refactor (produces structured plan)…',
-        edit: 'Describe specific code changes or patch to formulate…',
+        plan: 'Describe a change. A model reply is separate from the keyword step list.',
+        edit: 'Describe code changes. A missing model is an error, not a patch.',
       };
       if ($('agent-goal')) $('agent-goal').placeholder = phMap[state.chatMode] || phMap.agent;
     });
@@ -3125,6 +3301,14 @@ if (typeof window !== 'undefined') {
   window.getBuilderStageData = getBuilderStageData;
   window.renderUnifiedProofStrip = renderUnifiedProofStrip;
   window.scaffoldAgentInStudio = scaffoldAgentInStudio;
+  window.KEYWORD_PLANNER_LABEL = KEYWORD_PLANNER_LABEL;
+  window.speculativeViewNotRun = speculativeViewNotRun;
+  window.speculativeViewFromFailure = speculativeViewFromFailure;
+  window.speculativeViewFromResponse = speculativeViewFromResponse;
+  window.evidenceMetricMark = evidenceMetricMark;
+  window.classifyComposerResult = classifyComposerResult;
+  window.clearStaticEvidenceClaims = clearStaticEvidenceClaims;
+  window.applySpeculativeView = applySpeculativeView;
 }
 
 if (typeof window !== 'undefined' && !window.__TEST_MODE__) {

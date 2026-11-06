@@ -45,43 +45,44 @@ class AgentMeshDispatcher:
         files: List[str],
     ) -> Dict[str, Any]:
         """
-        Executes a 3-agent collaborative pipeline:
-        1. Architect reviews design and files
-        2. Security Auditor scans for DLP/injections
-        3. Verification Engineer checks test coverage
+        Record a mesh dispatch request without pretending agents ran.
+
+        This dispatcher does not review architecture, scan for DLP, execute
+        tests, or collect an independent approval. The returned state is
+        ``not_executed``.
         """
         task_id = f"mesh_task_{uuid.uuid4().hex[:8]}"
-
-        # Step 1: Architect review
+        # No architect, DLP, test, or consensus pass runs in this dispatcher.
+        # Keys stay present so callers can read them; values do not claim a result.
+        not_executed = "not_executed"
         arch_review = {
             "task_id": task_id,
-            "architecture_aligned": True,
-            "adrs_referenced": ["ADR-001", "ADR-004"],
-            "files_approved": files,
+            "status": not_executed,
+            "architecture_aligned": None,
+            "adrs_referenced": [],
+            "files_received": list(files),
+            "files_approved": [],
         }
-        self.agent_registry[AgentRole.ARCHITECT]["tasks_completed"] += 1
-
-        # Step 2: Security Auditor review
         sec_review = {
             "task_id": task_id,
-            "dlp_clean": True,
-            "injection_risk": 0.0,
-            "air_gap_compliant": True,
+            "status": not_executed,
+            "dlp_clean": None,
+            "injection_risk": None,
+            "air_gap_compliant": None,
         }
-        self.agent_registry[AgentRole.SECURITY_AUDITOR]["tasks_completed"] += 1
-
-        # Step 3: Verification Engineer
         verif_review = {
             "task_id": task_id,
-            "tests_passed": True,
-            "test_count": 40,
-            "exit_code": 0,
+            "status": not_executed,
+            "tests_passed": None,
+            "test_count": None,
+            "exit_code": None,
         }
-        self.agent_registry[AgentRole.VERIFICATION_ENGINEER]["tasks_completed"] += 1
-
         return {
             "task_id": task_id,
-            "consensus": "APPROVED",
+            "consensus": "NOT_EXECUTED",
+            "execution_state": not_executed,
+            "simulated": False,
+            "independently_approved": False,
             "pipeline": {
                 "architect": arch_review,
                 "security": sec_review,
