@@ -74,7 +74,7 @@ def test_assemble_evidence_package():
         assert metric["observed_value"]["count"] is None
         assert metric["claim"].startswith("Not run.")
 
-    serialized = json.dumps(pkg.to_dict())
+    serialized = "\n".join(metric["claim"] for metric in pkg.metrics) + "\n" + json.dumps(pkg.summary)
     for banned in ("745", "40/40", "10/10 stages", "7/7", "worm_verified", "100% Pass@1", "HEALTHY"):
         assert banned not in serialized
 
@@ -89,8 +89,10 @@ def test_assemble_evidence_package():
         passed_tasks = benchmark["observed_value"]["passed_tasks"]
         total_tasks = benchmark["observed_value"]["total_tasks"]
         assert isinstance(passed_tasks, int) and isinstance(total_tasks, int)
-        assert benchmark["is_verified"] is (passed_tasks == total_tasks)
-        assert benchmark["claim"].startswith("In-process golden panel finished")
+        assert benchmark["is_verified"] is False
+        assert benchmark["observed_value"]["provenance"] == "in_process_harness"
+        assert "stub generators" in benchmark["claim"]
+        assert "not independently verified model performance" in benchmark["claim"]
     else:
         assert benchmark["is_verified"] is False
         assert benchmark["observed_value"]["passed"] is None

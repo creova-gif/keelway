@@ -1573,97 +1573,70 @@ function getIdeStageData(s) {
   const waitingApproval = !!s.pending_approval || st === 'awaiting_approval';
   const isFailed = st === 'failed';
   const isCancelled = st === 'cancelled';
-  const isCompleted = st === 'completed';
 
-  // 1. INSPECT
-  let inspectStatus = 'idle';
-  if (['created', 'context_loading'].includes(st)) {
-    inspectStatus = 'active';
-  } else if (['planning', 'plan_ready', 'planned', 'awaiting_approval', 'executing_tool', 'running', 'verifying', 'completed', 'failed', 'cancelled'].includes(st)) {
-    inspectStatus = 'passed';
-  }
+  const planSteps = Array.isArray(s.plan) ? s.plan : [];
+  const hasPlan = planSteps.length > 0;
+  const completedSteps = planSteps.filter((p) => p.status === 'completed').length;
+  const runningSteps = planSteps.filter((p) => p.status === 'running').length;
+  const failedSteps = planSteps.filter((p) => p.status === 'failed').length;
+  const hasDeniedStep = planSteps.some((p) => p.status === 'failed' && p.observation && String(p.observation).toLowerCase().includes('denied'));
+  const exitKnown = s.test_exit_code !== undefined && s.test_exit_code !== null && s.test_exit_code !== '';
+  const merkle = typeof s.merkle_root === 'string' && s.merkle_root ? s.merkle_root : null;
+  const modelName = s.model_name || (s.model_identity && s.model_identity.name) || null;
+  const modelProvider = s.model_provider || null;
+  const airgapKnown = s.airgap === true || s.airgap === false;
+  const policyLabel = s.policy || 'Not reported';
 
-  // 2. PLAN
-  let planStatus = 'idle';
-  if (st === 'planning') {
-    planStatus = 'active';
-  } else if (['plan_ready', 'planned', 'awaiting_approval', 'executing_tool', 'running', 'verifying', 'completed'].includes(st)) {
-    planStatus = 'passed';
-  } else if (isFailed && (!s.plan || s.plan.length === 0)) {
-    planStatus = 'failed';
-  } else if (['failed', 'cancelled'].includes(st) && s.plan && s.plan.length > 0) {
-    planStatus = 'passed';
-  }
+  let inspectStatus = 'not_run';
+  if (['created', 'context_loading'].includes(st)) inspectStatus = 'active';
+  else if (typeof s.symbol_count === 'number') inspectStatus = 'passed';
 
-  // 3. AUTHORIZE
-  let authStatus = 'idle';
-  const hasDeniedStep = s.plan && s.plan.some(p => p.status === 'failed' && p.observation && p.observation.toLowerCase().includes('denied'));
-  if (waitingApproval) {
-    authStatus = 'waiting';
-  } else if (isCancelled || hasDeniedStep || (isFailed && s.error && s.error.toLowerCase().includes('denied'))) {
-    authStatus = 'failed';
-  } else if (['executing_tool', 'running', 'verifying', 'completed'].includes(st)) {
-    authStatus = 'passed';
-  } else if (isFailed && s.plan && s.plan.some(p => p.status === 'completed' || p.status === 'running')) {
-    authStatus = 'passed';
-  }
+  let planStatus = 'not_run';
+  if (st === 'planning') planStatus = 'active';
+  else if (hasPlan) planStatus = 'passed';
+  else if (isFailed) planStatus = 'failed';
 
-  // 4. EXECUTE
-  let execStatus = 'idle';
-  if (['executing_tool', 'running'].includes(st)) {
-    execStatus = 'active';
-  } else if (['verifying', 'completed'].includes(st)) {
-    execStatus = 'passed';
-  } else if (isFailed && s.plan && s.plan.some(p => p.status === 'failed')) {
-    execStatus = 'failed';
-  }
+  let authStatus = 'not_run';
+  if (waitingApproval) authStatus = 'waiting';
+  else if (isCancelled || hasDeniedStep || (isFailed && s.error && String(s.error).toLowerCase().includes('denied'))) authStatus = 'failed';
+  else if (s.approval_digest || s.authorized === true) authStatus = 'passed';
 
-  // 5. VERIFY
-  let verifyStatus = 'idle';
-  if (st === 'verifying') {
-    verifyStatus = 'active';
-  } else if (isCompleted) {
-    verifyStatus = (s.test_exit_code !== undefined && s.test_exit_code !== 0) ? 'failed' : 'passed';
-  } else if (s.test_exit_code !== undefined && s.test_exit_code !== 0) {
-    verifyStatus = 'failed';
-  } else if (isFailed && (st === 'verifying' || s.verification_status === 'failed' || (s.plan && s.plan.some(p => p.description && p.description.includes('test') && p.status === 'failed')))) {
-    verifyStatus = 'failed';
-  }
+  let execStatus = 'not_run';
+  if (['executing_tool', 'running'].includes(st) || runningSteps > 0) execStatus = 'active';
+  else if (completedSteps > 0) execStatus = 'passed';
+  else if (failedSteps > 0) execStatus = 'failed';
 
-  // 6. SEAL
-  let sealStatus = 'idle';
-  if (isCompleted) {
-    sealStatus = (s.hash_verified === false || s.tampered === true) ? 'failed' : 'passed';
-  } else if (isFailed && s.hash_verified === false) {
-    sealStatus = 'failed';
-  }
+  let verifyStatus = 'not_run';
+  if (st === 'verifying' && !exitKnown) verifyStatus = 'active';
+  else if (exitKnown && Number(s.test_exit_code) !== 0) verifyStatus = 'failed';
+  else if (exitKnown && Number(s.test_exit_code) === 0) verifyStatus = 'passed';
+  else if (s.verification_status === 'failed') verifyStatus = 'failed';
 
-  const modelName = s.model_name || (s.model_identity && s.model_identity.name) || 'qwen3.5:latest';
-  const modelProvider = s.model_provider || 'local (MLX/Ollama)';
-  const airgapActive = s.airgap !== undefined ? s.airgap : true;
-  const policyLabel = s.policy || 'confirm_mutation';
+  let sealStatus = 'not_run';
+  if (s.tampered === true || s.hash_verified === false) sealStatus = 'failed';
+  else if (s.hash_verified === true && merkle) sealStatus = 'passed';
 
   return [
     {
       ...PROOF_STAGES[0],
       status: inspectStatus,
       details: {
-        model: `${modelName} · [${modelProvider}]`,
-        egress: airgapActive ? 'LOCAL_ONLY (Zero Egress Verified)' : 'RESTRICTED_EGRESS',
-        airgap: airgapActive,
-        repo: s.repo_path || 'Workspace Root (Active)',
-        symbols: s.symbol_count || 342,
-        summary: `Air-gap verified: sovereign local execution on ${modelName}. No external network telemetry.`
+        model: modelName ? (modelProvider ? `${modelName} · [${modelProvider}]` : modelName) : 'Not reported',
+        egress: !airgapKnown ? 'Not checked' : (s.airgap ? 'Air-gap flag is true. Not an independent egress check.' : 'Air-gap flag is false.'),
+        airgap: airgapKnown ? s.airgap : null,
+        repo: s.repo_path || 'Not reported',
+        symbols: typeof s.symbol_count === 'number' ? s.symbol_count : 'Not reported',
+        summary: 'Only fields on the task are shown. Missing model, symbol, and egress values stay not reported.'
       }
     },
     {
       ...PROOF_STAGES[1],
       status: planStatus,
       details: {
-        goal: s.goal || (typeof state !== 'undefined' && state.agentTask && state.agentTask.goal) || 'Repository Bugfix / Feature',
-        stepsPlanned: s.plan ? s.plan.length : 0,
+        goal: s.goal || 'Not reported',
+        stepsPlanned: planSteps.length,
         policy: policyLabel,
-        summary: `Deterministic execution plan: ${s.plan ? s.plan.length : 0} steps compiled under ${policyLabel} policy.`
+        summary: hasPlan ? `${planSteps.length} plan steps are on the task.` : 'No plan was recorded.'
       }
     },
     {
@@ -1673,38 +1646,38 @@ function getIdeStageData(s) {
         policy: policyLabel,
         quorumRequired: false,
         pendingApproval: waitingApproval ? (s.pending_approval ? s.pending_approval.description : 'Pending human confirmation') : null,
-        approvalDigest: s.approval_digest || (authStatus === 'passed' ? 'SHA-256: 8f4e2b... (Authorized)' : null),
-        summary: waitingApproval ? 'Approval required: action requires human sign-off.' : (authStatus === 'passed' ? 'Runtime authorization granted; boundary checks cleared.' : (authStatus === 'failed' ? 'Authorization denied or task aborted.' : 'Awaiting plan authorization.'))
+        approvalDigest: s.approval_digest || null,
+        summary: waitingApproval ? 'Approval required: action requires human sign-off.' : (authStatus === 'passed' ? 'An approval digest was recorded on the task.' : (authStatus === 'failed' ? 'Authorization denied or task aborted.' : 'No authorization record. Not treated as approved.'))
       }
     },
     {
       ...PROOF_STAGES[3],
       status: execStatus,
       details: {
-        toolsInvoked: s.plan ? s.plan.filter(p => p.status === 'completed' || p.status === 'running').length : 0,
-        mutations: s.mutations || (s.edit_proposal ? [s.edit_proposal.file_path] : []),
-        diffs: s.diff_stats || (s.edit_proposal ? '+12 -4 lines' : 'clean'),
-        summary: `Tool execution in isolated sandbox. Diffs tracked with file integrity checks.`
+        toolsInvoked: completedSteps + runningSteps,
+        mutations: s.mutations || (s.edit_proposal && s.edit_proposal.file_path ? [s.edit_proposal.file_path] : []),
+        diffs: s.diff_stats || 'Not reported',
+        summary: execStatus === 'not_run' ? 'No tool execution was recorded.' : 'Tool status comes from the recorded plan steps.'
       }
     },
     {
       ...PROOF_STAGES[4],
       status: verifyStatus,
       details: {
-        testCommand: s.test_command || 'pytest tests/ -v',
-        exitCode: s.test_exit_code !== undefined ? s.test_exit_code : (verifyStatus === 'passed' ? 0 : (verifyStatus === 'failed' ? 1 : null)),
-        testOutput: s.test_output || (verifyStatus === 'passed' ? '12 passed in 1.66s [100% OK]' : (verifyStatus === 'failed' ? 'FAILED (exit code 1)' : 'Pending verification pass')),
-        summary: verifyStatus === 'passed' ? 'All regression and acceptance tests passed.' : (verifyStatus === 'failed' ? 'Verification tests failed or assertion error.' : 'Awaiting test suite execution.')
+        testCommand: s.test_command || 'Not reported',
+        exitCode: exitKnown ? s.test_exit_code : null,
+        testOutput: s.test_output || 'Not reported',
+        summary: verifyStatus === 'passed' ? 'A recorded test exit code was 0.' : (verifyStatus === 'failed' ? 'A recorded test result failed.' : 'No test result was recorded.')
       }
     },
     {
       ...PROOF_STAGES[5],
       status: sealStatus,
       details: {
-        tapeId: s.tape_id || (s.task_id ? `tape-${s.task_id}` : 'tape-live'),
-        merkleRoot: s.merkle_root || (sealStatus === 'passed' ? '073d5e86e3dba727c4dd0e561e24927e98fe51db' : (sealStatus === 'failed' ? 'TAMPERED / MISMATCH' : null)),
+        tapeId: s.tape_id || 'Not reported',
+        merkleRoot: merkle,
         verified: sealStatus === 'passed',
-        summary: sealStatus === 'passed' ? 'Flight tape sealed with Merkle root. Cryptographic provenance verified.' : (sealStatus === 'failed' ? 'Cryptographic hash mismatch or flight tape corrupted.' : 'Flight tape active; will be sealed on completion.')
+        summary: sealStatus === 'passed' ? 'A hash check and Merkle root were recorded on the task.' : (sealStatus === 'failed' ? 'A recorded hash check failed or the task was marked tampered.' : 'No seal was recorded.')
       }
     }
   ];
@@ -1728,63 +1701,63 @@ function getBuilderStageData(b) {
   return [
     {
       ...PROOF_STAGES[0],
-      status: isCreated ? 'passed' : (b.status === 'active' ? 'active' : 'idle'),
+      status: 'not_run',
       details: {
-        model: 'Local Open-Weight (qwen3.5:latest)',
-        template: b.template_id || manifest.name || 'test-fixer',
-        schemaVersion: manifest.schema_version || '1.0.0',
-        egress: 'LOCAL_ONLY (Zero Egress Verified)',
-        summary: `AgentSpec v1 template loaded and validated against local schema.`
+        model: 'Not reported',
+        template: b.template_id || manifest.name || 'Not reported',
+        schemaVersion: manifest.schema_version || 'Not reported',
+        egress: 'Not checked',
+        summary: 'No model or egress check is recorded for this scaffold.'
       }
     },
     {
       ...PROOF_STAGES[1],
-      status: isCreated ? 'passed' : 'idle',
+      status: (manifest.name || receipt.spec_name) ? 'passed' : 'not_run',
       details: {
-        specName: receipt.spec_name || manifest.name || 'custom-agent',
-        version: receipt.version || manifest.version || '0.1.0',
-        systemPrompt: manifest.system_prompt ? `${manifest.system_prompt.length} chars` : 'configured',
-        summary: `Deterministic agent specification compiled: ${manifest.name || 'agent'}@${manifest.version || '0.1.0'}.`
+        specName: receipt.spec_name || manifest.name || 'Not reported',
+        version: receipt.version || manifest.version || 'Not reported',
+        systemPrompt: manifest.system_prompt ? `${manifest.system_prompt.length} chars` : 'Not reported',
+        summary: (manifest.name || receipt.spec_name) ? 'A spec name was recorded on the scaffold.' : 'No spec was recorded.'
       }
     },
     {
       ...PROOF_STAGES[2],
-      status: isCreated ? 'passed' : 'idle',
+      status: 'not_run',
       details: {
-        autonomy: (manifest.permissions && manifest.permissions.autonomy) || 'mutation_gated',
-        allowedTools: (manifest.tools && manifest.tools.length) ? manifest.tools.join(', ') : 'read_file, edit_file, run_tests',
-        maxBudgetUsd: (manifest.budget && manifest.budget.max_usd_per_run) || 0.0,
-        summary: `Permission boundaries enforced: sandboxed tool allowlist with airgap policy.`
+        autonomy: (manifest.permissions && manifest.permissions.autonomy) || 'Not reported',
+        allowedTools: (manifest.tools && manifest.tools.length) ? manifest.tools.join(', ') : 'Not reported',
+        maxBudgetUsd: (manifest.budget && manifest.budget.max_usd_per_run != null) ? manifest.budget.max_usd_per_run : 'Not reported',
+        summary: 'Manifest permissions are a spec, not an approval record.'
       }
     },
     {
       ...PROOF_STAGES[3],
-      status: isCreated ? 'passed' : 'idle',
+      status: (Array.isArray(receipt.files_created) && receipt.files_created.length) || b.target_dir ? 'passed' : 'not_run',
       details: {
-        targetDir: b.target_dir || `agents/${receipt.spec_name || 'agent'}`,
-        filesCreated: receipt.files_created ? receipt.files_created.join(', ') : 'manifest.json, test_agent.py',
-        durationMs: receipt.duration_ms ? `${receipt.duration_ms.toFixed(1)}ms` : '42ms',
-        summary: `Agent directory structure and evaluation harnesses scaffolded.`
+        targetDir: b.target_dir || 'Not reported',
+        filesCreated: Array.isArray(receipt.files_created) ? receipt.files_created.join(', ') : 'Not reported',
+        durationMs: typeof receipt.duration_ms === 'number' ? `${receipt.duration_ms.toFixed(1)}ms` : 'Not reported',
+        summary: 'Scaffold files are shown only when the receipt lists them.'
       }
     },
     {
       ...PROOF_STAGES[4],
-      status: testsPassed ? 'passed' : (isFailed ? 'failed' : 'idle'),
+      status: testsPassed ? 'passed' : (isFailed ? 'failed' : 'not_run'),
       details: {
-        testSuite: 'agent_eval_fixtures.py',
-        exitCode: testsPassed ? 0 : 1,
-        testOutput: receipt.test_output || (testsPassed ? '1 passed in 0.14s [100% OK]' : 'FAILED'),
-        summary: testsPassed ? 'All starter evaluation fixtures passed successfully.' : 'Evaluation fixtures failed.'
+        testSuite: 'Not reported',
+        exitCode: receipt.exit_code !== undefined ? receipt.exit_code : null,
+        testOutput: receipt.test_output || 'Not reported',
+        summary: testsPassed ? 'The receipt recorded tests_passed true.' : (isFailed ? 'The receipt recorded a failed evaluation.' : 'No evaluation result was recorded.')
       }
     },
     {
       ...PROOF_STAGES[5],
-      status: (testsPassed && receipt.receipt_sha256) ? 'passed' : (isFailed ? 'failed' : 'idle'),
+      status: (testsPassed && receipt.receipt_sha256) ? 'passed' : (isFailed ? 'failed' : 'not_run'),
       details: {
-        manifestDigest: receipt.manifest_digest || 'sha256:...',
-        receiptDigest: receipt.receipt_sha256 || 'sha256:...',
-        distributable: testsPassed ? 'Ready for Bundle Packaging (.tar.gz)' : 'Blocked (Unverified)',
-        summary: testsPassed ? `Tamper-evident build receipt sealed: ${receipt.receipt_sha256 ? receipt.receipt_sha256.slice(0, 16) : ''}...` : 'Build unsealed.'
+        manifestDigest: receipt.manifest_digest || 'Not reported',
+        receiptDigest: receipt.receipt_sha256 || 'Not reported',
+        distributable: (testsPassed && receipt.receipt_sha256) ? 'Receipt recorded. Packaging is a separate step.' : 'Not sealed',
+        summary: (testsPassed && receipt.receipt_sha256) ? 'A receipt digest was recorded. It is not an independent certification.' : 'No sealed receipt was recorded.'
       }
     }
   ];
@@ -1798,7 +1771,8 @@ function renderUnifiedProofStrip(container, data, options = {}) {
   const isIde = mode === 'ide';
   const stageData = isIde ? getIdeStageData(data) : getBuilderStageData(data);
   const modeLabel = isIde ? 'IDE Mode' : 'Agent Builder';
-  const modelBadge = isIde ? (data && data.model_name ? data.model_name : 'qwen3.5:latest · LOCAL') : 'AgentSpec v1 · LOCAL';
+  const modelBadge = isIde ? (data && data.model_name ? data.model_name : 'Model not reported') : 'Agent spec';
+  const egressChip = data && data.airgap === true ? 'Air-gap flag set' : (data && data.airgap === false ? 'Air-gap flag off' : 'Egress not checked');
 
   // Overall status summary
   const hasFailure = stageData.some(s => s.status === 'failed');
@@ -1808,7 +1782,7 @@ function renderUnifiedProofStrip(container, data, options = {}) {
 
   const statusTone = hasFailure ? 'text-danger' : (isWaiting ? 'text-warn' : (allPassed ? 'text-ok' : (isActive ? 'text-accent' : 'text-ide-faint')));
   const statusBg = hasFailure ? 'bg-danger' : (isWaiting ? 'bg-warn' : (allPassed ? 'bg-ok' : (isActive ? 'bg-accent' : 'bg-ide-faint')));
-  const statusText = hasFailure ? 'VERIFICATION FAILED' : (isWaiting ? 'APPROVAL PENDING' : (allPassed ? 'VERIFIED & SEALED' : (isActive ? 'EXECUTING PIPELINE' : 'READY')));
+  const statusText = hasFailure ? 'A REPORTED STAGE FAILED' : (isWaiting ? 'APPROVAL PENDING' : (allPassed ? 'REPORTED STAGES PASSED' : (isActive ? 'IN PROGRESS' : 'NOT RUN')));
 
   container.innerHTML = '';
 
@@ -1822,7 +1796,7 @@ function renderUnifiedProofStrip(container, data, options = {}) {
     <div class="flex items-center gap-2 flex-wrap">
       <span class="font-semibold text-xs tracking-wider uppercase text-ide-fg">${modeLabel} Proof Strip</span>
       <span class="step-chip text-accent border-accent/40 font-mono text-[10px]">${modelBadge}</span>
-      <span class="step-chip text-ide-muted border-ide-border font-mono text-[10px]">Zero Egress · Air-Gapped</span>
+      <span class="step-chip text-ide-muted border-ide-border font-mono text-[10px]">${egressChip}</span>
     </div>
     <div class="flex items-center gap-2 text-[11px] font-mono">
       <span class="w-2 h-2 rounded-full shrink-0 ${statusBg} ${isActive || isWaiting ? 'pulse' : ''}" aria-hidden="true"></span>
@@ -1857,7 +1831,7 @@ function renderUnifiedProofStrip(container, data, options = {}) {
         .map(([k, v]) => `
           <div class="flex items-start justify-between gap-4 py-1 border-b border-ide-border/40">
             <span class="text-ide-muted font-mono uppercase text-[10px]">${k.replace(/([A-Z])/g, '_$1').toLowerCase()}:</span>
-            <span class="text-ide-fg font-mono text-[11px] text-right break-all">${typeof v === 'boolean' ? (v ? 'YES [VERIFIED]' : 'NO') : (Array.isArray(v) ? v.join(', ') : v)}</span>
+            <span class="text-ide-fg font-mono text-[11px] text-right break-all">${v == null ? 'Not reported' : (typeof v === 'boolean' ? (v ? 'YES' : 'NO') : (Array.isArray(v) ? v.join(', ') : v))}</span>
           </div>
         `).join('');
     }
@@ -2387,11 +2361,33 @@ function speculativeViewFromResponse(res) {
   const latencySaved = baseline != null && specLatency != null
     ? baseline - specLatency
     : readReportedNumber(source.latency_saved_ms);
+  const measured = source.measured === true || source.measurement === 'measured';
+  const hasHeuristicFigure = [speedup, acceptancePct, latencySaved, readReportedNumber(source.latency_reduction_pct), readReportedNumber(source.edge_cost_usd), readReportedNumber(spec.draft_tokens_proposed)].some((value) => value != null) || (Array.isArray(spec.token_stream) && spec.token_stream.length > 0);
+  if (!measured) {
+    return {
+      kind: hasHeuristicFigure ? 'simulation' : 'absent',
+      verified: false,
+      measured: false,
+      badge: hasHeuristicFigure ? 'SIMULATION — NOT A MEASUREMENT' : 'NOT A MEASUREMENT',
+      speedup: null,
+      acceptancePct: null,
+      proposed: null,
+      accepted: null,
+      latencySaved: null,
+      latencyPct: null,
+      edgeCost: null,
+      tokenStream: null,
+      notice: hasHeuristicFigure
+        ? 'This response is not marked as a measurement. Heuristic speedup, latency, and token figures are not shown.'
+        : 'No measured figures were included.',
+    };
+  }
   const stream = Array.isArray(spec.token_stream) && spec.token_stream.length > 0 ? spec.token_stream : null;
   return {
-    kind: 'response',
+    kind: 'measurement',
     verified: false,
-    badge: 'NOT VERIFIED',
+    measured: true,
+    badge: 'REPORTED — NOT INDEPENDENTLY VERIFIED',
     speedup,
     acceptancePct,
     proposed: readReportedNumber(spec.draft_tokens_proposed),
@@ -2401,8 +2397,8 @@ function speculativeViewFromResponse(res) {
     edgeCost: readReportedNumber(source.edge_cost_usd),
     tokenStream: stream,
     notice: stream
-      ? 'Token stream came from the endpoint response and is not marked as measured evidence.'
-      : 'No token stream was included. No synthetic stream is shown.',
+      ? 'Figures were marked measured by the response. They are not an independent certification.'
+      : 'The response was marked measured, and it included no token stream.',
   };
 }
 
@@ -2413,7 +2409,7 @@ function applySpeculativeView(view) {
     badge.className = 'chip border-warn/50 text-warn text-[10px] font-mono';
   }
   if ($('spec-speedup')) $('spec-speedup').textContent = formatBenchNumber(view.speedup, 2, 'x');
-  if ($('spec-speedup-label')) $('spec-speedup-label').textContent = view.speedup == null ? 'Not reported' : 'Endpoint figure only. Not verified.';
+  if ($('spec-speedup-label')) $('spec-speedup-label').textContent = view.kind === 'simulation' ? 'Heuristic simulation. No measured speedup.' : (view.speedup == null ? 'Not reported' : 'Reported figure. Not independently verified.');
   if ($('spec-acceptance')) $('spec-acceptance').textContent = formatBenchNumber(view.acceptancePct, 1, '%');
   if ($('spec-tokens-label')) {
     $('spec-tokens-label').textContent = view.accepted == null || view.proposed == null

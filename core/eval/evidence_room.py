@@ -186,21 +186,24 @@ class EvidenceRoomPipeline:
             "passed_tasks": passed_tasks,
             "total_tasks": total_tasks,
             "task_ids": task_ids,
+            "provenance": "in_process_harness",
+            "fixture_task_ids": [task_id for task_id in task_ids if task_id == "EVAL-08"],
+            "certification": "not_independent",
         }
         if isinstance(bench_res.get("pass_rate_pct"), (int, float)) and not isinstance(bench_res.get("pass_rate_pct"), bool):
             observed["pass_rate_pct"] = bench_res["pass_rate_pct"]
         if isinstance(bench_res.get("total_duration_ms"), (int, float)) and not isinstance(bench_res.get("total_duration_ms"), bool):
             observed["duration_ms"] = bench_res["total_duration_ms"]
-        verified = passed_tasks == total_tasks
         return EvidenceMetric(
             name=name,
             category=category,
             claim=(
                 f"In-process golden panel finished with {passed_tasks} of {total_tasks} tasks passed. "
-                "This is that harness result, not a separate certification."
+                "EVAL-08 uses stub generators. The count is this run's harness result, "
+                "not independently verified model performance."
             ),
             observed_value=observed,
-            is_verified=verified,
+            is_verified=False,
             evidence_path_or_receipt=evidence,
             reproduce_command=command,
         )
@@ -285,7 +288,9 @@ class EvidenceRoomPipeline:
         try:
             from core.billing.entitlements import get_shared_entitlement_manager
 
-            cert = get_shared_entitlement_manager().get_certificate("default-org")
+            manager = get_shared_entitlement_manager()
+            stored = "default-org" in getattr(manager, "active_certificates", {})
+            cert = manager.get_certificate("default-org")
             valid, status = cert.is_valid()
             tier = cert.tier.value
             seats = cert.seats
@@ -296,19 +301,32 @@ class EvidenceRoomPipeline:
                 evidence_path_or_receipt=evidence,
                 reproduce_command=command,
             )
-        verified = bool(valid)
+        provenance = "stored" if stored else "in_process_fallback"
+        if stored:
+            claim = (
+                f"A stored certificate was signature-checked locally ({status}). "
+                "Local signature validation is not independent issuance."
+            )
+        else:
+            claim = (
+                "No stored entitlement certificate for default-org. "
+                f"The in-process community fallback was signature-checked locally ({status}) "
+                "and is not registered or independently issued evidence."
+            )
         return EvidenceMetric(
             name=name,
             category="security",
-            claim=f"In-process entitlement certificate check returned {status}.",
+            claim=claim,
             observed_value={
                 "status": "executed",
+                "provenance": provenance,
+                "signature_valid": bool(valid),
                 "certificate_status": status,
                 "tier": tier,
                 "seats": seats,
-                "valid": verified,
+                "independently_issued": False,
             },
-            is_verified=verified,
+            is_verified=False,
             evidence_path_or_receipt=evidence,
             reproduce_command=command,
         )

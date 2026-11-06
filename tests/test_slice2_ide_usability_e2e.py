@@ -201,9 +201,9 @@ async def test_slice2_end_to_end_ide_usability_and_real_local_model(tmp_path: Pa
             }};
         """)
 
-        assert res["statuses"] == ["passed", "passed", "passed", "passed", "passed", "passed"]
-        assert res["inspectAirgap"] is True
-        assert res["inspectEgress"] == "LOCAL_ONLY (Zero Egress Verified)"
+        assert res["statuses"] == ["not_run", "passed", "not_run", "passed", "passed", "passed"]
+        assert res["inspectAirgap"] is None
+        assert "Verified" not in res["inspectEgress"]
         assert res["verifyExitCode"] == 0
         assert res["sealVerified"] is True
 
