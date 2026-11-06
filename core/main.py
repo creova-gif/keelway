@@ -111,12 +111,35 @@ index_file = studio_dir / "index.html"
 web_console_file = Path(__file__).resolve().parent.parent / "web-console" / "index.html"
 app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
 
+# Studio is local-first: allow self only (scripts/styles/fonts/workers/connect).
+_STUDIO_CSP = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "font-src 'self'; "
+    "img-src 'self' data:; "
+    "connect-src 'self' ws: wss:; "
+    "worker-src 'self' blob:; "
+    "object-src 'none'; "
+    "base-uri 'self'; "
+    "frame-ancestors 'none'"
+)
+
+
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
 @app.get("/", response_class=HTMLResponse, tags=["Studio"])
 async def serve_studio():
+    headers = {
+        "Content-Security-Policy": _STUDIO_CSP,
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
+    }
     if index_file.exists():
-        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
-    return HTMLResponse(content="<h1>Keelway Core</h1><p>API is active. Studio assets loading...</p>")
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"), headers=headers)
+    return HTMLResponse(
+        content="<h1>Keelway Core</h1><p>API is active. Studio assets loading...</p>",
+        headers=headers,
+    )
 
 @app.get("/console", response_class=HTMLResponse, tags=["Web Console"])
 @app.get("/web-console", response_class=HTMLResponse, tags=["Web Console"])

@@ -36,17 +36,10 @@ def _provider_error_payload(exc: BaseException) -> Dict[str, str]:
     Adapter and gateway exceptions can carry request bodies, prompts, or
     credentials. Callers receive a fixed message instead of ``str(exc)``.
     """
-    text = str(exc)
-    if "No model provider allowed" in text:
-        code = "routing_failure"
-        message = "Model routing failed before a provider completed this request."
-    elif text.startswith("All model providers failed or unavailable"):
-        code = "model_unavailable"
-        message = "No model is available to complete this request."
-    else:
-        code = "provider_error"
-        message = "The model provider failed before completing this request."
-    return {"code": code, "message": message}
+    from core.security.error_disclosure import public_inference_error
+
+    err = public_inference_error(exc)
+    return {"code": err["code"], "message": err["message"]}
 
 
 def _keyword_plan(user_message: str) -> Dict[str, Any]:

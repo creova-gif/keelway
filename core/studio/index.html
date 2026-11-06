@@ -10,9 +10,11 @@
   <link rel="preload" href="/studio/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/studio/assets/studio.css">
   <link rel="stylesheet" href="/studio/assets/monaco/vs/editor/editor.main.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
   <style>
-    body { font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif; }
-    code, pre, kbd, .font-mono { font-family: 'DM Mono', 'JetBrains Mono', ui-monospace, monospace; }
+    /* Self-hosted Inter + JetBrains Mono only (vendored under /studio/assets/fonts). */
+    body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+    code, pre, kbd, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     /* Density Modes (keelway.fig Artboard 06) */
     [data-density="compact"] .task-item, [data-density="compact"] .tree-item, [data-density="compact"] .card-row { padding-top: 2px !important; padding-bottom: 2px !important; min-height: 24px !important; font-size: 11px !important; }
     [data-density="compact"] input, [data-density="compact"] select, [data-density="compact"] button.btn-compact { height: 26px !important; font-size: 11px !important; }
@@ -148,9 +150,9 @@
       <kbd class="font-mono text-[10px] px-1.5 rounded bg-ide-bg border border-ide-border">Ctrl K</kbd>
     </button>
     <div class="flex items-center gap-1">
-      <button id="airgap-btn" type="button" aria-pressed="false" class="chip h-7 px-2 border-ide-border text-ide-muted" title="Air-Gapped: Zero-Egress (Alt+A)">
+      <button id="airgap-btn" type="button" aria-pressed="false" class="chip h-7 px-2 border-ide-border text-ide-muted" title="Air-gap setting (Alt+A). Egress bytes stay unmeasured until a probe exists.">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/></svg>
-        <span id="airgap-label" class="hidden sm:inline">…</span>
+        <span id="airgap-label" class="hidden sm:inline">Offline (setting)</span>
       </button>
       <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
       <select id="lang-select" class="h-7 rounded-md bg-ide-sidebar border border-ide-border text-xs text-ide-muted px-1"></select>
@@ -1333,7 +1335,7 @@
       </div>
       <div class="p-2 rounded bg-ide-bg border border-ide-border">
         <div class="text-ide-muted text-[10px]">EGRESS ISOLATION</div>
-        <div id="pop-airgap" class="font-bold text-ide-fg mt-0.5">Zero-Egress Active</div>
+        <div id="pop-airgap" class="font-bold text-ide-fg mt-0.5">Offline (setting) · sent: unmeasured</div>
         <div class="text-accent text-[10px]">NIST SP 800-53 SC-7</div>
       </div>
     </div>

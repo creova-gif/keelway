@@ -11,8 +11,12 @@ async def test_keelway_dev_studio_html_endpoint():
         resp_root = await client.get("/")
         assert resp_root.status_code == 200
         assert "Keelway Studio" in resp_root.text
-        assert "Air-Gapped: Zero-Egress" in resp_root.text
+        assert "Offline (setting)" in resp_root.text
+        assert "sent: unmeasured" in resp_root.text
+        assert "Air-Gapped: Zero-Egress" not in resp_root.text
         assert "/studio/assets/studio.js" in resp_root.text
+        assert "Content-Security-Policy" in resp_root.headers
+        assert "default-src 'self'" in resp_root.headers["Content-Security-Policy"]
         for cdn in ("cdn.tailwindcss.com", "cdnjs.cloudflare.com", "fonts.googleapis.com"):
             assert cdn not in resp_root.text
 
@@ -23,6 +27,8 @@ async def test_keelway_dev_studio_html_endpoint():
         assert "Diffs (Unified &amp; Split)" in resp_studio.text
         assert "Local Team Mesh &amp; GPU Resource Pooling" in resp_studio.text
         assert "Two-Human Quorum Governance (ADR-045 / ADR-046)" in resp_studio.text
+        assert "669 / 669" not in resp_studio.text
+        assert "2.74x VERIFIED" not in resp_studio.text
 
         # Check studio.js static asset
         resp_js = await client.get("/studio/assets/studio.js")

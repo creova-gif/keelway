@@ -141,8 +141,12 @@ class ModelGateway:
                 last_error = e
 
         if not provider_order:
-            raise RuntimeError(f"No model provider allowed for this request ({reason}).")
-        raise RuntimeError(f"All model providers failed or unavailable. Last error: {last_error}")
+            # Do not embed route reasons or exception text — clients get allowlisted categories only.
+            raise RuntimeError("No model provider allowed for this request.")
+        # Keep last_error in logs only; the public RuntimeError stays category-stable.
+        if last_error is not None:
+            logger.warning("All model providers failed or unavailable. Last error: %s", last_error)
+        raise RuntimeError("All model providers failed or unavailable.")
 
 
 gateway = ModelGateway()

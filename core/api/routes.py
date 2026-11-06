@@ -76,9 +76,14 @@ async def create_completion(request: CompletionRequestSchema) -> CompletionRespo
         response = await gateway.complete(request)
         return response
     except Exception as e:
+        from core.security.error_disclosure import public_inference_detail
+
+        # Log full exception server-side; clients get allowlisted category only (Package E).
+        import logging
+        logging.getLogger(__name__).warning("Inference failure", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Inference failure: {str(e)}",
+            detail=public_inference_detail(e),
         )
 
 
@@ -1597,10 +1602,16 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
 @router.post("/v1/agent/approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
 async def approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
     """Human-in-the-loop: grant or deny a pending mutating tool, optionally remembering a scoped standing approval."""
+    # P-10: missing/non-boolean approved must not default to True (fail closed).
+    # Validate before task lookup so omission never looks like an approval.
+    if not isinstance(payload, dict) or "approved" not in payload or not isinstance(payload.get("approved"), bool):
+        raise HTTPException(
+            status_code=400,
+            detail="Explicit boolean 'approved' is required (true or false). Omitting it is not an approval.",
+        )
+    approved = payload["approved"]
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
-
-    approved = bool(payload.get("approved", True))
     agent = _active_agent_loops[task_id]
     remember = payload.get("remember")
     rule = None
