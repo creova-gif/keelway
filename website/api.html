@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Keelway REST API Reference — 119 Verified Endpoints</title>
+<title>Keelway REST API Reference</title>
 <meta name="description" content="Complete REST API reference for Keelway Core, KStack, KBrain, KHub, KSpaces, Flight Recorder, and Tier 2 Hardware Security HAL.">
 <link rel="canonical" href="https://kora-sable.vercel.app/api.html">
 <meta property="og:title" content="Keelway REST API Reference">
-<meta property="og:description" content="119 verified endpoints covering sovereign agent execution, role skills, DLP fact memory, and cryptographic proofs.">
+<meta property="og:description" content="Browser view of the committed website/openapi.json catalog. Not a verified endpoint census.">
 <meta property="og:type" content="article">
 <meta name="theme-color" content="#0B0F14">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -57,7 +57,7 @@
       <a href="index.html#pricing">Pricing</a>
       <a href="openapi.json" target="_blank" rel="noopener">Raw OpenAPI</a>
     </nav>
-    <a class="btn primary" href="index.html#quickstart">Launch Studio</a>
+    <a class="btn primary" href="index.html#quickstart">Local quickstart</a>
   </div>
 </header>
 
@@ -65,13 +65,11 @@
   <div class="api-header">
     <span class="eyebrow">Interactive REST Catalog</span>
     <h1 style="margin-top: 12px; font-size: 32px;">Keelway Core REST API Reference</h1>
-    <p class="lede" style="margin-bottom: 12px;">Browse, filter, and inspect all 119 verified REST endpoints powering the local agent runtime, role skills, fact memory, and sovereign hardware governance.</p>
+    <p class="lede" style="margin-bottom: 12px;">This page lists operations from the committed <code>website/openapi.json</code> file, plus any extra rows hard-coded in this HTML file. The count below is that list. It is not a verified production census, and sample response bodies on this page are illustrations.</p>
     <div class="api-stats">
-      <span><strong style="color: var(--teal);" id="total-count">119</strong> Endpoints</span>
+      <span><strong style="color: var(--teal);" id="total-count">—</strong> operations in this page's list</span>
       <span>•</span>
-      <span>OpenAPI 3.1.0 Compliant</span>
-      <span>•</span>
-      <span>Strict Bearer &amp; Studio Token RBAC</span>
+      <span>Committed OpenAPI file, rendered in the browser</span>
       <span>•</span>
       <span><a href="openapi.json" download style="color: var(--teal); text-decoration: underline;">Download openapi.json</a></span>
     </div>
@@ -346,7 +344,7 @@
         </div>
         <span class="endpoint-tag">Model Economics &amp; ROI Analytics</span>
       </div>
-      <p class="endpoint-desc">Benchmark local speculative decoding acceleration combining a fast draft model with a target verification model (2.5x - 3.8x speedup at zero cloud token cost).</p>
+      <p class="endpoint-desc">Speculative benchmark route listed in this catalog. This page does not show a measured speedup.</p>
       <div class="endpoint-schemas">
         <div class="schema-box">
           <div class="schema-label"><span>Request JSON schema:</span></div>
@@ -360,23 +358,7 @@
         <div class="schema-box">
           <div class="schema-label"><span>Response JSON:</span></div>
           <pre class="schema-code">{
-  "draft_model": "qwen2.5-coder:0.5b",
-  "target_model": "qwen2.5-coder:7b",
-  "prompt": "def calculate_roi(investment, return_val):",
-  "lookahead_k": 4,
-  "speculative_result": {
-    "tokens_generated": 28,
-    "draft_tokens_proposed": 32,
-    "draft_tokens_accepted": 26,
-    "acceptance_rate": 0.813,
-    "effective_speedup_ratio": 2.74,
-    "latency_ms": 357.66
-  },
-  "baseline_latency_ms": 980.0,
-  "latency_reduction_pct": 63.5,
-  "target_cloud_cost_usd": 0.00042,
-  "edge_cost_usd": 0.00,
-  "savings_usd": 0.00042
+  "note": "Illustration omitted. This page does not include a measured benchmark body."
 }</pre>
         </div>
         <div class="schema-box" style="grid-column: 1 / -1;">
@@ -398,7 +380,7 @@
 
 <footer style="border-top: 1px solid var(--line); padding: 48px 0;">
   <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-    <p style="margin: 0; color: var(--muted); font-size: 14px;">&copy; 2026 Sorvex Labs &amp; Kora Technologies. 119 Verified REST Endpoints.</p>
+    <p style="margin: 0; color: var(--muted); font-size: 14px;">&copy; 2026 Sorvex Labs &amp; Kora Technologies. Static API catalog.</p>
     <div style="display: flex; gap: 20px; font-size: 14px;">
       <a href="index.html" style="color: var(--muted); text-decoration: none;">Overview</a>
       <a href="docs.html" style="color: var(--muted); text-decoration: none;">Docs</a>
@@ -495,9 +477,9 @@ const ENDPOINT_EXTRA = {
   "/v1/models/speculative/benchmark": {
     method: "POST",
     tags: ["Model Economics & ROI Analytics"],
-    desc: "Benchmark local speculative decoding acceleration combining a fast draft model with a target verification model (2.5x - 3.8x speedup at zero cloud token cost).",
+    desc: "Speculative benchmark route listed in this catalog. This page does not show a measured speedup.",
     req: '{\n  "draft_model": "qwen2.5-coder:0.5b",\n  "target_model": "qwen2.5-coder:7b",\n  "prompt": "def calculate_roi(investment, return_val):",\n  "lookahead_k": 4\n}',
-    res: '{\n  "draft_model": "qwen2.5-coder:0.5b",\n  "target_model": "qwen2.5-coder:7b",\n  "prompt": "def calculate_roi(investment, return_val):",\n  "lookahead_k": 4,\n  "speculative_result": {\n    "tokens_generated": 28,\n    "draft_tokens_proposed": 32,\n    "draft_tokens_accepted": 26,\n    "acceptance_rate": 0.813,\n    "effective_speedup_ratio": 2.74,\n    "latency_ms": 357.66\n  },\n  "baseline_latency_ms": 980.0,\n  "latency_reduction_pct": 63.5,\n  "target_cloud_cost_usd": 0.00042,\n  "edge_cost_usd": 0.00,\n  "savings_usd": 0.00042\n}',
+    res: '{\n  "note": "Illustration omitted. This page does not include a measured benchmark body."\n}',
     curl: 'curl -X POST https://127.0.0.1:7420/v1/models/speculative/benchmark \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer $KEELWAY_TOKEN" \\\n  -d \'{\n    "draft_model": "qwen2.5-coder:0.5b",\n    "target_model": "qwen2.5-coder:7b",\n    "prompt": "def calculate_roi(investment, return_val):",\n    "lookahead_k": 4\n  }\''
   }
 };

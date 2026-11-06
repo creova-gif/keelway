@@ -47,7 +47,7 @@
       <a href="index.html#pricing">Pricing</a>
       <a href="https://github.com/creova-gif/kora.git" target="_blank" rel="noopener">GitHub</a>
     </nav>
-    <a class="btn primary" href="index.html#quickstart">Launch Studio</a>
+    <a class="btn primary" href="index.html#quickstart">Local quickstart</a>
   </div>
 </header>
 
@@ -56,7 +56,7 @@
   <aside class="docs-sidebar">
     <nav class="docs-nav">
       <h4>Getting Started</h4>
-      <a href="#quickstart">Quickstart (60s)</a>
+      <a href="#quickstart">Quickstart</a>
       <a href="#doctor">System Doctor Diagnostics</a>
       <a href="#m1-workflow">Milestone M1 Slice</a>
 
@@ -91,66 +91,49 @@
 
     <!-- 1. QUICKSTART -->
     <section id="quickstart">
-      <h2>1. Quickstart &amp; Installation</h2>
-      <p>Keelway runs 100% locally on macOS and Linux with zero external cloud dependencies. You can install and bootstrap the runtime in under 60 seconds.</p>
+      <h2>1. Quickstart and the three surfaces</h2>
+      <p>Clone <code>https://github.com/creova-gif/kora.git</code>. The directory name is <code>kora</code>. These steps use the repository. They do not use a PyPI package named keelway, and they do not use a keelway.dev installer. Studio, the governance server, and this static page are different processes.</p>
       
       <div class="card term">
         <div class="bar"><span class="mono">bash</span></div>
-        <pre class="mono"><span class="c"># Clone repository and set up isolated virtualenv</span>
-$ git clone https://github.com/creova-gif/kora.git keelway && cd keelway
+        <pre class="mono"><span class="c"># Clone. The folder is kora.</span>
+$ git clone https://github.com/creova-gif/kora.git
+$ cd kora
 $ python3 -m venv .venv && source .venv/bin/activate
-$ pip install -e .
+$ pip install -e ".[dev]"
 
-<span class="c"># Verify system health across 7 dimensions</span>
-$ keelway doctor
+<span class="c"># Local Studio. Browser on 127.0.0.1:7420.</span>
+$ python3 cli.py dev
+<span class="c"># Browser-app window when Chrome or Chromium is present.</span>
+$ python3 cli.py desktop
 
-<span class="c"># Launch the local Studio UI</span>
-$ keelway dev --desktop</pre>
+<span class="c"># Governance server. Separate process on 127.0.0.1:8000.</span>
+$ make serve
+<span class="c"># After the editable install, the same CLI is:</span>
+$ keelway-core serve
+
+<span class="c"># List guided-builder templates. No model call.</span>
+$ python3 cli.py build templates</pre>
       </div>
+      <p>The governance command is <code>make serve</code>, which runs <code>python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000</code>. After the editable install that module is the <code>keelway-core</code> script. <code>python3 cli.py serve</code> is rejected. Both parsers set <code>prog="keelway"</code>, so the governance help text prints <code>usage: keelway</code>. That label is help text. <code>cli.py</code> also has its own <code>run</code> subcommand, separate from <code>keelway-core run</code>. This HTML file is the static site under <code>website/</code>. Opening it does not start Studio.</p>
     </section>
 
     <!-- 2. SYSTEM DOCTOR -->
     <section id="doctor">
-      <h2>2. Pre-Flight System Doctor</h2>
-      <p>The <code>keelway doctor</code> command performs comprehensive pre-flight verification across seven critical axes before agent execution:</p>
-      <ul>
-        <li><strong>Database Engine:</strong> Validates SQLite WAL mode, connection pool, and migrations.</li>
-        <li><strong>Workspace Context:</strong> Ensures clean Git HEAD, root paths, and safe permissions.</li>
-        <li><strong>Model Gateway:</strong> Confirms local Ollama / GGUF model readiness and optional cloud adapters.</li>
-        <li><strong>Air-Gap Compliance:</strong> Runs 5-point NIST SP 800-53 SC-7 socket and adapter checks.</li>
-        <li><strong>Entitlements:</strong> Checks signed enterprise license certificate and offline grace status.</li>
-        <li><strong>Supply Chain SBOM:</strong> Validates CycloneDX v1.5 SBOM signatures and root digests.</li>
-        <li><strong>Tier 2 Hardware HAL:</strong> Verifies TPM 2.0 PCR quotes, Dual-WORM receipts, and PIV tokens.</li>
-      </ul>
+      <h2>2. Doctor command</h2>
+      <p><code>python3 cli.py doctor</code> prints a report whose section titles, in <code>core/system/doctor.py</code>, are Database Engine, Workspace &amp; Git Context, Model Providers &amp; Gateway, Air-Gap Compliance (NIST SP 800-53 SC-7), Enterprise Entitlements, Software Bill of Materials (SBOM), and Tier 2 Hardware Security HAL. This page does not include a run and does not report a status.</p>
     </section>
 
     <!-- 3. MILESTONE M1 -->
     <section id="m1-workflow">
-      <h2>3. Milestone M1 Developer Journey</h2>
-      <p>Execute the canonical 10-stage end-to-end developer workflow via <code>keelway m1</code>. It launches an agent inside a restricted test fixture, diagnoses a 10% discount bug, plans a patch, presents an inspectable diff, requires human approval, applies the edit, executes the repo's real unit tests, and seals a tamper-evident flight tape.</p>
-      
-      <div class="card term">
-        <div class="bar"><span class="mono">bash</span></div>
-        <pre class="mono">$ keelway m1
-<span class="c">[+] Executing Milestone M1 10-Stage Vertical Slice...</span>
-  │ [Stage 1/10] Launch Keelway Core Engine       [OK]
-  │ [Stage 2/10] Open Local Source Repository     [OK]
-  │ [Stage 3/10] Project Explorer Loaded          [OK]
-  │ [Stage 4/10] Submit Agent Task Goal           [OK]
-  │ [Stage 5/10] Formulate Plan & Step 1 Read     [OK]
-  │ [Stage 6/10] Review Sandboxed Unified Diff    [OK]
-  │ [Stage 7/10] Human Approver Grants Mutation   [OK]
-  │ [Stage 8/10] Apply Authorized Changes to Disk [OK]
-  │ [Stage 9/10] Run Repo Tests (unittest -q)     [OK]
-  │ [Stage 10/10] Complete & Seal Flight Tape     [OK]
-<span class="c">✅ All 10 stages verified. Flight tape SHA-256 sealed.</span></pre>
-      </div>
+      <h2>3. Milestone M1 command</h2>
+      <p><code>python3 cli.py m1</code> is a developer-CLI subcommand. This page does not include a transcript and does not report whether a run passed.</p>
     </section>
 
     <!-- 4. DETERMINISTIC STATE MACHINE -->
     <section id="state-machine">
       <h2>4. Deterministic State Engine &amp; Cancellation</h2>
-      <p>Unlike uncontrolled LLM loops that can loop infinitely, Keelway enforces an immutable 12-state deterministic state machine with strict transition guards:</p>
+      <p>State names in <code>core/orchestration/state.py</code> include the sequence below. This page does not certify that every Studio path uses that sequence, and package B owns the runtime labels.</p>
       <div class="callout">
         <p class="mono">CREATED ➔ CONTEXT_READY ➔ PLANNED ➔ AWAITING_APPROVAL ➔ RUNNING ➔ VERIFYING ➔ COMPLETED</p>
       </div>
@@ -168,26 +151,25 @@ $ keelway dev --desktop</pre>
       <h2>6. Dual-Mode Sovereign Architecture: IDE Mode &amp; Agent Builder</h2>
       <p>Keelway is engineered as a sovereign, local-first platform supporting two first-class workflows powered by the identical underlying runtime, policy engine, and flight recorder:</p>
       <ul>
-        <li><strong>IDE Mode:</strong> Developers build and repair software interactively with local open-weight models (e.g., <code>qwen3.5:latest</code> via Ollama/MLX). The agent loads workspace AST context, formulates deterministic plans, prompts for human approval on file mutations, and verifies patches against real automated test suites with zero external telemetry.</li>
-        <li><strong>Agent Builder Mode:</strong> Developers scaffold, evaluate, version, export, and import custom autonomous agents based on the declarative <code>AgentSpec v1</code> standard. Candidate agents execute against fixed evaluation fixtures, produce cryptographic build receipts (<code>tests_passed=True</code>), and are packaged into portable, signed <code>.tar.gz</code> bundles. Bundles can be imported into second repositories without privilege escalation.</li>
+        <li><strong>IDE Mode:</strong> Studio is the local process started with <code>python3 cli.py dev</code>. In the current tree, <code>AutonomousAgentLoop.formulate_plan</code> selects a fixed step list from keywords in the goal. That path is not documented here as a model-backed agent. Package B owns runtime labels for it, and this page does not certify a B checkpoint.</li>
+        <li><strong>Agent Builder Mode:</strong> Builder modules and tests are in the tree. This page does not report a build receipt or a test result for them.</li>
         <li><strong>Shared Runtime Invariant:</strong> Both modes execute through the exact same 12-state deterministic coordinator (<code>core/orchestration/state.py</code>) and policy enforcement boundaries (<code>core/agents/guard.py</code>), preventing dual-engine drift.</li>
       </ul>
       <div class="card term">
         <div class="bar"><span class="mono">bash</span></div>
-        <pre class="mono"><span class="c"># Export custom agent bundle with cryptographic digest</span>
-$ keelway export agents/test-fixer --output dist/test-fixer-0.1.0.tar.gz
-
-<span class="c"># Import and verify in another repository without capability escalation</span>
-$ keelway import dist/test-fixer-0.1.0.tar.gz --target agents/test-fixer</pre>
+        <pre class="mono"><span class="c"># Developer CLI. Path is positional. Flag is --out.</span>
+$ python3 cli.py agent export agents/test-fixer --out dist/test-fixer.tar.gz
+$ python3 cli.py agent import dist/test-fixer.tar.gz --out agents/test-fixer
+<span class="c"># This page does not show a result for either command.</span></pre>
       </div>
     </section>
 
     <!-- 7. UNIFIED PROOF STRIP UX -->
     <section id="proof-strip">
       <h2>7. Unified 6-Stage Proof Strip UX</h2>
-      <p>The Proof Strip (<code>core/studio/assets/studio.js</code>) provides a trustworthy, accessible visualization of real execution events across both IDE Mode and Agent Builder Mode without any secondary frontend state engine. The 6 stages map directly from the 12-state deterministic backend:</p>
+      <p>The Proof Strip markup lives in <code>core/studio/assets/studio.js</code>. Package B owns runtime labels in that file. The stage names below are page copy. This page does not certify them from a run, and it does not report a test result.</p>
       <ul>
-        <li><strong>1. INSPECT:</strong> Validates workspace symbol ASTs, model sovereignty, and air-gap boundaries (<code>LOCAL_ONLY</code> zero-egress verified).</li>
+        <li><strong>1. INSPECT:</strong> Copy for the inspect stage in the Studio proof strip. This page does not report an air-gap or egress result.</li>
         <li><strong>2. PLAN:</strong> Constructs bounded execution graphs with deterministic step limits and model routing.</li>
         <li><strong>3. AUTHORIZE:</strong> Enforces permission boundaries, 2-human quorum rules, and human approvals; pending actions surface high-contrast amber alert states (<code>△</code>).</li>
         <li><strong>4. EXECUTE:</strong> Executes sandboxed tools, tracks file mutations, and computes unified diff statistics.</li>

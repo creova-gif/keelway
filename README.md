@@ -1,210 +1,154 @@
 <div align="center">
 
-# ⚡ Keelway by Sorvex Labs
-### Sovereign Local-First AI Agent Runtime & Enterprise Governance Platform
+# Keelway by Sorvex Labs
+
+Local developer tree for the Keelway studio, the governance server, and the static marketing site.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
-[![Security Invariants](https://img.shields.io/badge/security-12%20Fail--Closed%20Invariants-orange.svg)](docs/SECURITY_INVARIANTS_AND_AUDIT_REPORT.md)
-[![Hardware Attestation](https://img.shields.io/badge/hardware-Tier%202%20HAL%20(WORM%2FTPM%2FPIV)-purple.svg)](keelway/hal/)
-[![Automated Tests](https://img.shields.io/badge/tests-504%20passed%20(100%25)-brightgreen.svg)](tests/)
 
-*Built for zero vendor lock-in, fail-closed security invariants, immutable hash-chained audit trails, and hardware-attested trust.*
-
----
+The repository on GitHub is [creova-gif/kora](https://github.com/creova-gif/kora). A clone creates a directory named `kora`.
 
 </div>
 
-## 📌 Executive Summary
+## What this document is
 
-Modern AI agent frameworks suffer from systemic security and governance flaws:
-1. **Unconstrained Execution**: Direct host mutation rights without air-gapped sandboxing or workspace boundaries.
-2. **Opaque Approvals & Loop Runaways**: Automated self-approvals, infinite recursive tool loops, and unchecked budget drains.
-3. **Malleable Audit Records**: Plain-text logs that can be rewritten or deleted after a security incident.
+These instructions match the commands in this tree. They do not quote a test pass count, and they do not certify a published install or a hosted product.
 
-**Keelway** is a hardened, production-ready sovereign agent runtime and enterprise governance platform implementing the cumulative **Keelway v71 Architecture Specification**:
-- **Zero-Copy Sandbox:** Lightweight `--shared` clones isolate code generation completely from host repositories.
-- **Deny-by-Default Policy Engine:** Pre-flight checks deny sensitive files (`.env`, `credentials`, `id_rsa`) and unknown tools before execution.
-- **Mandatory Two-Human Quorum (ADR-045/046):** Production changes require two distinct cryptographic approvals: **Security Lead** AND **Platform Owner** (self-quorum is strictly prohibited).
-- **Cryptographic Audit Trail (FR-05/09):** Tamper-evident hash-chained event logger backed by SQLite in WAL mode with sealed compliance export bundles.
-- **Tier 2 Hardware Attestation (ADR-051..083):** Real protocol wire schemas and conformance verifiers for Dual-WORM durable storage, TPM 2.0 quote/PCR replay, PIV smartcards with strict 72-hour CRL caps, and customer 2-of-3 offline root recovery.
+Package B owns runtime labels in the studio, evidence room, mesh, and chat. Package C owns fail-closed authentication, command isolation, and default-config behavior. Those checkpoints were not available when this text was written. This page does not describe that intended behavior as something the tree already does. Recheck the commands below if those packages change runtime behavior.
 
----
+## Three different things
 
-## 🏛️ System Architecture
+| Surface | What it is | How you start it |
+|---|---|---|
+| Local Studio | Web IDE from `core/studio`, served by `core.main:app` | `python3 cli.py dev` or `python3 cli.py desktop` |
+| Governance server | Dashboard and API in `keelway/api/app.py` | `make serve` or `keelway-core serve` |
+| Static marketing site | Files in `website/` | Open the files, or the host that publishes that directory |
 
-```text
-                               ┌──────────────────────────────────────────────┐
-                               │       Client Interfaces & Access Layers       │
-                               │   CLI Tool  •  Web Dashboard  •  REST API    │
-                               │           (http://127.0.0.1:8000)            │
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                                                      ▼
-                               ┌──────────────────────────────────────────────┐
-                               │     Policy Pre-Flight & MCP Tool Bridge      │
-                               │   • Deny-by-default tool authorization       │
-                               │   • Egress blocking & sensitive file guard   │
-                               │   • Signed Policy Bundles (anti-rollback)    │
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                       ┌──────────────────────────────┴──────────────────────────────┐
-                       ▼                                                             ▼
-        ┌─────────────────────────────┐                               ┌─────────────────────────────┐
-        │     Isolated Workspace      │                               │   Paired Multi-Trial Eval   │
-        │  • git clone --shared       │                               │   • Candidate scoring       │
-        │  • Detached base commit     │                               │   • Mean, Std Dev, 95% CI   │
-        └──────────────┬──────────────┘                               └──────────────┬──────────────┘
-                       │                                                             │
-                       └──────────────────────────────┬──────────────────────────────┘
-                                                      │
-                                                      ▼
-                               ┌──────────────────────────────────────────────┐
-                               │          Human Review Approval Gate          │
-                               │   • Single human review (internal / dev)     │
-                               │   • Mandatory Two-Human Quorum (production)  │
-                               │   • Patch hash binding (mutation invalidates)│
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                                                      ▼
-                               ┌──────────────────────────────────────────────┐
-                               │        Append-Only Audit & Export (FR-09)    │
-                               │   • SHA-256 hash chaining (seq:hash:prev)    │
-                               │   • SQLite WAL crash-resilient storage       │
-                               │   • Sealed compliance bundle with redaction  │
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                                                      ▼
-                               ┌──────────────────────────────────────────────┐
-                               │      Tier 2 Hardware Attestation (HAL)       │
-                               │   • Dual-WORM independent receipts (ADR-076) │
-                               │   • TPM 2.0 Quote Verifier & PCR replay      │
-                               │   • PIV smartcard strict 72h CRL cap         │
-                               │   • 2-of-3 offline root recovery (ADR-082)   │
-                               └──────────────────────────────────────────────┘
-```
+`vercel.json` sets `outputDirectory` to `website` and leaves the install and build commands empty. The static site does not start Studio or the governance server.
 
----
+The container `ENTRYPOINT` is `python -m keelway.cli.main serve`. The image copies the `keelway/` package. It does not copy `cli.py` or `core/studio`.
 
-## ⚡ Fast Quickstart
+## Install from this repository
 
-### 1. Environment Setup
+There is no install step in this document that uses a PyPI distribution named `keelway`. `keelway.dev` and `get.keelway.dev` are not install hosts here.
+
+From the clone:
+
 ```bash
 git clone https://github.com/creova-gif/kora.git
-cd keelway
+cd kora
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-### 2. Run All Automated Tests (504 Tests)
+`pyproject.toml` registers two console scripts after that editable install:
+
+- `keelway` → `cli:main` (the developer CLI in `cli.py`)
+- `keelway-core` → `keelway.cli.main:main` (the governance CLI)
+
+Without the editable install, run the modules from the repository root. `./bin/keelway` is a wrapper that executes `cli.py` with `PYTHONPATH` set to the repo. It is the developer CLI.
+
+`website/install.sh` (the same steps as `bin/install.sh`) clones `https://github.com/creova-gif/kora.git` into `~/.keelway/app` by default, creates a virtualenv there, and runs `pip install -e` on that checkout. Run it from a clone if you want that layout. Its header is not a `curl` URL.
+
+Python 3.11 or newer is the declared requirement. The `[dev]` extra installs pytest and ruff. If `python3 -m venv` cannot create an environment on your machine, install those dependencies onto the interpreter you use to run `cli.py`. A missing virtualenv does not add a PyPI package named `keelway`.
+
+## Local Studio
+
+Studio listens on `127.0.0.1` port `7420` unless you pass `--host` or `--port`.
+
 ```bash
-make test
-# Or with pytest directly:
-PYTHONPATH=. pytest tests -v
+python3 cli.py dev
+python3 cli.py desktop
 ```
 
-### 3. One-Click Interactive Developer Demo
-Demonstrates the full 9-phase governed workflow and simulates an attacker trying to tamper with SQLite audit records:
-```bash
-make demo
-```
+`python3 cli.py dev` starts Uvicorn on `core.main:app` and opens a browser. `python3 cli.py desktop` and `python3 cli.py dev --desktop` call the same server and then look for macOS Google Chrome or a `google-chrome`, `chromium`, or `msedge` binary and pass `--app=<url>`. Otherwise they open a normal browser. There is no Electron or Tauri app in this tree.
 
-### 4. Start Local Control Plane & Operator Dashboard
+`make studio` runs `python3 cli.py dev`. `make desktop` runs `python3 cli.py desktop`.
+
+When `AUTH_REQUIRED` is on, `cli.py dev` prints a launch token in the Studio URL. This README does not change that behavior and does not tell you to turn authentication off.
+
+In this tree, `AutonomousAgentLoop.formulate_plan` chooses a fixed step list from keywords in the goal. That path is not a model-written plan. Chat and evidence-room labeling belong to package B and are not certified here.
+
+## Governance server
+
 ```bash
 make serve
 ```
-Open **`http://127.0.0.1:8000`** in your browser.
 
----
+That target runs:
 
-## 💻 CLI Commands Reference
+```bash
+python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000
+```
 
-Keelway provides two unified CLI interfaces:
-1. `keelway` (`cli.py`): Developer REPL, MCP server, diagnostics, workflows, memory, datasets.
-2. `keelway-core` (`keelway.cli.main`): Governed run lifecycle, approval gates, verification, export, customer runner daemon.
+After `pip install -e ".[dev]"`, the same command is `keelway-core serve`. The developer script `keelway` has no `serve` subcommand. Both parsers set `prog="keelway"`, so `python3 -m keelway.cli.main --help` prints `usage: keelway`. That label is the help text. The console script for the governance module is `keelway-core`. `python3 cli.py serve` is rejected. `cli.py` also has its own `run` subcommand, which is separate from `keelway-core run`.
 
-### Developer Commands (`keelway`)
-- `keelway doctor`: Verifies local environment, dependencies, and model connectivity.
-- `keelway bench`: Runs 10-task golden evaluation benchmark (Pass@1, latency, security).
-- `keelway chat [--provider local|openai]`: Interactive stateful REPL with thinking token display.
-- `keelway tier2 status`: Displays live Tier 2 Hardware Abstraction Layer status (Dual-WORM, TPM 2.0, PIV, 2-of-3 Recovery).
-- `keelway tier2 verify [--subsystem all|worm|tpm|piv|recovery]`: Cryptographically verifies hardware attestation claims.
-- `keelway tier2 demo`: Runs an interactive end-to-end hardware security verification walkthrough.
-- `keelway record anchor [--out FILE]`: Anchors audit head to signed receipt and Git note (`refs/notes/keelway/audit`).
-- `keelway record export [--out FILE]`: Exports tamper-evident Keelway Record v1 JSONL.
-- `keelway record verify FILE [--anchor ANCHOR]`: Verifies Record v1 chain integrity and checks for dropped tail entries.
-- `keelway agent validate <FILE>`: Validates an Agent Manifest against schema rules.
-- `keelway agent sign <FILE>`: Cryptographically signs a manifest with the workspace Ed25519 key.
-- `keelway agent verify <FILE>`: Verifies signature and digest of an agent manifest.
-- `keelway mcp --workspace <PATH>`: Serves read-only workspace tools over MCP stdio to Cursor, Claude Code, and Zed.
-- `keelway brief --title "<TITLE>"`: Generates an evidence-grounded pull request brief.
-- `keelway memory ingest <DOC> --scope <SCOPE>`: Scoped hybrid vector + lexical document search.
-- `keelway dataset export`: Exports fine-tuning datasets from verified traces.
+The governance CLI's other subcommands are `run`, `verify`, `export`, `status`, `init-demo`, and `runner`. See `python3 -m keelway.cli.main --help`. The default provider on `keelway.models.gateway.ModelGateway` in this tree is `ProviderKind.DETERMINISTIC_MOCK` unless the caller passes another provider. A governed `run` is a separate process from Studio, and this README does not call it a live model agent.
 
-### Enterprise Governance Commands (`keelway-core`)
-- `keelway-core init-demo --dir examples/demo_service`: Scaffolds sample Git repo.
-- `keelway-core run --repo <PATH> --task "<TASK>" [--classification internal|production]`: Launches governed run.
-- `keelway-core status --run-id <RUN_ID>`: Displays run metadata, token consumption, and audit events.
-- `keelway-core verify --run-id <RUN_ID>`: Verifies mathematical integrity of the cryptographic audit chain.
-- `keelway-core export --run-id <RUN_ID> --out bundle.json`: Exports sealed compliance bundle.
-- `keelway-core runner --runner-id node-01 --org org_sorvex_demo`: Starts outbound customer runner daemon.
+## Static site
 
----
+`website/index.html`, `website/docs.html`, and `website/api.html` are the marketing and reference pages. `website/product-facts.json` is copy checked into that site. It is not a test report. The in-browser synthesizer and terminal panels do not call `cli.py`.
 
-## 🔒 Security Invariants & Compliance
+## Local smoke for templates
 
-| # | Security Invariant | Specification Reference | Code Enforcement Module | Conformance Test Suite |
-|:---|:---|:---|:---|:---|
-| **1** | **Zero Unapproved Repository Mutations** | PRD-001 FR-02, ADR-002 | `keelway.sandbox.workspace` | `test_end_to_end_workflow.py` |
-| **2** | **Deny-by-Default Policy Pre-Flight** | PRD-001 TB2/TB3 | `keelway.policy.engine` | `test_policy_engine.py` |
-| **3** | **Anti-Rollback Monotonic Policy Epochs** | ADR-061 | `keelway.policy.bundle` | `test_policy_bundle.py` |
-| **4** | **No Agent Self-Approval** | PRD-001 FR-07, ADR-046 | `keelway.approvals.service` | `test_approvals.py` |
-| **5** | **Two-Human Quorum for Production** | ADR-045, ADR-046 | `keelway.approvals.quorum` | `test_quorum.py`, `test_production_quorum_run.py` |
-| **6** | **Tamper-Evident Hash-Chained Audit Trail** | PRD-001 FR-05 | `keelway.audit.recorder` | `test_audit_chain.py` |
-| **7** | **Crash-Resilient SQLite WAL Storage** | ADR-003 | `keelway.audit.store` | `test_audit_store.py` |
-| **8** | **Sealed Compliance Export with Redaction** | PRD-001 FR-09 | `keelway.audit.export` | `test_audit_export.py` |
-| **9** | **Outbound-Only Cross-Org Runner Isolation** | PRD-001 Sec 94-108, ADR-004 | `keelway.runner.daemon` | `test_runner_daemon.py` |
-| **10** | **Quarantine & Credential Fencing** | PRD-001 Edge Cases, ADR-060 | `keelway.security.quarantine` | `test_quarantine.py` |
-| **11** | **No Double Tool Execution** | PRD-001 Edge Cases | `keelway.core.retry` | `test_retry.py` |
-| **12** | **Hard Token Ceilings & Budget Caps** | PRD-001 FR-10 | `keelway.models.gateway` | `test_model_gateway.py` |
+From the repository root, with dependencies importable:
 
----
+```bash
+python3 cli.py build templates
+```
 
-## 📂 Project Organization
+That subcommand prints guided-builder archetype names from `core/orchestration/guided_builder.py` and exits. It does not call a model and it does not need network access to list templates. Generating a tree is a different subcommand: `python3 cli.py build app "<intent>" --template fastapi-service`. The page text `keelway build --intent ... --template ...` does not match this parser. Intent is a positional argument of `build plan` or `build app`.
+
+## Tests
+
+```bash
+make test
+```
+
+`make test` runs `PYTHONPATH=. python3 -m pytest tests -q`. This README does not state how many tests pass. Use the command output, or the GitHub Actions workflow linked above, as the record for a specific commit. `make help` does not print a pass count.
+
+## Other developer commands
+
+`python3 cli.py --help` lists the developer subcommands, including `doctor`, `bench`, `build`, `mcp`, and `token`. `make help` lists Makefile targets. Those help texts name the targets. They are not a test report and they are not a hardware certificate.
+
+Tier 2 modules live under `keelway/hal/`. `make tier2-status` and `make tier2-verify` run `cli.py tier2`. They are in-repo commands. This README does not certify field hardware.
+
+## Modules named in this tree
+
+The following names are modules and tests that exist as files. Listing them does not certify a security review, a production deployment, or fail-closed authentication.
+
+| Topic | Modules | Tests present in the tree |
+|---|---|---|
+| Workspace clone helper | `keelway/sandbox/workspace.py` | `tests/test_end_to_end_workflow.py` |
+| Policy engine | `keelway/policy/engine.py` | `tests/test_policy_engine.py` |
+| Policy bundles | `keelway/policy/bundle.py` | `tests/test_policy_bundle.py` |
+| Approvals | `keelway/approvals/service.py` | `tests/test_approvals.py` |
+| Quorum | `keelway/approvals/quorum.py` | `tests/test_quorum.py` |
+| Hash-chained audit | `keelway/audit/recorder.py` | `tests/test_audit_chain.py` |
+| SQLite audit store | `keelway/audit/store.py` | `tests/test_audit_store.py` |
+| Audit export | `keelway/audit/export.py` | `tests/test_audit_export.py` |
+| Runner daemon | `keelway/runner/daemon.py` | `tests/test_runner_daemon.py` |
+| Quarantine helper | `keelway/security/quarantine.py` | `tests/test_quarantine.py` |
+| Retry helper | `keelway/core/retry.py` | `tests/test_retry.py` |
+| Governance model gateway | `keelway/models/gateway.py` | `tests/test_model_gateway.py` |
+
+## Layout
 
 ```text
-keelway/
-├── bin/keelway                            # Executable CLI launcher
-├── cli.py                                 # Central developer CLI dispatcher
-├── Dockerfile                             # Hardened multi-stage non-root container (UID 10001)
-├── docker-compose.yml                     # Multi-container orchestration (Control Plane, Runner, Ollama)
-├── Makefile                               # Developer workflow tasks
-├── pyproject.toml                         # Unified packaging & test configuration
-├── core/                                  # Core AI runtime, models, orchestration & studio
-│   ├── agents/                            # Manifests, registry, runtime guard, cost metering, and multi-OS sandbox
-│   ├── api/                               # REST API, studio, approval relays (Telegram/WhatsApp), tier2 & audit routes
-│   ├── models/                            # Gateway & adapters (Local, Anthropic, OpenAI, Gemini)
-│   ├── orchestration/                     # Agent loop, flight recorder, MCP, worktrees
-│   ├── security/                          # Firewall, redaction, approval rules, air-gap, head anchoring
-│   ├── storage/                           # Database, memory, workspace fs, ledger
-│   └── studio/                            # Web IDE, Mission Control, Tier 2 HAL & Manifest Registry UI
-├── keelway/                               # Enterprise Core Governance Platform (v71)
-│   ├── hal/                               # Tier 2 Hardware Abstraction Layer
-│   │   ├── worm.py                        # Dual-WORM independent receipt validator (ADR-076)
-│   │   ├── tpm.py                         # TPM 2.0 quote verifier & PCR event-log replay (ADR-062/064)
-│   │   ├── piv.py                         # PIV smartcard verifier & 72h CRL cap (ADR-051/053)
-│   │   └── recovery.py                    # 2-of-3 offline root recovery verifier (ADR-082/083)
-│   ├── core/                              # State machines, metadata DB, retry idempotency
-│   ├── audit/                             # Hash-chained recorder, SQLite WAL store, sealed exporter
-│   ├── policy/                            # Deny-by-default engine & signed policy bundles
-│   ├── approvals/                         # Two-human quorum (ADR-045) & single human review
-│   ├── evals/                             # Paired multi-trial statistical evaluation suite
-│   ├── runner/                            # Customer VPC outbound runner daemon
-│   └── api/                               # FastAPI control plane & hardware status routes
-├── mobile/                                # Runnable React Native Expo mobile app (biometric approvals)
-├── website/                               # Static landing page for Keelway by Sorvex Labs
-├── docs/                                  # Specifications, ADRs, and developer quickstart guides
-├── examples/                              # Sample demo service & interactive walkthrough scripts
-└── tests/                                 # Full automated test suite (504 verified tests)
+kora/                         # clone of creova-gif/kora
+├── cli.py                    # developer CLI (Studio, build, and the other cli.py commands)
+├── bin/keelway               # wrapper around cli.py
+├── Makefile                  # local targets; see `make help`
+├── pyproject.toml            # package name keelway; scripts keelway and keelway-core
+├── core/                     # Studio API, studio assets, orchestration
+│   └── studio/               # local Studio UI
+├── keelway/                  # governance package, including `keelway/api` and `keelway/cli`
+├── website/                  # static marketing site
+├── docs/                     # design notes and docs/DEVELOPER_QUICKSTART.md
+├── examples/
+└── tests/
 ```
+
+`Dockerfile` and `docker-compose.yml` are present. This document does not claim a successful image run. `make docker-up` is `docker compose up -d`.
