@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Keelway REST API Reference</title>
-<meta name="description" content="Complete REST API reference for Keelway Core, KStack, KBrain, KHub, KSpaces, Flight Recorder, and Tier 2 Hardware Security HAL.">
+<meta name="description" content="Browser view of the committed website/openapi.json file, plus extra rows in this HTML. Not a complete census.">
 <link rel="canonical" href="https://kora-sable.vercel.app/api.html">
 <meta property="og:title" content="Keelway REST API Reference">
 <meta property="og:description" content="Browser view of the committed website/openapi.json catalog. Not a verified endpoint census.">
@@ -129,7 +129,7 @@
         </div>
         <span class="endpoint-tag">Agent Builder</span>
       </div>
-      <p class="endpoint-desc">Unpack and cryptographically verify an agent bundle archive with anti-tamper checking.</p>
+      <p class="endpoint-desc">Unpacks an agent archive. core/agents/builder.py compares SHA-256 member digests when verification is enabled. This line is not a result from an archive.</p>
       <div class="endpoint-schemas">
         <div class="schema-box">
           <div class="schema-label"><span>Request JSON schema:</span></div>
@@ -150,7 +150,7 @@
         </div>
         <span class="endpoint-tag">KHub Universal Skills</span>
       </div>
-      <p class="endpoint-desc">Export a skill directory or SKILL.md into a verified .skill.tar.gz bundle with SHA-256 member hashing.</p>
+      <p class="endpoint-desc">Packs a skill directory or SKILL.md into a .skill.tar.gz archive. core/khub/sync.py stores SHA-256 digests of member files on the manifest. This line is not a finished verification result.</p>
       <div class="endpoint-schemas">
         <div class="schema-box">
           <div class="schema-label"><span>Request JSON schema:</span></div>
@@ -171,7 +171,7 @@
         </div>
         <span class="endpoint-tag">KHub Universal Skills</span>
       </div>
-      <p class="endpoint-desc">Import and cryptographically verify a portable .skill.tar.gz bundle into workspace skills with anti-tamper checking.</p>
+      <p class="endpoint-desc">Unpacks a .skill.tar.gz archive. core/khub/sync.py compares SHA-256 member digests when verification is enabled. This line is not a result from an archive.</p>
       <div class="endpoint-schemas">
         <div class="schema-box">
           <div class="schema-label"><span>Request JSON schema:</span></div>
@@ -404,21 +404,21 @@ const ENDPOINT_EXTRA = {
   "/v1/agent/builder/unpack": {
     method: "POST",
     tags: ["Agent Builder"],
-    desc: "Unpack and cryptographically verify an agent bundle archive with anti-tamper checking.",
+    desc: "Unpacks an agent archive and compares SHA-256 member digests when verification is enabled. Not a result from an archive.",
     req: '{ "archive_path": "exports/my-agent.tar.gz", "destination_dir": "agents/unpacked" }',
     res: '{ "status": "unpacked", "destination_dir": "agents/unpacked", "manifest": {...} }'
   },
   "/v1/khub/bundle/export": {
     method: "POST",
     tags: ["KHub Universal Skills"],
-    desc: "Export a skill directory or SKILL.md into a verified .skill.tar.gz bundle with SHA-256 member hashing.",
+    desc: "Packs a skill directory or SKILL.md into a .skill.tar.gz archive and stores SHA-256 member digests. Not a finished verification result.",
     req: '{ "skill_path": ".agents/skills/review", "output_archive": "exports/review.skill.tar.gz" }',
     res: '{ "status": "exported", "archive_path": "exports/review.skill.tar.gz", "manifest": { "skill_name": "review", "version": "1.0.0", "bundle_digest_sha256": "...", "files": {...} } }'
   },
   "/v1/khub/bundle/import": {
     method: "POST",
     tags: ["KHub Universal Skills"],
-    desc: "Import and cryptographically verify a portable .skill.tar.gz bundle into workspace skills with anti-tamper checking.",
+    desc: "Unpacks a .skill.tar.gz archive and compares SHA-256 member digests when verification is enabled. Not a result from an archive.",
     req: '{ "archive_path": "exports/review.skill.tar.gz", "destination_dir": ".agents/skills/imported_review" }',
     res: '{ "status": "imported", "destination_dir": ".agents/skills/imported_review", "manifest": {...} }'
   },

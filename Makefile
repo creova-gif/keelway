@@ -21,7 +21,9 @@ help:
 	@echo "  make infra-local   Run deploy/scripts/deploy-local.sh"
 	@echo "  make infra-aws     Run deploy/scripts/deploy-aws.sh"
 	@echo "  make infra-k8s     Run: kubectl apply -f deploy/k8s/"
-	@echo "  make docker-up     docker compose up -d (image serves governance, not Studio)"
+	@echo "  make docker-up     docker compose up -d"
+	@echo "                     Image ENTRYPOINT: python3 -m keelway.cli.main serve --host 0.0.0.0 --port 8000"
+	@echo "                     That bind is 0.0.0.0, unlike make serve on 127.0.0.1. Compose also starts keelway-runner and ollama."
 	@echo "  make docker-down   docker compose down"
 	@echo "  make clean         Remove caches and local keelway_audit.db files"
 
