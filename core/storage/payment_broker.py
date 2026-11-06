@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Any, Optional, List
 
+from keelway.security.source_defaults import InsecureDefaultConfiguration, is_source_default
+
 
 class GlobalRail(str, Enum):
     MPESA = "mpesa"
@@ -62,6 +64,10 @@ class GlobalPaymentBroker:
         expiry_seconds: int = 900
     ) -> PaymentIntent:
         """Creates a payment intent formatted specifically for the target regional or crypto rail."""
+        if is_source_default(self.broker_secret):
+            raise InsecureDefaultConfiguration(
+                "payment configuration is unavailable: source-default broker secret is refused"
+            )
         intent_id = f"pi_{uuid.uuid4().hex[:12]}"
         now = time.time()
         expires_at = now + expiry_seconds

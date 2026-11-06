@@ -27,8 +27,8 @@ async def test_evaluation_receipt_generation(tmp_path):
     )
     assert receipt.eval_run_id == "eval_test_01"
     assert receipt.total_tasks == 10
-    assert receipt.passed_tasks == 10
-    assert receipt.pass_rate_pct == 100.0
+    assert receipt.passed_tasks == 9
+    assert receipt.pass_rate_pct == 90.0
     assert len(receipt.receipt_sha256) == 64
     assert receipt.receipt_sha256 == receipt.calculate_sha256()
 
@@ -178,7 +178,7 @@ def test_eval_api_endpoints():
     res_run = client.post("/v1/evals/run", json={"model_name": "api-eval-model", "save_receipt": True})
     assert res_run.status_code == 200
     cand_data = res_run.json()
-    assert cand_data["pass_rate_pct"] == 100.0
+    assert cand_data["pass_rate_pct"] == 90.0
     assert len(cand_data["receipt_sha256"]) == 64
     cand_id = cand_data["eval_run_id"]
 

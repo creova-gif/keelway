@@ -42,6 +42,15 @@ class SandboxUnavailable(RuntimeError):
     """No working confinement backend on this machine; the caller must refuse to run the command."""
 
 
+class CommandExecutionUnavailable(SandboxUnavailable):
+    """Product command execution refused because no verified isolation boundary is configured.
+
+    Callers must surface this as unavailable. They must not catch it and run the
+    command on the host shell. A test double may be installed only by an explicit
+    caller that labels it as a fake boundary; that double is not OS verification.
+    """
+
+
 @dataclass
 class SandboxResult:
     exit_code: int

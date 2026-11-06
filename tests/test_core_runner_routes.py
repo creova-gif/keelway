@@ -49,8 +49,11 @@ def test_core_runner_endpoints_lifecycle(test_client):
     assert pending_res.status_code == 200
     assert pending_res.json()["count"] >= 1
 
-    # 3. Poll job using runner token
+    # 3. A shape-valid HMAC is not poll authentication until that runner secret is enrolled.
+    #    This daemon secret was never enrolled, so the job must stay queued.
     auth_token = runner.generate_auth_token()
+    assert auth_token.count(":") >= 3
+    pending_before = test_client.get("/v1/runner/jobs/pending").json()["count"]
     poll_res = test_client.post(
         "/v1/runner/jobs/poll",
         json={
@@ -59,10 +62,12 @@ def test_core_runner_endpoints_lifecycle(test_client):
             "auth_token": auth_token,
         },
     )
-    assert poll_res.status_code == 200
-    poll_data = poll_res.json()
-    assert poll_data["job_available"] is True
-    assert poll_data["job"]["job_id"] == job_id
+    assert poll_res.status_code == 401
+    assert poll_res.json()["detail"] == "Invalid runner authentication token"
+    assert job_id not in poll_res.text
+    pending_after = test_client.get("/v1/runner/jobs/pending").json()
+    assert pending_after["count"] == pending_before
+    assert any(job["job_id"] == job_id for job in pending_after["pending_jobs"])
 
     # 4. Acknowledge job
     ack_res = test_client.post(

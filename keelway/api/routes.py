@@ -8,9 +8,10 @@ import datetime
 import json
 import uuid
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel
 
+from keelway.api.governance_auth import require_governance_actor
 from keelway.approvals.service import ApprovalDecision
 from keelway.audit.export import AuditExporter, ExportBundle
 from keelway.audit.recorder import verify_audit_chain
@@ -28,7 +29,8 @@ from keelway.core.models import (
     ToolAuthorizationRequest,
 )
 from keelway.core.runner import GovernedRunCoordinator
-from keelway.git_ci.github import GitHubAppWebhookHandler
+from keelway.git_ci.github import handler_from_environment
+from keelway.runner.enrollment import verify_enrolled_runner_token
 from keelway.policy.engine import PolicyEngine
 
 router = APIRouter(prefix="/v1")
@@ -36,7 +38,7 @@ router = APIRouter(prefix="/v1")
 # In-memory registry of active runs for the local runtime control plane
 ACTIVE_RUNS: Dict[str, GovernedRunCoordinator] = {}
 SHARED_POLICY_ENGINE = PolicyEngine()
-SHARED_WEBHOOK_HANDLER = GitHubAppWebhookHandler()
+SHARED_WEBHOOK_HANDLER = handler_from_environment()
 SHARED_AUDIT_EXPORTER = AuditExporter()
 SHARED_AUDIT_STORE = SQLiteAuditStore("keelway_audit.db")
 
@@ -68,7 +70,7 @@ class AuditVerifyResponse(BaseModel):
 
 
 @router.post("/runs", response_model=Dict[str, Any])
-def create_run(req: CreateRunRequest):
+def create_run(req: CreateRunRequest, _actor: str = Depends(require_governance_actor)):
     """Creates and starts a governed run."""
     try:
         coordinator = GovernedRunCoordinator(
@@ -133,7 +135,7 @@ def export_run_audit_bundle(run_id: str, redact: bool = True):
 
 
 @router.post("/runs/{run_id}/cancel", response_model=Dict[str, str])
-def cancel_run(run_id: str, reason: str = "User requested cancellation"):
+def cancel_run(run_id: str, reason: str = "User requested cancellation", _actor: str = Depends(require_governance_actor)):
     """Idempotently cancels a run."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -150,7 +152,7 @@ def policy_decide(req: ToolAuthorizationRequest):
 
 
 @router.post("/approvals/{approval_id}/decision", response_model=Dict[str, Any])
-def submit_approval_decision(approval_id: str, dec: ApprovalDecision):
+def submit_approval_decision(approval_id: str, dec: ApprovalDecision, _actor: str = Depends(require_governance_actor)):
     """Submits a human review decision for a standard approval request."""
     target_coordinator: Optional[GovernedRunCoordinator] = None
     for coord in ACTIVE_RUNS.values():
@@ -175,7 +177,7 @@ def submit_approval_decision(approval_id: str, dec: ApprovalDecision):
 
 
 @router.post("/quorum/{quorum_id}/approval", response_model=Dict[str, Any])
-def submit_quorum_approval(quorum_id: str, sub: QuorumApprovalSubmission):
+def submit_quorum_approval(quorum_id: str, sub: QuorumApprovalSubmission, _actor: str = Depends(require_governance_actor)):
     """Submits a role approval in a two-human quorum (ADR-045)."""
     target_coordinator: Optional[GovernedRunCoordinator] = None
     for coord in ACTIVE_RUNS.values():
@@ -203,7 +205,7 @@ def submit_quorum_approval(quorum_id: str, sub: QuorumApprovalSubmission):
 
 
 @router.post("/runs/{run_id}/pull-request", response_model=PullRequestResult)
-def create_pull_request(run_id: str, req: PullRequestRequest):
+def create_pull_request(run_id: str, req: PullRequestRequest, _actor: str = Depends(require_governance_actor)):
     """Generates a governed pull request after approved human review."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -220,7 +222,7 @@ def create_pull_request(run_id: str, req: PullRequestRequest):
 
 
 @router.post("/deployments", response_model=DeploymentResult)
-def trigger_deployment(req: DeploymentRequest):
+def trigger_deployment(req: DeploymentRequest, _actor: str = Depends(require_governance_actor)):
     """Triggers staging deployment through customer CI webhook."""
     coordinator = ACTIVE_RUNS.get(req.run_id)
     if not coordinator:
@@ -328,7 +330,7 @@ class RunnerAckRequest(BaseModel):
 
 
 @router.post("/runner/jobs/enqueue")
-def enqueue_runner_job(job_spec: Dict[str, Any]):
+def enqueue_runner_job(job_spec: Dict[str, Any], _actor: str = Depends(require_governance_actor)):
     """Enqueues a job for asynchronous pickup by an outbound customer runner daemon."""
     job_id = str(uuid.uuid4())
     job_spec["job_id"] = job_id
@@ -338,10 +340,8 @@ def enqueue_runner_job(job_spec: Dict[str, Any]):
 
 @router.post("/runner/jobs/poll")
 def poll_runner_jobs(req: RunnerPollRequest):
-    """Outbound runner long-poll endpoint. Validates runner authentication and returns matching jobs."""
-    # Basic format check on time-bound runner token
-    parts = req.auth_token.split(":")
-    if len(parts) < 4 or parts[0] != req.runner_id or parts[1] != req.org_id:
+    """Outbound runner long-poll endpoint. A shape-only token is not authentication."""
+    if not verify_enrolled_runner_token(req.runner_id, req.org_id, req.auth_token):
         raise HTTPException(status_code=401, detail="Invalid runner authentication token")
 
     for idx, job in enumerate(PENDING_RUNNER_JOBS):

@@ -54,11 +54,11 @@ async def test_m1_vertical_slice_all_10_stages_runner(tmp_path: Path):
     assert FIXED_LINE in (repo_dir / "pricing.py").read_text(encoding="utf-8")
     assert "pricing.py" in results["stage_8_applied"]["git_diff"]
 
-    # Stage 9 assertions
-    assert results["stage_9_test"]["exit_code"] == 0
+    # Stage 9 assertions: the test command is refused until isolation is verified.
+    assert results["stage_9_test"]["status"] == "unavailable"
 
     # Stage 10 assertions
-    assert results["stage_10_results"]["all_steps_completed"] is True
+    assert results["stage_10_results"]["all_steps_completed"] is False
     assert len(results["stage_10_results"]["tape_sha256"]) == 64
     assert "pricing.py" in results["stage_10_results"]["modified_files"]
 
@@ -172,14 +172,16 @@ def test_m1_vertical_slice_via_fastapi_rest_endpoints(tmp_path: Path):
         )
         assert res_appr2.status_code == 200
         test_res = res_appr2.json()["approval_result"]
-        assert test_res["status"] == "success"
-        assert test_res["result"]["exit_code"] == 0
+        assert test_res["status"] == "error"
+        assert "unavailable" in test_res["error"].lower()
 
         # 10. View final task status, git status, and flight tape
         res_status = client.get(f"/v1/agent/status/{task_id}")
         assert res_status.status_code == 200
-        plan = res_status.json()["plan"]
-        assert all(s["status"] == "completed" for s in plan)
+        plan = {step["id"]: step["status"] for step in res_status.json()["plan"]}
+        assert plan["step_1"] == "completed"
+        assert plan["step_2"] == "completed"
+        assert plan["step_3"] == "failed"
 
         res_git = client.get("/v1/git/status")
         assert res_git.status_code == 200

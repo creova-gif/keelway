@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import os
 from typing import Any, Dict, Optional, Tuple
+
+from keelway.security.source_defaults import is_source_default
 
 
 class WebhookVerificationError(Exception):
@@ -21,7 +24,7 @@ class GitHubAppWebhookHandler:
 
     def verify_signature(self, payload_bytes: bytes, signature_header: Optional[str]) -> bool:
         """Verifies X-Hub-Signature-256 HMAC digest."""
-        if not signature_header or not signature_header.startswith("sha256="):
+        if is_source_default(self.webhook_secret) or not signature_header or not signature_header.startswith("sha256="):
             return False
 
         received_sig = signature_header[7:]
@@ -36,6 +39,8 @@ class GitHubAppWebhookHandler:
         Returns:
             (success, audit_event_kind, normalized_event_data)
         """
+        if is_source_default(self.webhook_secret):
+            return False, None, {"reason": "source-default webhook secret is refused"}
         if event_type == "pull_request":
             action = payload.get("action")
             pr_data = payload.get("pull_request", {})
@@ -69,3 +74,11 @@ class GitHubAppWebhookHandler:
             }
 
         return False, None, {"reason": f"Unhandled event type: {event_type}"}
+
+
+def handler_from_environment() -> "GitHubAppWebhookHandler":
+    """Use an operator secret when one is configured. A source default stays refused."""
+    raw = os.environ.get("KEELWAY_GITHUB_WEBHOOK_SECRET", "")
+    if raw and not is_source_default(raw):
+        return GitHubAppWebhookHandler(webhook_secret=raw)
+    return GitHubAppWebhookHandler()

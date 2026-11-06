@@ -219,13 +219,12 @@ class MilestoneM1Runner:
         cmd = proj_meta.detected_test_command or "python3 -m unittest -q test_pricing.py"
         test_pause = await agent.execute_tool("run_command", {"command": cmd}, step_id="step_3")
         assert test_pause["status"] == "paused_for_approval"
-        # Authorize running tests
+        # Approval cannot start a host shell when isolation is not verified.
         test_run_res = await agent.approve_pending(approved=True)
-        assert test_run_res["status"] == "success"
-        test_out = test_run_res["result"]
-        assert test_out["exit_code"] == 0, f"Tests failed: {test_out['stderr']}"
-        self.log(9, "Run Project Test Command", f"Command: {cmd}\nExit Code: {test_out['exit_code']}\nDuration: {test_out['duration_ms']}ms\nOutput:\n{test_out['stderr'] or test_out['stdout'] or 'OK'}")
-        self.results["stage_9_test"] = {"command": cmd, "exit_code": test_out["exit_code"], "output": test_out["stderr"] or test_out["stdout"]}
+        assert test_run_res["status"] == "error"
+        assert "unavailable" in test_run_res["error"].lower()
+        self.log(9, "Run Project Test Command", f"Command: {cmd}\nRefused: {test_run_res['error']}")
+        self.results["stage_9_test"] = {"command": cmd, "status": "unavailable", "error": test_run_res["error"]}
 
         # -------------------------------------------------------------
         # Stage 10: View actual results, changed files, logs, and task history
@@ -236,12 +235,16 @@ class MilestoneM1Runner:
         else:
             tape_path, tape_hash = "none", ""
         final_state = agent.get_state()
-        all_completed = all(s["status"] == "completed" for s in final_state["plan"])
-        assert all_completed is True, "Not all plan steps reached completed status."
+        by_id = {s["id"]: s for s in final_state["plan"]}
+        assert by_id["step_1"]["status"] == "completed"
+        assert by_id["step_2"]["status"] == "completed"
+        assert by_id["step_3"]["status"] == "failed"
+        assert "unavailable" in (by_id["step_3"].get("observation") or "").lower()
+        all_completed = False
         git_status = ws_fs.get_git_status()
         changed_files = [f["path"] for f in git_status.get("files", [])]
         self.log(10, "Task Completed & Flight Tape Sealed",
-                 f"All {len(final_state['plan'])} steps completed successfully.\n"
+                 "Edit steps completed. The test command stayed unavailable without verified isolation.\n"
                  f"Git modified files: {changed_files}\n"
                  f"Flight tape sealed: {tape_path}\n"
                  f"Cryptographic Tape SHA256: {tape_hash}")

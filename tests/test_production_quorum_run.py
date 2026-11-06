@@ -1,11 +1,15 @@
 """Tests for End-to-End Production Two-Human Quorum in GovernedRunCoordinator.
 Implements and verifies ADR-045 and ADR-046 in a live governed lifecycle.
 """
+import os
+
 from keelway.core.models import RunStatus
 from keelway.core.runner import GovernedRunCoordinator
 
 
 def test_production_run_enforces_two_human_quorum():
+    os.environ["KEELWAY_APPROVAL_SIGNING_KEY"] = "package-c-explicit-approval-fixture-key"
+    os.environ["KEELWAY_QUORUM_SIGNING_KEY"] = "package-c-explicit-quorum-fixture-key"
     coord = GovernedRunCoordinator(
         org_id="org_sorvex_prod",
         project_id="proj_critical_core",

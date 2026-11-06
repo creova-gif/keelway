@@ -7,7 +7,6 @@ with native workspace tools, deterministic flight recording, and human-in-the-lo
 import difflib
 import hashlib
 import json
-import os
 import re
 import shlex
 import subprocess
@@ -17,7 +16,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable, Awaitable
 
-from core.security.env_scrub import scrub_env
+from core.agents.sandbox import CommandExecutionUnavailable
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
 from core.storage.ast_index import CodebaseSemanticIndex
 from core.orchestration.flight_recorder import FlightRecorder, FlightEvent
@@ -202,60 +201,24 @@ class AutonomousAgentLoop:
 
         # 4. run_command
         async def _h_run(args: Dict[str, Any]) -> Dict[str, Any]:
+            # No verified runner means the command is unavailable. There is no host shell fallback.
+            if self.command_runner is None:
+                raise CommandExecutionUnavailable(
+                    "command execution is unavailable: no verified isolation boundary is configured"
+                )
+            if not isinstance(args, dict):
+                raise CommandExecutionUnavailable(
+                    "command execution is unavailable: malformed tool arguments"
+                )
             cmd = args.get("command", "")
             timeout = min(int(args.get("timeout", 30)), 120)
-            
-            # Security filter against dangerous commands
+
             danger_patterns = [r"\brm\s+-rf\s+/", r">\s*/dev/sd[a-z]", r":\(\)\{ :\|:& \};:"]
             for pat in danger_patterns:
                 if re.search(pat, cmd):
                     raise PermissionError(f"Command rejected by safety gate: '{cmd}'")
 
-            if self.command_runner is not None:
-                return self.command_runner(cmd, timeout)
-
-            exec_cmd = cmd
-            import sys
-            if exec_cmd.startswith("python3 ") or exec_cmd.startswith("python "):
-                parts = exec_cmd.split(" ", 1)
-                exec_cmd = f'"{sys.executable}" {parts[1]}'
-
-            start_t = time.perf_counter()
-            clean_env, dropped = scrub_env(os.environ)  # an agent-chosen command must not inherit API keys or tokens
-            if sys.prefix and "PATH" in clean_env:
-                venv_bin = str(Path(sys.prefix) / "bin")
-                if venv_bin not in clean_env["PATH"]:
-                    clean_env["PATH"] = f"{venv_bin}:{clean_env['PATH']}"
-
-            proc = subprocess.Popen(
-                exec_cmd,
-                shell=True,
-                cwd=str(self.fs.root),
-                env=clean_env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-            self.active_proc = proc
-            try:
-                stdout, stderr = proc.communicate(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                stdout, stderr = proc.communicate()
-                raise TimeoutError(f"Command '{cmd}' timed out after {timeout} seconds.")
-            finally:
-                self.active_proc = None
-
-            dur_ms = (time.perf_counter() - start_t) * 1000.0
-
-            return {
-                "env_scrubbed_count": len(dropped),
-                "command": cmd,
-                "exit_code": proc.returncode,
-                "stdout": stdout[-10000:],  # Tail last 10KB
-                "stderr": stderr[-10000:],
-                "duration_ms": round(dur_ms, 2),
-            }
+            return self.command_runner(cmd, timeout)
 
         self.tools["run_command"] = AgentTool(
             name="run_command",

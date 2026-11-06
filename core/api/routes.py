@@ -36,6 +36,8 @@ from core.api.schemas import (
 from core.config import legacy_aware, settings
 from core.models.gateway import gateway
 from core.security.auth import LOCAL_OWNER, Principal, current_principal, principal_for_token, record_audit, require, token_from_headers
+from keelway.runner.enrollment import verify_enrolled_runner_token
+from keelway.security.source_defaults import InsecureDefaultConfiguration
 from core.security.env_scrub import scrub_env
 from core.security.origin import origin_allowed
 from core.security.rbac import Permission
@@ -788,7 +790,13 @@ async def create_payment_intent(payload: dict):
     description = payload.get("description", "Keelway Agent Service")
 
     broker = GlobalPaymentBroker()
-    intent = broker.create_intent(rail=rail, amount=amount, currency=currency, recipient=recipient, description=description)
+    try:
+        intent = broker.create_intent(rail=rail, amount=amount, currency=currency, recipient=recipient, description=description)
+    except InsecureDefaultConfiguration:
+        raise HTTPException(
+            status_code=503,
+            detail="payment configuration is unavailable: source-default broker secret is refused",
+        )
     return {
         "intent_id": intent.intent_id,
         "rail": intent.rail.value,
@@ -1489,8 +1497,11 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         q_service = None
         env_mode = payload.get("environment", "internal")
         if env_mode == "production" or payload.get("quorum"):
-            from keelway.approvals.quorum import TwoHumanQuorumService
-            q_service = TwoHumanQuorumService()
+            from keelway.approvals.quorum import QUORUM_SECRET_KEY, TwoHumanQuorumService
+            from keelway.security.source_defaults import configured_signing_key
+            q_service = TwoHumanQuorumService(
+                signing_key=configured_signing_key("KEELWAY_QUORUM_SIGNING_KEY", QUORUM_SECRET_KEY)
+            )
 
         agent = AutonomousAgentLoop(
             task_id=task_id,
@@ -1660,51 +1671,12 @@ async def execute_terminal_command(payload: dict, principal: Principal = Depends
     cmd = payload.get("command", "").strip()
     if not cmd:
         raise HTTPException(status_code=400, detail="Missing 'command' in request payload.")
-    timeout = min(int(payload.get("timeout", 30)), 120)
-
-    # Security filters against dangerous commands
-    danger_patterns = [r"\brm\s+-rf\s+/", r">\s*/dev/sd[a-z]", r":\(\)\{ :\|:& \};:"]
-    for pat in danger_patterns:
-        if re.search(pat, cmd):
-            await record_audit(principal, "terminal_exec_denied", cmd, False)
-            raise HTTPException(status_code=403, detail=f"Command rejected by security safety gate: '{cmd}'")
-
-    exec_cmd = cmd
-    import sys
-    if exec_cmd.startswith("python3 ") or exec_cmd.startswith("python "):
-        parts = exec_cmd.split(" ", 1)
-        exec_cmd = f'"{sys.executable}" {parts[1]}'
-
-    start_t = time.perf_counter()
-    clean_env, dropped = scrub_env(os.environ)
-    if sys.prefix and "PATH" in clean_env:
-        venv_bin = str(Path(sys.prefix) / "bin")
-        if venv_bin not in clean_env["PATH"]:
-            clean_env["PATH"] = f"{venv_bin}:{clean_env['PATH']}"
-
-    try:
-        proc = subprocess.run(
-            exec_cmd,
-            shell=True,
-            cwd=str(_workspace_fs.root),
-            env=clean_env,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        dur_ms = (time.perf_counter() - start_t) * 1000.0
-        await record_audit(principal, "terminal_exec", f"{cmd} (exit {proc.returncode})", proc.returncode == 0)
-        return {
-            "command": cmd,
-            "exit_code": proc.returncode,
-            "stdout": proc.stdout[-10000:],
-            "stderr": proc.stderr[-10000:],
-            "duration_ms": round(dur_ms, 2),
-        }
-    except subprocess.TimeoutExpired:
-        dur_ms = (time.perf_counter() - start_t) * 1000.0
-        await record_audit(principal, "terminal_exec_timeout", cmd, False)
-        raise HTTPException(status_code=408, detail=f"Command '{cmd}' timed out after {timeout}s.")
+    # The Studio terminal has no verified isolation boundary. Do not fall back to the host shell.
+    _ = (cmd, principal)
+    raise HTTPException(
+        status_code=503,
+        detail="command execution is unavailable: no verified isolation boundary is configured",
+    )
 
 
 @router.post("/v1/agents/validate", dependencies=[Depends(current_principal)], tags=["Agent Manifests"])
@@ -1985,9 +1957,7 @@ async def poll_customer_runner_jobs(payload: dict):
     org_id = payload.get("org_id")
     auth_token = payload.get("auth_token", "")
 
-    # Token structure check: runner_id:org_id:timestamp:sig
-    parts = auth_token.split(":")
-    if len(parts) < 4 or parts[0] != runner_id or parts[1] != org_id:
+    if not verify_enrolled_runner_token(str(runner_id or ""), str(org_id or ""), str(auth_token or "")):
         raise HTTPException(status_code=401, detail="Invalid runner authentication token")
 
     for idx, job in enumerate(RUNNER_JOBS_QUEUE):

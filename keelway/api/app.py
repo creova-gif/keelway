@@ -3,11 +3,41 @@ Provides local-first REST API and operator web dashboard.
 """
 from __future__ import annotations
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+import json
+import os
+import re
+from urllib.parse import urlsplit
 
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse, Response
+
+from keelway.api.governance_auth import dashboard_token, governance_auth_required
 from keelway.api.routes import router as api_router
+
+_LOOPBACK_ORIGIN = re.compile(r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$", re.IGNORECASE)
+
+
+def governance_allowed_origins() -> list[str]:
+    """Explicit operator origins. A wildcard is never admitted, with or without credentials."""
+    raw = os.environ.get("KEELWAY_GOVERNANCE_ALLOWED_ORIGINS", "")
+    origins = []
+    for item in raw.split(","):
+        item = item.strip().rstrip("/")
+        if item and item != "*" and "*" not in item:
+            origins.append(item)
+    return origins
+
+
+def governance_origin_allowed(origin: str | None, host: str | None) -> bool:
+    if origin is None:
+        return True
+    if origin in {"", "null", "*"}:
+        return False
+    if origin.rstrip("/") in governance_allowed_origins():
+        return True
+    if host and _LOOPBACK_ORIGIN.fullmatch(origin) and urlsplit(origin).netloc == host:
+        return True
+    return False
 
 app = FastAPI(
     title="Keelway Governance Platform",
@@ -15,21 +45,49 @@ app = FastAPI(
     version="0.71.0-enterprise",
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app.include_router(api_router)
 
 
+@app.middleware("http")
+async def governance_origin_boundary(request: Request, call_next):
+    """Deny hostile browser origins before a route can mutate anything.
+
+    Missing Origin (CLI, TestClient, same-process scripts) is allowed through
+    this gate and still has to pass authentication on mutations. Loopback
+    origins are allowed only when they match the request Host. Credentialed
+    responses echo that specific origin and never ``*``.
+    """
+    origin = request.headers.get("origin")
+    host = request.headers.get("host")
+    if not governance_origin_allowed(origin, host):
+        return JSONResponse(status_code=403, content={"detail": "Origin not allowed."})
+    if request.method == "OPTIONS" and origin:
+        return Response(
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Keelway-Token",
+                "Vary": "Origin",
+            },
+        )
+    response = await call_next(request)
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+    return response
+
+
 @app.get("/", response_class=HTMLResponse)
-def index_dashboard():
+def index_dashboard(request: Request):
     """Lightweight developer and reviewer web dashboard."""
-    return """<!DOCTYPE html>
+    token_js = "null"
+    host = request.client.host if request.client else ""
+    if governance_auth_required() and host in {"127.0.0.1", "::1", "localhost"}:
+        token_js = json.dumps(dashboard_token())
+    page = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -245,13 +303,19 @@ def index_dashboard():
     let currentRunId = null;
     let currentApprovalId = null;
     let isQuorum = false;
+    const governanceToken = /*__GOVERNANCE_TOKEN__*/ null;
+    function withAuth(headers) {
+      const next = Object.assign({}, headers || {});
+      if (governanceToken) next["Authorization"] = "Bearer " + governanceToken;
+      return next;
+    }
 
     async function startRun() {
       const prompt = document.getElementById("taskPrompt").value;
       const classification = document.getElementById("runClassification").value;
       const res = await fetch("/v1/runs", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withAuth({ "Content-Type": "application/json" }),
         body: JSON.stringify({ task_prompt: prompt, classification: classification })
       });
       const data = await res.json();
@@ -318,7 +382,7 @@ def index_dashboard():
       if (!currentApprovalId) return;
       const res = await fetch(`/v1/approvals/${currentApprovalId}/decision`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withAuth({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           approval_id: currentApprovalId,
           decision: decision,
@@ -333,7 +397,7 @@ def index_dashboard():
       if (!currentApprovalId) return;
       const res = await fetch(`/v1/quorum/${currentApprovalId}/approval`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withAuth({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           quorum_id: currentApprovalId,
           principal_id: principal,
@@ -346,7 +410,7 @@ def index_dashboard():
     async function createPr() {
       const res = await fetch(`/v1/runs/${currentRunId}/pull-request`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withAuth({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           run_id: currentRunId,
           approval_id: currentApprovalId,
@@ -362,7 +426,7 @@ def index_dashboard():
     async function triggerDeploy() {
       const res = await fetch(`/v1/deployments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withAuth({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           run_id: currentRunId,
           approval_id: currentApprovalId,
@@ -410,3 +474,4 @@ def index_dashboard():
 </body>
 </html>
 """
+    return page.replace("/*__GOVERNANCE_TOKEN__*/ null", token_js, 1)

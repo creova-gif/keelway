@@ -5,9 +5,11 @@ and single-use consumption.
 import time
 from keelway.approvals.service import ApprovalDecision, ApprovalService
 
+_FIXTURE_KEY = b"package-c-explicit-approval-fixture-key"
+
 
 def test_approval_happy_path():
-    service = ApprovalService(ttl_seconds=300)
+    service = ApprovalService(ttl_seconds=300, signing_key=_FIXTURE_KEY)
     req = service.create_request(
         run_id="run_201",
         patch_hash="sha256:abc12345",
@@ -32,7 +34,7 @@ def test_approval_happy_path():
 
 
 def test_agent_self_approval_is_strictly_prohibited():
-    service = ApprovalService()
+    service = ApprovalService(signing_key=_FIXTURE_KEY)
     req = service.create_request(
         run_id="run_202",
         patch_hash="sha256:patch_hash_1",
@@ -56,7 +58,7 @@ def test_agent_self_approval_is_strictly_prohibited():
 
 
 def test_patch_mutation_invalidates_approval():
-    service = ApprovalService()
+    service = ApprovalService(signing_key=_FIXTURE_KEY)
     original_patch_hash = "sha256:original_patch_hash"
     req = service.create_request(
         run_id="run_203",
@@ -82,7 +84,7 @@ def test_patch_mutation_invalidates_approval():
 
 
 def test_two_attempts_cannot_consume_same_one_time_approval():
-    service = ApprovalService()
+    service = ApprovalService(signing_key=_FIXTURE_KEY)
     patch_hash = "sha256:safe_patch"
     req = service.create_request(
         run_id="run_204",
@@ -110,7 +112,7 @@ def test_two_attempts_cannot_consume_same_one_time_approval():
 
 
 def test_cannot_approve_failed_eval():
-    service = ApprovalService()
+    service = ApprovalService(signing_key=_FIXTURE_KEY)
     patch_hash = "sha256:failing_code"
     req = service.create_request(
         run_id="run_205",

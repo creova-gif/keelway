@@ -114,8 +114,10 @@ def test_runner_api_poll_and_ack_lifecycle():
     assert enqueue_res.status_code == 200
     job_id = enqueue_res.json()["job_id"]
 
-    # 2. Poll for job with valid auth token
+    # 2. The daemon's HMAC is well formed, but the control plane has not enrolled
+    #    this secret. Poll must refuse and leave the job queued.
     auth_token = runner.generate_auth_token()
+    queued_before = [dict(job) for job in PENDING_RUNNER_JOBS]
     poll_res = client.post(
         "/v1/runner/jobs/poll",
         json={
@@ -124,13 +126,12 @@ def test_runner_api_poll_and_ack_lifecycle():
             "auth_token": auth_token,
         },
     )
-    assert poll_res.status_code == 200
-    poll_data = poll_res.json()
-    assert poll_data["job_available"] is True
-    assert poll_data["job"]["job_id"] == job_id
+    assert poll_res.status_code == 401
+    assert job_id not in poll_res.text
+    assert PENDING_RUNNER_JOBS == queued_before
 
-    # 3. Runner executes job locally
-    ok, status, summary = runner.execute_job(poll_data["job"])
+    # 3. Local execution is separate from an unauthenticated poll.
+    ok, status, summary = runner.execute_job(job_payload)
     assert ok is True
 
     # 4. Acknowledge completion to control plane

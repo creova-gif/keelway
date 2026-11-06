@@ -254,15 +254,22 @@ class ProductionEvalHarness:
 
     async def _eval_sovereign_payment_intent(self):
         t0 = time.perf_counter()
+        from keelway.security.source_defaults import InsecureDefaultConfiguration
+
         broker = GlobalPaymentBroker()
-        intent = broker.create_intent(
-            rail=GlobalRail.MPESA,
-            amount=500.0,
-            currency="KES",
-            recipient="+254712345678",
-            description="Agent Compute Charge",
-        )
-        passed = intent.status == "pending" and intent.payment_payload.get("stk_push_ready") is True
+        passed = False
+        telemetry = {}
+        try:
+            intent = broker.create_intent(
+                rail=GlobalRail.MPESA,
+                amount=500.0,
+                currency="KES",
+                recipient="+254712345678",
+                description="Agent Compute Charge",
+            )
+            passed = intent.status == "pending" and intent.payment_payload.get("stk_push_ready") is True
+        except InsecureDefaultConfiguration:
+            telemetry = {"refused": "source-default broker secret"}
         dur = (time.perf_counter() - t0) * 1000.0
         self.results.append(EvalTaskResult(
             task_id="EVAL-09",
@@ -270,6 +277,7 @@ class ProductionEvalHarness:
             category="Settlement",
             passed=passed,
             duration_ms=dur,
+            telemetry=telemetry,
         ))
 
     async def _eval_flight_recorder_integrity(self):
