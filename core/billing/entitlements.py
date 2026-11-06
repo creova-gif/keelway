@@ -15,6 +15,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+from keelway.security.source_defaults import is_source_default
+
 
 class LicenseTier(str, Enum):
     COMMUNITY = "community"
@@ -234,6 +236,12 @@ class BillingWebhookHandler:
         """
         Processes billing events with strict deduplication / idempotency.
         """
+        if is_source_default(self.secret):
+            return {
+                "status": "rejected",
+                "reason": "source-default webhook secret is refused",
+                "event_id": event_id,
+            }
         # Signature verification if provided
         if signature_header is not None:
             raw_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
@@ -286,7 +294,12 @@ class EntitlementManager:
         }
         self.storage_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
+    def _source_default_locked(self) -> bool:
+        return is_source_default(self.secret_key)
+
     def register_certificate(self, cert: EntitlementCertificate) -> Tuple[bool, str]:
+        if self._source_default_locked():
+            return False, "source-default signing configuration is refused"
         valid, status = cert.is_valid(self.secret_key)
         if not valid:
             return False, f"Certificate rejected: {status}"
@@ -316,6 +329,8 @@ class EntitlementManager:
         """
         Determines whether the given organization is entitled to run a gated feature.
         """
+        if self._source_default_locked():
+            return False, "source-default signing configuration is refused"
         feat_str = feature.value if isinstance(feature, EnterpriseFeature) else str(feature)
         cert = self.get_certificate(org_id)
         valid, status = cert.is_valid(self.secret_key)
@@ -333,6 +348,8 @@ class EntitlementManager:
 
     def allocate_seat(self, org_id: str, actor_id: str) -> Tuple[bool, str]:
         """Allocates an enterprise seat to a specific developer/actor."""
+        if self._source_default_locked():
+            return False, "source-default signing configuration is refused"
         cert = self.get_certificate(org_id)
         valid, status = cert.is_valid(self.secret_key)
         if not valid:

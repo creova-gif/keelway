@@ -245,13 +245,15 @@ async def test_autonomous_agent_may_run_commands_only_because_the_sandbox_is_ver
 
 @needs_backend
 @pytest.mark.asyncio
-async def test_sandbox_workspace_manifests_keep_the_old_unconfined_path(ws):
+async def test_workspace_sandbox_cannot_fall_back_to_a_host_command(ws):
     m = manifest(sandbox="workspace", permissions__commands=["/bin/echo hi"])
     agent = loop_from_manifest(m, "t", WorkspaceFilesystem(str(ws / "ws")), record_flight=False)
     assert agent.command_runner is None
-    await agent.execute_tool("run_command", {"command": "/bin/echo hi"})
+    pending = await agent.execute_tool("run_command", {"command": "/bin/echo hi"})
+    assert pending["status"] == "paused_for_approval"
     done = await agent.approve_pending(True)
-    assert done["status"] == "success" and "sandbox" not in done["result"]
+    assert done["status"] == "error"
+    assert "unavailable" in done["error"].lower()
 
 
 def test_bubblewrap_backend_structure(tmp_path):

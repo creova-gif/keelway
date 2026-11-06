@@ -69,7 +69,10 @@ def test_entitlement_certificate_lifecycle_and_grace_period():
 
 def test_entitlement_manager_feature_gates_and_seat_limits(tmp_path):
     mgr_file = tmp_path / "entitlements.json"
-    mgr = EntitlementManager(storage_path=mgr_file)
+    mgr = EntitlementManager(
+        storage_path=mgr_file,
+        secret_key=b"package-c-explicit-entitlement-fixture-key",
+    )
 
     # 1. Fallback Community organization
     allowed_comm, _ = mgr.check_feature_access("unknown_org", EnterpriseFeature.GUIDED_BUILDER)
@@ -207,4 +210,4 @@ def test_cli_sbom_and_entitlements_commands(tmp_path):
     assert rc_ent_status == 0
 
     rc_ent_check = cmd_entitlements("check", org="default-org", feature="local_agent_loop")
-    assert rc_ent_check == 0
+    assert rc_ent_check == 1

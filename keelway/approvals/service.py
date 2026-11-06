@@ -11,6 +11,7 @@ import uuid
 from typing import Dict, Optional, Tuple
 
 from keelway.core.models import ApprovalDecision, ApprovalRequest
+from keelway.security.source_defaults import InsecureDefaultConfiguration, is_source_default
 
 APPROVAL_SECRET_KEY = b"keelway_approval_signing_secret_v1"
 
@@ -64,6 +65,8 @@ class ApprovalService:
         self, approval_id: str, approver_id: str, decision: str, patch_hash: str
     ) -> str:
         """Signs the approval decision."""
+        if is_source_default(self.signing_key):
+            raise InsecureDefaultConfiguration("source-default signing configuration is refused")
         msg = f"{approval_id}:{approver_id}:{decision}:{patch_hash}"
         return hmac.new(self.signing_key, msg.encode("utf-8"), hashlib.sha256).hexdigest()
 
@@ -71,6 +74,8 @@ class ApprovalService:
         self, decision: ApprovalDecision, current_patch_hash: str
     ) -> Tuple[bool, str]:
         """Submits human approval decision with strict fail-closed checks."""
+        if is_source_default(self.signing_key):
+            return False, "ERR_SOURCE_DEFAULT_SIGNING_KEY_REFUSED"
         req = self._requests.get(decision.approval_id)
         if not req:
             return False, "ERR_APPROVAL_NOT_FOUND"

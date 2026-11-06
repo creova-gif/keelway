@@ -26,20 +26,16 @@ def test_formulate_plan_intent_detection():
 
 
 def test_terminal_exec_endpoint():
-    """Verifies that terminal commands run securely with environment scrubbing."""
+    """Terminal commands are unavailable until isolation is verified. They do not run on the host."""
     with TestClient(app) as client:
-        # 1. Valid command execution
         res = client.post("/v1/terminal/exec", json={"command": "python3 -c 'print(40 + 2)'"})
-        assert res.status_code == 200
-        data = res.json()
-        assert data["exit_code"] == 0
-        assert "42" in data["stdout"]
-        assert "duration_ms" in data
+        assert res.status_code == 503
+        assert "unavailable" in res.json()["detail"]
+        assert "stdout" not in res.text
 
-        # 2. Block dangerous destructive commands
         res_deny = client.post("/v1/terminal/exec", json={"command": "rm -rf /"})
-        assert res_deny.status_code == 403
-        assert "rejected by security safety gate" in res_deny.json()["detail"]
+        assert res_deny.status_code == 503
+        assert "unavailable" in res_deny.json()["detail"]
 
 
 def test_agent_task_cancellation():

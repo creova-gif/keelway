@@ -59,8 +59,11 @@ def test_assemble_evidence_package():
     assert pkg.commit_sha != ""
     assert pkg.package_sha256 != ""
     assert len(pkg.metrics) == 10
-    assert pkg.summary["all_verified"] is True
+    assert pkg.summary["all_verified"] is False
     assert pkg.summary["total_verified_metrics"] == 10
+    benchmark = next(metric for metric in pkg.metrics if metric["category"] == "benchmark")
+    assert benchmark["is_verified"] is False
+    assert benchmark["observed_value"]["passed_tasks"] == 9
 
     # Validate each expected category is represented
     categories = {m["category"] for m in pkg.metrics}

@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from pathlib import Path
@@ -89,22 +90,26 @@ def assert_clean(text):
 
 
 @pytest.mark.asyncio
-async def test_agent_run_command_does_not_pass_secrets_to_the_command(tmp_path, secrets_in_env):
+async def test_agent_run_command_without_verified_isolation_does_not_start(tmp_path, secrets_in_env):
     agent = AutonomousAgentLoop("t", WorkspaceFilesystem(str(tmp_path)), policy=AutonomyPolicy.AUTONOMOUS, record_flight=False)
     res = await agent.execute_tool("run_command", {"command": "env"})
-    assert res["status"] == "success"
-    assert_clean(res["result"]["stdout"])
-    assert res["result"]["env_scrubbed_count"] >= 3
+    assert res["status"] == "error"
+    assert "unavailable" in res["error"].lower()
+    assert "stdout" not in res
     shell = await agent.execute_tool("run_command", {"command": "echo $ANTHROPIC_API_KEY-end; echo $PATH"})
-    assert shell["result"]["stdout"].splitlines()[0] == "-end" and shell["result"]["stdout"].splitlines()[1]  # PATH still works
+    assert shell["status"] == "error"
+    assert SECRET_VALUE not in json.dumps(shell)
 
 
 @pytest.mark.asyncio
-async def test_agent_run_command_honours_the_operator_passthrough(tmp_path, secrets_in_env, monkeypatch):
+async def test_agent_run_command_passthrough_cannot_reach_a_host_shell(tmp_path, secrets_in_env, monkeypatch):
     monkeypatch.setenv(PASSTHROUGH_VAR, "GITHUB_TOKEN")
     agent = AutonomousAgentLoop("t", WorkspaceFilesystem(str(tmp_path)), policy=AutonomyPolicy.AUTONOMOUS, record_flight=False)
-    out = (await agent.execute_tool("run_command", {"command": "env"}))["result"]["stdout"]
-    assert "ghp_" + "b" * 36 in out and SECRET_VALUE not in out
+    res = await agent.execute_tool("run_command", {"command": "env"})
+    text = json.dumps(res)
+    assert res["status"] == "error"
+    assert "unavailable" in res["error"].lower()
+    assert "ghp_" + "b" * 36 not in text and SECRET_VALUE not in text
 
 
 @pytest.mark.asyncio

@@ -8,8 +8,9 @@ import datetime
 import uuid
 from typing import Any, Dict, Optional, Tuple
 
-from keelway.approvals.quorum import TwoHumanQuorumService
-from keelway.approvals.service import ApprovalDecision, ApprovalService
+from keelway.approvals.quorum import QUORUM_SECRET_KEY, TwoHumanQuorumService
+from keelway.approvals.service import APPROVAL_SECRET_KEY, ApprovalDecision, ApprovalService
+from keelway.security.source_defaults import configured_signing_key
 from keelway.audit.recorder import AuditRecorder
 from keelway.audit.store import SQLiteAuditStore
 from keelway.core.models import (
@@ -62,8 +63,12 @@ class GovernedRunCoordinator:
         self.workspace = WorkspaceManager(repo_path=self.repo_path)
         self.models = ModelGateway()
         self.evals = EvalEngine()
-        self.approvals = ApprovalService()
-        self.quorum = TwoHumanQuorumService()
+        self.approvals = ApprovalService(
+            signing_key=configured_signing_key("KEELWAY_APPROVAL_SIGNING_KEY", APPROVAL_SECRET_KEY)
+        )
+        self.quorum = TwoHumanQuorumService(
+            signing_key=configured_signing_key("KEELWAY_QUORUM_SIGNING_KEY", QUORUM_SECRET_KEY)
+        )
         self.git_ci = GitCIService(self.approvals)
 
         # Track active quorum request if applicable

@@ -9,7 +9,7 @@ from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
 
 class TestGlobalPaymentBroker(unittest.TestCase):
     def setUp(self):
-        self.broker = GlobalPaymentBroker()
+        self.broker = GlobalPaymentBroker(broker_secret="package-c-explicit-payment-fixture-secret")
 
     def test_mpesa_daraja_intent_creation(self):
         intent = self.broker.create_intent(

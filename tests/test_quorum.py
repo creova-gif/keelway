@@ -3,9 +3,11 @@ Validates multi-role separation of duties, self-quorum prohibition, and agent re
 """
 from keelway.approvals.quorum import TwoHumanQuorumService
 
+_FIXTURE_KEY = b"package-c-explicit-quorum-fixture-key"
+
 
 def test_quorum_happy_path_both_distinct_humans_approve():
-    service = TwoHumanQuorumService()
+    service = TwoHumanQuorumService(signing_key=_FIXTURE_KEY)
     patch_hash = "sha256:production_patch_abc123"
 
     req = service.create_quorum_request(
@@ -43,7 +45,7 @@ def test_quorum_happy_path_both_distinct_humans_approve():
 
 
 def test_quorum_prohibits_same_person_satisfying_both_roles():
-    service = TwoHumanQuorumService()
+    service = TwoHumanQuorumService(signing_key=_FIXTURE_KEY)
     patch_hash = "sha256:patch_02"
     req = service.create_quorum_request(run_id="run_prod_02", patch_hash=patch_hash)
 
@@ -70,7 +72,7 @@ def test_quorum_prohibits_same_person_satisfying_both_roles():
 
 
 def test_quorum_rejects_agent_or_bot_identities():
-    service = TwoHumanQuorumService()
+    service = TwoHumanQuorumService(signing_key=_FIXTURE_KEY)
     patch_hash = "sha256:patch_03"
     req = service.create_quorum_request(run_id="run_prod_03", patch_hash=patch_hash)
 
@@ -86,7 +88,7 @@ def test_quorum_rejects_agent_or_bot_identities():
 
 
 def test_quorum_invalidates_if_patch_mutates_mid_review():
-    service = TwoHumanQuorumService()
+    service = TwoHumanQuorumService(signing_key=_FIXTURE_KEY)
     patch_hash = "sha256:original_hash"
     req = service.create_quorum_request(run_id="run_prod_04", patch_hash=patch_hash)
 

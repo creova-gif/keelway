@@ -24,7 +24,7 @@ def test_github_webhook_signature_verification():
 
 
 def test_github_webhook_event_processing():
-    handler = GitHubAppWebhookHandler()
+    handler = GitHubAppWebhookHandler(webhook_secret="package-c-explicit-webhook-fixture")
 
     # 1. PR Merged Event
     pr_payload = {
@@ -68,16 +68,14 @@ def test_github_webhook_api_endpoint():
     payload_bytes = json.dumps(payload_dict).encode("utf-8")
     sig = "sha256=" + hmac.new(secret.encode("utf-8"), payload_bytes, hashlib.sha256).hexdigest()
 
-    # 1. Valid signature
+    # The published source-default secret must not verify, even with a matching HMAC.
     res = client.post(
         "/v1/webhooks/github",
         content=payload_bytes,
         headers={"X-Hub-Signature-256": sig, "X-GitHub-Event": "pull_request"},
     )
-    assert res.status_code == 200
-    data = res.json()
-    assert data["verified"] is True
-    assert data["event_kind"] == "PR_MERGED"
+    assert res.status_code == 401
+    assert res.json()["detail"] == "Invalid HMAC-SHA256 signature"
 
     # 2. Invalid signature
     res_bad = client.post(

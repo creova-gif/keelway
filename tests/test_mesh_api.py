@@ -69,7 +69,8 @@ async def test_mesh_api_lifecycle(owner_headers):
 
 
 @pytest.mark.asyncio
-async def test_agent_run_quorum_api(owner_headers):
+async def test_agent_run_quorum_api(owner_headers, monkeypatch):
+    monkeypatch.setenv("KEELWAY_QUORUM_SIGNING_KEY", "package-c-explicit-quorum-fixture-key")
     tid = f"api_prod_task_{time.time_ns()}"
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

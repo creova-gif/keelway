@@ -11,6 +11,8 @@ import uuid
 from typing import Dict, List, Optional, Set, Tuple
 from pydantic import BaseModel, Field
 
+from keelway.security.source_defaults import InsecureDefaultConfiguration, is_source_default
+
 QUORUM_SECRET_KEY = b"keelway_quorum_signing_secret_v1"
 
 REQUIRED_PRODUCTION_ROLES = {"Security Lead", "Platform Owner"}
@@ -104,6 +106,8 @@ class TwoHumanQuorumService:
         environment: str,
     ) -> str:
         """Generates cryptographic proof bound to the exact patch, principal, role, and env."""
+        if is_source_default(self.signing_key):
+            raise InsecureDefaultConfiguration("source-default signing configuration is refused")
         msg = f"{request_id}:{run_id}:{patch_hash}:{principal_id}:{role}:{environment}"
         return hmac.new(self.signing_key, msg.encode("utf-8"), hashlib.sha256).hexdigest()
 
@@ -115,6 +119,8 @@ class TwoHumanQuorumService:
         current_patch_hash: str,
     ) -> Tuple[bool, str]:
         """Submits an approval from one human for one role."""
+        if is_source_default(self.signing_key):
+            return False, "ERR_SOURCE_DEFAULT_SIGNING_KEY_REFUSED"
         req = self._requests.get(request_id)
         if not req:
             return False, "ERR_QUORUM_REQUEST_NOT_FOUND"

@@ -9,8 +9,14 @@ from keelway.core.models import RunStatus
 from keelway.core.runner import GovernedRunCoordinator
 
 
+def _explicit_signing_env():
+    os.environ["KEELWAY_APPROVAL_SIGNING_KEY"] = "package-c-explicit-approval-fixture-key"
+    os.environ["KEELWAY_QUORUM_SIGNING_KEY"] = "package-c-explicit-quorum-fixture-key"
+
+
 def test_end_to_end_governed_run_coordinator():
     # Run the coordinator against current directory
+    _explicit_signing_env()
     coord = GovernedRunCoordinator(
         org_id="org_sorvex_e2e",
         project_id="proj_governance",
@@ -66,6 +72,7 @@ def test_end_to_end_governed_run_coordinator():
 
 
 def test_fastapi_rest_endpoints():
+    _explicit_signing_env()
     client = TestClient(app)
 
     # 1. Health/Index dashboard check

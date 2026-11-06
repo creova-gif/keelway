@@ -64,7 +64,7 @@ async def test_agent_loop_two_human_quorum_lifecycle(tmp_path):
     fs.write_file("main.py", "print('hello v1')\n")
 
     policy_engine = PolicyEngine()
-    quorum_service = TwoHumanQuorumService()
+    quorum_service = TwoHumanQuorumService(signing_key=b"package-c-explicit-quorum-fixture-key")
 
     agent = AutonomousAgentLoop(
         task_id="task_prod_quorum_01",
