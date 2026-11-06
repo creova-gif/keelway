@@ -63,7 +63,7 @@
         <span class="pill muted mono">Stage 7 of 10</span>
       </div>
       <h3>Write <code>src/billing/retry.py</code></h3>
-      <p class="meta">Tool <code>edit_file</code> · model qwen2.5-coder:7b (local) · cost $0.00 · network: zero egress</p>
+      <p class="meta">Illustration. The figure names <code>edit_file</code>. It does not show a price or a network measurement.</p>
 <pre class="diff mono" aria-label="Proposed change"><span class="ctx">  def apply_discount(price_cents: int, percent: int) -> int:</span>
 <span class="del">-     return price_cents - percent</span>
 <span class="add">+     return round(price_cents * (100 - percent) / 100)</span></pre>
@@ -80,18 +80,18 @@
   <section id="features" aria-labelledby="features-h">
     <a id="promises"></a>
     <div class="wrap">
-      <h2 id="features-h">The Three Non-Negotiable Invariants</h2>
-      <p class="sub">The cards below are descriptive copy from this repository. This page does not certify that a given commit enforces them.</p>
+      <h2 id="features-h">Three short descriptions</h2>
+      <p class="sub">These cards name areas of the tree. They do not state a price, a network result, or a seal from a run.</p>
       <div class="grid">
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <h3>1. Own Your Execution</h3>
-          <p>Choose local models as your private default with zero external token billing. High-privilege actions, mutating tools, and outbound egress require explicit action-specific authorization.</p>
+          <p>Local model adapter code is in the tree. This card does not state a token price or an egress result.</p>
         </article>
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           <h3>2. Know What Changed</h3>
-          <p>Review real unified diffs and test output before code is committed. Cryptographically sealed flight tapes record exact model prompts, durations, tool calls, and stdout/stderr.</p>
+          <p>Diff views exist in Studio. This card does not state that a tape from a run is on disk.</p>
         </article>
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -125,7 +125,8 @@
 [+] Formulated 3 execution steps:
     1. read_file("pricing.py") -> extract discount calculation
     2. edit_file("pricing.py") -> calculate round(price_cents * (100 - percent) / 100)
-    3. run_command("python3 -m unittest -q test_pricing.py") -> verify zero regressions</pre>
+    3. run_command
+This pane is page text. It is not a recorded plan.</pre>
         </div>
 
         <div id="step-content-approve" class="stepper-content mono" style="display: none;">
@@ -135,7 +136,7 @@
     Diff: - return price_cents - percent
           + return round(price_cents * (100 - percent) / 100)
 [?] Grant permission to apply changes? [Allow Once / Deny / Standing Rule]
-    -> Human Decision: APPROVED (Principal: local-engineer, Timestamp: 2026-11-03T21:22:46Z)</pre>
+This pane is page text. It does not record an approval.</pre>
         </div>
 
         <div id="step-content-patch" class="stepper-content mono" style="display: none;">
@@ -170,9 +171,9 @@ index c1cad50..45324c4 100644
       <p class="sub">The panels below are descriptive copy. The terminal blocks are not captured sessions and do not report measurements.</p>
       
       <div class="privacy-nav">
-        <button type="button" class="privacy-btn active" data-privacy="local">Local-First ($0.00 Token Charge)</button>
+        <button type="button" class="privacy-btn active" data-privacy="local">Local adapter</button>
         <button type="button" class="privacy-btn" data-privacy="byok">BYOK &amp; Cloud Frontier</button>
-        <button type="button" class="privacy-btn" data-privacy="airgap">Air-Gapped (Zero Egress)</button>
+        <button type="button" class="privacy-btn" data-privacy="airgap">Air-gap flag</button>
         <button type="button" class="privacy-btn" data-privacy="runner">Customer Outbound VPC Runner</button>
       </div>
 
@@ -194,20 +195,11 @@ Developer CLI, from a clone: python3 cli.py models --help</pre>
         <div class="grid two">
           <div>
             <h3>Bring Your Own Keys (BYOK)</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Connect approved cloud providers (Anthropic, OpenAI, Google) when complex reasoning demands frontier capabilities. Every request is scrubbed of credentials, bounded by per-task budgets, and displays an explicit routing justification.</p>
-            <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li>✓ <strong>Cost Gating:</strong> Hard spending caps per task (e.g. max $0.50)</li>
-              <li>✓ <strong>Secret Scrubbing:</strong> Automatic DLP secret redaction before transmission</li>
-              <li>✓ <strong>Routing Rationale:</strong> Transparent reason logged for every cloud escalation</li>
-            </ul>
+            <p style="color: var(--muted); margin-bottom: 16px;">Cloud adapters for Anthropic, OpenAI, and Gemini are in the tree. This panel does not state a spend cap, a scrub result, or a routing log from a request.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">gateway config</span></div>
-            <pre class="mono"><span class="c"># Bounded Cloud Escalation</span>
-max_cost_usd: 0.25
-preferred_provider: anthropic
-required_capabilities: ["complex_reasoning"]
-routing_reason: "Escalated to Claude 3.5 Sonnet for multi-file AST refactor"</pre>
+            <pre class="mono">No spend figure is shown here.</pre>
           </div>
         </div>
       </div>
@@ -216,7 +208,7 @@ routing_reason: "Escalated to Claude 3.5 Sonnet for multi-file AST refactor"</pr
         <div class="grid two">
           <div>
             <h3>Strict Air-Gapped Mode</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Studio has an air-gap flag on the local API. <code>python3 cli.py dev</code> prints the startup state of that flag. This page does not certify host-socket isolation. Package C owns fail-closed command and default-config behavior, and this copy does not describe that work as already present.</p>
+            <p style="color: var(--muted); margin-bottom: 16px;"><code>python3 cli.py dev</code> prints this fixed line on startup: <code>Air-Gap: off (cloud providers allowed; use keelway chat --air-gapped for local-only)</code>. The print does not read <code>gateway.air_gap.enabled</code>. <code>core/models/gateway.py</code> builds <code>AirGapEnforcer(enabled=False)</code> unless the caller passes another enforcer. <code>python3 cli.py chat --help</code> lists <code>--air-gapped</code>. Package C's fail-closed work is not described here as present.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
@@ -230,12 +222,7 @@ Related developer command: python3 cli.py chat --help</pre>
         <div class="grid two">
           <div>
             <h3>Customer-Owned Outbound VPC Runner</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Run agent execution inside your private corporate network without opening inbound firewall ports. Runner daemons connect strictly outbound over HTTPS using time-bound HMAC-SHA256 tokens.</p>
-            <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li>✓ <strong>Security Architecture:</strong> Outbound-only polling (no ingress ports)</li>
-              <li>✓ <strong>Tenancy Isolation:</strong> Strict organization boundaries and replay protection</li>
-              <li>✓ <strong>Zero Cloud Source Code Storage:</strong> Code stays on your private nodes</li>
-            </ul>
+            <p style="color: var(--muted); margin-bottom: 16px;">Runner code is under <code>keelway/runner</code>. This panel does not state a firewall result, a token check, or where source bytes are stored.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
@@ -280,7 +267,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
     <a id="pricing"></a>
     <div class="wrap">
       <div style="margin-bottom: 32px;">
-        <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Zero-Telemetry · Local-First Runtime</span>
+        <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Commands from a clone</span>
         <h2 id="qs-h" style="margin-top: 6px;">Developer Quickstart &amp; Early Access</h2>
         <p class="sub" style="margin-bottom: 0;">Install from a clone of <code>creova-gif/kora</code>. The directory name is <code>kora</code>. These steps do not use a PyPI package named keelway, and they do not use a keelway.dev installer.</p>
       </div>
@@ -339,7 +326,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
               <span class="pill muted mono">Contact form stays in the browser</span>
             </div>
             <h3 style="font-size: 20px; margin: 0 0 8px;">Early Access &amp; Enterprise Fleets</h3>
-            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Deploy sovereign agent governance across your organization. Policy flows down, hashes flow up, and source code never leaves your VPC boundary.</p>
+            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">The form below stays in the browser. This card does not state that source bytes remain inside a VPC.</p>
 
             <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 10px;">
               <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Customer Outbound VPC Runners:</strong> Zero inbound firewall ports, outbound HTTPS polling with HMAC-SHA256 tokens.</span></li>
@@ -383,7 +370,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="bench" role="tab" aria-selected="false">keelway bench</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="m1" role="tab" aria-selected="false">keelway m1</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="sbom" role="tab" aria-selected="false">keelway sbom verify</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="spec" role="tab" aria-selected="false">keelway spec</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="spec" role="tab" aria-selected="false">python3 cli.py spec</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="entitlements" role="tab" aria-selected="false">keelway entitlements</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="tier2" role="tab" aria-selected="false">keelway tier2</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="doctor" role="tab" aria-selected="false">keelway doctor</button>
@@ -398,12 +385,12 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="hubpack" role="tab" aria-selected="false">keelway hub pack</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="conflict" role="tab" aria-selected="false">keelway space conflict</button>
           <button type="button" class="term-tab-btn stepper-btn" data-cmd="spool" role="tab" aria-selected="false">keelway runner spool</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="speculative" role="tab" aria-selected="false">keelway models bench-speculative</button>
+          <button type="button" class="term-tab-btn stepper-btn" data-cmd="speculative" role="tab" aria-selected="false">python3 cli.py models bench-speculative</button>
         </div>
 
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
           <div class="bar">
-            <span class="mono" id="term-active-prompt">$ keelway evidence summary</span>
+            <span class="mono" id="term-active-prompt">python3 cli.py evidence --help</span>
             <span class="pill muted" style="padding: 2px 8px; font-size: 11px;">Label only</span>
           </div>
           <pre class="mono" id="term-playground-output" style="max-height: 440px; overflow-y: auto; color: var(--fg);"></pre>
@@ -564,7 +551,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           </div>
           <div class="form-row" style="display: flex; align-items: flex-start; gap: 8px;">
             <input type="checkbox" id="consent" required style="margin-top: 4px;">
-            <label for="consent" class="form-hint" style="margin: 0;">I consent to receiving private preview releases from Sorvex Labs. Zero unsolicited telemetry is captured.</label>
+            <label for="consent" class="form-hint" style="margin: 0;">The handler on this page does not submit the form.</label>
           </div>
           <button type="submit" class="btn primary" style="width: 100%; justify-content: center; margin-top: 12px;">Submit Request</button>
           <div id="form-feedback" class="pill teal" style="display: none; text-align: center; margin-top: 14px; padding: 10px;">
@@ -579,7 +566,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
 <footer>
   <div class="wrap">
     <span>&copy; 2026 Sorvex Labs. Keelway by Sorvex Labs.</span>
-    <span>Zero third-party trackers. Zero unsolicited code telemetry.</span>
+    <span>This document requests a stylesheet from fonts.googleapis.com.</span>
   </div>
 </footer>
 
@@ -616,7 +603,7 @@ var TERM_LABELS = {
   bench: "python3 cli.py bench --help",
   m1: "python3 cli.py m1 --help",
   sbom: "python3 cli.py sbom --help",
-  spec: "python3 cli.py models bench-speculative --help",
+  spec: "python3 cli.py spec --help",
   entitlements: "python3 cli.py entitlements --help",
   tier2: "python3 cli.py tier2 --help",
   doctor: "python3 cli.py doctor --help",

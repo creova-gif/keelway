@@ -27,7 +27,7 @@ Package B owns runtime labels in the studio, evidence room, mesh, and chat. Pack
 
 `vercel.json` sets `outputDirectory` to `website` and leaves the install and build commands empty. The static site does not start Studio or the governance server.
 
-The container `ENTRYPOINT` is `python -m keelway.cli.main serve`. The image copies the `keelway/` package. It does not copy `cli.py` or `core/studio`.
+The `Dockerfile` `ENTRYPOINT` is `python3 -m keelway.cli.main serve --host 0.0.0.0 --port 8000`. That process binds `0.0.0.0`. Local `make serve` is a different command: `python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000`. The image copies `pyproject.toml` and `keelway/`. It does not copy `cli.py` or `core/studio`.
 
 ## Install from this repository
 

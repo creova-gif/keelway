@@ -132,18 +132,21 @@ $ python3 cli.py build templates</pre>
 
     <!-- 4. DETERMINISTIC STATE MACHINE -->
     <section id="state-machine">
-      <h2>4. Deterministic State Engine &amp; Cancellation</h2>
-      <p>State names in <code>core/orchestration/state.py</code> include the sequence below. This page does not certify that every Studio path uses that sequence, and package B owns the runtime labels.</p>
-      <div class="callout">
-        <p class="mono">CREATED ➔ CONTEXT_READY ➔ PLANNED ➔ AWAITING_APPROVAL ➔ RUNNING ➔ VERIFYING ➔ COMPLETED</p>
-      </div>
-      <p>Operators can cancel long-running agent tasks at any point via <code>POST /v1/tasks/{task_id}/cancel</code> or pressing <code>Ctrl+C</code> in the CLI. In-flight operations roll back safely without leaving partial hunks.</p>
+      <h2>4. TaskState names and two different HTTP routes</h2>
+      <p><code>TaskState</code> in <code>core/orchestration/state.py</code> has 16 members: CREATED, CONTEXT_LOADING, PLANNING, PLANNED, PLAN_READY, AWAITING_APPROVAL, RUNNING, EXECUTING, VERIFYING, PAUSED, BLOCKED, AWAITING_RETRY, TIMED_OUT, COMPLETED, FAILED, and CANCELLED. <code>CONTEXT_READY</code> is not a member. The file also holds a transition map. This page does not walk that map, and the Studio agent loop described below does not reference <code>TaskState</code>.</p>
+      <p>A search of the Python tree does not find a route <code>POST /v1/tasks/{task_id}/cancel</code>. Two routes that do exist are different from each other:</p>
+      <ul>
+        <li><code>POST /v1/tasks/{task_id}/transition</code> in <code>core/api/routes.py</code> requires <code>Permission.EXECUTE_AGENT</code>. The body field is <code>target_state</code>. The handler calls <code>validate_transition</code>. If the stored state is <code>AWAITING_APPROVAL</code> and the target is <code>RUNNING</code>, it also requires <code>Permission.APPROVE_TIER3</code>. It then writes the new state on the task row. The handler that was read does not restore file bytes.</li>
+        <li><code>POST /v1/agent/cancel/{task_id}</code> requires <code>Permission.EXECUTE_AGENT</code>. If the id is absent from the process dict of active loops, the handler returns 404. <code>AutonomousAgentLoop.cancel</code> terminates <code>active_proc</code> when that process is still running, clears a pending approval, sets the loop status to cancelled, and marks the running step failed. That function does not restore file bytes.</li>
+      </ul>
+      <p>This page does not describe a keyboard interrupt, and it does not describe a rollback of edits already written.</p>
     </section>
 
     <!-- 5. FLIGHT RECORDER -->
     <section id="flight-recorder">
-      <h2>5. Flight Tapes &amp; Time-Travel Debugging</h2>
-      <p>Every agent step, AST transformation, tool invocation, and terminal execution is recorded chronologically in an immutable <code>.flight.json</code> tape. The Studio interface features a deterministic flight replay visualizer with frame stepping (<code>⏮</code>, <code>◀</code>, <code>▶</code>, <code>⏭</code>), syntax-highlighted diffs, and live cryptographic seal verification.</p>
+      <h2>5. Flight recorder module</h2>
+      <p>Sections 5 and 8 through 12, and section 14, name modules and commands that are in this checkout. They were not executed while this page was edited, so they are not a run report. Where a sentence below was checked against source, the check is written in that sentence. Section 13 already says the hardware layer is a simulation.</p>
+      <p>Flight-recorder code lives under <code>core/orchestration/flight_recorder.py</code>. This paragraph does not say that every tool call was written to a tape.</p>
     </section>
 
     <!-- 6. DUAL-MODE SOVEREIGN ARCHITECTURE -->
@@ -153,7 +156,7 @@ $ python3 cli.py build templates</pre>
       <ul>
         <li><strong>IDE Mode:</strong> Studio is the local process started with <code>python3 cli.py dev</code>. In the current tree, <code>AutonomousAgentLoop.formulate_plan</code> selects a fixed step list from keywords in the goal. That path is not documented here as a model-backed agent. Package B owns runtime labels for it, and this page does not certify a B checkpoint.</li>
         <li><strong>Agent Builder Mode:</strong> Builder modules and tests are in the tree. This page does not report a build receipt or a test result for them.</li>
-        <li><strong>Shared Runtime Invariant:</strong> Both modes execute through the exact same 12-state deterministic coordinator (<code>core/orchestration/state.py</code>) and policy enforcement boundaries (<code>core/agents/guard.py</code>), preventing dual-engine drift.</li>
+        <li><strong>Not one shared enum:</strong> <code>AutonomousAgentLoop</code> does not reference <code>TaskState</code>. <code>core/agents/</code> does not import <code>core.orchestration.state</code>. Other modules, including the task transition route, do use the enum. This page does not describe one coordinator shared by the Studio loop and that enum.</li>
       </ul>
       <div class="card term">
         <div class="bar"><span class="mono">bash</span></div>
@@ -167,16 +170,14 @@ $ python3 cli.py agent import dist/test-fixer.tar.gz --out agents/test-fixer
     <!-- 7. UNIFIED PROOF STRIP UX -->
     <section id="proof-strip">
       <h2>7. Unified 6-Stage Proof Strip UX</h2>
-      <p>The Proof Strip markup lives in <code>core/studio/assets/studio.js</code>. Package B owns runtime labels in that file. The stage names below are page copy. This page does not certify them from a run, and it does not report a test result.</p>
+      <p>Stage names below are labels on this page. Package B owns the strings in <code>core/studio/assets/studio.js</code>. This page does not report a run of that file.</p>
       <ul>
-        <li><strong>1. INSPECT:</strong> Copy for the inspect stage in the Studio proof strip. This page does not report an air-gap or egress result.</li>
-        <li><strong>2. PLAN:</strong> Constructs bounded execution graphs with deterministic step limits and model routing.</li>
-        <li><strong>3. AUTHORIZE:</strong> Enforces permission boundaries, 2-human quorum rules, and human approvals; pending actions surface high-contrast amber alert states (<code>△</code>).</li>
-        <li><strong>4. EXECUTE:</strong> Executes sandboxed tools, tracks file mutations, and computes unified diff statistics.</li>
-        <li><strong>5. VERIFY:</strong> Executes automated test suites (e.g. <code>pytest</code>); verifies exit code 0 and assertion logs (non-zero exits immediately trigger <code>FAILED ✕</code>).</li>
-        <li><strong>6. SEAL:</strong> Computes Merkle inclusion roots and cryptographically signs tamper-evident SHA-256 flight-tape bundles. Tampered records flag instant failure.</li>
+        <li><strong>PLAN:</strong> On the default Studio path, <code>formulate_plan</code> chooses a fixed step list from keywords in the goal. That function does not call a model.</li>
+        <li><strong>AUTHORIZE:</strong> <code>POST /v1/agent/run</code> builds a quorum service only when the payload sets <code>environment</code> to <code>production</code> or sets <code>quorum</code>. This page does not say which payload a visitor sends.</li>
+        <li><strong>EXECUTE:</strong> The default <code>AutonomousAgentLoop</code> constructed for a run without a manifest leaves <code>command_runner</code> unset. <code>run_command</code> then calls <code>subprocess.Popen</code> with <code>shell=True</code> and the workspace directory as <code>cwd</code>. <code>loop_from_manifest</code> assigns <code>command_runner</code> only when the manifest includes <code>run_command</code>, <code>sandbox</code> is <code>worktree</code>, and <code>Sandbox.require_verified()</code> succeeds. Package C's intended refusal of host commands is not described here as code that is already on this branch.</li>
+        <li><strong>VERIFY and SEAL:</strong> Those words are labels on this page. This edit did not trace them to an exit code or a signature from a run.</li>
       </ul>
-      <p>The Proof Strip complies with W3C ARIA tablist/tab accessibility patterns, offering keyboard cyclic navigation (<code>ArrowRight</code>, <code>ArrowLeft</code>, <code>Home</code>, <code>End</code>), interactive proof drawer expansion (<code>Enter</code>/<code>Space</code>), and instant dismissal (<code>Escape</code>).</p>
+      <p>Keyboard behavior of the strip was not re-checked for this edit.</p>
     </section>
 
     <!-- 8. KSTACK -->
@@ -189,7 +190,7 @@ $ python3 cli.py agent import dist/test-fixer.tar.gz --out agents/test-fixer
         <li><code>kstack/qa</code> (Role: QA Lead) — Surfaces test plans, boundary conditions, and test execution.</li>
         <li><code>kstack/security</code> (Role: Security Lead) — Checks threat models, input validation, and credential leaks.</li>
       </ul>
-      <p>Manage skills using <code>keelway skill inspect|import|validate|list|pin|export|revoke</code>.</p>
+      <p>The <code>skill</code> subparsers on <code>cli.py</code> are <code>list</code>, <code>inspect</code>, <code>validate</code>, <code>import</code>, <code>export</code>, and <code>revoke</code>. There is no <code>pin</code> subparser. From a clone: <code>python3 cli.py skill --help</code>. The four <code>SKILL.md</code> files under <code>core/kstack/skills/</code> are plan, review, qa, and security. The role sentences above were not executed as a run.</p>
     </section>
 
     <!-- 9. KBRAIN -->
@@ -231,7 +232,7 @@ $ python3 cli.py agent import dist/test-fixer.tar.gz --out agents/test-fixer
     <!-- 14. SOVEREIGN ECONOMICS -->
     <section id="economics">
       <h2>14. Sovereign Economics &amp; Rate Cards</h2>
-      <p>Track token expenditure in real time with <code>keelway cost</code>. Keelway incorporates rate cards across Anthropic, OpenAI, Google, DeepSeek, and local inference engines, automatically calculating your local GPU arbitrage ROI and Sovereign Efficiency Index (SEI) score.</p>
+      <p><code>python3 cli.py cost --help</code> is a real developer-CLI subcommand. This paragraph does not include that command's output and does not state an ROI figure.</p>
     </section>
   </article>
 </main>
