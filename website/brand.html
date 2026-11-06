@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keelway interface identity</title>
+<meta name="description" content="Mark, color, type, and controls for the Keelway public marketing interface.">
+<link rel="canonical" href="https://kora-sable.vercel.app/brand.html">
+<meta name="theme-color" content="#0B0F14">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Keelway home">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <span>Keelway <small>by Sorvex Labs</small></span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href="index.html">Overview</a>
+      <a href="docs.html">Documentation</a>
+      <a href="api.html">API Reference</a>
+      <a href="#mark">Identity</a>
+    </nav>
+    <a class="btn primary" href="index.html#quickstart">Quickstart</a>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap kit-hero">
+    <div>
+      <h1>Keelway interface identity</h1>
+      <p class="lede">The public marketing pages use one mark, two color schemes, and the controls already on the site. This page is the reference for those parts.</p>
+    </div>
+    <svg class="kit-mark" viewBox="0 0 48 48" role="img" aria-label="Keelway mark"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+  </div>
+
+  <section id="mark">
+    <div class="wrap">
+      <h2>Mark</h2>
+      <p class="sub">The mark is the square in <code>favicon.svg</code>. The tile is <code>#2DD4BF</code>. The strokes stay <code>#0B0F14</code>. The header sets the same drawing at 30px beside the wordmark.</p>
+      <div class="kit-panels">
+        <div class="card kit-panel dark">
+          <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <p><strong>Keelway</strong> <span style="color:#9AA7B4">by Sorvex Labs</span></p>
+        </div>
+        <div class="card kit-panel light">
+          <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <p><strong>Keelway</strong> <span style="color:#4A5866">by Sorvex Labs</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="color">
+    <div class="wrap">
+      <h2>Color</h2>
+      <p class="sub">Dark is the primary scheme in the interface specification. Light follows the system setting. Teal is the action and accent. Amber is a waiting decision. Red is a removed line or a fault. Names below are the tokens in <code>styles.css</code>.</p>
+      <h3>Dark</h3>
+      <div class="kit-grid">
+        <figure><div class="swatch" style="background:#0B0F14"></div><figcaption><b>--bg #0B0F14</b> Canvas</figcaption></figure>
+        <figure><div class="swatch" style="background:#111821"></div><figcaption><b>--surface #111821</b> Cards</figcaption></figure>
+        <figure><div class="swatch" style="background:#17202B"></div><figcaption><b>--surface-2 #17202B</b> Raised fills</figcaption></figure>
+        <figure><div class="swatch" style="background:#E6EDF3"></div><figcaption><b>--fg #E6EDF3</b> Primary text</figcaption></figure>
+        <figure><div class="swatch" style="background:#9AA7B4"></div><figcaption><b>--muted #9AA7B4</b> Secondary text</figcaption></figure>
+        <figure><div class="swatch" style="background:#2DD4BF"></div><figcaption><b>--teal #2DD4BF</b> Accent, ink #06201C</figcaption></figure>
+        <figure><div class="swatch" style="background:#F5B547"></div><figcaption><b>--amber #F5B547</b> Waiting, ink #2A1C02</figcaption></figure>
+        <figure><div class="swatch" style="background:#F87171"></div><figcaption><b>--red #F87171</b> Fault or deletion</figcaption></figure>
+      </div>
+      <h3>Light</h3>
+      <div class="kit-grid">
+        <figure><div class="swatch" style="background:#F7F9FB"></div><figcaption><b>--bg #F7F9FB</b> Canvas</figcaption></figure>
+        <figure><div class="swatch" style="background:#FFFFFF"></div><figcaption><b>--surface #FFFFFF</b> Cards</figcaption></figure>
+        <figure><div class="swatch" style="background:#0B0F14"></div><figcaption><b>--fg #0B0F14</b> Primary text</figcaption></figure>
+        <figure><div class="swatch" style="background:#4A5866"></div><figcaption><b>--muted #4A5866</b> Secondary text</figcaption></figure>
+        <figure><div class="swatch" style="background:#0F766E"></div><figcaption><b>--teal #0F766E</b> Accent, ink #FFFFFF</figcaption></figure>
+        <figure><div class="swatch" style="background:#B45309"></div><figcaption><b>--amber #B45309</b> Waiting, ink #FFFFFF</figcaption></figure>
+        <figure><div class="swatch" style="background:#6F2C0A"></div><figcaption><b>Chip ink #6F2C0A</b> Amber chip text</figcaption></figure>
+        <figure><div class="swatch" style="background:#0B534E"></div><figcaption><b>Chip ink #0B534E</b> Teal chip text</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="type">
+    <div class="wrap">
+      <h2>Type</h2>
+      <p class="sub">Marketing UI text is Instrument Sans, then Inter, then the system sans. Code is DM Mono, then JetBrains Mono. Status chips use JetBrains Mono. The studio specification names Inter as the interface face. These pages keep the faces already loaded.</p>
+      <p class="specimen">Build with agents.</p>
+      <p class="specimen section">Section title</p>
+      <p class="specimen body">Body text stays in a measure near seventy characters. Secondary sentences use the muted color at 16px, which is the size of the section introduction.</p>
+      <p class="specimen mono">edit_file · src/billing/retry.py</p>
+    </div>
+  </section>
+
+  <section id="controls">
+    <div class="wrap">
+      <h2>Controls</h2>
+      <p class="sub">Buttons, links, and fields keep a 44px box. Keyboard focus is a 2px teal ring, 3px outside the control. Placeholder text uses the muted color.</p>
+      <div class="kit-row">
+        <a class="btn primary" href="#controls">Primary action</a>
+        <a class="btn" href="#type">Secondary action</a>
+        <span class="pill amber">Needs your decision</span>
+        <span class="pill teal">Local</span>
+        <span class="pill muted">Stage</span>
+      </div>
+      <div class="form-box kit-field">
+        <label class="form-label" for="kit-email">Work email</label>
+        <input id="kit-email" class="form-input" type="email" placeholder="name@company.com" autocomplete="off">
+        <p class="form-hint">Example field. It does not send.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="motion">
+    <div class="wrap">
+      <h2>Motion</h2>
+      <p class="sub">Hover changes a border or a text color. Pressed buttons settle by a hundredth of their size. When the system asks for reduced motion, transitions, animations, and smooth scrolling turn off.</p>
+    </div>
+  </section>
+
+  <section id="rules">
+    <div class="wrap">
+      <h2>Use</h2>
+      <div class="grid two">
+        <article class="card feat">
+          <h3>Keep</h3>
+          <p>The teal square and the #0B0F14 strokes. The wordmark “Keelway” with “by Sorvex Labs”. Dark and light from the tokens above. Code in a monospace face, inside a scroller when the line is wider than the column. Primary navigation visible at phone width, wrapped onto its own row.</p>
+        </article>
+        <article class="card feat">
+          <h3>Leave alone</h3>
+          <p>A second logo, a renamed product, or a new color for the mark. Status and install sentences on the other pages. Hiding Features, Documentation, or API Reference below 820px. An 11px teal or amber label on a faint chip of the same hue.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Keelway by Sorvex Labs</span>
+    <span>
+      <a href="index.html">Overview</a>
+      · <a href="docs.html">Documentation</a>
+      · <a href="api.html">API Reference</a>
+    </span>
+  </div>
+</footer>
+</body>
+</html>
