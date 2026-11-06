@@ -24,10 +24,13 @@ from core.agents import manifest as am
 from core.agents.guard import loop_from_manifest
 from core.security.approval_rules import ApprovalRuleStore
 from tests.test_proof_strip_ux import run_node_eval
+from tests.package_a_profile import skip_unless_live_os_isolation
 
 
+@pytest.mark.live_os_isolation
 @pytest.mark.asyncio
 async def test_slice3_agent_builder_scaffold_pack_import_cross_repo(tmp_path: Path, monkeypatch):
+    skip_unless_live_os_isolation()
     # Setup repository A (authoring repository)
     repo_a = tmp_path / "repo_a"
     repo_a.mkdir()

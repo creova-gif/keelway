@@ -190,9 +190,13 @@ def test_flight_tape_tamper_detection(tmp_path: Path):
     assert original_seal != tampered_seal, "Tampering must change cryptographic hash seal."
 
 
+@pytest.mark.live_os_isolation
 @pytest.mark.asyncio
 async def test_malformed_tool_execution_resilience(tmp_path: Path):
     """Verify agent loop handles malformed tool arguments without unhandled crashes."""
+    from tests.package_a_profile import skip_unless_live_os_isolation
+
+    skip_unless_live_os_isolation()
     ws = WorkspaceFilesystem(tmp_path)
     spec = AgentBuilder.create_from_template(
         template_id="test-fixer",

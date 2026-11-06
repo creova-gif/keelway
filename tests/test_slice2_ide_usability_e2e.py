@@ -24,10 +24,13 @@ from core.api import routes
 from core.storage.workspace_fs import WorkspaceFilesystem
 from core.models.adapters.local import LocalAdapter
 from core.api.schemas import CompletionRequestSchema, MessageSchema
+from tests.package_a_profile import skip_unless_live_local_model
 
 
+@pytest.mark.live_model
 @pytest.mark.asyncio
 async def test_slice2_end_to_end_ide_usability_and_real_local_model(tmp_path: Path, monkeypatch):
+    skip_unless_live_local_model()
     monkeypatch.chdir(tmp_path)
 
     # 1. Prepare target repository with deliberate code defect
