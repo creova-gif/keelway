@@ -12,6 +12,18 @@ from core.config import settings
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "auth: run with API token auth enforced (disabled by default in tests)")
+    config.addinivalue_line(
+        "markers",
+        "live_model: genuine local-model integration; Profile A skips only when that model is absent",
+    )
+    config.addinivalue_line(
+        "markers",
+        "live_os_isolation: genuine OS-isolation integration; Profile A skips only when no confinement backend is present",
+    )
+    config.addinivalue_line(
+        "markers",
+        "safety_negative: mandatory Profile A fail-closed check; never skip, xfail, or deselect",
+    )
 
 
 @pytest.fixture(autouse=True)

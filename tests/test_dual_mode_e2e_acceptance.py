@@ -33,10 +33,13 @@ from core.orchestration.state import TaskStateMachine, TaskState, InvalidStateTr
 from core.models.gateway import ModelGateway
 from core.models.adapters.local import LocalAdapter
 from core.api.schemas import Provider, CompletionRequestSchema
+from tests.package_a_profile import skip_unless_live_os_isolation
 
 
+@pytest.mark.live_os_isolation
 @pytest.mark.asyncio
 async def test_dual_mode_agent_builder_export_import_and_cross_repo(tmp_path: Path):
+    skip_unless_live_os_isolation()
     """
     Workstream D acceptance:
     1. Scaffold 'test-fixer' agent in repo A.
