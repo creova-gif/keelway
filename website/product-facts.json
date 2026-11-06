@@ -1,108 +1,105 @@
 {
-  "$schema": "https://keelway.dev/schemas/product-facts.v1.json",
   "version": "0.1.0",
-  "last_verified_at": "2026-11-05T23:45:00Z",
-  "active_commit_sha": "8f139737afafb5377da0d3e5fe7eff020860e366",
   "source_repository": "https://github.com/creova-gif/kora.git",
   "features": {
     "dual_mode_agent_builder_and_cross_repo_runtime": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Cross-repository Agent Builder export/import with SHA-256 integrity validation and shared runtime policy containment",
       "evidence_test": "tests/test_dual_mode_e2e_acceptance.py",
       "code_path": "core/agents/builder.py, core/agents/guard.py"
     },
     "unified_proof_strip_ux": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Unified 6-stage Proof Strip UX (INSPECT -> PLAN -> AUTHORIZE -> EXECUTE -> VERIFY -> SEAL) shared across IDE and Agent Builder modes with zero secondary frontend state engine, W3C ARIA tablist accessibility, and cryptographic tamper detection",
       "evidence_test": "tests/test_proof_strip_ux.py",
       "code_path": "core/studio/assets/studio.js, core/studio/index.html"
     },
     "e2e_ide_mode_usability_and_local_inference": {
-      "status": "AVAILABLE",
-      "claim": "End-to-end IDE Mode repository bug-fix workflow with real local model inference (qwen3.5:latest), human mutation approval gating, automated pytest verification, and cryptographic flight tape evidence",
+      "status": "not_certified",
+      "claim": "Cited test and code paths for the IDE workflow. This file does not certify a model run or a passing test.",
       "evidence_test": "tests/test_slice2_ide_usability_e2e.py",
       "code_path": "core/orchestration/agent_loop.py, core/studio/assets/studio.js, core/models/adapters/local.py"
     },
     "client_sdk": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Synchronous and asynchronous Python client SDK with typed exceptions and complete daemon interface",
       "evidence_test": "tests/test_sdk.py",
       "code_path": "core/sdk/"
     },
     "full_beta_developer_journey": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "End-to-end 20-stage developer journey covering install, doctor, model, agents, repair, and export",
       "evidence_test": "tests/test_full_beta_developer_journey.py",
       "code_path": "core/orchestration/"
     },
     "local_agent_runtime": {
-      "status": "AVAILABLE",
-      "claim": "Local-first ReAct agent runtime with native workspace tools and flight tapes",
+      "status": "not_certified",
+      "claim": "Agent-task code lives in the cited path. In the current tree, formulate_plan selects a fixed step list from keywords. This file does not certify a model-backed agent.",
       "evidence_test": "tests/test_agent_loop.py",
       "code_path": "core/orchestration/agent_loop.py"
     },
     "deterministic_task_state_engine": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "12-state deterministic state machine with strict transition invariants and task cancellation",
       "evidence_test": "tests/test_state_machine.py",
       "code_path": "core/orchestration/state.py"
     },
     "multi_agent_crew_coordination": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Topological DAG multi-agent team coordination (Architect, Coder, Reviewer, Verifier)",
       "evidence_test": "tests/test_multi_agent_coordination.py",
       "code_path": "core/orchestration/multi_agent.py"
     },
     "model_cost_ledger_and_economics": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Append-only model cost accounting with latency percentiles and quantified local savings",
       "evidence_test": "tests/test_model_cost_ledger.py",
       "code_path": "core/models/cost_ledger.py"
     },
     "customer_outbound_runner_daemon": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Outbound-only VPC customer runner daemon with time-bound HMAC-SHA256 authentication",
       "evidence_test": "tests/test_core_runner_routes.py",
       "code_path": "keelway/runner/daemon.py"
     },
     "agent_builder_and_manifests": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Declarative AgentSpec v1 compilation, template scaffolding, and sealed build receipts",
       "evidence_test": "tests/test_agent_builder.py",
       "code_path": "core/agents/builder.py"
     },
     "guided_app_builder": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Prompt-to-app synthesis, multi-archetype scaffolding (FastAPI, CLI, Agent), automated test verification, and sealed receipts",
       "evidence_test": "tests/test_guided_builder.py",
       "code_path": "core/orchestration/guided_builder.py"
     },
     "plugin_extension_and_mcp_client": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Universal MCP client bridge, stdio/in-process transport, plugin manifest SHA-256 verification, and dynamic agent tool mounting",
       "evidence_test": "tests/test_mcp_client_and_plugins.py",
       "code_path": "core/plugins/manager.py"
     },
     "airgap_sovereign_bundle_suite": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "5-point NIST SP 800-53 SC-7 pre-flight compliance audit, cryptographic attestation, and offline self-contained bundle exporter with SHA256SUMS",
       "evidence_test": "tests/test_airgap_bundle.py",
       "code_path": "core/security/airgap_auditor.py"
     },
     "git_governance_and_pr_prep": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Semantic commit proposals, verified local commit, and Pull Request preparation",
       "evidence_test": "tests/test_git_workflow.py",
       "code_path": "core/storage/workspace_fs.py"
     },
     "dual_mode_external_editor_sync": {
-      "status": "AVAILABLE",
-      "claim": "Dual-mode sovereign IDE with seamless 1-click external editor bridge (VS Code, Cursor), sub-150ms debouncing, and pessimistic pause-and-prompt conflict policy with flight recorder audit trail",
+      "status": "not_certified",
+      "claim": "Dual-mode sovereign IDE with seamless 1-click external editor bridge (VS Code, Cursor), pessimistic pause-and-prompt conflict policy with flight recorder audit trail",
       "evidence_test": "tests/test_editor_sync_bridge.py",
       "code_path": "core/sync/bridge.py, core/api/sync_routes.py, core/studio/assets/studio.js"
     },
     "framework_autodetection": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Automatic detection of Python, Node, Rust, Go, and Make test commands",
       "evidence_test": "tests/test_project_adapter.py",
       "code_path": "core/orchestration/project_adapter.py"
@@ -115,190 +112,192 @@
       "qualification_note": "Model specification verified via software simulation; requires target hardware certification for field deployment."
     },
     "golden_benchmark_eval": {
-      "status": "AVAILABLE",
-      "claim": "10-task golden evaluation panel (EVAL-01..10) passing 100% in 3.37ms",
-      "evidence_command": "keelway bench",
+      "status": "not_certified",
+      "claim": "10-task golden evaluation panel (EVAL-01..10)",
+      "evidence_command": "python3 cli.py bench",
       "code_path": "evals/eval_runner.py"
     },
     "evaluation_receipts_and_drift_detection": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Continuous evaluation receipts with SHA-256 seals, Pass@1 stability tracking, and p50/p95 latency degradation drift alerts",
       "evidence_test": "tests/test_eval_drift.py",
       "code_path": "evals/drift_detector.py"
     },
     "p2p_team_mesh_and_compute_pooling": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Zero-cloud peer-to-peer developer mesh, mDNS discovery, GPU VRAM pooling, and cryptographically signed task delegation across LAN and Tailscale",
       "evidence_test": "tests/test_p2p_mesh.py, tests/test_mesh_api.py",
       "code_path": "core/orchestration/p2p_mesh.py"
     },
     "policy_engine_and_two_human_quorum": {
-      "status": "AVAILABLE",
-      "claim": "Fail-closed policy gating (FR-02) and mandatory two-human independent quorum approval (ADR-045/ADR-046) for production agent workloads",
+      "status": "not_certified",
+      "claim": "Policy and quorum modules are cited below. This file does not assert fail-closed authentication, host isolation, or production quorum behavior.",
       "evidence_test": "tests/test_agent_loop_policy_quorum.py, tests/test_policy_engine.py, tests/test_quorum.py",
       "code_path": "keelway/policy/engine.py, keelway/approvals/quorum.py"
     },
     "git_worktree_isolation": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Disposable ephemeral Git worktree sandboxing for parallel non-colliding agent task execution",
       "evidence_test": "tests/test_worktree.py",
       "code_path": "core/orchestration/worktree.py"
     },
     "multi_workspace_registry": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Enterprise multi-repository registry, path containment security, and dynamic workspace switching",
       "evidence_test": "tests/test_workspace_registry.py",
       "code_path": "core/storage/workspace_registry.py"
     },
     "cryptographic_receipt_verifier": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Offline cryptographic verification of evaluation receipts, flight tapes, bundle manifests, and head anchors",
       "evidence_test": "tests/test_receipt_verifier.py",
       "code_path": "core/security/receipt_verifier.py"
     },
     "reference_workflow_engine": {
-      "status": "AVAILABLE",
-      "claim": "Standalone local reference workflow engine with plan digests, approvals, atomic proposals, and 40 unit tests",
+      "status": "not_certified",
+      "claim": "Standalone local reference workflow engine with plan digests, approvals, and atomic proposals",
       "evidence_test": "tests/test_keelway_core_engine.py, tests/test_keelway_core_cli.py",
       "code_path": "keelway_core/engine.py, keelway_core/cli.py"
     },
     "enterprise_entitlements_and_gating": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Signed offline entitlement certificates, grace-period policy, seat enforcement, and replay-protected webhooks",
       "evidence_test": "tests/test_entitlements_and_sbom.py",
       "code_path": "core/billing/entitlements.py"
     },
     "software_bill_of_materials": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "CycloneDX-compatible Software Bill of Materials (SBOM) with cryptographic supply chain provenance",
       "evidence_test": "tests/test_entitlements_and_sbom.py",
       "code_path": "core/security/sbom.py"
     },
     "investor_evidence_room": {
-      "status": "AVAILABLE",
-      "claim": "Cryptographically sealed evidence room linking Git commits, 682 tests, golden benchmarks, NIST air-gap, and CycloneDX SBOM",
+      "status": "not_certified",
+      "claim": "Cryptographically sealed evidence room linking Git commits and the modules named in code_path",
       "evidence_test": "tests/test_evidence_room.py",
       "code_path": "core/eval/evidence_room.py"
     },
     "sovereign_system_doctor": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Comprehensive 7-axis pre-flight system diagnostics covering DB engine, git workspace, model gateway, air-gap, entitlements, SBOM, and Tier 2 HAL",
       "evidence_test": "tests/test_system_doctor.py",
       "code_path": "core/system/doctor.py"
     },
     "speculative_decoding_acceleration": {
-      "status": "AVAILABLE",
-      "claim": "Tandem draft/target speculative decoding (0.5B draft + 7B target) achieving 2.5x to 3.8x local token speedups at zero cloud cost with live REST and CLI benchmarking",
+      "status": "not_certified",
+      "claim": "Tandem draft/target speculative decoding (0.5B draft + 7B target)",
       "evidence_test": "tests/test_speculative.py, tests/test_speculative_api.py",
       "code_path": "core/models/speculative.py, core/api/routes.py, cli.py"
     },
     "mobile_approval_app": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Offline-resilient React Native & Expo mobile mission control with biometrics, LAN pairing, and deep-link approval workflows",
       "evidence_test": "tests/test_mobile_cli.py",
       "code_path": "mobile/, cli.py"
     },
     "hosted_cloud_sync_workspace": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Cross-machine encrypted task sync, monotonic vector clocks, and self-contained team web console",
       "evidence_test": "tests/test_sync_engine.py",
       "code_path": "core/sync/engine.py, web-console/index.html"
     },
     "deterministic_flight_replay": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Interactive deterministic flight replay visualizer with frame stepping, AST mutation inspection, and tamper-evident SHA-256 seals",
       "evidence_test": "tests/test_flight_recorder.py",
       "code_path": "core/orchestration/flight_recorder.py, core/studio/assets/studio.js"
     },
     "sovereign_economics_and_rate_cards": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Multi-provider token rate cards, local GPU arbitrage ROI calculation, Sovereign Efficiency Index (SEI), and budget alerts",
       "evidence_test": "tests/test_model_economics.py",
       "code_path": "core/models/cost_ledger.py"
     },
     "kstack_role_skills_architecture": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Composable role skills architecture with first-party plan, review, qa, and security workflows, permission tiers, and signed execution proofs",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
       "code_path": "core/kstack/registry.py, core/kstack/models.py"
     },
     "kbrain_scope_governed_knowledge_memory": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Scope-governed fact and decision memory with DLP credential leak prevention, immutable SHA-256 revisions, and conflict detection",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
       "code_path": "core/kbrain/store.py, core/kbrain/models.py"
     },
     "khub_universal_skills_importer": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Cross-platform skill importer with non-executable prompt rule isolation, upstream drift tracking, and human execution gates",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
       "code_path": "core/khub/importer.py, core/khub/models.py"
     },
     "kspaces_collaborative_team_workspaces": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Multi-tenant team spaces with RBAC, time-bound agent service accounts, line-anchored review comments, and Agent Manager merge gates",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
       "code_path": "core/kspaces/manager.py, core/kspaces/models.py"
     },
     "kflow_deterministic_dag_orchestration": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Budget-capped DAG engine with exact Git base-commit SHA drift verification and cryptographically sealed ProofPackets",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
       "code_path": "core/kflow/engine.py, core/kflow/models.py"
     },
     "openapi_schema_exporter": {
-      "status": "AVAILABLE",
-      "claim": "Automated OpenAPI 3.1 schema export pipeline exposing 145 verified REST endpoints with machine-readable introspection",
+      "status": "not_certified",
+      "claim": "Automated OpenAPI 3.1 schema export pipeline for the committed OpenAPI document",
       "evidence_test": "tests/test_api_export.py",
       "code_path": "cli.py, core/main.py"
     },
     "kflow_rest_api": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Topological DAG execution, fanout-capped task dispatch, and cryptographic proof-packet verification via REST",
       "evidence_test": "tests/test_kflow_api.py",
       "code_path": "core/api/routes.py"
     },
     "codebase_intelligence_and_graph": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "AST symbol search, cross-file reference tracking, caller/callee hierarchy, and module dependency DAG resolution",
       "evidence_test": "tests/test_codebase_intelligence.py",
       "code_path": "core/storage/ast_index.py"
     },
     "agent_bundle_packaging": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Signed and tamper-evident agent distribution packaging (.tar.gz) with SHA-256 digests, zip-slip protection, and REST/CLI export",
       "evidence_test": "tests/test_agent_packaging.py",
       "code_path": "core/agents/builder.py, cli.py, core/api/routes.py"
     },
     "khub_bundle_sync": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Universal skill bundle export and import with SHA-256 member hashing, anti-tamper checking, and directory traversal rejection",
       "evidence_test": "tests/test_khub_bundle_sync.py",
       "code_path": "core/khub/sync.py, cli.py, core/api/routes.py"
     },
     "kspaces_conflict_and_timeline": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Multi-agent 3-way Git merge conflict detection, non-overlapping AST auto-resolution, and chronological team timeline tracking",
       "evidence_test": "tests/test_kspaces_conflict.py",
       "code_path": "core/kspaces/conflict.py, core/kspaces/manager.py, core/api/routes.py, cli.py"
     },
     "enterprise_merkle_audit": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "SOC 2 / ISO 27001 Merkle tree root hashing, cryptographic inclusion proofs, and immutable chain continuity export",
       "evidence_test": "tests/test_merkle_audit.py",
       "code_path": "core/security/merkle_audit.py, core/api/routes.py, cli.py"
     },
     "runner_spool_offline_sync": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Durable customer runner offline spooling, deterministic batch sync, cryptographic batch receipts, and status CLI/REST endpoints",
       "evidence_test": "tests/test_runner_spool.py",
       "code_path": "core/runner/spool.py, core/api/routes.py, cli.py"
     },
     "investor_milestone_developer_journey": {
-      "status": "AVAILABLE",
+      "status": "not_certified",
       "claim": "Automated 12-step end-to-end milestone developer journey: install, launch, workspace selection, local model selection, plan initialization, AST diff review, approval execution, patch application, test running, and flight replay recovery",
       "evidence_test": "tests/test_e2e_investor_journey.py",
       "code_path": "core/orchestration/agent_loop.py, core/storage/workspace_fs.py, core/orchestration/flight_recorder.py"
     }
-  }
+  },
+  "readiness_note": "Static website copy shipped inside the kora repository. This file is not a pytest report, not a CI artifact, and not a hosted keelway.dev schema or service. It states no pass count. Status not_certified means this file does not certify the claim. Package B runtime labels and package C fail-closed authentication, isolation, and default-config behavior are not asserted here.",
+  "install_note": "Install from a clone of https://github.com/creova-gif/kora.git (directory name kora) with pip install -e \".[dev]\". Local Studio: python3 cli.py dev or python3 cli.py desktop. Governance server: make serve or keelway-core serve. This file does not document a PyPI distribution named keelway."
 }

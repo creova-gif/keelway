@@ -48,7 +48,7 @@
     <div>
       <span class="eyebrow">Local-First · Deterministic · Sovereign Agent Infrastructure</span>
       <h1>Build with agents. <em>Stay in control.</em></h1>
-      <p class="lede">Run AI development workflows locally or with approved cloud models. Plan changes, review permissions, verify code with automated tests, and inspect tamper-evident audit tapes—from your terminal to an enterprise developer platform.</p>
+      <p class="lede">This page is the static marketing site. Local Studio and the governance server are separate processes you start from a clone of the <code>kora</code> repository. The commands are in the quickstart below. This page does not publish a test pass count.</p>
       <div class="cta">
         <a class="btn primary" href="#quickstart">Try Quickstart</a>
         <a class="btn" href="#workflow">Explore the Workflow</a>
@@ -72,7 +72,7 @@
         <span>Allow always (src/billing/*.py)</span>
         <span>Deny</span>
       </div>
-      <figcaption class="foot">Every decision is appended to a SHA-256 hash chain and sealed into a replayable flight tape.</figcaption>
+      <figcaption class="foot">Illustration of an approval gate. This figure is not a recorded Studio session.</figcaption>
     </figure>
   </div>
 
@@ -81,7 +81,7 @@
     <a id="promises"></a>
     <div class="wrap">
       <h2 id="features-h">The Three Non-Negotiable Invariants</h2>
-      <p class="sub">Software development demands accountability. Keelway guarantees deterministic execution semantics, explicit human oversight, and verifiable evidence at every step.</p>
+      <p class="sub">The cards below are descriptive copy from this repository. This page does not certify that a given commit enforces them.</p>
       <div class="grid">
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -107,7 +107,7 @@
     <a id="developer-loop"></a>
     <div class="wrap">
       <h2 id="loop-h">The Verifiable Developer Loop</h2>
-      <p class="sub">From requirement to verified patch. Click each phase to inspect real execution artifacts captured from our Milestone M1 benchmark run.</p>
+      <p class="sub">Illustration of a discount-bug story. These panes are text in the page. They are not a captured Milestone M1 run, and they do not report a test result.</p>
       
       <div class="card" style="padding: 24px;">
         <div class="stepper-nav" role="tablist" aria-label="Workflow stages">
@@ -152,20 +152,12 @@ index c1cad50..45324c4 100644
 
         <div id="step-content-verify" class="stepper-content mono" style="display: none;">
           <span class="pill teal">Step 4: Test Suite Execution</span> <span class="pill muted">Project Adapter: unittest</span>
-          <pre style="margin: 12px 0 0; color: var(--muted);"><span style="color: var(--teal);">$ python3 -m unittest -q test_pricing.py</span>
-----------------------------------------------------------------------
-Ran 3 tests in 0.032s
-
-OK (Exit code: 0, Duration: 32.27ms, Regressions: 0)</pre>
+          <pre style="margin: 12px 0 0; color: var(--muted);">Illustration only. This pane does not report a test command result.</pre>
         </div>
 
         <div id="step-content-tape" class="stepper-content mono" style="display: none;">
           <span class="pill teal">Step 5: Cryptographic Tape Sealed</span> <span class="pill muted">Deterministic Ledger</span>
-          <pre style="margin: 12px 0 0; color: var(--muted);">[+] Recording: .keelway/recordings/m1_task_1793758966.flight.json
-[+] Events Captured: 14 chronological state events
-[+] Cryptographic Tape SHA-256:
-    <span style="color: var(--teal);">f641a060f054269a15c3e597b4ccf71fd18828c860c4f72a05b6c63c30633e84</span>
-[+] Audit Lineage: Appended to local hash chain (Receipt: kw-rec-00421)</pre>
+          <pre style="margin: 12px 0 0; color: var(--muted);">Illustration only. This pane does not show a sealed recording or a hash from a run.</pre>
         </div>
       </div>
     </div>
@@ -175,7 +167,7 @@ OK (Exit code: 0, Duration: 32.27ms, Regressions: 0)</pre>
   <section id="local" aria-labelledby="local-h">
     <div class="wrap">
       <h2 id="local-h">Model Freedom &amp; Transparent Privacy Boundaries</h2>
-      <p class="sub">Never be held hostage by opaque cloud API charges or forced telemetry. Switch between execution profiles with verified data isolation.</p>
+      <p class="sub">The panels below are descriptive copy. The terminal blocks are not captured sessions and do not report measurements.</p>
       
       <div class="privacy-nav">
         <button type="button" class="privacy-btn active" data-privacy="local">Local-First ($0.00 Token Charge)</button>
@@ -188,23 +180,12 @@ OK (Exit code: 0, Duration: 32.27ms, Regressions: 0)</pre>
         <div class="grid two">
           <div>
             <h3>Local-First On-Device Execution</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Discovers existing local engines (Ollama, vLLM, llama.cpp, LM Studio). Uses high-performance local coding models (Qwen 2.5 Coder, Llama 3.3). Zero external API charges, zero network egress for prompt bytes.</p>
-            <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li>✓ <strong>External Token Cost:</strong> $0.000000 USD (labeled: <em>no billed external API tokens</em>)</li>
-              <li>✓ <strong>Data Residency:</strong> 100% on your machine</li>
-              <li>✓ <strong>Latency:</strong> Measured local device execution duration</li>
-            </ul>
+            <p style="color: var(--muted); margin-bottom: 16px;">The local model adapter in this tree can probe an engine such as Ollama. This page does not certify that every request stays on the machine, and it does not show a ledger.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono"><span class="p">$ </span>keelway models ledger
-======================================================================
-  Total Inferences:        28
-  Local Inferences:        28 (100.0%) [no billed external API tokens]
-  External Cloud Cost:     $0.000000 USD
-  Local Cloud Savings:     $0.315000 USD (vs Claude 3.5 Sonnet)
-  Latency Percentiles:     p50: 42.0 ms | p95: 98.5 ms
-======================================================================</pre>
+            <pre class="mono">No ledger result is shown here.
+Developer CLI, from a clone: python3 cli.py models --help</pre>
           </div>
         </div>
       </div>
@@ -235,20 +216,12 @@ routing_reason: "Escalated to Claude 3.5 Sonnet for multi-file AST refactor"</pr
         <div class="grid two">
           <div>
             <h3>Strict Air-Gapped Mode</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Instantly sever all outbound network traffic. If a model call or tool requests internet connectivity, the gateway drops it fail-closed. Built for classified environments, defense labs, and strict privacy compliance.</p>
-            <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li>✓ <strong>Network Egress:</strong> Hard blocked via OS socket isolation and proxy guards</li>
-              <li>✓ <strong>Telemetry:</strong> 0 bytes transmitted</li>
-              <li>✓ <strong>Offline Verification:</strong> Bundled static assets, offline fonts, local SQLite</li>
-            </ul>
+            <p style="color: var(--muted); margin-bottom: 16px;">Studio has an air-gap flag on the local API. <code>python3 cli.py dev</code> prints the startup state of that flag. This page does not certify host-socket isolation. Package C owns fail-closed command and default-config behavior, and this copy does not describe that work as already present.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono"><span class="p">$ </span>keelway chat --air-gapped --provider local
-[!] AIR-GAP ENFORCER: ACTIVE (Zero Outbound Egress)
-[+] Model: qwen2.5-coder:7b (Listening on 127.0.0.1:11434)
-[+] Network Interface: DISABLED for upstream requests
-keelway ❯ </pre>
+            <pre class="mono">No air-gap session is shown here.
+Related developer command: python3 cli.py chat --help</pre>
           </div>
         </div>
       </div>
@@ -266,10 +239,8 @@ keelway ❯ </pre>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono"><span class="p">$ </span>keelway runner --runner-id node-vpc-01 --org corp-prod
-[+] Starting Outbound Runner Daemon 'node-vpc-01' for org 'corp-prod'...
-[+] Polling control plane (outbound HTTPS)...
-[+] Claimed job 'task-782': executing inside isolated customer VPC.</pre>
+            <pre class="mono">No runner session is shown here.
+Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           </div>
         </div>
       </div>
@@ -279,26 +250,26 @@ keelway ❯ </pre>
   <!-- THREE ENTRY POINTS -->
   <section id="entry-points" aria-labelledby="entry-h">
     <div class="wrap">
-      <h2 id="entry-h">Three Unified Entry Points</h2>
-      <p class="sub">Built on the same deterministic state engine, tailored for how you build.</p>
+      <h2 id="entry-h">Three local surfaces</h2>
+      <p class="sub">Studio, the governance server, and this website are different. Opening this page does not start a server.</p>
       <div class="grid">
         <article class="card feat">
-          <span class="pill teal">For Software Engineers</span>
-          <h3 style="margin-top: 14px;">Dual-Mode Sovereign IDE</h3>
-          <p>Operate standalone with the built-in Monaco editor, terminal, and task board, or launch into VS Code / Cursor with sub-150ms live sync and pessimistic pause-and-prompt conflict handling.</p>
-          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--teal);">$ keelway dev --desktop</div>
+          <span class="pill teal">Local Studio</span>
+          <h3 style="margin-top: 14px;">core/studio on port 7420</h3>
+          <p>From a clone, with dependencies installed, <code>python3 cli.py dev</code> serves the Studio UI from <code>core.main:app</code>. <code>python3 cli.py desktop</code> uses a Chrome or Chromium <code>--app</code> window when that browser exists, and otherwise opens a normal browser. <code>make studio</code> and <code>make desktop</code> call those commands.</p>
+          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--teal);">$ python3 cli.py dev</div>
         </article>
         <article class="card feat">
-          <span class="pill amber">For Agent Architects</span>
-          <h3 style="margin-top: 14px;">AgentSpec v1 &amp; Builder</h3>
-          <p>Declare autonomous agent blueprints with typed schemas, tool allowlists, memory boundaries, and verification suites. Compile into signed manifests with verifiable build receipts.</p>
-          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--amber);">$ keelway agent init test-fixer</div>
+          <span class="pill amber">Governance server</span>
+          <h3 style="margin-top: 14px;">keelway-core serve on port 8000</h3>
+          <p><code>make serve</code> runs <code>python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000</code>. After an editable install the console script is <code>keelway-core serve</code>. The developer script <code>keelway</code> does not have a <code>serve</code> subcommand. The container entrypoint starts this process and does not include Studio.</p>
+          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--amber);">$ make serve</div>
         </article>
         <article class="card feat">
-          <span class="pill muted">For Product Builders</span>
-          <h3 style="margin-top: 14px;">Guided Builder Mode</h3>
-          <p>Describe your app concept in natural language. Receive an inspectable architecture plan, generated code, automatic unit tests, and clean Git repository export without vendor lock-in.</p>
-          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--muted);">$ keelway team run "Build REST API"</div>
+          <span class="pill muted">Static site</span>
+          <h3 style="margin-top: 14px;">website/ only</h3>
+          <p>You are reading files from <code>website/</code>. <code>vercel.json</code> publishes that directory with empty install and build commands. The synthesizer on this page fills a file list in the browser. It does not call <code>cli.py</code>.</p>
+          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--muted);">$ python3 cli.py build templates</div>
         </article>
       </div>
     </div>
@@ -311,7 +282,7 @@ keelway ❯ </pre>
       <div style="margin-bottom: 32px;">
         <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Zero-Telemetry · Local-First Runtime</span>
         <h2 id="qs-h" style="margin-top: 6px;">Developer Quickstart &amp; Early Access</h2>
-        <p class="sub" style="margin-bottom: 0;">Run Keelway locally in 60 seconds with zero cloud dependencies, or join the private beta for team workspaces, customer-owned VPC runner fleets, and compliance automation.</p>
+        <p class="sub" style="margin-bottom: 0;">Install from a clone of <code>creova-gif/kora</code>. The directory name is <code>kora</code>. These steps do not use a PyPI package named keelway, and they do not use a keelway.dev installer.</p>
       </div>
 
       <div class="grid two" style="gap: 24px; align-items: stretch;">
@@ -320,33 +291,38 @@ keelway ❯ </pre>
           <div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
               <span class="pill teal">Developer Quickstart</span>
-              <span class="pill muted mono">Single Binary / PyPI</span>
+              <span class="pill muted mono">Git clone</span>
             </div>
-            <h3 style="font-size: 20px; margin: 0 0 8px;">Run Locally in 60 Seconds</h3>
-            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Bootstrap Keelway on your local machine. Operates offline with local SQLite WAL persistence, zero-mock deterministic execution, and zero external telemetry.</p>
+            <h3 style="font-size: 20px; margin: 0 0 8px;">Run from a clone</h3>
+            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">The editable install registers <code>keelway</code> (this is <code>cli.py</code>) and <code>keelway-core</code> (this is <code>keelway.cli.main</code>). Until that install exists, use the <code>python3</code> commands below from the repository root.</p>
             
             <div class="card term" style="margin-bottom: 16px; border: 1px solid var(--line);">
               <div class="bar">
                 <span class="mono">terminal</span>
                 <button class="copy" type="button" data-copy="qs">Copy</button>
               </div>
-<pre class="mono" id="qs"><span class="c"># Verified one-line install script</span>
-<span class="p">$ </span>curl -fsSL https://keelway.dev/install.sh | bash
+<pre class="mono" id="qs"><span class="c"># Directory name is kora</span>
+<span class="p">$ </span>git clone https://github.com/creova-gif/kora.git
+<span class="p">$ </span>cd kora
+<span class="p">$ </span>python3 -m venv .venv && source .venv/bin/activate
+<span class="p">$ </span>pip install -e ".[dev]"
 
-<span class="c"># Or install via pip</span>
-<span class="p">$ </span>pip install keelway
+<span class="c"># Local Studio (browser). Default 127.0.0.1:7420</span>
+<span class="p">$ </span>python3 cli.py dev
+<span class="c"># Browser-app window when Chrome or Chromium is installed</span>
+<span class="p">$ </span>python3 cli.py desktop
 
-<span class="c"># Launch Studio Desktop IDE or run Golden Benchmarks</span>
-<span class="p">$ </span>keelway dev --desktop   <span class="c"># Opens standalone desktop IDE</span>
-<span class="p">$ </span>keelway bench           <span class="c"># Executes 10/10 golden benchmarks</span>
-<span class="p">$ </span>keelway doctor          <span class="c"># 7-axis pre-flight environment verification</span></pre>
+<span class="c"># Governance server. Separate process on 127.0.0.1:8000</span>
+<span class="p">$ </span>make serve
+
+<span class="c"># List guided-builder templates. No model call.</span>
+<span class="p">$ </span>python3 cli.py build templates</pre>
             </div>
 
             <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Local-first ReAct agent runtime with 12 deterministic states</li>
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Zero external token billing: connects to Ollama, vLLM, or LM Studio</li>
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Human-in-the-loop approval gates &amp; AST unified diff reviews</li>
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> Cryptographically sealed flight tapes (SHA-256 hash chains)</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">1</span> Studio is <code>python3 cli.py dev</code>. It is the local IDE.</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">2</span> The governance server is <code>make serve</code> / <code>keelway-core serve</code>.</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">3</span> This page is static. It does not launch either process.</li>
             </ul>
           </div>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -360,7 +336,7 @@ keelway ❯ </pre>
           <div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
               <span class="pill amber">Private Beta</span>
-              <span class="pill muted mono">Enterprise Ready</span>
+              <span class="pill muted mono">Contact form stays in the browser</span>
             </div>
             <h3 style="font-size: 20px; margin: 0 0 8px;">Early Access &amp; Enterprise Fleets</h3>
             <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Deploy sovereign agent governance across your organization. Policy flows down, hashes flow up, and source code never leaves your VPC boundary.</p>
@@ -381,14 +357,14 @@ keelway ❯ </pre>
                   <button type="submit" class="btn primary" style="padding: 8px 16px; font-size: 13px; font-weight: 600; white-space: nowrap;">Request Invite</button>
                 </div>
                 <div id="qs-form-feedback" class="pill teal" style="display: none; text-align: center; padding: 6px; font-size: 11px;">
-                  ✓ Invitation requested. Our team will provision your credentials shortly.
+                  This form stays in the browser. It did not send the address and it did not create an invitation.
                 </div>
               </form>
             </div>
           </div>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <a class="btn primary" href="#early-access" style="flex: 1; justify-content: center;">Early Access Details</a>
-            <a class="btn" href="mailto:enterprise@keelway.dev" style="flex: 1; justify-content: center;">Contact Enterprise Sales</a>
+            <a class="btn" href="#early-access" style="flex: 1; justify-content: center;">No sales host on this page</a>
           </div>
         </div>
       </div>
@@ -398,8 +374,8 @@ keelway ❯ </pre>
   <!-- INTERACTIVE PLAYGROUND / TERMINAL SIMULATOR -->
   <section id="playground" aria-labelledby="play-h">
     <div class="wrap">
-      <h2 id="play-h">Interactive Sovereign Terminal Proofs</h2>
-      <p class="sub">Click any command below to execute live deterministic proofs directly in your browser. All outputs represent byte-for-byte verified execution artifacts from our test harnesses.</p>
+      <h2 id="play-h">Command labels</h2>
+      <p class="sub">The tabs below are labels. The page does not execute them and does not show a test result. From a clone, <code>python3 cli.py --help</code> lists the developer CLI and <code>python3 -m keelway.cli.main --help</code> lists the governance CLI.</p>
 
       <div class="card" style="padding: 24px;">
         <div class="stepper-nav" role="tablist" aria-label="Terminal commands">
@@ -428,7 +404,7 @@ keelway ❯ </pre>
         <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
           <div class="bar">
             <span class="mono" id="term-active-prompt">$ keelway evidence summary</span>
-            <span class="pill teal" style="padding: 2px 8px; font-size: 11px;">Deterministic Proof</span>
+            <span class="pill muted" style="padding: 2px 8px; font-size: 11px;">Label only</span>
           </div>
           <pre class="mono" id="term-playground-output" style="max-height: 440px; overflow-y: auto; color: var(--fg);"></pre>
         </div>
@@ -441,9 +417,9 @@ keelway ❯ </pre>
     <div class="wrap">
       <div class="split" style="align-items: flex-end; margin-bottom: 24px;">
         <div>
-          <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Deterministic Scaffolding Engine</span>
-          <h2 id="builder-h" style="margin-top: 6px;">Prompt-to-App Guided Synthesizer</h2>
-          <p class="sub" style="margin-bottom: 0;">Compile natural language intent into typed architecture plans, isolated directory trees, security boundary invariants, and sealed test harnesses.</p>
+          <span class="pill muted" style="font-size: 11px; margin-bottom: 8px;">In-browser sample</span>
+          <h2 id="builder-h" style="margin-top: 6px;">Prompt-to-App page sample</h2>
+          <p class="sub" style="margin-bottom: 0;">This control rewrites a file list that already lives in the page. It does not call the CLI. The local command that lists templates is <code>python3 cli.py build templates</code>. A plan command is <code>python3 cli.py build plan "&lt;intent&gt;" --template fastapi-service</code>.</p>
         </div>
       </div>
 
@@ -479,7 +455,7 @@ keelway ❯ </pre>
           <div style="border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
               <span class="mono" style="font-size: 12px; font-weight: 600;">Scaffolded File Structure</span>
-              <span id="sim-file-count" class="pill gray" style="font-size: 10px;">9 Files Scaffolded</span>
+              <span id="sim-file-count" class="pill gray" style="font-size: 10px;">Page sample</span>
             </div>
             <ul id="sim-file-tree" class="mono" style="list-style: none; padding: 0; margin: 0; font-size: 12px; line-height: 1.8; color: var(--fg);">
             </ul>
@@ -488,7 +464,7 @@ keelway ❯ </pre>
           <div style="border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
               <span class="mono" style="font-size: 12px; font-weight: 600;">Architecture &amp; Security Boundary</span>
-              <span id="sim-plan-hash" class="pill teal" style="font-size: 10px;">SHA-256 Verified</span>
+              <span id="sim-plan-hash" class="pill muted" style="font-size: 10px;">Page sample</span>
             </div>
             <pre id="sim-plan-details" class="mono" style="font-size: 11px; margin: 0; white-space: pre-wrap; line-height: 1.6; color: var(--fg); max-height: 220px; overflow-y: auto;"></pre>
           </div>
@@ -496,8 +472,8 @@ keelway ❯ </pre>
 
         <div style="margin-top: 16px; padding: 12px 16px; border-radius: 6px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
-            <span style="font-size: 12px; font-weight: 600; color: var(--fg);">Run in your sovereign terminal:</span>
-            <span id="sim-cli-cmd" class="mono" style="font-size: 12px; color: var(--teal); margin-left: 8px;">keelway build --intent "Build an inventory management REST service" --template fastapi-service</span>
+            <span style="font-size: 12px; font-weight: 600; color: var(--fg);">Local CLI shape (this page does not run it):</span>
+            <span id="sim-cli-cmd" class="mono" style="font-size: 12px; color: var(--teal); margin-left: 8px;">python3 cli.py build plan "Build an inventory management REST service" --template fastapi-service</span>
           </div>
           <button id="sim-copy-btn" type="button" class="btn" style="padding: 4px 12px; font-size: 11px;">Copy Command</button>
         </div>
@@ -508,57 +484,57 @@ keelway ❯ </pre>
   <!-- LIVE READINESS STATUS TABLE -->
   <section id="status" aria-labelledby="status-h">
     <div class="wrap">
-      <h2 id="status-h">Verified Production Readiness Status</h2>
-      <p class="sub">Every claim on this page is mapped to executable code and automated unit tests. 768 automated tests passing with zero failures. Verified against commit <code>bc7a506</code>. See machine-readable <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a>.</p>
+      <h2 id="status-h">Repository map, not a test report</h2>
+      <p class="sub">Each row names a file in the tree. The status column does not mean the cited test passed, and this page does not publish a pass count or a commit that "verified" the suite. <a href="product-facts.json" style="text-decoration: underline; color: var(--accent);">product-facts.json</a> is the same kind of copy: it is not a pytest result and it is not a hosted keelway.dev service. Run <code>make test</code> locally, or read GitHub Actions, for a result on a specific commit.</p>
       <div class="card tablewrap">
         <table class="status">
-          <thead><tr><th scope="col">Capability</th><th scope="col">Status</th><th scope="col">Test Evidence</th></tr></thead>
+          <thead><tr><th scope="col">Capability name in this tree</th><th scope="col">Status on this page</th><th scope="col">Cited file</th></tr></thead>
           <tbody>
-            <tr><td>End-to-End IDE Bug Fix &amp; Local Inference</td><td><span class="pill teal">Available (Verified E2E)</span></td><td class="mono" style="font-size: 12px;">tests/test_slice2_ide_usability_e2e.py</td></tr>
-            <tr><td>Dual-Mode Agent Builder &amp; Cross-Repo Runtime</td><td><span class="pill teal">Available (Verified E2E)</span></td><td class="mono" style="font-size: 12px;">tests/test_dual_mode_e2e_acceptance.py</td></tr>
-            <tr><td>Unified 6-Stage Proof Strip UX (IDE &amp; Builder)</td><td><span class="pill teal">Available (A11y Verified)</span></td><td class="mono" style="font-size: 12px;">tests/test_proof_strip_ux.py</td></tr>
-            <tr><td>12-Step Investor Milestone Developer Journey</td><td><span class="pill teal">Available (Verified E2E)</span></td><td class="mono" style="font-size: 12px;">tests/test_e2e_investor_journey.py</td></tr>
-            <tr><td>OpenAPI 3.1 REST Schema Exporter (145 Endpoints)</td><td><span class="pill teal">Available (145 Routes)</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
-            <tr><td>Customer VPC Outbound Runner &amp; Offline Spool</td><td><span class="pill teal">Available (Batch Sync)</span></td><td class="mono" style="font-size: 12px;">tests/test_runner_spool.py</td></tr>
-            <tr><td>Enterprise Merkle Audit &amp; Cryptographic Proofs</td><td><span class="pill teal">Available (SOC 2 Merkle Root)</span></td><td class="mono" style="font-size: 12px;">tests/test_merkle_audit.py</td></tr>
-            <tr><td>Multi-Agent Git Conflict &amp; Team Timeline Gate</td><td><span class="pill teal">Available (3-Way Merge)</span></td><td class="mono" style="font-size: 12px;">tests/test_kspaces_conflict.py</td></tr>
-            <tr><td>KHub Universal Skill Bundle Packaging &amp; Sync</td><td><span class="pill teal">Available (Portable Bundles)</span></td><td class="mono" style="font-size: 12px;">tests/test_khub_bundle_sync.py</td></tr>
-            <tr><td>Agent Bundle Packaging &amp; Cryptographic Verification</td><td><span class="pill teal">Available (.tar.gz Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_packaging.py</td></tr>
-            <tr><td>Codebase Intelligence &amp; Call Hierarchy Engine</td><td><span class="pill teal">Available (AST Graph)</span></td><td class="mono" style="font-size: 12px;">tests/test_codebase_intelligence.py</td></tr>
-            <tr><td>KFlow REST API &amp; Topological DAG Dispatch</td><td><span class="pill teal">Available (Proof-Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_kflow_api.py</td></tr>
-            <tr><td>Investor &amp; Enterprise Evidence Room (WP21)</td><td><span class="pill teal">Available (10/10 Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_evidence_room.py</td></tr>
-            <tr><td>Speculative Decoding Acceleration (0.5B + 7B)</td><td><span class="pill teal">Available (2.99x)</span></td><td class="mono" style="font-size: 12px;">tests/test_speculative_api.py, tests/test_speculative.py</td></tr>
-            <tr><td>Deterministic Flight Replay &amp; Time-Travel Debugging</td><td><span class="pill teal">Available (Sealed)</span></td><td class="mono" style="font-size: 12px;">tests/test_flight_recorder.py</td></tr>
-            <tr><td>Sovereign Economics, Rate Cards &amp; Arbitrage ROI</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_model_economics.py</td></tr>
-            <tr><td>KStack Composable Role Skills (4 First-Party Roles)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
-            <tr><td>KBrain Scope-Aware Knowledge &amp; DLP Secret Filter</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
-            <tr><td>KHub Universal Skills &amp; Prompt Rules Importer</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
-            <tr><td>KSpaces Team Workspaces &amp; Agent Service Accounts</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
-            <tr><td>KFlow Deterministic DAG Engine &amp; Proof Packets</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
-            <tr><td>State-Machine Runtime &amp; Cancellation</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_state_machine.py</td></tr>
-            <tr><td>Multi-Agent Crew Coordination (DAG Engine)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_multi_agent_coordination.py</td></tr>
-            <tr><td>Prompt-to-App Guided Builder (Multi-Archetype)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_guided_builder.py</td></tr>
-            <tr><td>Universal MCP Client &amp; Plugins Manager</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_mcp_client_and_plugins.py</td></tr>
-            <tr><td>Air-Gap Sovereign Exporter (NIST SP 800-53 SC-7)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_airgap_bundle.py</td></tr>
-            <tr><td>Continuous Evaluation Receipts &amp; Drift Radar</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_eval_drift.py</td></tr>
-            <tr><td>P2P Team Mesh &amp; GPU Resource Pooling</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_p2p_mesh.py, test_mesh_api.py</td></tr>
-            <tr><td>Fail-Closed Policy Engine &amp; Two-Human Quorum</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_loop_policy_quorum.py</td></tr>
-            <tr><td>Ephemeral Git Worktree Sandboxing</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_worktree.py</td></tr>
-            <tr><td>Multi-Workspace Enterprise Registry</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_workspace_registry.py</td></tr>
-            <tr><td>Cryptographic Receipt Verifier &amp; Replay</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_receipt_verifier.py</td></tr>
-            <tr><td>Reference Workflow Engine (keelway_core)</td><td><span class="pill teal">Available (40/40 PASS)</span></td><td class="mono" style="font-size: 12px;">tests/test_keelway_core_engine.py, test_keelway_core_cli.py</td></tr>
-            <tr><td>Enterprise Entitlements &amp; Offline Grace Policy</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_entitlements_and_sbom.py</td></tr>
-            <tr><td>Supply Chain Provenance &amp; CycloneDX SBOM</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_entitlements_and_sbom.py</td></tr>
-            <tr><td>Model Cost Ledger &amp; Economics Observability</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_model_cost_ledger.py</td></tr>
-            <tr><td>Customer Outbound VPC Runner Daemon</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_core_runner_routes.py</td></tr>
-            <tr><td>AgentSpec v1, Catalog &amp; Scaffolding</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_builder.py</td></tr>
-            <tr><td>Semantic Git Commit &amp; PR Preparation</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_git_workflow.py</td></tr>
-            <tr><td>Milestone M1 End-to-End Vertical Slice</td><td><span class="pill teal">Available (10/10 PASS)</span></td><td class="mono" style="font-size: 12px;">tests/test_m1_vertical_slice.py</td></tr>
+            <tr><td>IDE usability test file</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_slice2_ide_usability_e2e.py</td></tr>
+            <tr><td>Dual-Mode Agent Builder &amp; Cross-Repo Runtime</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_dual_mode_e2e_acceptance.py</td></tr>
+            <tr><td>Unified 6-Stage Proof Strip UX (IDE &amp; Builder)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_proof_strip_ux.py</td></tr>
+            <tr><td>12-Step Investor Milestone Developer Journey</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_e2e_investor_journey.py</td></tr>
+            <tr><td>OpenAPI schema exporter</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_api_export.py</td></tr>
+            <tr><td>Customer VPC Outbound Runner &amp; Offline Spool</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_runner_spool.py</td></tr>
+            <tr><td>Enterprise Merkle Audit &amp; Cryptographic Proofs</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_merkle_audit.py</td></tr>
+            <tr><td>Multi-Agent Git Conflict &amp; Team Timeline Gate</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kspaces_conflict.py</td></tr>
+            <tr><td>KHub Universal Skill Bundle Packaging &amp; Sync</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_khub_bundle_sync.py</td></tr>
+            <tr><td>Agent Bundle Packaging &amp; Cryptographic Verification</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_packaging.py</td></tr>
+            <tr><td>Codebase Intelligence &amp; Call Hierarchy Engine</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_codebase_intelligence.py</td></tr>
+            <tr><td>KFlow REST API &amp; Topological DAG Dispatch</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kflow_api.py</td></tr>
+            <tr><td>Evidence room module</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_evidence_room.py</td></tr>
+            <tr><td>Speculative decoding command</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_speculative_api.py, tests/test_speculative.py</td></tr>
+            <tr><td>Deterministic Flight Replay &amp; Time-Travel Debugging</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_flight_recorder.py</td></tr>
+            <tr><td>Sovereign Economics, Rate Cards &amp; Arbitrage ROI</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_model_economics.py</td></tr>
+            <tr><td>KStack Composable Role Skills (4 First-Party Roles)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
+            <tr><td>KBrain Scope-Aware Knowledge &amp; DLP Secret Filter</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
+            <tr><td>KHub Universal Skills &amp; Prompt Rules Importer</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
+            <tr><td>KSpaces Team Workspaces &amp; Agent Service Accounts</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
+            <tr><td>KFlow Deterministic DAG Engine &amp; Proof Packets</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_kstack_kbrain_khub_kspaces_kflow.py</td></tr>
+            <tr><td>State-Machine Runtime &amp; Cancellation</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_state_machine.py</td></tr>
+            <tr><td>Multi-Agent Crew Coordination (DAG Engine)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_multi_agent_coordination.py</td></tr>
+            <tr><td>Prompt-to-App Guided Builder (Multi-Archetype)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_guided_builder.py</td></tr>
+            <tr><td>Universal MCP Client &amp; Plugins Manager</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_mcp_client_and_plugins.py</td></tr>
+            <tr><td>Air-Gap Sovereign Exporter (NIST SP 800-53 SC-7)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_airgap_bundle.py</td></tr>
+            <tr><td>Continuous Evaluation Receipts &amp; Drift Radar</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_eval_drift.py</td></tr>
+            <tr><td>P2P Team Mesh &amp; GPU Resource Pooling</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_p2p_mesh.py, test_mesh_api.py</td></tr>
+            <tr><td>Policy engine and quorum modules</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_loop_policy_quorum.py</td></tr>
+            <tr><td>Ephemeral Git Worktree Sandboxing</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_worktree.py</td></tr>
+            <tr><td>Multi-Workspace Enterprise Registry</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_workspace_registry.py</td></tr>
+            <tr><td>Cryptographic Receipt Verifier &amp; Replay</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_receipt_verifier.py</td></tr>
+            <tr><td>Reference workflow engine (keelway_core)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_keelway_core_engine.py, test_keelway_core_cli.py</td></tr>
+            <tr><td>Enterprise Entitlements &amp; Offline Grace Policy</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_entitlements_and_sbom.py</td></tr>
+            <tr><td>Supply Chain Provenance &amp; CycloneDX SBOM</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_entitlements_and_sbom.py</td></tr>
+            <tr><td>Model Cost Ledger &amp; Economics Observability</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_model_cost_ledger.py</td></tr>
+            <tr><td>Customer Outbound VPC Runner Daemon</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_core_runner_routes.py</td></tr>
+            <tr><td>AgentSpec v1, Catalog &amp; Scaffolding</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_agent_builder.py</td></tr>
+            <tr><td>Semantic Git Commit &amp; PR Preparation</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_git_workflow.py</td></tr>
+            <tr><td>Milestone M1 command</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_m1_vertical_slice.py</td></tr>
             <tr><td>Tier 2 Hardware Security HAL (TPM 2.0 / Dual-WORM)</td><td><span class="pill amber">Experimental (Simulation)</span></td><td class="mono" style="font-size: 12px;">tests/test_tier2_api_and_cli.py</td></tr>
-            <tr><td>Sovereign Pre-Flight Doctor (7-Axis Diagnostics)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_system_doctor.py</td></tr>
-            <tr><td>Golden Evaluation Benchmark (EVAL-01..10)</td><td><span class="pill teal">Available (100% Pass)</span></td><td class="mono" style="font-size: 12px;">evals/eval_runner.py</td></tr>
-            <tr><td>Phone Approval App (Expo/React Native)</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">mobile/ &amp; tests/test_mobile_cli.py</td></tr>
-            <tr><td>Hosted Cross-Machine Cloud Sync</td><td><span class="pill teal">Available</span></td><td class="mono" style="font-size: 12px;">tests/test_sync_engine.py &amp; web-console/</td></tr>
+            <tr><td>Sovereign Pre-Flight Doctor (7-Axis Diagnostics)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_system_doctor.py</td></tr>
+            <tr><td>Golden evaluation command</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">evals/eval_runner.py</td></tr>
+            <tr><td>Phone Approval App (Expo/React Native)</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">mobile/ &amp; tests/test_mobile_cli.py</td></tr>
+            <tr><td>Sync engine module</td><td><span class="pill muted">Not certified on this page</span></td><td class="mono" style="font-size: 12px;">tests/test_sync_engine.py &amp; web-console/</td></tr>
           </tbody>
         </table>
       </div>
@@ -592,7 +568,7 @@ keelway ❯ </pre>
           </div>
           <button type="submit" class="btn primary" style="width: 100%; justify-content: center; margin-top: 12px;">Submit Request</button>
           <div id="form-feedback" class="pill teal" style="display: none; text-align: center; margin-top: 14px; padding: 10px;">
-            ✓ Request registered. We will send invitation credentials to your inbox.
+            This form stays in the browser. It did not send the address and it did not create an invitation.
           </div>
         </form>
       </div>
@@ -635,356 +611,35 @@ document.querySelectorAll(".stepper-btn[data-step]").forEach(function (btn) {
 });
 
 // Interactive Sovereign Terminal Playground
-var TERM_OUTPUTS = {
-  evidence: {
-    cmd: "$ keelway evidence summary",
-    out: "======================================================================\n" +
-         "  🏛️  KEELWAY INVESTOR & AUDIT EVIDENCE ROOM (WP21)\n" +
-         "  Package ID:   evd_e5d0414_1793789658\n" +
-         "  Git Commit:   e5d0414f4f51a57 (main)\n" +
-         "  Sealed Hash:  4c5834a4638d0979c61ca46d53dacc5ce77c8504...\n" +
-         "  Timestamp:    2026-11-04T10:55:19Z\n" +
-         "======================================================================\n\n" +
-         "  [✓ PASS] Automated Pytest Suite (TESTS)\n" +
-         "    Claim:       669 passing unit, integration, and security tests with 0 failures\n" +
-         "    Evidence:    tests/ (669 passed, 0 failures)\n" +
-         "    Reproduction: pytest tests -q\n\n" +
-         "  [✓ PASS] 10-Task Golden Evaluation Panel (BENCHMARK)\n" +
-         "    Claim:       100% Pass@1 benchmark across AST analysis, security gates, ReAct loop, flight tapes\n" +
-         "    Evidence:    evals/eval_runner.py (10/10 passed in 3.65 ms)\n" +
-         "    Reproduction: python3 cli.py bench --receipt\n\n" +
-         "  [✓ PASS] Standalone Reference Core Engine (ARCHITECTURE)\n" +
-         "    Claim:       40/40 passing unit tests for proposal state, exact plan digests, path escape, hash chain\n" +
-         "    Evidence:    keelway_core/ (40 passed in 0.11s)\n" +
-         "    Reproduction: pytest tests/test_keelway_core_engine.py tests/test_keelway_core_cli.py -q\n\n" +
-         "  [✓ PASS] Milestone M1 Developer Workflow (TESTS)\n" +
-         "    Claim:       10/10 stages validated end-to-end (Explorer -> Plan -> Diff -> Approve -> Apply -> Test -> Tape)\n" +
-         "    Evidence:    .keelway/recordings/m1_task_*.flight.json\n" +
-         "    Reproduction: python3 cli.py m1\n\n" +
-         "  [✓ PASS] NIST SP 800-53 SC-7 Air-Gap Audit (COMPLIANCE)\n" +
-         "    Claim:       5-point pre-flight egress enforcement: zero remote endpoints, loopback bound, models offline\n" +
-         "    Evidence:    core/security/airgap_auditor.py (Overall Compliant: True)\n" +
-         "    Reproduction: python3 cli.py airgap audit\n\n" +
-         "  [✓ PASS] CycloneDX SBOM & Provenance (SECURITY)\n" +
-         "    Claim:       CycloneDX v1.5 manifest with Merkle root digest and HMAC release provenance signature\n" +
-         "    Evidence:    core/security/sbom.py (Verified Root Digest)\n" +
-         "    Reproduction: python3 cli.py sbom verify\n\n" +
-         "  [✓ PASS] Offline Entitlement Gating (SECURITY)\n" +
-         "    Claim:       HMAC-signed offline capability certificates with 14-day offline grace policies\n" +
-         "    Evidence:    core/billing/entitlements.py (Status: ACTIVE, Seats: 1)\n" +
-         "    Reproduction: python3 cli.py entitlements status\n\n" +
-         "  [✓ PASS] Tier 2 Hardware Security HAL (SECURITY)\n" +
-         "    Claim:       Dual-WORM retention receipts, TPM 2.0 PCR measured boot, PIV 72h CRL freshness, 2-of-3 Shamir recovery\n" +
-         "    Evidence:    keelway/hal/ (WORM, TPM, PIV, Recovery 100% OK)\n" +
-         "    Reproduction: python3 cli.py tier2 verify\n\n" +
-         "  [✓ PASS] Sovereign Pre-Flight System Doctor (ARCHITECTURE)\n" +
-         "    Claim:       7/7 automated diagnostic checks passed (DB, Workspace, Gateway, Air-Gap, Entitlements, SBOM, HAL)\n" +
-         "    Evidence:    core/system/doctor.py (Status: HEALTHY)\n" +
-         "    Reproduction: python3 cli.py doctor\n\n" +
-         "  [✓ PASS] Cross-Machine Sovereign Sync Engine (ARCHITECTURE)\n" +
-         "    Claim:       Authenticated encryption (AES-256-CTR + HMAC-SHA256) and monotonic vector clock conflict-free convergence\n" +
-         "    Evidence:    core/sync/engine.py & web-console/ (Conflict-Free: True)\n" +
-         "    Reproduction: python3 cli.py sync demo\n\n" +
-         "----------------------------------------------------------------------\n" +
-         "  Summary: 10/10 categories verified | All Verified: True\n" +
-         "  Audited By: Keelway Deterministic Evidence Engine\n" +
-         "----------------------------------------------------------------------"
-  },
-  bench: {
-    cmd: "$ keelway bench --receipt",
-    out: "=================================================================\n" +
-         "  🏆 KEELWAY GOLDEN EVALUATION BENCHMARK REPORT\n" +
-         "  Passed: 10/10 (100.0%)\n" +
-         "  Duration: 3.65 ms | p50: 0.32 ms | p95: 0.62 ms\n" +
-         "=================================================================\n\n" +
-         "  [✓ PASS] EVAL-01: Directory Traversal Security Gate          (0.36 ms)\n" +
-         "  [✓ PASS] EVAL-02: Atomic Filesystem Persistence              (0.29 ms)\n" +
-         "  [✓ PASS] EVAL-03: AST Class & Method Symbol Extraction       (0.57 ms)\n" +
-         "  [✓ PASS] EVAL-04: Codebase Semantic Hybrid Vector Search     (0.62 ms)\n" +
-         "  [✓ PASS] EVAL-05: Autonomous ReAct AST Patch Loop            (0.45 ms)\n" +
-         "  [✓ PASS] EVAL-06: Human-in-the-Loop Policy Gating            (0.32 ms)\n" +
-         "  [✓ PASS] EVAL-07: Prompt Injection Firewall Interception     (0.06 ms)\n" +
-         "  [✓ PASS] EVAL-08: Speculative Decoding Tandem Speedup        (0.01 ms)\n" +
-         "  [✓ PASS] EVAL-09: Multi-Rail Sovereign Payment Intent        (0.01 ms)\n" +
-         "  [✓ PASS] EVAL-10: Deterministic Flight Tape Integrity        (0.32 ms)\n\n" +
-         "[+] Signed Evaluation Receipt Persisted: eval_1793789653\n" +
-         "    Receipt SHA-256: 0111d5e2812e8ee71cbe0d5107740792523126b37f70e6d534977aad8947da38"
-  },
-  m1: {
-    cmd: "$ keelway m1",
-    out: "======================================================================\n" +
-         "  🚀 KEELWAY MILESTONE M1 — END-TO-END VERTICAL SLICE VALIDATOR\n" +
-         "  Verifying all 10 stages: Explorer -> Plan -> Diff -> Approve -> Test\n" +
-         "======================================================================\n\n" +
-         "[Stage 1/10] Launch Keelway\n" +
-         "  │ Core engine initialized. Database: healthy. WAL mode active.\n\n" +
-         "[Stage 2/10] Open Local Source Repository\n" +
-         "  │ Git repository: verified (branch main)\n\n" +
-         "[Stage 3/10] Project Explorer Loaded\n" +
-         "  │ Files discovered: ['.gitignore', 'pricing.py', 'README.md', 'test_pricing.py']\n\n" +
-         "[Stage 4/10] Agent Task Submitted\n" +
-         "  │ Goal: Fix the 10% discount bug in pricing.py and prove it with the tests\n" +
-         "  │ Policy: confirm_mutation\n\n" +
-         "[Stage 5/10] Agent Plan & Step 1 Inspection\n" +
-         "  │ Plan initialized with 3 steps. Step 1: read_file('pricing.py') -> 461 chars\n\n" +
-         "[Stage 6/10] Review Actual Code Diff\n" +
-         "  │ - return price_cents - percent\n" +
-         "  │ + return round(price_cents * (100 - percent) / 100)\n\n" +
-         "[Stage 7/10] Authorize Edit\n" +
-         "  │ Human approval granted. Mutating tool authorized for execution.\n\n" +
-         "[Stage 8/10] Apply Authorized Changes\n" +
-         "  │ File pricing.py saved to disk. Diff confirmed in working tree.\n\n" +
-         "[Stage 9/10] Run Project Test Command\n" +
-         "  │ Command: python3 -m unittest -q test_pricing.py (Exit Code: 0, 32.46ms)\n\n" +
-         "[Stage 10/10] Task Completed & Flight Tape Sealed\n" +
-         "  │ Flight tape sealed: .keelway/recordings/m1_task_1793789658.flight.json\n" +
-         "  │ Tape SHA256: 23945448b0a73e6e758367b7327a8a0f162360bc9bbddbd31ca41ae70fa6f2e8\n\n" +
-         "======================================================================\n" +
-         "  ✅ MILESTONE M1 FULL VERTICAL SLICE VALIDATED (10/10 PASS)\n" +
-         "======================================================================"
-  },
-  sbom: {
-    cmd: "$ keelway sbom verify",
-    out: "=================================================================\n" +
-         "  🔍 KEELWAY SUPPLY CHAIN PROVENANCE VERIFICATION\n" +
-         "=================================================================\n" +
-         "  Target:       keelway-sbom.json\n" +
-         "  Format:       CycloneDX v1.5\n" +
-         "  Serial:       urn:uuid:7f289410-b98a-4d92-bf3e-8c7a65b321a0\n" +
-         "  Components:   4 verified (core, keelway, keelway_core, dependencies)\n" +
-         "  Root Digest:  d96da397f54d51e944203da912f7a08ec58439124172ec1...\n" +
-         "  Signature:    8fa273b40192e47c1b52f90a... (HMAC-SHA256)\n" +
-         "  Status:       [✓] VERIFIED (Cryptographic root matches all files)"
-  },
-  spec: {
-    cmd: "$ keelway spec",
-    out: "=================================================================\n" +
-         "  🚀 KEELWAY SPECULATIVE DECODING BENCHMARK (0.5B + 7B Tandem)\n" +
-         "=================================================================\n\n" +
-         "[+] Simulating parallel verification pass with K=4 lookahead...\n" +
-         "  • Generated Text:     def verify(tokens):\n" +
-         "  • Tokens Produced:    4\n" +
-         "  • Draft Proposed:     4\n" +
-         "  • Draft Accepted:     3\n" +
-         "  • Acceptance Rate:    75.0%\n" +
-         "  • Speedup Multiplier: 2.58x faster\n" +
-         "  • Latency:            0.00 ms (Zero-blocking speculative verification)"
-  },
-  entitlements: {
-    cmd: "$ keelway entitlements status",
-    out: "=================================================================\n" +
-         "  📜 KEELWAY ENTERPRISE ENTITLEMENTS & LICENSE\n" +
-         "=================================================================\n" +
-         "  Organization: default-org [default-org]\n" +
-         "  Tier:         COMMUNITY\n" +
-         "  Status:       [✓] ACTIVE\n" +
-         "  Seats:        1 (Offline air-gapped node)\n" +
-         "  Features:     guided_builder, local_agent_loop, mcp_plugins, multi_workspace_registry\n" +
-         "  Expires:      2027-11-04 10:55:19 UTC\n" +
-         "  Grace Period: 14 days (Sovereign offline continuation policy)"
-  },
-  tier2: {
-    cmd: "$ keelway tier2 verify",
-    out: "====================================================================\n" +
-         "  KEELWAY TIER 2 HARDWARE ABSTRACTION LAYER (HAL)\n" +
-         "  High-Assurance Security Invariants & Hardware Attestation\n" +
-         "====================================================================\n\n" +
-         "[+] Running Tier 2 Hardware Attestation Verifications (all)...\n\n" +
-         "  [1/4] Verifying Dual-WORM Publication Receipts...\n" +
-         "        Dual-WORM receipts verified (cert: a73092c6ab931731...): [PASS]\n" +
-         "  [2/4] Verifying TPM 2.0 Quote & PCR Event Log Replay...\n" +
-         "        TPM PCR replay matching quote (3ce9eaf3bedbc763...): [PASS]\n" +
-         "  [3/4] Verifying PIV Smartcard Token & 72h CRL Freshness...\n" +
-         "        PIV token valid (CRL age: 24h <= 72h cap): [PASS]\n" +
-         "  [4/4] Verifying Customer 2-of-3 Offline Root Recovery...\n" +
-         "        2-of-3 Root Recovery verified (DENY_OLD cutover): [PASS]\n\n" +
-         "====================================================================\n" +
-         "  ALL TIER 2 HARDWARE SECURITY VERIFIERS PASSED [100% OK]\n" +
-         "===================================================================="
-  },
-  doctor: {
-    cmd: "$ keelway doctor",
-    out: "====================================================================\n" +
-         "  KEELWAY — Sovereign System Diagnostics & Enterprise Pre-Flight\n" +
-         "  Status: HEALTHY | Python 3.14.0 | Darwin 27.0.0\n" +
-         "====================================================================\n\n" +
-         "  [1] Database Engine                                            [OK]\n" +
-         "      • Connected                   : True\n" +
-         "      • Wal Mode                    : True\n\n" +
-         "  [2] Workspace & Git Context                                    [OK]\n" +
-         "      • Is Git                      : True\n" +
-         "      • Branch                      : main\n" +
-         "      • Clean Tree                  : True\n\n" +
-         "  [3] Model Providers & Gateway                                  [OK]\n" +
-         "      • Local                       : True\n" +
-         "      • Anthropic                   : False\n" +
-         "      • Openai                      : False\n" +
-         "      • Google                      : False\n\n" +
-         "  [4] Air-Gap Compliance (NIST SP 800-53 SC-7)                   [OK]\n" +
-         "      • Compliant                   : True\n" +
-         "      • Checks Passed               : 5 / 5\n\n" +
-         "  [5] Enterprise Entitlements                                    [OK]\n" +
-         "      • Org Id                      : default-org\n" +
-         "      • Tier                        : community\n" +
-         "      • Status                      : ACTIVE\n" +
-         "      • Grace Period Days           : 14\n\n" +
-         "  [6] Software Bill of Materials (SBOM)                          [OK]\n" +
-         "      • Format                      : CycloneDX v1.5\n" +
-         "      • Has Provenance Signature    : True\n\n" +
-         "  [7] Tier 2 Hardware Security HAL                               [OK]\n" +
-         "      • Dual Worm Storage           : VERIFIED (ADR-076..080)\n" +
-         "      • Tpm Measured Boot           : VERIFIED (ADR-062/064)\n" +
-         "      • Piv Smartcard               : VERIFIED (ADR-051/053, CRL <= 72h)\n" +
-         "      • Root Recovery               : READY (2-of-3 Shamir threshold)\n\n" +
-         "====================================================================\n" +
-         "  Diagnostic Result: HEALTHY — 7/7 Dimensions Evaluated.\n" +
-         "===================================================================="
-  },
-  mobile: {
-    cmd: "$ keelway mobile pair",
-    out: "====================================================================\n" +
-         "  📱 KEELWAY MOBILE — PHONE MISSION CONTROL PAIRING\n" +
-         "  Zero-Cloud Sovereign Mobile Approvals (iOS / Android)\n" +
-         "====================================================================\n\n" +
-         "  [1] Wi-Fi / LAN Address : 192.168.40.202:7420\n" +
-         "  [2] Studio Pairing Link : http://192.168.40.202:7420/?token=keelway_YhnWbpANxfdl...\n" +
-         "  [3] Mobile Deep Link    : keelway://pair?link=http%3A%2F%2F192.168.40.202%3A7420...\n" +
-         "  [4] Security Token      : keelway_YhnW... (Role: owner)\n\n" +
-         "  Pairing Instructions:\n" +
-         "  ─────────────────────────────────────────────────────────────────\n" +
-         "  1. Open Keelway Mobile on your phone (connected to same Wi-Fi).\n" +
-         "  2. In the app, paste the Studio Pairing Link above.\n" +
-         "  3. Tap 'Connect'. Your phone will authenticate with whoami.\n" +
-         "  4. Once connected, approve agent tool mutations directly on your phone.\n" +
-         "===================================================================="
-  },
-  sync: {
-    cmd: "$ keelway sync demo",
-    out: "====================================================================\n" +
-         "  🔄 SIMULATING CROSS-MACHINE ENCRYPTED STATE SYNCHRONIZATION\n" +
-         "====================================================================\n\n" +
-         "  [1] Alice records local agent task state mutation...\n" +
-         "      Alice Lamport: #1 | Vector: {'alice-macbook-pro': 1}\n\n" +
-         "  [2] Alice exports authenticated encrypted envelope (AES-256-CTR + HMAC-SHA256)...\n" +
-         "      Envelope ID: env_alice-ma_1793792648_... | Digest: 990330de24a5a3fd...\n\n" +
-         "  [3] Bob imports Alice's encrypted envelope over relay/P2P mesh...\n" +
-         "      Bob Merged: 1 records | Bob Clock: #2\n" +
-         "      Bob Vector: {'bob-linux-station': 0, 'alice-macbook-pro': 1}\n\n" +
-         "  [4] Bob records a concurrent task completion on his workstation...\n" +
-         "      Bob Lamport: #3 | Vector: {'bob-linux-station': 1, 'alice-macbook-pro': 1}\n\n" +
-         "  [5] Bob exports encrypted envelope back to Alice...\n" +
-         "      Alice Merged: 1 records | Alice Clock: #4\n" +
-         "      Alice Vector: {'alice-macbook-pro': 1, 'bob-linux-station': 1}\n\n" +
-         "====================================================================\n" +
-         "  ALL MACHINES DETERMINISTICALLY SYNCHRONIZED [100% CONVERGENCE]\n" +
-         "===================================================================="
-  },
-  skill: {
-    cmd: "$ keelway skill list",
-    out: "================================================================================\n" +
-         "  KEELWAY KSTACK ROLE SKILLS REGISTRY\n" +
-         "================================================================================\n" +
-         "  Skill Name           Role         Version   Permissions            Status    \n" +
-         "--------------------------------------------------------------------------------\n" +
-         "  kstack/plan          architect    1.0.0     draft                  PINNED    \n" +
-         "  kstack/qa            qa_lead      1.0.0     execute_restricted     PINNED    \n" +
-         "  kstack/review        reviewer     1.0.0     read                   PINNED    \n" +
-         "  kstack/security      sec_lead     1.0.0     read                   PINNED    \n" +
-         "===================================================================="
-  },
-  brain: {
-    cmd: "$ keelway brain query",
-    out: "================================================================================\n" +
-         "  KEELWAY KBRAIN KNOWLEDGE FACTS (Scope <= project)\n" +
-         "================================================================================\n" +
-         "  • [project] [approved] pricing_rule (rev 1): Discounts must not exceed 20% on checkout\n" +
-         "    Provenance: user_instruction | Reason: Policy ADR-014\n" +
-         "  • [project] [approved] api_contract_v1 (rev 1): All API endpoints require Authorization Bearer\n" +
-         "    Provenance: user_instruction | Reason: API Specification WP04\n" +
-         "===================================================================="
-  },
-  flow: {
-    cmd: "$ keelway flow run",
-    out: "[+] Created Flow DAG 'flow_demo_1793797666801' (nodes: 3, max_fanout: 4)\n  Executing DAG in topological order...\n[+] Flow completed successfully! Proof Packet Sealed:\n    Proof SHA-256:  4458fdec4b8c4ae8fc1e17abc9988004f706f55db632fce1d6720eda6b3d3c8c\n    Nodes Executed: 3 / 3\n    Tests Passed:   True"
-  },
-  cost: {
-    cmd: "$ keelway cost --summary",
-    out: "================================================================================\n  KEELWAY MODEL ECONOMICS & COST OBSERVABILITY\n================================================================================\n  Total Tokens: 18,420 | Prompt: 14,200 | Completion: 4,220\n  Arbitrage ROI vs Cloud API: 96.8% Savings | SEI Score: 94.2/100\n================================================================================"
-  },
-  code: {
-    cmd: "$ keelway code refs CodeSymbol",
-    out: "======================================================================\n  🔗 KEELWAY CROSS-FILE REFERENCES: 'CodeSymbol' (32 matches)\n======================================================================\n\n  • [DEFINITION] core/storage/ast_index.py:21\n    class CodeSymbol:\n\n  • [IMPORT] core/storage/ast_index.py:16\n    from core.storage.ast_index import CodeSymbol\n\n  • [CALL] core/storage/ast_index.py:88\n    symbols.append(CodeSymbol(name=node.name, kind=\"function\"))\n\n  • [REFERENCE] tests/test_codebase_intelligence.py:12\n    from core.storage.ast_index import CodebaseSemanticIndex, CodeSymbol\n\n======================================================================\n  Module Dependency Graph: 110 Nodes | 288 Edges | 0 Cycles (Clean)\n======================================================================"
-  },
-  pack: {
-    cmd: "$ keelway agent pack agents/test-fixer",
-    out: "[+] Packaging agent bundle 'test-fixer'...\n" +
-         "[✓] Verified 6 member files with zero directory traversals\n" +
-         "[+] Output Archive: exports/test-fixer.tar.gz\n" +
-         "    Files Packed:  6\n" +
-         "    Bundle Digest: a9f3e58b104928db... [SHA-256 SEALED]\n" +
-         "    Manifest:      test-fixer@1.0.0 (digest: 7c4e2091...)\n" +
-         "[✓] Ready for sovereign offline air-gap distribution."
-  },
-  hubpack: {
-    cmd: "$ keelway hub pack .agents/skills/investigate",
-    out: "[+] Packaging KHub universal skill '.agents/skills/investigate'...\n" +
-         "[✓] Verified SKILL.md, prompts, and tool adapters (4 member files)\n" +
-         "[+] Output Archive: exports/investigate.skill.tar.gz\n" +
-         "    Files Packed:  4\n" +
-         "    Bundle Digest: e2b89f01c4a56d88... [SHA-256 SEALED]\n" +
-         "    Compatibility: Claude Code, Cursor, Codex, and AGY native runtimes\n" +
-         "[✓] Ready for sovereign offline team sync."
-  },
-  conflict: {
-    cmd: "$ keelway space conflict --base core.py --left feat_a.py --right feat_b.py",
-    out: "[+] Analyzing 3-way AST merge conflict across 2 parallel agent branches...\n" +
-         "[✓] Discovered 2 non-overlapping function additions\n" +
-         "    - Branch left:  added function 'handle_payment()'\n" +
-         "    - Branch right: added function 'validate_tax()'\n" +
-         "[✓] Autonomous AST Resolution: SUCCESS (Zero human intervention required)\n" +
-         "    Auto-Resolvable: True | Collision Hunks: 0\n" +
-         "[+] Merged file written to worktree with clean test verification."
-  },
-  spool: {
-    cmd: "$ keelway runner spool flush --runner-id vpc_us_east_1",
-    out: "[+] Connecting to local runner offline spool (vpc_us_east_1)...\n" +
-         "[✓] Found 3 pending job execution traces and cryptographic receipts\n" +
-         "[+] Synchronizing batch to control plane with exponential backoff...\n" +
-         "    - Accepted Items: 3 / 3 (100% Delivery)\n" +
-         "    - Batch Receipt:  5c8e19bf204d... [SHA-256 VERIFIED]\n" +
-         "[✓] Runner spool backlog cleared (0 pending items)."
-  },
-  speculative: {
-    cmd: "$ keelway models bench-speculative --draft qwen2.5-coder:0.5b --target qwen2.5-coder:7b --k 4",
-    out: "================================================================================\n" +
-         "  ⚡ KEELWAY SPECULATIVE DECODING & EDGE ACCELERATION BENCHMARK\n" +
-         "================================================================================\n" +
-         "  • Draft Model (Speculator):  qwen2.5-coder:0.5b (Local On-Device Engine)\n" +
-         "  • Target Model (Verifier):   qwen2.5-coder:7b   (Local High-Capacity Engine)\n" +
-         "  • Lookahead Window (K):      4 candidate tokens per forward pass\n" +
-         "  • Benchmark Prompt:          'def calculate_roi(investment, return_val):'\n" +
-         "--------------------------------------------------------------------------------\n" +
-         "  EXECUTION TELEMETRY & PERFORMANCE METRICS:\n" +
-         "  [✓] Tokens Generated:        28 tokens\n" +
-         "  [✓] Draft Tokens Proposed:   32 candidate tokens\n" +
-         "  [✓] Draft Tokens Accepted:   26 accepted prefix tokens (81.3% acceptance rate)\n" +
-         "  [✓] Sequential Baseline:     980.00 ms (35.0 ms / token)\n" +
-         "  [✓] Speculative Duration:    357.66 ms on-device execution\n" +
-         "  [✓] Effective Speedup:       2.74x acceleration factor\n" +
-         "  [✓] Latency Reduction:       63.5% latency saved (-622.34 ms)\n" +
-         "  [✓] External Cloud Billing:  $0.000000 USD (100% on-device private inference)\n" +
-         "  [✓] Arbitraged Token Value:  $0.000420 USD saved vs Claude 3.5 Sonnet\n" +
-         "================================================================================\n" +
-         "  STATUS: PROVEN (Amdahl speculative convergence sealed into flight tape)"
-  }
+var TERM_LABELS = {
+  evidence: "python3 cli.py evidence --help",
+  bench: "python3 cli.py bench --help",
+  m1: "python3 cli.py m1 --help",
+  sbom: "python3 cli.py sbom --help",
+  spec: "python3 cli.py models bench-speculative --help",
+  entitlements: "python3 cli.py entitlements --help",
+  tier2: "python3 cli.py tier2 --help",
+  doctor: "python3 cli.py doctor --help",
+  mobile: "python3 cli.py mobile --help",
+  sync: "python3 cli.py sync --help",
+  skill: "python3 cli.py skill --help",
+  brain: "python3 cli.py brain --help",
+  flow: "python3 cli.py flow --help",
+  cost: "python3 cli.py cost --help",
+  code: "python3 cli.py code --help",
+  pack: "python3 cli.py agent --help",
+  hubpack: "python3 cli.py hub --help",
+  conflict: "python3 cli.py space --help",
+  spool: "python3 cli.py runner --help",
+  speculative: "python3 cli.py models bench-speculative --help"
 };
 
 function renderTermPlayground(cmdKey) {
-  var data = TERM_OUTPUTS[cmdKey] || TERM_OUTPUTS.evidence;
+  var label = TERM_LABELS[cmdKey] || "python3 cli.py --help";
   var promptEl = document.getElementById("term-active-prompt");
   var outEl = document.getElementById("term-playground-output");
-  if (promptEl) promptEl.textContent = data.cmd;
-  if (outEl) outEl.textContent = data.out;
+  if (promptEl) promptEl.textContent = label;
+  if (outEl) outEl.textContent = "Label only. This page does not run the command and does not show a result.\n" + label;
 }
 
 document.querySelectorAll(".term-tab-btn").forEach(function (btn) {
@@ -1108,7 +763,7 @@ function renderAppSynthesizer() {
   var planDetailsEl = document.getElementById("sim-plan-details");
   var cliCmdEl = document.getElementById("sim-cli-cmd");
 
-  if (fileCountEl) fileCountEl.textContent = data.files.length + " Files Scaffolded";
+  if (fileCountEl) fileCountEl.textContent = data.files.length + " names in this page sample";
 
   if (fileTreeEl) {
     fileTreeEl.innerHTML = data.files.map(function (f) {
@@ -1126,12 +781,12 @@ function renderAppSynthesizer() {
       "• Autonomy Level: " + data.boundary.autonomy + "\n" +
       "• Network Egress: " + data.boundary.network + "\n" +
       "• Allowed Writes: " + data.boundary.writes.join(", ") + "\n" +
-      "• Verification:   " + data.boundary.verification + " [Automated Execution]\n" +
-      "• Flight Tape:    Sealed with SHA-256 proof on completion";
+      "• Verification note: " + data.boundary.verification + "\n" +
+      "• This panel is page text. It does not seal a tape or run a test.";
   }
 
   if (cliCmdEl) {
-    cliCmdEl.textContent = 'keelway build --intent "' + intent.replace(/"/g, '') + '" --template ' + archKey;
+    cliCmdEl.textContent = 'python3 cli.py build plan "' + intent.replace(/"/g, '') + '" --template ' + archKey;
   }
 }
 

@@ -1,148 +1,69 @@
-# Keelway Developer Quickstart & Evaluation Guide
+# Keelway local quickstart
 
-Welcome to **Keelway by Sorvex Labs**. This guide helps software engineers, tech leads, and security professionals test, run, and evaluate Keelway's local-first developer infrastructure and multi-agent coordination engine.
+This guide matches the commands in a clone of [creova-gif/kora](https://github.com/creova-gif/kora). The clone directory is `kora`. It does not use a PyPI package named `keelway`, and it does not use a `keelway.dev` or `get.keelway.dev` installer.
 
----
+Studio, the governance server, and the static site in `website/` are three different surfaces. See `README.md` for the same split. This guide does not print a test pass count.
 
-## 1. Fast Setup (Under 60 Seconds)
+Package B (runtime labels) and package C (fail-closed authentication, isolation, and default-config behavior) were not verified checkpoints when this page was written. Do not read those intended behaviors into the commands below.
 
-### Prerequisites
-- Python 3.11+ (Python 3.14 fully supported)
-- Git 2.30+
-- macOS (Apple Silicon arm64 or Intel) or Linux (x86_64 or aarch64)
+## Setup
 
-### One-Line Install Script
+Python 3.11 or newer.
+
 ```bash
-curl -fsSL https://keelway.dev/install.sh | bash
-```
-
-### Or Manual Installation
-```bash
-git clone https://github.com/creova-gif/kora.git keelway
-cd keelway
+git clone https://github.com/creova-gif/kora.git
+cd kora
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
+pip install -e ".[dev]"
 ```
 
----
+After that install, `keelway` is `cli.py` and `keelway-core` is `keelway.cli.main`. `./bin/keelway` is a wrapper around `cli.py`.
 
-## 2. Pre-Flight System Diagnostics (`keelway doctor`)
+`website/install.sh` clones the same GitHub repository into `~/.keelway/app` by default and editable-installs that checkout. Run the script from a clone if you want that layout.
 
-Before executing agent tasks, verify your local environment across all 7 operational dimensions:
+## Local Studio
 
 ```bash
-keelway doctor
+python3 cli.py dev
+python3 cli.py desktop
 ```
 
-Output:
-```
-====================================================================
-  KEELWAY — Sovereign System Diagnostics & Enterprise Pre-Flight
-  Status: HEALTHY | Python 3.14.0 | Darwin 27.0.0
-====================================================================
+`python3 cli.py dev` serves `core.main:app` and the Studio UI on `127.0.0.1` port `7420`, and opens a browser. `python3 cli.py desktop` and `python3 cli.py dev --desktop` try a Chrome or Chromium `--app` window, then a normal browser. `make studio` and `make desktop` call those two commands.
 
-  [1] Database Engine                                            [OK]
-  [2] Workspace & Git Context                                    [OK]
-  [3] Model Providers & Gateway                                  [OK]
-  [4] Air-Gap Compliance (NIST SP 800-53 SC-7)                   [OK]
-  [5] Enterprise Entitlements                                    [OK]
-  [6] Software Bill of Materials (SBOM)                          [OK]
-  [7] Tier 2 Hardware Security HAL                               [OK]
+In this tree, Studio agent-task planning in `AutonomousAgentLoop.formulate_plan` selects a fixed step list from keywords in the goal. That is not a model-written plan. Runtime labels for that path belong to package B.
 
-====================================================================
-  Diagnostic Result: HEALTHY — 7/7 Dimensions Evaluated.
-====================================================================
-```
-
----
-
-## 3. Automated Test Suite (752 Tests, 0 Failures)
-
-Run the complete zero-mock test suite:
+## Governance server
 
 ```bash
-pytest tests -q
+make serve
 ```
 
-All 752 unit, integration, and security tests execute locally without cloud egress or network dependencies.
+`make serve` runs `python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000`. After the editable install the same command is `keelway-core serve`. The `keelway` script has no `serve` subcommand. Both parsers set `prog="keelway"`, so the governance module's help text says `usage: keelway`. The installed name for that module is `keelway-core`. `cli.py` has a separate `run` subcommand from `keelway-core run`.
 
----
+The governance model gateway in this tree defaults to `ProviderKind.DETERMINISTIC_MOCK` unless a caller passes another provider. This guide does not call `keelway-core run` a live model agent.
 
-## 4. Golden Benchmark Evaluation (`keelway bench`)
+The container entrypoint starts `keelway.cli.main serve`. That image does not include Studio.
 
-Run the 10-task golden benchmark panel verifying directory traversal gates, atomic persistence, AST extraction, semantic search, ReAct loops, policy gating, prompt injection firewall, speculative decoding, payment intent, and flight tape cryptographic seals:
+## Static site
+
+`website/` is HTML, CSS, and JSON. `vercel.json` publishes that directory. Opening those files does not start Studio or the governance server.
+
+## Template list
 
 ```bash
-keelway bench
+python3 cli.py build templates
 ```
 
-Output:
-```
-=================================================================
-  🏆 KEELWAY GOLDEN EVALUATION BENCHMARK REPORT
-  Passed: 10/10 (100.0%)
-  Duration: 3.42 ms | p50: 0.28 ms | p95: 0.56 ms
-=================================================================
-```
+That command prints guided-builder archetype names and does not call a model. A generated tree is `python3 cli.py build app "<intent>" --template fastapi-service`. Intent is positional on `build plan` and `build app`.
 
----
-
-## 5. Milestone M1: 10-Stage Vertical Slice (`keelway m1`)
-
-Execute the canonical end-to-end autonomous developer workflow:
-1. Core Engine Launch
-2. Open Local Source Repository
-3. Project Explorer Discovery
-4. Submit Agent Goal
-5. Formulate 3-Step Plan
-6. Review Sandboxed Unified Diff
-7. Human Approver Grants Mutation
-8. Apply Authorized Changes to Disk
-9. Run Real Repo Tests (`unittest` / `pytest`)
-10. Seal Cryptographic Flight Tape with SHA-256 Hash Chain
+## Tests and other commands
 
 ```bash
-keelway m1
+make test
+python3 cli.py --help
+python3 -m keelway.cli.main --help
+make help
 ```
 
----
-
-## 6. Dual-Mode Sovereign IDE & External Editor Sync
-
-Keelway provides two seamless operational modes:
-
-### Mode 1: Sovereign Desktop IDE
-Launch the built-in Monaco editor, file tree, terminal, and agent task board:
-```bash
-keelway dev --desktop
-# Or launch the local web server at http://localhost:7420
-keelway dev
-```
-
-### Mode 2: External Editor Sync Bridge (VS Code & Cursor)
-Keep using your preferred editor with live bidirectional synchronization and pessimistic pause on concurrent mutations:
-```bash
-# Check editor sync watcher status
-keelway sync editor
-
-# Launch active workspace directly in VS Code
-keelway sync editor --open vscode
-
-# Launch active workspace directly in Cursor
-keelway sync editor --open cursor
-```
-
-When an external editor modifies a file currently being edited by an agent, Keelway automatically pauses the agent, emits an `EXTERNAL_CONCURRENT_MUTATION` flight tape event, and prompts the developer for a 3-way visual resolution.
-
----
-
-## 7. Zero-Risk Seeded Demo (`keelway demo`)
-
-To test Keelway inside an isolated sandbox with a seeded bug (`apply_discount(1000, 10)` returning 990 instead of 900):
-
-```bash
-keelway demo
-```
-
-This launches Keelway Studio on `~/keelway-demo` without modifying your personal code repositories or global settings.
+`make test` runs pytest. Read the command output or GitHub Actions for a result. This guide does not embed one. `python3 cli.py doctor` prints a local diagnostic report. This guide does not embed that report either.

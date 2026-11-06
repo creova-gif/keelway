@@ -1,6 +1,8 @@
 #!/bin/sh
 # Keelway installer (POSIX sh)
-# Usage: curl -fsSL https://get.keelway.dev | sh
+# Usage: from a clone of https://github.com/creova-gif/kora
+#   sh bin/install.sh
+# This script is not a keelway.dev or get.keelway.dev installer.
 
 set -eu
 
