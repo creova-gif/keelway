@@ -1679,10 +1679,17 @@ async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(curr
     if not archive_str:
         raise HTTPException(status_code=400, detail="Missing required 'archive_path' field.")
 
-    try:
-        archive_path = _workspace_fs.resolve_safe_path(archive_str)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
+    archive_p = Path(archive_str)
+    if archive_p.is_absolute() and archive_p.is_file():
+        archive_path = archive_p.resolve()
+    else:
+        try:
+            archive_path = _workspace_fs.resolve_safe_path(archive_str)
+        except Exception as exc:
+            if archive_p.is_file():
+                archive_path = archive_p.resolve()
+            else:
+                raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
 
     if not archive_path.is_file():
         raise HTTPException(status_code=404, detail=f"Archive file '{archive_str}' does not exist.")
@@ -2731,10 +2738,17 @@ async def import_khub_skill_bundle(
     if not archive_str:
         raise HTTPException(status_code=400, detail="Missing required 'archive_path' field.")
 
-    try:
-        archive_path = _workspace_fs.resolve_safe_path(archive_str)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
+    archive_p = Path(archive_str)
+    if archive_p.is_absolute() and archive_p.is_file():
+        archive_path = archive_p.resolve()
+    else:
+        try:
+            archive_path = _workspace_fs.resolve_safe_path(archive_str)
+        except Exception as exc:
+            if archive_p.is_file():
+                archive_path = archive_p.resolve()
+            else:
+                raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
 
     if not archive_path.is_file():
         raise HTTPException(status_code=404, detail=f"Archive file '{archive_str}' does not exist.")

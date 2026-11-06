@@ -23,8 +23,9 @@ STUDIO_HTML = KEELWAY_ROOT / "core" / "studio" / "index.html"
 STUDIO_JS = KEELWAY_ROOT / "core" / "studio" / "assets" / "studio.js"
 
 
-def run_node_eval(js_code: str) -> dict:
+def run_node_eval(js_code: str, input_data: dict = None) -> dict:
     """Run JavaScript code snippet in Node.js and return parsed JSON result."""
+    stdin_payload = json.dumps(input_data) if input_data is not None else ""
     wrapped_code = f"""
     const fs = require('fs');
     const studioJsCode = fs.readFileSync('{STUDIO_JS}', 'utf-8');
@@ -89,15 +90,22 @@ def run_node_eval(js_code: str) -> dict:
 
     const extracted = evalScope(require);
 
+    // Read input from stdin if present
+    let parsedInput = null;
+    try {{
+        const raw = fs.readFileSync(0, 'utf-8');
+        if (raw && raw.trim()) parsedInput = JSON.parse(raw);
+    }} catch (e) {{}}
+
     // Run user test code
-    const testFn = new Function('PROOF_STAGES', 'getIdeStageData', 'getBuilderStageData', 'renderUnifiedProofStrip', 'mockElement', `
+    const testFn = new Function('PROOF_STAGES', 'getIdeStageData', 'getBuilderStageData', 'renderUnifiedProofStrip', 'mockElement', 'inputData', `
         {js_code}
     `);
 
-    const output = testFn(extracted.PROOF_STAGES, extracted.getIdeStageData, extracted.getBuilderStageData, extracted.renderUnifiedProofStrip, mockElement);
+    const output = testFn(extracted.PROOF_STAGES, extracted.getIdeStageData, extracted.getBuilderStageData, extracted.renderUnifiedProofStrip, mockElement, parsedInput);
     console.log(JSON.stringify(output));
     """
-    res = subprocess.run(["node", "-e", wrapped_code], capture_output=True, text=True, check=True)
+    res = subprocess.run(["node", "-e", wrapped_code], input=stdin_payload, capture_output=True, text=True, check=True)
     return json.loads(res.stdout)
 
 

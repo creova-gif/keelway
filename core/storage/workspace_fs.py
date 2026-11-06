@@ -50,9 +50,13 @@ class WorkspaceFilesystem:
         if not relative_path or relative_path == ".":
             return self.root
 
-        # Normalize away redundant slashes
-        clean_rel = relative_path.lstrip("/\\")
-        candidate = (self.root / clean_rel).resolve()
+        p = Path(relative_path)
+        if p.is_absolute():
+            candidate = p.resolve()
+        else:
+            # Normalize away redundant slashes
+            clean_rel = relative_path.lstrip("/\\")
+            candidate = (self.root / clean_rel).resolve()
 
         try:
             candidate.relative_to(self.root)
