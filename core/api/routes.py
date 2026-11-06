@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, WebSocket, WebSocketDisconnect, WebSocketException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -404,10 +405,52 @@ async def delete_memory(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Memory '{key}' not found in scope '{scope}'.")
 
 
+PROOF_STRIP_STAGES = ("INSPECT", "PLAN", "AUTHORIZE", "EXECUTE", "VERIFY", "SEAL")
+
+
+def map_to_proof_stage(event_type: str, status: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> str:
+    """Map runtime event or status to Keelway's Proof Strip lifecycle."""
+    ev = (event_type or "").lower()
+    st = (status or "").lower()
+
+    if isinstance(data, dict):
+        recent = data.get("recent_events") or []
+        if recent and isinstance(recent[-1], dict):
+            last_ev = (recent[-1].get("event_type") or recent[-1].get("type") or "").lower()
+            ev = f"{ev} {last_ev}"
+
+    # 6. SEAL: tape sealing, cryptographic hash, audit packaging, completion
+    if any(k in ev for k in ("seal", "hash", "tamper", "merkle", "audit")) or st in ("completed", "sealed"):
+        return "SEAL"
+
+    # 5. VERIFY: tests, verification, AST diagnostics, self-healing check
+    if any(k in ev for k in ("verify", "test", "healing", "diagnostic")) or st in ("verifying", "testing"):
+        return "VERIFY"
+
+    # 4. EXECUTE: tool execution, code generation, mutations, diff proposals
+    if any(k in ev for k in ("execute", "tool", "mutation", "diff", "running", "step")) or st in ("executing_tool", "running", "executing"):
+        return "EXECUTE"
+
+    # 3. AUTHORIZE: approvals, permissions, quorum, policy evaluation
+    if any(k in ev for k in ("approval", "authorize", "quorum", "policy", "permission")) or st in ("awaiting_approval", "pending_approval"):
+        return "AUTHORIZE"
+
+    # 2. PLAN: planning, plan formulation, goal breakdown
+    if any(k in ev for k in ("plan", "goal", "formulate")) or st in ("planning", "plan_ready", "planned"):
+        return "PLAN"
+
+    # 1. INSPECT: initial workspace inspection, context loading, air-gap check, handshake
+    if any(k in ev for k in ("inspect", "context_loading", "air_gap", "handshake")) or st in ("created", "context_loading"):
+        return "INSPECT"
+
+    return "EXECUTE" if st in ("running", "active") else "INSPECT"
+
+
 class ConnectionManager:
-    """Manages active WebSocket connections for Keelway Studio."""
+    """Manages active WebSocket connections and SSE stream subscriptions for Keelway Studio."""
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
+        self.sse_subscribers: Set[asyncio.Queue] = set()
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -416,12 +459,35 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket):
         self.active_connections.discard(websocket)
 
+    def register_sse(self) -> asyncio.Queue:
+        q = asyncio.Queue(maxsize=256)
+        self.sse_subscribers.add(q)
+        return q
+
+    def unregister_sse(self, q: asyncio.Queue):
+        self.sse_subscribers.discard(q)
+
     async def broadcast(self, message: dict):
+        if "timestamp" not in message:
+            message["timestamp"] = datetime.now(timezone.utc).isoformat()
+        if "stage" not in message:
+            message["stage"] = map_to_proof_stage(
+                event_type=message.get("type", ""),
+                status=message.get("new_state") or (message.get("state") or {}).get("status"),
+                data=message.get("state"),
+            )
         for connection in list(self.active_connections):
             try:
                 await connection.send_json(message)
             except Exception:
                 self.active_connections.discard(connection)
+        for q in list(self.sse_subscribers):
+            try:
+                q.put_nowait(message)
+            except asyncio.QueueFull:
+                pass
+            except Exception:
+                self.sse_subscribers.discard(q)
 
 
 ws_manager = ConnectionManager()
@@ -474,6 +540,7 @@ async def websocket_studio_endpoint(websocket: WebSocket):
         # Send initial connection handshake
         await websocket.send_json({
             "type": "handshake",
+            "stage": "INSPECT",
             "server": "Keelway Studio",
             "version": "2.1.0-alpha",
             "air_gapped": gateway.air_gap.enabled,
@@ -525,6 +592,167 @@ async def websocket_studio_endpoint(websocket: WebSocket):
         ws_manager.disconnect(websocket)
     except Exception:
         ws_manager.disconnect(websocket)
+
+
+@router.get("/v1/events/stream", tags=["Realtime Events"])
+async def stream_events(
+    request: Request,
+    task_id: Optional[str] = None,
+):
+    """Server-Sent Events (SSE) streaming endpoint for live studio task events and Proof Strip lifecycle frames."""
+    if not origin_allowed(request.headers.get("origin"), request.headers.get("host")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origin not allowed.")
+    token = request.query_params.get("token") or token_from_headers(request.headers)
+    if settings.auth_required:
+        principal = await principal_for_token(token)
+        if principal is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid API token.")
+    else:
+        principal = LOCAL_OWNER
+
+    async def event_generator():
+        q = ws_manager.register_sse()
+        try:
+            # Yield initial connection handshake frame matching INSPECT stage
+            handshake = {
+                "type": "handshake",
+                "stage": "INSPECT",
+                "server": "Keelway Studio",
+                "version": "2.1.0-alpha",
+                "air_gapped": gateway.air_gap.enabled,
+                "task_id": task_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            yield f"data: {json.dumps(handshake)}\n\n"
+
+            # If task_id is specified and currently active in memory, yield baseline state frame
+            if task_id and task_id in _active_agent_loops:
+                active_agent = _active_agent_loops[task_id]
+                cur_state = active_agent.get_state()
+                stage = map_to_proof_stage("agent_loop_updated", status=cur_state.get("status"), data=cur_state)
+                task_frame = {
+                    "type": "agent_loop_updated",
+                    "stage": stage,
+                    "task_id": task_id,
+                    "state": cur_state,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+                yield f"data: {json.dumps(task_frame)}\n\n"
+
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    msg = await asyncio.wait_for(q.get(), timeout=0.5)
+                    if task_id and msg.get("task_id") and msg.get("task_id") != task_id:
+                        continue
+                    yield f"data: {json.dumps(msg)}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": ping\n\n"
+        except (asyncio.CancelledError, GeneratorExit):
+            pass
+        finally:
+            ws_manager.unregister_sse(q)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.get("/v1/flight/stream", tags=["Deterministic Flight Recorder"])
+async def stream_flight_events(
+    request: Request,
+    task_id: Optional[str] = None,
+):
+    """Real-time streaming endpoint for deterministic flight tape execution frames matching Proof Strip lifecycle."""
+    if not origin_allowed(request.headers.get("origin"), request.headers.get("host")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origin not allowed.")
+    token = request.query_params.get("token") or token_from_headers(request.headers)
+    if settings.auth_required:
+        principal = await principal_for_token(token)
+        if principal is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid API token.")
+    else:
+        principal = LOCAL_OWNER
+
+    async def flight_generator():
+        q = ws_manager.register_sse()
+        try:
+            sent_indices = set()
+            if task_id:
+                try:
+                    tape_file = _tape_path(task_id)
+                    if tape_file.exists():
+                        tape_data = json.loads(tape_file.read_text(encoding="utf-8"))
+                        for ev in tape_data.get("events", []):
+                            ev_type = ev.get("event_type", "")
+                            stage = map_to_proof_stage(ev_type, data=ev.get("payload"))
+                            frame = {
+                                "type": "flight_event_frame",
+                                "stage": stage,
+                                "task_id": task_id,
+                                "event_index": ev.get("event_index"),
+                                "event_type": ev_type,
+                                "payload": ev.get("payload", {}),
+                                "timestamp_utc": ev.get("timestamp_utc"),
+                            }
+                            sent_indices.add(ev.get("event_index"))
+                            yield f"data: {json.dumps(frame)}\n\n"
+                except Exception:
+                    pass
+
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    msg = await asyncio.wait_for(q.get(), timeout=0.5)
+                    if task_id and msg.get("task_id") and msg.get("task_id") != task_id:
+                        continue
+                    state = msg.get("state") or {}
+                    recent_events = state.get("recent_events", [])
+                    for ev in recent_events:
+                        idx = ev.get("event_index")
+                        if idx is not None and idx in sent_indices:
+                            continue
+                        if idx is not None:
+                            sent_indices.add(idx)
+                        ev_type = ev.get("event_type") or ev.get("type") or ""
+                        stage = map_to_proof_stage(ev_type, data=ev.get("payload") or ev.get("data"))
+                        frame = {
+                            "type": "flight_event_frame",
+                            "stage": stage,
+                            "task_id": msg.get("task_id") or task_id,
+                            "event_index": idx,
+                            "event_type": ev_type,
+                            "payload": ev.get("payload") or ev.get("data", {}),
+                            "timestamp_utc": time.time(),
+                        }
+                        yield f"data: {json.dumps(frame)}\n\n"
+                    ev_type = msg.get("type", "")
+                    stage = msg.get("stage") or map_to_proof_stage(ev_type, status=state.get("status"))
+                    yield f"data: {json.dumps({'type': 'flight_stream_update', 'stage': stage, 'task_id': msg.get('task_id'), 'message': msg})}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": ping\n\n"
+        except (asyncio.CancelledError, GeneratorExit):
+            pass
+        finally:
+            ws_manager.unregister_sse(q)
+
+    return StreamingResponse(
+        flight_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("/v1/healing/repair", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Self-Healing"])
