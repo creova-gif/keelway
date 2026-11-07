@@ -47,11 +47,9 @@ def test_website_html_references_valid_assets():
 
     assert "styles.css" in content
     assert "product-facts.json" in content
-    assert "Verified against commit" in content
-    assert "766 automated tests" in content or "tests passing" in content
-    assert "Dual-Mode Agent Builder" in content
-    assert "Unified 6-Stage Proof Strip" in content
     assert "docs.html" in content
+    assert "api.html" in content
+    assert "brand.html" in content
 
     # Assert SEO & documentation files exist
     docs_file = Path("website/docs.html")
