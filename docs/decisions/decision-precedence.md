@@ -52,6 +52,6 @@ When historical documents, pitch decks, architectural diagrams, or legacy code c
 ---
 
 ## 7. Dual-Mode Visual Design System & The Proof Strip
-* **Precedence Rule:** Keelway Studio and Agent Builder Mode must adhere to the single design token system (`Instrument Sans` + `DM Mono`) and render the standard **Proof Strip**:
+* **Precedence Rule:** Keelway Studio and Agent Builder Mode must adhere to the single design token system (`Inter` + `JetBrains Mono`, self-hosted, no font CDN) and render the standard **Proof Strip**:
   $$\text{INSPECT} \longrightarrow \text{PLAN} \longrightarrow \text{AUTHORIZE} \longrightarrow \text{EXECUTE} \longrightarrow \text{VERIFY} \longrightarrow \text{SEAL}$$
 * **Resolution:** No decorative AI hype elements, pulsing badges, or unverified claims. Every UI event must reflect verifiable state transitions and flight-tape evidence.

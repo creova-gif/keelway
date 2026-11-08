@@ -68,3 +68,10 @@ def test_website_html_references_valid_assets():
     sitemap_file = Path("website/sitemap.xml")
     assert sitemap_file.exists(), "website/sitemap.xml must exist"
     assert "https://kora-sable.vercel.app/" in sitemap_file.read_text(encoding="utf-8")
+
+
+def test_website_pages_load_no_third_party_fonts_or_styles():
+    for page in Path("website").glob("*.html"):
+        html = page.read_text(encoding="utf-8")
+        for host in ("fonts.googleapis.com", "fonts.gstatic.com", "cdn.tailwindcss.com", "cdnjs.cloudflare.com"):
+            assert host not in html, f"{page} loads {host}; serve it from website/ instead"
