@@ -224,7 +224,7 @@ def test_validate_endpoint_reports_without_starting_anything(client, tmp_path):
     worktree["permissions"]["commands"] = ["pytest -q"]
     out = client.post("/v1/agents/validate", json={"manifest": worktree}).json()
     from core.agents.sandbox import Sandbox
-    can_run = SeatbeltBackend.available() and Sandbox(tmp_path).verify()[0]
+    can_run = Sandbox(tmp_path).verify()[0]
     assert out["runnable"] is can_run  # true on a machine that passes the self-test, false elsewhere
     if not out["runnable"]:
         assert "verified sandbox" in out["runnable_reason"]
