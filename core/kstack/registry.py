@@ -218,6 +218,55 @@ class KStackRegistry:
         out_path.write_text(full_content, encoding="utf-8")
         return out_path
 
+    def export_manifest(self, out_path: Optional[Path] = None) -> Dict[str, Any]:
+        """Export canonical versioned skills manifest to JSON."""
+        target_path = out_path or (Path(__file__).parent / "manifest.json")
+        skills_data = []
+        for s in self.list_skills(include_revoked=True):
+            d = s.to_dict()
+            # Normalize source_uri to relative path if within repository
+            if "skills/" in d["source_uri"]:
+                rel = d["source_uri"].split("core/kstack/")[-1]
+                d["source_uri"] = f"core/kstack/{rel}"
+            skills_data.append(d)
+
+        manifest = {
+            "version": "1.0.0",
+            "format": "kstack_skills_manifest_v1",
+            "skills_count": len(skills_data),
+            "generated_at_utc": time.time(),
+            "skills": skills_data,
+        }
+        target_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        return manifest
+
+    def verify_manifest(self, manifest_path: Optional[Path] = None) -> Tuple[bool, List[str]]:
+        """Verify all skills match their cryptographic digest recorded in manifest.json."""
+        target_path = manifest_path or (Path(__file__).parent / "manifest.json")
+        if not target_path.exists():
+            return False, [f"Manifest file not found: {target_path}"]
+
+        try:
+            data = json.loads(target_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            return False, [f"Failed to parse manifest JSON: {e}"]
+
+        errors: List[str] = []
+        manifest_skills = {item["name"]: item for item in data.get("skills", [])}
+
+        for skill in self.list_skills(include_revoked=False):
+            if skill.name not in manifest_skills:
+                errors.append(f"Skill '{skill.name}' is missing from manifest.json")
+                continue
+            expected_digest = manifest_skills[skill.name].get("digest_sha256")
+            actual_digest = skill.calculate_digest()
+            if actual_digest != expected_digest:
+                errors.append(
+                    f"Digest mismatch for '{skill.name}': manifest={expected_digest}, actual={actual_digest}"
+                )
+
+        return (len(errors) == 0, errors)
+
     def execute_skill(
         self,
         name: str,

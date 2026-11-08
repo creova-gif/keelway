@@ -54,6 +54,13 @@ def test_kstack_builtin_skills_loaded():
     assert len(plan.digest_sha256) == 64
 
 
+def test_kstack_versioned_manifest_integrity():
+    """Verify built-in skills match their registered cryptographic digests in manifest.json."""
+    ok, errors = kstack_registry.verify_manifest()
+    assert ok is True, f"Manifest verification failed: {errors}"
+    assert len(errors) == 0
+
+
 def test_kstack_import_validate_export_and_revocation():
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)

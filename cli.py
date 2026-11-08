@@ -14,9 +14,13 @@ Usage:
 
 import argparse
 import asyncio
+import datetime
+import json
 import os
+import subprocess
 import sys
 import time
+import urllib.request
 from pathlib import Path
 from typing import Optional
 
@@ -39,6 +43,215 @@ try:
     from core.orchestration.chat import InteractiveChatSession
 except ImportError:
     pass
+
+
+def get_banner(plain: bool = False, use_color: Optional[bool] = None) -> str:
+    """Return the distinctive Keelway terminal banner with ANSI styling or clean ASCII fallback."""
+    if use_color is None:
+        use_color = (
+            sys.stdout.isatty()
+            and os.environ.get("NO_COLOR") is None
+            and os.environ.get("TERM") != "dumb"
+            and not plain
+        )
+
+    # Determine whether terminal supports Unicode block elements
+    encoding = getattr(sys.stdout, "encoding", "utf-8") or "utf-8"
+    use_unicode = not plain and sys.platform != "win32" and "utf" in encoding.lower()
+
+    cyan = "\033[38;2;64;160;255m" if use_color else ""
+    bold = "\033[1m" if use_color else ""
+    dim = "\033[2m" if use_color else ""
+    reset = "\033[0m" if use_color else ""
+
+    if use_unicode:
+        art = [
+            r"  ██╗  ██╗███████╗███████╗██╗     ██╗    ██╗ █████╗ ██╗   ██╗",
+            r"  ██║ ██╔╝██╔════╝██╔════╝██║     ██║    ██║██╔══██╗╚██╗ ██╔╝",
+            r"  █████╔╝ █████╗  █████╗  ██║     ██║ █╗ ██║███████║ ╚████╔╝ ",
+            r"  ██╔═██╗ ██╔══╝  ██╔══╝  ██║     ██║███╗██║██╔══██║  ╚██╔╝  ",
+            r"  ██║  ██╗███████╗███████╗███████╗╚███╔███╔╝██║  ██║   ██║   ",
+            r"  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝   ",
+        ]
+    else:
+        art = [
+            r"  _  ______ _____ _ __          __     __",
+            r" | |/ /  ____|  ____| |         \ \   / /",
+            r" | ' /| |__  | |__  | |     /\   \ \_/ / ",
+            r" |  < |  __| |  __| | |    /  \   \   /  ",
+            r" | . \| |____| |____| |___/ /\ \   | |   ",
+            r" |_|\_\______|______|____/_/  \_\  |_|   ",
+        ]
+
+    lines = [f"{cyan}{line}{reset}" for line in art]
+    lines.append("")
+    lines.append(f"  {bold}Sovereign Local-First AI Developer Platform{reset}")
+    lines.append(f"  {dim}Sorvex Labs • https://keelway.dev • v0.9.0-beta{reset}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def print_banner(plain: bool = False) -> None:
+    """Print the Keelway banner to stdout."""
+    print(get_banner(plain=plain))
+
+
+def cmd_init(
+    path: Optional[Path] = None,
+    model: Optional[str] = None,
+    force: bool = False,
+    quiet: bool = False,
+) -> int:
+    """Initialize Keelway in the current workspace or target directory."""
+    ws_path = (path or Path.cwd()).resolve()
+    if not quiet:
+        print_banner()
+        print(f"[+] Initializing Keelway sovereign workspace: {ws_path}")
+
+    keelway_dir = ws_path / ".keelway"
+    keelway_dir.mkdir(parents=True, exist_ok=True)
+    (keelway_dir / "evidence").mkdir(exist_ok=True)
+    (keelway_dir / "logs").mkdir(exist_ok=True)
+    if not quiet:
+        print("  [✓] Workspace directory: .keelway/")
+
+    # Git repository detection
+    git_detected = False
+    git_branch = None
+    if (ws_path / ".git").exists():
+        git_detected = True
+    else:
+        try:
+            res = subprocess.run(
+                ["git", "rev-parse", "--is-inside-work-tree"],
+                cwd=str(ws_path),
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            if res.returncode == 0 and "true" in res.stdout.strip():
+                git_detected = True
+        except Exception:
+            pass
+
+    if git_detected:
+        try:
+            b_res = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=str(ws_path),
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            if b_res.returncode == 0:
+                git_branch = b_res.stdout.strip()
+        except Exception:
+            pass
+        branch_str = f" (branch: {git_branch})" if git_branch else ""
+        if not quiet:
+            print(f"  [✓] Git repository: detected{branch_str}")
+    else:
+        if not quiet:
+            print("  [!] Git repository: not detected (recommend running 'git init' for worktree isolation)")
+
+    # Model & Ollama connectivity probe
+    ollama_url = getattr(settings, "ollama_base_url", "http://localhost:11434")
+    discovered_models = []
+    ollama_ok = False
+    try:
+        req = urllib.request.Request(
+            f"{ollama_url.rstrip('/')}/api/tags",
+            headers={"User-Agent": "Keelway-CLI/0.9.0"},
+        )
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
+            if resp.status == 200:
+                d = json.loads(resp.read().decode("utf-8"))
+                discovered_models = [m.get("name") for m in d.get("models", []) if m.get("name")]
+                ollama_ok = True
+    except Exception:
+        ollama_ok = False
+
+    selected_model = model
+    if not selected_model:
+        if discovered_models:
+            preferred = ["qwen3.5:latest", "qwen2.5-coder:7b", "qwen2.5-coder:1.5b", "qwen2.5-coder:latest"]
+            for pref in preferred:
+                if pref in discovered_models:
+                    selected_model = pref
+                    break
+            if not selected_model:
+                selected_model = discovered_models[0]
+        else:
+            selected_model = getattr(settings, "default_local_model", "qwen3.5:latest")
+
+    if not quiet:
+        if ollama_ok:
+            cnt = len(discovered_models)
+            print(f"  [✓] Local Model Provider: Ollama online at {ollama_url} ({cnt} model{'s' if cnt != 1 else ''} available, selected: {selected_model})")
+        else:
+            print(f"  [!] Local Model Provider: Ollama not reachable at {ollama_url} (configured: {selected_model})")
+
+    # Sandbox backend detection
+    from core.agents.sandbox import Sandbox
+    sb = Sandbox(ws_path)
+    sb_backend = sb.backend_name
+    sb_ok, sb_detail = sb.verify()
+    if not quiet:
+        if sb_ok:
+            print(f"  [✓] OS Isolation Boundary: {sb_backend.capitalize()} verified ({sb_detail})")
+        else:
+            print(f"  [!] OS Isolation Boundary: {sb_backend} ({sb_detail})")
+
+    # Configuration file
+    config_file = keelway_dir / "config.json"
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    cfg_data = {
+        "version": "1.0.0",
+        "workspace": {
+            "name": ws_path.name,
+            "root": str(ws_path),
+            "git_enabled": git_detected,
+            "git_branch": git_branch,
+            "initialized_at": now_iso,
+        },
+        "runtime": {
+            "default_provider": "local",
+            "local_model": selected_model,
+            "ollama_base_url": ollama_url,
+            "airgap_enforced": False,
+        },
+        "security": {
+            "sandbox_backend": sb_backend,
+            "isolation_verified": sb_ok,
+            "require_approval_for_destructive": True,
+        },
+    }
+
+    if config_file.exists() and not force:
+        try:
+            existing = json.loads(config_file.read_text(encoding="utf-8"))
+            existing.setdefault("workspace", {}).update(cfg_data["workspace"])
+            existing.setdefault("runtime", {}).update(cfg_data["runtime"])
+            existing.setdefault("security", {}).update(cfg_data["security"])
+            config_file.write_text(json.dumps(existing, indent=2), encoding="utf-8")
+            if not quiet:
+                print("  [✓] Updated workspace configuration: .keelway/config.json")
+        except Exception:
+            config_file.write_text(json.dumps(cfg_data, indent=2), encoding="utf-8")
+            if not quiet:
+                print("  [✓] Created workspace configuration: .keelway/config.json")
+    else:
+        config_file.write_text(json.dumps(cfg_data, indent=2), encoding="utf-8")
+        if not quiet:
+            print("  [✓] Created workspace configuration: .keelway/config.json")
+
+    if not quiet:
+        print("\nNext Steps:")
+        print("  • Launch Studio:       keelway dev")
+        print("  • Interactive REPL:    keelway chat")
+        print("  • Run Diagnostics:     keelway doctor")
+        print("  • Run Governed Task:   keelway run --task \"run verification tests\"\n")
+    return 0
 
 
 async def cmd_heal(test_cmd: str, max_attempts: int = 3):
@@ -2933,6 +3146,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="keelway", description="Keelway Core Developer & Operations CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # init
+    init_parser = subparsers.add_parser("init", help="Initialize Keelway in current directory or git repository")
+    init_parser.add_argument("--dir", type=Path, default=None, help="Target workspace directory (default: current working directory)")
+    init_parser.add_argument("--model", default=None, help="Preferred local model override")
+    init_parser.add_argument("--force", action="store_true", help="Overwrite existing configuration")
+
     # dev
     dev_parser = subparsers.add_parser("dev", help="Launch Keelway Studio — Local Web & Desktop UI")
     dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
@@ -3475,10 +3694,35 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None):
+    raw_args = list(sys.argv[1:] if argv is None else argv)
+    if not raw_args:
+        print_banner()
+        print("Usage: keelway <command> [options]\n")
+        print("Essential Commands:")
+        print("  init         Initialize Keelway in current directory or git repository")
+        print("  dev          Launch Keelway Studio (Local Web & App UI)")
+        print("  chat         Start interactive sovereign agent REPL")
+        print("  doctor       Run sovereign system diagnostics across 7 dimensions")
+        print("  run          Start governed agent run with approval gate")
+        print("  test-sandbox Run tests inside OS-level verified sandbox")
+        print("\nRun 'keelway --help' for the full list of subcommands.")
+        return 0
+
+    if any(a in raw_args for a in ("-h", "--help")):
+        print_banner()
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.command == "openapi":
+    if args.command == "init":
+        sys.exit(
+            cmd_init(
+                path=getattr(args, "dir", None),
+                model=getattr(args, "model", None),
+                force=getattr(args, "force", False),
+            )
+        )
+    elif args.command == "openapi":
         sys.exit(
             cmd_openapi(
                 out_path=getattr(args, "out", Path("website/openapi.json")),

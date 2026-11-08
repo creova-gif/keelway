@@ -1,0 +1,117 @@
+{
+  "version": "1.0.0",
+  "format": "kstack_skills_manifest_v1",
+  "skills_count": 4,
+  "generated_at_utc": 1794155218.410549,
+  "skills": [
+    {
+      "name": "kstack/plan",
+      "version": "1.0.0",
+      "role": "architect",
+      "description": "Architectural decomposition, file path planning, and risk blast radius estimation.",
+      "permissions": [
+        "draft"
+      ],
+      "contract": {
+        "inputs": {
+          "goal": "Engineering goal or intent description",
+          "repo_context": "Repository structure and recent commits"
+        },
+        "outputs": {
+          "plan_steps": "List of ordered mutation steps",
+          "files_affected": "List of target file paths",
+          "blast_radius": "Low, Medium, or High"
+        }
+      },
+      "instructions": "# KStack Plan Skill (Architect Role)\n\n## Overview\nDecomposes an engineering objective into minimal, deterministic file-level steps without applying mutations.\n\n## Workflow\n1. Read the target workspace and examine symbols and imports related to `goal`.\n2. Formulate ordered steps: target path, purpose, constraints, and test commands.\n3. Compute blast radius based on import graph depth and shared library touched.\n4. Output structured plan JSON adhering to `outputs`.",
+      "source_uri": "core/kstack/skills/plan/SKILL.md",
+      "digest_sha256": "7f84bbf09504227e830140d5a64e8dc20ebb892d1c1ebb97e90673c546567df1",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794155218.4103959
+    },
+    {
+      "name": "kstack/qa",
+      "version": "1.0.0",
+      "role": "qa_lead",
+      "description": "Test execution, failure reproduction, and regression verification in restricted sandboxes.",
+      "permissions": [
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "test_command": "Command line string for test runner",
+          "expected_outcome": "PASS or FAIL reproduction"
+        },
+        "outputs": {
+          "passed": "Boolean test outcome",
+          "exit_code": "Process return status",
+          "duration_ms": "Wall-clock test execution time",
+          "stdout_summary": "Truncated test output"
+        }
+      },
+      "instructions": "# KStack QA Skill (QA Lead Role)\n\n## Overview\nExecutes test suites within restricted workspace sandboxes, captures exit status, and certifies reproduction or resolution.\n\n## Execution Rules\n1. Never invoke network egress unless explicitly configured.\n2. Terminate immediately upon test failure when in fail-fast mode.\n3. Record duration, exit code, and test stdout in sealed execution proof.",
+      "source_uri": "core/kstack/skills/qa/SKILL.md",
+      "digest_sha256": "4b172a3fb47d78d1e9ff165a2d28699a34a9f10ce5a4a00dcac960fc5f2c7845",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794155218.410454
+    },
+    {
+      "name": "kstack/review",
+      "version": "1.0.0",
+      "role": "reviewer",
+      "description": "AST diff analysis, secret leakage detection, and gate integrity auditing.",
+      "permissions": [
+        "read"
+      ],
+      "contract": {
+        "inputs": {
+          "diff": "Unified diff content or patch",
+          "files": "Modified file paths list"
+        },
+        "outputs": {
+          "verdict": "APPROVED, CHANGES_REQUESTED, or BLOCKED",
+          "findings": "List of security or logic warnings",
+          "gate_integrity_pass": "Boolean check on permission gates"
+        }
+      },
+      "instructions": "# KStack Review Skill (Reviewer Role)\n\n## Overview\nInspects proposed unified diffs for security regressions, accidental secret commits, syntax breakage, and policy compliance.\n\n## Verification Gates\n1. Secret Scan: Assert no tokens, keys, passwords, or credentials appear in additions.\n2. Scope Check: Verify all touched files reside strictly within permitted workspace boundaries.\n3. Gate Integrity: Confirm all elevated actions obtained human quorum or approval.",
+      "source_uri": "core/kstack/skills/review/SKILL.md",
+      "digest_sha256": "d40be97098ab5a53dd027ea7e259de93de68638b31f0a9bb42419c639a688543",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794155218.410499
+    },
+    {
+      "name": "kstack/security",
+      "version": "1.0.0",
+      "role": "sec_lead",
+      "description": "STRIDE threat modeling, NIST SP 800-53 SC-7 air-gap auditing, and SCA vulnerability scanning.",
+      "permissions": [
+        "read"
+      ],
+      "contract": {
+        "inputs": {
+          "manifest_path": "Path to project manifest or code tree",
+          "threat_scope": "Target attack surface"
+        },
+        "outputs": {
+          "threats_identified": "Count of identified risk vectors",
+          "airgap_compliant": "Boolean compliance with zero-egress policy",
+          "sca_risk_level": "LOW, MEDIUM, or HIGH"
+        }
+      },
+      "instructions": "# KStack Security Skill (Security Lead Role)\n\n## Overview\nEvaluates the repository against NIST SP 800-53 SC-7 boundaries, STRIDE threat categories, and software supply chain components.\n\n## Audit Checks\n1. Zero egress socket verification.\n2. Malicious package script inspection.\n3. Trust boundary and permission escalation detection.",
+      "source_uri": "core/kstack/skills/security/SKILL.md",
+      "digest_sha256": "b99e4bbcb2e5eaf153325072d5c0ec26482586fe6f30078fdb9791885d8630ec",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794155218.4103
+    }
+  ]
+}

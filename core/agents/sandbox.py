@@ -188,9 +188,12 @@ def _default_read_roots() -> List[Path]:
     home = Path.home().resolve()
     for entry in os.environ.get("PATH", "").split(os.pathsep):
         if entry:
-            p = Path(entry)
-            if p.is_dir() and (home in p.resolve().parents or p.resolve() == home):
-                roots.add(p.resolve())  # tools the user put on PATH under their home (venv, ~/.local/bin)
+            try:
+                p = Path(entry)
+                if p.is_dir() and (home in p.resolve().parents or p.resolve() == home):
+                    roots.add(p.resolve())  # tools the user put on PATH under their home (venv, ~/.local/bin)
+            except (OSError, PermissionError):
+                continue
     return sorted(roots)
 
 
