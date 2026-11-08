@@ -17,6 +17,7 @@ import pytest
 from pathlib import Path
 from starlette.testclient import TestClient
 
+from core.agents.sandbox import Sandbox
 from core.main import app
 from core.m1_slice import MilestoneM1Runner, init_sample_repo, BUGGY_LINE, FIXED_LINE
 from core.api.routes import set_workspace_fs
@@ -172,8 +173,13 @@ def test_m1_vertical_slice_via_fastapi_rest_endpoints(tmp_path: Path):
         )
         assert res_appr2.status_code == 200
         test_res = res_appr2.json()["approval_result"]
-        assert test_res["status"] == "error"
-        assert "unavailable" in test_res["error"].lower()
+        # Commands run only inside a verified sandbox; without one they are unavailable, never run on the host.
+        sandboxed = Sandbox(repo_dir).verify()[0]
+        if sandboxed:
+            assert test_res["status"] == "success", test_res
+        else:
+            assert test_res["status"] == "error"
+            assert "unavailable" in test_res["error"].lower()
 
         # 10. View final task status, git status, and flight tape
         res_status = client.get(f"/v1/agent/status/{task_id}")
@@ -181,7 +187,7 @@ def test_m1_vertical_slice_via_fastapi_rest_endpoints(tmp_path: Path):
         plan = {step["id"]: step["status"] for step in res_status.json()["plan"]}
         assert plan["step_1"] == "completed"
         assert plan["step_2"] == "completed"
-        assert plan["step_3"] == "failed"
+        assert plan["step_3"] == ("completed" if sandboxed else "failed")
 
         res_git = client.get("/v1/git/status")
         assert res_git.status_code == 200
