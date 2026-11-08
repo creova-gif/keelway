@@ -1395,6 +1395,7 @@ async def codebase_definition(symbol: str):
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 from core.agents import manifest as agent_manifest
 from core.agents.guard import ManifestNotRunnable, loop_from_manifest, not_enforced, preflight
+from core.agents.sandbox import verified_command_runner
 from core.security.approval_rules import ApprovalRuleError, ApprovalRuleStore, validate_scope
 
 _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
@@ -1519,6 +1520,8 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
             environment=env_mode,
             actor_id=principal.actor,
         )
+        # Commands run only inside a verified sandbox; without one, run_command stays unavailable.
+        agent.command_runner, _ = await asyncio.to_thread(verified_command_runner, _workspace_fs.root)
     agent.initialize_plan(goal=goal, steps=steps)
     _active_agent_loops[task_id] = agent
 

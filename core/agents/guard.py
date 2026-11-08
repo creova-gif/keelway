@@ -222,7 +222,7 @@ def preflight(manifest: AgentManifest, workspace_root: Path) -> Optional[str]:
 
         ok, detail = Sandbox(workspace_root).verify()
         if not ok:
-            return f"commands need a verified sandbox and this machine has none: sandbox could not be verified on this machine: {detail}"
+            return f"commands need a verified sandbox and this machine has none: {detail}"
     return None
 
 
@@ -255,14 +255,13 @@ def loop_from_manifest(
     )
     runner = None
     if "run_command" in manifest.tools and manifest.sandbox == "worktree":
-        from core.agents.sandbox import Sandbox, SandboxUnavailable
+        from core.agents.sandbox import verified_command_runner
 
-        sandbox = Sandbox(agent.fs.root)
-        try:
-            sandbox.require_verified()
-        except SandboxUnavailable as exc:
-            raise ManifestNotRunnable(f"commands need a verified sandbox and this machine has none: {exc}") from exc
-        runner = lambda command, timeout: sandbox.run(command, timeout).to_tool_result(command)  # noqa: E731
+        runner, detail = verified_command_runner(agent.fs.root)
+        if runner is None:
+            raise ManifestNotRunnable(
+                f"commands need a verified sandbox and this machine has none: {detail}"
+            )
     agent.tools = {name: tool for name, tool in agent.tools.items() if name in manifest.tools}
     agent.guard = ManifestGuard(manifest, agent.fs.root)
     agent.command_runner = runner

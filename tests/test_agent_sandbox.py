@@ -300,3 +300,13 @@ def test_bubblewrap_passes_the_escape_self_test_and_hides_home(tmp_path):
         assert res.exit_code != 0 and "PRIVATEKEY" not in res.stdout
     finally:
         shutil.rmtree(secret.parent, ignore_errors=True)
+
+
+def test_verified_command_runner_refuses_without_a_backend(tmp_path, monkeypatch):
+    import core.agents.sandbox as sbx
+
+    monkeypatch.setattr(sbx, "_verified_sandboxes", {})
+    monkeypatch.setattr(SeatbeltBackend, "available", staticmethod(lambda: False))
+    monkeypatch.setattr(BubblewrapBackend, "available", staticmethod(lambda: False))
+    runner, detail = sbx.verified_command_runner(tmp_path)
+    assert runner is None and detail

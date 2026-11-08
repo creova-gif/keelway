@@ -29,7 +29,7 @@ import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 ENV_KEEP = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TZ", "VIRTUAL_ENV")
 # Areas that hold other people's and other projects' files. The workspace is allowed back in afterwards.
@@ -329,3 +329,20 @@ class Sandbox:
         ok, detail = self.verify()
         if not ok:
             raise SandboxUnavailable(f"sandbox could not be verified on this machine: {detail}")
+
+
+_verified_sandboxes: Dict[Path, Sandbox] = {}
+
+
+def verified_command_runner(workspace_root: Path) -> Tuple[Optional[Callable[[str, int], Dict[str, Any]]], str]:
+    """An agent `command_runner` confined to the workspace, or (None, reason) when no backend passes the self-test.
+
+    The self-test runs once per workspace per process; later agents reuse the verified sandbox.
+    """
+    root = Path(workspace_root).resolve()
+    sandbox = _verified_sandboxes.get(root) or Sandbox(root)
+    ok, detail = sandbox.verify()
+    if not ok:
+        return None, detail
+    _verified_sandboxes[root] = sandbox
+    return (lambda command, timeout: sandbox.run(command, timeout).to_tool_result(command)), detail

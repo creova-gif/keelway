@@ -235,3 +235,20 @@ def test_validate_flags_a_bad_signature_as_not_runnable(client, tmp_path):
     data["budget"]["max_steps"] = 99
     out = client.post("/v1/agents/validate", json={"manifest": data}).json()
     assert out["signature"]["state"] == "invalid" and out["runnable"] is False
+
+
+def test_plain_studio_runs_get_commands_only_through_a_verified_sandbox(client):
+    from core.agents.sandbox import Sandbox
+    from core.api import routes
+
+    assert client.post("/v1/agent/run", json={"task_id": "plain", "goal": "g", "steps": ["a"], "policy": "autonomous"}).status_code == 200
+    agent = routes._active_agent_loops["plain"]
+    res = step(client, "plain", "run_command", {"command": "/bin/echo confined-hello"}).json()["step_result"]
+    if Sandbox(agent.fs.root).verify()[0]:
+        assert agent.command_runner is not None
+        assert res["status"] == "success" and "confined-hello" in json.dumps(res)
+        leak = step(client, "plain", "run_command", {"command": f"/bin/cat {Path.home() / '.bashrc'}"}, "step_2").json()["step_result"]
+        assert "PS1" not in json.dumps(leak)
+    else:
+        assert agent.command_runner is None and res["status"] != "success"
+        assert "command execution is unavailable" in json.dumps(res)
