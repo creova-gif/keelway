@@ -1,0 +1,41 @@
+name: Release gate (macOS, live model)
+
+# macOS minutes are expensive on private repos, so this runs on release tags,
+# by hand, and on PRs that change the gate itself, not on every PR.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - ".github/workflows/release-gate-macos.yml"
+      - "tests/release_live_gate.py"
+      - "tests/package_a_profile.py"
+
+jobs:
+  release-live-verification-macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      KEELWAY_LIVE_MODEL: qwen2.5-coder:1.5b
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Start Ollama with a small coding model
+        run: |
+          brew install ollama
+          ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          for _ in $(seq 1 30); do curl -fsS http://localhost:11434/api/tags >/dev/null && break; sleep 1; done
+          ollama pull "$KEELWAY_LIVE_MODEL"
+      - name: Fail closed unless every required live proof passed
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-release.db
+          PYTHONPATH: .
+        run: python -m tests.release_live_gate
+      - name: Ollama log
+        if: failure()
+        run: tail -n 100 "$RUNNER_TEMP/ollama.log" || true

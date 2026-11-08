@@ -24,7 +24,7 @@ from core.api import routes
 from core.storage.workspace_fs import WorkspaceFilesystem
 from core.models.adapters.local import LocalAdapter
 from core.api.schemas import CompletionRequestSchema, MessageSchema
-from tests.package_a_profile import skip_unless_live_local_model
+from tests.package_a_profile import LIVE_MODEL_NAME, LIVE_MODEL_URL, skip_unless_live_local_model
 
 
 @pytest.mark.live_model
@@ -46,8 +46,8 @@ async def test_slice2_end_to_end_ide_usability_and_real_local_model(tmp_path: Pa
 
     task_id = f"ide_fix_{tmp_path.name}"
 
-    # 2. Query real local model (qwen3.5:latest) to diagnose defect
-    adapter = LocalAdapter(base_url="http://localhost:11434", default_model="qwen3.5:latest")
+    # 2. Query the real local model to diagnose the defect
+    adapter = LocalAdapter(base_url=LIVE_MODEL_URL, default_model=LIVE_MODEL_NAME)
     assert adapter.is_available(), "Local Ollama runtime must be available for Slice 2"
 
     req = CompletionRequestSchema(
@@ -138,8 +138,9 @@ async def test_slice2_end_to_end_ide_usability_and_real_local_model(tmp_path: Pa
 
         # 8. Step 4: Run test suite verification
         import subprocess
+        import sys
         test_run = subprocess.run(
-            ["python3", "-m", "pytest", str(test_file), "-v"],
+            [sys.executable, "-m", "pytest", str(test_file), "-v"],
             capture_output=True,
             text=True
         )
