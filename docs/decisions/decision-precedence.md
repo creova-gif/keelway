@@ -14,22 +14,10 @@ When historical documents, pitch decks, architectural diagrams, or legacy code c
 
 ---
 
-## 2. Deterministic State Machine (12 States vs Legacy 8 States)
-* **Precedence Rule:** The runtime state machine is strictly the **12-State Deterministic Engine** defined in `core/orchestration/state.py`.
-* **State Inventory:**
-  1. `CREATED`
-  2. `CONTEXT_LOADING`
-  3. `PLANNING`
-  4. `PLAN_READY`
-  5. `AWAITING_APPROVAL`
-  6. `EXECUTING`
-  7. `VERIFYING`
-  8. `COMPLETED`
-  9. `PAUSED`
-  10. `BLOCKED`
-  11. `FAILED`
-  12. `CANCELLED`
-* **Resolution:** Any historical document or pitch deck referencing an 8-state model is superseded. State transitions MUST be validated at the runtime boundary; transitions skipping required checkpoints (such as transitioning from `PLANNING` directly to `EXECUTING` without `AWAITING_APPROVAL`) are fatal policy violations.
+## 2. Deterministic State Machine (16-member `TaskState` vs Legacy 8 States)
+* **Precedence Rule:** The runtime state machine is `TaskState` and `VALID_TRANSITIONS` in `core/orchestration/state.py`. That file is the source of truth; this list mirrors it.
+* **State Inventory (16):** `CREATED`, `CONTEXT_LOADING`, `PLANNING`, `PLANNED`, `PLAN_READY`, `AWAITING_APPROVAL`, `RUNNING`, `EXECUTING`, `VERIFYING`, `PAUSED`, `BLOCKED`, `AWAITING_RETRY`, `TIMED_OUT`, `COMPLETED`, `FAILED`, `CANCELLED`. `COMPLETED` and `CANCELLED` are terminal.
+* **Resolution:** Any historical document or pitch deck referencing an 8-state model is superseded. State transitions MUST be validated at the runtime boundary; transitions not in `VALID_TRANSITIONS` (such as `PLANNING` directly to `EXECUTING`) raise `InvalidStateTransitionError`. The graph does allow `PLANNED` → `EXECUTING`; approval of individual risky tool calls is enforced by the agent loop's policy and approval gate, not by this graph.
 
 ---
 

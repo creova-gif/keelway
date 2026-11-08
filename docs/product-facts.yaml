@@ -34,7 +34,7 @@ features:
 
   deterministic_task_state_engine:
     status: "AVAILABLE"
-    claim: "12-state deterministic state machine with strict transition invariants and task cancellation"
+    claim: "16-member TaskState deterministic state machine with an explicit transition graph and task cancellation"
     evidence_test: "tests/test_state_machine.py"
     code_path: "core/orchestration/state.py"
 

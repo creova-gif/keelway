@@ -1553,7 +1553,7 @@ async function unpackAgentBundleInStudio() {
 
 // =====================================================================
 // Unified Proof Strip UX (Workstream F)
-// Maps shared 12-state deterministic runtime contracts to 6 verification stages:
+// Maps the shared TaskState runtime contracts to 6 verification stages:
 // INSPECT ➔ PLAN ➔ AUTHORIZE ➔ EXECUTE ➔ VERIFY ➔ SEAL
 // Used uniformly in IDE Mode and Agent Builder Mode without a secondary JS state machine.
 // =====================================================================
