@@ -48,6 +48,8 @@ def test_kstack_builtin_skills_loaded():
     assert "kstack/security" in names
     assert "kstack/investigate" in names
     assert "kstack/ship" in names
+    assert "kstack/modernize" in names
+    assert "kstack/repomap-sync" in names
 
     plan = kstack_registry.get_skill("kstack/plan")
     assert plan is not None
@@ -63,6 +65,14 @@ def test_kstack_builtin_skills_loaded():
     inv = kstack_registry.get_skill("kstack/investigate")
     assert inv is not None
     assert inv.role == "debugger"
+
+    mod = kstack_registry.get_skill("kstack/modernize")
+    assert mod is not None
+    assert mod.role == "engineer"
+
+    sync = kstack_registry.get_skill("kstack/repomap-sync")
+    assert sync is not None
+    assert sync.role == "general"
 
 
 def test_kstack_versioned_manifest_integrity():

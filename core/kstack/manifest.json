@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
   "format": "kstack_skills_manifest_v1",
-  "skills_count": 6,
-  "generated_at_utc": 1794158385.904043,
+  "skills_count": 8,
+  "generated_at_utc": 1794168974.393673,
   "skills": [
     {
       "name": "kstack/investigate",
@@ -31,7 +31,35 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794158385.903611
+      "created_at_utc": 1794168974.393101
+    },
+    {
+      "name": "kstack/modernize",
+      "version": "1.0.0",
+      "role": "engineer",
+      "description": "Dependency upgrade analysis, deprecated API call site detection, and safe migration path planning.",
+      "permissions": [
+        "read",
+        "draft"
+      ],
+      "contract": {
+        "inputs": {
+          "dependency_name": "Target package or library name",
+          "target_version": "Desired version constraint or semver tag"
+        },
+        "outputs": {
+          "breaking_changes": "List of breaking syntax or behavior modifications",
+          "deprecated_apis": "List of culpable call sites in the repository",
+          "migration_steps": "Ordered steps to update imports and invocations"
+        }
+      },
+      "instructions": "# KStack Modernize Skill (Engineer Role)\n\n## Overview\nAnalyzes package and library dependencies, identifies deprecated AST call sites across the codebase, and drafts an atomic migration path.\n\n## Workflow\n1. Inspect `pyproject.toml`, `package.json`, or requirements files for current pinned version.\n2. Analyze AST call sites and import statements using the target library.\n3. Compare against target version breaking changes and deprecations.\n4. Draft the minimal, backward-compatible migration plan adhering to `outputs`.",
+      "source_uri": "core/kstack/skills/modernize/SKILL.md",
+      "digest_sha256": "2acbb136f2d81dbc2da883a1424c84555dca9681b82bfb9e494e3cfb73879448",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794168974.392434
     },
     {
       "name": "kstack/plan",
@@ -58,7 +86,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794158385.903445
+      "created_at_utc": 1794168974.392961
     },
     {
       "name": "kstack/qa",
@@ -86,7 +114,33 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794158385.9037728
+      "created_at_utc": 1794168974.3932219
+    },
+    {
+      "name": "kstack/repomap-sync",
+      "version": "1.0.0",
+      "role": "general",
+      "description": "Incremental AST symbol extraction, call hierarchy indexing, and KBrain project fact synchronization with zero cloud egress.",
+      "permissions": [
+        "read"
+      ],
+      "contract": {
+        "inputs": {
+          "max_tokens": "Context budget limit for condensed repository map"
+        },
+        "outputs": {
+          "repo_map": "Condensed AST symbol map for prompt augmentation",
+          "total_files": "Count of scanned and indexed files",
+          "symbols_indexed": "Count of extracted class, function, and method symbols"
+        }
+      },
+      "instructions": "# KStack RepoMap Sync Skill (General Role)\n\n## Overview\nMaintains an up-to-date semantic symbol index and condensed repository map using pure-Python AST parsing and deterministic vector projection.\n\n## Execution Rules\n1. Never invoke external network sockets or third-party embeddings services.\n2. Scrub all credentials and tokens from scanned documentation and source comments before storing in KBrain.\n3. Cache symbol digests incrementally to minimize re-indexing latency.",
+      "source_uri": "core/kstack/skills/repomap-sync/SKILL.md",
+      "digest_sha256": "08fd811328058e6af46056bf558478b349f8e2311b5a63df9c9625b9d0ffce2e",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794168974.393263
     },
     {
       "name": "kstack/review",
@@ -113,7 +167,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794158385.9039302
+      "created_at_utc": 1794168974.3934789
     },
     {
       "name": "kstack/security",
@@ -140,7 +194,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794158385.903258
+      "created_at_utc": 1794168974.3927438
     },
     {
       "name": "kstack/ship",
@@ -169,7 +223,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794158385.9039848
+      "created_at_utc": 1794168974.393606
     }
   ]
 }
