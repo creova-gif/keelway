@@ -833,14 +833,6 @@ async function runHeal(e) {
   } catch (err) { $('heal-out').textContent = err.message; tone('err'); }
   finally { btn.disabled = false; }
 }
-async function buildIntent(e) {
-  e.preventDefault();
-  try {
-    const r = await api('/v1/payments/intent', { method: 'POST', body: { rail: $('pay-rail').value, amount: Number($('pay-amount').value), currency: $('pay-currency').value.toUpperCase(), recipient: $('pay-recipient').value } });
-    $('pay-out').textContent = JSON.stringify(r, null, 2); tone('ok');
-  } catch (err) { $('pay-out').textContent = err.message; tone('err'); }
-}
-
 // ---------- builder, plugins, eval ----------
 async function planApp() {
   const intent = $('app-intent').value.trim();
@@ -3209,7 +3201,6 @@ function wire() {
     });
   }
   $('heal-form').addEventListener('submit', runHeal);
-  $('pay-form').addEventListener('submit', buildIntent);
   $('audit-verify').addEventListener('click', verifyAudit);
   if ($('audit-anchor-btn')) $('audit-anchor-btn').addEventListener('click', anchorAudit);
   if ($('tier2-verify-btn')) $('tier2-verify-btn').addEventListener('click', verifyTier2);

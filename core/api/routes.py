@@ -782,7 +782,7 @@ async def trigger_self_healing(payload: dict):
 
 @router.post("/v1/payments/intent", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Global Sovereign Settlement"])
 async def create_payment_intent(payload: dict):
-    """Generate sovereign multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher)."""
+    """Simulated multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher). No provider is connected; no money moves."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
     try:
         rail = GlobalRail(payload.get("rail", "mpesa"))
@@ -803,6 +803,7 @@ async def create_payment_intent(payload: dict):
             detail="payment configuration is unavailable: source-default broker secret is refused",
         )
     return {
+        "simulated": True,
         "intent_id": intent.intent_id,
         "rail": intent.rail.value,
         "amount": intent.amount,
