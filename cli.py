@@ -179,7 +179,7 @@ async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, descr
     r = GlobalRail(rail)
     intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
     print("\n" + "=" * 65)
-    print("  💳 KEELWAY GLOBAL SOVEREIGN PAYMENT BROKER")
+    print("  SIMULATED PAYMENT INTENT: no provider is connected and no money moves")
     print(f"  Rail:        {intent.rail.value.upper()}")
     print(f"  Amount:      {intent.amount:.2f} {intent.currency}")
     print(f"  Recipient:   {intent.recipient}")
@@ -3092,7 +3092,8 @@ def build_parser() -> argparse.ArgumentParser:
     heal_parser.add_argument("--attempts", type=int, default=3, help="Maximum repair retry iterations")
 
     # pay (Global multi-rail sovereign payments broker)
-    pay_parser = subparsers.add_parser("pay", help="Global sovereign payment intent generator")
+    # Simulated only, so no --help entry until a real card provider is connected.
+    pay_parser = subparsers.add_parser("pay")
     pay_parser.add_argument("--rail", choices=["mpesa", "pix", "upi", "lightning_l402", "offline_voucher"], default="mpesa", help="Payment rail")
     pay_parser.add_argument("--amount", type=float, required=True, help="Payment amount")
     pay_parser.add_argument("--currency", default="USD", help="Currency code (USD, KES, BRL, INR, SATS)")

@@ -1223,7 +1223,7 @@
             </div>
             <span class="step-chip text-warn border-warn/50 font-mono text-[10px]">SANDBOX</span>
           </div>
-          <p class="text-xs text-ide-muted">Access experimental testing benches including repository self-healing and multi-rail payment payload simulations in an isolated side drawer.</p>
+          <p class="text-xs text-ide-muted">Access experimental testing benches including repository self-healing in an isolated side drawer.</p>
           <div class="pt-1">
             <button id="settings-open-labs-btn" type="button" class="btn-outline h-8 text-xs flex items-center gap-1.5" onclick="toggleLabsDrawer(true)">
               <svg class="w-3.5 h-3.5 text-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7.5 15h9"/></svg>
@@ -1287,24 +1287,6 @@
         </div>
       </section>
 
-      <!-- Simulated Payments -->
-      <section class="card p-4 space-y-2" aria-labelledby="pay-title">
-        <div class="flex items-center justify-between gap-2">
-          <h3 id="pay-title" class="font-semibold" data-i18n="ledger">Payments</h3>
-          <span class="step-chip text-ide-muted border-ide-border" data-i18n="simulated">Simulated</span>
-        </div>
-        <div id="lab-ledger" class="space-y-2">
-          <p class="text-xs text-ide-muted" data-i18n="paySim">Simulated: builds a payment payload only. No money moves.</p>
-          <form id="pay-form" class="flex flex-wrap gap-2 items-end">
-            <div><label for="pay-rail" class="label" data-i18n="rail">Rail</label><select id="pay-rail" class="input"><option value="mpesa">M-Pesa</option><option value="pix">Pix</option><option value="upi">UPI</option><option value="lightning_l402">Lightning L402</option><option value="offline_voucher">Offline voucher</option></select></div>
-            <div><label for="pay-amount" class="label" data-i18n="amount">Amount</label><input id="pay-amount" type="number" min="0.01" step="0.01" value="5" class="input w-24 font-mono"></div>
-            <div><label for="pay-currency" class="label" data-i18n="currency">Currency</label><input id="pay-currency" value="USD" maxlength="3" class="input w-16 font-mono uppercase"></div>
-            <div class="flex-1 min-w-[10rem]"><label for="pay-recipient" class="label" data-i18n="recipient">Recipient</label><input id="pay-recipient" required class="input w-full font-mono" placeholder="+254700000000"></div>
-            <button class="btn-primary h-8" type="submit" data-i18n="buildIntent">Build intent</button>
-          </form>
-          <pre id="pay-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
-        </div>
-      </section>
     </div>
   </aside>
 
