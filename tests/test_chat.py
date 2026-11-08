@@ -159,3 +159,39 @@ async def test_working_local_model_reply_is_preserved():
     assert agent["planning_source"] == "keyword_manual"
     assert "not model-driven planning" in agent["content"]
     assert len(agent["agent_task"]["plan"]) >= 3
+    assert session._last_agent is not None
+    assert session._last_agent.task_id == agent["agent_task"]["task_id"]
+
+
+@pytest.mark.asyncio
+async def test_chat_agent_mode_registers_active_loop_in_routes(tmp_path, monkeypatch):
+    from starlette.testclient import TestClient
+    from core.main import app
+    from core.api import routes
+    from core.storage.workspace_fs import WorkspaceFilesystem
+
+    prev_fs = routes._workspace_fs
+    monkeypatch.chdir(tmp_path)
+    routes.set_workspace_fs(WorkspaceFilesystem(root_dir=str(tmp_path)))
+    try:
+        with TestClient(app) as client:
+            resp = client.post("/v1/chat/message", json={
+                "message": "Fix the broken calculation in math_lib.py",
+                "mode": "agent",
+                "use_memory": False,
+            })
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["mode"] == "agent"
+            task_id = data["agent_task"]["task_id"]
+            assert task_id in routes._active_agent_loops
+            # Verified command runner is assigned to the agent loop
+            active_loop = routes._active_agent_loops[task_id]
+            assert active_loop.task_id == task_id
+
+            # Can query the agent's status
+            state_resp = client.get(f"/v1/agent/status/{task_id}")
+            assert state_resp.status_code == 200
+            assert state_resp.json()["task_id"] == task_id
+    finally:
+        routes.set_workspace_fs(prev_fs)

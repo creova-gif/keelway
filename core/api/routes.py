@@ -157,6 +157,11 @@ async def send_chat_message(payload: dict, principal: Principal = Depends(curren
         mode=mode,
         target_file=target_file,
     )
+    # If chat created an active agent task, register it for Studio tracking & approval workflows
+    if result.get("agent_task", {}).get("task_id") and getattr(session, "_last_agent", None):
+        t_id = result["agent_task"]["task_id"]
+        _active_agent_loops[t_id] = session._last_agent
+        await _publish_agent(session._last_agent)
     await record_audit(principal, f"chat_message_{mode.value}", message[:100], True)
     return result
 

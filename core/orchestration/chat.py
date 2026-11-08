@@ -135,6 +135,7 @@ class InteractiveChatSession:
             MessageSchema(role="system", content=self.system_prompt)
         ]
         self.security = SecurityGateway(block_on_injection=True, redact_secrets=True)
+        self._last_agent: Optional[Any] = None
 
     def set_mode(self, new_mode: ConversationMode) -> None:
         """Switch conversation mode and update system instructions."""
@@ -402,6 +403,7 @@ class InteractiveChatSession:
     ) -> Dict[str, Any]:
         """Builds a keyword plan. This mode does not call a model."""
         from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
+        from core.agents.sandbox import verified_command_runner
 
         try:
             task_id = f"task_{int(time.time())}"
@@ -411,8 +413,11 @@ class InteractiveChatSession:
                 policy=AutonomyPolicy.CONFIRM_MUTATION,
                 record_flight=True,
             )
+            # Verified sandbox execution runner; fails closed when no verified sandbox is present
+            agent.command_runner, _ = verified_command_runner(self.fs.root)
             plan_steps = AutonomousAgentLoop.formulate_plan(user_message)
             agent.initialize_plan(goal=user_message, steps=plan_steps)
+            self._last_agent = agent
         except Exception:
             message = "The keyword planner could not build a plan."
             return {
