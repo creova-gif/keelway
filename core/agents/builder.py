@@ -97,6 +97,42 @@ BUILTIN_TEMPLATES: Dict[str, Dict[str, Any]] = {
         "budget": {"max_usd_per_run": 0.75, "max_steps": 50},
         "evaluation": {"test_command": "pytest -q", "max_latency_ms": 45000, "max_usd_budget": 0.75},
     },
+    "doc-writer": {
+        "name": "doc-writer",
+        "description": "Inspects AST diffs and code symbols, then synchronizes READMEs, OpenAPI specs, and docs.",
+        "instructions": (
+            "Analyze recently modified symbols, routes, or CLI commands. Update existing documentation, "
+            "Markdown guides, and API schemas to reflect code changes accurately without removing existing comments."
+        ),
+        "tools": ["read_file", "write_file", "edit_file", "list_dir", "search_codebase"],
+        "permissions": {
+            "autonomy": "confirm_mutation",
+            "read_paths": ["**"],
+            "write_paths": ["docs/**", "website/**", "README.md", "openapi.json"],
+            "commands": [],
+            "network": "none",
+        },
+        "budget": {"max_usd_per_run": 0.25, "max_steps": 30},
+        "evaluation": {"test_command": "pytest -q", "max_latency_ms": 15000, "max_usd_budget": 0.25},
+    },
+    "dependency-modernizer": {
+        "name": "dependency-modernizer",
+        "description": "Audits outdated package dependencies, tests semver upgrades in sandbox, and drafts migration.",
+        "instructions": (
+            "Inspect package manifests (pyproject.toml, package.json). Upgrade target dependency to the latest safe "
+            "version, run the test suite in isolation, and adapt breaking API changes if tests fail."
+        ),
+        "tools": ["read_file", "edit_file", "run_command", "search_codebase", "list_dir"],
+        "permissions": {
+            "autonomy": "confirm_mutation",
+            "read_paths": ["**"],
+            "write_paths": ["pyproject.toml", "package.json", "src/**", "core/**", "lib/**"],
+            "commands": ["pytest -q", "npm test", "poetry run pytest"],
+            "network": "none",
+        },
+        "budget": {"max_usd_per_run": 0.5, "max_steps": 45},
+        "evaluation": {"test_command": "pytest -q", "max_latency_ms": 30000, "max_usd_budget": 0.5},
+    },
 }
 
 

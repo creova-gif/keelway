@@ -2612,6 +2612,10 @@ def cmd_hub(
     archive: Optional[Path] = None,
     out: Optional[Path] = None,
     dest: Optional[Path] = None,
+    skills_dir: Optional[Path] = None,
+    import_mirror: Optional[Path] = None,
+    as_archive: bool = False,
+    auto_approve: bool = False,
 ) -> int:
     """KHub: Universal skills and MCP tools importer, packaging & synchronization."""
     from core.khub import khub_importer
@@ -2679,6 +2683,38 @@ def cmd_hub(
         except Exception as e:
             print(f"[-] Unpack verification failed: {e}")
             return 1
+    elif action == "mirror":
+        from core.khub.sync import KHubMirror
+        if import_mirror:
+            target_dest = dest or out or Path(".keelway/khub/skills")
+            try:
+                res = KHubMirror.import_mirror(import_mirror, destination_dir=target_dest, auto_approve=auto_approve, verify=True)
+                print(f"[+] Successfully imported air-gapped mirror from: {import_mirror}")
+                print(f"    Total Imported: {res.get('total_imported', 0)}")
+                print(f"    Destination:    {res.get('destination_dir')}")
+                print(f"    Catalog Digest: {res.get('catalog_digest_sha256', '')[:16]}…")
+                for s in res.get("imported_skills", []):
+                    appr_str = "APPROVED" if s.get("approved") else "PENDING"
+                    print(f"    • {s['id']:<20} -> {s['destination']} [{appr_str}]")
+                return 0
+            except Exception as e:
+                print(f"[-] Mirror import failed: {e}")
+                return 1
+        else:
+            # Export mode
+            out_target = out or dest or Path(".keelway/khub/mirror.tar.gz")
+            try:
+                res = KHubMirror.export_mirror(out_target, skills_dir=skills_dir, as_archive=as_archive)
+                print(f"[+] Successfully exported air-gapped mirror to: {res.get('output_target')}")
+                print(f"    Mode:           {res.get('mode')}")
+                print(f"    Total Skills:   {res.get('total_skills')}")
+                print(f"    Catalog Digest: {res.get('catalog_digest_sha256', '')[:16]}…")
+                if "archive_sha256" in res:
+                    print(f"    Archive SHA256: {res.get('archive_sha256', '')[:16]}…")
+                return 0
+            except Exception as e:
+                print(f"[-] Mirror export failed: {e}")
+                return 1
     return 0
 
 
@@ -3650,6 +3686,13 @@ def build_parser() -> argparse.ArgumentParser:
     _hb_unp = hub_sub.add_parser("unpack", help="Unpack and verify a portable skill bundle archive")
     _hb_unp.add_argument("archive", type=Path, help="Path to skill bundle archive (.tar.gz)")
     _hb_unp.add_argument("--dest", type=Path, default=None, help="Destination directory to unpack skill")
+    _hb_mir = hub_sub.add_parser("mirror", help="Enterprise air-gapped skills mirror export and import")
+    _hb_mir.add_argument("--out", type=Path, default=None, help="Output directory or .tar.gz archive for exported mirror")
+    _hb_mir.add_argument("--import-mirror", dest="import_mirror", type=Path, default=None, help="Import and verify an offline mirror bundle")
+    _hb_mir.add_argument("--skills-dir", type=Path, default=None, help="Source skills directory to mirror (defaults to built-in kstack skills)")
+    _hb_mir.add_argument("--dest", type=Path, default=None, help="Destination directory when importing a mirror")
+    _hb_mir.add_argument("--archive", dest="as_archive", action="store_true", help="Package exported mirror into a single .tar.gz bundle")
+    _hb_mir.add_argument("--auto-approve", dest="auto_approve", action="store_true", help="Auto-approve imported skills in the air-gapped environment")
 
     # space (KSpaces Team Workspaces & Governance)
     space_parser = subparsers.add_parser("space", help="KSpaces: Collaborative team workspaces & agent governance")
@@ -4126,6 +4169,10 @@ def main(argv=None):
                 archive=getattr(args, "archive", None),
                 out=getattr(args, "out", None),
                 dest=getattr(args, "dest", None),
+                skills_dir=getattr(args, "skills_dir", None),
+                import_mirror=getattr(args, "import_mirror", None),
+                as_archive=getattr(args, "as_archive", False),
+                auto_approve=getattr(args, "auto_approve", False),
             )
         )
     elif args.command == "space":

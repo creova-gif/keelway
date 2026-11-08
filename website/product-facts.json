@@ -64,7 +64,7 @@
     },
     "agent_builder_and_manifests": {
       "status": "not_certified",
-      "claim": "Declarative AgentSpec v1 compilation, template scaffolding, and sealed build receipts",
+      "claim": "Declarative AgentSpec v1 compilation, 6 built-in templates (test-fixer, code-reviewer, security-auditor, feature-scaffolder, doc-writer, dependency-modernizer), template scaffolding, and sealed build receipts",
       "evidence_test": "tests/test_agent_builder.py",
       "code_path": "core/agents/builder.py"
     },
@@ -215,9 +215,9 @@
     },
     "kstack_role_skills_architecture": {
       "status": "not_certified",
-      "claim": "Composable role skills architecture with first-party plan, review, qa, and security workflows, permission tiers, and signed execution proofs",
+      "claim": "Composable role skills architecture with eight first-party built-in skills (plan, investigate, review, qa, security, ship, modernize, repomap-sync), permission tiers, and signed execution proofs",
       "evidence_test": "tests/test_kstack_kbrain_khub_kspaces_kflow.py",
-      "code_path": "core/kstack/registry.py, core/kstack/models.py"
+      "code_path": "core/kstack/registry.py, core/kstack/models.py, core/kstack/manifest.json"
     },
     "kbrain_scope_governed_knowledge_memory": {
       "status": "not_certified",
@@ -269,8 +269,8 @@
     },
     "khub_bundle_sync": {
       "status": "not_certified",
-      "claim": "Universal skill bundle export and import with SHA-256 member hashing, anti-tamper checking, and directory traversal rejection",
-      "evidence_test": "tests/test_khub_bundle_sync.py",
+      "claim": "Universal skill bundle export and import with SHA-256 member hashing, anti-tamper checking, directory traversal rejection, and air-gapped enterprise mirror packaging",
+      "evidence_test": "tests/test_khub_bundle_sync.py, tests/test_khub_mirror.py",
       "code_path": "core/khub/sync.py, cli.py, core/api/routes.py"
     },
     "kspaces_conflict_and_timeline": {

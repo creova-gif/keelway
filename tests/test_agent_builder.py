@@ -54,12 +54,14 @@ def test_agent_spec_compilation():
 
 def test_builder_list_templates():
     templates = AgentBuilder.list_templates()
-    assert len(templates) >= 4
+    assert len(templates) >= 6
     template_ids = [t["id"] for t in templates]
     assert "test-fixer" in template_ids
     assert "code-reviewer" in template_ids
     assert "security-auditor" in template_ids
     assert "feature-scaffolder" in template_ids
+    assert "doc-writer" in template_ids
+    assert "dependency-modernizer" in template_ids
 
 
 def test_builder_create_from_template():
@@ -77,6 +79,26 @@ def test_builder_create_from_template():
 
     report = spec.validate_manifest()
     assert report.ok is True
+
+    # Test doc-writer template
+    doc_spec = AgentBuilder.create_from_template(
+        "doc-writer",
+        name="api-doc-writer",
+        author="docs-team",
+    )
+    assert doc_spec.name == "api-doc-writer"
+    assert doc_spec.permissions.network == "none"
+    assert doc_spec.validate_manifest().ok is True
+
+    # Test dependency-modernizer template
+    dep_spec = AgentBuilder.create_from_template(
+        "dependency-modernizer",
+        name="py-modernizer",
+        author="platform-team",
+    )
+    assert dep_spec.name == "py-modernizer"
+    assert dep_spec.permissions.network == "none"
+    assert dep_spec.validate_manifest().ok is True
 
 
 @pytest.mark.asyncio
@@ -102,7 +124,7 @@ def test_api_agent_builder_routes(test_client, tmp_path):
     assert t_res.status_code == 200
     t_data = t_res.json()
     assert "templates" in t_data
-    assert len(t_data["templates"]) >= 4
+    assert len(t_data["templates"]) >= 6
 
     # 2. POST /v1/agent/builder/scaffold
     scaffold_payload = {
