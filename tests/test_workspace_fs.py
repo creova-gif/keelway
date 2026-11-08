@@ -28,6 +28,21 @@ class TestWorkspaceFilesystem(unittest.TestCase):
         with self.assertRaises(WorkspaceSecurityError):
             self.workspace.resolve_safe_path("../../etc/passwd")
 
+    def test_sibling_directory_sharing_the_root_prefix_is_blocked(self):
+        sibling = Path(str(self.temp_dir) + "-sibling")
+        with self.assertRaises(WorkspaceSecurityError):
+            self.workspace.resolve_safe_path(f"../{sibling.name}/secret")
+        with self.assertRaises(WorkspaceSecurityError):
+            self.workspace.resolve_safe_path(str(sibling / "secret"))
+
+    def test_symlink_out_of_the_workspace_is_blocked(self):
+        outside = Path(tempfile.mkdtemp()).resolve()
+        self.addCleanup(shutil.rmtree, outside)
+        os.symlink(outside, self.temp_dir / "escape")
+        with self.assertRaises(WorkspaceSecurityError):
+            self.workspace.resolve_safe_path("escape/secret")
+        self.assertEqual(self.workspace.resolve_safe_path(str(self.temp_dir / "a")), self.temp_dir / "a")
+
     def test_write_and_read_file(self):
         content = "print('Hello Sovereign Agent')\n"
         res_write = self.workspace.write_file("scripts/hello.py", content)

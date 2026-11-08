@@ -50,21 +50,18 @@ class WorkspaceFilesystem:
         if not relative_path or relative_path == ".":
             return self.root
 
-        p = Path(relative_path)
-        if p.is_absolute():
-            candidate = p.resolve()
+        # os.path on strings: same symlink resolution as Path.resolve(), without pathlib's per-call overhead.
+        root = str(self.root)
+        if os.path.isabs(relative_path):
+            candidate = os.path.realpath(relative_path)
         else:
-            # Normalize away redundant slashes
-            clean_rel = relative_path.lstrip("/\\")
-            candidate = (self.root / clean_rel).resolve()
+            candidate = os.path.realpath(os.path.join(root, relative_path.lstrip("/\\")))
 
-        try:
-            candidate.relative_to(self.root)
-        except ValueError:
+        if candidate != root and not candidate.startswith(root.rstrip(os.sep) + os.sep):
             raise WorkspaceSecurityError(
                 f"Path traversal detected: '{relative_path}' resolves outside workspace root."
             )
-        return candidate
+        return Path(candidate)
 
     def list_files(self, subpath: str = ".") -> List[str]:
         """Lists relative paths of regular files in workspace root or subpath."""
