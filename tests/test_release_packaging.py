@@ -260,6 +260,7 @@ print("[✓] Unpacked core and cli imported successfully without network access.
     assert "Keelway Core Developer & Operations CLI" in res_help.stdout
     assert "doctor" in res_help.stdout
     assert "airgap" in res_help.stdout
+    assert "package" in res_help.stdout
 
 
 def test_cli_bundler_command_line_interface(tmp_path: Path):
@@ -285,4 +286,104 @@ def test_cli_bundler_command_line_interface(tmp_path: Path):
     # Check generated files
     assert (cli_dist / "keelway-beta-v0.1.0-sovereign.tar.gz").exists()
     assert (cli_dist / "SHA256SUMS").exists()
+    assert (cli_dist / "manifest.json").exists()
     assert (cli_dist / "release-manifest.json").exists()
+
+
+def test_build_bundle_function_alias(tmp_path: Path):
+    """Verify build_bundle function alias in scripts/build_release_bundle.py."""
+    from scripts.build_release_bundle import build_bundle
+
+    alias_dist = tmp_path / "alias_dist"
+    res = build_bundle(output_dir=alias_dist, version="0.1.0")
+    assert res.archive_path.exists()
+    assert (alias_dist / "manifest.json").exists()
+    assert (alias_dist / "SHA256SUMS").exists()
+    assert res.bundle_sha256 == compute_sha256(res.archive_path)
+
+
+def test_cli_cmd_package_direct(tmp_path: Path):
+    """Verify direct invocation of cli.py:cmd_package function."""
+    from cli import cmd_package
+
+    func_dist = tmp_path / "func_dist"
+    ret = cmd_package(
+        out=func_dist,
+        version="0.1.0",
+        skip_tests=True,
+    )
+    assert ret == 0
+
+    tar_path = func_dist / "keelway-beta-v0.1.0-sovereign.tar.gz"
+    assert tar_path.exists()
+    assert (func_dist / "SHA256SUMS").exists()
+    assert (func_dist / "manifest.json").exists()
+    assert (func_dist / "release-manifest.json").exists()
+
+    # Verify cryptographic integrity of the unpacked archive
+    unpack_dir = tmp_path / "func_unpacked"
+    with tarfile.open(tar_path, "r:gz") as tar:
+        tar.extractall(path=unpack_dir)
+    is_valid, errors = verify_unpacked_distribution(unpack_dir)
+    assert is_valid, f"Verification failed: {errors}"
+
+
+def test_cli_subcommand_keelway_package(tmp_path: Path):
+    """Verify executing 'keelway package' subcommand via cli.py."""
+    subcmd_dist = tmp_path / "subcmd_dist"
+    cli_script = Path(__file__).resolve().parent.parent / "cli.py"
+
+    res = subprocess.run(
+        [
+            sys.executable,
+            str(cli_script),
+            "package",
+            "--out",
+            str(subcmd_dist),
+            "--version",
+            "0.1.0",
+            "--skip-tests",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"keelway package CLI failed: {res.stderr}"
+    assert "[✓] Release Package Created" in res.stdout
+
+    tar_path = subcmd_dist / "keelway-beta-v0.1.0-sovereign.tar.gz"
+    assert tar_path.exists()
+    assert (subcmd_dist / "SHA256SUMS").exists()
+    assert (subcmd_dist / "manifest.json").exists()
+    assert (subcmd_dist / "release-manifest.json").exists()
+
+    # Verify manifest fields
+    manifest = json.loads((subcmd_dist / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["version"] == "0.1.0"
+    assert "bundle_sha256" in manifest
+    assert "files" in manifest
+
+
+def test_cli_subcommand_package_runs_pre_release_tests(tmp_path: Path):
+    """Verify 'keelway package' executes pre-release verification tests when not skipped."""
+    tested_dist = tmp_path / "tested_dist"
+    cli_script = Path(__file__).resolve().parent.parent / "cli.py"
+
+    res = subprocess.run(
+        [
+            sys.executable,
+            str(cli_script),
+            "package",
+            "--out",
+            str(tested_dist),
+            "--version",
+            "0.1.0",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"keelway package with tests failed: {res.stderr}"
+    assert "[+] Running pre-release verification tests..." in res.stdout
+    assert "[✓] Pre-release verification tests passed." in res.stdout
+    assert "[✓] Release Package Created" in res.stdout
+    assert (tested_dist / "keelway-beta-v0.1.0-sovereign.tar.gz").exists()
+    assert (tested_dist / "manifest.json").exists()

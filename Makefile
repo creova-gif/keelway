@@ -1,4 +1,4 @@
-.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify
+.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify package
 
 PYTHON ?= python3
 
@@ -25,7 +25,11 @@ help:
 	@echo "                     Image ENTRYPOINT: python3 -m keelway.cli.main serve --host 0.0.0.0 --port 8000"
 	@echo "                     That bind is 0.0.0.0, unlike make serve on 127.0.0.1. Compose also starts keelway-runner and ollama."
 	@echo "  make docker-down   docker compose down"
+	@echo "  make package       Run: python3 cli.py package --out dist/"
 	@echo "  make clean         Remove caches and local keelway_audit.db files"
+
+package:
+	PYTHONPATH=. $(PYTHON) cli.py package --out dist/
 
 test:
 	PYTHONPATH=. $(PYTHON) -m pytest tests -q

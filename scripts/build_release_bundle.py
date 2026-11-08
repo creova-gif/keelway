@@ -378,8 +378,14 @@ def build_release_bundle(
     }
 
     manifest_path = output_dir / "release-manifest.json"
+    manifest_content = json.dumps(manifest_data, indent=2, sort_keys=True) + "\n"
     manifest_path.write_text(
-        json.dumps(manifest_data, indent=2, sort_keys=True) + "\n",
+        manifest_content,
+        encoding="utf-8",
+    )
+    # Also write manifest.json for offline distribution compatibility
+    (output_dir / "manifest.json").write_text(
+        manifest_content,
         encoding="utf-8",
     )
 
@@ -394,6 +400,28 @@ def build_release_bundle(
         total_file_count=len(bundled_files),
         bundle_sha256=bundle_sha256,
         files=files_list,
+    )
+
+
+def build_bundle(
+    source_dir: Optional[Path] = None,
+    output_dir: Optional[Path] = None,
+    version: str = "0.1.0",
+    bundle_name: Optional[str] = None,
+    deterministic: bool = True,
+    fixed_timestamp: Optional[int] = None,
+) -> ReleaseBundleResult:
+    """
+    Build a standalone, deterministic release bundle with SHA256SUMS and release manifest.
+    Alias for build_release_bundle.
+    """
+    return build_release_bundle(
+        source_dir=source_dir,
+        output_dir=output_dir,
+        version=version,
+        bundle_name=bundle_name,
+        deterministic=deterministic,
+        fixed_timestamp=fixed_timestamp,
     )
 
 

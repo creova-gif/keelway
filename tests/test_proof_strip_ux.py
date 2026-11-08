@@ -38,9 +38,20 @@ def run_node_eval(js_code: str, input_data: dict = None) -> dict:
             className: '',
             innerHTML: '',
             textContent: '',
+            value: '',
             dataset: {{}},
             attributes: {{}},
             children: [],
+            offsetWidth: 10,
+            offsetHeight: 10,
+            getClientRects: () => [{{ width: 10, height: 10 }}],
+            contains: (child) => true,
+            focus: () => {{ global.document.activeElement = el; }},
+            scrollIntoView: () => {{}},
+            append: (...c) => {{ el.children.push(...c); }},
+            replaceChildren: (...c) => {{ el.children = c; }},
+            addEventListener: () => {{}},
+            removeEventListener: () => {{}},
             classList: {{
                 add: (c) => {{ el.className = (el.className + ' ' + c).trim(); }},
                 remove: (c) => {{ el.className = el.className.split(' ').filter(x => x !== c).join(' '); }},
@@ -55,21 +66,33 @@ def run_node_eval(js_code: str, input_data: dict = None) -> dict:
             setAttribute: (k, v) => {{ el.attributes[k] = String(v); }},
             getAttribute: (k) => el.attributes[k] || null,
             appendChild: (child) => {{ el.children.push(child); }},
-            querySelector: (sel) => null,
+            querySelector: (sel) => {{
+                if (sel.startsWith('#')) {{
+                    const id = sel.slice(1);
+                    return el.children.find(c => (c.attributes && c.attributes['id'] === id) || c.id === id) || null;
+                }}
+                return null;
+            }},
             querySelectorAll: (sel) => el.children.filter(c => c.className && c.className.includes('proof-strip-stage'))
         }};
         return el;
     }}
 
+    global.Node = class Node {{}};
     global.window = {{
         __TEST_MODE__: true,
         addEventListener: () => {{}}
     }};
     global.location = {{ search: '', hash: '' }};
     global.navigator = {{ userAgent: 'node' }};
+    const mockBody = mockElement('body');
     global.document = {{
         documentElement: {{ dataset: {{}}, dir: 'ltr' }},
+        activeElement: null,
+        body: mockBody,
+        getElementById: (id) => elements[id] || (elements[id] = mockElement('div')),
         createElement: (tag) => mockElement(tag),
+        createTextNode: (t) => t,
         querySelectorAll: () => [],
         addEventListener: () => {{}}
     }};
@@ -77,7 +100,7 @@ def run_node_eval(js_code: str, input_data: dict = None) -> dict:
         getItem: () => null,
         setItem: () => {{}}
     }};
-    global.$ = (id) => elements[id] || (elements[id] = mockElement('div'));
+    global.$ = (id) => global.document.getElementById(id);
     global.state = {{ agentTask: null, agentState: null }};
 
     // Extract PROOF_STAGES, getIdeStageData, getBuilderStageData from studio.js
@@ -85,7 +108,12 @@ def run_node_eval(js_code: str, input_data: dict = None) -> dict:
         PROOF_STAGES: window.PROOF_STAGES,
         getIdeStageData: window.getIdeStageData,
         getBuilderStageData: window.getBuilderStageData,
-        renderUnifiedProofStrip: window.renderUnifiedProofStrip
+        renderUnifiedProofStrip: window.renderUnifiedProofStrip,
+        openPalette: window.openPalette,
+        closePalette: window.closePalette,
+        paletteKey: window.paletteKey,
+        toggleLabsDrawer: window.toggleLabsDrawer,
+        trapFocus: window.trapFocus
     }};`);
 
     const extracted = evalScope(require);
@@ -98,11 +126,11 @@ def run_node_eval(js_code: str, input_data: dict = None) -> dict:
     }} catch (e) {{}}
 
     // Run user test code
-    const testFn = new Function('PROOF_STAGES', 'getIdeStageData', 'getBuilderStageData', 'renderUnifiedProofStrip', 'mockElement', 'inputData', `
+    const testFn = new Function('PROOF_STAGES', 'getIdeStageData', 'getBuilderStageData', 'renderUnifiedProofStrip', 'mockElement', 'inputData', 'helpers', `
         {js_code}
     `);
 
-    const output = testFn(extracted.PROOF_STAGES, extracted.getIdeStageData, extracted.getBuilderStageData, extracted.renderUnifiedProofStrip, mockElement, parsedInput);
+    const output = testFn(extracted.PROOF_STAGES, extracted.getIdeStageData, extracted.getBuilderStageData, extracted.renderUnifiedProofStrip, mockElement, parsedInput, extracted);
     console.log(JSON.stringify(output));
     """
     res = subprocess.run(["node", "-e", wrapped_code], input=stdin_payload, capture_output=True, text=True, check=True)
@@ -365,3 +393,173 @@ def test_accessibility_and_keyboard_attributes():
     assert all(r == "tab" for r in res["stageRoles"])
     assert res["stageTabs"][0] == "0"
     assert all(t == "-1" for t in res["stageTabs"][1:])
+
+
+def test_proof_strip_arrow_navigation_and_tab_sync():
+    """Verify arrow navigation advances tabs, updates tabindex, aria-selected, and opens drawer."""
+    res = run_node_eval("""
+        const container = mockElement('div');
+        renderUnifiedProofStrip(container, { status: 'created' }, { mode: 'ide' });
+
+        const track = container.children[0].children[1];
+        const drawer = container.children[0].children[2];
+        const stages = track.children;
+
+        const initialTabs = stages.map(s => s.attributes['tabindex']);
+        const initialSelected = stages.map(s => s.attributes['aria-selected']);
+
+        // Navigate forward with ArrowRight
+        let prevented = false;
+        stages[0].onkeydown({ key: 'ArrowRight', preventDefault: () => { prevented = true; } });
+        const afterRightTabs = stages.map(s => s.attributes['tabindex']);
+        const afterRightSelected = stages.map(s => s.attributes['aria-selected']);
+
+        // Navigate backward with ArrowLeft
+        stages[1].onkeydown({ key: 'ArrowLeft', preventDefault: () => {} });
+        const afterLeftTabs = stages.map(s => s.attributes['tabindex']);
+
+        // Navigate to End
+        stages[0].onkeydown({ key: 'End', preventDefault: () => {} });
+        const afterEndTabs = stages.map(s => s.attributes['tabindex']);
+
+        // Navigate to Home
+        stages[5].onkeydown({ key: 'Home', preventDefault: () => {} });
+        const afterHomeTabs = stages.map(s => s.attributes['tabindex']);
+
+        // Escape closes drawer
+        stages[0].onkeydown({ key: 'Escape', preventDefault: () => {} });
+        const drawerClosed = drawer.className.includes('hidden');
+
+        return {
+            trackId: track.attributes['id'] || track.id,
+            prevented,
+            initialTabs,
+            initialSelected,
+            afterRightTabs,
+            afterRightSelected,
+            afterLeftTabs,
+            afterEndTabs,
+            afterHomeTabs,
+            drawerClosed
+        };
+    """)
+    assert res["trackId"] == "proof-strip"
+    assert res["prevented"] is True
+    assert res["initialTabs"] == ["0", "-1", "-1", "-1", "-1", "-1"]
+    assert res["afterRightTabs"] == ["-1", "0", "-1", "-1", "-1", "-1"]
+    assert res["afterRightSelected"] == ["false", "true", "false", "false", "false", "false"]
+    assert res["afterLeftTabs"] == ["0", "-1", "-1", "-1", "-1", "-1"]
+    assert res["afterEndTabs"] == ["-1", "-1", "-1", "-1", "-1", "0"]
+    assert res["afterHomeTabs"] == ["0", "-1", "-1", "-1", "-1", "-1"]
+    assert res["drawerClosed"] is True
+
+
+def test_command_palette_accessibility_and_dismiss():
+    """Verify Command Palette keyboard navigation, focus trapping, and Esc dismissal."""
+    html = STUDIO_HTML.read_text(encoding="utf-8")
+    assert 'id="palette"' in html
+    idx = html.index('id="palette"')
+    snippet = html[idx:idx + 250]
+    assert 'role="dialog"' in snippet
+    assert 'aria-modal="true"' in snippet
+
+    res = run_node_eval("""
+        const pal = $('palette');
+        const input = $('palette-input');
+
+        const triggerButton = mockElement('button');
+        triggerButton.id = 'palette-trigger-btn';
+        global.document.activeElement = triggerButton;
+
+        // Open palette
+        helpers.openPalette();
+        const isOpen = !pal.className.includes('hidden');
+        const inputFocused = (global.document.activeElement === input);
+        const ariaHiddenOpen = pal.attributes['aria-hidden'];
+
+        // Arrow down
+        let preventedDown = false;
+        helpers.paletteKey({ key: 'ArrowDown', preventDefault: () => { preventedDown = true; } });
+
+        // Escape closes and restores focus
+        let preventedEsc = false;
+        helpers.paletteKey({ key: 'Escape', preventDefault: () => { preventedEsc = true; }, stopPropagation: () => {} });
+        const isClosedAfterEsc = pal.className.includes('hidden');
+        const ariaHiddenClosed = pal.attributes['aria-hidden'];
+        const focusRestored = (global.document.activeElement === triggerButton);
+
+        return {
+            isOpen,
+            inputFocused,
+            ariaHiddenOpen,
+            preventedDown,
+            preventedEsc,
+            isClosedAfterEsc,
+            ariaHiddenClosed,
+            focusRestored
+        };
+    """)
+    assert res["isOpen"] is True
+    assert res["inputFocused"] is True
+    assert res["ariaHiddenOpen"] == "false"
+    assert res["preventedDown"] is True
+    assert res["preventedEsc"] is True
+    assert res["isClosedAfterEsc"] is True
+    assert res["ariaHiddenClosed"] == "true"
+    assert res["focusRestored"] is True
+
+
+def test_modal_dialogs_aria_modal_and_focus_trap():
+    """Verify all modal dialogs have aria-modal='true' and focus trap cleanly wraps Tab."""
+    html = STUDIO_HTML.read_text(encoding="utf-8")
+    assert 'id="palette"' in html
+    assert 'id="labs-drawer"' in html
+    assert 'id="signin"' in html
+    assert 'id="onboard"' in html
+    assert 'id="always-form"' in html
+
+    for modal_id in ['id="palette"', 'id="labs-drawer"', 'id="signin"', 'id="onboard"', 'id="always-form"']:
+        idx = html.index(modal_id)
+        snippet = html[idx:idx + 350]
+        assert 'aria-modal="true"' in snippet, f"{modal_id} missing aria-modal='true'"
+
+    res = run_node_eval("""
+        const container = mockElement('div');
+        const btn1 = mockElement('button');
+        const btn2 = mockElement('button');
+        const btn3 = mockElement('button');
+        container.children = [btn1, btn2, btn3];
+        container.querySelectorAll = () => [btn1, btn2, btn3];
+
+        // 1. Tab forward from last element wraps to first
+        global.document.activeElement = btn3;
+        let prevented1 = false;
+        helpers.trapFocus(container, { key: 'Tab', shiftKey: false, preventDefault: () => { prevented1 = true; } });
+        const wrappedToFirst = (global.document.activeElement === btn1);
+
+        // 2. Shift+Tab backward from first element wraps to last
+        global.document.activeElement = btn1;
+        let prevented2 = false;
+        helpers.trapFocus(container, { key: 'Tab', shiftKey: true, preventDefault: () => { prevented2 = true; } });
+        const wrappedToLast = (global.document.activeElement === btn3);
+
+        return {
+            prevented1,
+            wrappedToFirst,
+            prevented2,
+            wrappedToLast
+        };
+    """)
+    assert res["prevented1"] is True
+    assert res["wrappedToFirst"] is True
+    assert res["prevented2"] is True
+    assert res["wrappedToLast"] is True
+
+
+def test_focus_visible_design_tokens():
+    """Verify :focus-visible rules match Keelway's accent token and prevent outline cutoff."""
+    html = STUDIO_HTML.read_text(encoding="utf-8")
+    assert ":focus-visible" in html
+    assert "rgb(var(--accent))" in html
+    assert "outline-offset: -1px" in html or "outline-offset: -2px" in html
+    assert ".proof-strip-stage:focus-visible" in html

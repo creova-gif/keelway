@@ -3138,6 +3138,50 @@ def cmd_airgap(
     return 1
 
 
+def cmd_package(
+    out: Optional[Path | str] = None,
+    version: str = "0.1.0",
+    skip_tests: bool = False,
+    bundle_name: Optional[str] = None,
+    source_dir: Optional[Path | str] = None,
+) -> int:
+    """Build a sovereign release packaging bundle with SHA-256 digests, manifest, and archive."""
+    src_path = Path(source_dir).resolve() if source_dir else Path(__file__).resolve().parent
+    out_path = Path(out).resolve() if out else (src_path / "dist")
+
+    if not skip_tests:
+        print("[+] Running pre-release verification tests...")
+        test_cmd = [sys.executable, "-m", "pytest", "tests/test_release_live_inventory.py", "-q"]
+        res = subprocess.run(test_cmd, cwd=str(src_path), capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"[-] Pre-release verification tests failed with exit code {res.returncode}:")
+            if res.stdout:
+                print(res.stdout)
+            if res.stderr:
+                print(res.stderr)
+            return res.returncode
+        print("[✓] Pre-release verification tests passed.")
+
+    from scripts.build_release_bundle import build_bundle
+    print(f"[+] Packaging Keelway sovereign release v{version} to {out_path}...")
+    result = build_bundle(
+        source_dir=src_path,
+        output_dir=out_path,
+        version=version,
+        bundle_name=bundle_name,
+        deterministic=True,
+    )
+
+    print(f"[✓] Release Package Created: {result.bundle_name}")
+    print(f"  • Archive:     {result.archive_path} ({result.archive_path.stat().st_size} bytes)")
+    print(f"  • Manifest:    {result.manifest_path}")
+    print(f"  • Checksums:   {result.sha256sums_path}")
+    print(f"  • SHA-256:     {result.bundle_sha256}")
+    print(f"  • Files:       {result.total_file_count}")
+    print(f"  • Commit:      {result.git_commit[:12] if result.git_commit else 'unknown'}")
+    return 0
+
+
 def cmd_openapi(out_path: Path = Path("website/openapi.json"), to_stdout: bool = False) -> int:
     """Export the OpenAPI 3.1 schema of Keelway Core to JSON or stdout."""
     import json
@@ -3602,6 +3646,12 @@ def build_parser() -> argparse.ArgumentParser:
     _p_deact = plugins_sub.add_parser("deactivate", help="Deactivate an installed plugin")
     _p_deact.add_argument("target", help="Name of plugin to deactivate")
 
+    # package (Deterministic Sovereign Release Packaging)
+    package_parser = subparsers.add_parser("package", help="Build sovereign offline release bundle with cryptographic attestation and SHA-256 digests")
+    package_parser.add_argument("--out", type=Path, default=Path("dist"), help="Output directory for release artifacts (default: dist)")
+    package_parser.add_argument("--version", default="0.1.0", help="Release version string (default: 0.1.0)")
+    package_parser.add_argument("--skip-tests", action="store_true", help="Skip pre-release verification tests")
+
     # airgap (Sovereign Air-Gap Audit & Bundle Deployment)
     airgap_parser = subparsers.add_parser("airgap", help="Air-Gap zero-egress audit and sovereign bundle packaging")
     airgap_sub = airgap_parser.add_subparsers(dest="airgap_command", required=True)
@@ -3751,6 +3801,7 @@ def main(argv=None):
         print("  dev          Launch Keelway Studio (Local Web & App UI)")
         print("  chat         Start interactive sovereign agent REPL")
         print("  doctor       Run sovereign system diagnostics across 7 dimensions")
+        print("  package      Build sovereign offline distribution package")
         print("  run          Start governed agent run with approval gate")
         print("  test-sandbox Run tests inside OS-level verified sandbox")
         print("\nRun 'keelway --help' for the full list of subcommands.")
@@ -4037,6 +4088,14 @@ def main(argv=None):
         )
     elif args.command == "plugins":
         sys.exit(asyncio.run(cmd_plugins(args.plugins_command, getattr(args, "target", None))))
+    elif args.command == "package":
+        sys.exit(
+            cmd_package(
+                out=getattr(args, "out", Path("dist")),
+                version=getattr(args, "version", "0.1.0"),
+                skip_tests=getattr(args, "skip_tests", False),
+            )
+        )
     elif args.command == "airgap":
         sys.exit(
             cmd_airgap(
