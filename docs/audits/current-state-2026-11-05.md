@@ -1,4 +1,6 @@
 # Keelway Dual-Mode Architecture & Runtime State Audit
+
+> **Superseded.** This audit's test counts, "all 10 beta acceptance gates are satisfied" and 12-state inventory were not reproducible on later `main`. See [KEELWAY_CURRENT_STATE_2026-11.md](KEELWAY_CURRENT_STATE_2026-11.md) for the verified state. Kept for history.
 **Date:** 2026-11-05  
 **Auditor:** Solo Agent Team / Antigravity Execution System  
 **Product:** Keelway by Sorvex Labs  
