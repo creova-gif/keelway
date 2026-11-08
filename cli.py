@@ -1826,7 +1826,7 @@ async def cmd_tier2(action: str, subsystem: str = "all") -> int:
 
 
 async def cmd_doctor(json_output: bool = False):
-    """Check health across all 7 sovereign enterprise dimensions."""
+    """Check health across sovereign enterprise dimensions."""
     from core.system.doctor import SystemDoctor
     report = await SystemDoctor.run_diagnostics()
 
@@ -1844,10 +1844,15 @@ async def cmd_doctor(json_output: bool = False):
         status_badge = f"[{section.status}]"
         print(f"\n  [{i}] {section.name:<44} {status_badge:>18}")
         for k, v in section.details.items():
-            print(f"      • {k.replace('_', ' ').title():<28}: {v}")
+            if isinstance(v, dict):
+                print(f"      • {k.replace('_', ' ').title():<28}:")
+                for sub_k, sub_v in v.items():
+                    print(f"          - {sub_k:<24}: {sub_v}")
+            else:
+                print(f"      • {k.replace('_', ' ').title():<28}: {v}")
 
     print("\n" + "=" * 68)
-    print(f"  Diagnostic Result: {report.overall_status} — 7/7 Dimensions Evaluated.")
+    print(f"  Diagnostic Result: {report.overall_status} — {len(report.sections)}/{len(report.sections)} Dimensions Evaluated.")
     print("=" * 68 + "\n")
     return 0
 

@@ -17,6 +17,7 @@ from core.orchestration.multi_agent import MultiAgentCoordinator
 from core.system.doctor import SystemDoctor
 from core.security.auth import launch_token
 from core.agents.builder import AgentBuilder
+from core.agents.sandbox import verified_command_runner, CommandExecutionUnavailable
 from core.eval.evidence_room import EvidenceRoomPipeline
 
 
@@ -37,7 +38,7 @@ async def test_complete_20_stage_beta_user_journey(tmp_path):
     # =========================================================================
     doctor_report = await SystemDoctor.run_diagnostics()
     assert doctor_report.overall_status == "HEALTHY"
-    assert len(doctor_report.sections) == 7
+    assert len(doctor_report.sections) >= 7
 
     # =========================================================================
     # STAGE 3: LAUNCH WITHOUT UNDOCUMENTED CONFIGURATION
@@ -137,6 +138,30 @@ async def test_complete_20_stage_beta_user_journey(tmp_path):
     read_back = fs.read_file("service.py")
     content = read_back["content"] if isinstance(read_back, dict) else read_back
     assert content == patch
+
+    # Sandbox isolation and runner boundary verification
+    assert agent.command_runner is None
+    with pytest.raises(CommandExecutionUnavailable):
+        await agent.tools["run_command"].handler({"command": "echo unverified"})
+
+    runner, detail = verified_command_runner(project_dir)
+    assert runner is not None, f"Sandbox verification failed: {detail}"
+    agent.command_runner = runner
+
+    # Safety gate blocks dangerous unverified commands
+    danger_res = await agent.execute_tool("run_command", {"command": "rm -rf /"})
+    if danger_res.get("status") == "paused_for_approval":
+        danger_res = await agent.approve_pending(approved=True)
+    assert danger_res["status"] == "error"
+    assert "rejected by safety gate" in danger_res["error"]
+
+    # Sandboxed execution verifies code environment
+    sbx_exec = await agent.execute_tool("run_command", {"command": f'{sys.executable} -c "import service; print(\'service_ok\')"' })
+    if sbx_exec.get("status") == "paused_for_approval":
+        sbx_exec = await agent.approve_pending(approved=True)
+    assert sbx_exec["status"] == "success"
+    assert "service_ok" in sbx_exec["result"]["stdout"]
+    assert sbx_exec["result"]["sandbox"] in ("seatbelt", "bubblewrap")
 
     # =========================================================================
     # STAGE 12: RUN TESTS, EVALUATE RESULTS AND DEBUG FAILURES

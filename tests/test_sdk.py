@@ -67,7 +67,7 @@ def test_sdk_system_health_and_doctor(local_server, auth_token):
 
     doctor = client.run_doctor()
     assert doctor["overall_status"] == "HEALTHY"
-    assert len(doctor["sections"]) == 7
+    assert len(doctor["sections"]) >= 7
     client.close()
 
 
