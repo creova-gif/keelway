@@ -299,21 +299,21 @@ python3 run_{spec.name.replace('-', '_')}.py "Your task description"
                     except Exception:
                         pass  # Allow re-building/updating existing
 
-        # 3. Run generated test harness
+        # 3. Run generated test harness (safe execution without host shell)
         clean_slug = spec.name.replace("-", "_")
         test_file = target_dir / f"test_{clean_slug}.py"
-        test_cmd = f'"{sys.executable}" -m unittest -q {test_file.name}'
         clean_env, _ = scrub_env(dict(os.environ))
         repo_root = str(Path(__file__).resolve().parent.parent.parent)
         clean_env["PYTHONPATH"] = f"{repo_root}:{os.environ.get('PYTHONPATH', '')}"
 
         proc = subprocess.run(
-            test_cmd,
-            shell=True,
+            [sys.executable, "-m", "unittest", "-q", test_file.name],
+            shell=False,
             cwd=target_dir,
             env=clean_env,
             capture_output=True,
             text=True,
+            timeout=30,
         )
 
         dur_ms = (time.perf_counter() - start_t) * 1000
