@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+import os
 from pathlib import Path
 
 import pytest
@@ -34,8 +35,9 @@ import pytest
 from core.agents.sandbox import Sandbox
 from core.models.adapters.local import LocalAdapter
 
-LIVE_MODEL_URL = "http://localhost:11434"
-LIVE_MODEL_NAME = "qwen3.5:latest"
+# CI pulls a smaller model than the default; both must answer the Slice 2 fix correctly.
+LIVE_MODEL_URL = os.environ.get("KEELWAY_LIVE_MODEL_URL", "http://localhost:11434")
+LIVE_MODEL_NAME = os.environ.get("KEELWAY_LIVE_MODEL", "qwen3.5:latest")
 _ISOLATION_PROBE: tuple[bool, str] | None = None
 
 
