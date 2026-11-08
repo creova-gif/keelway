@@ -2,8 +2,10 @@ import copy
 import json
 import os
 import shlex
+import shutil
 import socket
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -104,6 +106,7 @@ def test_no_backend_means_refuse_not_run(tmp_path):
 
 def test_loop_fails_closed_when_the_sandbox_cannot_be_verified(tmp_path, monkeypatch):
     monkeypatch.setattr(SeatbeltBackend, "available", staticmethod(lambda: False))
+    monkeypatch.setattr(BubblewrapBackend, "available", classmethod(lambda cls: False))
     with pytest.raises(ManifestNotRunnable, match="verified sandbox"):
         loop_from_manifest(manifest(), "t", WorkspaceFilesystem(str(tmp_path)), record_flight=False)
 
@@ -283,3 +286,17 @@ def test_bubblewrap_backend_structure(tmp_path):
     assert "--" in wrapped
     assert wrapped[-2:] == ["/bin/echo", "hello"]
 
+
+
+@pytest.mark.skipif(not BubblewrapBackend.available(), reason="bubblewrap not usable on this machine")
+def test_bubblewrap_passes_the_escape_self_test_and_hides_home(tmp_path):
+    sb = Sandbox(tmp_path, backend="bubblewrap")
+    ok, detail = sb.verify()
+    assert ok, detail
+    secret = Path(tempfile.mkdtemp(prefix=".keelway-home-secret-", dir=Path.home())) / "id_ed25519"
+    try:
+        secret.write_text("PRIVATEKEY")
+        res = sb.run(f"{PY} -c \"print(open('{secret}').read())\"")
+        assert res.exit_code != 0 and "PRIVATEKEY" not in res.stdout
+    finally:
+        shutil.rmtree(secret.parent, ignore_errors=True)

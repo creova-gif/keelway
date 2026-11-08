@@ -1,6 +1,6 @@
 """OS-level confinement for commands an agent runs.
 
-What a sandboxed command can and cannot do (macOS seatbelt backend, the only one built):
+What a sandboxed command can and cannot do (macOS seatbelt and Linux bubblewrap backends):
   * run with a scrubbed environment: no API keys, tokens or shell secrets are inherited
   * write only inside the workspace and a private per-run temp directory; never `.git` or `.keelway`
   * read the workspace, the Python environment and PATH tools, but not other files under /Users, /Volumes
@@ -9,8 +9,8 @@ What a sandboxed command can and cannot do (macOS seatbelt backend, the only one
   * run without a shell (`shell=False`), in its own process group that is killed on timeout, with capped output
 
 What it does NOT do: it is not a container or VM. System files outside the denied areas stay readable, the kernel
-is shared, and Apple marks `sandbox-exec` deprecated (it still works and is what many tools use). On any other
-platform there is no backend, `Sandbox.require_verified()` raises, and callers must refuse to run commands
+is shared, and Apple marks `sandbox-exec` deprecated (it still works and is what many tools use). On Linux, bubblewrap
+hides /home, /root, /mnt and /media except the workspace and PATH tools. Elsewhere there is no backend, `Sandbox.require_verified()` raises, and callers must refuse to run commands
 rather than run them unconfined.
 
 The self-test (`Sandbox.verify()`) actually tries to escape on this machine and only passes if every attempt
@@ -154,22 +154,32 @@ class BubblewrapBackend:
 
     @staticmethod
     def wrap(argv: List[str], workspace: Path, tmp: Path, read_roots: Sequence[Path]) -> List[str]:
-        cmd = [
-            "bwrap",
-            "--ro-bind", "/", "/",
+        cmd = ["bwrap", "--ro-bind", "/", "/"]
+        # Hide every home directory (other projects, ~/.ssh, keys), then put back only what commands need.
+        hidden = [h for h in sorted({str(Path.home().resolve().parent), "/root", "/mnt", "/media"}) if Path(h).is_dir()]
+        for h in hidden:
+            cmd.extend(["--tmpfs", h])
+        for root in read_roots:
+            if root.is_dir():
+                cmd.extend(["--ro-bind", str(root), str(root)])
+        cmd.extend([
             "--dev", "/dev",
             "--proc", "/proc",
             "--tmpfs", "/tmp",
             "--bind", str(workspace), str(workspace),
             "--bind", str(tmp), str(tmp),
-            "--unshare-net",
-            "--unshare-pid",
-            "--die-with-parent",
-        ]
+        ])
         for p in PROTECTED_WRITE:
             prot = workspace / p
-            if prot.exists():
-                cmd.extend(["--tmpfs", str(prot)])
+            if not prot.is_dir():
+                continue
+            if p in PROTECTED_READ:
+                cmd.extend(["--tmpfs", str(prot), "--remount-ro", str(prot)])
+            else:
+                cmd.extend(["--ro-bind", str(prot), str(prot)])
+        for h in hidden:
+            cmd.extend(["--remount-ro", h])
+        cmd.extend(["--unshare-net", "--unshare-pid", "--die-with-parent", "--new-session"])
         return [*cmd, "--", *argv]
 
 
