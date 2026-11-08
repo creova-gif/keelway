@@ -138,7 +138,16 @@ class KStackRegistry:
                 errors.append("Skill 'name' is required in frontmatter")
             if not skill.instructions:
                 errors.append("Skill instructions body cannot be empty")
-            valid_roles = {"architect", "reviewer", "qa_lead", "sec_lead", "engineer", "general"}
+            valid_roles = {
+                "architect",
+                "reviewer",
+                "qa_lead",
+                "sec_lead",
+                "engineer",
+                "debugger",
+                "release_lead",
+                "general",
+            }
             if skill.role not in valid_roles:
                 errors.append(f"Invalid role '{skill.role}', expected one of {sorted(valid_roles)}")
         except Exception as e:

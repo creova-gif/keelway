@@ -46,12 +46,23 @@ def test_kstack_builtin_skills_loaded():
     assert "kstack/review" in names
     assert "kstack/qa" in names
     assert "kstack/security" in names
+    assert "kstack/investigate" in names
+    assert "kstack/ship" in names
 
     plan = kstack_registry.get_skill("kstack/plan")
     assert plan is not None
     assert plan.role == "architect"
     assert "draft" in plan.permissions
     assert len(plan.digest_sha256) == 64
+
+    ship = kstack_registry.get_skill("kstack/ship")
+    assert ship is not None
+    assert ship.role == "release_lead"
+    assert "execute_restricted" in ship.permissions
+
+    inv = kstack_registry.get_skill("kstack/investigate")
+    assert inv is not None
+    assert inv.role == "debugger"
 
 
 def test_kstack_versioned_manifest_integrity():

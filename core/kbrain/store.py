@@ -23,11 +23,11 @@ SCOPE_HIERARCHY = {
 }
 
 SECRET_PATTERNS = [
-    re.compile(r"sk-[a-zA-Z0-9]{20,}", re.IGNORECASE),
-    re.compile(r"ghp_[a-zA-Z0-9]{20,}", re.IGNORECASE),
+    re.compile(r"sk-(ant-|proj-)?[a-zA-Z0-9_\-]{20,}", re.IGNORECASE),
+    re.compile(r"gh[pousr]_[a-zA-Z0-9]{20,}", re.IGNORECASE),
     re.compile(r"bearer\s+[a-zA-Z0-9_\-\.]{20,}", re.IGNORECASE),
     re.compile(r"-----BEGIN (RSA|EC|OPENSSH|DSA|PGP) PRIVATE KEY-----", re.IGNORECASE),
-    re.compile(r"password\s*[:=]\s*['\"][^'\"]{6,}['\"]", re.IGNORECASE),
+    re.compile(r"(password|secret|token)\s*[:=]\s*['\"][^'\"]{6,}['\"]", re.IGNORECASE),
 ]
 
 

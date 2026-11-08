@@ -1,9 +1,38 @@
 {
   "version": "1.0.0",
   "format": "kstack_skills_manifest_v1",
-  "skills_count": 4,
-  "generated_at_utc": 1794155218.410549,
+  "skills_count": 6,
+  "generated_at_utc": 1794158385.904043,
   "skills": [
+    {
+      "name": "kstack/investigate",
+      "version": "1.0.0",
+      "role": "debugger",
+      "description": "Systematic root-cause debugging, error trace capture, and minimal defect reproduction without speculative edits.",
+      "permissions": [
+        "read",
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "error_trace": "Stack trace or failure log",
+          "failing_test": "Optional failing test command or file"
+        },
+        "outputs": {
+          "reproduced": "Boolean indicator if defect was confirmed",
+          "root_cause": "Detailed diagnosis of demonstrated defect",
+          "affected_components": "List of culpable file paths and symbols",
+          "minimal_repro": "Minimal reproducer script or test command"
+        }
+      },
+      "instructions": "# KStack Investigate Skill (Debugger Role)\n\n## Overview\nPerforms systematic root-cause diagnosis of defects, test failures, and unexpected behaviors. Never propose mutations before reproducing the failure.\n\n## Investigation Discipline\n1. Reproduce with the smallest relevant test or script before touching code.\n2. Distinguish product defect, invalid test expectation, and environment failure.\n3. Inspect stack traces, variable values, and error output inside the verified sandbox.\n4. Formulate the minimal repair plan with explicit verification assertions.",
+      "source_uri": "core/kstack/skills/investigate/SKILL.md",
+      "digest_sha256": "49cfbb6f0b89a14bd4455711a6e6324510dc91329259f9154c4f683e5b1bfe52",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794158385.903611
+    },
     {
       "name": "kstack/plan",
       "version": "1.0.0",
@@ -29,7 +58,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794155218.4103959
+      "created_at_utc": 1794158385.903445
     },
     {
       "name": "kstack/qa",
@@ -57,7 +86,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794155218.410454
+      "created_at_utc": 1794158385.9037728
     },
     {
       "name": "kstack/review",
@@ -84,7 +113,7 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794155218.410499
+      "created_at_utc": 1794158385.9039302
     },
     {
       "name": "kstack/security",
@@ -111,7 +140,36 @@
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1794155218.4103
+      "created_at_utc": 1794158385.903258
+    },
+    {
+      "name": "kstack/ship",
+      "version": "1.0.0",
+      "role": "release_lead",
+      "description": "Release qualification, test gate verification, signed flight tape sealing, and release receipt generation.",
+      "permissions": [
+        "read",
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "target_ref": "Git commit or branch to qualify",
+          "required_gates": "List of verification gates (unit, e2e, security, live_model)"
+        },
+        "outputs": {
+          "qualified": "Boolean release readiness decision",
+          "passed_gates": "List of successfully completed verification gates",
+          "flight_tape_sha256": "Cryptographic hash of sealed flight tape",
+          "receipt_id": "Unique signed release receipt ID"
+        }
+      },
+      "instructions": "# KStack Ship Skill (Release Lead Role)\n\n## Overview\nValidates release readiness against fail-closed engineering gates, seals cryptographic flight tapes, and generates signed release receipts.\n\n## Release Gates\n1. Full test suite execution in verified OS sandbox.\n2. Zero-secret and zero-leakage DLP audit across modified files.\n3. Flight tape tamper detection and SHA-256 seal verification.\n4. Gate integrity check: verify all mutating actions obtained human approval.",
+      "source_uri": "core/kstack/skills/ship/SKILL.md",
+      "digest_sha256": "46d818f27f741000d505610045f4af21f69515ddcb1c38eb8b699b66fee7b8da",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1794158385.9039848
     }
   ]
 }
