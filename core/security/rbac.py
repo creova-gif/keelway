@@ -14,6 +14,7 @@ class Role(str, Enum):
     ADMIN = "admin"
     ENGINEER = "engineer"
     AUDITOR = "auditor"  # Read-only for compliance/security review
+    PHONE = "phone"  # Paired phone: sees agent runs and approves or denies their steps, nothing else
 
 
 class Permission(str, Enum):
@@ -23,6 +24,7 @@ class Permission(str, Enum):
     EXPORT_DATASETS = "export_datasets"
     MANAGE_KEYS = "manage_keys"
     VIEW_AUDIT_LOGS = "view_audit_logs"
+    APPROVE_AGENT_STEPS = "approve_agent_steps"
 
 
 ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
@@ -33,6 +35,7 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
         Permission.MANAGE_MEMORIES,
         Permission.EXPORT_DATASETS,
         Permission.VIEW_AUDIT_LOGS,
+        Permission.APPROVE_AGENT_STEPS,
     ],
     Role.ENGINEER: [
         Permission.EXECUTE_AGENT,
@@ -41,6 +44,9 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
     ],
     Role.AUDITOR: [
         Permission.VIEW_AUDIT_LOGS,
+    ],
+    Role.PHONE: [
+        Permission.APPROVE_AGENT_STEPS,
     ],
 }
 

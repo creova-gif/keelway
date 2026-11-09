@@ -1,5 +1,5 @@
 /**
- * Keelway mobile API client: talks to a Keelway on your LAN/Tailscale with your Studio token.
+ * Keelway mobile API client: talks to a Keelway on your LAN/Tailscale with the phone token it paired for.
  * Polls instead of holding a WebSocket so it survives flaky mobile networks and sleeps cleanly.
  */
 
@@ -45,15 +45,39 @@ export class KeelwayError extends Error {
   }
 }
 
-/** Accepts the link `keelway dev` prints: http://host:port/?token=... (no token when AUTH_REQUIRED=false). */
-export function parseStudioLink(link: string): Connection | null {
+export interface ParsedLink extends Connection {
+  pairCode: string; // single-use code from `keelway mobile pair`, swapped for a phone token on Connect
+}
+
+/** Accepts http://host:port/?pair=... from `keelway mobile pair`, or ?token=... / no token when AUTH_REQUIRED=false. */
+export function parseStudioLink(link: string): ParsedLink | null {
   const m = link.trim().match(/^(https?:\/\/[^/?#\s]+)\/?[^?#\s]*(?:\?([^#\s]*))?(?:#\S*)?$/i);
   if (!m) return null;
-  const raw = (m[2] || '').split('&').find((p) => p.startsWith('token='))?.slice(6) ?? '';
+  const params = (m[2] || '').split('&');
+  const param = (name: string) => params.find((p) => p.startsWith(`${name}=`))?.slice(name.length + 1) ?? '';
   try {
-    return { baseUrl: m[1], token: decodeURIComponent(raw) };
+    return { baseUrl: m[1], token: decodeURIComponent(param('token')), pairCode: decodeURIComponent(param('pair')) };
   } catch {
     return null;
+  }
+}
+
+/** Spends a pairing code for this phone's own token (view runs, approve or deny steps; expires). */
+export async function pairWithCode(baseUrl: string, code: string, deviceName: string, timeoutMs = 8000): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${baseUrl}/v1/auth/pair`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, device_name: deviceName }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new KeelwayError(body.detail || `HTTP ${res.status}`, res.status);
+    return body.token as string;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

@@ -464,8 +464,10 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = Fal
         print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
     lan = _lan_ip() if host in ("0.0.0.0", "::") else None
     if lan:
-        suffix = f"?token={launch_token()}" if settings.auth_required else ""
-        print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}/{suffix}")
+        if settings.auth_required:
+            print(f"  Phone (Keelway Mobile, same Wi-Fi): run `keelway mobile pair --port {port}` for a pairing link")
+        else:
+            print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}/")
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
@@ -1588,6 +1590,8 @@ async def cmd_token(action: str, name: str = "", role: str = "engineer", token_i
                 print("No API tokens. Create one with: keelway token create --name <name> --role engineer")
             for r in rows:
                 state = "revoked" if r.revoked_at else f"last used {r.last_used_at:%Y-%m-%d %H:%M}" if r.last_used_at else "never used"
+                if r.expires_at and not r.revoked_at:
+                    state += f", expires {r.expires_at:%Y-%m-%d %H:%M}"
                 print(f"{r.id}  {r.role:<9} {r.name:<24} {state}")
         elif action == "revoke":
             record = await db.get(ApiTokenRecord, token_id)
@@ -1860,16 +1864,25 @@ async def cmd_doctor(json_output: bool = False):
 async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, target: str = "", action_name: str = "", task_id: str = "") -> int:
     """Manage Keelway Mobile phone pairings, status, and notifications."""
     from urllib.parse import quote
-    from core.security.auth import launch_token
     from core.config import settings
 
     lan = _lan_ip() or "127.0.0.1"
-    token = launch_token() if settings.auth_required else ""
-    token_suffix = f"?token={token}" if token else ""
-    studio_link = f"http://{lan}:{port}/{token_suffix}"
-    deep_link = f"keelway://pair?link={quote(studio_link, safe='')}"
 
     if action == "pair":
+        expires = None
+        pair_suffix = ""
+        if settings.auth_required:
+            from core.security.auth import create_pairing_code
+            from core.storage.database import AsyncSessionLocal, init_db
+
+            await init_db()
+            async with AsyncSessionLocal() as db:
+                record, code = await create_pairing_code(db)
+                await db.commit()
+            expires = record.expires_at
+            pair_suffix = f"?pair={code}"
+        studio_link = f"http://{lan}:{port}/{pair_suffix}"
+        deep_link = f"keelway://pair?link={quote(studio_link, safe='')}"
         print("\n" + "=" * 68)
         print("  📱 KEELWAY MOBILE — PHONE MISSION CONTROL PAIRING")
         print("  Zero-Cloud Sovereign Mobile Approvals (iOS / Android)")
@@ -1877,17 +1890,19 @@ async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, targe
         print(f"\n  [1] Wi-Fi / LAN Address : {lan}:{port}")
         print(f"  [2] Studio Pairing Link : {studio_link}")
         print(f"  [3] Mobile Deep Link    : {deep_link}")
-        if token:
-            print(f"  [4] Security Token      : {token[:12]}... (Role: owner)")
+        if expires:
+            print(f"  [4] Pairing Code        : single use, expires {expires:%H:%M} UTC (10 minutes)")
+            print("      The phone gets its own token: view runs and approve or deny steps only,")
+            print("      valid 30 days. Revoke it with `keelway token list` / `keelway token revoke <id>`.")
         else:
-            print("  [4] Security Token      : None (AUTH_REQUIRED=false)")
+            print("  [4] Pairing Code        : None (AUTH_REQUIRED=false)")
 
         print("\n  Pairing Instructions:")
         print("  ─────────────────────────────────────────────────────────────────")
         print("  1. Open Keelway Mobile on your phone (connected to same Wi-Fi).")
-        print("  2. In the app, paste the Studio Pairing Link above.")
-        print("  3. Tap 'Connect'. Your phone will authenticate with whoami.")
-        print("  4. Once connected, approve agent tool mutations directly on your phone.")
+        print("  2. In the app, paste the Studio Pairing Link above (it works once).")
+        print("  3. Tap 'Connect'. The phone swaps the code for its own token.")
+        print("  4. Once connected, approve or deny agent steps directly on your phone.")
         print("=" * 68 + "\n")
         return 0
 
@@ -1900,7 +1915,7 @@ async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, targe
         print(f"  • Local Gateway Host   : {lan}:{port}")
         print(f"  • Database Connectivity: {'ONLINE [OK]' if db_ok else 'OFFLINE [WARN]'}")
         print(f"  • Auth Requirement    : {'ACTIVE (Token Required)' if settings.auth_required else 'INACTIVE (Open LAN)'}")
-        print(f"  • Active Pairing Link  : {studio_link}")
+        print(f"  • Pair a phone         : keelway mobile pair --port {port}")
         print("=" * 68 + "\n")
         return 0
 

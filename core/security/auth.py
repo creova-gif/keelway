@@ -4,29 +4,54 @@ API authentication, RBAC enforcement, and the hash-chained audit log.
 Tokens are bearer secrets. Two kinds are accepted:
 - the per-process launch token (owner role), printed by `keelway dev` and fixed via KEELWAY_API_TOKEN;
 - named tokens minted with `keelway token create` or POST /v1/auth/tokens, stored only as SHA-256 hashes.
+
+Phones pair with a single-use code from `keelway mobile pair` (valid for minutes) and exchange it at
+POST /v1/auth/pair for a phone-role token that expires and can only reach PHONE_ROUTES.
 """
 
 import asyncio
 import hashlib
 import hmac
 import json
+import re
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.security.rbac import ROLE_PERMISSIONS, AccessControlManager, Permission, Role
 from core.storage.database import AsyncSessionLocal
-from core.storage.models import ApiTokenRecord, AuditEventRecord
+from core.storage.models import ApiTokenRecord, AuditEventRecord, PairingCodeRecord
 
 TOKEN_PREFIX = "keelway_"
+PAIRING_PREFIX = "keelway_pair_"
 GENESIS_HASH = "0" * 64
+PAIRING_CODE_TTL = timedelta(minutes=10)
+PHONE_TOKEN_TTL = timedelta(days=30)
+
+# Everything a phone-role token may call. Anything else is refused, whatever its permission check.
+PHONE_ROUTES = (
+    ("GET", re.compile(r"/v1/auth/whoami")),
+    ("GET", re.compile(r"/v1/studio/status")),
+    ("GET", re.compile(r"/v1/agent/runs")),
+    ("GET", re.compile(r"/v1/agent/status/[^/]+")),
+    ("POST", re.compile(r"/v1/agent/approve/[^/]+")),
+)
+
+
+def phone_route_allowed(method: str, path: str) -> bool:
+    return any(method == m and rx.fullmatch(path) for m, rx in PHONE_ROUTES)
+
+
+def _aware(dt: Optional[datetime]) -> Optional[datetime]:
+    """SQLite hands back naive datetimes; every stored timestamp is UTC."""
+    return dt.replace(tzinfo=timezone.utc) if dt is not None and dt.tzinfo is None else dt
 
 
 def generate_token() -> str:
@@ -62,17 +87,51 @@ class Principal:
 LOCAL_OWNER = Principal(actor="local", role=Role.OWNER)
 
 
-async def create_api_token(db: AsyncSession, name: str, role: Role) -> Tuple[ApiTokenRecord, str]:
+async def create_api_token(
+    db: AsyncSession, name: str, role: Role, expires_at: Optional[datetime] = None,
+) -> Tuple[ApiTokenRecord, str]:
     token = generate_token()
-    record = ApiTokenRecord(name=name, role=role.value, token_hash=hash_token(token))
+    record = ApiTokenRecord(name=name, role=role.value, token_hash=hash_token(token), expires_at=expires_at)
     db.add(record)
     await db.flush()
     await db.refresh(record)
     return record, token
 
 
+async def create_pairing_code(db: AsyncSession, ttl: timedelta = PAIRING_CODE_TTL) -> Tuple[PairingCodeRecord, str]:
+    code = PAIRING_PREFIX + secrets.token_urlsafe(24)
+    record = PairingCodeRecord(code_hash=hash_token(code), expires_at=datetime.now(timezone.utc) + ttl)
+    db.add(record)
+    await db.flush()
+    await db.refresh(record)
+    return record, code
+
+
+async def redeem_pairing_code(
+    db: AsyncSession, code: str, device_name: str, ttl: timedelta = PHONE_TOKEN_TTL,
+) -> Optional[Tuple[ApiTokenRecord, str]]:
+    """Spend a pairing code once, before it expires, for a phone-role token. None if it can't be spent."""
+    record = (await db.execute(
+        select(PairingCodeRecord).where(PairingCodeRecord.code_hash == hash_token(code))
+    )).scalar_one_or_none()
+    now = datetime.now(timezone.utc)
+    if record is None or record.used_at is not None or _aware(record.expires_at) <= now:
+        return None
+    # Conditional on used_at still being empty, so two phones racing on one code can't both win.
+    claimed = await db.execute(
+        update(PairingCodeRecord)
+        .where(PairingCodeRecord.id == record.id, PairingCodeRecord.used_at.is_(None))
+        .values(used_at=now)
+    )
+    if claimed.rowcount != 1:
+        return None
+    token_record, token = await create_api_token(db, f"phone: {device_name}", Role.PHONE, expires_at=now + ttl)
+    await db.execute(update(PairingCodeRecord).where(PairingCodeRecord.id == record.id).values(token_id=token_record.id))
+    return token_record, token
+
+
 async def principal_for_token(token: Optional[str]) -> Optional[Principal]:
-    if not token:
+    if not token or token.startswith(PAIRING_PREFIX):
         return None
     if hmac.compare_digest(token.encode(), _launch_token.encode()):
         return Principal(actor="launch-token", role=Role.OWNER)
@@ -85,7 +144,10 @@ async def principal_for_token(token: Optional[str]) -> Optional[Principal]:
         )).scalar_one_or_none()
         if record is None:
             return None
-        record.last_used_at = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)
+        if record.expires_at is not None and _aware(record.expires_at) <= now:
+            return None
+        record.last_used_at = now
         await db.commit()
         return Principal(actor=record.name, role=Role(record.role), token_id=record.id)
 
@@ -106,6 +168,12 @@ async def current_principal(request: Request) -> Principal:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid API token.",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+    if principal.role == Role.PHONE and not phone_route_allowed(request.method, request.url.path):
+        await record_audit(principal, "phone_route", f"{request.method} {request.url.path}", False)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="A paired phone can only view agent runs and approve or deny their steps.",
         )
     return principal
 

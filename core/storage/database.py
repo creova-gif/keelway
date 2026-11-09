@@ -89,6 +89,11 @@ async def init_db() -> None:
                     await conn.execute(text("ALTER TABLE kora_memories ADD COLUMN metadata_json JSON DEFAULT '{}'"))
             except Exception:
                 pass
+            res = await conn.execute(text("PRAGMA table_info(kora_api_tokens)"))
+            if "expires_at" not in [row[1] for row in res.fetchall()]:
+                await conn.execute(text("ALTER TABLE kora_api_tokens ADD COLUMN expires_at DATETIME"))
+        else:
+            await conn.execute(text("ALTER TABLE kora_api_tokens ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE"))
 
 
 async def close_db() -> None:

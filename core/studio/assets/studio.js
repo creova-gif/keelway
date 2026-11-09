@@ -1228,18 +1228,28 @@ async function exportSyncEnvelopeInStudio() {
 async function showMobilePairingInStudio() {
   const out = $('sync-out');
   if (!out) return;
-  const token = state.token || '';
-  const host = window.location.host;
-  const link = `${window.location.protocol}//${host}/?token=${encodeURIComponent(token)}`;
+  let link = `${window.location.protocol}//${window.location.host}/`;
+  let note = 'No pairing code needed (AUTH_REQUIRED=false).';
+  if (token()) {
+    try {
+      const pc = await api('/v1/auth/pairing-codes', { method: 'POST', body: {} });
+      link += `?pair=${encodeURIComponent(pc.code)}`;
+      note = `Single use, expires ${new Date(pc.expires_at).toLocaleTimeString()}. The phone gets its own token that can only view runs and approve or deny steps.`;
+    } catch (err) {
+      out.textContent = `[-] Pairing error: ${err.message}`;
+      tone('err');
+      return;
+    }
+  }
   const deepLink = `keelway://pair?link=${encodeURIComponent(link)}`;
-  out.textContent = `[📱] KEELWAY MOBILE MISSION CONTROL PAIRING\n` +
-    `Studio Link:     ${link}\n` +
+  out.textContent = `[📱] KEELWAY MOBILE PAIRING\n` +
+    `Pairing Link:     ${link}\n` +
     `Mobile Deep Link: ${deepLink}\n` +
-    `Auth Token:      ${token ? token.slice(0, 16) + '…' : 'None (open)'}\n\n` +
+    `${note}\n\n` +
     `Instructions:\n` +
     `1. Open Keelway Mobile on iOS / Android connected to same Wi-Fi.\n` +
-    `2. Paste the Studio Link above or open the Deep Link.\n` +
-    `3. Tap Connect to authenticate with whoami.`;
+    `2. Paste the Pairing Link above or open the Deep Link.\n` +
+    `3. Tap Connect.`;
   tone('ok');
   toast('Mobile link ready', 'ok');
 }

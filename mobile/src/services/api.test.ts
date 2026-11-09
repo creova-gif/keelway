@@ -67,3 +67,16 @@ describe('mobile i18n localization table', () => {
     }
   });
 });
+
+describe('mobile api service: pairing links', () => {
+  it('reads the single-use pairing code from keelway mobile pair links', () => {
+    const conn = parseStudioLink('http://192.168.1.20:7420/?pair=keelway_pair_abc-123');
+    expect(conn?.baseUrl).toBe('http://192.168.1.20:7420');
+    expect(conn?.pairCode).toBe('keelway_pair_abc-123');
+    expect(conn?.token).toBe('');
+  });
+
+  it('has no pairing code on plain token links', () => {
+    expect(parseStudioLink('http://192.168.1.20:7420/?token=abc')?.pairCode).toBe('');
+  });
+});

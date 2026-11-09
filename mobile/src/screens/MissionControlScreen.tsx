@@ -66,7 +66,8 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
     };
   }, [refresh]);
 
-  const canApprove = !!me?.permissions.includes('approve_tier3');
+  const canApprove = !!me?.permissions.includes('approve_agent_steps');
+  const canSetAirGap = !!me?.permissions.includes('approve_tier3');
 
   const decide = async (run: AgentRun, approved: boolean) => {
     if (!run.pending_approval) return;
@@ -84,7 +85,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
   };
 
   const toggleAirGap = async () => {
-    if (!status || !canApprove) return;
+    if (!status || !canSetAirGap) return;
     if (!status.air_gapped || (await confirmLocally(t.hybrid))) {
       try {
         await client.setAirGap(!status.air_gapped);
@@ -112,10 +113,10 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
         {status && (
           <TouchableOpacity
             onPress={toggleAirGap}
-            disabled={!canApprove}
+            disabled={!canSetAirGap}
             style={[styles.badge, status.air_gapped ? styles.badgeGap : styles.badgeHybrid]}
             accessibilityRole="switch"
-            accessibilityState={{ checked: status.air_gapped, disabled: !canApprove }}
+            accessibilityState={{ checked: status.air_gapped, disabled: !canSetAirGap }}
             accessibilityHint={t.airGapHint}
             testID="airgap"
           >

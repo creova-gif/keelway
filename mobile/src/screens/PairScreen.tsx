@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Connection, KeelwayClient, KeelwayError, parseStudioLink } from '../services/api';
+import { Connection, KeelwayClient, KeelwayError, pairWithCode, parseStudioLink } from '../services/api';
 import { color, mono } from '../theme';
 import { Lang, isRTL, strings } from '../i18n';
 import LanguagePicker from './LanguagePicker';
@@ -19,15 +19,20 @@ export default function PairScreen({ lang, setLang, onPaired, initialLink = '', 
   const [error, setError] = useState<string | null>(null);
 
   const connect = async () => {
-    const conn = parseStudioLink(link);
-    if (!conn) return setError(t.badLink);
+    const parsed = parseStudioLink(link);
+    if (!parsed) return setError(t.badLink);
     setBusy(true);
     setError(null);
+    let pairing = !!parsed.pairCode;
     try {
+      const token = parsed.pairCode ? await pairWithCode(parsed.baseUrl, parsed.pairCode, `${Platform.OS} phone`) : parsed.token;
+      pairing = false;
+      const conn: Connection = { baseUrl: parsed.baseUrl, token };
       await new KeelwayClient(conn).whoami();
       onPaired(conn);
     } catch (e) {
-      setError(e instanceof KeelwayError && e.status === 401 ? t.badToken : t.unreachable);
+      const rejected = e instanceof KeelwayError && e.status === 401;
+      setError(rejected ? (pairing ? t.badPairCode : t.badToken) : t.unreachable);
     } finally {
       setBusy(false);
     }
@@ -49,7 +54,7 @@ export default function PairScreen({ lang, setLang, onPaired, initialLink = '', 
         style={styles.input}
         value={link}
         onChangeText={setLink}
-        placeholder="http://192.168.1.20:7420/?token=…"
+        placeholder="http://192.168.1.20:7420/?pair=…"
         placeholderTextColor={color.muted}
         autoCapitalize="none"
         autoCorrect={false}

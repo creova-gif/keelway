@@ -108,6 +108,19 @@ class ApiTokenRecord(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     last_used_at = Column(DateTime(timezone=True), nullable=True)
     revoked_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class PairingCodeRecord(Base):
+    """Single-use code that a phone exchanges for a phone-role token; only its hash is stored."""
+    __tablename__ = "kora_pairing_codes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    code_hash = Column(String(64), nullable=False, unique=True, index=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    token_id = Column(String(36), nullable=True)
 
 
 class AuditEventRecord(Base):
