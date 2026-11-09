@@ -11,7 +11,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.security.auth import Principal, create_api_token, current_principal, require, verify_audit_chain
+from core.security.auth import (
+    Principal, create_api_token, create_pairing_code, current_principal, record_audit, redeem_pairing_code, require,
+    verify_audit_chain,
+)
 from core.security.rbac import Permission, Role
 from core.storage.database import get_db
 from core.storage.models import ApiTokenRecord, AuditEventRecord
@@ -31,8 +34,25 @@ class TokenResponse(BaseModel):
     created_at: datetime
     last_used_at: Optional[datetime] = None
     revoked_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class PairingCodeResponse(BaseModel):
+    code: str = Field(..., description="Single use; only its hash is stored")
+    expires_at: datetime
+
+
+class PairRequest(BaseModel):
+    code: str = Field(..., min_length=1, max_length=200)
+    device_name: str = Field("phone", min_length=1, max_length=60)
+
+
+class PairedTokenResponse(BaseModel):
+    token: str
+    role: Role
+    expires_at: datetime
 
 
 class TokenCreatedResponse(TokenResponse):
@@ -79,6 +99,27 @@ async def create_token(
 ) -> TokenCreatedResponse:
     record, token = await create_api_token(db, request.name, request.role)
     return TokenCreatedResponse(**TokenResponse.model_validate(record).model_dump(), token=token)
+
+
+@router.post("/v1/auth/pairing-codes", response_model=PairingCodeResponse, status_code=status.HTTP_201_CREATED)
+async def create_phone_pairing_code(
+    _: Principal = Depends(require(Permission.MANAGE_KEYS)),
+    db: AsyncSession = Depends(get_db),
+) -> PairingCodeResponse:
+    record, code = await create_pairing_code(db)
+    return PairingCodeResponse(code=code, expires_at=record.expires_at)
+
+
+@router.post("/v1/auth/pair", response_model=PairedTokenResponse)
+async def pair_phone(request: PairRequest, db: AsyncSession = Depends(get_db)) -> PairedTokenResponse:
+    """Unauthenticated by design: the single-use code is the credential."""
+    redeemed = await redeem_pairing_code(db, request.code.strip(), request.device_name.strip() or "phone")
+    if redeemed is None:
+        raise HTTPException(status_code=401, detail="Pairing code is invalid, expired or already used. Run `keelway mobile pair` again.")
+    record, token = redeemed
+    await db.commit()
+    await record_audit(Principal(actor=record.name, role=Role.PHONE, token_id=record.id), "phone_paired", f"token {record.id}", True)
+    return PairedTokenResponse(token=token, role=Role.PHONE, expires_at=record.expires_at)
 
 
 @router.delete("/v1/auth/tokens/{token_id}", status_code=status.HTTP_204_NO_CONTENT)

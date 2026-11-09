@@ -40,7 +40,7 @@ from keelway.runner.enrollment import verify_enrolled_runner_token
 from keelway.security.source_defaults import InsecureDefaultConfiguration
 from core.security.env_scrub import scrub_env
 from core.security.origin import origin_allowed
-from core.security.rbac import Permission
+from core.security.rbac import Permission, Role
 from core.orchestration.state import TaskState, validate_transition, InvalidStateTransitionError
 from core.orchestration.chat import InteractiveChatSession, ConversationMode
 from core.api.schemas import Provider
@@ -526,6 +526,8 @@ async def websocket_studio_endpoint(websocket: WebSocket):
         principal = await principal_for_token(ws_token)
         if principal is None:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Missing or invalid API token.")
+        if principal.role == Role.PHONE:
+            raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Paired phones have no Studio stream.")
     else:
         principal = LOCAL_OWNER
 
@@ -619,6 +621,8 @@ async def stream_events(
         principal = await principal_for_token(token)
         if principal is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid API token.")
+        if principal.role == Role.PHONE:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Paired phones have no event streams.")
     else:
         principal = LOCAL_OWNER
 
@@ -690,6 +694,8 @@ async def stream_flight_events(
         principal = await principal_for_token(token)
         if principal is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid API token.")
+        if principal.role == Role.PHONE:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Paired phones have no event streams.")
     else:
         principal = LOCAL_OWNER
 
@@ -1608,7 +1614,7 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/v1/agent/approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
+@router.post("/v1/agent/approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_AGENT_STEPS))], tags=["Autonomous Agent Loop"])
 async def approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
     """Human-in-the-loop: grant or deny a pending mutating tool, optionally remembering a scoped standing approval."""
     # P-10: missing/non-boolean approved must not default to True (fail closed).
@@ -1624,6 +1630,9 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
     agent = _active_agent_loops[task_id]
     remember = payload.get("remember")
     rule = None
+    if remember is not None and principal.role == Role.PHONE:
+        await record_audit(principal, "approval_rule_create", f"task {task_id}", False)
+        raise HTTPException(status_code=403, detail="A paired phone approves one step at a time; 'Allow always' needs Studio.")
     if approved and remember is not None and agent.pending_approval:
         pending = agent.pending_approval
         args = pending.get("arguments") or {}
