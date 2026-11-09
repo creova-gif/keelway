@@ -16,7 +16,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.billing.entitlements import (
-    DEFAULT_ENTITLEMENT_KEY,
     BillingWebhookHandler,
     EntitlementCertificate,
     EntitlementManager,
@@ -40,7 +39,8 @@ _QUORUM_FIXTURE = b"package-c-explicit-quorum-fixture-key"
 _PAYMENT_FIXTURE = "package-c-explicit-payment-fixture-secret"
 _WEBHOOK_FIXTURE = "package-c-explicit-webhook-fixture"
 _BILLING_FIXTURE = "package-c-explicit-billing-fixture-secret"
-_ENTITLEMENT_FIXTURE = b"package-c-explicit-entitlement-fixture-key"
+_ENTITLEMENT_SIGNER = __import__("cryptography.hazmat.primitives.asymmetric.ed25519", fromlist=["x"]).Ed25519PrivateKey.generate()
+_ENTITLEMENT_TRUSTED = {"k1": __import__("core.billing.entitlements", fromlist=["x"]).public_key_text(_ENTITLEMENT_SIGNER)}
 _RUNNER_SECRET = b"package-c-explicit-runner-fixture-secret"
 
 
@@ -145,8 +145,8 @@ def test_explicit_fixture_billing_secret_accepts_a_matching_signature():
     assert result["status"] == "processed"
 
 
-def test_explicit_source_default_entitlement_key_cannot_register_or_grant(tmp_path):
-    manager = EntitlementManager(storage_path=tmp_path / "entitlements.json", secret_key=DEFAULT_ENTITLEMENT_KEY)
+def test_no_trusted_licence_key_cannot_register_or_grant(tmp_path):
+    manager = EntitlementManager(storage_path=tmp_path / "entitlements.json", trusted_keys={})
     now = __import__("time").time()
     certificate = EntitlementCertificate(
         org_id="org_safety",
@@ -157,7 +157,7 @@ def test_explicit_source_default_entitlement_key_cannot_register_or_grant(tmp_pa
         issued_at=now,
         expires_at=now + 3600,
     )
-    certificate.sign(DEFAULT_ENTITLEMENT_KEY)
+    certificate.sign(_ENTITLEMENT_SIGNER, "k1")
     ok, _status = manager.register_certificate(certificate)
     granted, _reason = manager.check_feature_access("org_safety", EnterpriseFeature.LOCAL_AGENT_LOOP)
     assert ok is False and granted is False
@@ -165,8 +165,8 @@ def test_explicit_source_default_entitlement_key_cannot_register_or_grant(tmp_pa
     assert not (tmp_path / "entitlements.json").exists()
 
 
-def test_explicit_fixture_entitlement_key_can_register(tmp_path):
-    manager = EntitlementManager(storage_path=tmp_path / "entitlements.json", secret_key=_ENTITLEMENT_FIXTURE)
+def test_trusted_licence_key_can_register(tmp_path):
+    manager = EntitlementManager(storage_path=tmp_path / "entitlements.json", trusted_keys=_ENTITLEMENT_TRUSTED)
     now = __import__("time").time()
     certificate = EntitlementCertificate(
         org_id="org_safety",
@@ -177,7 +177,7 @@ def test_explicit_fixture_entitlement_key_can_register(tmp_path):
         issued_at=now,
         expires_at=now + 3600,
     )
-    certificate.sign(_ENTITLEMENT_FIXTURE)
+    certificate.sign(_ENTITLEMENT_SIGNER, "k1")
     ok, _status = manager.register_certificate(certificate)
     assert ok is True
     assert "org_safety" in manager.active_certificates
@@ -439,7 +439,7 @@ def test_unauthenticated_spool_sync_cannot_mark_an_acknowledgement_synced(tmp_pa
     assert spool.read_text(encoding="utf-8") == original
 
 
-def test_source_default_certificate_is_not_active_even_for_a_community_feature(tmp_path, capsys):
+def test_without_trusted_licence_key_nothing_is_active_even_for_a_community_feature(tmp_path, capsys):
     import time
     from cli import cmd_entitlements
 
@@ -453,16 +453,15 @@ def test_source_default_certificate_is_not_active_even_for_a_community_feature(t
         issued_at=now - 10,
         expires_at=now + 86400,
     )
-    certificate.sign()
+    certificate.sign(_ENTITLEMENT_SIGNER, "k1")
     valid, status = certificate.is_valid()
     assert valid is False
-    assert status != "ACTIVE"
-    assert "DEFAULT" in status or "REFUS" in status
+    assert status == "NO_TRUSTED_KEY"
 
     manager = EntitlementManager(storage_path=tmp_path / "entitlements.json")
     granted, reason = manager.check_feature_access("org_status", EnterpriseFeature.GUIDED_BUILDER)
     assert granted is False
-    assert "source-default" in reason.lower()
+    assert "no trusted licence signing key" in reason.lower()
     assert "community" not in reason.lower()
     assert not (tmp_path / "entitlements.json").exists()
 
@@ -470,4 +469,4 @@ def test_source_default_certificate_is_not_active_even_for_a_community_feature(t
     printed = capsys.readouterr().out
     assert rc == 0
     assert "[✓] ACTIVE" not in printed
-    assert "SOURCE_DEFAULT_REFUSED" in printed
+    assert "NO_TRUSTED_KEY" in printed

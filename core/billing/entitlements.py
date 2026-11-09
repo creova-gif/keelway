@@ -5,6 +5,7 @@ feature-gating, seat limits, and replay-protected billing webhook handling.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import json
@@ -15,7 +16,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+
+from core.billing.licence_keys import TRUSTED_LICENCE_KEYS
 from keelway.security.source_defaults import is_source_default
+
+NO_TRUSTED_KEY = "NO_TRUSTED_KEY"
+NO_TRUSTED_KEY_REFUSAL = "no trusted licence signing key is configured; licence checks are refused"
 
 
 class LicenseTier(str, Enum):
@@ -66,12 +75,37 @@ TIER_DEFAULT_FEATURES: Dict[LicenseTier, Set[EnterpriseFeature]] = {
     },
 }
 
-DEFAULT_ENTITLEMENT_KEY = b"KEELWAY_ENTERPRISE_ENTITLEMENT_SIGNING_KEY_2026"
+def _b64(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def _unb64(text: str) -> bytes:
+    return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
+
+
+def generate_signing_key() -> Tuple[bytes, str]:
+    """New Ed25519 licence signing key: (private key PEM, public key for TRUSTED_LICENCE_KEYS)."""
+    private = Ed25519PrivateKey.generate()
+    pem = private.private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+    )
+    return pem, public_key_text(private)
+
+
+def public_key_text(private: Ed25519PrivateKey) -> str:
+    return _b64(private.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw))
+
+
+def load_signing_key(pem: bytes) -> Ed25519PrivateKey:
+    key = serialization.load_pem_private_key(pem, password=None)
+    if not isinstance(key, Ed25519PrivateKey):
+        raise ValueError("licence signing key must be Ed25519")
+    return key
 
 
 @dataclass
 class EntitlementCertificate:
-    """Cryptographically signed offline entitlement certificate for sovereign and air-gapped grids."""
+    """Ed25519-signed licence that can be checked offline with only the issuer's public key."""
     org_id: str
     org_name: str
     tier: LicenseTier
@@ -80,9 +114,10 @@ class EntitlementCertificate:
     issued_at: float
     expires_at: float
     grace_period_days: int = 14
+    key_id: str = ""
     signature: str = ""
 
-    def calculate_signature(self, secret_key: bytes = DEFAULT_ENTITLEMENT_KEY) -> str:
+    def signing_payload(self) -> bytes:
         payload = {
             "org_id": self.org_id,
             "org_name": self.org_name,
@@ -92,25 +127,27 @@ class EntitlementCertificate:
             "issued_at": self.issued_at,
             "expires_at": self.expires_at,
             "grace_period_days": self.grace_period_days,
+            "key_id": self.key_id,
         }
-        canonical_bytes = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return hmac.new(secret_key, canonical_bytes, hashlib.sha256).hexdigest()
+        return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
-    def sign(self, secret_key: bytes = DEFAULT_ENTITLEMENT_KEY) -> None:
-        self.signature = self.calculate_signature(secret_key)
+    def sign(self, private_key: Ed25519PrivateKey, key_id: str) -> None:
+        self.key_id = key_id
+        self.signature = _b64(private_key.sign(self.signing_payload()))
 
-    def is_valid(self, secret_key: bytes = DEFAULT_ENTITLEMENT_KEY, now: Optional[float] = None) -> Tuple[bool, str]:
-        """
-        Validates certificate signature and checks validity against time and offline grace window.
-        Returns (is_valid, status_code).
-
-        A source-default key never validates a certificate as runnable. Callers that
-        need grace-period and tamper checks pass an explicit non-default key.
-        """
-        if is_source_default(secret_key):
-            return False, "SOURCE_DEFAULT_REFUSED"
-        expected_sig = self.calculate_signature(secret_key)
-        if not hmac.compare_digest(self.signature, expected_sig):
+    def is_valid(
+        self, trusted_keys: Optional[Dict[str, str]] = None, now: Optional[float] = None
+    ) -> Tuple[bool, str]:
+        """Check the signature against `trusted_keys` (default: TRUSTED_LICENCE_KEYS), then expiry and grace."""
+        keys = TRUSTED_LICENCE_KEYS if trusted_keys is None else trusted_keys
+        if not keys:
+            return False, NO_TRUSTED_KEY
+        public = keys.get(self.key_id)
+        if public is None:
+            return False, "UNKNOWN_SIGNING_KEY"
+        try:
+            Ed25519PublicKey.from_public_bytes(_unb64(public)).verify(_unb64(self.signature), self.signing_payload())
+        except (InvalidSignature, ValueError):
             return False, "INVALID_SIGNATURE"
 
         current_time = now if now is not None else time.time()
@@ -151,6 +188,7 @@ class EntitlementCertificate:
             issued_at=float(data["issued_at"]),
             expires_at=float(data["expires_at"]),
             grace_period_days=int(data.get("grace_period_days", 14)),
+            key_id=data.get("key_id", ""),
             signature=data.get("signature", ""),
         )
 
@@ -272,9 +310,9 @@ class BillingWebhookHandler:
 class EntitlementManager:
     """Manages active organization licenses, feature gating, and seat allocations."""
 
-    def __init__(self, storage_path: Optional[Path] = None, secret_key: bytes = DEFAULT_ENTITLEMENT_KEY):
+    def __init__(self, storage_path: Optional[Path] = None, trusted_keys: Optional[Dict[str, str]] = None):
         self.storage_path = Path(storage_path or ".keelway/entitlements.json")
-        self.secret_key = secret_key
+        self.trusted_keys: Dict[str, str] = dict(TRUSTED_LICENCE_KEYS if trusted_keys is None else trusted_keys)
         self.active_certificates: Dict[str, EntitlementCertificate] = {}
         self.active_seats: Dict[str, Set[str]] = {}  # org_id -> set of user/actor IDs
         self.meter = PrivacyPreservingMeter()
@@ -299,13 +337,13 @@ class EntitlementManager:
         }
         self.storage_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
-    def _source_default_locked(self) -> bool:
-        return is_source_default(self.secret_key)
+    def _locked(self) -> bool:
+        return not self.trusted_keys
 
     def register_certificate(self, cert: EntitlementCertificate) -> Tuple[bool, str]:
-        if self._source_default_locked():
-            return False, "source-default signing configuration is refused"
-        valid, status = cert.is_valid(self.secret_key)
+        if self._locked():
+            return False, NO_TRUSTED_KEY_REFUSAL
+        valid, status = cert.is_valid(self.trusted_keys)
         if not valid:
             return False, f"Certificate rejected: {status}"
         self.active_certificates[cert.org_id] = cert
@@ -313,12 +351,11 @@ class EntitlementManager:
         return True, status
 
     def get_certificate(self, org_id: str) -> EntitlementCertificate:
-        """Returns registered certificate or falls back to standard Community tier."""
+        """Returns the registered certificate, or an unsigned Community certificate."""
         if org_id in self.active_certificates:
             return self.active_certificates[org_id]
-        # Community fallback
         now = time.time()
-        comm = EntitlementCertificate(
+        return EntitlementCertificate(
             org_id=org_id,
             org_name=f"{org_id} (Community)",
             tier=LicenseTier.COMMUNITY,
@@ -327,18 +364,25 @@ class EntitlementManager:
             issued_at=now,
             expires_at=now + (365 * 86400),
         )
-        comm.sign(self.secret_key)
-        return comm
+
+    def status(self, org_id: str) -> Tuple[EntitlementCertificate, bool, str]:
+        """(certificate, valid, status). The Community fallback needs no signature once a trusted key exists."""
+        cert = self.get_certificate(org_id)
+        if self._locked():
+            return cert, False, NO_TRUSTED_KEY
+        if org_id not in self.active_certificates:
+            return cert, True, "COMMUNITY"
+        valid, status = cert.is_valid(self.trusted_keys)
+        return cert, valid, status
 
     def check_feature_access(self, org_id: str, feature: Union[EnterpriseFeature, str]) -> Tuple[bool, str]:
         """
         Determines whether the given organization is entitled to run a gated feature.
         """
-        if self._source_default_locked():
-            return False, "source-default signing configuration is refused"
+        if self._locked():
+            return False, NO_TRUSTED_KEY_REFUSAL
         feat_str = feature.value if isinstance(feature, EnterpriseFeature) else str(feature)
-        cert = self.get_certificate(org_id)
-        valid, status = cert.is_valid(self.secret_key)
+        cert, valid, status = self.status(org_id)
         if not valid:
             return False, f"License invalid: {status}"
 
@@ -353,10 +397,9 @@ class EntitlementManager:
 
     def allocate_seat(self, org_id: str, actor_id: str) -> Tuple[bool, str]:
         """Allocates an enterprise seat to a specific developer/actor."""
-        if self._source_default_locked():
-            return False, "source-default signing configuration is refused"
-        cert = self.get_certificate(org_id)
-        valid, status = cert.is_valid(self.secret_key)
+        if self._locked():
+            return False, NO_TRUSTED_KEY_REFUSAL
+        cert, valid, status = self.status(org_id)
         if not valid:
             return False, f"License invalid: {status}"
 

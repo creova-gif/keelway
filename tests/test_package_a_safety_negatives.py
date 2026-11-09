@@ -515,7 +515,6 @@ def test_source_default_billing_webhook_rejects_an_unsigned_event():
 
 def test_source_default_entitlement_key_cannot_register_a_certificate(tmp_path: Path):
     from core.billing.entitlements import (
-        DEFAULT_ENTITLEMENT_KEY,
         EntitlementCertificate,
         EntitlementManager,
         EnterpriseFeature,
@@ -531,7 +530,7 @@ def test_source_default_entitlement_key_cannot_register_a_certificate(tmp_path: 
         assert manager is None
         _require_source_default_refusal(refused, "EntitlementManager()")
         return
-    assert manager.secret_key == DEFAULT_ENTITLEMENT_KEY
+    assert manager.trusted_keys == {}
     now = time.time()
     certificate = EntitlementCertificate(
         org_id="org_safety",
@@ -542,11 +541,12 @@ def test_source_default_entitlement_key_cannot_register_a_certificate(tmp_path: 
         issued_at=now,
         expires_at=now + 86400,
     )
-    certificate.sign()
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    certificate.sign(Ed25519PrivateKey.generate(), "self-issued")
     ok, status = manager.register_certificate(certificate)
     assert ok is False, (
         "Package C dependency: core/billing/entitlements.py EntitlementManager() accepted a "
-        f"certificate signed with the source-default HMAC key ({status})."
+        f"self-signed certificate with no trusted licence key ({status})."
     )
     assert manager.active_certificates == {}
     assert not storage.exists()
