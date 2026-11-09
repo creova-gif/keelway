@@ -2683,8 +2683,7 @@ async def get_entitlements_status(
     """Retrieve current enterprise entitlement status and feature allowances."""
     from core.billing.entitlements import get_shared_entitlement_manager
     mgr = get_shared_entitlement_manager()
-    cert = mgr.get_certificate("default-org")
-    valid, status_str = cert.is_valid(mgr.secret_key)
+    cert, valid, status_str = mgr.status("default-org")
     return {
         "tier": cert.tier.value,
         "seats": cert.seats,

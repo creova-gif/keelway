@@ -121,8 +121,7 @@ class SystemDoctor:
 
         # 5. Enterprise Entitlements & License
         ent_mgr = get_shared_entitlement_manager()
-        cert = ent_mgr.get_certificate("default-org")
-        valid, status_str = cert.is_valid()
+        cert, valid, status_str = ent_mgr.status("default-org")
         sections.append(DiagnosticSection(
             name="Enterprise Entitlements",
             status="OK" if valid else "WARN",

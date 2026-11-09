@@ -146,7 +146,7 @@ def test_evidence_api_endpoints():
     ent_data = resp_ent.json()
     assert ent_data["tier"] == "community"
     assert ent_data["is_valid"] is False
-    assert ent_data["status"] == "SOURCE_DEFAULT_REFUSED"
+    assert ent_data["status"] == "NO_TRUSTED_KEY"
     assert not any(ent_data["features"].values())
 
     # 6. CycloneDX SBOM

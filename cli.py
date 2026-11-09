@@ -1281,6 +1281,55 @@ def cmd_sbom(action: str = "generate", out: Optional[Path] = None, target: Optio
     return 1
 
 
+def cmd_licence_tools(args) -> int:
+    """Licence keys and files: keygen (issuer only), issue (issuer only), install (customer)."""
+    import json
+    import os
+    import time
+    from core.billing.entitlements import (
+        EntitlementCertificate, LicenseTier, generate_signing_key, get_shared_entitlement_manager, load_signing_key,
+    )
+
+    if args.entitlements_command == "keygen":
+        out = Path(args.out)
+        if out.exists():
+            print(f"[-] {out} already exists; refusing to overwrite a signing key.")
+            return 1
+        pem, public = generate_signing_key()
+        fd = os.open(out, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as f:
+            f.write(pem)
+        print(f"[✓] Private signing key written to {out} (mode 600). Keep it offline; never commit it.")
+        print("    Trust it by adding this line to TRUSTED_LICENCE_KEYS in core/billing/licence_keys.py:")
+        print(f'    "{args.key_id}": "{public}",')
+        return 0
+
+    if args.entitlements_command == "issue":
+        try:
+            key = load_signing_key(Path(args.key).read_bytes())
+        except (OSError, ValueError) as e:
+            print(f"[-] Could not load signing key: {e}")
+            return 1
+        now = time.time()
+        cert = EntitlementCertificate(
+            org_id=args.org, org_name=args.org_name or args.org, tier=LicenseTier(args.tier), seats=args.seats,
+            allowed_features=sorted(set(args.feature or [])), issued_at=now, expires_at=now + args.days * 86400,
+        )
+        cert.sign(key, args.key_id)
+        Path(args.out).write_text(json.dumps(cert.to_dict(), indent=2) + "\n", encoding="utf-8")
+        print(f"[✓] {cert.tier.value} licence for {cert.org_id} ({cert.seats} seats, {args.days} days) written to {args.out}")
+        return 0
+
+    try:
+        cert = EntitlementCertificate.from_dict(json.loads(Path(args.file).read_text(encoding="utf-8")))
+    except (OSError, ValueError, KeyError) as e:
+        print(f"[-] Not a licence file: {e}")
+        return 1
+    ok, status = get_shared_entitlement_manager().register_certificate(cert)
+    print(f"[✓] Licence installed for {cert.org_id}: {status}" if ok else f"[-] Licence refused: {status}")
+    return 0 if ok else 1
+
+
 def cmd_entitlements(action: str = "status", org: str = "default-org", feature: Optional[str] = None) -> int:
     """Inspect or verify active organization entitlements and feature gates."""
     import time
@@ -1293,8 +1342,7 @@ def cmd_entitlements(action: str = "status", org: str = "default-org", feature: 
         print(f"{badge} Feature '{feature}' for org '{org}': {reason}")
         return 0 if allowed else 1
 
-    cert = mgr.get_certificate(org)
-    valid, status = cert.is_valid()
+    cert, valid, status = mgr.status(org)
     print("\n" + "=" * 65)
     print("  📜 KEELWAY ENTERPRISE ENTITLEMENTS & LICENSE")
     print("=" * 65)
@@ -3730,6 +3778,21 @@ def build_parser() -> argparse.ArgumentParser:
     _ent_chk = ent_sub.add_parser("check", help="Check if a specific feature is permitted")
     _ent_chk.add_argument("feature", help="Feature key to evaluate")
     _ent_chk.add_argument("--org", default="default-org", help="Target organization ID")
+    _ent_kg = ent_sub.add_parser("keygen", help="Issuer only: create an Ed25519 licence signing key")
+    _ent_kg.add_argument("--out", required=True, help="Where to write the private key (must not exist)")
+    _ent_kg.add_argument("--key-id", default="sorvex-1", help="Key id recorded in each licence")
+    _ent_is = ent_sub.add_parser("issue", help="Issuer only: sign a licence file with a private key")
+    _ent_is.add_argument("--key", required=True, help="Private key from `entitlements keygen`")
+    _ent_is.add_argument("--key-id", default="sorvex-1", help="Key id matching TRUSTED_LICENCE_KEYS")
+    _ent_is.add_argument("--org", required=True, help="Organization ID")
+    _ent_is.add_argument("--org-name", default=None, help="Organization display name")
+    _ent_is.add_argument("--tier", choices=["community", "pro", "enterprise"], required=True)
+    _ent_is.add_argument("--seats", type=int, default=1)
+    _ent_is.add_argument("--days", type=int, default=365)
+    _ent_is.add_argument("--feature", action="append", help="Extra feature to grant (repeatable)")
+    _ent_is.add_argument("--out", required=True, help="Licence file to write")
+    _ent_in = ent_sub.add_parser("install", help="Install a licence file; it is checked against the trusted public keys")
+    _ent_in.add_argument("file", help="Licence JSON file")
 
     # evidence (Investor & Enterprise Evidence Room WP21)
     evd_parser = subparsers.add_parser("evidence", help="Inspect, export, or verify sealed investor & audit evidence packages")
@@ -4240,6 +4303,8 @@ def main(argv=None):
                 target=getattr(args, "target", None),
             )
         )
+    elif args.command == "entitlements" and args.entitlements_command in ("keygen", "issue", "install"):
+        sys.exit(cmd_licence_tools(args))
     elif args.command == "entitlements":
         sys.exit(
             cmd_entitlements(

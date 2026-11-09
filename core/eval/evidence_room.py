@@ -290,8 +290,7 @@ class EvidenceRoomPipeline:
 
             manager = get_shared_entitlement_manager()
             stored = "default-org" in getattr(manager, "active_certificates", {})
-            cert = manager.get_certificate("default-org")
-            valid, status = cert.is_valid()
+            cert, valid, status = manager.status("default-org")
             tier = cert.tier.value
             seats = cert.seats
         except Exception:

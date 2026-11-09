@@ -20,7 +20,11 @@ from core.security.sbom import SBOMGenerator, SBOMVerifier
 from core.security.receipt_verifier import ReceiptVerifier
 
 
-_ENTITLEMENT_FIXTURE = b"package-c-explicit-entitlement-lifecycle-key"
+from core.billing.entitlements import public_key_text
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+_SIGNER = Ed25519PrivateKey.generate()
+_TRUSTED = {"k1": public_key_text(_SIGNER)}
 
 
 def test_entitlement_certificate_lifecycle_and_grace_period():
@@ -36,15 +40,15 @@ def test_entitlement_certificate_lifecycle_and_grace_period():
         expires_at=now + 86400,
         grace_period_days=14,
     )
-    cert.sign(_ENTITLEMENT_FIXTURE)
-    valid, status = cert.is_valid(_ENTITLEMENT_FIXTURE)
+    cert.sign(_SIGNER, "k1")
+    valid, status = cert.is_valid(_TRUSTED)
     assert valid is True
     assert status == "ACTIVE"
 
     # 2. Tampered signature fails
     cert_tampered = EntitlementCertificate.from_dict(cert.to_dict())
     cert_tampered.seats = 100  # unearned seat expansion
-    valid_tampered, status_tampered = cert_tampered.is_valid(_ENTITLEMENT_FIXTURE)
+    valid_tampered, status_tampered = cert_tampered.is_valid(_TRUSTED)
     assert valid_tampered is False
     assert status_tampered == "INVALID_SIGNATURE"
 
@@ -59,13 +63,13 @@ def test_entitlement_certificate_lifecycle_and_grace_period():
         expires_at=now - (3 * 86400),
         grace_period_days=14,
     )
-    cert_grace.sign(_ENTITLEMENT_FIXTURE)
-    valid_grace, status_grace = cert_grace.is_valid(_ENTITLEMENT_FIXTURE, now=now)
+    cert_grace.sign(_SIGNER, "k1")
+    valid_grace, status_grace = cert_grace.is_valid(_TRUSTED, now=now)
     assert valid_grace is True
     assert status_grace == "IN_GRACE_PERIOD"
 
     # 4. Completely expired (expired 20 days ago, beyond 14-day grace)
-    valid_expired, status_expired = cert_grace.is_valid(_ENTITLEMENT_FIXTURE, now=now + (18 * 86400))
+    valid_expired, status_expired = cert_grace.is_valid(_TRUSTED, now=now + (18 * 86400))
     assert valid_expired is False
     assert status_expired == "EXPIRED"
 
@@ -74,7 +78,7 @@ def test_entitlement_manager_feature_gates_and_seat_limits(tmp_path):
     mgr_file = tmp_path / "entitlements.json"
     mgr = EntitlementManager(
         storage_path=mgr_file,
-        secret_key=b"package-c-explicit-entitlement-fixture-key",
+        trusted_keys=_TRUSTED,
     )
 
     # 1. Fallback Community organization
@@ -96,7 +100,7 @@ def test_entitlement_manager_feature_gates_and_seat_limits(tmp_path):
         issued_at=now,
         expires_at=now + 10000,
     )
-    ent_cert.sign(mgr.secret_key)
+    ent_cert.sign(_SIGNER, "k1")
     ok, _ = mgr.register_certificate(ent_cert)
     assert ok is True
 

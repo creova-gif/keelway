@@ -9,7 +9,8 @@ from .entitlements import (
     PrivacyPreservingMeter,
     BillingWebhookHandler,
     get_shared_entitlement_manager,
-    DEFAULT_ENTITLEMENT_KEY,
+    generate_signing_key,
+    load_signing_key,
 )
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "PrivacyPreservingMeter",
     "BillingWebhookHandler",
     "get_shared_entitlement_manager",
-    "DEFAULT_ENTITLEMENT_KEY",
+    "generate_signing_key",
+    "load_signing_key",
 ]
