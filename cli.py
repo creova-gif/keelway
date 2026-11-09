@@ -2337,6 +2337,34 @@ async def cmd_test_sandbox(command: str, approve: bool, provider_name: str):
         print("=" * 60)
 
 
+def cmd_models_offline(action: str, model: str = "", path: Optional[Path] = None, name: Optional[str] = None) -> int:
+    """Copy Ollama models to and from a folder, so machines without internet can install them."""
+    from core.config import settings
+    from core.models.offline_bundle import OfflineModelError, export_bundle, import_bundle
+
+    def progress(done: int, total: int) -> None:
+        pct = done * 100 // max(total, 1)
+        print(f"\r  [{'=' * (pct // 5):<20}] {pct:3d}%  {done / 2**20:,.0f} / {total / 2**20:,.0f} MB", end="", flush=True)
+
+    try:
+        if action == "export":
+            dest = path or Path.cwd()
+            print(f"[+] Exporting {model} to {dest} ...")
+            bundle = export_bundle(model, dest, progress=progress)
+            print(f"\n[✓] Saved {bundle}")
+            print(f"    On the other machine: keelway models import {bundle.name}")
+        else:
+            print(f"[+] Checking {path} and installing it into Ollama at {settings.ollama_base_url} ...")
+            res = import_bundle(path, name=name, ollama_url=settings.ollama_base_url, progress=progress)
+            note = "uploaded" if res.uploaded else "Ollama already had this file"
+            print(f"\n[✓] Installed {res.model} (SHA-256 {res.sha256[:12]}..., {note}). No internet was used.")
+            print(f"    Use it: DEFAULT_LOCAL_MODEL={res.model} keelway dev   or   ollama run {res.model}")
+        return 0
+    except (OfflineModelError, OSError) as e:
+        print(f"\n[-] {e}")
+        return 1
+
+
 def cmd_models(
     action: str,
     export_path: Optional[Path] = None,
@@ -3617,6 +3645,13 @@ def build_parser() -> argparse.ArgumentParser:
     _m_ledger.add_argument("--format", choices=["json", "jsonl", "csv"], default="jsonl", help="Export format")
     _m_ledger.add_argument("--reset", action="store_true", help="Reset ledger entries")
 
+    _m_export = models_sub.add_parser("export", help="Save an installed Ollama model to a folder or USB stick for offline install")
+    _m_export.add_argument("model", help="Installed model, e.g. qwen2.5-coder:7b")
+    _m_export.add_argument("dest", nargs="?", type=Path, default=None, help="Folder to write the bundle into (default: current folder)")
+    _m_import = models_sub.add_parser("import", help="Install a model bundle or .gguf file into Ollama without internet")
+    _m_import.add_argument("path", type=Path, help="Bundle folder from `keelway models export`, or a .gguf file")
+    _m_import.add_argument("--name", default=None, help="Model name to install as (default: the bundle's name)")
+
     _m_bench = models_sub.add_parser("bench-speculative", help="Benchmark edge speculative decoding speedup and token arbitrage savings")
     _m_bench.add_argument("--draft", default="qwen2.5-coder:0.5b", help="Draft model tag (default: qwen2.5-coder:0.5b)")
     _m_bench.add_argument("--target", default="qwen2.5-coder:7b", help="Target model tag (default: qwen2.5-coder:7b)")
@@ -4074,6 +4109,11 @@ def main(argv=None):
                 reset=getattr(args, "reset", False),
             )
         )
+    elif args.command == "models" and args.models_command in ("export", "import"):
+        sys.exit(cmd_models_offline(
+            args.models_command, model=getattr(args, "model", ""),
+            path=getattr(args, "dest", None) or getattr(args, "path", None), name=getattr(args, "name", None),
+        ))
     elif args.command == "models":
         sys.exit(
             cmd_models(

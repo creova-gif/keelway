@@ -109,6 +109,10 @@ make test
 
 `make test` runs `PYTHONPATH=. python3 -m pytest tests -q`. This README does not state how many tests pass. Use the command output, or the GitHub Actions workflow linked above, as the record for a specific commit. `make help` does not print a pass count.
 
+## Models without internet
+
+`python3 cli.py models export qwen2.5-coder:7b /media/usb` copies an installed Ollama model into a bundle folder (`model.gguf` plus `keelway-model.json` with its SHA-256, size, template, system prompt and parameters). On a machine with no internet, `python3 cli.py models import /media/usb/qwen2.5-coder_7b` checks the SHA-256 and size, then installs it through the running Ollama's API. A plain `.gguf` file also imports (`--name` sets the model name). Export reads Ollama's model folder (`$OLLAMA_MODELS`, `~/.ollama/models`, or `/usr/share/ollama/.ollama/models` for the Linux service), so it needs read access there. Models with vision projectors or adapters are refused for now.
+
 ## Other developer commands
 
 `python3 cli.py --help` lists the developer subcommands, including `doctor`, `bench`, `build`, `mcp`, and `token`. `make help` lists Makefile targets. Those help texts name the targets. They are not a test report and they are not a hardware certificate.
