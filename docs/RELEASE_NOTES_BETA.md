@@ -30,13 +30,13 @@ Keelway enforces three non-negotiable architectural invariants across all execut
 
 ### 2.1 Local Open-Weight Inference
 Keelway is designed to run entirely on local, sovereign hardware. Local open-weight inference is natively supported via standard API adapters:
-* **Supported Backends:** Ollama (default recommended model: `qwen3.5:latest`), vLLM, llama.cpp server, and LM Studio.
-* **Hardware Acceleration:** Native Metal support on Apple Silicon macOS, and CUDA / ROCm acceleration on Linux.
+* **Supported Backends:** Ollama, vLLM, llama.cpp server, and LM Studio. Keelway uses a model you have installed: the configured one, else the one recommended for your RAM, else any installed chat model.
+* **Hardware Acceleration:** Provided by the inference backend (for example Ollama uses Metal on Apple Silicon and CUDA/ROCm on Linux); Keelway does not add its own.
 * **Autonomous Reasoning:** ReAct agent loops formulate step plans, inspect codebases, execute tool calls, and evaluate syntax locally without round-tripping code through commercial clouds.
 
 ### 2.2 Fail-Closed Zero-Egress Default (`network: none`)
-* **Strict Local Posture:** Out of the box, Keelway enforces `LOCAL_ONLY` execution. All socket-level egress is blocked at the process boundary.
-* **Prohibition of Silent Cloud Fallback:** If a local inference backend is unreachable, unresponsive, or out of VRAM, the runtime immediately transitions the task state to `BLOCKED`. **Under no circumstances does Keelway silently redirect code or prompts to commercial cloud LLMs.**
+* **Local first:** requests go to the local model at $0.00. Commands the agent runs inside the verified sandbox get no network. Air-gap mode (off by default) drops every cloud request in the model gateway.
+* **Cloud only when configured, and never hidden:** a cloud provider is used only if you added its API key. Without air-gap, a non-private request falls back to the cloud when the local model is unreachable or fails, and the response's `routing_reason` says so (`fell back to ...`). Requests marked `private` never leave the machine and fail instead.
 * **Explicit Escalation Controls:** Cloud inference routing is supported only when the operator explicitly inputs API credentials, configures strict token/cost ceilings, signs an authorization prompt, and enables the hybrid gateway.
 
 ### 2.3 Fail-Closed OS Sandbox Confinement
@@ -65,10 +65,10 @@ Both IDE Mode and Agent Builder Mode render the unified 6-stage Proof Strip dire
 3. **`AUTHORIZE` (Runtime Authorization):** Enforces explicit permission gates. Risky mutations, shell commands, or out-of-scope paths trigger interactive operator approval or multi-human quorum signing.
 4. **`EXECUTE` (Tool Execution & Mutation):** Executes authorized tool calls inside the verified OS sandbox. Tracks all file mutations and generates structured diff records.
 5. **`VERIFY` (Evidence & Test Verification):** Executes automated test suites in the sandbox, verifying process exit codes, stdout/stderr streams, and regression assertions.
-6. **`SEAL` (Cryptographic Flight-Tape Seal):** Hashes all execution events into an immutable Merkle tree, generates a SHA-256 flight-tape digest, and records a tamper-evident audit receipt.
+6. **`SEAL` (Cryptographic Flight-Tape Seal):** Appends every execution event to a SHA-256 hash-chained flight tape and records a tamper-evident audit entry. (The enterprise audit log separately exposes a Merkle root and inclusion proofs at `/v1/audit/merkle/root`.)
 
 ### Live AST Diff Review & Flight Recorder Replay
-* **AST-Aware Diffs:** Rather than naive line diffs, the Studio parses abstract syntax trees to highlight modified class definitions, function signatures, and call-site references across dependencies.
+* **Diffs:** the Studio shows a line diff of each proposed change before you approve it. The AST index (`core/storage/ast_index.py`) powers symbol search and references; it does not drive the diff view.
 * **Flight Tape Replay:** Every execution produces a deterministic flight recording (`.flight.jsonl`). Developers can scrub back through agent thoughts, tool inputs, sandbox outputs, and terminal snapshots to debug unexpected behaviors.
 
 ---
@@ -155,7 +155,7 @@ The diagnostic engine evaluates 10 independent system dimensions:
 ```
 [1/10]  Database Connectivity & WAL Engine ............. [OK] SQLite WAL mode active
 [2/10]  Workspace Isolation & Git Context .............. [OK] Clean tree, branch resolved
-[3/10]  Model Gateway & Local Provider ................. [OK] Local adapter reachable (qwen3.5)
+[3/10]  Model Gateway & Local Provider ................. [OK] Local adapter reachable (installed model)
 [4/10]  Air-Gap Zero-Egress Attestation ................ [OK] NIST SP 800-53 SC-7 compliant
 [5/10]  Enterprise Entitlements & License .............. [OK] Signature verified
 [6/10]  Software Bill of Materials (SBOM) .............. [OK] CycloneDX / SPDX generated

@@ -196,7 +196,7 @@ class TestPerformanceBenchmarks:
     def test_workspace_filesystem_safe_path_resolution(self, tmp_path):
         """
         Resolve 1,000 paths through WorkspaceFilesystem.resolve_safe_path
-        and assert resolution time is under 200 microseconds per path.
+        and assert resolution time is under 100 microseconds per path.
         """
         fs = WorkspaceFilesystem(root_dir=str(tmp_path))
         num_paths = 1000
@@ -225,6 +225,5 @@ class TestPerformanceBenchmarks:
         # Sanity check that last resolved path is within workspace root
         assert resolved.is_relative_to(tmp_path.resolve())
 
-        # SLA requirement: under 200 microseconds per path. Path.resolve() does an
-        # lstat per component, so shared CI runners measure ~95-120 us even best-of-5.
-        assert per_path_us < 200.0, f"Safe path resolution {per_path_us:.2f} us/path exceeded 200 us SLA"
+        # SLA requirement: under 100 microseconds per path.
+        assert per_path_us < 100.0, f"Safe path resolution {per_path_us:.2f} us/path exceeded 100 us SLA"

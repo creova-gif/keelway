@@ -8,8 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.9.0-beta] - 2026-11-15
 
 ### Added
-- **Sovereign Local-First Agent Loop:** Unified ReAct autonomous loop (`core/orchestration/agent_loop.py`) powered by local open-weight inference backends (Ollama `qwen3.5:latest`, vLLM, llama.cpp, and LM Studio).
-- **Zero-Egress Invariant (`network: none`):** Strict fail-closed network isolation enforcing `LOCAL_ONLY` execution. Transition to `BLOCKED` state on local model failure, prohibiting silent commercial cloud fallback.
+- **Sovereign Local-First Agent Loop:** Unified ReAct autonomous loop (`core/orchestration/agent_loop.py`) powered by local open-weight inference backends (Ollama, vLLM, llama.cpp, and LM Studio).
+- **Local-first routing and zero-egress commands:** local models by default at $0.00; sandboxed agent commands get no network; air-gap mode drops every cloud request; `private` requests never leave the machine. Cloud fallback happens only with a configured API key and is reported in `routing_reason`.
 - **Fail-Closed OS Sandbox Isolation:** Process confinement via Apple Seatbelt (`sandbox-exec`) on macOS and Bubblewrap (`bwrap`) on Linux (`core/agents/sandbox.py`) with unshared network namespaces (`--unshare-net`) and forbidden access to sensitive user files (`~/.ssh`, `~/.aws`, `.git/hooks`).
 - **Unified 6-Stage Proof Strip UX:** Studio interface rendering the deterministic pipeline (`INSPECT` $\rightarrow$ `PLAN` $\rightarrow$ `AUTHORIZE` $\rightarrow$ `EXECUTE` $\rightarrow$ `VERIFY` $\rightarrow$ `SEAL`) across both IDE Mode and Agent Builder Mode.
 - **AST Semantic Diff & Flight Tape Replay:** AST symbol indexing and cross-file reference tracking (`core/storage/ast_index.py`) combined with deterministic `.flight.jsonl` flight recordings for time-travel execution replay.
