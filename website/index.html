@@ -43,14 +43,13 @@
   <!-- HERO -->
   <div class="wrap hero">
     <div>
-      <span class="eyebrow">Local-First · Deterministic · Sovereign Agent Infrastructure</span>
       <h1>The control layer for <em>AI agents.</em></h1>
       <p class="lede">Run any coding agent under your own rules. Every action is approved, recorded, and verifiable. Your code never has to leave your machine.</p>
       <div class="cta">
         <a class="btn primary" href="#quickstart">Try Quickstart</a>
         <a class="btn" href="#workflow">Explore the Workflow</a>
-        <a class="btn" href="#early-access">Request Early Access</a>
       </div>
+      <p class="mono" style="color: var(--muted); font-size: 13px; margin-top: 20px;">git clone creova-gif/kora · local-first · open core</p>
     </div>
 
     <!-- HERO WORKFLOW PREVIEW -->
@@ -73,52 +72,45 @@
     </figure>
   </div>
 
-  <!-- THE THREE CORE PROMISES / FEATURES -->
+  <!-- FEATURE STRIP -->
   <section id="features" aria-labelledby="features-h">
-    <a id="promises"></a>
+    <h2 id="features-h" class="sr-only">Features</h2>
     <div class="wrap">
-      <h2 id="features-h">Three invariants</h2>
-      <p class="sub">What Keelway guarantees on every run, whether you're pairing with it for an hour or leaving it on a task overnight.</p>
       <div class="grid">
-        <article class="card feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <h3>1. Own Your Execution</h3>
-          <p>Run on your own local models by default — zero per-token billing, zero egress unless you opt in.</p>
+        <article>
+          <h3>Local-first</h3>
+          <p>Local models by default. Cloud only when you choose it, and it keeps working offline.</p>
         </article>
-        <article class="card feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <h3>2. Know What Changed</h3>
-          <p>Review real diffs before anything merges. Every decision an agent made is on the record, not just the final patch.</p>
+        <article>
+          <h3>Scoped approvals</h3>
+          <p>"Allow always" per tool and path, never a blanket grant. Every rule is audited and revocable.</p>
         </article>
-        <article class="card feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <h3>3. Keep Your Work Portable</h3>
-          <p>Define reusable autonomous agents using open declarative manifests (AgentSpec v1). Export complete source code and clean Git histories with zero platform lock-in.</p>
+        <article>
+          <h3>Verifiable record</h3>
+          <p>A hash-chained log of every action. Anyone can verify it — no cloud account required.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- INTERACTIVE DEVELOPER WORKFLOW -->
+  <!-- WORKFLOW -->
   <section id="workflow" aria-labelledby="loop-h">
-    <a id="developer-loop"></a>
     <div class="wrap">
-      <h2 id="loop-h">The Verifiable Developer Loop</h2>
-      <p class="sub">A walkthrough of a real bug fix, step by step — from plan to a sealed, verifiable record. <span class="mono" style="color: var(--muted); font-size: 12px;">(Illustrative example, not a captured session.)</span></p>
-      
+      <h2 id="loop-h">See a real approval gate</h2>
+      <p class="sub">A plan step, a human gate, an applied patch, a test run, a sealed record. <span class="mono" style="color: var(--muted); font-size: 12px;">(Illustrative example, not a captured session.)</span></p>
+
       <div class="card" style="padding: 24px;">
         <div class="stepper-nav" role="tablist" aria-label="Workflow stages">
-          <button type="button" class="stepper-btn active" data-step="plan" role="tab" aria-selected="true">1. Plan Formulation</button>
-          <button type="button" class="stepper-btn" data-step="approve" role="tab" aria-selected="false">2. Human Gate</button>
-          <button type="button" class="stepper-btn" data-step="patch" role="tab" aria-selected="false">3. Atomic Patch</button>
-          <button type="button" class="stepper-btn" data-step="verify" role="tab" aria-selected="false">4. Test Verification</button>
-          <button type="button" class="stepper-btn" data-step="tape" role="tab" aria-selected="false">5. Flight Tape Seal</button>
+          <button type="button" class="stepper-btn active" data-step="plan" role="tab" aria-selected="true">1. Plan</button>
+          <button type="button" class="stepper-btn" data-step="approve" role="tab" aria-selected="false">2. Approve</button>
+          <button type="button" class="stepper-btn" data-step="patch" role="tab" aria-selected="false">3. Patch</button>
+          <button type="button" class="stepper-btn" data-step="verify" role="tab" aria-selected="false">4. Verify</button>
+          <button type="button" class="stepper-btn" data-step="tape" role="tab" aria-selected="false">5. Seal</button>
         </div>
 
         <div id="step-content-plan" class="stepper-content mono">
           <span class="pill teal">Step 1: Plan</span> <span class="pill muted">Agent: coder-agent</span>
           <pre style="margin: 12px 0 0; color: var(--muted);">[+] Goal: Fix 10% discount calculation bug in pricing.py and prove with tests
-[+] Inspecting AST symbols in pricing.py...
 [+] Formulated 3 execution steps:
     1. read_file("pricing.py") -> extract discount calculation
     2. edit_file("pricing.py") -> calculate round(price_cents * (100 - percent) / 100)
@@ -128,7 +120,6 @@
         <div id="step-content-approve" class="stepper-content mono" style="display: none;">
           <span class="pill amber">Step 2: Human Approval Gate</span> <span class="pill muted">Policy: confirm_mutation</span>
           <pre style="margin: 12px 0 0; color: var(--muted);">[!] Mutating Tool Call Requested: edit_file("pricing.py")
-    Reason: Modify percentage calculation formula
     Diff: - return price_cents - percent
           + return round(price_cents * (100 - percent) / 100)
 [?] Grant permission to apply changes? [Allow Once / Deny / Standing Rule]</pre>
@@ -137,9 +128,6 @@
         <div id="step-content-patch" class="stepper-content mono" style="display: none;">
           <span class="pill teal">Step 3: Atomic Patch Applied</span> <span class="pill muted">Git Working Tree</span>
           <pre style="margin: 12px 0 0;"><span style="color: var(--teal);">diff --git a/pricing.py b/pricing.py
-index c1cad50..45324c4 100644
---- a/pricing.py
-+++ b/pricing.py
 @@ -3,7 +3,7 @@
  def apply_discount(price_cents: int, percent: int) -> int:
 -    return price_cents - percent
@@ -156,7 +144,7 @@ OK</pre>
         </div>
 
         <div id="step-content-tape" class="stepper-content mono" style="display: none;">
-          <span class="pill teal">Step 5: Cryptographic Tape Sealed</span> <span class="pill muted">Deterministic Ledger</span>
+          <span class="pill teal">Step 5: Record Sealed</span> <span class="pill muted">Deterministic Ledger</span>
           <pre style="margin: 12px 0 0; color: var(--muted);">[+] Recording appended to the local hash-chained log
 [+] Verify independently: GET /v1/audit/verify</pre>
         </div>
@@ -164,175 +152,24 @@ OK</pre>
     </div>
   </section>
 
-  <!-- LOCAL-FIRST & PRIVACY SWITCHER -->
-  <section id="local" aria-labelledby="local-h">
-    <div class="wrap">
-      <h2 id="local-h">Model freedom, your choice of boundary</h2>
-      <p class="sub">Run fully local, bring your own cloud keys, go strictly air-gapped, or route through your own VPC runner. Same agent, same approval flow, whichever boundary you pick.</p>
-
-      <div class="privacy-nav">
-        <button type="button" class="privacy-btn active" data-privacy="local">Local</button>
-        <button type="button" class="privacy-btn" data-privacy="byok">Bring your own keys</button>
-        <button type="button" class="privacy-btn" data-privacy="airgap">Air-gapped</button>
-        <button type="button" class="privacy-btn" data-privacy="runner">Your own VPC</button>
-      </div>
-
-      <div id="privacy-panel-local" class="privacy-panel active">
-        <div class="grid two">
-          <div>
-            <h3>Local-first</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Point it at a local model (Ollama and others) and nothing leaves your machine by default.</p>
-          </div>
-          <div class="term">
-            <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono">$ python3 cli.py models --help</pre>
-          </div>
-        </div>
-      </div>
-
-      <div id="privacy-panel-byok" class="privacy-panel">
-        <div class="grid two">
-          <div>
-            <h3>Bring your own keys</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Use Anthropic, OpenAI, or Gemini with your own API key when you want frontier models.</p>
-          </div>
-          <div class="term">
-            <div class="bar"><span class="mono">gateway config</span></div>
-            <pre class="mono">$ python3 cli.py models --help</pre>
-          </div>
-        </div>
-      </div>
-
-      <div id="privacy-panel-airgap" class="privacy-panel">
-        <div class="grid two">
-          <div>
-            <h3>Air-gapped</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;"><code>keelway chat --air-gapped</code> restricts the run to local models only, no cloud fallback.</p>
-          </div>
-          <div class="term">
-            <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono">$ python3 cli.py chat --help</pre>
-          </div>
-        </div>
-      </div>
-
-      <div id="privacy-panel-runner" class="privacy-panel">
-        <div class="grid two">
-          <div>
-            <h3>Your own VPC runner</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Run the agent inside infrastructure you control; it polls out, nothing has to reach in.</p>
-          </div>
-          <div class="term">
-            <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono">$ python3 -m keelway.cli.main runner --help</pre>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- THREE ENTRY POINTS -->
-  <section id="entry-points" aria-labelledby="entry-h">
-    <div class="wrap">
-      <h2 id="entry-h">Three ways to run it</h2>
-      <p class="sub">Studio for day-to-day use, a governance server for teams, and this site for docs and install.</p>
-      <div class="grid">
-        <article class="card feat">
-          <span class="pill teal">Studio</span>
-          <h3 style="margin-top: 14px;">The local IDE</h3>
-          <p>A browser-based workspace on your machine, port 7420. Opens as a normal tab or, with Chrome installed, its own app window.</p>
-          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--teal);">$ python3 cli.py dev</div>
-        </article>
-        <article class="card feat">
-          <span class="pill amber">Governance server</span>
-          <h3 style="margin-top: 14px;">For teams</h3>
-          <p>A separate process, port 8000, that enforces approvals and keeps the audit record for everyone on a team.</p>
-          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--amber);">$ make serve</div>
-        </article>
-        <article class="card feat">
-          <span class="pill muted">This website</span>
-          <h3 style="margin-top: 14px;">Docs and install only</h3>
-          <p>Static — reading this page doesn't start, configure, or touch anything running on your machine.</p>
-          <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--muted);">$ python3 cli.py build templates</div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- DEVELOPER QUICKSTART & EARLY ACCESS -->
+  <!-- QUICKSTART / CTA -->
   <section id="quickstart" aria-labelledby="qs-h">
     <a id="pricing"></a>
     <div class="wrap">
-      <div style="margin-bottom: 32px;">
-        <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Commands from a clone</span>
-        <h2 id="qs-h" style="margin-top: 6px;">Developer Quickstart &amp; Early Access</h2>
-        <p class="sub" style="margin-bottom: 0;">Install from a clone of <code>creova-gif/kora</code> — no package registry, nothing to install from a site.</p>
-      </div>
-
-      <div class="grid two" style="gap: 24px; align-items: stretch;">
-        <!-- DEVELOPER QUICKSTART CARD -->
-        <div class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-              <span class="pill teal">Developer Quickstart</span>
-              <span class="pill muted mono">Git clone</span>
-            </div>
-            <h3 style="font-size: 20px; margin: 0 0 8px;">Run from a clone</h3>
-            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Clone it, install it editable, and run the commands below from the repo root.</p>
-            
-            <div class="card term" style="margin-bottom: 16px; border: 1px solid var(--line);">
-              <div class="bar">
-                <span class="mono">terminal</span>
-                <button class="copy" type="button" data-copy="qs">Copy</button>
-              </div>
-<pre class="mono" id="qs"><span class="c"># Directory name is kora</span>
-<span class="p">$ </span>git clone https://github.com/creova-gif/kora.git
-<span class="p">$ </span>cd kora
-<span class="p">$ </span>python3 -m venv .venv && source .venv/bin/activate
+      <h2 id="qs-h">Run your first task in under a minute</h2>
+      <div class="card term" style="margin: 24px 0; border: 1px solid var(--line);">
+        <div class="bar">
+          <span class="mono">terminal</span>
+          <button class="copy" type="button" data-copy="qs">Copy</button>
+        </div>
+<pre class="mono" id="qs"><span class="p">$ </span>git clone https://github.com/creova-gif/kora.git
+<span class="p">$ </span>cd kora && python3 -m venv .venv && source .venv/bin/activate
 <span class="p">$ </span>pip install -e ".[dev]"
-
-<span class="c"># Local Studio (browser). Default 127.0.0.1:7420</span>
-<span class="p">$ </span>python3 cli.py dev
-<span class="c"># Browser-app window when Chrome or Chromium is installed</span>
-<span class="p">$ </span>python3 cli.py desktop
-
-<span class="c"># Governance server. Separate process on 127.0.0.1:8000</span>
-<span class="p">$ </span>make serve
-
-<span class="c"># List guided-builder templates. No model call.</span>
-<span class="p">$ </span>python3 cli.py build templates</pre>
-            </div>
-
-            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">1</span> Studio is <code>python3 cli.py dev</code>. It is the local IDE.</li>
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">2</span> The governance server is <code>make serve</code> / <code>keelway-core serve</code>.</li>
-              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">3</span> This page is static. It does not launch either process.</li>
-            </ul>
-          </div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <a class="btn primary" href="docs.html" style="flex: 1; justify-content: center;">Explore Documentation</a>
-          </div>
-        </div>
-
-        <!-- EARLY ACCESS & ENTERPRISE CARD -->
-        <div class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-color: color-mix(in srgb, var(--teal) 40%, var(--line));">
-          <div>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-              <span class="pill amber">Private Beta</span>
-            </div>
-            <h3 style="font-size: 20px; margin: 0 0 8px;">Early Access &amp; Enterprise Fleets</h3>
-            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Hosted sync, team workspaces, and customer-owned VPC runner fleets for teams that need more than the local-first install.</p>
-
-            <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 10px;">
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Your own VPC runner:</strong> the agent runs inside infrastructure you control.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Team workspaces:</strong> shared review queues and an agent registry for multi-agent work.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Audit export:</strong> tamper-evident records you can hand to a reviewer or auditor.</span></li>
-            </ul>
-          </div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <a class="btn primary" href="#early-access" style="flex: 1; justify-content: center;">Request Early Access</a>
-          </div>
-        </div>
+<span class="p">$ </span>python3 cli.py dev<span class="c">  # Studio, 127.0.0.1:7420</span></pre>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a class="btn primary" href="docs.html">Explore Documentation</a>
+        <a class="btn" href="#early-access">Request Early Access</a>
       </div>
     </div>
   </section>
@@ -342,8 +179,8 @@ OK</pre>
     <div class="wrap">
       <div class="card form-box">
         <h2 id="ea-h" style="text-align: center; font-size: 24px;">Request Early Access</h2>
-        <p class="sub" style="text-align: center; margin-bottom: 24px;">Join the private preview for hosted sync, team workspaces, or customer-owned runner fleets.</p>
-        
+        <p class="sub" style="text-align: center; margin-bottom: 24px;">Hosted sync, team workspaces, and customer-owned VPC runner fleets for teams that need more than the local-first install.</p>
+
         <form id="access-form">
           <div class="form-row">
             <label class="form-label" for="work-email">Work Email</label>
@@ -409,7 +246,7 @@ OK</pre>
 <footer>
   <div class="wrap">
     <span>&copy; 2026 Keelway. <a href="brand.html" style="color: var(--teal); margin-left: 8px;">Brand Kit</a></span>
-    <span>No third-party requests: fonts and styles are served from this site.</span>
+    <span>local-first · open core · Apache-2.0</span>
   </div>
 </footer>
 
@@ -439,20 +276,6 @@ document.querySelectorAll(".stepper-btn[data-step]").forEach(function (btn) {
     });
   });
 });
-
-
-// Model Privacy Switcher
-document.querySelectorAll(".privacy-btn").forEach(function (btn) {
-  btn.addEventListener("click", function () {
-    document.querySelectorAll(".privacy-btn").forEach(function (b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-    var privacy = btn.getAttribute("data-privacy");
-    document.querySelectorAll(".privacy-panel").forEach(function (panel) {
-      panel.classList.toggle("active", panel.id === ("privacy-panel-" + privacy));
-    });
-  });
-});
-
 </script>
 </body>
 </html>
