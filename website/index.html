@@ -533,7 +533,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
         <h2 id="ea-h" style="text-align: center; font-size: 24px;">Request Early Access</h2>
         <p class="sub" style="text-align: center; margin-bottom: 24px;">Join the private preview for hosted sync, team workspaces, or customer-owned runner fleets.</p>
         
-        <form id="access-form" onsubmit="event.preventDefault(); document.getElementById('form-feedback').style.display = 'block';">
+        <form id="access-form">
           <div class="form-row">
             <label class="form-label" for="work-email">Work Email</label>
             <input type="email" id="work-email" class="form-input" required placeholder="developer@company.com">
@@ -549,13 +549,47 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           </div>
           <div class="form-row" style="display: flex; align-items: flex-start; gap: 8px;">
             <input type="checkbox" id="consent" required style="margin-top: 4px;">
-            <label for="consent" class="form-hint" style="margin: 0;">The handler on this page does not submit the form.</label>
+            <label for="consent" class="form-hint" style="margin: 0;">Submitting records your email and selected interest for the Keelway team to follow up.</label>
           </div>
-          <button type="submit" class="btn primary" style="width: 100%; justify-content: center; margin-top: 12px;">Submit Request</button>
-          <div id="form-feedback" class="pill teal" style="display: none; text-align: center; margin-top: 14px; padding: 10px;">
-            This form stays in the browser. It did not send the address and it did not create an invitation.
-          </div>
+          <button type="submit" class="btn primary" id="access-submit" style="width: 100%; justify-content: center; margin-top: 12px;">Submit Request</button>
+          <div id="form-feedback" class="pill teal" style="display: none; text-align: center; margin-top: 14px; padding: 10px;"></div>
         </form>
+        <script>
+        (function () {
+          const form = document.getElementById('access-form');
+          const btn = document.getElementById('access-submit');
+          const feedback = document.getElementById('form-feedback');
+          if (!form) return;
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('work-email').value.trim();
+            const interest = document.getElementById('interest').value;
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+            feedback.className = 'pill teal';
+            try {
+              const res = await fetch('/api/early-access', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, interest }),
+              });
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.ok) {
+                feedback.textContent = "Request received — we'll follow up at " + email + ".";
+              } else {
+                feedback.className = 'pill amber';
+                feedback.textContent = data.error || 'Something went wrong. Try again shortly.';
+              }
+            } catch (err) {
+              feedback.className = 'pill amber';
+              feedback.textContent = 'Network error — try again shortly.';
+            }
+            feedback.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Submit Request';
+          });
+        })();
+        </script>
       </div>
     </div>
   </section>
