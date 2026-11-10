@@ -323,10 +323,9 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           <div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
               <span class="pill amber">Private Beta</span>
-              <span class="pill muted mono">Contact form stays in the browser</span>
             </div>
             <h3 style="font-size: 20px; margin: 0 0 8px;">Early Access &amp; Enterprise Fleets</h3>
-            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">The form below stays in the browser. This card does not state that source bytes remain inside a VPC.</p>
+            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Hosted sync, team workspaces, and customer-owned VPC runner fleets for teams that need more than the local-first install.</p>
 
             <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 10px;">
               <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Customer Outbound VPC Runners:</strong> Zero inbound firewall ports, outbound HTTPS polling with HMAC-SHA256 tokens.</span></li>
@@ -334,24 +333,9 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
               <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Tier 2 Hardware Security HAL:</strong> Dual-WORM compliance storage, TPM 2.0 PCR measured boot, and 2-of-3 Shamir recovery.</span></li>
               <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Enterprise Merkle Audit &amp; SOC 2:</strong> Tamper-evident evidence export with cryptographic provenance.</span></li>
             </ul>
-
-            <!-- Early Access Invitation Form in Card -->
-            <div style="background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-              <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--fg);">Request Private Beta Invitation</div>
-              <form id="qs-access-form" onsubmit="event.preventDefault(); document.getElementById('qs-form-feedback').style.display = 'block';">
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                  <input type="email" id="qs-work-email" class="form-input" required placeholder="work-email@company.com" style="flex: 1; padding: 8px 12px; font-size: 13px;">
-                  <button type="submit" class="btn primary" style="padding: 8px 16px; font-size: 13px; font-weight: 600; white-space: nowrap;">Request Invite</button>
-                </div>
-                <div id="qs-form-feedback" class="pill teal" style="display: none; text-align: center; padding: 6px; font-size: 11px;">
-                  This form stays in the browser. It did not send the address and it did not create an invitation.
-                </div>
-              </form>
-            </div>
           </div>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <a class="btn primary" href="#early-access" style="flex: 1; justify-content: center;">Early Access Details</a>
-            <a class="btn" href="#early-access" style="flex: 1; justify-content: center;">No sales host on this page</a>
+            <a class="btn primary" href="#early-access" style="flex: 1; justify-content: center;">Request Early Access</a>
           </div>
         </div>
       </div>
