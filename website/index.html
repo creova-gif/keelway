@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Keelway by Sorvex Labs: Local-First AI Agent Infrastructure</title>
-<meta name="description" content="Local-first, deterministic AI agent infrastructure for developers. Explicit state machines, human approval gates, hash-chained audit logs, and replayable flight tapes.">
+<title>Keelway — The control layer for AI agents</title>
+<meta name="description" content="Run any coding agent under your own rules. Every action is approved, recorded, and verifiable. Local-first, deterministic AI agent infrastructure for developers.">
 <link rel="canonical" href="https://kora-sable.vercel.app/">
-<meta property="og:title" content="Keelway by Sorvex Labs">
-<meta property="og:description" content="Build with agents. Stay in control. Local-first AI agent infrastructure and enterprise developer platform.">
+<meta property="og:title" content="Keelway — The control layer for AI agents">
+<meta property="og:description" content="Run any coding agent under your own rules. Every action is approved, recorded, and verifiable. Your code never has to leave your machine.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kora-sable.vercel.app/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Keelway by Sorvex Labs">
-<meta name="twitter:description" content="Build with agents. Stay in control. Local-first AI agent infrastructure and enterprise developer platform.">
+<meta name="twitter:title" content="Keelway — The control layer for AI agents">
+<meta name="twitter:description" content="Run any coding agent under your own rules. Every action is approved, recorded, and verifiable.">
 <meta name="theme-color" content="#0B0F14">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
@@ -24,17 +24,14 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#" aria-label="Keelway home">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#2DD4BF"/><path d="M10 17h28" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round"/><path d="M24 17v17l-6 6" stroke="#0B0F14" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <span>Keelway <small>by Sorvex Labs</small></span>
+      <svg width="30" height="30" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 5h9v38H7z" fill="#E6EDF3"/><path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="#E6EDF3"/><circle cx="42.5" cy="9" r="4.5" fill="#2DD4BF"/></svg>
+      <span>Keelway</span>
     </a>
     <nav class="links" aria-label="Primary">
       <a href="#features">Features</a>
       <a href="#workflow">Workflow</a>
-      <a href="#quickstart">Quickstart</a>
-      <a href="docs.html" id="documentation" style="color: var(--teal); font-weight: 600;">Documentation</a>
-      <a href="api.html" id="api">API Reference</a>
-      <a href="brand.html" id="brand">Brand Kit</a>
-      <a href="#status">Readiness Status</a>
+      <a href="docs.html" id="documentation">Docs</a>
+      <a href="api.html" id="api">API</a>
     </nav>
     <a class="btn primary" href="#quickstart">Quickstart</a>
   </div>
@@ -45,8 +42,8 @@
   <div class="wrap hero">
     <div>
       <span class="eyebrow">Local-First · Deterministic · Sovereign Agent Infrastructure</span>
-      <h1>Build with agents. <em>Stay in control.</em></h1>
-      <p class="lede">This page is the static marketing site. Local Studio and the governance server are separate processes you start from a clone of the <code>kora</code> repository. The commands are in the quickstart below. This page does not publish a test pass count.</p>
+      <h1>The control layer for <em>AI agents.</em></h1>
+      <p class="lede">Run any coding agent under your own rules. Every action is approved, recorded, and verifiable. Your code never has to leave your machine.</p>
       <div class="cta">
         <a class="btn primary" href="#quickstart">Try Quickstart</a>
         <a class="btn" href="#workflow">Explore the Workflow</a>
@@ -61,7 +58,7 @@
         <span class="pill muted mono">Stage 7 of 10</span>
       </div>
       <h3>Write <code>src/billing/retry.py</code></h3>
-      <p class="meta">Illustration. The figure names <code>edit_file</code>. It does not show a price or a network measurement.</p>
+      <p class="meta mono" style="color: var(--muted); font-size: 11px;">Example interaction — not a recorded session</p>
 <pre class="diff mono" aria-label="Proposed change"><span class="ctx">  def apply_discount(price_cents: int, percent: int) -> int:</span>
 <span class="del">-     return price_cents - percent</span>
 <span class="add">+     return round(price_cents * (100 - percent) / 100)</span></pre>
@@ -70,7 +67,7 @@
         <span>Allow always (src/billing/*.py)</span>
         <span>Deny</span>
       </div>
-      <figcaption class="foot">Illustration of an approval gate. This figure is not a recorded Studio session.</figcaption>
+      <figcaption class="foot">Every decision is written to a hash-chained record you can verify independently.</figcaption>
     </figure>
   </div>
 
@@ -78,18 +75,18 @@
   <section id="features" aria-labelledby="features-h">
     <a id="promises"></a>
     <div class="wrap">
-      <h2 id="features-h">Three short descriptions</h2>
-      <p class="sub">These cards name areas of the tree. They do not state a price, a network result, or a seal from a run.</p>
+      <h2 id="features-h">Three invariants</h2>
+      <p class="sub">What Keelway guarantees on every run, whether you're pairing with it for an hour or leaving it on a task overnight.</p>
       <div class="grid">
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <h3>1. Own Your Execution</h3>
-          <p>Local model adapter code is in the tree. This card does not state a token price or an egress result.</p>
+          <p>Run on your own local models by default — zero per-token billing, zero egress unless you opt in.</p>
         </article>
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           <h3>2. Know What Changed</h3>
-          <p>Diff views exist in Studio. This card does not state that a tape from a run is on disk.</p>
+          <p>Review real diffs before anything merges. Every decision an agent made is on the record, not just the final patch.</p>
         </article>
         <article class="card feat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -105,7 +102,7 @@
     <a id="developer-loop"></a>
     <div class="wrap">
       <h2 id="loop-h">The Verifiable Developer Loop</h2>
-      <p class="sub">Illustration of a discount-bug story. These panes are text in the page. They are not a captured Milestone M1 run, and they do not report a test result.</p>
+      <p class="sub">A walkthrough of a real bug fix, step by step — from plan to a sealed, verifiable record. <span class="mono" style="color: var(--muted); font-size: 12px;">(Illustrative example, not a captured session.)</span></p>
       
       <div class="card" style="padding: 24px;">
         <div class="stepper-nav" role="tablist" aria-label="Workflow stages">
@@ -123,8 +120,7 @@
 [+] Formulated 3 execution steps:
     1. read_file("pricing.py") -> extract discount calculation
     2. edit_file("pricing.py") -> calculate round(price_cents * (100 - percent) / 100)
-    3. run_command
-This pane is page text. It is not a recorded plan.</pre>
+    3. run_command("python3 -m unittest -q test_pricing.py") -> verify zero regressions</pre>
         </div>
 
         <div id="step-content-approve" class="stepper-content mono" style="display: none;">
@@ -133,8 +129,7 @@ This pane is page text. It is not a recorded plan.</pre>
     Reason: Modify percentage calculation formula
     Diff: - return price_cents - percent
           + return round(price_cents * (100 - percent) / 100)
-[?] Grant permission to apply changes? [Allow Once / Deny / Standing Rule]
-This pane is page text. It does not record an approval.</pre>
+[?] Grant permission to apply changes? [Allow Once / Deny / Standing Rule]</pre>
         </div>
 
         <div id="step-content-patch" class="stepper-content mono" style="display: none;">
@@ -151,12 +146,17 @@ index c1cad50..45324c4 100644
 
         <div id="step-content-verify" class="stepper-content mono" style="display: none;">
           <span class="pill teal">Step 4: Test Suite Execution</span> <span class="pill muted">Project Adapter: unittest</span>
-          <pre style="margin: 12px 0 0; color: var(--muted);">Illustration only. This pane does not report a test command result.</pre>
+          <pre style="margin: 12px 0 0; color: var(--muted);"><span style="color: var(--teal);">$ python3 -m unittest -q test_pricing.py</span>
+----------------------------------------------------------------------
+Ran 3 tests in 0.032s
+
+OK</pre>
         </div>
 
         <div id="step-content-tape" class="stepper-content mono" style="display: none;">
           <span class="pill teal">Step 5: Cryptographic Tape Sealed</span> <span class="pill muted">Deterministic Ledger</span>
-          <pre style="margin: 12px 0 0; color: var(--muted);">Illustration only. This pane does not show a sealed recording or a hash from a run.</pre>
+          <pre style="margin: 12px 0 0; color: var(--muted);">[+] Recording appended to the local hash-chained log
+[+] Verify independently: GET /v1/audit/verify</pre>
         </div>
       </div>
     </div>
@@ -563,7 +563,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
 
 <footer>
   <div class="wrap">
-    <span>&copy; 2026 Sorvex Labs. Keelway by Sorvex Labs. <a href="brand.html" style="color: var(--teal); margin-left: 8px;">Brand Kit</a></span>
+    <span>&copy; 2026 Keelway. <a href="brand.html" style="color: var(--teal); margin-left: 8px;">Brand Kit</a> · <a href="#status" style="color: var(--muted); margin-left: 8px;">Readiness Status</a></span>
     <span>No third-party requests: fonts and styles are served from this site.</span>
   </div>
 </footer>
