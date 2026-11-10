@@ -9,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - KEELWAY_POLICY_SIGNING_KEY=secret_keelway_production_key_v1
+      - KEELWAY_POLICY_SIGNING_KEY=${KEELWAY_POLICY_SIGNING_KEY:?set KEELWAY_POLICY_SIGNING_KEY in .env, see env.example}
       - KEELWAY_DB_PATH=/data/keelway_audit.db
     volumes:
       - keelway-data:/data
