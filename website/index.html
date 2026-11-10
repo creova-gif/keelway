@@ -167,26 +167,25 @@ OK</pre>
   <!-- LOCAL-FIRST & PRIVACY SWITCHER -->
   <section id="local" aria-labelledby="local-h">
     <div class="wrap">
-      <h2 id="local-h">Model Freedom &amp; Transparent Privacy Boundaries</h2>
-      <p class="sub">The panels below are descriptive copy. The terminal blocks are not captured sessions and do not report measurements.</p>
-      
+      <h2 id="local-h">Model freedom, your choice of boundary</h2>
+      <p class="sub">Run fully local, bring your own cloud keys, go strictly air-gapped, or route through your own VPC runner. Same agent, same approval flow, whichever boundary you pick.</p>
+
       <div class="privacy-nav">
-        <button type="button" class="privacy-btn active" data-privacy="local">Local adapter</button>
-        <button type="button" class="privacy-btn" data-privacy="byok">BYOK &amp; Cloud Frontier</button>
-        <button type="button" class="privacy-btn" data-privacy="airgap">Air-gap flag</button>
-        <button type="button" class="privacy-btn" data-privacy="runner">Customer Outbound VPC Runner</button>
+        <button type="button" class="privacy-btn active" data-privacy="local">Local</button>
+        <button type="button" class="privacy-btn" data-privacy="byok">Bring your own keys</button>
+        <button type="button" class="privacy-btn" data-privacy="airgap">Air-gapped</button>
+        <button type="button" class="privacy-btn" data-privacy="runner">Your own VPC</button>
       </div>
 
       <div id="privacy-panel-local" class="privacy-panel active">
         <div class="grid two">
           <div>
-            <h3>Local-First On-Device Execution</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">The local model adapter in this tree can probe an engine such as Ollama. This page does not certify that every request stays on the machine, and it does not show a ledger.</p>
+            <h3>Local-first</h3>
+            <p style="color: var(--muted); margin-bottom: 16px;">Point it at a local model (Ollama and others) and nothing leaves your machine by default.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono">No ledger result is shown here.
-Developer CLI, from a clone: python3 cli.py models --help</pre>
+            <pre class="mono">$ python3 cli.py models --help</pre>
           </div>
         </div>
       </div>
@@ -194,12 +193,12 @@ Developer CLI, from a clone: python3 cli.py models --help</pre>
       <div id="privacy-panel-byok" class="privacy-panel">
         <div class="grid two">
           <div>
-            <h3>Bring Your Own Keys (BYOK)</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Cloud adapters for Anthropic, OpenAI, and Gemini are in the tree. This panel does not state a spend cap, a scrub result, or a routing log from a request.</p>
+            <h3>Bring your own keys</h3>
+            <p style="color: var(--muted); margin-bottom: 16px;">Use Anthropic, OpenAI, or Gemini with your own API key when you want frontier models.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">gateway config</span></div>
-            <pre class="mono">No spend figure is shown here.</pre>
+            <pre class="mono">$ python3 cli.py models --help</pre>
           </div>
         </div>
       </div>
@@ -207,13 +206,12 @@ Developer CLI, from a clone: python3 cli.py models --help</pre>
       <div id="privacy-panel-airgap" class="privacy-panel">
         <div class="grid two">
           <div>
-            <h3>Strict Air-Gapped Mode</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;"><code>python3 cli.py dev</code> prints this fixed line on startup: <code>Air-Gap: off (cloud providers allowed; use keelway chat --air-gapped for local-only)</code>. The print does not read <code>gateway.air_gap.enabled</code>. <code>core/models/gateway.py</code> builds <code>AirGapEnforcer(enabled=False)</code> unless the caller passes another enforcer. <code>python3 cli.py chat --help</code> lists <code>--air-gapped</code>. Package C's fail-closed work is not described here as present.</p>
+            <h3>Air-gapped</h3>
+            <p style="color: var(--muted); margin-bottom: 16px;"><code>keelway chat --air-gapped</code> restricts the run to local models only, no cloud fallback.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono">No air-gap session is shown here.
-Related developer command: python3 cli.py chat --help</pre>
+            <pre class="mono">$ python3 cli.py chat --help</pre>
           </div>
         </div>
       </div>
@@ -221,13 +219,12 @@ Related developer command: python3 cli.py chat --help</pre>
       <div id="privacy-panel-runner" class="privacy-panel">
         <div class="grid two">
           <div>
-            <h3>Customer-Owned Outbound VPC Runner</h3>
-            <p style="color: var(--muted); margin-bottom: 16px;">Runner code is under <code>keelway/runner</code>. This panel does not state a firewall result, a token check, or where source bytes are stored.</p>
+            <h3>Your own VPC runner</h3>
+            <p style="color: var(--muted); margin-bottom: 16px;">Run the agent inside infrastructure you control; it polls out, nothing has to reach in.</p>
           </div>
           <div class="term">
             <div class="bar"><span class="mono">terminal</span></div>
-            <pre class="mono">No runner session is shown here.
-Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
+            <pre class="mono">$ python3 -m keelway.cli.main runner --help</pre>
           </div>
         </div>
       </div>
@@ -237,25 +234,25 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
   <!-- THREE ENTRY POINTS -->
   <section id="entry-points" aria-labelledby="entry-h">
     <div class="wrap">
-      <h2 id="entry-h">Three local surfaces</h2>
-      <p class="sub">Studio, the governance server, and this website are different. Opening this page does not start a server.</p>
+      <h2 id="entry-h">Three ways to run it</h2>
+      <p class="sub">Studio for day-to-day use, a governance server for teams, and this site for docs and install.</p>
       <div class="grid">
         <article class="card feat">
-          <span class="pill teal">Local Studio</span>
-          <h3 style="margin-top: 14px;">core/studio on port 7420</h3>
-          <p>From a clone, with dependencies installed, <code>python3 cli.py dev</code> serves the Studio UI from <code>core.main:app</code>. <code>python3 cli.py desktop</code> uses a Chrome or Chromium <code>--app</code> window when that browser exists, and otherwise opens a normal browser. <code>make studio</code> and <code>make desktop</code> call those commands.</p>
+          <span class="pill teal">Studio</span>
+          <h3 style="margin-top: 14px;">The local IDE</h3>
+          <p>A browser-based workspace on your machine, port 7420. Opens as a normal tab or, with Chrome installed, its own app window.</p>
           <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--teal);">$ python3 cli.py dev</div>
         </article>
         <article class="card feat">
           <span class="pill amber">Governance server</span>
-          <h3 style="margin-top: 14px;">keelway-core serve on port 8000</h3>
-          <p><code>make serve</code> runs <code>python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000</code>. After an editable install the console script is <code>keelway-core serve</code>. The developer script <code>keelway</code> does not have a <code>serve</code> subcommand. The container entrypoint starts this process and does not include Studio.</p>
+          <h3 style="margin-top: 14px;">For teams</h3>
+          <p>A separate process, port 8000, that enforces approvals and keeps the audit record for everyone on a team.</p>
           <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--amber);">$ make serve</div>
         </article>
         <article class="card feat">
-          <span class="pill muted">Static site</span>
-          <h3 style="margin-top: 14px;">website/ only</h3>
-          <p>You are reading files from <code>website/</code>. <code>vercel.json</code> publishes that directory with empty install and build commands. The synthesizer on this page fills a file list in the browser. It does not call <code>cli.py</code>.</p>
+          <span class="pill muted">This website</span>
+          <h3 style="margin-top: 14px;">Docs and install only</h3>
+          <p>Static — reading this page doesn't start, configure, or touch anything running on your machine.</p>
           <div class="mono" style="font-size: 12px; margin-top: 16px; color: var(--muted);">$ python3 cli.py build templates</div>
         </article>
       </div>
@@ -269,7 +266,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
       <div style="margin-bottom: 32px;">
         <span class="pill teal" style="font-size: 11px; margin-bottom: 8px;">Commands from a clone</span>
         <h2 id="qs-h" style="margin-top: 6px;">Developer Quickstart &amp; Early Access</h2>
-        <p class="sub" style="margin-bottom: 0;">Install from a clone of <code>creova-gif/kora</code>. The directory name is <code>kora</code>. These steps do not use a PyPI package named keelway, and they do not use a keelway.dev installer.</p>
+        <p class="sub" style="margin-bottom: 0;">Install from a clone of <code>creova-gif/kora</code> — no package registry, nothing to install from a site.</p>
       </div>
 
       <div class="grid two" style="gap: 24px; align-items: stretch;">
@@ -281,7 +278,7 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
               <span class="pill muted mono">Git clone</span>
             </div>
             <h3 style="font-size: 20px; margin: 0 0 8px;">Run from a clone</h3>
-            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">The editable install registers <code>keelway</code> (this is <code>cli.py</code>) and <code>keelway-core</code> (this is <code>keelway.cli.main</code>). Until that install exists, use the <code>python3</code> commands below from the repository root.</p>
+            <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Clone it, install it editable, and run the commands below from the repo root.</p>
             
             <div class="card term" style="margin-bottom: 16px; border: 1px solid var(--line);">
               <div class="bar">
@@ -314,7 +311,6 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           </div>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <a class="btn primary" href="docs.html" style="flex: 1; justify-content: center;">Explore Documentation</a>
-            <a class="btn" href="#playground" style="flex: 1; justify-content: center;">Try Live Proofs</a>
           </div>
         </div>
 
@@ -328,56 +324,14 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
             <p style="font-size: 14px; color: var(--muted); margin: 0 0 16px;">Hosted sync, team workspaces, and customer-owned VPC runner fleets for teams that need more than the local-first install.</p>
 
             <ul style="list-style: none; padding: 0; margin: 0 0 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 10px;">
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Customer Outbound VPC Runners:</strong> Zero inbound firewall ports, outbound HTTPS polling with HMAC-SHA256 tokens.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Team Workspaces &amp; Multi-Agent DAGs:</strong> Collaborative review queues, agent registry, and instant kill-switches.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Tier 2 Hardware Security HAL:</strong> Dual-WORM compliance storage, TPM 2.0 PCR measured boot, and 2-of-3 Shamir recovery.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Enterprise Merkle Audit &amp; SOC 2:</strong> Tamper-evident evidence export with cryptographic provenance.</span></li>
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Your own VPC runner:</strong> the agent runs inside infrastructure you control.</span></li>
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Team workspaces:</strong> shared review queues and an agent registry for multi-agent work.</span></li>
+              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--teal); font-weight: 700;">✓</span> <span><strong>Audit export:</strong> tamper-evident records you can hand to a reviewer or auditor.</span></li>
             </ul>
           </div>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <a class="btn primary" href="#early-access" style="flex: 1; justify-content: center;">Request Early Access</a>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- INTERACTIVE PLAYGROUND / TERMINAL SIMULATOR -->
-  <section id="playground" aria-labelledby="play-h">
-    <div class="wrap">
-      <h2 id="play-h">Command labels</h2>
-      <p class="sub">The tabs below are labels. The page does not execute them and does not show a test result. From a clone, <code>python3 cli.py --help</code> lists the developer CLI and <code>python3 -m keelway.cli.main --help</code> lists the governance CLI.</p>
-
-      <div class="card" style="padding: 24px;">
-        <div class="stepper-nav" role="tablist" aria-label="Terminal commands">
-          <button type="button" class="term-tab-btn stepper-btn active" data-cmd="evidence" role="tab" aria-selected="true">keelway evidence</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="bench" role="tab" aria-selected="false">keelway bench</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="m1" role="tab" aria-selected="false">keelway m1</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="sbom" role="tab" aria-selected="false">keelway sbom verify</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="spec" role="tab" aria-selected="false">python3 cli.py spec</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="entitlements" role="tab" aria-selected="false">keelway entitlements</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="tier2" role="tab" aria-selected="false">keelway tier2</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="doctor" role="tab" aria-selected="false">keelway doctor</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="mobile" role="tab" aria-selected="false">keelway mobile pair</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="sync" role="tab" aria-selected="false">keelway sync demo</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="skill" role="tab" aria-selected="false">keelway skill list</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="brain" role="tab" aria-selected="false">keelway brain query</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="flow" role="tab" aria-selected="false">keelway flow run</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="cost" role="tab" aria-selected="false">keelway cost</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="code" role="tab" aria-selected="false">keelway code refs</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="pack" role="tab" aria-selected="false">keelway agent pack</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="hubpack" role="tab" aria-selected="false">keelway hub pack</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="conflict" role="tab" aria-selected="false">keelway space conflict</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="spool" role="tab" aria-selected="false">keelway runner spool</button>
-          <button type="button" class="term-tab-btn stepper-btn" data-cmd="speculative" role="tab" aria-selected="false">python3 cli.py models bench-speculative</button>
-        </div>
-
-        <div class="card term" style="border: 1px solid var(--line); border-radius: 8px; margin-top: 12px;">
-          <div class="bar">
-            <span class="mono" id="term-active-prompt">python3 cli.py evidence --help</span>
-            <span class="pill muted" style="padding: 2px 8px; font-size: 11px;">Label only</span>
-          </div>
-          <pre class="mono" id="term-playground-output" style="max-height: 440px; overflow-y: auto; color: var(--fg);"></pre>
         </div>
       </div>
     </div>
@@ -398,10 +352,10 @@ Governance CLI help: python3 -m keelway.cli.main runner --help</pre>
           <div class="form-row">
             <label class="form-label" for="interest">Primary Interest</label>
             <select id="interest" class="form-input">
-              <option value="local">Local-First Desktop IDE (Keelway Studio)</option>
-              <option value="agent">AgentSpec v1 &amp; Declarative Agent Builder</option>
-              <option value="team">Team Workspaces &amp; Multi-Agent Coordination</option>
-              <option value="vpc">Enterprise Outbound VPC Runner Fleets</option>
+              <option value="local">Local desktop IDE (Studio)</option>
+              <option value="agent">Building reusable agents</option>
+              <option value="team">Team workspaces</option>
+              <option value="vpc">Running in my own VPC</option>
             </select>
           </div>
           <div class="form-row" style="display: flex; align-items: flex-start; gap: 8px;">
@@ -485,50 +439,6 @@ document.querySelectorAll(".stepper-btn[data-step]").forEach(function (btn) {
     });
   });
 });
-
-// Interactive Sovereign Terminal Playground
-var TERM_LABELS = {
-  evidence: "python3 cli.py evidence --help",
-  bench: "python3 cli.py bench --help",
-  m1: "python3 cli.py m1 --help",
-  sbom: "python3 cli.py sbom --help",
-  spec: "python3 cli.py spec --help",
-  entitlements: "python3 cli.py entitlements --help",
-  tier2: "python3 cli.py tier2 --help",
-  doctor: "python3 cli.py doctor --help",
-  mobile: "python3 cli.py mobile --help",
-  sync: "python3 cli.py sync --help",
-  skill: "python3 cli.py skill --help",
-  brain: "python3 cli.py brain --help",
-  flow: "python3 cli.py flow --help",
-  cost: "python3 cli.py cost --help",
-  code: "python3 cli.py code --help",
-  pack: "python3 cli.py agent --help",
-  hubpack: "python3 cli.py hub --help",
-  conflict: "python3 cli.py space --help",
-  spool: "python3 cli.py runner --help",
-  speculative: "python3 cli.py models bench-speculative --help"
-};
-
-function renderTermPlayground(cmdKey) {
-  var label = TERM_LABELS[cmdKey] || "python3 cli.py --help";
-  var promptEl = document.getElementById("term-active-prompt");
-  var outEl = document.getElementById("term-playground-output");
-  if (promptEl) promptEl.textContent = label;
-  if (outEl) outEl.textContent = "Label only. This page does not run the command and does not show a result.\n" + label;
-}
-
-document.querySelectorAll(".term-tab-btn").forEach(function (btn) {
-  btn.addEventListener("click", function () {
-    document.querySelectorAll(".term-tab-btn").forEach(function (b) { b.classList.remove("active"); b.setAttribute("aria-selected", "false"); });
-    btn.classList.add("active");
-    btn.setAttribute("aria-selected", "true");
-    renderTermPlayground(btn.getAttribute("data-cmd"));
-  });
-});
-
-// Initial render
-renderTermPlayground("evidence");
 
 
 // Model Privacy Switcher

@@ -36,10 +36,10 @@ module.exports = async (req, res) => {
   }
 
   const interestLabels = {
-    local: 'Local-First Desktop IDE (Keelway Studio)',
-    agent: 'AgentSpec v1 & Declarative Agent Builder',
-    team: 'Team Workspaces & Multi-Agent Coordination',
-    vpc: 'Enterprise Outbound VPC Runner Fleets',
+    local: 'Local desktop IDE (Studio)',
+    agent: 'Building reusable agents',
+    team: 'Team workspaces',
+    vpc: 'Running in my own VPC',
   };
 
   const issueBody = [
