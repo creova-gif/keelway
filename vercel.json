@@ -6,6 +6,8 @@
   "outputDirectory": "website",
   "cleanUrls": true,
   "functions": {
-    "api/early-access.js": {}
+    "api/early-access.js": {
+      "maxDuration": 10
+    }
   }
 }
