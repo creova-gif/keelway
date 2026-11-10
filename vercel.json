@@ -4,5 +4,8 @@
   "installCommand": "",
   "buildCommand": "",
   "outputDirectory": "website",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "functions": {
+    "api/early-access.js": {}
+  }
 }
