@@ -3,24 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Keelway — Sovereign Cross-Machine Sync Console</title>
+  <title>Keelway — Hybrid AI Intelligence Engine &amp; Developer Console</title>
   <style>
     :root {
-      --bg: #0c0e14;
-      --card: #151822;
-      --border: #232838;
-      --fg: #e2e8f0;
-      --muted: #8492a6;
-      --accent: #38bdf8;
-      --ok: #34d399;
-      --warn: #fbbf24;
-      --err: #f87171;
+      --bg: #0B0F14;
+      --card: #111821;
+      --card-hover: #151F2C;
+      --border: #1E293B;
+      --border-focus: #2DD4BF;
+      --fg: #F1F5F9;
+      --muted: #94A3B8;
+      --accent: #2DD4BF; /* Keelway Teal */
+      --amber: #F5B547;  /* Keelway Amber */
+      --ok: #10B981;
+      --warn: #F59E0B;
+      --err: #EF4444;
+      --open-weight: #2DD4BF;
+      --closed-prop: #F5B547;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
       line-height: 1.5;
       padding: 24px;
@@ -31,151 +36,515 @@
       align-items: center;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
-    .brand { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
-    .brand span { color: var(--accent); }
+    .brand { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+    .brand span.accent { color: var(--accent); }
+    .brand span.sub { font-size: 11px; font-weight: 500; color: var(--muted); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .nav-tab {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .nav-tab:hover { border-color: var(--accent); color: var(--fg); }
+    .nav-tab.active { background: var(--card); border-color: var(--accent); color: var(--accent); }
     .pill {
       font-size: 11px;
       padding: 3px 10px;
       border-radius: 9999px;
       border: 1px solid var(--border);
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", monospace;
     }
     .pill.ok { border-color: var(--ok); color: var(--ok); }
     .pill.accent { border-color: var(--accent); color: var(--accent); }
+    .pill.amber { border-color: var(--amber); color: var(--amber); }
+    .pill.open-weight { background: rgba(45, 212, 191, 0.12); border-color: var(--open-weight); color: var(--open-weight); font-weight: 700; }
+    .pill.closed-prop { background: rgba(245, 181, 71, 0.12); border-color: var(--closed-prop); color: var(--closed-prop); font-weight: 700; }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px;
+      padding: 18px;
     }
     .card h3 {
-      font-size: 13px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--muted);
       margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
-    .metric { font-size: 24px; font-weight: 700; font-family: monospace; color: var(--accent); }
-    .metric-sub { font-size: 11px; color: var(--muted); }
-    table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
-    th { text-align: left; padding: 8px; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 11px; }
-    td { padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .metric { font-size: 26px; font-weight: 800; font-family: ui-monospace, monospace; color: var(--accent); }
+    .metric.amber { color: var(--amber); }
+    .metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 12px; }
+    th { text-align: left; padding: 10px 8px; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 11px; }
+    td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
     button {
       background: var(--card);
       border: 1px solid var(--border);
       color: var(--fg);
-      padding: 6px 14px;
+      padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 12px;
-      font-family: monospace;
+      font-weight: 600;
       transition: all 0.15s ease;
     }
     button:hover { border-color: var(--accent); color: var(--accent); }
-    button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+    button.primary:hover { background: #22a897; }
     pre {
-      background: #08090d;
+      background: #070A0E;
       border: 1px solid var(--border);
-      padding: 12px;
+      padding: 14px;
       border-radius: 6px;
       overflow-x: auto;
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", monospace;
       font-size: 11px;
-      color: var(--muted);
-      max-height: 240px;
+      color: #CBD5E1;
+      max-height: 280px;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
+    select, input, textarea {
+      width: 100%;
+      background: #070A0E;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 13px;
+    }
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+    .model-card {
+      background: #0E141B;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .model-card:hover { border-color: var(--accent); background: var(--card-hover); }
+    .model-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .model-name { font-size: 14px; font-weight: 700; font-family: ui-monospace, monospace; }
+    .telemetry-row { display: flex; gap: 16px; margin-top: 10px; font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+    .telemetry-row span b { color: var(--fg); }
   </style>
 </head>
 <body>
   <div class="header">
     <div>
-      <div class="brand">KEELWAY <span>SYNC</span></div>
-      <div style="font-size: 12px; color: var(--muted);">Cross-Machine Encrypted Task Synchronization &amp; Team Console</div>
+      <div class="brand">
+        KEELWAY <span class="accent">INTELLIGENCE</span>
+        <span class="sub">HYBRID MODEL ENGINE</span>
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Model-Agnostic Sovereign AI • Open-Weight &amp; Closed Runtimes • Local-First Cost Arbitrage</div>
     </div>
-    <div style="display: flex; gap: 8px;">
-      <span class="pill ok">End-to-End Encrypted</span>
-      <span class="pill accent">Monotonic Vector Clock</span>
-      <span class="pill" id="node-id-pill">Node: local</span>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="pill open-weight">Open-Weight: Active</span>
+      <span class="pill closed-prop">Closed: Integrated</span>
+      <span class="pill ok">Air-Gap Protected</span>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h3>Local Node State</h3>
-      <div class="metric" id="lamport-clock">0</div>
-      <div class="metric-sub">Monotonic Logical Time (Lamport Counter)</div>
-      <div style="margin-top: 12px; font-family: monospace; font-size: 11px;">
-        <div>Machine: <span id="machine-id" style="color: var(--accent);">-</span></div>
-        <div>Org ID: <span id="org-id" style="color: var(--fg);">-</span></div>
-        <div>Journal Entries: <span id="journal-count" style="color: var(--ok);">-</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-playground">Hybrid AI Playground &amp; Catalog</button>
+    <button class="nav-tab" id="tab-sync">Cross-Machine Sync Console</button>
+  </div>
+
+  <!-- SECTION 1: HYBRID AI ENGINE & PLAYGROUND -->
+  <div id="view-playground">
+    <!-- Telemetry Cards -->
+    <div class="grid">
+      <div class="card">
+        <h3>Sovereign Efficiency Index</h3>
+        <div class="metric" id="metric-sei">100.0</div>
+        <div class="metric-sub">Autonomy, Cost Arbitrage &amp; Latency Composite Score</div>
+      </div>
+      <div class="card">
+        <h3>Local Inference Ratio</h3>
+        <div class="metric" id="metric-local-ratio">100.0%</div>
+        <div class="metric-sub" id="metric-counts">0 local / 0 cloud inferences</div>
+      </div>
+      <div class="card">
+        <h3>Quantified Cloud Savings</h3>
+        <div class="metric" id="metric-savings">$0.00</div>
+        <div class="metric-sub">Capital preserved vs commercial frontier models</div>
+      </div>
+      <div class="card">
+        <h3>External Cloud Spend</h3>
+        <div class="metric amber" id="metric-spend">$0.00</div>
+        <div class="metric-sub">Commercial API expenditure</div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Vector Clocks (Peer Mesh)</h3>
-      <pre id="vector-clocks">{"local": 0}</pre>
+    <!-- Playground Form & Response Area -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+      <div class="card">
+        <h3>
+          <span>Interactive Hybrid Prompt Bench</span>
+          <span class="pill accent" id="route-indicator">local-first: $0.00</span>
+        </h3>
+        <div class="form-group">
+          <label>Target Model (Unified Discovery)</label>
+          <select id="model-select">
+            <option value="qwen2.5-coder:7b">qwen2.5-coder:7b (Open-Weight • Local)</option>
+            <option value="gpt-4o">gpt-4o (Closed • Commercial Cloud)</option>
+          </select>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label>Privacy Containment</label>
+            <select id="privacy-select">
+              <option value="standard">Standard (Cost-Arbitraged Fallback)</option>
+              <option value="sensitive">Sensitive (Local Preferred)</option>
+              <option value="private">Private (Zero Cloud Egress • Hard Invariant)</option>
+            </select>
+          </div>
+          <div>
+            <label>Stream Mode</label>
+            <select id="stream-select">
+              <option value="false">Non-Streaming (JSON payload)</option>
+              <option value="true">Streaming (SSE chunks)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>User Prompt</label>
+          <textarea id="prompt-input" rows="4" placeholder="Enter engineering request, e.g. 'Write a Python function to validate JWT tokens without external dependencies'...">Write a Python function to compute SHA-256 digests.</textarea>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="primary" id="btn-submit-inference">Run Inference</button>
+          <button id="btn-refresh-catalog">Refresh Registry</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>
+          <span>Live Response &amp; Flight Telemetry</span>
+          <span id="response-status" class="pill ok">Idle</span>
+        </h3>
+        <pre id="inference-output">// Response and execution telemetry will render here...</pre>
+        <div class="telemetry-row">
+          <span>Latency: <b id="t-latency">-</b></span>
+          <span>Tokens: <b id="t-tokens">-</b></span>
+          <span>Cost: <b id="t-cost">$0.00</b></span>
+          <span>Provider: <b id="t-provider">-</b></span>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h3>Synchronized Machine Peers</h3>
-      <div id="peer-list" style="font-family: monospace; font-size: 12px; color: var(--muted);">No external peers synced yet. Export or import an encrypted sync envelope to exchange state.</div>
+    <!-- Centralized Model Registry Cards -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h3>
+        <span>Centralized Model Registry (Open-Weight &amp; Closed)</span>
+        <span style="font-size: 11px; text-transform: none; color: var(--accent);">GET /v1/models</span>
+      </h3>
+      <div id="models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 10px;">
+        <div style="color: var(--muted); font-family: monospace;">Loading model catalog...</div>
+      </div>
     </div>
   </div>
 
-  <div class="card" style="margin-bottom: 24px;">
-    <h3>
-      <span>Encrypted Transmission Envelope Actions</span>
-      <span style="font-size: 11px; text-transform: none; color: var(--ok);">AES-256-CTR + HMAC-SHA256 Encrypt-then-MAC</span>
-    </h3>
-    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-      <button class="primary" id="btn-refresh">Refresh Sync State</button>
-      <button id="btn-export">Export Encrypted Envelope</button>
-      <button id="btn-demo">Simulate Cross-Machine Peer</button>
-    </div>
-    <pre id="output-log">// Ready for peer state synchronization...</pre>
-  </div>
+  <!-- SECTION 2: CROSS-MACHINE SYNC CONSOLE -->
+  <div id="view-sync" style="display: none;">
+    <div class="grid">
+      <div class="card">
+        <h3>Local Node State</h3>
+        <div class="metric" id="lamport-clock">0</div>
+        <div class="metric-sub">Monotonic Logical Time (Lamport Counter)</div>
+        <div style="margin-top: 12px; font-family: monospace; font-size: 11px;">
+          <div>Machine: <span id="machine-id" style="color: var(--accent);">-</span></div>
+          <div>Org ID: <span id="org-id" style="color: var(--fg);">-</span></div>
+          <div>Journal Entries: <span id="journal-count" style="color: var(--ok);">-</span></div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h3>Synchronized State Journal (Append-Only Audit Chain)</h3>
-    <table id="records-table">
-      <thead>
-        <tr>
-          <th>Time (UTC)</th>
-          <th>Machine ID</th>
-          <th>Task ID</th>
-          <th>Entity Type</th>
-          <th>Lamport #</th>
-          <th>Payload Digest</th>
-        </tr>
-      </thead>
-      <tbody id="records-tbody">
-        <tr><td colspan="6" style="color: var(--muted); text-align: center;">No sync records recorded yet.</td></tr>
-      </tbody>
-    </table>
+      <div class="card">
+        <h3>Vector Clocks (Peer Mesh)</h3>
+        <pre id="vector-clocks">{"local": 0}</pre>
+      </div>
+
+      <div class="card">
+        <h3>Synchronized Machine Peers</h3>
+        <div id="peer-list" style="font-family: monospace; font-size: 12px; color: var(--muted);">No external peers synced yet. Export or import an encrypted sync envelope to exchange state.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px;">
+      <h3>
+        <span>Encrypted Transmission Envelope Actions</span>
+        <span style="font-size: 11px; text-transform: none; color: var(--ok);">AES-256-CTR + HMAC-SHA256 Encrypt-then-MAC</span>
+      </h3>
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="primary" id="btn-refresh">Refresh Sync State</button>
+        <button id="btn-export">Export Encrypted Envelope</button>
+        <button id="btn-demo">Simulate Cross-Machine Peer</button>
+      </div>
+      <pre id="output-log">// Ready for peer state synchronization...</pre>
+    </div>
+
+    <div class="card">
+      <h3>Synchronized State Journal (Append-Only Audit Chain)</h3>
+      <table id="records-table">
+        <thead>
+          <tr>
+            <th>Time (UTC)</th>
+            <th>Machine ID</th>
+            <th>Task ID</th>
+            <th>Entity Type</th>
+            <th>Lamport #</th>
+            <th>Payload Digest</th>
+          </tr>
+        </thead>
+        <tbody id="records-tbody">
+          <tr><td colspan="6" style="color: var(--muted); text-align: center;">No sync records recorded yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <script>
     async function api(path, options = {}) {
       const res = await fetch(path, options);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+      }
       return await res.json();
     }
 
+    // Tab Switching
+    const tabPlayground = document.getElementById('tab-playground');
+    const tabSync = document.getElementById('tab-sync');
+    const viewPlayground = document.getElementById('view-playground');
+    const viewSync = document.getElementById('view-sync');
+
+    tabPlayground.addEventListener('click', () => {
+      tabPlayground.classList.add('active');
+      tabSync.classList.remove('active');
+      viewPlayground.style.display = 'block';
+      viewSync.style.display = 'none';
+    });
+
+    tabSync.addEventListener('click', () => {
+      tabSync.classList.add('active');
+      tabPlayground.classList.remove('active');
+      viewSync.style.display = 'block';
+      viewPlayground.style.display = 'none';
+      loadSyncState();
+      loadRecords();
+    });
+
+    // Model Catalog Loader
+    async function loadCatalog() {
+      try {
+        const data = await api('/v1/models');
+        const select = document.getElementById('model-select');
+        const grid = document.getElementById('models-grid');
+        select.innerHTML = '';
+        grid.innerHTML = '';
+
+        if (!data.data || data.data.length === 0) {
+          grid.innerHTML = '<div style="color: var(--muted);">No models discovered.</div>';
+          return;
+        }
+
+        data.data.forEach(m => {
+          // Add to select
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = `${m.id} (${m.category === 'open_weight' ? 'Open-Weight' : 'Closed'} • ${m.owned_by})`;
+          select.appendChild(opt);
+
+          // Add Card
+          const card = document.createElement('div');
+          card.className = 'model-card';
+          const isOw = m.category === 'open_weight';
+          const badgeClass = isOw ? 'open-weight' : 'closed-prop';
+          const badgeText = isOw ? 'OPEN-WEIGHT' : 'CLOSED PROPRIETARY';
+          const costText = isOw ? '$0.00 / MTok' : `$${m.pricing.input_usd_per_mtok} in / $${m.pricing.output_usd_per_mtok} out`;
+
+          card.innerHTML = `
+            <div class="model-card-header">
+              <div class="model-name">${m.id}</div>
+              <span class="pill ${badgeClass}">${badgeText}</span>
+            </div>
+            <div style="font-size: 11px; color: var(--muted);">${m.name} • Family: ${m.family}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+              <span class="pill">${m.context_window.toLocaleString()} ctx</span>
+              <span class="pill">${m.deployment}</span>
+              <span class="pill ${isOw ? 'ok' : 'amber'}">${costText}</span>
+            </div>
+            <div style="font-size: 10px; color: var(--muted); margin-top: 4px;">
+              Capabilities: ${m.capabilities.join(', ')}
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        console.error("Failed to load catalog:", e);
+      }
+    }
+
+    // Telemetry & Economics Loader
+    async function loadUsage() {
+      try {
+        const data = await api('/v1/usage');
+        if (data.sovereign_efficiency_index !== undefined) {
+          document.getElementById('metric-sei').textContent = data.sovereign_efficiency_index.toFixed(1);
+        }
+        if (data.local_inference_ratio !== undefined) {
+          document.getElementById('metric-local-ratio').textContent = (data.local_inference_ratio * 100).toFixed(1) + '%';
+          document.getElementById('metric-counts').textContent = `${data.local_inferences || 0} local / ${data.cloud_inferences || 0} cloud inferences`;
+        }
+        if (data.quantified_local_savings_usd !== undefined) {
+          document.getElementById('metric-savings').textContent = `$${data.quantified_local_savings_usd.toFixed(2)}`;
+        }
+        if (data.billed_cloud_expenditure_usd !== undefined) {
+          document.getElementById('metric-spend').textContent = `$${data.billed_cloud_expenditure_usd.toFixed(4)}`;
+        }
+      } catch (e) {
+        console.warn("Usage data unavailable:", e);
+      }
+    }
+
+    // Inference Runner
+    document.getElementById('btn-submit-inference').addEventListener('click', async () => {
+      const model = document.getElementById('model-select').value;
+      const privacy = document.getElementById('privacy-select').value;
+      const stream = document.getElementById('stream-select').value === 'true';
+      const prompt = document.getElementById('prompt-input').value.trim();
+      const outputEl = document.getElementById('inference-output');
+      const statusEl = document.getElementById('response-status');
+
+      if (!prompt) return;
+
+      statusEl.textContent = 'Executing...';
+      statusEl.className = 'pill accent';
+      outputEl.textContent = '// Dispatching request to Keelway Engine...';
+
+      const payload = {
+        model: model,
+        messages: [{ role: 'user', content: prompt }],
+        privacy_level: privacy,
+        stream: stream,
+        temperature: 0.2,
+      };
+
+      const t0 = performance.now();
+
+      if (!stream) {
+        try {
+          const res = await fetch('/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          const latency = (performance.now() - t0).toFixed(1);
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const content = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : JSON.stringify(data);
+          outputEl.textContent = content;
+
+          document.getElementById('t-latency').textContent = `${latency} ms`;
+          document.getElementById('t-tokens').textContent = `${data.usage?.total_tokens || '-'}`;
+          document.getElementById('t-provider').textContent = data.model || model;
+          statusEl.textContent = 'Completed (200 OK)';
+          statusEl.className = 'pill ok';
+          loadUsage();
+        } catch (e) {
+          outputEl.textContent = `[!] Inference Failed: ${e.message}`;
+          statusEl.textContent = 'Failed';
+          statusEl.className = 'pill';
+          statusEl.style.borderColor = 'var(--err)';
+          statusEl.style.color = 'var(--err)';
+        }
+      } else {
+        try {
+          const res = await fetch('/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          outputEl.textContent = '';
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let done = false;
+          let totalText = '';
+
+          while (!done) {
+            const { value, done: doneReading } = await reader.read();
+            done = doneReading;
+            const chunkValue = decoder.decode(value, { stream: true });
+            const lines = chunkValue.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const dataStr = line.slice(6).trim();
+                if (dataStr === '[DONE]') break;
+                try {
+                  const parsed = JSON.parse(dataStr);
+                  const delta = parsed.choices?.[0]?.delta?.content || '';
+                  totalText += delta;
+                  outputEl.textContent = totalText;
+                } catch (parseErr) {}
+              }
+            }
+          }
+          const latency = (performance.now() - t0).toFixed(1);
+          document.getElementById('t-latency').textContent = `${latency} ms`;
+          document.getElementById('t-provider').textContent = model;
+          statusEl.textContent = 'Stream Done';
+          statusEl.className = 'pill ok';
+          loadUsage();
+        } catch (e) {
+          outputEl.textContent = `[!] Stream Error: ${e.message}`;
+          statusEl.textContent = 'Stream Failed';
+          statusEl.className = 'pill';
+        }
+      }
+    });
+
+    document.getElementById('btn-refresh-catalog').addEventListener('click', () => {
+      loadCatalog();
+      loadUsage();
+    });
+
+    // Sync functions
     async function loadSyncState() {
       try {
         const data = await api('/v1/sync/status');
         document.getElementById('machine-id').textContent = data.machine_id;
-        document.getElementById('node-id-pill').textContent = `Node: ${data.machine_id.slice(0, 16)}`;
         document.getElementById('org-id').textContent = data.org_id;
         document.getElementById('lamport-clock').textContent = data.lamport_counter;
         document.getElementById('journal-count').textContent = data.journal_records_total;
@@ -233,7 +602,6 @@
 
     document.getElementById('btn-demo').addEventListener('click', async () => {
       try {
-        // Record mutation first
         await api('/v1/sync/mutate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -251,8 +619,9 @@
       }
     });
 
-    loadSyncState();
-    loadRecords();
+    // Initial Load
+    loadCatalog();
+    loadUsage();
   </script>
 </body>
 </html>
