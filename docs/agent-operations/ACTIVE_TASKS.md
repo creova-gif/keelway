@@ -9,8 +9,8 @@
 
 | Task ID | Title | Category | Current Status | Assigned Agent | Last Updated | Branch |
 |---|---|---|---|---|---|---|
-| **KEEL-HYBRID-001** | Unified Hybrid Model Gateway & Inference API | `MODELS / API` | `READY_FOR_REVIEW` | Google Antigravity (Completed from prior Agent) | 2026-11-11 | `main` (Verified) |
-| **KEEL-ENG-001** | Repository-Native Universal Multi-Agent System | `ARCH / GOV` | `COMPLETED` | Google Antigravity | 2026-11-11 | `main` |
+| **KEEL-HYBRID-001** | Unified Hybrid Model Gateway & Inference API | `MODELS / API` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-11 | `main` (Verified) |
+| **KEEL-ENG-001** | Universal Multi-Agent System & CI Quality Gates | `ARCH / CI` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-11 | `main` |
 | **KEEL-SEC-002** | Linux Command Sandbox Bubblewrap CI Hardening | `SECURITY` | `QUEUED` | Unassigned | 2026-11-08 | `feature/KEEL-SEC-002-bwrap-ci` |
 | **KEEL-STUDIO-003** | Manifest Inspection Panel in Web Developer Studio | `UI / STUDIO` | `QUEUED` | Unassigned | 2026-11-08 | `feature/KEEL-STUDIO-003-manifest-view` |
 
