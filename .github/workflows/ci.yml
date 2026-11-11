@@ -28,7 +28,13 @@ jobs:
         run: ruff check .
       # Profile A only. A green result here is not live verification.
       # python -m tests.release_live_gate is the fail-closed release boundary.
-      - name: Run Test Suites
+      - name: Run Engineering Quality Gates
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
+          PYTHONPATH: .
+        run: ./scripts/verify_engineering_gates.sh
+
+      - name: Run Full Test Suites
         env:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
           PYTHONPATH: .
