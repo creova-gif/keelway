@@ -6,7 +6,9 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
+!sdk/typescript/dist/
+!sdk/typescript/dist/**
 downloads/
 eggs/
 .eggs/

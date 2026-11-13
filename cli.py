@@ -3901,6 +3901,9 @@ def build_parser() -> argparse.ArgumentParser:
     api_export.add_argument("--out", type=Path, default=Path("website/openapi.json"), help="Output path for openapi.json")
     api_export.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
 
+    from core.cli_ai import register_ai_subparsers
+    register_ai_subparsers(subparsers)
+
     return parser
 
 
@@ -3925,6 +3928,11 @@ def main(argv=None):
 
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    from core.cli_ai import dispatch_ai_command
+    ai_rc = dispatch_ai_command(args)
+    if ai_rc is not None:
+        sys.exit(ai_rc)
 
     if args.command == "init":
         sys.exit(

@@ -21,6 +21,8 @@ from core.models.adapters.gemini import GeminiAdapter
 from core.models.adapters.openai import OpenAIAdapter
 from core.models.adapters.open_weight import OpenWeightProviderAdapter
 from core.models.adapters.openai_provider import OpenAIProviderAdapter
+from core.models.adapters.anthropic_provider import AnthropicProviderAdapter
+from core.models.adapters.gemini_provider import GeminiProviderAdapter
 from core.models.registry import model_registry, ModelCategory
 from core.models.provider import (
     BaseModelProvider,
@@ -43,6 +45,7 @@ PRICE_PER_MTOK: Dict[Provider, Tuple[float, float]] = {
     Provider.ANTHROPIC: (3.0, 15.0),
     Provider.OPENAI: (2.50, 10.0),
     Provider.GOOGLE: (0.075, 0.30),
+    Provider.GEMINI: (0.075, 0.30),
     Provider.LOCAL: (0.0, 0.0),
 }
 FRONTIER_CAPABILITIES = {"complex_reasoning", "long_context", "vision"}
@@ -62,8 +65,9 @@ class ModelGateway:
             self.adapters = adapters
         else:
             self.adapters = {
-                Provider.ANTHROPIC: AnthropicAdapter(),
-                Provider.GOOGLE: GeminiAdapter(),
+                Provider.ANTHROPIC: AnthropicProviderAdapter(),
+                Provider.GOOGLE: GeminiProviderAdapter(),
+                Provider.GEMINI: GeminiProviderAdapter(),
                 Provider.OPENAI: OpenAIProviderAdapter(),
                 Provider.LOCAL: OpenWeightProviderAdapter(),
             }
@@ -92,6 +96,16 @@ class ModelGateway:
             meta = model_registry.get(req_model)
             if meta:
                 explicit_provider = meta.provider
+            else:
+                norm_model = req_model.lower().removeprefix("models/")
+                if norm_model.startswith(("gemini-", "gemma-4-")):
+                    explicit_provider = Provider.GEMINI
+                elif norm_model.startswith("claude-"):
+                    explicit_provider = Provider.ANTHROPIC
+                elif norm_model.startswith(("gpt-", "o1", "o3", "o4")):
+                    explicit_provider = Provider.OPENAI
+                elif norm_model.startswith(("keelway-", "qwen", "llama", "mistral", "deepseek")):
+                    explicit_provider = Provider.LOCAL
 
         needs_frontier = sorted(set(request.required_capabilities) & FRONTIER_CAPABILITIES)
         cloud = [p for p in self.adapters if p != Provider.LOCAL]
@@ -133,6 +147,15 @@ class ModelGateway:
     def resolve_provider_order(self, request: Any) -> List[Provider]:
         return self.explain_route(request)[0]
 
+    async def _provider_ready(self, provider: Provider, adapter: Any, request: Any) -> bool:
+        """Return True if adapter is ready or if request targets an in-process Keelway OpenCore model."""
+        if not adapter:
+            return False
+        req_model = getattr(request, "model", None) or ""
+        if provider == Provider.LOCAL and isinstance(adapter, OpenWeightProviderAdapter) and req_model.startswith("keelway-"):
+            return True
+        return await asyncio.to_thread(adapter.is_available)
+
     async def complete(self, request: CompletionRequestSchema) -> CompletionResponseSchema:
         """Execute request with automated failover across available providers after security sanitization."""
         # Security Guardrail Inspection & Sanitization
@@ -155,7 +178,7 @@ class ModelGateway:
                 continue
 
             adapter = self.adapters.get(provider)
-            if not adapter or not await asyncio.to_thread(adapter.is_available):
+            if not await self._provider_ready(provider, adapter, sanitized_request):
                 continue
 
             try:
@@ -212,7 +235,7 @@ class ModelGateway:
                 continue
 
             adapter = self.adapters.get(provider)
-            if not adapter or not await asyncio.to_thread(adapter.is_available):
+            if not await self._provider_ready(provider, adapter, sanitized_request):
                 continue
 
             try:
@@ -285,7 +308,7 @@ class ModelGateway:
             if self.air_gap.enabled and provider != Provider.LOCAL:
                 continue
             adapter = self.adapters.get(provider)
-            if adapter and await asyncio.to_thread(adapter.is_available):
+            if await self._provider_ready(provider, adapter, sanitized_request):
                 selected_provider = provider
                 selected_adapter = adapter
                 break

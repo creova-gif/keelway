@@ -1,7 +1,13 @@
 try:
     from .gateway import ModelGateway, gateway
     from .cost_ledger import CostLedger, LedgerEntry, cost_ledger
-    from .speculative import SpeculativeBenchmark, SpeculativeDecoder, SpeculativeResult
+    from .speculative import (
+        SpeculativeBenchmark,
+        SpeculativeConfig,
+        SpeculativeDecoder,
+        SpeculativeDecodingEngine,
+        SpeculativeResult,
+    )
     from .registry import (
         ModelRegistry,
         model_registry,
@@ -25,6 +31,8 @@ try:
     )
     from .adapters.open_weight import OpenWeightProviderAdapter
     from .adapters.openai_provider import OpenAIProviderAdapter
+    from .adapters.anthropic_provider import AnthropicProviderAdapter
+    from .adapters.gemini_provider import GeminiProviderAdapter
 
     __all__ = [
         "ModelGateway",
@@ -33,7 +41,9 @@ try:
         "LedgerEntry",
         "cost_ledger",
         "SpeculativeBenchmark",
+        "SpeculativeConfig",
         "SpeculativeDecoder",
+        "SpeculativeDecodingEngine",
         "SpeculativeResult",
         "ModelRegistry",
         "model_registry",
@@ -54,6 +64,8 @@ try:
         "ProviderTimeoutError",
         "OpenWeightProviderAdapter",
         "OpenAIProviderAdapter",
+        "AnthropicProviderAdapter",
+        "GeminiProviderAdapter",
     ]
 except ImportError:
     __all__ = []

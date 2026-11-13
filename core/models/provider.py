@@ -12,7 +12,7 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from typing import Any, AsyncIterator, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from core.api.schemas import Provider, MessageSchema
 from core.models.registry import ModelCategory
@@ -59,6 +59,8 @@ class ChatCompletionRequest(BaseModel):
     model: Optional[str] = Field(default=None, description="Explicit model tag (e.g. 'qwen2.5-coder:7b' or 'gpt-4o')")
     temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     max_tokens: int = Field(default=4096, ge=1, le=128000)
+    max_completion_tokens: Optional[int] = Field(default=None, ge=1, le=128000, description="OpenAI GPT-5/o-series alias for max_tokens")
+    response_format: Optional[Dict[str, Any]] = Field(default=None, description="OpenAI response_format, e.g. {'type': 'json_object'}")
     stream: bool = Field(default=False, description="Whether to stream completion via SSE")
     tools: Optional[List[Dict[str, Any]]] = Field(default=None, description="Optional tool/function definitions")
     preferred_provider: Optional[Provider] = Field(default=None, description="Specific provider preference")
@@ -67,6 +69,12 @@ class ChatCompletionRequest(BaseModel):
     required_capabilities: List[str] = Field(default_factory=list, description="Capabilities like 'code', 'vision', 'reasoning'")
     max_cost_usd: Optional[float] = Field(default=None, description="Budget cap in USD")
     max_latency_ms: Optional[int] = Field(default=None, description="Maximum acceptable latency")
+
+    @model_validator(mode="after")
+    def _sync_completion_token_alias(self) -> "ChatCompletionRequest":
+        if self.max_completion_tokens is not None and "max_tokens" not in self.model_fields_set:
+            self.max_tokens = self.max_completion_tokens
+        return self
 
 
 class StreamChunk(BaseModel):

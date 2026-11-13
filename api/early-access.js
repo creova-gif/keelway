@@ -1,7 +1,5 @@
-// Vercel serverless function: POST /api/early-access
-// Files each early-access request as a GitHub issue on this repo.
-// Requires an EARLY_ACCESS_GH_TOKEN env var (fine-grained PAT, Issues: write
-// only, scoped to creova-gif/kora) set in the Vercel project settings.
+// Vercel serverless function fallback: POST /api/early-access
+// Kept in sync with website/src/app/api/early-access/route.ts
 
 const REPO_OWNER = 'creova-gif';
 const REPO_NAME = 'kora';
@@ -24,6 +22,8 @@ module.exports = async (req, res) => {
   }
   const email = typeof body?.email === 'string' ? body.email.trim() : '';
   const interest = typeof body?.interest === 'string' ? body.interest.trim() : 'unspecified';
+  const role = typeof body?.role === 'string' ? body.role.trim() : 'unspecified';
+  const region = typeof body?.region === 'string' ? body.region.trim() : 'global';
 
   if (!EMAIL_RE.test(email)) {
     return json(res, 400, { ok: false, error: 'a valid work email is required' });
@@ -36,15 +36,25 @@ module.exports = async (req, res) => {
   }
 
   const interestLabels = {
-    local: 'Local desktop IDE (Studio)',
-    agent: 'Building reusable agents',
-    team: 'Team workspaces',
-    vpc: 'Running in my own VPC',
+    hybrid_routing: 'Hybrid OpenCore + Frontier API Routing',
+    local: 'Local desktop IDE & OpenCore Weights',
+    agent: 'Approval-Gated Autonomous Agents',
+    team: 'Team Governance & Spend Caps',
+    vpc: 'Dedicated Customer-Owned VPC Fleet',
+  };
+
+  const roleLabels = {
+    ai_engineer: 'AI / Platform Engineer',
+    cto_vp: 'CTO / VP of Engineering',
+    security_lead: 'Security & Governance Architect',
+    ml_researcher: 'Applied ML / OpenCore Researcher',
   };
 
   const issueBody = [
     `**Email:** ${email}`,
-    `**Primary interest:** ${interestLabels[interest] || interest}`,
+    `**Role:** ${roleLabels[role] || role}`,
+    `**Primary workload:** ${interestLabels[interest] || interest}`,
+    `**Deployment region:** ${region.toUpperCase()}`,
     `**Submitted:** ${new Date().toISOString()}`,
     '',
     '_Filed automatically from the Request Early Access form on the marketing site._',
@@ -62,7 +72,7 @@ module.exports = async (req, res) => {
           'User-Agent': 'keelway-early-access-intake',
         },
         body: JSON.stringify({
-          title: `Early access: ${email}`,
+          title: `Early access: ${email} (${region.toUpperCase()})`,
           body: issueBody,
           labels: [LABEL],
         }),

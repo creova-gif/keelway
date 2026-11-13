@@ -48,7 +48,7 @@ const STRINGS = {
   zh: { search: '搜索文件、符号和命令', signOut: '退出', explorer: '资源管理器', changes: '更改', tasks: '任务', memory: '记忆', save: '保存', tagline: '本地优先 · 确定性 · 属于你', welcomeTitle: '与从不离开你电脑的智能体一起构建。', welcomeBody: '每一步都被记录、可重放、可审计。', start: '开始', signIn: '登录', signInTitle: '登录 Keelway', next: '下一步', done: '开始使用', skipTour: '跳过', airOn: '已隔离', airOff: '允许云端', activity: '活动', allow: '允许', deny: '拒绝', openFile: '打开文件', giveGoal: '给智能体一个目标', reviewChanges: '查看更改' },
 };
 const MORE = {
-  en: { files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed', allowAlways: 'Allow always…', alwaysScope: 'Scope', alwaysConfirm: 'Allow and remember', cancel: 'Cancel', alwaysHelpPath: 'Future {tool} requests for paths matching this pattern run without asking, in this workspace only. * matches within one folder, ** spans folders.', alwaysHelpCmd: 'Future runs of exactly this command run without asking, in this workspace only.', rulesTitle: 'Standing approvals', rulesHint: 'Only for "Ask before changes" runs. Keelway and git internals always ask.', noRules: 'None yet. Every change asks first.', revoke: 'Revoke', ruleSaved: 'Standing approval saved', autoApproved: 'Allowed by standing approval', scopeRequired: 'Enter a file pattern or command to remember.' },
+  en: { manifests: 'Manifests', files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed', allowAlways: 'Allow always…', alwaysScope: 'Scope', alwaysConfirm: 'Allow and remember', cancel: 'Cancel', alwaysHelpPath: 'Future {tool} requests for paths matching this pattern run without asking, in this workspace only. * matches within one folder, ** spans folders.', alwaysHelpCmd: 'Future runs of exactly this command run without asking, in this workspace only.', rulesTitle: 'Standing approvals', rulesHint: 'Only for "Ask before changes" runs. Keelway and git internals always ask.', noRules: 'None yet. Every change asks first.', revoke: 'Revoke', ruleSaved: 'Standing approval saved', autoApproved: 'Allowed by standing approval', scopeRequired: 'Enter a file pattern or command to remember.' },
   es: { allowAlways: 'Permitir siempre…', rulesTitle: 'Aprobaciones permanentes', revoke: 'Revocar', files: 'Archivos', record: 'Registro', runs: 'Ejecuciones', backlog: 'Pendientes', needsApproval: 'Requiere aprobación', allowOnce: 'Permitir una vez', composerPh: 'Pide a Keelway que cambie algo…', newTask: 'Nueva tarea', recordBody: 'Cada paso y decisión, sellados y reproducibles.', labsBody: 'Experimentos. Lo marcado como Simulado nunca toca sistemas ni dinero reales.', simulated: 'Simulado' },
   fr: { allowAlways: 'Toujours autoriser…', rulesTitle: 'Autorisations permanentes', revoke: 'Révoquer', files: 'Fichiers', record: 'Registre', runs: 'Exécutions', backlog: 'À faire', needsApproval: 'Approbation requise', allowOnce: 'Autoriser une fois', composerPh: 'Demandez à Keelway de modifier quelque chose…', newTask: 'Nouvelle tâche', recordBody: 'Chaque étape et décision, scellées et rejouables.', labsBody: 'Expériences. Ce qui est marqué Simulé ne touche jamais de vrais systèmes ni d’argent.', simulated: 'Simulé' },
   pt: { allowAlways: 'Permitir sempre…', rulesTitle: 'Aprovações permanentes', revoke: 'Revogar', files: 'Arquivos', record: 'Registro', runs: 'Execuções', backlog: 'Pendências', needsApproval: 'Requer aprovação', allowOnce: 'Permitir uma vez', composerPh: 'Peça ao Keelway para mudar algo…', newTask: 'Nova tarefa', recordBody: 'Cada passo e decisão, selados e reproduzíveis.', labsBody: 'Experimentos. O que está marcado como Simulado nunca toca sistemas ou dinheiro reais.', simulated: 'Simulado' },
@@ -160,7 +160,7 @@ async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-const state = { me: null, status: null, tabs: [], active: null, models: {}, buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', section: 'tasks', runs: [], agentState: null, lastPending: null, agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0 };
+const state = { me: null, status: null, tabs: [], active: null, models: {}, buffers: {}, dirty: new Set(), mode: 'editor', diff: null, panel: 'console', view: 'explorer', section: 'tasks', runs: [], agentState: null, lastPending: null, agentTask: null, tapes: [], tape: null, tapeId: null, cursor: 0, ws: null, wsRetry: 0, manifests: [], selectedManifestUid: null, signingKeyPresent: false };
 
 const signInOpen = () => !$('signin').classList.contains('hidden');
 function showSignIn(message) {
@@ -210,6 +210,9 @@ async function loadStatus() {
     $('git-branch').textContent = s.git.branch || '—';
     $('sb-branch').textContent = s.git.branch ? `⎇ ${s.git.branch}@${s.git.sha}` : '';
     $('sb-model').textContent = `◉ ${s.local_model}`;
+    if ($('sb-manifests') && typeof s.manifests_count === 'number') {
+      $('sb-manifests').textContent = `⛨ ${s.manifests_count} manifest${s.manifests_count === 1 ? '' : 's'}`;
+    }
     $('composer-model').textContent = `${t('localModel')} · ${s.local_model}`;
     $('sb-db').textContent = s.database_connected ? '● db' : '○ db';
     $('sb-hw').textContent = `${s.hardware.arch} · ${s.hardware.ram_gb} GB RAM`;
@@ -417,7 +420,7 @@ async function loadTasks() {
 }
 
 // ---------- sections + agent runs ----------
-const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'settings'];
+const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'settings', 'manifests'];
 const SECTION_ALIASES = {
   files: 'workspace',
   evidence: 'runs',
@@ -480,6 +483,7 @@ function switchSection(sec) {
   if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadCostLedger(); loadEvidenceSummary(); }
   if (sec === 'skills') { loadPlugins(); loadKStackSkillsInStudio(); }
   if (sec === 'settings') { loadTier2Status(); loadMeshStatus(); loadSyncStatusInStudio(); }
+  if (sec === 'manifests') { loadStudioManifests(); }
 }
 async function loadRules() {
   try {
@@ -2719,42 +2723,487 @@ async function loadManifestRegistry() {
   const tbody = $('registry-tbody');
   if (!tbody) return;
   try {
-    const list = await api('/v1/agents/registry');
+    const res = await api('/v1/agents/registry');
+    const list = Array.isArray(res) ? res : (Array.isArray(res && res.manifests) ? res.manifests : []);
     $('registry-count').textContent = `${list.length} manifest${list.length === 1 ? '' : 's'}`;
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-ide-muted font-mono">No agent manifests registered yet. Register via POST /v1/agents/registry.</td></tr>';
+      tbody.replaceChildren(
+        h('tr', {}, h('td', { colspan: '6', class: 'p-3 text-center text-ide-muted font-mono' }, 'No agent manifests registered yet. Register via POST /v1/agents/registry.'))
+      );
       return;
     }
     tbody.replaceChildren(...list.map((m) => {
-      const isSuspended = m.status === 'suspended';
+      const isSuspended = m.enabled === false || m.status === 'suspended';
       const usdSpent = (m.usd_spent || 0).toFixed(4);
-      const maxUsd = m.budget && m.budget.max_usd_per_run ? `$${m.budget.max_usd_per_run.toFixed(2)}` : 'unlimited';
+      const maxUsd = m.budget && m.budget.max_usd_per_run ? `$${m.budget.max_usd_per_run.toFixed(2)}` : 'metered';
       return h('tr', { class: 'hover:bg-ide-sidebar/50' },
         h('td', { class: 'px-3 py-2 font-medium' }, m.name),
         h('td', { class: 'px-2 py-2 font-mono text-ide-muted' }, `v${m.version}`),
-        h('td', { class: 'px-2 py-2 font-mono text-ide-faint', title: m.digest }, (m.digest || '').slice(0, 10)),
+        h('td', { class: 'px-2 py-2 font-mono text-ide-faint', title: m.digest }, (m.digest || '').slice(0, 14)),
         h('td', { class: 'px-2 py-2 font-mono text-xs' }, `$${usdSpent} / ${maxUsd}`),
         h('td', { class: 'px-2 py-2' },
-          h('span', { class: `chip ${isSuspended ? 'border-danger/40 text-danger bg-danger/5' : 'border-ok/40 text-ok bg-ok/5'}` }, isSuspended ? 'Suspended' : 'Active')),
+          h('span', { class: `chip ${isSuspended ? 'border-danger/40 text-danger bg-danger/5' : 'border-ok/40 text-ok bg-ok/5'}` }, isSuspended ? 'DISABLED' : 'ENABLED')),
         h('td', { class: 'px-3 py-2 text-right' },
           h('button', {
             type: 'button',
             class: `btn-outline py-0.5 px-2 text-[11px] ${isSuspended ? 'text-ok hover:border-ok' : 'text-danger hover:border-danger'}`,
             onclick: async () => {
               try {
-                await api(`/v1/agents/registry/${encodeURIComponent(m.name)}/${encodeURIComponent(m.version)}/toggle`, { method: 'POST' });
-                toast(`Toggled ${m.name} to ${isSuspended ? 'active' : 'suspended'}`, 'ok');
+                await api(`/v1/agents/registry/${encodeURIComponent(m.name)}/${encodeURIComponent(m.version)}/toggle`, {
+                  method: 'POST',
+                  body: { enabled: isSuspended },
+                });
+                toast(`Toggled ${m.name}@${m.version} to ${isSuspended ? 'enabled' : 'disabled'}`, 'ok');
                 loadManifestRegistry();
+                if (state.section === 'manifests') loadStudioManifests();
               } catch (e) {
                 toast(e.message, 'err');
               }
             }
-          }, isSuspended ? 'Reactivate' : 'Kill Switch'))
+          }, isSuspended ? 'Enable' : 'Kill Switch'))
       );
     }));
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-danger text-center font-mono">${err.message}</td></tr>`;
+    tbody.replaceChildren(
+      h('tr', {}, h('td', { colspan: '6', class: 'p-3 text-danger text-center font-mono' }, err.message))
+    );
   }
+}
+
+// ---------- Studio Agent Manifest Inspector (KEEL-STUDIO-003) ----------
+const SAMPLE_MANIFEST_V1 = {
+  schema: 'keelway.agent/v1',
+  name: 'test-fixer',
+  version: '0.1.0',
+  owner: 'platform-team',
+  description: 'Finds the cause of a failing test and proposes a minimal fix.',
+  instructions: 'Run the failing test, read the traceback, find the smallest change that fixes it, and explain the change. Never edit tests to make them pass.',
+  model: { routing: 'local_first' },
+  tools: ['read_file', 'edit_file', 'run_command', 'search_codebase', 'list_dir'],
+  permissions: {
+    autonomy: 'confirm_mutation',
+    read_paths: ['src/**', 'tests/**'],
+    write_paths: ['src/**'],
+    commands: ['pytest -q'],
+    network: 'none',
+  },
+  budget: { max_usd_per_run: 0.5, max_steps: 40 },
+  sandbox: 'worktree',
+};
+
+function manifestUid(m) {
+  if (!m) return '';
+  return `${m.source || 'workspace'}:${m.path || m.id || m.name}`;
+}
+
+function manifestSignatureBadgeSpec(signatureStatus) {
+  if (signatureStatus === 'verified') {
+    return { label: 'VERIFIED', cls: 'border-ok/50 text-ok bg-ok/10' };
+  }
+  if (signatureStatus === 'invalid_signature') {
+    return { label: 'INVALID', cls: 'border-danger/50 text-danger bg-danger/10' };
+  }
+  if (signatureStatus === 'key_missing') {
+    return { label: 'KEY MISSING', cls: 'border-warn/50 text-warn bg-warn/10' };
+  }
+  return { label: 'UNSIGNED', cls: 'border-warn/50 text-warn bg-warn/10' };
+}
+
+function manifestKillSwitchBadgeSpec(enabled) {
+  return enabled
+    ? { label: 'ENABLED', cls: 'border-ok/40 text-ok bg-ok/5' }
+    : { label: 'DISABLED', cls: 'border-danger/50 text-danger bg-danger/10' };
+}
+
+function manifestRoutingBadgeSpec(routing) {
+  if (routing === 'local_only') {
+    return { label: 'local_only', cls: 'border-ok/40 text-ok' };
+  }
+  if (routing === 'cloud_only') {
+    return { label: 'cloud_only', cls: 'border-warn/40 text-warn' };
+  }
+  return { label: routing || 'local_first', cls: 'border-accent/40 text-accent' };
+}
+
+function renderScopeChips(container, items, emptyLabel) {
+  if (!container) return;
+  if (!Array.isArray(items) || !items.length) {
+    container.replaceChildren(h('span', { class: 'text-ide-faint italic' }, emptyLabel));
+    return;
+  }
+  container.replaceChildren(
+    ...items.map((item) => h('span', { class: 'chip border-ide-border bg-ide-sidebar text-ide-fg font-mono text-[10.5px]' }, String(item)))
+  );
+}
+
+async function loadStudioManifests() {
+  const listEl = $('manifests-list');
+  if (!listEl) return;
+  try {
+    const res = await api('/v1/studio/manifests');
+    const items = Array.isArray(res && res.manifests) ? res.manifests : [];
+    state.manifests = items;
+    state.signingKeyPresent = Boolean(res && res.signing_key_present);
+
+    if ($('manifests-total-badge')) {
+      $('manifests-total-badge').textContent = `${items.length} manifest${items.length === 1 ? '' : 's'}`;
+    }
+    if ($('manifests-signing-key-badge')) {
+      const kb = $('manifests-signing-key-badge');
+      kb.textContent = state.signingKeyPresent ? 'Workspace key present' : 'No workspace key';
+      kb.className = `chip font-mono text-[10px] ${state.signingKeyPresent ? 'border-ok/40 text-ok' : 'border-warn/40 text-warn'}`;
+    }
+
+    const existing = items.find((m) => manifestUid(m) === state.selectedManifestUid);
+    state.selectedManifestUid = existing ? manifestUid(existing) : (items[0] ? manifestUid(items[0]) : null);
+    renderManifestsList();
+    renderSelectedManifest();
+  } catch (err) {
+    listEl.replaceChildren(
+      h('li', { class: 'p-4 text-danger font-mono text-[11px]' }, `Failed to load manifests: ${err.message}`)
+    );
+  }
+}
+
+function renderManifestsList() {
+  const listEl = $('manifests-list');
+  if (!listEl) return;
+  const q = ($('manifests-filter-input')?.value || '').toLowerCase().trim();
+  const filtered = state.manifests.filter((m) => {
+    if (!q) return true;
+    const gov = m.governance_summary || {};
+    const hay = [m.id, m.name, m.owner, m.source, m.path, m.signature_status, gov.routing, m.enabled ? 'enabled' : 'disabled']
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return hay.includes(q);
+  });
+
+  if (!filtered.length) {
+    listEl.replaceChildren(
+      h('li', { class: 'p-4 text-center text-ide-muted font-mono text-[11px]' }, state.manifests.length ? 'No manifests match filter.' : 'No agent manifests discovered in workspace or registry.')
+    );
+    return;
+  }
+
+  listEl.replaceChildren(
+    ...filtered.map((m) => {
+      const uid = manifestUid(m);
+      const selected = uid === state.selectedManifestUid;
+      const sigSpec = manifestSignatureBadgeSpec(m.signature_status);
+      const ksSpec = manifestKillSwitchBadgeSpec(Boolean(m.enabled));
+      const gov = m.governance_summary || {};
+      const routeSpec = manifestRoutingBadgeSpec(gov.routing || 'invalid');
+
+      return h(
+        'li',
+        { role: 'option', 'aria-selected': String(selected) },
+        h(
+          'button',
+          {
+            type: 'button',
+            class: `w-full text-start p-3 space-y-1.5 transition-colors ${selected ? 'bg-accent/10 border-s-2 border-accent' : 'hover:bg-ide-sidebar/60'}`,
+            onclick: () => selectStudioManifest(uid),
+          },
+          h(
+            'div',
+            { class: 'flex items-center justify-between gap-2' },
+            h('span', { class: 'font-mono font-semibold text-xs truncate text-ide-fg' }, `${m.name}@${m.version}`),
+            h('span', { class: 'text-[10px] font-mono text-ide-faint uppercase shrink-0' }, m.source)
+          ),
+          m.path ? h('div', { class: 'font-mono text-[10.5px] text-ide-muted truncate', dir: 'ltr' }, m.path) : null,
+          h(
+            'div',
+            { class: 'flex flex-wrap items-center gap-1 pt-0.5' },
+            h('span', { class: `chip font-mono text-[9.5px] ${sigSpec.cls}` }, sigSpec.label),
+            h('span', { class: `chip font-mono text-[9.5px] ${ksSpec.cls}` }, ksSpec.label),
+            gov.routing ? h('span', { class: `chip font-mono text-[9.5px] ${routeSpec.cls}` }, routeSpec.label) : h('span', { class: 'chip font-mono text-[9.5px] border-danger/40 text-danger' }, 'SCHEMA INVALID')
+          )
+        )
+      );
+    })
+  );
+}
+
+function selectStudioManifest(uid) {
+  state.selectedManifestUid = uid;
+  renderManifestsList();
+  renderSelectedManifest();
+}
+
+function renderSelectedManifest() {
+  const m = state.manifests.find((item) => manifestUid(item) === state.selectedManifestUid) || null;
+  const titleEl = $('manifest-selected-title');
+  if (!titleEl) return;
+
+  if (!m) {
+    titleEl.textContent = 'No manifest selected';
+    $('manifest-detail-badges')?.replaceChildren();
+    if ($('manifest-selected-desc')) $('manifest-selected-desc').textContent = 'No agent manifests available to inspect.';
+    if ($('manifest-selected-meta')) $('manifest-selected-meta').textContent = '';
+    if ($('manifest-digest-value')) $('manifest-digest-value').textContent = '—';
+    if ($('manifest-signature-meta')) $('manifest-signature-meta').textContent = '—';
+    if ($('manifest-autonomy-sandbox')) $('manifest-autonomy-sandbox').textContent = '—';
+    if ($('manifest-network-policy')) $('manifest-network-policy').textContent = 'Network: —';
+    if ($('manifest-routing-policy')) $('manifest-routing-policy').textContent = '—';
+    if ($('manifest-preferred-provider')) $('manifest-preferred-provider').textContent = 'Provider: —';
+    if ($('manifest-budget-usd')) $('manifest-budget-usd').textContent = '—';
+    if ($('manifest-budget-steps')) $('manifest-budget-steps').textContent = '—';
+    $('manifest-toggle-killswitch-btn')?.classList.add('hidden');
+    $('manifest-load-into-validator-btn')?.classList.add('hidden');
+    if ($('manifest-warnings-count')) $('manifest-warnings-count').textContent = '0 warnings';
+    $('manifest-security-warnings')?.replaceChildren(h('li', { class: 'text-ide-muted' }, 'No manifest selected.'));
+    renderScopeChips($('manifest-tools-list'), [], '—');
+    renderScopeChips($('manifest-commands-list'), [], '—');
+    renderScopeChips($('manifest-read-paths'), [], '—');
+    renderScopeChips($('manifest-write-paths'), [], '—');
+    if ($('manifest-canonical-json')) $('manifest-canonical-json').textContent = 'No manifest selected.';
+    return;
+  }
+
+  const sigSpec = manifestSignatureBadgeSpec(m.signature_status);
+  const ksSpec = manifestKillSwitchBadgeSpec(Boolean(m.enabled));
+  const gov = m.governance_summary || {};
+  const routeSpec = manifestRoutingBadgeSpec(gov.routing || 'local_first');
+
+  titleEl.textContent = m.id || `${m.name}@${m.version}`;
+  $('manifest-detail-badges')?.replaceChildren(
+    h('span', { class: `chip font-mono text-[10px] ${sigSpec.cls}` }, sigSpec.label),
+    h('span', { class: `chip font-mono text-[10px] ${ksSpec.cls}` }, ksSpec.label),
+    gov.routing ? h('span', { class: `chip font-mono text-[10px] ${routeSpec.cls}` }, routeSpec.label) : null,
+    h('span', { class: 'chip border-ide-border text-ide-muted font-mono text-[10px]' }, m.source)
+  );
+
+  if ($('manifest-selected-desc')) {
+    $('manifest-selected-desc').textContent = m.description || 'No description provided.';
+  }
+  if ($('manifest-selected-meta')) {
+    const parts = [`owner: ${m.owner || 'unknown'}`, `source: ${m.source}`];
+    if (m.path) parts.push(`path: ${m.path}`);
+    $('manifest-selected-meta').textContent = parts.join(' · ');
+  }
+
+  if ($('manifest-digest-value')) {
+    $('manifest-digest-value').textContent = m.digest || (m.valid === false ? 'Invalid manifest (digest unavailable)' : '—');
+  }
+  if ($('manifest-signature-meta')) {
+    if (m.signed_by || m.key_id) {
+      const sigMeta = [`status: ${sigSpec.label}`];
+      if (m.key_id) sigMeta.push(`key_id: ${m.key_id}`);
+      if (m.signed_by) sigMeta.push(`by: ${m.signed_by}`);
+      if (m.signed_at) sigMeta.push(`at: ${m.signed_at}`);
+      $('manifest-signature-meta').textContent = sigMeta.join(' · ');
+    } else {
+      $('manifest-signature-meta').textContent = `${sigSpec.label} (${m.signature_reason || 'not_signed'})`;
+    }
+  }
+
+  if ($('manifest-autonomy-sandbox')) {
+    $('manifest-autonomy-sandbox').textContent = gov.autonomy ? `${gov.autonomy} · ${gov.sandbox}` : '—';
+  }
+  if ($('manifest-network-policy')) {
+    const netHosts = Array.isArray(gov.network_allow) && gov.network_allow.length ? ` (${gov.network_allow.join(', ')})` : '';
+    $('manifest-network-policy').textContent = gov.network ? `Network: ${gov.network}${netHosts}` : 'Network: —';
+  }
+  if ($('manifest-routing-policy')) {
+    $('manifest-routing-policy').textContent = gov.routing || '—';
+  }
+  if ($('manifest-preferred-provider')) {
+    $('manifest-preferred-provider').textContent = `Provider: ${gov.preferred_provider || 'gateway policy'}`;
+  }
+  if ($('manifest-budget-usd')) {
+    $('manifest-budget-usd').textContent = typeof gov.max_usd_per_run === 'number' ? `$${gov.max_usd_per_run.toFixed(2)} / run` : '—';
+  }
+  if ($('manifest-budget-steps')) {
+    $('manifest-budget-steps').textContent = typeof gov.max_steps === 'number' ? `${gov.max_steps} steps` : '—';
+  }
+
+  const ksBtn = $('manifest-toggle-killswitch-btn');
+  if (ksBtn) {
+    if (m.source === 'registry') {
+      ksBtn.classList.remove('hidden');
+      ksBtn.textContent = m.enabled ? 'Disable (Kill-Switch)' : 'Re-Enable Manifest';
+      ksBtn.className = `btn-outline h-7 px-2.5 text-xs ${m.enabled ? 'text-danger border-danger/40 hover:border-danger' : 'text-ok border-ok/40 hover:border-ok'}`;
+      ksBtn.onclick = async () => {
+        try {
+          await api(`/v1/agents/registry/${encodeURIComponent(m.name)}/${encodeURIComponent(m.version)}/toggle`, {
+            method: 'POST',
+            body: { enabled: !m.enabled },
+          });
+          toast(`${m.id} ${m.enabled ? 'disabled via kill-switch' : 're-enabled'}`, m.enabled ? 'warn' : 'ok');
+          await loadStudioManifests();
+          loadManifestRegistry();
+        } catch (err) {
+          toast(err.message, 'err');
+        }
+      };
+    } else {
+      ksBtn.classList.add('hidden');
+      ksBtn.onclick = null;
+    }
+  }
+
+  const loadValBtn = $('manifest-load-into-validator-btn');
+  if (loadValBtn) {
+    if (m.canonical_json) {
+      loadValBtn.classList.remove('hidden');
+      loadValBtn.onclick = () => {
+        const input = $('manifest-validator-input');
+        if (input) {
+          input.value = m.canonical_json.trim();
+          input.focus();
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          toast(`Loaded ${m.id} into validator`, 'tick');
+        }
+      };
+    } else {
+      loadValBtn.classList.add('hidden');
+      loadValBtn.onclick = null;
+    }
+  }
+
+  const allWarnings = [
+    ...(Array.isArray(m.errors) ? m.errors.map((e) => ({ kind: 'err', text: `Schema error: ${e}` })) : []),
+    ...(Array.isArray(m.security_warnings) ? m.security_warnings.map((w) => ({ kind: 'warn', text: w })) : []),
+  ];
+  if ($('manifest-warnings-count')) {
+    $('manifest-warnings-count').textContent = `${allWarnings.length} warning${allWarnings.length === 1 ? '' : 's'}`;
+    $('manifest-warnings-count').className = `chip font-mono text-[10px] ${allWarnings.length ? 'border-warn/50 text-warn' : 'border-ok/40 text-ok'}`;
+  }
+  const warnList = $('manifest-security-warnings');
+  if (warnList) {
+    if (!allWarnings.length) {
+      warnList.replaceChildren(
+        h('li', { class: 'p-2 rounded border border-ok/30 bg-ok/5 text-ok' }, '✓ Signed, verified, and zero security posture warnings.')
+      );
+    } else {
+      warnList.replaceChildren(
+        ...allWarnings.map((item) =>
+          h(
+            'li',
+            {
+              class: `p-2 rounded border ${item.kind === 'err' ? 'border-danger/40 bg-danger/10 text-danger' : 'border-warn/40 bg-warn/10 text-warn'}`,
+            },
+            `⚠ ${item.text}`
+          )
+        )
+      );
+    }
+  }
+
+  const toolItems = [
+    ...(Array.isArray(gov.tools) ? gov.tools : []),
+    ...(Array.isArray(gov.mcp_servers) ? gov.mcp_servers.map((s) => `mcp:${s}`) : []),
+  ];
+  renderScopeChips($('manifest-tools-list'), toolItems, 'None');
+  renderScopeChips($('manifest-commands-list'), gov.commands, 'No shell commands allowed');
+  renderScopeChips($('manifest-read-paths'), gov.read_paths, gov.tools && gov.tools.includes('read_file') ? 'Workspace-wide (excluding .keelway/.git)' : 'None');
+  renderScopeChips($('manifest-write-paths'), gov.write_paths, 'Read-only (no write paths)');
+
+  if ($('manifest-canonical-json')) {
+    $('manifest-canonical-json').textContent = m.canonical_json
+      ? m.canonical_json.trim()
+      : (Array.isArray(m.errors) && m.errors.length ? `Validation Errors:\n${m.errors.join('\n')}` : 'Unavailable');
+  }
+}
+
+function renderCustomManifestInspectResult(res) {
+  const out = $('manifest-validator-result');
+  if (!out) return;
+  if (!res || typeof res !== 'object') {
+    out.replaceChildren(h('p', { class: 'text-danger' }, 'Unexpected empty inspection response.'));
+    return;
+  }
+
+  const sigSpec = manifestSignatureBadgeSpec(res.signature_status);
+  const gov = res.governance_summary || {};
+  const header = h(
+    'div',
+    { class: 'flex flex-wrap items-center gap-2 pb-2 border-b border-ide-border' },
+    h(
+      'span',
+      { class: `chip font-mono text-[10px] ${res.valid ? 'border-ok/50 text-ok bg-ok/10' : 'border-danger/50 text-danger bg-danger/10'}` },
+      res.valid ? 'VALID keelway.agent/v1' : 'INVALID MANIFEST'
+    ),
+    res.valid ? h('span', { class: `chip font-mono text-[10px] ${sigSpec.cls}` }, sigSpec.label) : null,
+    res.id ? h('span', { class: 'font-semibold text-ide-fg' }, res.id) : null,
+    res.digest ? h('span', { class: 'text-accent break-all' }, res.digest) : null
+  );
+
+  const nodes = [header];
+
+  if (!res.valid && Array.isArray(res.errors) && res.errors.length) {
+    nodes.push(
+      h(
+        'ul',
+        { class: 'space-y-1 text-danger pt-1' },
+        ...res.errors.map((err) => h('li', {}, `✕ ${err}`))
+      )
+    );
+  }
+
+  if (res.valid && res.governance_summary) {
+    nodes.push(
+      h(
+        'div',
+        { class: 'grid sm:grid-cols-3 gap-2 pt-1 text-[11px]' },
+        h('div', { class: 'p-2 rounded border border-ide-border bg-ide-sidebar' }, `Routing: ${gov.routing} · Sandbox: ${gov.sandbox}`),
+        h('div', { class: 'p-2 rounded border border-ide-border bg-ide-sidebar' }, `Autonomy: ${gov.autonomy} · Network: ${gov.network}`),
+        h('div', { class: 'p-2 rounded border border-ide-border bg-ide-sidebar' }, `Budget: $${Number(gov.max_usd_per_run || 0).toFixed(2)} · ${gov.max_steps} steps`)
+      )
+    );
+  }
+
+  if (Array.isArray(res.security_warnings) && res.security_warnings.length) {
+    nodes.push(
+      h(
+        'ul',
+        { class: 'space-y-1 text-warn pt-1' },
+        ...res.security_warnings.map((w) => h('li', {}, `⚠ ${w}`))
+      )
+    );
+  }
+
+  out.replaceChildren(...nodes);
+}
+
+async function inspectCustomManifestInStudio() {
+  const input = $('manifest-validator-input');
+  const out = $('manifest-validator-result');
+  if (!input || !out) return;
+  const rawText = input.value.trim();
+  if (!rawText) {
+    toast('Paste a keelway.agent/v1 JSON object to validate', 'warn');
+    input.focus();
+    return;
+  }
+
+  let manifestPayload = rawText;
+  try {
+    manifestPayload = JSON.parse(rawText);
+  } catch {
+    // Keep rawText string so backend returns structured invalid_json report
+  }
+
+  try {
+    const res = await api('/v1/studio/manifests/inspect', {
+      method: 'POST',
+      body: { manifest: manifestPayload },
+    });
+    renderCustomManifestInspectResult(res);
+    toast(res.valid ? `Valid manifest: ${res.id}` : `Validation failed (${(res.errors || []).length} error${(res.errors || []).length === 1 ? '' : 's'})`, res.valid ? 'ok' : 'warn');
+  } catch (err) {
+    out.replaceChildren(h('p', { class: 'text-danger' }, `Inspection request failed: ${err.message}`));
+    toast(err.message, 'err');
+  }
+}
+
+function loadSampleManifestInStudio() {
+  const input = $('manifest-validator-input');
+  if (!input) return;
+  input.value = JSON.stringify(SAMPLE_MANIFEST_V1, null, 2);
+  input.focus();
+  toast('Loaded sample keelway.agent/v1 specification', 'tick');
 }
 
 function presentCostLedger(summary, economics) {
@@ -3050,6 +3499,8 @@ function commands() {
     ['Go to Evidence', () => switchSection('runs')],
     ['Go to Skills', () => switchSection('skills')],
     ['Go to Settings', () => switchSection('settings')],
+    ['Go to Manifests', () => switchSection('manifests')],
+    ['Validate Custom Manifest JSON', () => { switchSection('manifests'); $('manifest-validator-input')?.focus(); }],
     ['Open Developer Labs', () => toggleLabsDrawer(true)],
     ['New task', newRun],
     ['Explorer', () => { switchSection('workspace'); switchView('explorer'); }],
@@ -3422,6 +3873,38 @@ function wire() {
   if ($('builder-scaffold-btn')) {
     $('builder-scaffold-btn').addEventListener('click', scaffoldAgentInStudio);
   }
+  if ($('registry-open-inspector-btn')) {
+    $('registry-open-inspector-btn').addEventListener('click', () => switchSection('manifests'));
+  }
+  if ($('manifests-refresh-btn')) {
+    $('manifests-refresh-btn').addEventListener('click', loadStudioManifests);
+  }
+  if ($('manifests-open-validator-btn')) {
+    $('manifests-open-validator-btn').addEventListener('click', () => {
+      const input = $('manifest-validator-input');
+      if (input) {
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+  if ($('manifests-filter-input')) {
+    $('manifests-filter-input').addEventListener('input', renderManifestsList);
+  }
+  if ($('manifest-validator-sample-btn')) {
+    $('manifest-validator-sample-btn').addEventListener('click', loadSampleManifestInStudio);
+  }
+  if ($('manifest-validator-clear-btn')) {
+    $('manifest-validator-clear-btn').addEventListener('click', () => {
+      if ($('manifest-validator-input')) $('manifest-validator-input').value = '';
+      if ($('manifest-validator-result')) {
+        $('manifest-validator-result').textContent = 'Paste or load a manifest JSON object and click Inspect & Validate JSON.';
+      }
+    });
+  }
+  if ($('manifest-validator-run-btn')) {
+    $('manifest-validator-run-btn').addEventListener('click', inspectCustomManifestInStudio);
+  }
   if ($('ide-proof-strip')) {
     renderUnifiedProofStrip($('ide-proof-strip'), null, { mode: 'ide' });
   }
@@ -3440,7 +3923,7 @@ function wire() {
       else closePalette();
     }
     else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); }
-    else if (e.altKey && /^[1-6]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
+    else if (e.altKey && /^[1-7]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
     else if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); toggleAirGap(); }
     else if (mod && e.key === 'j') { e.preventDefault(); $('panel').classList.toggle('hidden'); }
     else if (e.key === 'Escape') {
@@ -3496,6 +3979,12 @@ if (typeof window !== 'undefined') {
   window.toggleLabsDrawer = toggleLabsDrawer;
   window.trapFocus = trapFocus;
   window.paletteKey = paletteKey;
+  window.manifestSignatureBadgeSpec = manifestSignatureBadgeSpec;
+  window.manifestKillSwitchBadgeSpec = manifestKillSwitchBadgeSpec;
+  window.manifestRoutingBadgeSpec = manifestRoutingBadgeSpec;
+  window.loadStudioManifests = loadStudioManifests;
+  window.inspectCustomManifestInStudio = inspectCustomManifestInStudio;
+  window.renderCustomManifestInspectResult = renderCustomManifestInspectResult;
 }
 
 if (typeof window !== 'undefined' && !window.__TEST_MODE__) {

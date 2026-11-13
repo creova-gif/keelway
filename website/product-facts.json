@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "source_repository": "https://github.com/creova-gif/kora.git",
+  "deployment_url": "https://kora-sable.vercel.app",
+  "features": {
+    "dual_mode_agent_builder_and_cross_repo_runtime": {
+      "status": "AVAILABLE",
+      "claim": "Cross-repository Agent Builder export/import with SHA-256 integrity validation and shared runtime policy containment",
+      "code_path": "core/agents/builder.py, core/agents/guard.py",
+      "evidence_test": "tests/test_dual_mode_e2e_acceptance.py"
+    },
+    "unified_proof_strip_ux": {
+      "status": "AVAILABLE",
+      "claim": "Unified 6-stage Proof Strip UX (INSPECT -> PLAN -> AUTHORIZE -> EXECUTE -> VERIFY -> SEAL) shared across IDE and Agent Builder modes with W3C ARIA tablist accessibility and cryptographic tamper detection",
+      "code_path": "core/studio/assets/studio.js, core/studio/index.html",
+      "evidence_test": "tests/test_proof_strip_ux.py"
+    },
+    "hybrid_opencore_and_frontier_gateway": {
+      "status": "AVAILABLE",
+      "claim": "Unified AI Model Gateway serving sovereign OpenCore checkpoints (Ollama, vLLM, in-process) alongside closed frontier models (OpenAI, Anthropic, Gemini) with deterministic privacy fail-closed routing",
+      "code_path": "core/models/gateway.py, core/opencore/serving.py",
+      "evidence_test": "tests/test_hybrid_routing_and_api.py, tests/test_opencore_runtime.py"
+    },
+    "four_dimension_routing_and_responses_api": {
+      "status": "AVAILABLE",
+      "claim": "Stateful /v1/responses API with turn chaining, speculative decoding, and 4-dimension routing provenance inspector (license, hosting, operator, data boundary)",
+      "code_path": "core/api/responses_routes.py",
+      "evidence_test": "tests/test_responses_and_routing_api.py"
+    },
+    "multi_tenant_governance_and_spend_caps": {
+      "status": "AVAILABLE",
+      "claim": "Multi-tenant governance engine enforcing daily/monthly USD spend caps, OpenCore budget fallback, token-bucket RPM/TPM rate limits, scoped kw_live_* keys, and SHA-256 hash-chained audit logs",
+      "code_path": "core/security/tenant_governance.py, core/api/governance_routes.py",
+      "evidence_test": "tests/test_tenant_governance.py"
+    },
+    "official_python_and_typescript_sdks": {
+      "status": "AVAILABLE",
+      "claim": "Official Python (core.sdk) and zero-dependency TypeScript (@keelway/sdk) client SDKs with chunk-safe SSE streaming and deterministic HTTP error mapping",
+      "code_path": "core/sdk/client.py, sdk/typescript/src/client.ts",
+      "evidence_test": "tests/test_sdk_v1.py, sdk/typescript/test/sdk.test.mjs"
+    },
+    "tier2_hardware_security_hal": {
+      "status": "EXPERIMENTAL",
+      "claim": "Dual-WORM receipts, TPM 2.0 PCR quotes, PIV smartcard verification, and 2-of-3 Shamir recovery",
+      "code_path": "keelway/hal/tpm.py",
+      "evidence_test": "tests/test_tier2_api_and_cli.py, tests/test_tier2_tpm.py",
+      "qualification_note": "Model specification verified via software simulation; requires target hardware certification for field deployment."
+    }
+  }
+}

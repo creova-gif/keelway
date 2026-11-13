@@ -58,10 +58,16 @@ class OpenAIProviderAdapter(BaseModelProvider, ModelAdapter):
         base_url: Optional[str] = None,
         transport: Optional[httpx.BaseTransport] = None,
     ):
-        self.api_key = api_key or settings.openai_api_key or os.getenv("OPENAI_API_KEY")
+        self._explicit_api_key = api_key
         self.default_model = default_model or self.DEFAULT_MODEL
         self.base_url = (base_url or "https://api.openai.com/v1").rstrip("/")
         self._transport = transport
+
+    @property
+    def api_key(self) -> Optional[str]:
+        if self._explicit_api_key is not None:
+            return self._explicit_api_key
+        return settings.openai_api_key or os.getenv("OPENAI_API_KEY")
 
     def is_available(self) -> bool:
         return bool(self.api_key)

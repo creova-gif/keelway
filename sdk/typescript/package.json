@@ -1,0 +1,47 @@
+{
+  "name": "@keelway/sdk",
+  "version": "1.0.0",
+  "description": "Official zero-dependency TypeScript & JavaScript SDK for the Keelway Unified Hybrid AI Platform",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/sdk.test.mjs"
+  },
+  "keywords": [
+    "keelway",
+    "ai",
+    "llm",
+    "hybrid-ai",
+    "open-weight",
+    "opencore",
+    "sovereign-ai",
+    "zero-egress",
+    "governance"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/creova-gif/kora.git",
+    "directory": "sdk/typescript"
+  }
+}

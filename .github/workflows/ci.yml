@@ -22,8 +22,16 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
           # Ubuntu 24.04 blocks unprivileged user namespaces, which bubblewrap needs.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
       - name: Install dependencies
         run: pip install -e ".[dev]"
+      - name: Verify Linux Bubblewrap Sandbox Confinement
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
+          PYTHONPATH: .
+        run: |
+          python -c "from pathlib import Path; from core.agents.sandbox import Sandbox; sb = Sandbox(Path('.')); assert sb.backend_name == 'bubblewrap', sb.diagnose(); sb.require_verified(); print('Verified:', sb.diagnose())"
+          pytest tests/test_agent_sandbox.py -v
       - name: Lint check
         run: ruff check .
       # Profile A only. A green result here is not live verification.
@@ -39,6 +47,26 @@ jobs:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
           PYTHONPATH: .
         run: pytest -v
+
+  website-and-typescript-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: website/package-lock.json
+      - name: Install Next.js website dependencies
+        run: npm --prefix website ci
+      - name: Typecheck & build Next.js 15 website
+        run: |
+          npm --prefix website run typecheck
+          npm --prefix website run build
+      - name: Compile & test official @keelway/sdk TypeScript package
+        run: |
+          ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
+          cd sdk/typescript && node --test test/sdk.test.mjs
 
   release-live-verification:
     runs-on: ubuntu-latest

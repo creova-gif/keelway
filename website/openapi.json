@@ -70,6 +70,134 @@
         }
       }
     },
+    "/v1/models": {
+      "get": {
+        "tags": [
+          "Inference"
+        ],
+        "summary": "List Models",
+        "description": "Discover all supported AI models across Open-Weight and Closed/Proprietary providers.",
+        "operationId": "list_models_v1_models_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider"
+            }
+          },
+          {
+            "name": "capability",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capability"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Models V1 Models Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "tags": [
+          "Inference"
+        ],
+        "summary": "Chat Completions",
+        "description": "OpenAI-compatible chat completions endpoint supporting non-streaming and Server-Sent Events (SSE) streaming.",
+        "operationId": "chat_completions_v1_chat_completions_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/usage": {
+      "get": {
+        "tags": [
+          "Inference"
+        ],
+        "summary": "Get Model Usage",
+        "description": "Retrieve aggregate usage statistics and cost accounting across all models.",
+        "operationId": "get_model_usage_v1_usage_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Model Usage V1 Usage Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/chat/modes": {
       "get": {
         "tags": [
@@ -669,6 +797,102 @@
         }
       }
     },
+    "/v1/events/stream": {
+      "get": {
+        "tags": [
+          "Realtime Events"
+        ],
+        "summary": "Stream Events",
+        "description": "Server-Sent Events (SSE) streaming endpoint for live studio task events and Proof Strip lifecycle frames.",
+        "operationId": "stream_events_v1_events_stream_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/flight/stream": {
+      "get": {
+        "tags": [
+          "Deterministic Flight Recorder"
+        ],
+        "summary": "Stream Flight Events",
+        "description": "Real-time streaming endpoint for deterministic flight tape execution frames matching Proof Strip lifecycle.",
+        "operationId": "stream_flight_events_v1_flight_stream_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/healing/repair": {
       "post": {
         "tags": [
@@ -717,7 +941,7 @@
           "Global Sovereign Settlement"
         ],
         "summary": "Create Payment Intent",
-        "description": "Generate sovereign multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher).",
+        "description": "Simulated multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher). No provider is connected; no money moves.",
         "operationId": "create_payment_intent_v1_payments_intent_post",
         "requestBody": {
           "content": {
@@ -798,6 +1022,63 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/flight/tape/{task_id}/fork": {
+      "post": {
+        "tags": [
+          "Flight Recorder"
+        ],
+        "summary": "Fork Flight Tape Endpoint",
+        "description": "Fork an isolated workspace state from a specific historical flight tape event index.",
+        "operationId": "fork_flight_tape_endpoint_v1_flight_tape__task_id__fork_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Fork Flight Tape Endpoint V1 Flight Tape  Task Id  Fork Post"
+                }
               }
             }
           },
@@ -3016,6 +3297,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/models/local": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Get Local Model Config",
+        "description": "Inspect and resolve local edge model runtime and hardware profile.",
+        "operationId": "get_local_model_config_v1_models_local_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Local Model Config V1 Models Local Get"
                 }
               }
             }
@@ -5373,6 +5678,76 @@
         }
       }
     },
+    "/v1/studio/manifests": {
+      "get": {
+        "tags": [
+          "Studio"
+        ],
+        "summary": "Studio List Manifests",
+        "description": "Discover and inspect registered DB manifests and workspace `*.agent.json` files.",
+        "operationId": "studio_list_manifests_v1_studio_manifests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Studio List Manifests V1 Studio Manifests Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/studio/manifests/inspect": {
+      "post": {
+        "tags": [
+          "Studio"
+        ],
+        "summary": "Studio Inspect Manifest",
+        "description": "Validate and inspect an arbitrary `keelway.agent/v1` manifest payload without mutating disk.",
+        "operationId": "studio_inspect_manifest_v1_studio_manifests_inspect_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Studio Inspect Manifest V1 Studio Manifests Inspect Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/studio/diff": {
       "get": {
         "tags": [
@@ -5511,6 +5886,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TokenCreatedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/pairing-codes": {
+      "post": {
+        "tags": [
+          "Auth & Audit"
+        ],
+        "summary": "Create Phone Pairing Code",
+        "operationId": "create_phone_pairing_code_v1_auth_pairing_codes_post",
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingCodeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/pair": {
+      "post": {
+        "tags": [
+          "Auth & Audit"
+        ],
+        "summary": "Pair Phone",
+        "description": "Unauthenticated by design: the single-use code is the credential.",
+        "operationId": "pair_phone_v1_auth_pair_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairedTokenResponse"
                 }
               }
             }
@@ -5853,6 +6291,1398 @@
         }
       }
     },
+    "/v1/editor-sync/status": {
+      "get": {
+        "tags": [
+          "External Editor Sync",
+          "External Editor Sync"
+        ],
+        "summary": "Get Sync Status",
+        "description": "Returns the external editor sync watcher status, detected editors, and pending conflicts.",
+        "operationId": "get_sync_status_v1_editor_sync_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/editor-sync/open-in-editor": {
+      "post": {
+        "tags": [
+          "External Editor Sync",
+          "External Editor Sync"
+        ],
+        "summary": "Open In External Editor",
+        "description": "Launches the workspace or active file in an external editor (VS Code, Cursor, etc.).\nReturns HTTP 422 if the external editor binary is not installed on the system.",
+        "operationId": "open_in_external_editor_v1_editor_sync_open_in_editor_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenInEditorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/editor-sync/resolve-conflict": {
+      "post": {
+        "tags": [
+          "External Editor Sync",
+          "External Editor Sync"
+        ],
+        "summary": "Resolve Concurrent Conflict",
+        "description": "Resolves a concurrent edit conflict between an agent and an external editor.",
+        "operationId": "resolve_concurrent_conflict_v1_editor_sync_resolve_conflict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveConflictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/status": {
+      "get": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Get Opencore Status",
+        "description": "Retrieve active cluster telemetry, resident models, and host hardware detection.",
+        "operationId": "get_opencore_status_v1_opencore_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Opencore Status V1 Opencore Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/weights": {
+      "get": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "List Opencore Weights",
+        "description": "List canonical OpenCore weight manifests and their local disk cache status.",
+        "operationId": "list_opencore_weights_v1_opencore_weights_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response List Opencore Weights V1 Opencore Weights Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/models/load": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Load Model Checkpoint",
+        "description": "Load an OpenCore foundation model into accelerator memory.",
+        "operationId": "load_model_checkpoint_v1_opencore_models_load_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoadModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoadedModelInfo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/models/unload": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Unload Model Checkpoint",
+        "description": "Unload an OpenCore model to reclaim accelerator memory.",
+        "operationId": "unload_model_checkpoint_v1_opencore_models_unload_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnloadModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Unload Model Checkpoint V1 Opencore Models Unload Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/adapt/recipe": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Generate Adaptation Recipe",
+        "description": "Generate fine-tuning dataset and executable Unsloth/PEFT recipes for sovereign model training.",
+        "operationId": "generate_adaptation_recipe_v1_opencore_adapt_recipe_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdaptationConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Generate Adaptation Recipe V1 Opencore Adapt Recipe Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/runtime/discover": {
+      "get": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Discover Local Runtimes",
+        "description": "Probe local Ollama & vLLM runtimes and return installed weights & recommended bindings.",
+        "operationId": "discover_local_runtimes_v1_opencore_runtime_discover_get",
+        "parameters": [
+          {
+            "name": "ollama_url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ollama Url"
+            }
+          },
+          {
+            "name": "vllm_url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vllm Url"
+            }
+          },
+          {
+            "name": "fallback_base_model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Fallback Base Model"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Discover Local Runtimes V1 Opencore Runtime Discover Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/modelfile": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Compile Opencore Modelfile",
+        "description": "Compile a deterministic Ollama Modelfile and CLI command for an OpenCore model.",
+        "operationId": "compile_opencore_modelfile_v1_opencore_modelfile_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompileModelfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Compile Opencore Modelfile V1 Opencore Modelfile Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/adapters/register": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Register Lora Adapter",
+        "description": "Register a sovereign LoRA adapter and optionally verify SHA-256 disk integrity.",
+        "operationId": "register_lora_adapter_v1_opencore_adapters_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAdapterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Register Lora Adapter V1 Opencore Adapters Register Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/adapters": {
+      "get": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "List Lora Adapters",
+        "description": "List registered sovereign LoRA adapters and active per-model attachments.",
+        "operationId": "list_lora_adapters_v1_opencore_adapters_get",
+        "parameters": [
+          {
+            "name": "base_model_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Base Model Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Lora Adapters V1 Opencore Adapters Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/adapters/attach": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Attach Lora Adapter",
+        "description": "Hot-attach a registered LoRA adapter to an OpenCore model.",
+        "operationId": "attach_lora_adapter_v1_opencore_adapters_attach_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachAdapterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Attach Lora Adapter V1 Opencore Adapters Attach Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/adapters/detach": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Detach Lora Adapter",
+        "description": "Detach any active LoRA adapter from the specified OpenCore model.",
+        "operationId": "detach_lora_adapter_v1_opencore_adapters_detach_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DetachAdapterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Detach Lora Adapter V1 Opencore Adapters Detach Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/opencore/infer": {
+      "post": {
+        "tags": [
+          "OpenCore"
+        ],
+        "summary": "Infer Opencore Model",
+        "description": "Execute direct inference through OpenCoreServingEngine (mock, Ollama, or vLLM).",
+        "operationId": "infer_opencore_model_v1_opencore_infer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCoreInferRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCompletionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/responses": {
+      "post": {
+        "tags": [
+          "Responses & Routing"
+        ],
+        "summary": "Create Response",
+        "description": "Unified stateful & stateless Responses endpoint supporting OpenCore, Cloud, SSE, and Speculative Decoding.",
+        "operationId": "create_response_v1_responses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResponsesCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/responses/{response_id}": {
+      "get": {
+        "tags": [
+          "Responses & Routing"
+        ],
+        "summary": "Get Response",
+        "description": "Retrieve a previously stored redacted response object by ID.",
+        "operationId": "get_response_v1_responses__response_id__get",
+        "parameters": [
+          {
+            "name": "response_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Response Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Response V1 Responses  Response Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/routing/explain": {
+      "post": {
+        "tags": [
+          "Responses & Routing"
+        ],
+        "summary": "Explain Routing Decision",
+        "description": "Evaluate candidate routing policy and 4-dimension provenance without spending tokens.",
+        "operationId": "explain_routing_decision_v1_routing_explain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutingExplainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Explain Routing Decision V1 Routing Explain Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/routing/decisions": {
+      "get": {
+        "tags": [
+          "Responses & Routing"
+        ],
+        "summary": "List Routing Decisions",
+        "description": "Return recent explainable hybrid routing decisions.",
+        "operationId": "list_routing_decisions_v1_routing_decisions_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Routing Decisions V1 Routing Decisions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/eval/swarm": {
+      "post": {
+        "tags": [
+          "Responses & Routing"
+        ],
+        "summary": "Run Swarm Evaluation",
+        "description": "Execute MiroFish 5-stage multi-agent swarm evaluation in instant mock or live gateway mode.",
+        "operationId": "run_swarm_evaluation_v1_eval_swarm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwarmEvalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Swarm Evaluation V1 Eval Swarm Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/eval/benchmark": {
+      "post": {
+        "tags": [
+          "Responses & Routing"
+        ],
+        "summary": "Run Hybrid Benchmark",
+        "description": "Run the 7-dimension Keelway Hybrid Model Benchmark across selected models.",
+        "operationId": "run_hybrid_benchmark_v1_eval_benchmark_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenchmarkEvalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Hybrid Benchmark V1 Eval Benchmark Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/persistence": {
+      "get": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Get Governance Persistence",
+        "operationId": "get_governance_persistence_v1_governance_persistence_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernancePersistenceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/tenants": {
+      "get": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "List Tenants",
+        "operationId": "list_tenants_v1_governance_tenants_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TenantPolicy"
+                  },
+                  "type": "array",
+                  "title": "Response List Tenants V1 Governance Tenants Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Create Tenant",
+        "operationId": "create_tenant_v1_governance_tenants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantPolicy"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantPolicy"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/tenants/{tenant_id}": {
+      "get": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Get Tenant",
+        "operationId": "get_tenant_v1_governance_tenants__tenant_id__get",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantPolicy"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Patch Tenant",
+        "operationId": "patch_tenant_v1_governance_tenants__tenant_id__patch",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantPolicyUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantPolicy"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/keys": {
+      "post": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Issue Scoped Key",
+        "operationId": "issue_scoped_key_v1_governance_keys_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopedKeyIssueRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopedKeyIssuedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "List Scoped Keys",
+        "operationId": "list_scoped_keys_v1_governance_keys_get",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScopedAPIKeyMetadata"
+                  },
+                  "title": "Response List Scoped Keys V1 Governance Keys Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/keys/{key_id}": {
+      "delete": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Revoke Scoped Key",
+        "operationId": "revoke_scoped_key_v1_governance_keys__key_id__delete",
+        "parameters": [
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopedAPIKeyMetadata"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/keys/verify": {
+      "post": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Verify Scoped Key",
+        "operationId": "verify_scoped_key_v1_governance_keys_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopedKeyVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyAuthenticationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/evaluate": {
+      "post": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Evaluate Governance Request",
+        "operationId": "evaluate_governance_request_v1_governance_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GovernanceEvaluateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernanceDecision"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/spend/record": {
+      "post": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Record Tenant Spend",
+        "operationId": "record_tenant_spend_v1_governance_spend_record_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpendRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpendSnapshot"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/governance/audit": {
+      "get": {
+        "tags": [
+          "Governance"
+        ],
+        "summary": "Get Governance Audit",
+        "operationId": "get_governance_audit_v1_governance_audit_get",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tenant Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernanceAuditResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -5940,6 +7770,115 @@
   },
   "components": {
     "schemas": {
+      "AdaptationConfig": {
+        "properties": {
+          "base_model_id": {
+            "type": "string",
+            "title": "Base Model Id",
+            "description": "Canonical base model ID",
+            "default": "keelway-core:7b"
+          },
+          "task": {
+            "$ref": "#/components/schemas/AdaptationTask",
+            "default": "multilingual_localization"
+          },
+          "target_languages": {
+            "items": {
+              "$ref": "#/components/schemas/TargetLanguage"
+            },
+            "type": "array",
+            "title": "Target Languages",
+            "default": [
+              "english",
+              "swahili",
+              "yoruba"
+            ]
+          },
+          "lora_r": {
+            "type": "integer",
+            "title": "Lora R",
+            "description": "LoRA rank dimension",
+            "default": 16
+          },
+          "lora_alpha": {
+            "type": "integer",
+            "title": "Lora Alpha",
+            "description": "LoRA scaling factor",
+            "default": 32
+          },
+          "lora_dropout": {
+            "type": "number",
+            "title": "Lora Dropout",
+            "description": "LoRA dropout rate",
+            "default": 0.05
+          },
+          "target_modules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Target Modules",
+            "default": [
+              "q_proj",
+              "k_proj",
+              "v_proj",
+              "o_proj",
+              "gate_proj",
+              "up_proj",
+              "down_proj"
+            ]
+          },
+          "learning_rate": {
+            "type": "number",
+            "title": "Learning Rate",
+            "description": "Peak learning rate for AdamW",
+            "default": 0.0002
+          },
+          "batch_size": {
+            "type": "integer",
+            "title": "Batch Size",
+            "description": "Per-device micro batch size",
+            "default": 4
+          },
+          "gradient_accumulation_steps": {
+            "type": "integer",
+            "title": "Gradient Accumulation Steps",
+            "default": 4
+          },
+          "num_epochs": {
+            "type": "integer",
+            "title": "Num Epochs",
+            "default": 3
+          },
+          "max_seq_length": {
+            "type": "integer",
+            "title": "Max Seq Length",
+            "default": 4096
+          },
+          "quantization_base": {
+            "$ref": "#/components/schemas/QuantizationLevel",
+            "default": "awq_4bit"
+          },
+          "output_adapter_dir": {
+            "type": "string",
+            "title": "Output Adapter Dir",
+            "default": "./adapters/keelway-core-adapted"
+          }
+        },
+        "type": "object",
+        "title": "AdaptationConfig",
+        "description": "Specification for LoRA / QLoRA adaptation of OpenCore foundation weights."
+      },
+      "AdaptationTask": {
+        "type": "string",
+        "enum": [
+          "instruction_tuning",
+          "code_ast_specialization",
+          "mathematical_reasoning",
+          "multilingual_localization"
+        ],
+        "title": "AdaptationTask"
+      },
       "AirGapRequest": {
         "properties": {
           "enabled": {
@@ -6055,6 +7994,31 @@
         ],
         "title": "AppPlanRequest"
       },
+      "AttachAdapterRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id",
+            "description": "Target OpenCore model ID"
+          },
+          "adapter_id": {
+            "type": "string",
+            "title": "Adapter Id",
+            "description": "Registered LoRA adapter ID to attach"
+          },
+          "verify_integrity": {
+            "type": "boolean",
+            "title": "Verify Integrity",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id",
+          "adapter_id"
+        ],
+        "title": "AttachAdapterRequest"
+      },
       "AuditEventResponse": {
         "properties": {
           "seq": {
@@ -6102,6 +8066,45 @@
           "entry_hash"
         ],
         "title": "AuditEventResponse"
+      },
+      "BenchmarkEvalRequest": {
+        "properties": {
+          "models": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Models"
+          },
+          "open_weight_model": {
+            "type": "string",
+            "title": "Open Weight Model",
+            "default": "keelway-core:7b"
+          },
+          "closed_model": {
+            "type": "string",
+            "title": "Closed Model",
+            "default": "gpt-4o"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "live"
+            ],
+            "title": "Mode",
+            "default": "mock"
+          }
+        },
+        "type": "object",
+        "title": "BenchmarkEvalRequest"
       },
       "BundleExportRequest": {
         "properties": {
@@ -6153,6 +8156,166 @@
         ],
         "title": "BundleVerifyRequest"
       },
+      "ChatCompletionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "object": {
+            "type": "string",
+            "title": "Object",
+            "default": "chat.completion"
+          },
+          "created": {
+            "type": "integer",
+            "title": "Created"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/Provider"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ModelCategory"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "finish_reason": {
+            "type": "string",
+            "title": "Finish Reason",
+            "default": "stop"
+          },
+          "usage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Usage",
+            "description": "prompt_tokens, completion_tokens, total_tokens"
+          },
+          "latency_ms": {
+            "type": "number",
+            "title": "Latency Ms"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd",
+            "default": 0.0
+          },
+          "routing_reason": {
+            "type": "string",
+            "title": "Routing Reason",
+            "default": ""
+          },
+          "tool_calls": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Calls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "provider",
+          "category",
+          "content",
+          "usage",
+          "latency_ms"
+        ],
+        "title": "ChatCompletionResponse",
+        "description": "Normalized non-streaming completion response."
+      },
+      "CompileModelfileRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id",
+            "default": "keelway-core:7b"
+          },
+          "base_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Source"
+          },
+          "quantization": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuantizationLevel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "q4_k_m"
+          },
+          "adapter_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapter Id"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "top_p": {
+            "type": "number",
+            "title": "Top P",
+            "default": 0.9
+          },
+          "num_ctx": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Ctx"
+          },
+          "modelfile_path": {
+            "type": "string",
+            "title": "Modelfile Path",
+            "default": "./Modelfile"
+          }
+        },
+        "type": "object",
+        "title": "CompileModelfileRequest"
+      },
       "CompletionRequestSchema": {
         "properties": {
           "messages": {
@@ -6163,6 +8326,18 @@
             "minItems": 1,
             "title": "Messages",
             "description": "Conversation messages"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "Explicit model ID (e.g. 'keelway-core:7b', 'gpt-4o')"
           },
           "tools": {
             "anyOf": [
@@ -6201,6 +8376,17 @@
                 "type": "null"
               }
             ]
+          },
+          "category_preference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Preference"
           },
           "required_capabilities": {
             "items": {
@@ -6316,6 +8502,30 @@
           "latency_ms"
         ],
         "title": "CompletionResponseSchema"
+      },
+      "DataResidencyZone": {
+        "type": "string",
+        "enum": [
+          "local_only",
+          "africa_sovereign",
+          "eu_sovereign",
+          "global"
+        ],
+        "title": "DataResidencyZone"
+      },
+      "DetachAdapterRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id",
+            "description": "Target OpenCore model ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id"
+        ],
+        "title": "DetachAdapterRequest"
       },
       "DriftCompareRequest": {
         "properties": {
@@ -6496,6 +8706,304 @@
         ],
         "title": "EvidenceVerifyRequest"
       },
+      "GovernanceAuditEntry": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny",
+              "downgrade_opencore"
+            ],
+            "title": "Outcome"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd",
+            "default": 0.0
+          },
+          "prompt_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Excerpt"
+          },
+          "prev_hash": {
+            "type": "string",
+            "title": "Prev Hash"
+          },
+          "entry_hash": {
+            "type": "string",
+            "title": "Entry Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "timestamp",
+          "tenant_id",
+          "action",
+          "outcome",
+          "reason",
+          "prev_hash",
+          "entry_hash"
+        ],
+        "title": "GovernanceAuditEntry"
+      },
+      "GovernanceAuditResponse": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/GovernanceAuditEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "chain_valid": {
+            "type": "boolean",
+            "title": "Chain Valid"
+          },
+          "broken_at_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Broken At Seq"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entries",
+          "total",
+          "chain_valid"
+        ],
+        "title": "GovernanceAuditResponse"
+      },
+      "GovernanceDecision": {
+        "properties": {
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "effective_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Model"
+          },
+          "effective_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Provider"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "status_code": {
+            "type": "integer",
+            "title": "Status Code"
+          },
+          "retry_after_seconds": {
+            "type": "number",
+            "title": "Retry After Seconds",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowed",
+          "action",
+          "reason",
+          "status_code"
+        ],
+        "title": "GovernanceDecision"
+      },
+      "GovernanceEvaluateRequest": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tenant Id"
+          },
+          "requested_model": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Requested Model"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "estimated_cost_usd": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Estimated Cost Usd",
+            "default": 0.0
+          },
+          "estimated_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Estimated Tokens",
+            "default": 0
+          },
+          "prompt_preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Preview"
+          },
+          "forbid_open_weight": {
+            "type": "boolean",
+            "title": "Forbid Open Weight",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "requested_model",
+          "provider",
+          "category"
+        ],
+        "title": "GovernanceEvaluateRequest"
+      },
+      "GovernancePersistenceResponse": {
+        "properties": {
+          "persistent": {
+            "type": "boolean",
+            "title": "Persistent"
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "sqlite_wal",
+              "memory"
+            ],
+            "title": "Backend"
+          },
+          "tenants_count": {
+            "type": "integer",
+            "title": "Tenants Count"
+          },
+          "keys_count": {
+            "type": "integer",
+            "title": "Keys Count"
+          },
+          "audit_events_count": {
+            "type": "integer",
+            "title": "Audit Events Count"
+          },
+          "chain_verified": {
+            "type": "boolean",
+            "title": "Chain Verified"
+          },
+          "chain_head": {
+            "type": "string",
+            "title": "Chain Head"
+          }
+        },
+        "type": "object",
+        "required": [
+          "persistent",
+          "backend",
+          "tenants_count",
+          "keys_count",
+          "audit_events_count",
+          "chain_verified",
+          "chain_head"
+        ],
+        "title": "GovernancePersistenceResponse"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -6542,6 +9050,193 @@
           "timestamp"
         ],
         "title": "HealthResponse"
+      },
+      "KeyAuthenticationResult": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "key_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Id"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "status_code": {
+            "type": "integer",
+            "title": "Status Code",
+            "default": 200
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "reason"
+        ],
+        "title": "KeyAuthenticationResult"
+      },
+      "LoadModelRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id",
+            "description": "Canonical model ID, e.g. 'keelway-core:7b'"
+          },
+          "quantization": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuantizationLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "backend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenCoreWorkerBackend"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "mock"
+          },
+          "base_model_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Model Override"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id"
+        ],
+        "title": "LoadModelRequest"
+      },
+      "LoadedModelInfo": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "quantization": {
+            "$ref": "#/components/schemas/QuantizationLevel"
+          },
+          "backend": {
+            "$ref": "#/components/schemas/OpenCoreWorkerBackend"
+          },
+          "weight_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Path"
+          },
+          "vram_allocated_gb": {
+            "type": "number",
+            "title": "Vram Allocated Gb"
+          },
+          "context_length": {
+            "type": "integer",
+            "title": "Context Length"
+          },
+          "loaded_at": {
+            "type": "number",
+            "title": "Loaded At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OpenCoreWorkerStatus"
+          },
+          "requests_served": {
+            "type": "integer",
+            "title": "Requests Served",
+            "default": 0
+          },
+          "tokens_generated": {
+            "type": "integer",
+            "title": "Tokens Generated",
+            "default": 0
+          },
+          "kv_cache_usage_pct": {
+            "type": "number",
+            "title": "Kv Cache Usage Pct",
+            "default": 0.0
+          },
+          "attached_adapter_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attached Adapter Id"
+          },
+          "resolved_runtime_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Runtime Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id",
+          "quantization",
+          "backend",
+          "vram_allocated_gb",
+          "context_length",
+          "loaded_at",
+          "status"
+        ],
+        "title": "LoadedModelInfo",
+        "description": "Metadata for a model currently resident in accelerator or host memory."
       },
       "MCPToolCallRequest": {
         "properties": {
@@ -6700,6 +9395,200 @@
         ],
         "title": "MessageSchema"
       },
+      "ModelCategory": {
+        "type": "string",
+        "enum": [
+          "open_weight",
+          "closed_proprietary"
+        ],
+        "title": "ModelCategory"
+      },
+      "OpenCoreInferRequest": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": "keelway-core:7b"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageSchema"
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "temperature": {
+            "type": "number",
+            "title": "Temperature",
+            "default": 0.7
+          },
+          "max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens"
+          },
+          "response_format": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Format"
+          },
+          "backend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenCoreWorkerBackend"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "base_model_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Model Override"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "OpenCoreInferRequest"
+      },
+      "OpenCoreWorkerBackend": {
+        "type": "string",
+        "enum": [
+          "ollama",
+          "vllm",
+          "llama_cpp",
+          "mock"
+        ],
+        "title": "OpenCoreWorkerBackend"
+      },
+      "OpenCoreWorkerStatus": {
+        "type": "string",
+        "enum": [
+          "unloaded",
+          "loading",
+          "ready",
+          "busy",
+          "degraded",
+          "error"
+        ],
+        "title": "OpenCoreWorkerStatus"
+      },
+      "OpenInEditorRequest": {
+        "properties": {
+          "editor": {
+            "type": "string",
+            "title": "Editor",
+            "description": "Editor ID: 'vscode', 'cursor', 'vscodium', 'sublime'",
+            "default": "vscode"
+          },
+          "relative_path": {
+            "type": "string",
+            "title": "Relative Path",
+            "description": "Relative file path or empty for workspace root",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "OpenInEditorRequest"
+      },
+      "PairRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "device_name": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Device Name",
+            "default": "phone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "PairRequest"
+      },
+      "PairedTokenResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "role",
+          "expires_at"
+        ],
+        "title": "PairedTokenResponse"
+      },
+      "PairingCodeResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Single use; only its hash is stored"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "expires_at"
+        ],
+        "title": "PairingCodeResponse"
+      },
       "PluginInstallRequest": {
         "properties": {
           "manifest": {
@@ -6727,6 +9616,7 @@
           "anthropic",
           "openai",
           "google",
+          "gemini",
           "nvidia",
           "local",
           "open_weight",
@@ -6735,6 +9625,80 @@
           "vllm"
         ],
         "title": "Provider"
+      },
+      "QuantizationLevel": {
+        "type": "string",
+        "enum": [
+          "fp16",
+          "q8_0",
+          "q4_k_m",
+          "q4_0",
+          "awq_4bit"
+        ],
+        "title": "QuantizationLevel"
+      },
+      "RegisterAdapterRequest": {
+        "properties": {
+          "adapter_id": {
+            "type": "string",
+            "title": "Adapter Id",
+            "description": "Unique LoRA adapter ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Human-readable adapter name"
+          },
+          "base_model_id": {
+            "type": "string",
+            "title": "Base Model Id",
+            "default": "keelway-core:7b"
+          },
+          "task": {
+            "$ref": "#/components/schemas/AdaptationTask",
+            "default": "multilingual_localization"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages"
+          },
+          "adapter_path": {
+            "type": "string",
+            "title": "Adapter Path",
+            "description": "Local filesystem path to adapter weights"
+          },
+          "sha256_checksum": {
+            "type": "string",
+            "title": "Sha256 Checksum",
+            "description": "Expected SHA-256 hex digest"
+          },
+          "lora_r": {
+            "type": "integer",
+            "title": "Lora R",
+            "default": 16
+          },
+          "lora_alpha": {
+            "type": "integer",
+            "title": "Lora Alpha",
+            "default": 32
+          },
+          "verify_on_disk": {
+            "type": "boolean",
+            "title": "Verify On Disk",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "adapter_id",
+          "name",
+          "adapter_path",
+          "sha256_checksum"
+        ],
+        "title": "RegisterAdapterRequest"
       },
       "ResearchSummaryRequest": {
         "properties": {
@@ -6863,15 +9827,259 @@
         ],
         "title": "ResearchSummaryResponse"
       },
+      "ResolveConflictRequest": {
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "title": "File Path",
+            "description": "Relative file path with pending conflict"
+          },
+          "resolution": {
+            "type": "string",
+            "title": "Resolution",
+            "description": "'keep_agent' to apply agent proposal, 'keep_external' to keep external edit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_path",
+          "resolution"
+        ],
+        "title": "ResolveConflictRequest"
+      },
+      "ResponsesCreateRequest": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "input": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Input"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "previous_response_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Response Id"
+          },
+          "temperature": {
+            "type": "number",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Temperature",
+            "default": 0.2
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "maximum": 128000.0,
+            "minimum": 1.0,
+            "title": "Max Output Tokens",
+            "default": 4096
+          },
+          "text": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "stream": {
+            "type": "boolean",
+            "title": "Stream",
+            "default": false
+          },
+          "store": {
+            "type": "boolean",
+            "title": "Store",
+            "default": true
+          },
+          "privacy_level": {
+            "type": "string",
+            "title": "Privacy Level",
+            "default": "standard"
+          },
+          "required_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Capabilities"
+          },
+          "max_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Cost Usd"
+          },
+          "speculative": {
+            "type": "boolean",
+            "title": "Speculative",
+            "default": false
+          },
+          "draft_model": {
+            "type": "string",
+            "title": "Draft Model",
+            "default": "keelway-nano:1.5b"
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "ResponsesCreateRequest"
+      },
       "Role": {
         "type": "string",
         "enum": [
           "owner",
           "admin",
           "engineer",
-          "auditor"
+          "auditor",
+          "phone"
         ],
         "title": "Role"
+      },
+      "RoutingExplainRequest": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "default": "Evaluate candidate routing policy."
+          },
+          "messages": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/MessageSchema"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Messages"
+          },
+          "max_tokens": {
+            "type": "integer",
+            "maximum": 128000.0,
+            "minimum": 1.0,
+            "title": "Max Tokens",
+            "default": 1024
+          },
+          "privacy_level": {
+            "type": "string",
+            "title": "Privacy Level",
+            "default": "standard"
+          },
+          "required_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Capabilities"
+          },
+          "max_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Cost Usd"
+          },
+          "preferred_provider": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provider"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_preference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelCategory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endpoint_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Url"
+          }
+        },
+        "type": "object",
+        "title": "RoutingExplainRequest"
       },
       "SandboxTestRequest": {
         "properties": {
@@ -6976,6 +10184,373 @@
         ],
         "title": "SandboxTestResponse"
       },
+      "ScopedAPIKeyMetadata": {
+        "properties": {
+          "key_id": {
+            "type": "string",
+            "title": "Key Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "key_prefix": {
+            "type": "string",
+            "maxLength": 14,
+            "minLength": 14,
+            "title": "Key Prefix"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "revoked": {
+            "type": "boolean",
+            "title": "Revoked",
+            "default": false
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key_id",
+          "tenant_id",
+          "name",
+          "key_prefix",
+          "scopes",
+          "created_at"
+        ],
+        "title": "ScopedAPIKeyMetadata"
+      },
+      "ScopedKeyIssueRequest": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tenant Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Scopes"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "name",
+          "scopes"
+        ],
+        "title": "ScopedKeyIssueRequest"
+      },
+      "ScopedKeyIssuedResponse": {
+        "properties": {
+          "key_id": {
+            "type": "string",
+            "title": "Key Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "key_prefix": {
+            "type": "string",
+            "maxLength": 14,
+            "minLength": 14,
+            "title": "Key Prefix"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "revoked": {
+            "type": "boolean",
+            "title": "Revoked",
+            "default": false
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "api_key": {
+            "type": "string",
+            "title": "Api Key",
+            "description": "One-time raw key (`kw_live_...`). Never persisted or shown again."
+          }
+        },
+        "type": "object",
+        "required": [
+          "key_id",
+          "tenant_id",
+          "name",
+          "key_prefix",
+          "scopes",
+          "created_at",
+          "api_key"
+        ],
+        "title": "ScopedKeyIssuedResponse"
+      },
+      "ScopedKeyVerifyRequest": {
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Api Key"
+          },
+          "required_scope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Scope"
+          }
+        },
+        "type": "object",
+        "required": [
+          "api_key"
+        ],
+        "title": "ScopedKeyVerifyRequest"
+      },
+      "SpendRecordRequest": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tenant Id"
+          },
+          "cost_usd": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Cost Usd"
+          },
+          "tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Tokens",
+            "default": 0
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model Id",
+            "default": "unspecified"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider",
+            "default": "unspecified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "cost_usd"
+        ],
+        "title": "SpendRecordRequest"
+      },
+      "SpendSnapshot": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          },
+          "daily_spent_usd": {
+            "type": "number",
+            "title": "Daily Spent Usd"
+          },
+          "monthly_spent_usd": {
+            "type": "number",
+            "title": "Monthly Spent Usd"
+          },
+          "total_tokens": {
+            "type": "integer",
+            "title": "Total Tokens"
+          },
+          "day_utc": {
+            "type": "string",
+            "title": "Day Utc"
+          },
+          "month_utc": {
+            "type": "string",
+            "title": "Month Utc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "daily_spent_usd",
+          "monthly_spent_usd",
+          "total_tokens",
+          "day_utc",
+          "month_utc"
+        ],
+        "title": "SpendSnapshot"
+      },
+      "SwarmEvalRequest": {
+        "properties": {
+          "seed_text": {
+            "type": "string",
+            "title": "Seed Text",
+            "default": "Keelway launches unified hybrid AI routing with zero-egress OpenCore and frontier reasoning."
+          },
+          "simulation_goal": {
+            "type": "string",
+            "title": "Simulation Goal",
+            "default": "Evaluate developer adoption, cost arbitrage, and enterprise security posture."
+          },
+          "entities_spec": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Entities Spec"
+          },
+          "rounds": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rounds",
+            "default": 2
+          },
+          "injected_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Injected Event"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "live"
+            ],
+            "title": "Mode",
+            "default": "mock"
+          },
+          "frontier_model": {
+            "type": "string",
+            "title": "Frontier Model",
+            "default": "gemini-3.5-flash-lite"
+          },
+          "opencore_model": {
+            "type": "string",
+            "title": "Opencore Model",
+            "default": "keelway-core:7b"
+          },
+          "draft_model": {
+            "type": "string",
+            "title": "Draft Model",
+            "default": "keelway-nano:1.5b"
+          }
+        },
+        "type": "object",
+        "title": "SwarmEvalRequest"
+      },
       "SyncImportRequest": {
         "properties": {
           "envelope": {
@@ -7018,6 +10593,18 @@
           "payload"
         ],
         "title": "SyncMutateRequest"
+      },
+      "TargetLanguage": {
+        "type": "string",
+        "enum": [
+          "swahili",
+          "yoruba",
+          "hausa",
+          "amharic",
+          "english",
+          "french"
+        ],
+        "title": "TargetLanguage"
       },
       "TaskCreateRequest": {
         "properties": {
@@ -7228,6 +10815,229 @@
         ],
         "title": "TeamPlanRequest"
       },
+      "TenantPolicy": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tenant Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "allowed_categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Allowed Categories"
+          },
+          "allowed_providers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Allowed Providers"
+          },
+          "residency_zone": {
+            "$ref": "#/components/schemas/DataResidencyZone",
+            "default": "global"
+          },
+          "daily_spend_limit_usd": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Daily Spend Limit Usd",
+            "default": 10.0
+          },
+          "monthly_spend_limit_usd": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Monthly Spend Limit Usd",
+            "default": 100.0
+          },
+          "fallback_to_opencore_on_budget_exceeded": {
+            "type": "boolean",
+            "title": "Fallback To Opencore On Budget Exceeded",
+            "default": true
+          },
+          "requests_per_minute": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Requests Per Minute",
+            "default": 60
+          },
+          "tokens_per_minute": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Tokens Per Minute",
+            "default": 120000
+          },
+          "log_redacted_prompts": {
+            "type": "boolean",
+            "title": "Log Redacted Prompts",
+            "default": false
+          },
+          "retention_days": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Retention Days",
+            "default": 30
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "name"
+        ],
+        "title": "TenantPolicy"
+      },
+      "TenantPolicyUpdateRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "allowed_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Categories"
+          },
+          "allowed_providers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Providers"
+          },
+          "residency_zone": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataResidencyZone"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "daily_spend_limit_usd": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Spend Limit Usd"
+          },
+          "monthly_spend_limit_usd": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Spend Limit Usd"
+          },
+          "fallback_to_opencore_on_budget_exceeded": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback To Opencore On Budget Exceeded"
+          },
+          "requests_per_minute": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requests Per Minute"
+          },
+          "tokens_per_minute": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens Per Minute"
+          },
+          "log_redacted_prompts": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Log Redacted Prompts"
+          },
+          "retention_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3650.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Days"
+          }
+        },
+        "type": "object",
+        "title": "TenantPolicyUpdateRequest"
+      },
       "TokenCreateRequest": {
         "properties": {
           "name": {
@@ -7289,6 +11099,18 @@
             ],
             "title": "Revoked At"
           },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
           "token": {
             "type": "string",
             "title": "Token",
@@ -7346,6 +11168,18 @@
               }
             ],
             "title": "Revoked At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           }
         },
         "type": "object",
@@ -7380,6 +11214,20 @@
           "parameters"
         ],
         "title": "ToolDefinitionSchema"
+      },
+      "UnloadModelRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id",
+            "description": "Model ID to unload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id"
+        ],
+        "title": "UnloadModelRequest"
       },
       "ValidationError": {
         "properties": {

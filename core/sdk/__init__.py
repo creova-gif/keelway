@@ -9,6 +9,8 @@ from core.sdk.errors import (
     AirGapEgressError,
     QuorumRequiredError,
     FlightRecorderError,
+    BudgetExceededError,
+    RateLimitExceededError,
     ConnectionError,
 )
 
@@ -23,5 +25,7 @@ __all__ = [
     "AirGapEgressError",
     "QuorumRequiredError",
     "FlightRecorderError",
+    "BudgetExceededError",
+    "RateLimitExceededError",
     "ConnectionError",
 ]

@@ -51,6 +51,16 @@ class FlightRecorderError(KeelwayError):
     code = "FLIGHT_RECORDER_ERROR"
 
 
+class BudgetExceededError(KeelwayError):
+    """Raised when tenant or request spend cap / budget is exceeded (HTTP 402)."""
+    code = "BUDGET_EXCEEDED"
+
+
+class RateLimitExceededError(KeelwayError):
+    """Raised when tenant or provider rate limits are exceeded (HTTP 429)."""
+    code = "RATE_LIMIT_EXCEEDED"
+
+
 class ConnectionError(KeelwayError):
     """Raised when the Keelway local daemon is unreachable."""
     code = "DAEMON_UNREACHABLE"

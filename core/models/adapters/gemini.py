@@ -28,7 +28,8 @@ class GeminiAdapter(ModelAdapter):
         if not self.is_available():
             raise RuntimeError("Google Gemini API key is not configured.")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        headers = {"Content-Type": "application/json", "x-goog-api-key": str(self.api_key)}
 
         contents: List[Dict[str, Any]] = []
         system_instruction: Optional[Dict[str, Any]] = None
@@ -52,7 +53,7 @@ class GeminiAdapter(ModelAdapter):
 
         start_time = time.perf_counter()
         async with httpx.AsyncClient(timeout=settings.default_timeout_seconds) as client:
-            resp = await client.post(url, json=payload)
+            resp = await client.post(url, headers=headers, json=payload)
             latency_ms = (time.perf_counter() - start_time) * 1000.0
 
             if resp.status_code != 200:

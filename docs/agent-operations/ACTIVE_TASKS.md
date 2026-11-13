@@ -9,23 +9,30 @@
 
 | Task ID | Title | Category | Current Status | Assigned Agent | Last Updated | Branch |
 |---|---|---|---|---|---|---|
-| **KEEL-HYBRID-001** | Unified Hybrid Model Gateway & Inference API | `MODELS / API` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-11 | `main` (Verified) |
+| **KEEL-HYBRID-001** | Unified Hybrid Model Gateway & Inference API | `MODELS / API` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-11 | `main` |
 | **KEEL-ENG-001** | Universal Multi-Agent System & CI Quality Gates | `ARCH / CI` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-11 | `main` |
-| **KEEL-SEC-002** | Linux Command Sandbox Bubblewrap CI Hardening | `SECURITY` | `QUEUED` | Unassigned | 2026-11-08 | `feature/KEEL-SEC-002-bwrap-ci` |
-| **KEEL-STUDIO-003** | Manifest Inspection Panel in Web Developer Studio | `UI / STUDIO` | `QUEUED` | Unassigned | 2026-11-08 | `feature/KEEL-STUDIO-003-manifest-view` |
+| **KEEL-SEC-002** | Linux Command Sandbox Bubblewrap CI Hardening | `SECURITY` | `VERIFIED_COMPLETE` | Google Antigravity (Sandbox & CI Lead) | 2026-11-13 | `main` |
+| **KEEL-STUDIO-003** | Manifest Inspection Panel in Web Developer Studio | `UI / STUDIO` | `VERIFIED_COMPLETE` | Google Antigravity (Studio Lead) | 2026-11-13 | `main` |
+| **KEEL-GOV-004** | Persistent SQLite WAL Multi-Tenant Governance & Audit Store | `SECURITY / GOV` | `VERIFIED_COMPLETE` | Google Antigravity (Governance Lead) | 2026-11-13 | `main` |
+| **KEEL-SDK-005** | Official TypeScript SDK (`@keelway/sdk`) & Website Drift Gate | `SDK / DX` | `VERIFIED_COMPLETE` | Google Antigravity (SDK Lead) | 2026-11-13 | `main` |
+| **KEEL-WEB-006** | Next.js 15 Flagship Website Redesign & 4 Competitive Upgrades | `WEBSITE / UX` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-13 | `main` |
 
 ---
 
 ## 2. Completed Milestones
 
-- **KEEL-HYBRID-001**: Model Registry, Open-Weight & OpenAI Adapters, Gateway Routing, `/v1/models`, `/v1/chat/completions` (streaming & non-streaming), `/v1/usage` cost accounting, and privacy fail-closed enforcement verified (16/16 tests passing).
+- **KEEL-HYBRID-001 & v1 Hybrid Control Plane**: 6-layer OpenCore (`Ollama`/`vLLM` + SHA-256 weight manifests + African-language QLoRA recipes) + Commercial Frontier (`Gemini`, `OpenAI`, `Anthropic`) gateway, stateful `/v1/responses`, 4D routing provenance (`/v1/routing/explain`), speculative decoding, MiroFish swarm harness, Python SDK v1, and 6-tab Web Console.
 - **KEEL-ENG-001**: Canonical `AGENTS.md`, Claude/Antigravity/Devin adapters, unified engineering standards, quality gates, and cross-agent handoff protocol established.
+- **KEEL-SEC-002**: Hardened Linux `BubblewrapBackend` mount-tree ordering for Ubuntu 24.04 (`/home/runner` masked tmpfs `--dir` creation, `--clearenv`, control-char validation, `Sandbox.diagnose()` AppArmor/userns sysctl reporting) and fail-closed Linux CI escape-probe enforcement (`36 passed` on macOS + live `bwrap` suite on `ubuntu-latest`).
+- **KEEL-STUDIO-003**: Added `GET /v1/studio/manifests` and `POST /v1/studio/manifests/inspect` (non-mutating HMAC-SHA256 verification & security warnings) plus the air-gap CSP-compliant **Manifests** master-detail inspector and live JSON validator in Keelway Studio (`:7420`).
+- **KEEL-GOV-004**: Shipped `SQLiteGovernanceStore` (`PRAGMA journal_mode=WAL`) backing `TenantGovernanceController` so `TenantPolicy`, salted-SHA256 `kw_live_*` keys, USD spend totals, and the Genesis-anchored SHA-256 governance audit chain survive restarts and detect out-of-band SQLite row tampering (`GET /v1/governance/persistence`).
+- **KEEL-SDK-005**: Shipped zero-dependency TypeScript/JS SDK (`sdk/typescript` — `@keelway/sdk` v1.0.0) with chunk-boundary-safe SSE streaming and full typed error parity (`7/7` Node test suites), plus synchronized `product-facts.json` and `tests/test_website_facts.py`.
+- **KEEL-WEB-006**: Built the 7-route Next.js 15 + React 19 + Tailwind + Radix + Framer Motion website (`website/`) with Global `Cmd+K` instant search across `226` targets (`186` OpenAPI 3.1 endpoints), 60fps Studio & Apple Metal runtime captures, empirical TTFT/Cost scatter plots, and a rate-limited live `/api/sandbox/routing-explain` network playground.
 
 ---
 
-## 3. How to Pick Up a Task
+## 3. Next Candidate Backlog Tasks
 
-1. Review the table above for tasks marked `QUEUED`.
-2. Open `docs/agent-operations/tasks/<TASK_ID>.md`.
-3. Update status to `IN_PROGRESS` and set your agent name.
-4. Follow the Universal Task Execution Protocol in `AGENTS.md`.
+1. **KEEL-MANIFEST-007**: Asymmetric Ed25519 Public-Key Signing & Verification for `keelway.agent/v1` Registry Manifests.
+2. **KEEL-CLUSTER-008**: Distributed Multi-Node vLLM / Ray GPU Cluster Scheduler & PostgreSQL Row-Locked Governance Adapter.
+3. **KEEL-SDK-009**: Official Go Client SDK (`keelway-go`) with Streaming SSE & Typed Governance Errors.

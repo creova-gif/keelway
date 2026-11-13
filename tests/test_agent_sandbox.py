@@ -4,9 +4,11 @@ import os
 import shlex
 import shutil
 import socket
+import subprocess
 import sys
 import tempfile
 import time
+import warnings
 from pathlib import Path
 
 import pytest
@@ -15,6 +17,8 @@ from core.agents import manifest as am
 from core.agents.guard import ManifestNotRunnable, loop_from_manifest
 from core.agents.sandbox import BubblewrapBackend, Sandbox, SandboxUnavailable, SeatbeltBackend, _sbpl_path, scrubbed_env
 from core.storage.workspace_fs import WorkspaceFilesystem
+
+warnings.filterwarnings("ignore", message=".*live_bubblewrap.*", category=pytest.PytestUnknownMarkWarning)
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "docs" / "spec" / "examples" / "test-fixer.agent.json"
 def needs_backend(fn):
@@ -29,6 +33,26 @@ def needs_backend(fn):
         not SeatbeltBackend.available(),
         reason="no OS sandbox backend on this platform (macOS seatbelt only)",
     )(fn)
+
+
+def needs_any_os_sandbox(fn):
+    """Runs on any host with a working OS sandbox (macOS seatbelt or Linux bubblewrap)."""
+    fn = pytest.mark.live_os_isolation(fn)
+    return pytest.mark.skipif(
+        not (SeatbeltBackend.available() or BubblewrapBackend.available()),
+        reason="no OS sandbox backend available (macOS seatbelt or Linux bubblewrap required)",
+    )(fn)
+
+
+def needs_bubblewrap(fn):
+    """Linux bubblewrap live confinement proof."""
+    fn = pytest.mark.live_bubblewrap(fn)
+    return pytest.mark.skipif(
+        not BubblewrapBackend.available(),
+        reason=f"bubblewrap not usable on this machine ({BubblewrapBackend.diagnostic_reason()})",
+    )(fn)
+
+
 PY = shlex.quote(sys.executable)
 
 
@@ -275,24 +299,257 @@ def test_bubblewrap_backend_structure(tmp_path):
     ws = tmp_path / "ws"
     ws.mkdir()
     (ws / ".git").mkdir()
+    (ws / ".keelway").mkdir()
+    (ws / ".kora").mkdir()
+    broken_link = tmp_path / "broken-link"
+    broken_link.symlink_to(tmp_path / "does-not-exist")
     tmp = tmp_path / "tmp"
     tmp.mkdir()
-    wrapped = BubblewrapBackend.wrap(["/bin/echo", "hello"], ws, tmp, [Path("/usr/lib")])
-    assert wrapped[0] == "bwrap"
+    env = scrubbed_env({"PATH": "/usr/bin:/bin", "ANTHROPIC_API_KEY": "sk-secret"}, tmp)
+    wrapped = BubblewrapBackend.wrap(
+        ["/bin/echo", "hello"],
+        ws,
+        tmp,
+        [Path("/usr/lib"), broken_link, tmp_path / "missing-dir"],
+        env=env,
+    )
+    assert wrapped[:3] == ["bwrap", "--ro-bind", "/"]
+    assert wrapped[:4] == ["bwrap", "--ro-bind", "/", "/"]
     assert "--unshare-net" in wrapped
-    assert "--ro-bind" in wrapped
-    assert str(ws) in wrapped
-    assert str(tmp) in wrapped
+    assert "--unshare-pid" in wrapped
+    assert "--die-with-parent" in wrapped
+    assert "--new-session" in wrapped
+    assert "--clearenv" in wrapped
+    assert str(broken_link) not in wrapped and str(tmp_path / "missing-dir") not in wrapped
+    assert "sk-secret" not in " ".join(wrapped)
+    assert "--setenv" in wrapped
     assert "--" in wrapped
-    assert wrapped[-2:] == ["/bin/echo", "hello"]
+    sep = wrapped.index("--")
+    assert wrapped[sep + 1 :] == ["/bin/echo", "hello"]
 
 
+def test_bubblewrap_simulated_ubuntu_mount_ordering_and_protections(monkeypatch):
+    import core.agents.sandbox as sbx
 
-@pytest.mark.skipif(not BubblewrapBackend.available(), reason="bubblewrap not usable on this machine")
+    ws = Path("/home/runner/work/kora/kora")
+    tmp = Path("/tmp/keelway-sbx-ubuntu")
+    py_root = Path("/opt/hostedtoolcache/Python/3.12.8/x64")
+    user_bin = Path("/home/runner/.local/bin")
+    existing_dirs = {
+        Path("/home"),
+        Path("/root"),
+        Path("/mnt"),
+        py_root,
+        user_bin,
+        ws,
+        ws / ".git",
+        ws / ".keelway",
+        ws / ".kora",
+        tmp,
+    }
+    monkeypatch.setattr(sbx, "_safe_is_dir", lambda p: p in existing_dirs)
+    monkeypatch.setattr(sbx, "_safe_is_file", lambda p: False)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: Path("/home/runner")))
+
+    wrapped = BubblewrapBackend.wrap(["/usr/bin/python3", "-V"], ws, tmp, [py_root, user_bin])
+
+    def pair_idx(flag: str, val: str) -> int:
+        for idx in range(len(wrapped) - 1):
+            if wrapped[idx] == flag and wrapped[idx + 1] == val:
+                return idx
+        raise AssertionError(f"({flag!r}, {val!r}) not found in {wrapped}")
+
+    def triple_idx(flag: str, src: str, dst: str) -> int:
+        for idx in range(len(wrapped) - 2):
+            if wrapped[idx] == flag and wrapped[idx + 1] == src and wrapped[idx + 2] == dst:
+                return idx
+        raise AssertionError(f"({flag!r}, {src!r}, {dst!r}) not found in {wrapped}")
+
+    assert wrapped[:4] == ["bwrap", "--ro-bind", "/", "/"]
+    tmpfs_home = pair_idx("--tmpfs", "/home")
+    tmpfs_root = pair_idx("--tmpfs", "/root")
+    tmpfs_tmp = pair_idx("--tmpfs", "/tmp")
+
+    dir_user_bin = pair_idx("--dir", str(user_bin))
+    ro_user_bin = triple_idx("--ro-bind", str(user_bin), str(user_bin))
+    ro_py = triple_idx("--ro-bind", str(py_root), str(py_root))
+
+    dir_ws = pair_idx("--dir", str(ws))
+    bind_ws = triple_idx("--bind", str(ws), str(ws))
+    dir_tmp = pair_idx("--dir", str(tmp))
+    bind_tmp = triple_idx("--bind", str(tmp), str(tmp))
+
+    ro_git = triple_idx("--ro-bind", str(ws / ".git"), str(ws / ".git"))
+    tmpfs_keelway = pair_idx("--tmpfs", str(ws / ".keelway"))
+    remount_keelway = pair_idx("--remount-ro", str(ws / ".keelway"))
+    tmpfs_kora = pair_idx("--tmpfs", str(ws / ".kora"))
+    remount_kora = pair_idx("--remount-ro", str(ws / ".kora"))
+
+    remount_home = pair_idx("--remount-ro", "/home")
+    remount_root = pair_idx("--remount-ro", "/root")
+
+    # Critical ordering invariants on Ubuntu 24.04 (/home/runner/...):
+    # 1. Masked tmpfs roots mount before --dir and child binds.
+    assert tmpfs_home < dir_user_bin < ro_user_bin
+    assert tmpfs_home < dir_ws < bind_ws
+    assert tmpfs_tmp < dir_tmp < bind_tmp
+    assert ro_py > 0
+    # 2. Protected .git, .keelway, and .kora masks apply AFTER workspace --bind.
+    assert bind_ws < ro_git
+    assert bind_ws < tmpfs_keelway < remount_keelway
+    assert bind_ws < tmpfs_kora < remount_kora
+    # 3. Parent --remount-ro on /home and /root occurs AFTER all child mounts so mkdir/bind never hit EROFS.
+    assert max(ro_user_bin, bind_ws, remount_keelway, remount_kora) < remount_home
+    assert tmpfs_root < remount_root
+    # 4. Namespace, session, and command arguments follow cleanly.
+    for required_flag in ("--unshare-net", "--unshare-pid", "--die-with-parent", "--new-session"):
+        assert required_flag in wrapped
+    sep = wrapped.index("--")
+    assert wrapped[sep + 1 :] == ["/usr/bin/python3", "-V"]
+
+
+def test_bubblewrap_root_home_never_masks_filesystem_root(monkeypatch):
+    import core.agents.sandbox as sbx
+
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: Path("/root")))
+    monkeypatch.setattr(sbx, "_safe_is_dir", lambda p: p in {Path("/"), Path("/home"), Path("/root"), Path("/tmp/ws"), Path("/tmp/t")})
+    monkeypatch.setattr(sbx, "_safe_is_file", lambda p: False)
+    wrapped = BubblewrapBackend.wrap(["/bin/true"], Path("/tmp/ws"), Path("/tmp/t"), [])
+    for idx in range(len(wrapped) - 1):
+        assert not (wrapped[idx] == "--tmpfs" and wrapped[idx + 1] == "/")
+        assert not (wrapped[idx] == "--remount-ro" and wrapped[idx + 1] == "/")
+
+
+@pytest.mark.parametrize("bad", ["/a\x00b", "/a\nb", "/a\rb", "/a\tb", "/a\x7fb"])
+def test_bubblewrap_rejects_unsafe_control_characters_in_paths(bad, tmp_path):
+    ok_ws = tmp_path / "ws"
+    ok_tmp = tmp_path / "tmp"
+    with pytest.raises(ValueError):
+        BubblewrapBackend.wrap(["/bin/true"], Path(bad), ok_tmp, [])
+    with pytest.raises(ValueError):
+        BubblewrapBackend.wrap(["/bin/true"], ok_ws, Path(bad), [])
+    with pytest.raises(ValueError):
+        BubblewrapBackend.wrap(["/bin/true"], ok_ws, ok_tmp, [Path(bad)])
+
+
+def test_sandbox_diagnose_and_bubblewrap_diagnostics(tmp_path, monkeypatch):
+    import core.agents.sandbox as sbx
+
+    diag = Sandbox(tmp_path).diagnose()
+    assert set(diag) >= {
+        "platform",
+        "selected_backend",
+        "seatbelt_available",
+        "bubblewrap_available",
+        "verified",
+        "detail",
+    }
+    assert diag["platform"] == sys.platform
+    assert isinstance(diag["seatbelt_available"], bool)
+    assert isinstance(diag["bubblewrap_available"], bool)
+    assert isinstance(diag["verified"], bool)
+
+    # Simulate Linux AppArmor unprivileged userns restriction (Ubuntu 24.04 failure mode)
+    monkeypatch.setattr(sbx.sys, "platform", "linux")
+    monkeypatch.setattr(sbx.shutil, "which", lambda name: "/usr/bin/bwrap" if name == "bwrap" else "/bin/true")
+    monkeypatch.setattr(
+        sbx,
+        "_read_sysctl",
+        lambda p: "1" if "apparmor_restrict_unprivileged_userns" in str(p) else ("0" if "unprivileged_userns_clone" in str(p) else None),
+    )
+    monkeypatch.setattr(
+        sbx.subprocess,
+        "run",
+        lambda *a, **kw: subprocess.CompletedProcess(a[0], 1, stdout="", stderr="bwrap: setting up uid map: Permission denied\n"),
+    )
+    reason = BubblewrapBackend.diagnostic_reason()
+    assert "Permission denied" in reason
+    assert "apparmor_restrict_unprivileged_userns=1" in reason
+    assert "unprivileged_userns_clone=0" in reason
+
+    # Simulate missing bwrap binary on Linux
+    monkeypatch.setattr(sbx.shutil, "which", lambda name: None)
+    assert "not found" in BubblewrapBackend.diagnostic_reason()
+
+
+def test_a_bubblewrap_sandbox_that_leaks_is_rejected_by_the_self_test(tmp_path, monkeypatch):
+    monkeypatch.setattr(BubblewrapBackend, "available", classmethod(lambda cls: True))
+    monkeypatch.setattr(BubblewrapBackend, "wrap", staticmethod(lambda argv, ws, tmp, roots, env=None: argv))
+    sb = Sandbox(tmp_path, backend="bubblewrap")
+    ok, detail = sb.verify()
+    assert ok is False and "NOT blocked" in detail
+    with pytest.raises(SandboxUnavailable):
+        sb.require_verified()
+
+
+# ---- cross-platform OS confinement (macOS Seatbelt AND Linux Bubblewrap) ----
+
+@needs_any_os_sandbox
+def test_cross_platform_sandbox_confinement_and_diagnostics(ws, monkeypatch):
+    (ws / "ws" / ".kora").mkdir(exist_ok=True)
+    (ws / "ws" / ".kora" / "token").write_text("KORATOKEN")
+    (ws / "ws" / ".git" / "HEAD").write_text("ref: refs/heads/main\n")
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-cross-platform-secret")
+    monkeypatch.setenv("KEELWAY_API_TOKEN", "kw-cross-platform-secret")
+
+    sb = Sandbox(ws / "ws")
+    assert sb.backend_name in ("seatbelt", "bubblewrap")
+    diag = sb.diagnose()
+    assert diag["verified"] is True, diag
+    assert diag["selected_backend"] == sb.backend_name
+
+    # Normal workspace read/write and .git read succeed
+    ok_rw = sb.run(f"{PY} -c \"open('src/check.txt','w').write('ok');print(open('.git/HEAD').read().strip())\"")
+    assert ok_rw.exit_code == 0 and "refs/heads/main" in ok_rw.stdout
+    assert (ws / "ws" / "src" / "check.txt").read_text() == "ok"
+
+    # Outside-workspace read & write blocked
+    outside_read = sb.run(f"{PY} -c \"print(open('{ws}/secret.txt').read())\"")
+    assert outside_read.exit_code != 0 and "TOPSECRET" not in outside_read.stdout
+    outside_write = sb.run(f"{PY} -c \"open('{ws}/escaped.txt','w').write('x')\"")
+    assert outside_write.exit_code != 0 and not (ws / "escaped.txt").exists()
+
+    # Protected .git write and .keelway / .kora read & write blocked
+    assert sb.run(f"{PY} -c \"open('.git/pwn','w').write('x')\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.keelway/agent_signing.key').read()\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.keelway/pwn','w').write('x')\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.kora/token').read()\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.kora/pwn','w').write('x')\"").exit_code != 0
+
+    # Scrubbed environment drops secrets
+    env_res = sb.run("/usr/bin/env")
+    assert env_res.exit_code == 0
+    assert "cross-platform-secret" not in env_res.stdout
+
+    # Missing binary normalized to 127 across both Seatbelt and Bubblewrap
+    missing = sb.run("/no/such/keelway_binary")
+    assert missing.exit_code == 127 and "not found" in missing.stderr
+
+    # Loopback network blocked
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    listener.settimeout(0.4)
+    port = listener.getsockname()[1]
+    try:
+        net_res = sb.run(f"{PY} -c \"import socket;socket.create_connection(('127.0.0.1',{port}),1)\"")
+        assert net_res.exit_code != 0
+        with pytest.raises(socket.timeout):
+            listener.accept()
+    finally:
+        listener.close()
+
+
+# ---- Linux Bubblewrap live confinement proofs --------------------------------
+
+@needs_bubblewrap
 def test_bubblewrap_passes_the_escape_self_test_and_hides_home(tmp_path):
     sb = Sandbox(tmp_path, backend="bubblewrap")
     ok, detail = sb.verify()
     assert ok, detail
+    diag = sb.diagnose()
+    assert diag["selected_backend"] == "bubblewrap" and diag["verified"] is True
     secret = Path(tempfile.mkdtemp(prefix=".keelway-home-secret-", dir=Path.home())) / "id_ed25519"
     try:
         secret.write_text("PRIVATEKEY")
@@ -300,6 +557,50 @@ def test_bubblewrap_passes_the_escape_self_test_and_hides_home(tmp_path):
         assert res.exit_code != 0 and "PRIVATEKEY" not in res.stdout
     finally:
         shutil.rmtree(secret.parent, ignore_errors=True)
+
+
+@needs_bubblewrap
+def test_live_bubblewrap_confinement_under_home_workspace(ws, monkeypatch):
+    (ws / "ws" / ".kora").mkdir(exist_ok=True)
+    (ws / "ws" / ".kora" / "secret").write_text("KORASECRET")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-bwrap-secret")
+
+    sb = Sandbox(ws / "ws", backend="bubblewrap")
+    sb.require_verified()
+
+    # Normal work succeeds inside workspace under $HOME (/home/runner/... on Linux CI)
+    ok_res = sb.run(f"{PY} -c \"open('src/bwrap_ok.txt','w').write('bwrap');print(open('src/bwrap_ok.txt').read())\"")
+    assert ok_res.exit_code == 0 and ok_res.stdout.strip() == "bwrap"
+    assert ok_res.to_tool_result("x")["sandbox"] == "bubblewrap"
+
+    # Outside-workspace reads/writes under $HOME fail
+    assert sb.run(f"{PY} -c \"open('{ws}/secret.txt').read()\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('{ws}/escaped.txt','w').write('x')\"").exit_code != 0
+    assert not (ws / "escaped.txt").exists()
+
+    # Protected .git write and .keelway/.kora read & write fail
+    assert sb.run(f"{PY} -c \"open('.git/config','w').write('x')\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.keelway/agent_signing.key').read()\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.keelway/x','w').write('x')\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.kora/secret').read()\"").exit_code != 0
+    assert sb.run(f"{PY} -c \"open('.kora/x','w').write('x')\"").exit_code != 0
+
+    # Secrets scrubbed via --clearenv + --setenv
+    env_res = sb.run("/usr/bin/env")
+    assert env_res.exit_code == 0 and "sk-bwrap-secret" not in env_res.stdout
+
+    # Network socket connect blocked via --unshare-net
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    listener.settimeout(0.4)
+    port = listener.getsockname()[1]
+    try:
+        assert sb.run(f"{PY} -c \"import socket;socket.create_connection(('127.0.0.1',{port}),1)\"").exit_code != 0
+        with pytest.raises(socket.timeout):
+            listener.accept()
+    finally:
+        listener.close()
 
 
 def test_verified_command_runner_refuses_without_a_backend(tmp_path, monkeypatch):

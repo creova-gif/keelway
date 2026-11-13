@@ -75,6 +75,38 @@ def _sbpl_path(path: Path) -> str:
     return f'(subpath "{text}")'
 
 
+def _bwrap_path(path: Path) -> str:
+    text = str(path)
+    if not text or any(ord(ch) < 32 or ord(ch) == 127 for ch in text):
+        raise ValueError(f"unsupported control character in sandbox path: {text!r}")
+    return text
+
+
+def _safe_is_dir(path: Path) -> bool:
+    try:
+        return path.is_dir()
+    except OSError:
+        return False
+
+
+def _safe_is_file(path: Path) -> bool:
+    try:
+        return path.is_file()
+    except OSError:
+        return False
+
+
+def _is_within(child: Path, parent: Path) -> bool:
+    return child == parent or parent in child.parents
+
+
+def _read_sysctl(path: Path) -> Optional[str]:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+
+
 def scrubbed_env(parent: Mapping[str, str], home: Path, extra_allow: Sequence[str] = ()) -> Dict[str, str]:
     """A minimal environment. Only named variables survive; everything else (keys, tokens, cloud creds) is dropped."""
     env = {k: v for k, v in parent.items() if k in ENV_KEEP or k in extra_allow}
@@ -132,68 +164,226 @@ class SeatbeltBackend:
 class BubblewrapBackend:
     name = "bubblewrap"
     _available: Optional[bool] = None
+    _last_probe_error: Optional[str] = None
+    _SYSCTL_APPARMOR_USERNS = Path("/proc/sys/kernel/apparmor_restrict_unprivileged_userns")
+    _SYSCTL_USERNS_CLONE = Path("/proc/sys/kernel/unprivileged_userns_clone")
+    _SYSCTL_MAX_USERNS = Path("/proc/sys/user/max_user_namespaces")
+
+    @staticmethod
+    def _probe_command(bwrap_bin: str = "bwrap") -> List[str]:
+        true_bin = shutil.which("true") or "/bin/true"
+        return [
+            bwrap_bin,
+            "--ro-bind", "/", "/",
+            "--dev", "/dev",
+            "--proc", "/proc",
+            "--tmpfs", "/tmp",
+            "--unshare-net",
+            "--unshare-pid",
+            "--unshare-ipc",
+            "--unshare-uts",
+            "--die-with-parent",
+            "--new-session",
+            "--",
+            true_bin,
+        ]
 
     @classmethod
     def available(cls) -> bool:
         if cls._available is not None:
             return cls._available
-        if sys.platform != "linux" or shutil.which("bwrap") is None:
+        bwrap_bin = shutil.which("bwrap") if sys.platform == "linux" else None
+        if sys.platform != "linux" or bwrap_bin is None:
             cls._available = False
             return False
         try:
             res = subprocess.run(
-                ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "--", "/bin/true"],
+                cls._probe_command(bwrap_bin),
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
                 timeout=2,
             )
             cls._available = (res.returncode == 0)
-        except Exception:
+            cls._last_probe_error = None if cls._available else (res.stderr or f"exit code {res.returncode}").strip()
+        except Exception as exc:
             cls._available = False
+            cls._last_probe_error = str(exc)
         return cls._available
 
+    @classmethod
+    def diagnostic_reason(cls) -> str:
+        """Return a root-cause diagnostic string explaining bubblewrap availability or failure."""
+        if sys.platform != "linux":
+            return f"unsupported platform for bubblewrap: {sys.platform} (linux required)"
+        bwrap_bin = shutil.which("bwrap")
+        if bwrap_bin is None:
+            return "bwrap binary not found on PATH (install package 'bubblewrap')"
+        notes: List[str] = []
+        apparmor_val = _read_sysctl(cls._SYSCTL_APPARMOR_USERNS)
+        if apparmor_val == "1":
+            notes.append(
+                "kernel.apparmor_restrict_unprivileged_userns=1 "
+                "(Ubuntu 24.04+ AppArmor blocks unprivileged user namespaces; "
+                "set kernel.apparmor_restrict_unprivileged_userns=0 or load an AppArmor profile for bwrap)"
+            )
+        clone_val = _read_sysctl(cls._SYSCTL_USERNS_CLONE)
+        if clone_val == "0":
+            notes.append("kernel.unprivileged_userns_clone=0 (unprivileged user namespaces disabled)")
+        max_ns_val = _read_sysctl(cls._SYSCTL_MAX_USERNS)
+        if max_ns_val == "0":
+            notes.append("user.max_user_namespaces=0 (user namespaces disabled)")
+        try:
+            res = subprocess.run(
+                cls._probe_command(bwrap_bin),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=2,
+            )
+            if res.returncode == 0:
+                return "ok"
+            stderr = (res.stderr or "").strip()
+            detail = f"bwrap probe exited {res.returncode}" + (f": {stderr}" if stderr else "")
+        except Exception as exc:
+            detail = f"bwrap probe failed: {exc}"
+        if notes:
+            return f"{detail} [{' ; '.join(notes)}]"
+        return detail
+
     @staticmethod
-    def wrap(argv: List[str], workspace: Path, tmp: Path, read_roots: Sequence[Path]) -> List[str]:
-        cmd = ["bwrap", "--ro-bind", "/", "/"]
-        # Hide every home directory (other projects, ~/.ssh, keys), then put back only what commands need.
-        hidden = [h for h in sorted({str(Path.home().resolve().parent), "/root", "/mnt", "/media"}) if Path(h).is_dir()]
-        for h in hidden:
-            cmd.extend(["--tmpfs", h])
-        for root in read_roots:
-            if root.is_dir():
-                cmd.extend(["--ro-bind", str(root), str(root)])
-        cmd.extend([
+    def _hidden_roots() -> List[str]:
+        candidates = {"/home", "/root", "/mnt", "/media"}
+        try:
+            home = Path.home().resolve()
+            if home.parent != Path("/") and str(home.parent) != "/tmp":
+                candidates.add(str(home.parent))
+            elif home != Path("/") and str(home) != "/tmp":
+                candidates.add(str(home))
+        except OSError:
+            pass
+        return [h for h in sorted(candidates) if h not in ("/", "/tmp") and _safe_is_dir(Path(h))]
+
+    @staticmethod
+    def wrap(
+        argv: List[str],
+        workspace: Path,
+        tmp: Path,
+        read_roots: Sequence[Path],
+        env: Optional[Mapping[str, str]] = None,
+    ) -> List[str]:
+        if not argv:
+            raise ValueError("empty argv for bubblewrap")
+        ws_str = _bwrap_path(workspace)
+        tmp_str = _bwrap_path(tmp)
+        validated_roots: List[Tuple[Path, str]] = [(r, _bwrap_path(r)) for r in read_roots]
+
+        cmd = [
+            "bwrap",
+            "--ro-bind", "/", "/",
             "--dev", "/dev",
             "--proc", "/proc",
             "--tmpfs", "/tmp",
-            "--bind", str(workspace), str(workspace),
-            "--bind", str(tmp), str(tmp),
-        ])
+        ]
+        # Hide every home/user directory (other projects, ~/.ssh, keys), then mount back only what commands need.
+        hidden = [
+            h for h in BubblewrapBackend._hidden_roots()
+            if Path(h) != workspace and Path(h) != tmp
+        ]
+        for h in hidden:
+            cmd.extend(["--tmpfs", h])
+
+        masked_tmpfs_roots = [Path("/tmp"), *(Path(h) for h in hidden)]
+        ro_mounted: List[Path] = []
+
+        def _needs_mkdir(target: Path) -> bool:
+            in_masked = [m for m in masked_tmpfs_roots if _is_within(target, m) and target != m]
+            if not in_masked:
+                return False
+            deepest_mask = max(in_masked, key=lambda p: len(p.parts))
+            for ro in ro_mounted:
+                if _is_within(target, ro) and len(ro.parts) > len(deepest_mask.parts):
+                    return False
+            return True
+
+        hidden_set = set(hidden) | {"/", "/tmp"}
+        for root, root_str in validated_roots:
+            if root_str in hidden_set or not _safe_is_dir(root):
+                continue
+            if _is_within(root, workspace) or _is_within(root, tmp):
+                continue
+            if any(_is_within(root, prev) for prev in ro_mounted):
+                continue
+            if _needs_mkdir(root):
+                cmd.extend(["--dir", root_str])
+            cmd.extend(["--ro-bind", root_str, root_str])
+            ro_mounted.append(root)
+
+        if _needs_mkdir(workspace):
+            cmd.extend(["--dir", ws_str])
+        cmd.extend(["--bind", ws_str, ws_str])
+
+        if tmp != workspace:
+            if _needs_mkdir(tmp):
+                cmd.extend(["--dir", tmp_str])
+            cmd.extend(["--bind", tmp_str, tmp_str])
+
         for p in PROTECTED_WRITE:
             prot = workspace / p
-            if not prot.is_dir():
-                continue
-            if p in PROTECTED_READ:
-                cmd.extend(["--tmpfs", str(prot), "--remount-ro", str(prot)])
-            else:
-                cmd.extend(["--ro-bind", str(prot), str(prot)])
+            prot_str = _bwrap_path(prot)
+            if _safe_is_dir(prot):
+                if p in PROTECTED_READ:
+                    cmd.extend(["--tmpfs", prot_str, "--remount-ro", prot_str])
+                else:
+                    cmd.extend(["--ro-bind", prot_str, prot_str])
+            elif _safe_is_file(prot):
+                if p in PROTECTED_READ:
+                    cmd.extend(["--ro-bind", "/dev/null", prot_str])
+                else:
+                    cmd.extend(["--ro-bind", prot_str, prot_str])
+
+        # Remount masked parent tmpfs superblocks read-only AFTER all child mounts are attached.
+        # In bwrap, --remount-ro is non-recursive, so child --bind mounts (workspace, tmp) stay rw.
         for h in hidden:
             cmd.extend(["--remount-ro", h])
-        cmd.extend(["--unshare-net", "--unshare-pid", "--die-with-parent", "--new-session"])
+
+        cmd.extend([
+            "--chdir", ws_str,
+            "--unshare-net",
+            "--unshare-pid",
+            "--unshare-ipc",
+            "--unshare-uts",
+            "--die-with-parent",
+            "--new-session",
+        ])
+        if env is not None:
+            cmd.append("--clearenv")
+            for key, val in sorted(env.items()):
+                if not key or "=" in key or "\x00" in key or "\x00" in val:
+                    raise ValueError(f"unsupported character in sandbox environment variable: {key!r}")
+                cmd.extend(["--setenv", key, val])
         return [*cmd, "--", *argv]
 
 
 def _default_read_roots() -> List[Path]:
     roots = {Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve()}
+    try:
+        roots.add(Path(sys.executable).resolve().parent)
+    except OSError:
+        pass
     home = Path.home().resolve()
     for entry in os.environ.get("PATH", "").split(os.pathsep):
         if entry:
             try:
                 p = Path(entry)
-                if p.is_dir() and (home in p.resolve().parents or p.resolve() == home):
-                    roots.add(p.resolve())  # tools the user put on PATH under their home (venv, ~/.local/bin)
+                if p.is_dir():
+                    rp = p.resolve()
+                    if home in rp.parents:
+                        roots.add(rp)  # tools the user put on PATH under their home (venv, ~/.local/bin)
             except (OSError, PermissionError):
                 continue
+    roots.discard(home)
+    roots.discard(Path("/"))
     return sorted(roots)
 
 
@@ -220,6 +410,21 @@ class Sandbox:
             return BubblewrapBackend.available()
         return False
 
+    def diagnose(self) -> Dict[str, Any]:
+        """Return structured diagnostics for sandbox backend selection and live escape verification."""
+        seatbelt_avail = bool(SeatbeltBackend.available())
+        bubblewrap_avail = bool(BubblewrapBackend.available())
+        verified, detail = self.verify()
+        return {
+            "platform": sys.platform,
+            "selected_backend": self.backend_name,
+            "seatbelt_available": seatbelt_avail,
+            "bubblewrap_available": bubblewrap_avail,
+            "bubblewrap_diagnostic": BubblewrapBackend.diagnostic_reason(),
+            "verified": verified,
+            "detail": detail,
+        }
+
     # ---- running -----------------------------------------------------
     def run(self, command: str, timeout: int = 30, max_output: int = 200_000) -> SandboxResult:
         if not self.available:
@@ -232,16 +437,16 @@ class Sandbox:
             raise ValueError("empty command")
         tmp = Path(tempfile.mkdtemp(prefix="keelway-sbx-")).resolve()
         try:
+            env = scrubbed_env(os.environ, tmp, self.env_allow)
             if self.backend_name == SeatbeltBackend.name:
                 profile_path = tmp / "profile.sb"
                 profile_path.write_text(SeatbeltBackend.profile(self.workspace, tmp, self.read_roots), encoding="utf-8")
                 wrapped_cmd = SeatbeltBackend.wrap(argv, profile_path)
             elif self.backend_name == BubblewrapBackend.name:
-                wrapped_cmd = BubblewrapBackend.wrap(argv, self.workspace, tmp, self.read_roots)
+                wrapped_cmd = BubblewrapBackend.wrap(argv, self.workspace, tmp, self.read_roots, env=env)
             else:
                 raise SandboxUnavailable(f"unsupported sandbox backend: {self.backend_name}")
 
-            env = scrubbed_env(os.environ, tmp, self.env_allow)
             start = time.perf_counter()
             proc = subprocess.Popen(
                 wrapped_cmd, cwd=str(self.workspace), env=env, shell=False,
@@ -259,7 +464,9 @@ class Sandbox:
                     pass
                 out, err = proc.communicate()
             code = proc.returncode
-            if code == 71 and "execvp()" in (err or ""):  # sandbox-exec could not start the program
+            if (code == 71 and "execvp()" in (err or "")) or (
+                self.backend_name == BubblewrapBackend.name and code == 1 and f"bwrap: execvp {argv[0]}:" in (err or "")
+            ):
                 code, err = 127, f"command not found or not executable inside the sandbox: {argv[0]}"
             return SandboxResult(code, (out or "")[-max_output:], (err or "")[-max_output:], timed_out, (time.perf_counter() - start) * 1000.0, self.backend_name)
         except FileNotFoundError as exc:
@@ -273,7 +480,10 @@ class Sandbox:
         if self._verified is not None:
             return self._verified
         if not self.available:
-            self._verified = (False, "no backend on this platform")
+            if sys.platform == "linux" and self.backend_name in ("", BubblewrapBackend.name):
+                self._verified = (False, f"no backend on this platform ({BubblewrapBackend.diagnostic_reason()})")
+            else:
+                self._verified = (False, "no backend on this platform")
             return self._verified
         probe_root = None
         for parent in (Path.home(), self.workspace.parent):
@@ -291,6 +501,8 @@ class Sandbox:
             (ws / ".git").mkdir(parents=True)
             (ws / ".keelway").mkdir()
             (ws / ".keelway" / "key").write_text("SIGNINGKEY")
+            (ws / ".kora").mkdir()
+            (ws / ".kora" / "key").write_text("KORASIGNINGKEY")
             (probe_root / "secret.txt").write_text("TOPSECRET")
             probe = Sandbox(ws, backend=self.backend_name, extra_read_roots=self.read_roots, env_allow=self.env_allow)
             listener.bind(("127.0.0.1", 0))
@@ -311,7 +523,12 @@ class Sandbox:
             for label, cmd, should_succeed in checks:
                 res = probe.run(cmd, timeout=15)
                 if (res.exit_code == 0) != should_succeed:
-                    problems.append(f"{label}: {'failed' if should_succeed else 'was NOT blocked'}")
+                    if should_succeed:
+                        err_lines = (res.stderr or "").strip().splitlines()
+                        snippet = err_lines[-1][:200] if err_lines else f"exit={res.exit_code}"
+                        problems.append(f"{label}: failed ({snippet})")
+                    else:
+                        problems.append(f"{label}: was NOT blocked")
             leaked = probe.run(f"{py} -c \"print(open('{probe_root}/secret.txt').read())\"", timeout=15)
             if "TOPSECRET" in leaked.stdout:
                 problems.append("secret contents leaked")

@@ -68,16 +68,28 @@ class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
             return requested_model
         return self._local_adapter.resolve_model()
 
-    async def complete(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
+    async def complete(self, request: Any) -> ChatCompletionResponse:
         """Execute non-streaming completion."""
         rt = self._local_adapter.runtime()
+        req_model = getattr(request, "model", None) or ""
+        if req_model.startswith("keelway-") and (not rt.up or not rt.models or req_model not in rt.models):
+            from core.opencore.serving import opencore_serving_engine
+            if not isinstance(request, ChatCompletionRequest):
+                request = ChatCompletionRequest(
+                    messages=request.messages,
+                    model=req_model,
+                    temperature=getattr(request, "temperature", 0.2),
+                    max_tokens=getattr(request, "max_tokens", 4096),
+                )
+            return await opencore_serving_engine.forward_inference(request)
+
         if not rt.up:
             raise ProviderError(
                 f"No local open-weight model server reachable at {self.base_url}. Please start Ollama (ollama serve) or vLLM.",
                 provider=self.provider_id,
             )
 
-        model = self.resolve_model(request.model)
+        model = self.resolve_model(req_model)
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
         timeout_val = max(settings.default_timeout_seconds, 120.0)
         start_time = time.perf_counter()
@@ -152,6 +164,19 @@ class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
     async def stream_complete(self, request: ChatCompletionRequest) -> AsyncIterator[StreamChunk]:
         """Execute streaming completion yielding StreamChunks."""
         rt = self._local_adapter.runtime()
+        req_model = getattr(request, "model", None) or ""
+        if req_model.startswith("keelway-") and (not rt.up or not rt.models or req_model not in rt.models):
+            from core.opencore.serving import opencore_serving_engine
+            res = await opencore_serving_engine.forward_inference(request)
+            yield StreamChunk(
+                id=res.id,
+                model=res.model,
+                delta_content=res.content,
+                finish_reason="stop",
+                usage=res.usage,
+            )
+            return
+
         if not rt.up:
             raise ProviderError(
                 f"No local open-weight model server reachable at {self.base_url} for streaming.",

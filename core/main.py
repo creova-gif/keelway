@@ -18,6 +18,9 @@ from core.api.studio import router as studio_router
 from core.api.auth_routes import router as auth_router
 from core.api.messaging_routes import relay, router as messaging_router
 from core.api.sync_routes import router as sync_router
+from core.api.opencore_routes import router as opencore_router
+from core.api.responses_routes import router as responses_router
+from core.api.governance_routes import router as governance_router
 import asyncio
 from core.security.auth import launch_token
 import os
@@ -28,6 +31,8 @@ logging.basicConfig(
     level=settings.log_level.upper(),
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 logger = logging.getLogger("keelway.core")
 
 
@@ -104,6 +109,9 @@ app.include_router(studio_router)
 app.include_router(auth_router)
 app.include_router(messaging_router)
 app.include_router(sync_router)
+app.include_router(opencore_router)
+app.include_router(responses_router)
+app.include_router(governance_router)
 
 # Mount Keelway Studio Web UI
 studio_dir = Path(__file__).resolve().parent / "studio"
