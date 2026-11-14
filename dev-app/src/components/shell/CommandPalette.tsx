@@ -245,6 +245,7 @@ export function CommandPalette({
       return;
     }
     const handleGlobalKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (
         (event.metaKey || event.ctrlKey) &&
         !event.shiftKey &&

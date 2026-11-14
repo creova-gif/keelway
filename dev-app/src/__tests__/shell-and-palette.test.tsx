@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -274,6 +275,9 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
     );
 
     const bar = screen.getByRole("contentinfo", { name: /Workspace status bar/i });
+    expect(bar).toHaveAttribute("id", "keelway-status-bar");
+    expect(bar).toHaveAttribute("aria-live", "polite");
+    expect(bar).toHaveAttribute("aria-atomic", "false");
     expect(bar).toHaveClass("h-statusbar");
     expect(bar).toHaveTextContent("Offline (setting)");
     expect(bar).toHaveTextContent("sent: unmeasured");
@@ -282,12 +286,7 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
 
     // 1b. unmeasured + deployPending={true}
     rerender(
-      <DevAppShell
-        activeSection="tasks"
-        onSelectSection={() => {}}
-        egress={baseUnmeasured}
-        deployPending={true}
-      >
+      <DevAppShell activeSection="tasks" onSelectSection={() => {}} egress={baseUnmeasured} deployPending={true}>
         <div>Workspace</div>
       </DevAppShell>,
     );
@@ -297,12 +296,7 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
 
     // 1c. unmeasured + offlineSetting={false}
     rerender(
-      <DevAppShell
-        activeSection="tasks"
-        onSelectSection={() => {}}
-        egress={baseUnmeasured}
-        offlineSetting={false}
-      >
+      <DevAppShell activeSection="tasks" onSelectSection={() => {}} egress={baseUnmeasured} offlineSetting={false}>
         <div>Workspace</div>
       </DevAppShell>,
     );
@@ -315,14 +309,7 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       <DevAppShell
         activeSection="tasks"
         onSelectSection={() => {}}
-        egress={{
-          mode: "measured_offline",
-          cloudCallsCount: 0,
-          bytesSent: 0,
-          airGapLocked: false,
-          endpoints: [],
-          lastCheckedAt: "14:02 ET",
-        }}
+        egress={{ mode: "measured_offline", cloudCallsCount: 0, bytesSent: 0, airGapLocked: false, endpoints: [], lastCheckedAt: "14:02 ET" }}
       >
         <div>Workspace</div>
       </DevAppShell>,
@@ -336,14 +323,7 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       <DevAppShell
         activeSection="tasks"
         onSelectSection={() => {}}
-        egress={{
-          mode: "air_gapped_verified",
-          cloudCallsCount: 0,
-          bytesSent: null,
-          airGapLocked: true,
-          endpoints: [],
-          lastCheckedAt: "14:03 ET",
-        }}
+        egress={{ mode: "air_gapped_verified", cloudCallsCount: 0, bytesSent: null, airGapLocked: true, endpoints: [], lastCheckedAt: "14:03 ET" }}
       >
         <div>Workspace</div>
       </DevAppShell>,
@@ -356,13 +336,7 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       <DevAppShell
         activeSection="tasks"
         onSelectSection={() => {}}
-        egress={{
-          mode: "unknown_probe_failed",
-          cloudCallsCount: 0,
-          bytesSent: null,
-          airGapLocked: false,
-          endpoints: [],
-        }}
+        egress={{ mode: "unknown_probe_failed", cloudCallsCount: 0, bytesSent: null, airGapLocked: false, endpoints: [] }}
       >
         <div>Workspace</div>
       </DevAppShell>,
@@ -409,6 +383,9 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
     expect(popoverHeading).toBeInTheDocument();
     expect(screen.getByText("api.frontier-cloud.example")).toBeInTheDocument();
     expect(screen.getByText("Every request is also a Record entry.")).toBeInTheDocument();
+
+    // Run axe-core while the Radix Egress Details Popover portal is open
+    expect(await runAxe(document.body)).toHaveNoViolations();
 
     await user.click(screen.getByRole("button", { name: "Switch to local model" }));
     expect(onSwitchToLocalModel).toHaveBeenCalledTimes(1);
@@ -620,23 +597,75 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it("renders Mobile Companion bottom navigation (<768px / isMobileCompanion) with >=44px min-h-11 touch targets", () => {
-    render(
+  it("renders Mobile Companion bottom navigation via explicit prop or auto-detected <768px matchMedia, announces polite updates, and avoids Cmd+K double-toggle when composed", async () => {
+    const { unmount } = render(
       <DevAppShell
         activeSection="tasks"
         onSelectSection={() => {}}
         tasks={SAMPLE_TASKS}
+        politeAnnouncement="New approval proposal arrived for core/main.py"
         isMobileCompanion={true}
       >
         <div>Mobile companion view</div>
       </DevAppShell>,
     );
 
+    const politeRegion = screen.getByTestId("shell-polite-announcer");
+    expect(politeRegion).toHaveAttribute("role", "status");
+    expect(politeRegion).toHaveAttribute("aria-live", "polite");
+    expect(politeRegion).toHaveAttribute("aria-atomic", "true");
+    expect(politeRegion).toHaveTextContent("New approval proposal arrived for core/main.py");
+
     const companionNav = screen.getByRole("navigation", { name: "Companion navigation" });
     for (const label of ["Approvals", "Tasks", "Record", "Status"]) {
       const btn = within(companionNav).getByRole("button", { name: new RegExp(`^${label}`, "i") });
       expect(btn).toHaveClass("min-h-11");
     }
+    unmount();
+
+    // Auto-detect <768px viewport via matchMedia("(max-width: 767px)") when isMobileCompanion is omitted
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query === "(max-width: 767px)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    try {
+      const autoMobile = render(
+        <DevAppShell activeSection="tasks" onSelectSection={() => {}} tasks={SAMPLE_TASKS}>
+          <div>Auto narrow viewport</div>
+        </DevAppShell>,
+      );
+      expect(screen.getByRole("navigation", { name: "Companion navigation" })).toBeInTheDocument();
+      autoMobile.unmount();
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+
+    // Composed DevAppShell + CommandPalette: single Cmd+K opens palette cleanly without double-toggling
+    function ComposedShellAndPalette(): React.JSX.Element {
+      const [paletteOpen, setPaletteOpen] = React.useState(false);
+      return (
+        <DevAppShell
+          activeSection="tasks"
+          onSelectSection={() => {}}
+          onOpenCommandPalette={() => setPaletteOpen((prev) => !prev)}
+        >
+          <div>Composed workspace</div>
+          <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+        </DevAppShell>
+      );
+    }
+
+    render(<ComposedShellAndPalette />);
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    expect(await screen.findByRole("dialog", { name: /Command palette/i })).toBeInTheDocument();
   });
 
   it("passes WCAG 2.2 AA axe-core checks across DevAppShell, open CommandPalette, and OnboardingModal in Dark, Light, and RTL modes", async () => {

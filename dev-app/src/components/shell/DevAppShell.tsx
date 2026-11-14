@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button } from "@/components/ui/Button";
@@ -39,6 +39,7 @@ export interface DevAppShellProps {
   activeModelLabel?: string;
   recordSeqLatest?: number;
   mainAriaLabel?: string;
+  politeAnnouncement?: string;
   isDesktopApp?: boolean;
   isMobileCompanion?: boolean;
   activeCompanionTab?: CompanionTab;
@@ -47,29 +48,16 @@ export interface DevAppShellProps {
 }
 
 const DEFAULT_EGRESS: EgressTelemetryState = {
-  mode: "unmeasured",
-  cloudCallsCount: 0,
-  bytesSent: null,
-  airGapLocked: false,
-  endpoints: [],
+  mode: "unmeasured", cloudCallsCount: 0, bytesSent: null, airGapLocked: false, endpoints: [],
 };
 
 const TASK_STATUS_PRIORITY: Record<TaskStatus, number> = {
-  needs_approval: 0,
-  running: 1,
-  queued: 2,
-  ready: 3,
-  failed: 4,
-  done: 5,
+  needs_approval: 0, running: 1, queued: 2, ready: 3, failed: 4, done: 5,
 };
 
 const TASK_STATUS_TO_BADGE: Record<TaskStatus, SemanticBadgeKind> = {
-  needs_approval: "needs-approval",
-  running: "running",
-  queued: "queued",
-  done: "done",
-  ready: "ready",
-  failed: "failed",
+  needs_approval: "needs-approval", running: "running", queued: "queued",
+  done: "done", ready: "ready", failed: "failed",
 };
 
 const RAIL_ITEMS: Array<{ section: RailSection; label: string; glyph: string }> = [
@@ -86,15 +74,8 @@ export function formatEgressBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function isTabMap(
-  value: DevAppShellProps["logsDrawerContent"],
-): value is Partial<Record<LogsDrawerTab, React.ReactNode>> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !React.isValidElement(value) &&
-    ("logs" in value || "terminal" in value || "network" in value)
-  );
+function isTabMap(v: DevAppShellProps["logsDrawerContent"]): v is Partial<Record<LogsDrawerTab, React.ReactNode>> {
+  return typeof v === "object" && v !== null && !React.isValidElement(v) && ("logs" in v || "terminal" in v || "network" in v);
 }
 
 interface StatusBarEgressProps {
@@ -105,13 +86,9 @@ interface StatusBarEgressProps {
   onGoOffline?: () => void;
 }
 
-function StatusBarEgress({
-  egress,
-  offlineSetting,
-  deployPending,
-  onSwitchToLocalModel,
-  onGoOffline,
-}: StatusBarEgressProps): React.JSX.Element {
+function StatusBarEgress({ egress, offlineSetting, deployPending, onSwitchToLocalModel, onGoOffline }: StatusBarEgressProps): React.JSX.Element {
+  const egressPopoverHeadingId = useId();
+
   if (egress.mode === "measured_offline") {
     const suffix = egress.lastCheckedAt ? ` (${egress.lastCheckedAt})` : "";
     return (
@@ -123,7 +100,6 @@ function StatusBarEgress({
       </div>
     );
   }
-
   if (egress.mode === "air_gapped_verified") {
     const suffix = egress.lastCheckedAt ? ` (${egress.lastCheckedAt})` : "";
     return (
@@ -135,7 +111,6 @@ function StatusBarEgress({
       </div>
     );
   }
-
   if (egress.mode === "unknown_probe_failed") {
     return (
       <div className="flex items-center gap-2">
@@ -172,11 +147,14 @@ function StatusBarEgress({
               side="top"
               align="end"
               sideOffset={6}
+              aria-labelledby={egressPopoverHeadingId}
               className="z-50 w-80 rounded-md border border-border-strong bg-surface p-3 text-ui text-fg shadow-popover"
             >
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-xs font-semibold text-fg">Data sent this session</h2>
+                  <h2 id={egressPopoverHeadingId} className="text-xs font-semibold text-fg">
+                    Data sent this session
+                  </h2>
                   <SemanticBadge kind="live" />
                 </div>
                 {egress.endpoints.length > 0 ? (
@@ -313,14 +291,39 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
     logsTab: controlledLogsTab, onSelectLogsTab, logsDrawerContent, egress = DEFAULT_EGRESS,
     offlineSetting = true, deployPending = false, onSwitchToLocalModel, onGoOffline,
     onOpenCommandPalette, workspaceBranch, activeModelLabel, recordSeqLatest,
-    mainAriaLabel = "Agent workspace", isDesktopApp = false, isMobileCompanion = false,
+    mainAriaLabel = "Agent workspace", politeAnnouncement, isDesktopApp = false, isMobileCompanion,
     activeCompanionTab = "tasks", onSelectCompanionTab, children,
   } = props;
 
   const [uncontrolledLogsOpen, setUncontrolledLogsOpen] = useState(defaultLogsDrawerOpen);
   const [uncontrolledLogsTab, setUncontrolledLogsTab] = useState<LogsDrawerTab>("logs");
+  const [isNarrowViewport, setIsNarrowViewport] = useState<boolean>(() =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia("(max-width: 767px)").matches
+      : false,
+  );
   const isLogsOpen = controlledLogsOpen ?? uncontrolledLogsOpen;
   const currentLogsTab = controlledLogsTab ?? uncontrolledLogsTab;
+  const effectiveMobileCompanion = isMobileCompanion ?? isNarrowViewport;
+
+  useEffect(() => {
+    if (
+      isMobileCompanion !== undefined ||
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    ) {
+      return;
+    }
+    const mql = window.matchMedia("(max-width: 767px)");
+    setIsNarrowViewport(mql.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsNarrowViewport(e.matches);
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    }
+    mql.addListener?.(onChange);
+    return () => mql.removeListener?.(onChange);
+  }, [isMobileCompanion]);
 
   const primaryRailRef = useRef<HTMLElement | null>(null);
   const sidebarRef = useRef<HTMLElement | null>(null);
@@ -367,7 +370,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
   );
 
   const shouldRenderSidebar =
-    !isMobileCompanion &&
+    !effectiveMobileCompanion &&
     activeSection !== "record" &&
     (activeSection === "tasks" || contextSidebarContent !== undefined);
 
@@ -377,6 +380,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (document.querySelector('[role="dialog"]')) return;
       if (event.key === "F6") {
         event.preventDefault();
@@ -498,8 +502,18 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
         ) : null}
       </div>
 
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="shell-polite-announcer"
+      >
+        {politeAnnouncement}
+      </div>
+
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        {!isMobileCompanion ? (
+        {!effectiveMobileCompanion ? (
           <nav
             ref={primaryRailRef}
             aria-label="Primary navigation"
@@ -620,7 +634,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
           ) : null}
         </div>
 
-        {!isMobileCompanion && reviewDrawerOpen ? (
+        {!effectiveMobileCompanion && reviewDrawerOpen ? (
           <aside
             ref={reviewRef}
             aria-label={reviewDrawerTitle}
@@ -641,7 +655,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
         ) : null}
       </div>
 
-      {isMobileCompanion ? (
+      {effectiveMobileCompanion ? (
         <nav aria-label="Companion navigation" className="grid grid-cols-4 gap-1 border-t border-border bg-chrome px-2 py-1">
           {(
             [
@@ -679,9 +693,12 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
       ) : null}
 
       <footer
+        id="keelway-status-bar"
         ref={statusBarRef}
         role="contentinfo"
         aria-label="Workspace status bar"
+        aria-live="polite"
+        aria-atomic="false"
         tabIndex={-1}
         data-programmatic-focus="true"
         className="flex h-statusbar min-h-statusbar shrink-0 items-center justify-between gap-3 border-t border-border bg-chrome px-3 text-[11px] leading-none"
