@@ -28,9 +28,11 @@ export interface RecordAuditLedgerProps {
   selectedSeq?: number | null;
   initialSelectedSeq?: number | null;
   defaultInspectorOpen?: boolean;
+  verifyRequestNonce?: number;
   loading?: boolean;
   error?: string | null;
   onSelectSeq?: (seq: number | null) => void;
+  onChainStateChange?: (state: ChainVerificationState) => void;
   onOpenDiffInReview?: (diffPath: string, seq: number) => void;
   fetchEntriesFn?: typeof fetchAuditEntries;
   verifyChainFn?: typeof verifyAuditChain;
@@ -66,16 +68,16 @@ function buildDistinctOptions(
   ];
 }
 
-function FilterSelect({
+function FilterSelect<T extends string>({
   label,
   value,
   options,
   onChange,
 }: {
   label: string;
-  value: string;
-  options: ReadonlyArray<{ value: string; label: string }>;
-  onChange: (next: string) => void;
+  value: T;
+  options: ReadonlyArray<{ value: T; label: string }>;
+  onChange: (next: T) => void;
 }): React.JSX.Element {
   const id = useId();
   return (
@@ -84,7 +86,10 @@ function FilterSelect({
       <select
         id={id}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          const matched = options.find((opt) => opt.value === e.target.value);
+          if (matched) onChange(matched.value);
+        }}
         className="min-h-ctrl-sm rounded-xs border border-border-control bg-surface px-2 py-1 text-xs text-fg"
       >
         {options.map((opt) => (
@@ -116,7 +121,7 @@ function triggerSafeBrowserDownload(filename: string, content: string): void {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(objectUrl);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   } catch {
     // Non-fatal in sandboxed webviews
   }
@@ -128,9 +133,11 @@ export function RecordAuditLedger({
   selectedSeq,
   initialSelectedSeq,
   defaultInspectorOpen = true,
+  verifyRequestNonce,
   loading: loadingProp,
   error: errorProp,
   onSelectSeq,
+  onChainStateChange,
   onOpenDiffInReview,
   fetchEntriesFn = fetchAuditEntries,
   verifyChainFn = verifyAuditChain,
@@ -175,7 +182,19 @@ export function RecordAuditLedger({
   const [dateFilter, setDateFilter] = useState("all");
 
   const searchId = useId();
+  const inspectorRef = useRef<HTMLElement | null>(null);
   const rowButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const pendingFocusSeqRef = useRef<number | null>(null);
+
+  const selectedSeqRef = useRef(selectedSeq);
+  selectedSeqRef.current = selectedSeq;
+  const initialSelectedSeqRef = useRef(initialSelectedSeq);
+  initialSelectedSeqRef.current = initialSelectedSeq;
+  const defaultInspectorOpenRef = useRef(defaultInspectorOpen);
+  defaultInspectorOpenRef.current = defaultInspectorOpen;
+  const internalSelectedSeqRef = useRef(internalSelectedSeq);
+  internalSelectedSeqRef.current = internalSelectedSeq;
+
   const fetchEntriesRef = useRef(fetchEntriesFn);
   fetchEntriesRef.current = fetchEntriesFn;
   const verifyChainRef = useRef(verifyChainFn);
@@ -184,6 +203,12 @@ export function RecordAuditLedger({
   exportBundleRef.current = exportBundleFn;
   const onSelectSeqRef = useRef(onSelectSeq);
   onSelectSeqRef.current = onSelectSeq;
+  const onChainStateChangeRef = useRef(onChainStateChange);
+  onChainStateChangeRef.current = onChainStateChange;
+
+  useEffect(() => {
+    onChainStateChangeRef.current?.(chainState);
+  }, [chainState]);
 
   useEffect(() => {
     if (initialEntries !== undefined) {
@@ -226,9 +251,9 @@ export function RecordAuditLedger({
         if (loadedEntries !== null) {
           setEntries(loadedEntries);
           if (
-            selectedSeq === undefined &&
-            initialSelectedSeq === undefined &&
-            defaultInspectorOpen &&
+            selectedSeqRef.current === undefined &&
+            initialSelectedSeqRef.current === undefined &&
+            defaultInspectorOpenRef.current &&
             loadedEntries.length > 0
           ) {
             setInternalSelectedSeq((prev) => prev ?? loadedEntries[0].seq);
@@ -249,30 +274,65 @@ export function RecordAuditLedger({
         }
       }
     },
-    [defaultInspectorOpen, initialSelectedSeq, selectedSeq],
+    [],
   );
+
+  const needsInitialEntries = initialEntries === undefined;
+  const needsInitialChain = initialChainState === undefined;
 
   useEffect(() => {
     let cancelled = false;
-    void executeLedgerLoad(
-      initialEntries === undefined,
-      initialChainState === undefined,
-      () => cancelled,
-    );
+    void executeLedgerLoad(needsInitialEntries, needsInitialChain, () => cancelled);
     return () => {
       cancelled = true;
     };
-  }, [executeLedgerLoad, initialChainState, initialEntries]);
+  }, [executeLedgerLoad, needsInitialChain, needsInitialEntries]);
+
+  const handleVerifyChain = useCallback(async () => {
+    setIsVerifying(true);
+    try {
+      const verified = await verifyChainRef.current();
+      setChainState(verified);
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Chain verification request failed.");
+    } finally {
+      setIsVerifying(false);
+    }
+  }, []);
+
+  const lastVerifyNonceRef = useRef<number | undefined>(verifyRequestNonce);
+  useEffect(() => {
+    if (verifyRequestNonce === undefined || lastVerifyNonceRef.current === verifyRequestNonce) {
+      return;
+    }
+    lastVerifyNonceRef.current = verifyRequestNonce;
+    void handleVerifyChain();
+  }, [handleVerifyChain, verifyRequestNonce]);
 
   const closeInspector = useCallback(() => {
+    const activeEl = typeof document !== "undefined" ? document.activeElement : null;
+    const focusWasInInspector = Boolean(
+      activeEl && inspectorRef.current && inspectorRef.current.contains(activeEl),
+    );
+    const seqToRestore = internalSelectedSeqRef.current;
     setInspectorOpen(false);
     setMissingPrevSeq(null);
     onSelectSeqRef.current?.(null);
+    if (focusWasInInspector && seqToRestore !== null) {
+      rowButtonRefs.current[seqToRestore]?.focus();
+    }
   }, []);
 
   useEffect(() => {
     if (!inspectorOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        document.querySelector('[role="dialog"], [role="alertdialog"]')
+      ) {
+        return;
+      }
       if (event.key === "Escape") {
         event.preventDefault();
         closeInspector();
@@ -347,6 +407,16 @@ export function RecordAuditLedger({
     });
   }, [actionFilter, actorFilter, dateFilter, entries, modelFilter, outcomeFilter, searchQuery, targetFilter]);
 
+  useEffect(() => {
+    const pendingSeq = pendingFocusSeqRef.current;
+    if (pendingSeq === null) return;
+    const btn = rowButtonRefs.current[pendingSeq];
+    if (btn) {
+      pendingFocusSeqRef.current = null;
+      btn.focus();
+    }
+  }, [filteredEntries]);
+
   const selectedEntry = useMemo(
     () =>
       internalSelectedSeq !== null
@@ -355,21 +425,11 @@ export function RecordAuditLedger({
     [entries, internalSelectedSeq],
   );
 
-  const handleVerifyChain = async () => {
-    setIsVerifying(true);
-    try {
-      setChainState(await verifyChainRef.current());
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Chain verification request failed.");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
   const handleExportBundle = async () => {
     setIsExporting(true);
     try {
       const bundle = await exportBundleRef.current();
+      setLoadError(null);
       const jsonlLines = bundle.jsonl.split(/\r?\n/).filter((l) => l.trim().length > 0).length;
       const csvRows = Math.max(
         0,
@@ -395,11 +455,14 @@ export function RecordAuditLedger({
   };
 
   const handleOpenBrokenEntry = (brokenSeq: number) => {
-    if (!filteredEntries.some((entry) => entry.seq === brokenSeq) && hasActiveFilters) {
+    const isVisible = filteredEntries.some((entry) => entry.seq === brokenSeq);
+    if (!isVisible && hasActiveFilters) {
+      pendingFocusSeqRef.current = brokenSeq;
       clearFilters();
+    } else {
+      rowButtonRefs.current[brokenSeq]?.focus();
     }
     handleSelectSeq(brokenSeq);
-    rowButtonRefs.current[brokenSeq]?.focus();
   };
 
   const handleJumpToPrevSeq = (prevSeq: number) => {
@@ -408,6 +471,7 @@ export function RecordAuditLedger({
       return;
     }
     if (!filteredEntries.some((entry) => entry.seq === prevSeq) && hasActiveFilters) {
+      pendingFocusSeqRef.current = prevSeq;
       clearFilters();
     }
     handleSelectSeq(prevSeq);
@@ -464,7 +528,7 @@ export function RecordAuditLedger({
 
         <section
           aria-label="Filter Record entries"
-          className="flex flex-wrap items-end gap-2.5 border-b border-border bg-chrome/60 px-4 py-2"
+          className="flex flex-wrap items-end gap-2.5 border-b border-border bg-chrome px-4 py-2"
         >
           <div className="flex min-w-[180px] flex-1 flex-col gap-1">
             <label htmlFor={searchId} className="text-[11px] font-medium text-fg-muted">
@@ -481,20 +545,10 @@ export function RecordAuditLedger({
           </div>
 
           <FilterSelect label="Target" value={targetFilter} options={targetOptions} onChange={setTargetFilter} />
-          <FilterSelect
-            label="Who"
-            value={actorFilter}
-            options={ACTOR_OPTIONS}
-            onChange={(v) => setActorFilter(v as "all" | RecordActorKind)}
-          />
+          <FilterSelect label="Who" value={actorFilter} options={ACTOR_OPTIONS} onChange={setActorFilter} />
           <FilterSelect label="Action" value={actionFilter} options={actionOptions} onChange={setActionFilter} />
           <FilterSelect label="Model" value={modelFilter} options={modelOptions} onChange={setModelFilter} />
-          <FilterSelect
-            label="Outcome"
-            value={outcomeFilter}
-            options={OUTCOME_OPTIONS}
-            onChange={(v) => setOutcomeFilter(v as "all" | RecordOutcomeKind)}
-          />
+          <FilterSelect label="Outcome" value={outcomeFilter} options={OUTCOME_OPTIONS} onChange={setOutcomeFilter} />
           <FilterSelect label="Date" value={dateFilter} options={dateOptions} onChange={setDateFilter} />
 
           <div className="ms-auto flex items-center gap-2 self-end pb-0.5">
@@ -561,12 +615,12 @@ export function RecordAuditLedger({
                       key={entry.seq}
                       data-selected={isSelected ? "true" : undefined}
                       onClick={() => handleSelectSeq(entry.seq)}
-                      className={`min-h-table-row cursor-pointer transition-colors ${
+                      className={`h-table-row min-h-table-row cursor-pointer transition-colors ${
                         isSelected
-                          ? "border-s-2 border-s-teal-accent bg-teal-surface/40"
+                          ? "border-s-2 border-s-teal-accent bg-teal-surface"
                           : isTamperedHere
-                            ? "bg-danger-subtle/40 hover:bg-danger-subtle/60"
-                            : "hover:bg-surface-elevated/70"
+                            ? "bg-danger-subtle"
+                            : "hover:bg-surface-elevated"
                       }`}
                     >
                       <td className="px-3 py-2 font-mono whitespace-nowrap text-fg-muted">
@@ -575,7 +629,7 @@ export function RecordAuditLedger({
                       <td className="px-3 py-2 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <span className="font-medium text-fg">{entry.actorLabel}</span>
-                          <span className="rounded-xs border border-border-control/50 bg-surface-elevated px-1 py-0 font-mono text-[10px] text-fg-muted">
+                          <span className="rounded-xs border border-border-control bg-surface-elevated px-1 py-0 font-mono text-[10px] text-fg-muted">
                             {entry.actorKind}
                           </span>
                         </div>
@@ -622,18 +676,24 @@ export function RecordAuditLedger({
                           onKeyDown={(e) => handleRowButtonKeyDown(e, rowIndex)}
                           className={`inline-flex items-center gap-1.5 rounded-xs border px-2 py-0.5 font-mono text-[11px] transition-colors ${
                             isTamperedHere
-                              ? "border-danger/60 bg-danger-subtle font-semibold text-danger"
+                              ? "border-danger bg-danger-subtle font-semibold text-danger"
                               : isUntrustedAfterBreak
-                                ? "border-warning/50 bg-warning-subtle text-warning"
+                                ? "border-warning bg-warning-subtle text-warning"
                                 : isSelected
-                                  ? "border-teal-accent/60 bg-teal-surface font-semibold text-teal-accent"
-                                  : "border-border-control/70 bg-surface-elevated text-fg hover:border-fg-muted"
+                                  ? "border-teal-accent bg-teal-surface font-semibold text-teal-accent"
+                                  : "border-border-control bg-surface-elevated text-fg hover:border-fg-muted"
                           }`}
                         >
                           {isTamperedHere ? (
-                            <span aria-hidden="true">✕</span>
+                            <>
+                              <span aria-hidden="true">✕</span>
+                              <span className="sr-only">Chain broken · </span>
+                            </>
                           ) : isUntrustedAfterBreak ? (
-                            <span aria-hidden="true">!</span>
+                            <>
+                              <span aria-hidden="true">!</span>
+                              <span className="sr-only">Untrusted · </span>
+                            </>
                           ) : null}
                           <span>{`#${entry.seq}`}</span>
                           <span aria-hidden="true" className="text-fg-dim">·</span>
@@ -653,6 +713,7 @@ export function RecordAuditLedger({
 
       {inspectorOpen && selectedEntry ? (
         <RecordEntryInspector
+          inspectorRef={inspectorRef}
           entry={selectedEntry}
           chainState={chainState}
           missingPrevSeq={missingPrevSeq}

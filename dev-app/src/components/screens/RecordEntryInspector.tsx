@@ -149,6 +149,7 @@ export interface RecordEntryInspectorProps {
   entry: RecordLedgerEntry;
   chainState: ChainVerificationState;
   missingPrevSeq?: number | null;
+  inspectorRef?: React.Ref<HTMLElement>;
   onSelectPrevSeq: (prevSeq: number) => void;
   onClose: () => void;
   onOpenDiffInReview?: (diffPath: string, seq: number) => void;
@@ -159,33 +160,36 @@ export function RecordEntryInspector({
   entry,
   chainState,
   missingPrevSeq = null,
+  inspectorRef,
   onSelectPrevSeq,
   onClose,
   onOpenDiffInReview,
   fetchMerkleProofFn,
 }: RecordEntryInspectorProps): React.JSX.Element {
   const [proofState, setProofState] = useState<{
+    seq: number;
     status: "loading" | "ready" | "error";
     proof: AuditMerkleProof | null;
-  }>({ status: "loading", proof: null });
+  }>(() => ({ seq: entry.seq, status: "loading", proof: null }));
 
   const fetchProofRef = useRef(fetchMerkleProofFn);
   fetchProofRef.current = fetchMerkleProofFn;
 
   useEffect(() => {
     let cancelled = false;
-    setProofState({ status: "loading", proof: null });
+    const targetSeq = entry.seq;
+    setProofState({ seq: targetSeq, status: "loading", proof: null });
 
     Promise.resolve()
-      .then(() => fetchProofRef.current(entry.seq))
+      .then(() => fetchProofRef.current(targetSeq))
       .then((proof) => {
         if (!cancelled) {
-          setProofState({ status: "ready", proof });
+          setProofState({ seq: targetSeq, status: "ready", proof });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setProofState({ status: "error", proof: null });
+          setProofState({ seq: targetSeq, status: "error", proof: null });
         }
       });
 
@@ -193,6 +197,10 @@ export function RecordEntryInspector({
       cancelled = true;
     };
   }, [entry.seq]);
+
+  const effectiveProofStatus =
+    proofState.seq !== entry.seq ? "loading" : proofState.status;
+  const effectiveProof = proofState.seq === entry.seq ? proofState.proof : null;
 
   const isBrokenAtEntry =
     chainState.status === "broken" && chainState.brokenAtSeq === entry.seq;
@@ -202,9 +210,11 @@ export function RecordEntryInspector({
     entry.seq > chainState.brokenAtSeq;
 
   const route = entry.fourDRoute;
+  const { prevSeq } = entry;
 
   return (
     <aside
+      ref={inspectorRef}
       aria-label={`Entry #${entry.seq} details`}
       className="flex w-inspector shrink-0 flex-col overflow-hidden border-s border-border bg-surface text-ui text-fg"
     >
@@ -227,7 +237,7 @@ export function RecordEntryInspector({
 
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 text-xs">
         {isBrokenAtEntry ? (
-          <div className="rounded-sm border border-danger/50 bg-danger-subtle p-2.5 text-fg">
+          <div className="rounded-sm border border-danger bg-danger-subtle p-2.5 text-fg">
             <div className="font-semibold text-danger">
               {`✕ Hash chain broken at #${entry.seq}`}
             </div>
@@ -256,7 +266,7 @@ export function RecordEntryInspector({
             ) : null}
           </div>
         ) : isAfterBrokenEntry ? (
-          <div className="rounded-sm border border-warning/45 bg-warning-subtle p-2.5 text-fg">
+          <div className="rounded-sm border border-warning bg-warning-subtle p-2.5 text-fg">
             <div className="font-semibold text-warning">
               {`! Untrusted chain segment (after #${chainState.brokenAtSeq})`}
             </div>
@@ -266,7 +276,7 @@ export function RecordEntryInspector({
           </div>
         ) : null}
 
-        <div className="space-y-1.5 rounded-sm border border-border bg-canvas/50 p-2.5">
+        <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-2.5">
           <h3 className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
             Event & P-10 Provenance
           </h3>
@@ -279,7 +289,7 @@ export function RecordEntryInspector({
               <dt className="text-fg-dim">Who</dt>
               <dd className="text-end text-fg">
                 <span>{entry.actorLabel}</span>{" "}
-                <span className="rounded-xs border border-border-control/50 bg-surface-elevated px-1 font-mono text-[10px] text-fg-muted">
+                <span className="rounded-xs border border-border-control bg-surface-elevated px-1 font-mono text-[10px] text-fg-muted">
                   {entry.actorKind}
                 </span>
               </dd>
@@ -311,7 +321,7 @@ export function RecordEntryInspector({
           </dl>
         </div>
 
-        <div className="space-y-1.5 rounded-sm border border-border bg-canvas/50 p-2.5">
+        <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-2.5">
           <h3 className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
             Model & Prompt Provenance
           </h3>
@@ -329,7 +339,7 @@ export function RecordEntryInspector({
           </div>
         </div>
 
-        <div className="space-y-1.5 rounded-sm border border-border bg-canvas/50 p-2.5">
+        <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-2.5">
           <h3 className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
             4D Route
           </h3>
@@ -358,10 +368,10 @@ export function RecordEntryInspector({
                     dir="ltr"
                     className={`unicode-bidi-isolate rounded-xs border px-1.5 py-0.5 font-mono text-[11px] ${
                       route.dataBoundary === "local_loopback"
-                        ? "border-teal-accent/40 bg-teal-surface text-teal-accent"
+                        ? "border-teal-accent bg-teal-surface text-teal-accent"
                         : route.dataBoundary === "external_vendor_api"
-                          ? "border-warning/45 bg-warning-subtle text-warning"
-                          : "border-border-control/60 bg-surface-elevated text-fg"
+                          ? "border-warning bg-warning-subtle text-warning"
+                          : "border-border-control bg-surface-elevated text-fg"
                     }`}
                   >
                     {route.dataBoundary}
@@ -384,7 +394,7 @@ export function RecordEntryInspector({
           )}
         </div>
 
-        <div className="space-y-1.5 rounded-sm border border-border bg-canvas/50 p-2.5">
+        <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-2.5">
           <h3 className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
             SHA-256 Hash Chain
           </h3>
@@ -400,13 +410,13 @@ export function RecordEntryInspector({
           <div className="space-y-1 pt-0.5">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[11px] text-fg-dim">prev</span>
-              {entry.prevSeq !== null ? (
+              {prevSeq !== null ? (
                 <button
                   type="button"
-                  onClick={() => onSelectPrevSeq(entry.prevSeq as number)}
+                  onClick={() => onSelectPrevSeq(prevSeq)}
                   className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-teal-accent transition-colors hover:border-teal-accent"
                 >
-                  {`(#${entry.prevSeq})`}
+                  {`(#${prevSeq})`}
                 </button>
               ) : (
                 <span className="font-mono text-[11px] text-fg-dim">(genesis)</span>
@@ -426,13 +436,13 @@ export function RecordEntryInspector({
           </div>
         </div>
 
-        <div className="space-y-1.5 rounded-sm border border-border bg-canvas/50 p-2.5">
+        <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-2.5">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
               Merkle Inclusion Proof
             </h3>
-            {proofState.status === "ready" && proofState.proof ? (
-              proofState.proof.verified ? (
+            {effectiveProofStatus === "ready" && effectiveProof ? (
+              effectiveProof.verified ? (
                 <SemanticBadge kind="passed" labelOverride="Verified" />
               ) : (
                 <SemanticBadge kind="failed" labelOverride="Unverified" />
@@ -440,11 +450,11 @@ export function RecordEntryInspector({
             ) : null}
           </div>
 
-          {proofState.status === "loading" ? (
+          {effectiveProofStatus === "loading" ? (
             <p className="font-mono text-[11px] text-fg-muted">
               Verifying Merkle inclusion path…
             </p>
-          ) : proofState.status === "error" || !proofState.proof ? (
+          ) : effectiveProofStatus === "error" || !effectiveProof ? (
             <p className="font-mono text-[11px] text-warning">
               Unable to load Merkle inclusion proof.
             </p>
@@ -456,17 +466,17 @@ export function RecordEntryInspector({
                   dir="ltr"
                   className="unicode-bidi-isolate block break-all rounded-xs border border-border bg-code px-2 py-1 font-mono text-[11px] text-fg"
                 >
-                  {proofState.proof.merkleRoot}
+                  {effectiveProof.merkleRoot}
                 </code>
               </div>
               <div className="font-mono text-[11px] tabular-nums text-fg-muted">
-                {`${proofState.proof.siblings.length} sibling ${
-                  proofState.proof.siblings.length === 1 ? "hash" : "hashes"
+                {`${effectiveProof.siblings.length} sibling ${
+                  effectiveProof.siblings.length === 1 ? "hash" : "hashes"
                 }`}
               </div>
-              {proofState.proof.siblings.length > 0 ? (
+              {effectiveProof.siblings.length > 0 ? (
                 <ul className="space-y-1">
-                  {proofState.proof.siblings.map((sibling, idx) => (
+                  {effectiveProof.siblings.map((sibling, idx) => (
                     <li
                       key={`${sibling.position}-${sibling.hash}-${idx}`}
                       className="flex items-center justify-between gap-2 rounded-xs border border-border bg-code px-2 py-1 font-mono text-[11px]"

@@ -6,6 +6,7 @@ import { FilesWorkspace } from "@/components/screens/FilesWorkspace";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import { getFallbackAuditEntries, getFallbackMerkleProof } from "@/lib/apiFallbacks";
 import type {
+  AuditMerkleProof,
   ChainVerificationState,
   CodeSymbolItem,
   FileDiffHunk,
@@ -365,13 +366,24 @@ describe("RecordAuditLedger (Screen 06)", () => {
     expect(within(table).getByText("Allowed")).toBeInTheDocument();
     expect(within(table).getByText("Blocked")).toBeInTheDocument();
 
-    // Keyboard ArrowDown / Enter row navigation opens the 360px inspector
+    // Keyboard ArrowDown -> ArrowDown -> ArrowUp row navigation & inspector sync
     const row1283Btn = within(table).getByRole("button", { name: /#1283/i });
-    row1283Btn.focus();
-    await user.keyboard("{ArrowDown}");
     const row1282Btn = within(table).getByRole("button", { name: /#1282/i });
-    expect(document.activeElement).toBe(row1282Btn);
+    const row1279Btn = within(table).getByRole("button", { name: /#1279/i });
+    row1283Btn.focus();
     await user.keyboard("{Enter}");
+    expect(await screen.findByRole("complementary", { name: /Entry #1283 details/i })).toBeInTheDocument();
+
+    await user.keyboard("{ArrowDown}");
+    expect(document.activeElement).toBe(row1282Btn);
+    expect(await screen.findByRole("complementary", { name: /Entry #1282 details/i })).toBeInTheDocument();
+
+    await user.keyboard("{ArrowDown}");
+    expect(document.activeElement).toBe(row1279Btn);
+    expect(await screen.findByRole("complementary", { name: /Entry #1279 details/i })).toBeInTheDocument();
+
+    await user.keyboard("{ArrowUp}");
+    expect(document.activeElement).toBe(row1282Btn);
     expect(await screen.findByRole("complementary", { name: /Entry #1282 details/i })).toBeInTheDocument();
   });
 
@@ -420,10 +432,19 @@ describe("RecordAuditLedger (Screen 06)", () => {
     expect(alertBanner).toHaveTextContent("Chain broken at entry #1279: hash doesn't match the previous entry");
     expect(alertBanner).toHaveTextContent("Entries after #1279 can't be trusted.");
 
+    const brokenTable = screen.getByRole("table", { name: /Record SHA-256 audit ledger/i });
+    expect(within(brokenTable).getByRole("button", { name: /Chain broken · #1279/i })).toBeInTheDocument();
+    expect(within(brokenTable).getByRole("button", { name: /Untrusted · #1283/i })).toBeInTheDocument();
+
+    // Filter out #1279 first, then verify Open entry #1279 clears filters and focuses #1279 row button
+    await user.selectOptions(screen.getByLabelText(/Outcome/i), "passed");
     await user.click(within(alertBanner).getByRole("button", { name: /Open entry #1279/i }));
     const inspector = await screen.findByRole("complementary", { name: /Entry #1279 details/i });
     expect(inspector).toHaveClass("w-inspector");
     expect(within(inspector).getByText("Entry #1279")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.activeElement).toBe(within(brokenTable).getByRole("button", { name: /#1279/i })),
+    );
 
     await user.click(within(alertBanner).getByRole("button", { name: /Export report/i }));
     expect(exportBundleFn).toHaveBeenCalledTimes(1);
@@ -471,8 +492,103 @@ describe("RecordAuditLedger (Screen 06)", () => {
     expect(fetchMerkleProofFn).toHaveBeenCalledWith(1282);
     expect(within(prevInspector).getByRole("button", { name: /Open diff in Review/i })).toBeDisabled();
 
+    // Escape while an open [role="dialog"] or defaultPrevented event is active MUST leave inspector open
+    const modalStub = document.createElement("div");
+    modalStub.setAttribute("role", "dialog");
+    document.body.appendChild(modalStub);
+    try {
+      await user.keyboard("{Escape}");
+      expect(screen.getByRole("complementary", { name: /Entry #1282 details/i })).toBeInTheDocument();
+    } finally {
+      modalStub.remove();
+    }
+    const preventedEsc = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+    preventedEsc.preventDefault();
+    window.dispatchEvent(preventedEsc);
+    expect(screen.getByRole("complementary", { name: /Entry #1282 details/i })).toBeInTheDocument();
+
+    // Focus inside inspector restores focus to #1282 row button on Escape close
+    within(prevInspector).getByRole("button", { name: /Close entry inspector/i }).focus();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("complementary", { name: /Entry #1282 details/i })).toBeNull();
+    expect(document.activeElement).toBe(within(table).getByRole("button", { name: /#1282/i }));
+  });
+
+  it("handles out-of-order Merkle proof races without stale flash, Merkle fetch errors, and stable fetchEntriesFn across selectedSeq updates", async () => {
+    const entries = getFallbackAuditEntries();
+    let resolve1283!: (proof: AuditMerkleProof) => void;
+    let resolve1282!: (proof: AuditMerkleProof) => void;
+
+    const fetchEntriesFn = vi.fn(async () => entries);
+    const verifyChainFn = vi.fn(async (): Promise<ChainVerificationState> => ({ status: "verified", totalEntries: 3 }));
+    const onChainStateChange = vi.fn();
+    const fetchMerkleProofFn = vi.fn((seq: number) => {
+      if (seq === 1283) {
+        return new Promise<AuditMerkleProof>((res) => { resolve1283 = res; });
+      }
+      if (seq === 1282) {
+        return new Promise<AuditMerkleProof>((res) => { resolve1282 = res; });
+      }
+      return Promise.reject(new Error("merkle db locked"));
+    });
+
+    const { rerender } = render(
+      <RecordAuditLedger
+        fetchEntriesFn={fetchEntriesFn}
+        verifyChainFn={verifyChainFn}
+        fetchMerkleProofFn={fetchMerkleProofFn}
+        selectedSeq={1283}
+        verifyRequestNonce={0}
+        onChainStateChange={onChainStateChange}
+      />,
+    );
+
+    expect(await screen.findByRole("complementary", { name: /Entry #1283 details/i })).toBeInTheDocument();
+    expect(fetchEntriesFn).toHaveBeenCalledTimes(1);
+
+    // Rapidly switch controlled selectedSeq 1283 -> 1282 BEFORE 1283 resolves; fetchEntriesFn must stay at 1 call
+    rerender(
+      <RecordAuditLedger
+        fetchEntriesFn={fetchEntriesFn}
+        verifyChainFn={verifyChainFn}
+        fetchMerkleProofFn={fetchMerkleProofFn}
+        selectedSeq={1282}
+        verifyRequestNonce={0}
+        onChainStateChange={onChainStateChange}
+      />,
+    );
+    const inspector1282 = await screen.findByRole("complementary", { name: /Entry #1282 details/i });
+    expect(fetchEntriesFn).toHaveBeenCalledTimes(1);
+    expect(within(inspector1282).getByText(/Verifying Merkle inclusion path/i)).toBeInTheDocument();
+
+    // Resolve #1282 first, then resolve stale #1283 with a distinct merkleRoot — #1282 proof must NOT be overwritten
+    await act(async () => {
+      resolve1282({ ...getFallbackMerkleProof(1282), merkleRoot: "root-for-1282-fresh" });
+    });
+    expect(await within(inspector1282).findByText("root-for-1282-fresh")).toBeInTheDocument();
+
+    await act(async () => {
+      resolve1283({ ...getFallbackMerkleProof(1283), merkleRoot: "stale-root-for-1283" });
+    });
+    expect(within(inspector1282).queryByText("stale-root-for-1283")).toBeNull();
+    expect(within(inspector1282).getByText("root-for-1282-fresh")).toBeInTheDocument();
+
+    // Switch to #1279 where fetchMerkleProofFn rejects -> shows clean error notice & verifyRequestNonce triggers re-verify
+    rerender(
+      <RecordAuditLedger
+        fetchEntriesFn={fetchEntriesFn}
+        verifyChainFn={verifyChainFn}
+        fetchMerkleProofFn={fetchMerkleProofFn}
+        selectedSeq={1279}
+        verifyRequestNonce={1}
+        onChainStateChange={onChainStateChange}
+      />,
+    );
+    const inspector1279 = await screen.findByRole("complementary", { name: /Entry #1279 details/i });
+    expect(fetchEntriesFn).toHaveBeenCalledTimes(1);
+    expect(await within(inspector1279).findByText("Unable to load Merkle inclusion proof.")).toBeInTheDocument();
+    await waitFor(() => expect(verifyChainFn).toHaveBeenCalledTimes(2));
+    expect(onChainStateChange).toHaveBeenCalledWith(expect.objectContaining({ status: "verified", totalEntries: 3 }));
   });
 
   it("supports 6-dimension filtering, Verify chain, Export, error/retry/empty states, and passes axe-core across dark, light, and dir='rtl'", async () => {
