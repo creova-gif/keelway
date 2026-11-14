@@ -21,6 +21,7 @@ from core.api.sync_routes import router as sync_router
 from core.api.opencore_routes import router as opencore_router
 from core.api.responses_routes import router as responses_router
 from core.api.governance_routes import router as governance_router
+from core.api.platform_routes import router as platform_router
 import asyncio
 from core.security.auth import launch_token
 import os
@@ -112,6 +113,7 @@ app.include_router(sync_router)
 app.include_router(opencore_router)
 app.include_router(responses_router)
 app.include_router(governance_router)
+app.include_router(platform_router)
 
 # Mount Keelway Studio Web UI & Unified Sovereign Dev App
 studio_dir = Path(__file__).resolve().parent / "studio"

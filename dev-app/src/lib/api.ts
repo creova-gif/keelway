@@ -722,3 +722,12 @@ export function connectStudioWebSocket(
     },
   };
 }
+
+export async function fetchPlatformOverviewStatus(): Promise<{ available: boolean; mode: "api" | "local_offline" }> {
+  return requestSameOriginDecoded<{ available: boolean; mode: "api" | "local_offline" }>(
+    "/v1/platform/overview",
+    { method: "GET" },
+    (raw) => (isRecord(raw) ? { available: true, mode: "api" as const } : null),
+    () => ({ available: true, mode: "local_offline" as const }),
+  );
+}

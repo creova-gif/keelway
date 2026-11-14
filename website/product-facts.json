@@ -39,6 +39,24 @@
       "code_path": "core/sdk/client.py, sdk/typescript/src/client.ts",
       "evidence_test": "tests/test_sdk_v1.py, sdk/typescript/test/sdk.test.mjs"
     },
+    "unified_10view_platform_and_nocode_builder": {
+      "status": "AVAILABLE",
+      "claim": "Unified 10-View Sovereign Workspace (Agents, IDE, Project Manager, Product, Automation, Marketplace, Security, Documentation, Operations, No-Code Builder) with dual Builder and Non-Coder modes, 12 lifecycle agents, Extension SDK, and natural-language blueprint compilation",
+      "code_path": "core/platform/workspace_hub.py, core/api/platform_routes.py, dev-app/src/App.tsx",
+      "evidence_test": "tests/test_unified_platform.py, tests/test_dev_app.py"
+    },
+    "marketplace_and_prepublish_security_scanner": {
+      "status": "AVAILABLE",
+      "claim": "Keelway Marketplace supporting 1st-party and verified 3rd-party agents, multi-agent systems, skills, plugins, templates, dev tools, and enterprise solutions with mandatory pre-publication prompt-injection, shell/AST exfil, and secret scanning plus 85/15 creator revenue sharing",
+      "code_path": "core/platform/marketplace.py, core/cli_tui.py",
+      "evidence_test": "tests/test_unified_platform.py, tests/test_cli_init_and_banner.py"
+    },
+    "five_stream_subscription_and_byom_governance": {
+      "status": "AVAILABLE",
+      "claim": "Five-stream subscription and BYOM policy engine (Community, Pro, BYOM, Enterprise, Marketplace) enforcing Community open-weight quotas, SPDX/commercial license checks, and explicit fail-closed rejection of consumer web subscriptions as third-party API credentials",
+      "code_path": "core/platform/subscription.py, website/src/components/pricing/PricingTiers.tsx",
+      "evidence_test": "tests/test_unified_platform.py, tests/test_website_facts.py"
+    },
     "tier2_hardware_security_hal": {
       "status": "EXPERIMENTAL",
       "claim": "Dual-WORM receipts, TPM 2.0 PCR quotes, PIV smartcard verification, and 2-of-3 Shamir recovery",

@@ -50,6 +50,8 @@ export interface DevAppShellProps {
   isMobileCompanion?: boolean;
   activeCompanionTab?: CompanionTab;
   onSelectCompanionTab?: (tab: CompanionTab) => void;
+  topWorkspaceBar?: React.ReactNode;
+  hideSidebar?: boolean;
   children: React.ReactNode;
 }
 
@@ -150,7 +152,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
     offlineSetting = true, deployPending = false, onSwitchToLocalModel, onGoOffline,
     onOpenCommandPalette, workspaceBranch, activeModelLabel, recordSeqLatest,
     mainAriaLabel = "Agent workspace", politeAnnouncement, isDesktopApp = false, isMobileCompanion,
-    activeCompanionTab = "tasks", onSelectCompanionTab, children,
+    activeCompanionTab = "tasks", onSelectCompanionTab, topWorkspaceBar, hideSidebar = false, children,
   } = props;
 
   const [uncontrolledLogsOpen, setUncontrolledLogsOpen] = useState(defaultLogsDrawerOpen);
@@ -229,6 +231,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
 
   const shouldRenderSidebar =
     !effectiveMobileCompanion &&
+    !hideSidebar &&
     activeSection !== "record" &&
     (activeSection === "tasks" || contextSidebarContent !== undefined);
 
@@ -446,6 +449,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          {!effectiveMobileCompanion && topWorkspaceBar ? topWorkspaceBar : null}
           <main
             id="kw-main-workspace"
             ref={mainRef}

@@ -39,9 +39,16 @@ export type KeelwayAnalyticsEvent =
   | "p10_escalation_triggered"
   | "record_tamper_simulated"
   | "record_chain_repaired"
+  | "governance_tamper_simulated"
+  | "governance_chain_verified"
   | "manifest_drift_tested"
+  | "marketplace_package_scanned"
   | "cli_tui_command_simulated"
-  | "playground_workflow_completed";
+  | "playground_workflow_completed"
+  | "playground_mode_switched"
+  | "playground_blueprint_compiled"
+  | "playground_view_selected"
+  | "pricing_byom_inspected";
 
 export type EvaluatedExperimentMap = Record<string, string | boolean | number>;
 

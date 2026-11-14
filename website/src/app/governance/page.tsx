@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { RoutingSimulator } from "@/components/governance/RoutingSimulator";
 import { GovernanceGuardrailsLab } from "@/components/governance/GovernanceGuardrailsLab";
+import { RecordTamperLab } from "@/components/governance/RecordTamperLab";
+import { ManifestDriftSimulator } from "@/components/governance/ManifestDriftSimulator";
 import { LatencyCostFrontierChart } from "@/components/charts/LatencyCostFrontierChart";
 import { SITE_URL } from "@/lib/utils";
 
@@ -134,6 +136,37 @@ export default function GovernancePage() {
           </div>
 
           <GovernanceGuardrailsLab />
+        </div>
+      </section>
+
+      {/* Interactive Hash-Chained Record Tamper Lab & Manifest Drift / Marketplace Scanner */}
+      <section
+        id="tamper-lab"
+        aria-labelledby="tamper-lab-heading"
+        className="border-t border-border-subtle py-16"
+      >
+        <div className="mx-auto max-w-container space-y-10 px-4 sm:px-6">
+          <div className="max-w-3xl">
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
+              CRYPTOGRAPHIC AUDIT &amp; EXTENSION GOVERNANCE LABS
+            </p>
+            <h2
+              id="tamper-lab-heading"
+              className="mt-2 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
+            >
+              Prove Ledger Tamper-Evidence, Prompt Drift Freeze &amp; Marketplace Safety
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+              Mutate row <code>#1279</code> in-place to inspect real-time SHA-256 chain
+              breaks, trigger standing-scope drift pauses on <code>p-13 → p-14</code>, and
+              test pre-publication Marketplace extension validation.
+            </p>
+          </div>
+
+          <RecordTamperLab />
+          <div id="manifest-drift">
+            <ManifestDriftSimulator />
+          </div>
         </div>
       </section>
 

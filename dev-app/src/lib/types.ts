@@ -6,6 +6,31 @@ import type React from "react";
 
 export type RailSection = "tasks" | "files" | "record" | "settings";
 
+export type PlatformViewId =
+  | "ide"
+  | "agents"
+  | "pm"
+  | "product"
+  | "automation"
+  | "marketplace"
+  | "security"
+  | "docs"
+  | "operations"
+  | "nocode";
+
+export type ExperienceMode = "builder" | "non_coder";
+
+export type SubscriptionTierId = "community" | "pro" | "byom" | "enterprise";
+
+export type MarketplaceCategoryId =
+  | "ai_agent"
+  | "multi_agent_system"
+  | "agent_skill"
+  | "plugin_extension"
+  | "automation_template"
+  | "dev_tool"
+  | "industry_enterprise_solution";
+
 export type SettingsSubSection =
   | "permissions"
   | "models"

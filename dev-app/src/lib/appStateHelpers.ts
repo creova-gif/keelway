@@ -6,8 +6,13 @@ import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
 import type {
   FileDiffHunk,
   OpenCoreWeightItem,
+  P10ApprovalDecisionPayload,
   P10ApprovalProposal,
+  P10ApprovalReceipt,
+  P10ScopedRuleSpec,
+  PlatformViewId,
   RailSection,
+  ScopedPermissionRule,
   SettingsSubSection,
   SidebarTaskItem,
   StepReceiptItem,
@@ -187,4 +192,72 @@ export function mergeFocusedDiffHunks(
   const focused = merged.filter((h) => h.path === diffPath);
   const others = merged.filter((h) => h.path !== diffPath);
   return [...focused, ...others];
+}
+
+export function syncWorkspaceUrlParams(
+  nextSection: RailSection,
+  nextSettings: SettingsSubSection,
+): void {
+  if (typeof window === "undefined" || !window.history?.replaceState) return;
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set("section", nextSection);
+    if (nextSection === "settings") {
+      url.searchParams.set("settings", nextSettings);
+    } else {
+      url.searchParams.delete("settings");
+    }
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  } catch {
+    // Ignore URL update errors in constrained environments
+  }
+}
+
+export function buildApprovalReceipt(
+  payload: P10ApprovalDecisionPayload,
+  nextSeq: number,
+): P10ApprovalReceipt {
+  return {
+    proposalId: payload.proposalId,
+    recordSeq: nextSeq,
+    decision: payload.decision,
+    summary:
+      payload.decision === "deny" && payload.denyReason
+        ? `Denied — ${payload.denyReason}`
+        : "Run pytest Studio CSP suite",
+    modifiedByUser: Boolean(payload.modifiedCommand || payload.modifiedTargetPath),
+    ...(payload.escalatedToNetwork ? { escalatedByEdit: true } : {}),
+    decidedAt: payload.decidedAt,
+    actorLabel: "you (local keyboard)",
+  };
+}
+
+export function buildScopedRule(
+  spec: P10ScopedRuleSpec,
+  activeModelId: string,
+): ScopedPermissionRule {
+  return {
+    id: `rule-${Date.now()}`,
+    capability: spec.actionKind === "command" ? "Run sandboxed command" : "Edit workspace files",
+    scopePattern: spec.scopePattern,
+    mode: "allow_scoped",
+    boundModelId: activeModelId,
+    boundPromptVersion: spec.promptVersion,
+    currentPromptVersion: spec.promptVersion,
+    driftDetected: false,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function resolveMainAriaLabel(
+  platformView: PlatformViewId,
+  activeSection: RailSection,
+): string {
+  if (platformView !== "ide") {
+    return platformView === "security" ? "Record audit ledger" : "Agent workspace";
+  }
+  if (activeSection === "files") return "Files codebase workspace";
+  if (activeSection === "record") return "Record audit ledger";
+  if (activeSection === "settings") return "Settings sovereign control plane";
+  return "Agent workspace";
 }

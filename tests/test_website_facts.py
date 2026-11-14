@@ -250,3 +250,171 @@ def test_vercel_flags_ab_experiments_and_funnel_wiring() -> None:
     assert "Only you can approve" in p10_src
     assert "Approvals are never run from here" in p10_src
     assert "Confirm external send" in p10_src
+
+
+def test_governance_interactive_tamper_and_drift_labs() -> None:
+    tamper_file = WEBSITE_DIR / "src" / "components" / "governance" / "RecordTamperLab.tsx"
+    drift_file = WEBSITE_DIR / "src" / "components" / "governance" / "ManifestDriftSimulator.tsx"
+    gov_page = WEBSITE_DIR / "src" / "app" / "governance" / "page.tsx"
+
+    assert tamper_file.exists(), "RecordTamperLab.tsx must exist"
+    assert drift_file.exists(), "ManifestDriftSimulator.tsx must exist"
+
+    tamper_src = tamper_file.read_text(encoding="utf-8")
+    assert len(tamper_src.splitlines()) < 380, "RecordTamperLab.tsx must remain < 380 lines"
+    for required_token in (
+        "Seq",
+        "Timestamp",
+        "Actor",
+        "Capability",
+        "Risk",
+        "Prev Hash",
+        "Entry SHA-256",
+        "License",
+        "Hosting",
+        "Operator",
+        "Data Boundary",
+        "⚡ Simulate Tamper on #1279",
+        "Verify Chain",
+        "Restore Valid Ledger",
+        "governance_tamper_simulated",
+        "governance_chain_verified",
+    ):
+        assert required_token in tamper_src, f"Missing '{required_token}' in RecordTamperLab.tsx"
+
+    drift_src = drift_file.read_text(encoding="utf-8")
+    assert len(drift_src.splitlines()) < 380, "ManifestDriftSimulator.tsx must remain < 380 lines"
+    for required_token in (
+        "keelway.agent/v1",
+        "keelway-core:7b",
+        "Simulate Prompt Update (p-13 → p-14)",
+        "Re-Approve Standing Scope",
+        "keelway.package/v1",
+        "Linear Sprint Triager",
+        "shell=True",
+    ):
+        assert required_token in drift_src, f"Missing '{required_token}' in ManifestDriftSimulator.tsx"
+
+    gov_src = gov_page.read_text(encoding="utf-8")
+    assert "RecordTamperLab" in gov_src, "governance/page.tsx must mount RecordTamperLab"
+    assert "ManifestDriftSimulator" in gov_src, "governance/page.tsx must mount ManifestDriftSimulator"
+
+
+def test_unified_10view_playground_route_and_navigation() -> None:
+    playground_page = WEBSITE_DIR / "src" / "app" / "playground" / "page.tsx"
+    playground_comp = WEBSITE_DIR / "src" / "components" / "playground" / "UnifiedPlatformPlayground.tsx"
+    header_file = WEBSITE_DIR / "src" / "components" / "layout" / "Header.tsx"
+    sitemap_file = WEBSITE_DIR / "src" / "app" / "sitemap.ts"
+    search_index_file = WEBSITE_DIR / "src" / "app" / "api" / "search-index" / "route.ts"
+
+    assert playground_page.exists(), "website/src/app/playground/page.tsx must exist"
+    assert playground_comp.exists(), "UnifiedPlatformPlayground.tsx must exist"
+
+    page_src = playground_page.read_text(encoding="utf-8")
+    assert len(page_src.splitlines()) < 140, "playground/page.tsx must remain < 140 lines"
+    assert 'canonical: "/playground"' in page_src
+    assert "UnifiedPlatformPlayground" in page_src
+
+    comp_src = playground_comp.read_text(encoding="utf-8")
+    assert len(comp_src.splitlines()) < 550, "UnifiedPlatformPlayground.tsx must remain < 550 lines"
+    for view_label in (
+        "Builder Mode",
+        "Guided Non-Coder Mode",
+        "No-Code Builder",
+        "Agents",
+        "IDE",
+        "Project Manager",
+        "Product",
+        "Automation",
+        "Marketplace",
+        "Security",
+        "Documentation",
+        "Operations",
+        "Compile Blueprint",
+        "HIPAA-ready patient intake",
+        "Automated PR security",
+        "Multi-currency fintech invoice",
+        "P-10",
+    ):
+        assert view_label in comp_src, f"Missing '{view_label}' in UnifiedPlatformPlayground.tsx"
+
+    header_src = header_file.read_text(encoding="utf-8")
+    assert '"/playground"' in header_src and "Playground" in header_src
+
+    sitemap_src = sitemap_file.read_text(encoding="utf-8")
+    assert '"/playground"' in sitemap_src
+
+    index_src = search_index_file.read_text(encoding="utf-8")
+    assert "/playground" in index_src
+    assert "Marketplace" in index_src and "No-Code" in index_src
+
+
+def test_five_stream_pricing_and_byom_compliance_disclosure() -> None:
+    pricing_data_file = WEBSITE_DIR / "src" / "data" / "pricing.ts"
+    pricing_tiers_file = WEBSITE_DIR / "src" / "components" / "pricing" / "PricingTiers.tsx"
+
+    data_src = pricing_data_file.read_text(encoding="utf-8")
+    tiers_src = pricing_tiers_file.read_text(encoding="utf-8")
+    combined_src = data_src + "\n" + tiers_src
+
+    assert len(tiers_src.splitlines()) < 620, "PricingTiers.tsx must remain < 620 lines"
+
+    for stream_token in (
+        "Free / Community",
+        "Keelway Pro",
+        "Bring Your Own Model",
+        "BYOM",
+        "Keelway Enterprise",
+        "Marketplace",
+        "85%",
+        "15%",
+    ):
+        assert stream_token in combined_src, f"Missing 5-stream pricing token '{stream_token}'"
+
+    # Mandatory explicit compliance notice in BOTH UI banner/card and FAQ data
+    for target_name, target_src in (("PricingTiers.tsx", tiers_src), ("data/pricing.ts", data_src)):
+        assert "ChatGPT" in target_src and "Claude" in target_src, (
+            f"{target_name} must explicitly reference ChatGPT and Claude consumer subscription rules"
+        )
+        assert "API" in target_src and ("not automatically grant" in target_src.lower() or "do not grant" in target_src.lower()), (
+            f"{target_name} must state consumer web subscriptions do not automatically grant third-party API access"
+        )
+
+
+def test_command_palette_linear_prefix_modes_and_file_size_caps() -> None:
+    cmdk_file = WEBSITE_DIR / "src" / "components" / "layout" / "CommandPalette.tsx"
+    cmdk_src = cmdk_file.read_text(encoding="utf-8")
+
+    for token in (
+        "> Actions",
+        "@ Models",
+        "/ Docs",
+        "# APIs & Governance",
+        "Launch 10-View Playground",
+        "Simulate Record Tamper Lab",
+        "Open No-Code Blueprint Builder",
+        "Compare BYOM & Pro Pricing",
+    ):
+        assert token in cmdk_src, f"Missing '{token}' in CommandPalette.tsx"
+
+    # Strict <750-line invariant across all platform showcase / modified TS & TSX files
+    checked_files = (
+        WEBSITE_DIR / "src" / "components" / "governance" / "RecordTamperLab.tsx",
+        WEBSITE_DIR / "src" / "components" / "governance" / "ManifestDriftSimulator.tsx",
+        WEBSITE_DIR / "src" / "components" / "playground" / "UnifiedPlatformPlayground.tsx",
+        WEBSITE_DIR / "src" / "app" / "playground" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "governance" / "page.tsx",
+        WEBSITE_DIR / "src" / "data" / "pricing.ts",
+        WEBSITE_DIR / "src" / "components" / "pricing" / "PricingTiers.tsx",
+        WEBSITE_DIR / "src" / "app" / "pricing" / "page.tsx",
+        WEBSITE_DIR / "src" / "components" / "layout" / "CommandPalette.tsx",
+        WEBSITE_DIR / "src" / "components" / "layout" / "Header.tsx",
+        WEBSITE_DIR / "src" / "app" / "sitemap.ts",
+        WEBSITE_DIR / "src" / "app" / "api" / "search-index" / "route.ts",
+        WEBSITE_DIR / "src" / "lib" / "analytics.ts",
+    )
+    for ts_path in checked_files:
+        line_count = len(ts_path.read_text(encoding="utf-8").splitlines())
+        assert line_count < 750, (
+            f"{ts_path.relative_to(KEELWAY_ROOT)} has {line_count} lines (must be strictly < 750)"
+        )

@@ -5,16 +5,16 @@ import { PRICING_FAQS } from "@/data/pricing";
 import { SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Pricing & Deployment Tiers",
+  title: "Pricing, BYOM & Marketplace Tiers",
   description:
-    "Transparent pricing for Keelway: $0 forever Apache-2.0 OpenCore Local, 0%-markup BYOK Team Hybrid Cloud, and dedicated Enterprise Sovereign VPC fleets.",
+    "Transparent 5-stream pricing for Keelway: $0 Free/Community OpenCore, $39/mo Keelway Pro, 0%-markup BYOM API routing, Enterprise Sovereign VPC, and 85/15 Creator Marketplace.",
   alternates: {
     canonical: "/pricing",
   },
   openGraph: {
-    title: "Pricing & Sovereign Deployment Tiers · Keelway",
+    title: "Pricing, BYOM & Creator Marketplace · Keelway",
     description:
-      "Start free locally under Apache-2.0 or scale to Team Hybrid Cloud and Enterprise Sovereign VPCs with 0% commercial token markup.",
+      "Start free locally under Apache-2.0 or scale to Keelway Pro, compliant 0%-markup BYOM, Enterprise VPCs, and verified Marketplace extensions.",
     url: `${SITE_URL}/pricing`,
   },
 };

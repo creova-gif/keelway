@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PlatformWorkspaceBar } from "@/components/platform/PlatformWorkspaceBar";
+import { useUnifiedPlatformState } from "@/components/platform/useUnifiedPlatformState";
 import { CommandPalette, type CommandPaletteSettingItem } from "@/components/shell/CommandPalette";
 import { DevAppShell, type CompanionTab, type LogsDrawerTab } from "@/components/shell/DevAppShell";
 import { OnboardingModal } from "@/components/shell/OnboardingModal";
@@ -20,13 +22,14 @@ import {
 } from "@/lib/api";
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
 import {
-  buildPaletteModelsAndSettings, INITIAL_PROPOSALS, INITIAL_STEP_RECEIPTS, INITIAL_TASKS,
-  mergeFocusedDiffHunks, readInitialUrlState,
+  buildApprovalReceipt, buildPaletteModelsAndSettings, buildScopedRule,
+  INITIAL_PROPOSALS, INITIAL_STEP_RECEIPTS, INITIAL_TASKS,
+  mergeFocusedDiffHunks, readInitialUrlState, resolveMainAriaLabel, syncWorkspaceUrlParams,
 } from "@/lib/appStateHelpers";
 import type {
   CodeSymbolItem, DensityMode, EgressTelemetryState, FileDiffHunk, LocaleCode,
   OpenCoreWeightItem, P10ApprovalDecisionPayload, P10ApprovalReceipt, P10ScopedRuleSpec,
-  RailSection, ScopedPermissionRule, SettingsSubSection, SidebarTaskItem, ThemeMode,
+  PlatformViewId, RailSection, ScopedPermissionRule, SettingsSubSection, SidebarTaskItem, ThemeMode,
   WorkspaceFileNode,
 } from "@/lib/types";
 
@@ -165,36 +168,70 @@ export function App({
   airGapLockedRef.current = egress.airGapLocked;
   const airGapReqSeqRef = useRef(0);
 
-  const syncUrlParams = useCallback((nextSection: RailSection, nextSettings: SettingsSubSection) => {
-    if (typeof window === "undefined" || !window.history?.replaceState) return;
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("section", nextSection);
-      if (nextSection === "settings") {
-        url.searchParams.set("settings", nextSettings);
-      } else {
-        url.searchParams.delete("settings");
-      }
-      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-    } catch {
-      // Ignore URL update errors in constrained environments
-    }
+  const syncUrlParams = useCallback(syncWorkspaceUrlParams, []);
+
+  const handleBumpRecordSeq = useCallback(() => {
+    let nextVal = 1284;
+    setRecordSeqLatest((prev) => {
+      nextVal = prev + 1;
+      return nextVal;
+    });
+    return nextVal;
   }, []);
 
-  const handleSelectSection = useCallback(
-    (next: RailSection) => {
-      setActiveSection(next);
-      syncUrlParams(next, settingsSubSection);
+  const handleJumpToIdeComposer = useCallback(
+    (prefill: string) => {
+      setComposerValue(prefill);
+      setActiveSection("tasks");
+      syncUrlParams("tasks", settingsSubSection);
+      setTimeout(() => composerTextareaRef.current?.focus(), 0);
     },
     [settingsSubSection, syncUrlParams],
   );
 
+  const {
+    platformView,
+    setPlatformView,
+    experienceMode,
+    setExperienceMode,
+    subscriptionTier,
+    setSubscriptionTier,
+    renderPlatformCanvas,
+  } = useUnifiedPlatformState({
+    onJumpToIdeComposer: handleJumpToIdeComposer,
+    onBumpRecordSeq: handleBumpRecordSeq,
+  });
+
+  const handleSelectSection = useCallback(
+    (next: RailSection) => {
+      setPlatformView("ide");
+      setActiveSection(next);
+      syncUrlParams(next, settingsSubSection);
+    },
+    [setPlatformView, settingsSubSection, syncUrlParams],
+  );
+
+  const handleSelectPlatformView = useCallback(
+    (nextView: PlatformViewId) => {
+      setPlatformView(nextView);
+      if (nextView === "ide" && activeSection !== "tasks" && activeSection !== "files") {
+        setActiveSection("tasks");
+        syncUrlParams("tasks", settingsSubSection);
+      } else if (nextView === "security") {
+        setActiveSection("record");
+        syncUrlParams("record", settingsSubSection);
+      }
+    },
+    [activeSection, setPlatformView, settingsSubSection, syncUrlParams],
+  );
+
   const handleSelectSettingsSubSection = useCallback(
     (nextSub: SettingsSubSection) => {
+      setPlatformView("ide");
       setSettingsSubSection(nextSub);
       syncUrlParams("settings", nextSub);
     },
-    [syncUrlParams],
+    [setPlatformView, syncUrlParams],
   );
 
   useEffect(() => {
@@ -289,19 +326,7 @@ export function App({
   const handleProposalDecision = useCallback(
     (payload: P10ApprovalDecisionPayload): P10ApprovalReceipt => {
       const nextSeq = recordSeqLatest + 1;
-      const receipt: P10ApprovalReceipt = {
-        proposalId: payload.proposalId,
-        recordSeq: nextSeq,
-        decision: payload.decision,
-        summary:
-          payload.decision === "deny" && payload.denyReason
-            ? `Denied — ${payload.denyReason}`
-            : "Run pytest Studio CSP suite",
-        modifiedByUser: Boolean(payload.modifiedCommand || payload.modifiedTargetPath),
-        ...(payload.escalatedToNetwork ? { escalatedByEdit: true } : {}),
-        decidedAt: payload.decidedAt,
-        actorLabel: "you (local keyboard)",
-      };
+      const receipt = buildApprovalReceipt(payload, nextSeq);
       setReceiptsByProposalId((prev) => ({ ...prev, [payload.proposalId]: receipt }));
       setRecordSeqLatest(nextSeq);
       setTasks((prev) =>
@@ -318,18 +343,7 @@ export function App({
 
   const handleCreateScopedRule = useCallback(
     (spec: P10ScopedRuleSpec) => {
-      const created: ScopedPermissionRule = {
-        id: `rule-${Date.now()}`,
-        capability: spec.actionKind === "command" ? "Run sandboxed command" : "Edit workspace files",
-        scopePattern: spec.scopePattern,
-        mode: "allow_scoped",
-        boundModelId: activeModelId,
-        boundPromptVersion: spec.promptVersion,
-        currentPromptVersion: spec.promptVersion,
-        driftDetected: false,
-        createdAt: new Date().toISOString(),
-      };
-      setScopedRules((prev) => [created, ...prev]);
+      setScopedRules((prev) => [buildScopedRule(spec, activeModelId), ...prev]);
     },
     [activeModelId],
   );
@@ -391,12 +405,13 @@ export function App({
         return;
       }
       if (item.settingsSection) {
+        setPlatformView("ide");
         setSettingsSubSection(item.settingsSection);
         setActiveSection("settings");
         syncUrlParams("settings", item.settingsSection);
       }
     },
-    [handleSelectActiveModel, syncUrlParams],
+    [handleSelectActiveModel, setPlatformView, syncUrlParams],
   );
 
   const handleOpenDiffInReview = useCallback(
@@ -476,14 +491,12 @@ export function App({
         ? "Settings navigation"
         : undefined;
 
-  const mainAriaLabel =
-    activeSection === "files"
-      ? "Files codebase workspace"
-      : activeSection === "record"
-        ? "Record audit ledger"
-        : activeSection === "settings"
-          ? "Settings sovereign control plane"
-          : "Agent workspace";
+  const pendingApprovalCount = useMemo(
+    () => tasks.filter((t) => t.status === "needs_approval").length,
+    [tasks],
+  );
+
+  const mainAriaLabel = resolveMainAriaLabel(platformView, activeSection);
 
   return (
     <>
@@ -512,6 +525,21 @@ export function App({
         onJumpToApprovalHeading={handleJumpToApprovalHeading}
         contextSidebarContent={contextSidebarContent}
         contextSidebarLabel={contextSidebarLabel}
+        hideSidebar={platformView !== "ide"}
+        topWorkspaceBar={
+          <PlatformWorkspaceBar
+            activeView={platformView}
+            onSelectView={handleSelectPlatformView}
+            experienceMode={experienceMode}
+            onChangeExperienceMode={setExperienceMode}
+            subscriptionTier={subscriptionTier}
+            onChangeSubscriptionTier={setSubscriptionTier}
+            workspacePath={workspacePath}
+            workspaceBranch={workspaceBranch}
+            activeModelLabel={activeModelLabel}
+            pendingApprovalCount={pendingApprovalCount}
+          />
+        }
         reviewDrawerOpen={reviewOpen}
         onToggleReviewDrawer={setReviewOpen}
         reviewDrawerTitle="Review changes"
@@ -562,7 +590,14 @@ export function App({
         activeCompanionTab={companionTab}
         onSelectCompanionTab={setCompanionTab}
       >
-        {activeSection === "tasks" ? (
+        {platformView !== "ide" ? (
+          renderPlatformCanvas({
+            selectedSeq: recordSelectedSeq,
+            onSelectSeq: setRecordSelectedSeq,
+            verifyRequestNonce: recordVerifyNonce,
+            onOpenDiffInReview: handleOpenDiffInReview,
+          })
+        ) : activeSection === "tasks" ? (
           <TasksWorkspace
             taskId={activeTask.id}
             taskTitle={activeTask.title}

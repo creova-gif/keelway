@@ -7683,6 +7683,957 @@
         }
       }
     },
+    "/v1/platform/overview": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Get Platform Overview",
+        "operationId": "get_platform_overview_v1_platform_overview_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Platform Overview V1 Platform Overview Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/subscriptions/tiers": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Subscription Tiers",
+        "operationId": "list_subscription_tiers_v1_platform_subscriptions_tiers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Subscription Tiers V1 Platform Subscriptions Tiers Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/subscriptions/quota-check": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Check Subscription Quota",
+        "operationId": "check_subscription_quota_v1_platform_subscriptions_quota_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotaCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Check Subscription Quota V1 Platform Subscriptions Quota Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/subscriptions/byom/validate": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Validate Byom Credential",
+        "operationId": "validate_byom_credential_v1_platform_subscriptions_byom_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ByomValidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Validate Byom Credential V1 Platform Subscriptions Byom Validate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/subscriptions/license-check": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Check Model License",
+        "operationId": "check_model_license_v1_platform_subscriptions_license_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LicenseCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Check Model License V1 Platform Subscriptions License Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/marketplace/packages": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Marketplace Packages",
+        "operationId": "list_marketplace_packages_v1_platform_marketplace_packages_get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "name": "publisher_tier",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Publisher Tier"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Marketplace Packages V1 Platform Marketplace Packages Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/marketplace/scan": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Scan Marketplace Package",
+        "operationId": "scan_marketplace_package_v1_platform_marketplace_scan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Scan Marketplace Package V1 Platform Marketplace Scan Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/marketplace/publish": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Publish Marketplace Package",
+        "operationId": "publish_marketplace_package_v1_platform_marketplace_publish_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Publish Marketplace Package V1 Platform Marketplace Publish Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/marketplace/install": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Install Marketplace Package",
+        "operationId": "install_marketplace_package_v1_platform_marketplace_install_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketplaceInstallRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Install Marketplace Package V1 Platform Marketplace Install Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/marketplace/uninstall": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Uninstall Marketplace Package",
+        "operationId": "uninstall_marketplace_package_v1_platform_marketplace_uninstall_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketplaceInstallRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Uninstall Marketplace Package V1 Platform Marketplace Uninstall Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/agents": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Get Lifecycle Agents",
+        "operationId": "get_lifecycle_agents_v1_platform_agents_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Lifecycle Agents V1 Platform Agents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/agents/teams/dispatch": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Dispatch Multi Agent Team",
+        "operationId": "dispatch_multi_agent_team_v1_platform_agents_teams_dispatch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamDispatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Dispatch Multi Agent Team V1 Platform Agents Teams Dispatch Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/pm/issues": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Pm Issues",
+        "operationId": "list_pm_issues_v1_platform_pm_issues_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Pm Issues V1 Platform Pm Issues Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Create Pm Issue",
+        "operationId": "create_pm_issue_v1_platform_pm_issues_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Pm Issue V1 Platform Pm Issues Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/product/prds": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Product Prds",
+        "operationId": "list_product_prds_v1_platform_product_prds_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Product Prds V1 Platform Product Prds Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Create Product Prd",
+        "operationId": "create_product_prd_v1_platform_product_prds_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrdCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Product Prd V1 Platform Product Prds Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/automation/workflows": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Automation Workflows",
+        "operationId": "list_automation_workflows_v1_platform_automation_workflows_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Automation Workflows V1 Platform Automation Workflows Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Create Automation Workflow",
+        "operationId": "create_automation_workflow_v1_platform_automation_workflows_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Automation Workflow V1 Platform Automation Workflows Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/nocode/blueprint": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Compile Nocode Blueprint",
+        "operationId": "compile_nocode_blueprint_v1_platform_nocode_blueprint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoCodeBlueprintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Compile Nocode Blueprint V1 Platform Nocode Blueprint Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/extensions": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Registered Extensions",
+        "operationId": "list_registered_extensions_v1_platform_extensions_get",
+        "parameters": [
+          {
+            "name": "extension_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Extension Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Registered Extensions V1 Platform Extensions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/extensions/register": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Register Platform Extension",
+        "operationId": "register_platform_extension_v1_platform_extensions_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Spec"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Register Platform Extension V1 Platform Extensions Register Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -8155,6 +9106,57 @@
           "bundle_path"
         ],
         "title": "BundleVerifyRequest"
+      },
+      "ByomValidateRequest": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "credential_kind": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Credential Kind"
+          },
+          "api_key_preview": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Api Key Preview",
+            "default": ""
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Model Id",
+            "default": ""
+          },
+          "commercial_use": {
+            "type": "boolean",
+            "title": "Commercial Use",
+            "default": true
+          },
+          "license_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "credential_kind"
+        ],
+        "title": "ByomValidateRequest"
       },
       "ChatCompletionResponse": {
         "properties": {
@@ -9051,6 +10053,64 @@
         ],
         "title": "HealthResponse"
       },
+      "IssueCreateRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "priority": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Priority",
+            "default": "medium"
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Status",
+            "default": "todo"
+          },
+          "assignee_agent": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Assignee Agent",
+            "default": "feature-coder"
+          },
+          "prd_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prd Id"
+          },
+          "sprint_id": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Sprint Id",
+            "default": "SPR-01"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "IssueCreateRequest"
+      },
       "KeyAuthenticationResult": {
         "properties": {
           "valid": {
@@ -9102,6 +10162,43 @@
           "reason"
         ],
         "title": "KeyAuthenticationResult"
+      },
+      "LicenseCheckRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "license_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "License Id"
+          },
+          "commercial_use": {
+            "type": "boolean",
+            "title": "Commercial Use",
+            "default": true
+          },
+          "has_authorized_api_credential": {
+            "type": "boolean",
+            "title": "Has Authorized Api Credential",
+            "default": false
+          },
+          "exceeds_700m_mau": {
+            "type": "boolean",
+            "title": "Exceeds 700M Mau",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id",
+          "license_id"
+        ],
+        "title": "LicenseCheckRequest"
       },
       "LoadModelRequest": {
         "properties": {
@@ -9264,6 +10361,40 @@
         ],
         "title": "MCPToolCallRequest"
       },
+      "MarketplaceInstallRequest": {
+        "properties": {
+          "package_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Package Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "package_id"
+        ],
+        "title": "MarketplaceInstallRequest"
+      },
       "MemoryCreateRequest": {
         "properties": {
           "key": {
@@ -9402,6 +10533,40 @@
           "closed_proprietary"
         ],
         "title": "ModelCategory"
+      },
+      "NoCodeBlueprintRequest": {
+        "properties": {
+          "idea": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Idea"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "experience_mode": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Experience Mode",
+            "default": "non_coder"
+          },
+          "target_stack": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Target Stack",
+            "default": "fastapi_react_sqlite"
+          }
+        },
+        "type": "object",
+        "required": [
+          "idea"
+        ],
+        "title": "NoCodeBlueprintRequest"
       },
       "OpenCoreInferRequest": {
         "properties": {
@@ -9610,6 +10775,49 @@
         ],
         "title": "PluginInstallRequest"
       },
+      "PrdCreateRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "acceptance_criteria": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acceptance Criteria"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "summary"
+        ],
+        "title": "PrdCreateRequest"
+      },
       "Provider": {
         "type": "string",
         "enum": [
@@ -9636,6 +10844,43 @@
           "awq_4bit"
         ],
         "title": "QuantizationLevel"
+      },
+      "QuotaCheckRequest": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Org Id",
+            "default": "default"
+          },
+          "tier": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Tier",
+            "default": "community"
+          },
+          "tokens_requested": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Tokens Requested",
+            "default": 0
+          },
+          "current_rpm": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Current Rpm",
+            "default": 0
+          },
+          "local_hardware": {
+            "type": "boolean",
+            "title": "Local Hardware",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "QuotaCheckRequest"
       },
       "RegisterAdapterRequest": {
         "properties": {
@@ -10749,6 +11994,40 @@
         ],
         "title": "TaskTransitionRequest"
       },
+      "TeamDispatchRequest": {
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Team Id"
+          },
+          "objective": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Objective"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "sensitive_mutation": {
+            "type": "boolean",
+            "title": "Sensitive Mutation",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "team_id",
+          "objective"
+        ],
+        "title": "TeamDispatchRequest"
+      },
       "TeamExecuteRequest": {
         "properties": {
           "goal": {
@@ -11268,6 +12547,50 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WorkflowCreateRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "trigger": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Trigger",
+            "default": "manual"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "nodes": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nodes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "WorkflowCreateRequest"
       }
     }
   }

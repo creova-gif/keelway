@@ -9,12 +9,70 @@ import {
   Cpu,
   LayoutGrid,
   Search,
+  Sparkles,
   Webhook,
   X,
 } from "lucide-react";
 import type { SearchIndexItem } from "@/app/api/search-index/route";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
+
+type CommandItem = SearchIndexItem | (Omit<SearchIndexItem, "group"> & { group: "action" });
+
+const BUILTIN_ACTIONS: CommandItem[] = [
+  {
+    id: "act-playground",
+    group: "action",
+    title: "Launch 10-View Playground",
+    subtitle: "Interactive Builder & Guided Non-Coder Mode across all 10 Keelway views",
+    badge: "ACTION",
+    href: "/playground",
+    keywords: "action launch 10-view playground builder non-coder workbench",
+  },
+  {
+    id: "act-tamper-lab",
+    group: "action",
+    title: "Simulate Record Tamper Lab",
+    subtitle: "Mutate entry #1279 and verify SHA-256 hash-chain tamper evidence",
+    badge: "ACTION",
+    href: "/governance#tamper-lab",
+    keywords: "action simulate record tamper lab sha256 #1279 ledger governance",
+  },
+  {
+    id: "act-nocode-builder",
+    group: "action",
+    title: "Open No-Code Blueprint Builder",
+    subtitle: "Compile natural-language product briefs into PRDs, sprint issues & DAGs",
+    badge: "ACTION",
+    href: "/playground",
+    keywords: "action open no-code blueprint builder prd issues dag",
+  },
+  {
+    id: "act-byom-pricing",
+    group: "action",
+    title: "Compare BYOM & Pro Pricing",
+    subtitle: "5-stream pricing, 0%-markup BYOM API compliance & 85/15 Creator Marketplace",
+    badge: "ACTION",
+    href: "/pricing#byom-compliance",
+    keywords: "action compare byom pro pricing chatgpt claude api marketplace",
+  },
+  {
+    id: "act-marketplace-scanner",
+    group: "action",
+    title: "Test Marketplace Pre-Publish Security Scanner",
+    subtitle: "Scan keelway.package/v1 manifests for prompt injection & shell=True sinks",
+    badge: "ACTION",
+    href: "/governance#manifest-drift",
+    keywords: "action marketplace security scanner manifest drift p-13 p-14",
+  },
+];
+
+const PREFIX_HINTS: { prefix: ">" | "@" | "/" | "#"; label: string }[] = [
+  { prefix: ">", label: "> Actions" },
+  { prefix: "@", label: "@ Models" },
+  { prefix: "/", label: "/ Docs" },
+  { prefix: "#", label: "# APIs & Governance" },
+];
 
 export function openCommandPalette(): void {
   if (typeof window !== "undefined") {
@@ -23,8 +81,7 @@ export function openCommandPalette(): void {
 }
 
 /**
- * Global Cmd+K / Ctrl+K Instant Search Palette (Claude Academy / Linear style).
- * Jumps instantly across all 7 routes, 15 models, 6 doc sections, and 183 API endpoints.
+ * Global Cmd+K / Ctrl+K Instant Search & Linear-Style Prefix Palette (`>`, `@`, `/`, `#`).
  */
 export function CommandPalette() {
   const router = useRouter();
@@ -33,6 +90,7 @@ export function CommandPalette() {
   const [items, setItems] = useState<SearchIndexItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const loadedRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const ensureIndexLoaded = useCallback(async () => {
     if (loadedRef.current) return;
@@ -77,23 +135,65 @@ export function CommandPalette() {
     };
   }, [ensureIndexLoaded]);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  const activePrefix = useMemo<">" | "@" | "/" | "#" | null>(() => {
+    const trimmed = query.trimStart();
+    const first = trimmed[0];
+    if (first === ">" || first === "@" || first === "/" || first === "#") {
+      return first;
+    }
+    return null;
+  }, [query]);
+
+  const results = useMemo<CommandItem[]>(() => {
+    const allPool: CommandItem[] = [...BUILTIN_ACTIONS, ...items];
+    const trimmed = query.trimStart();
+
+    if (activePrefix) {
+      const rest = trimmed.slice(1).trim().toLowerCase();
+      const filteredPool = allPool.filter((item) => {
+        if (activePrefix === ">") {
+          return item.group === "action" || item.href.startsWith("/playground");
+        }
+        if (activePrefix === "@") {
+          return item.group === "model";
+        }
+        if (activePrefix === "/") {
+          return item.group === "docs" || item.group === "page";
+        }
+        // '#' -> Governance Labs, Marketplace & OpenAPI 3.1 Endpoints
+        return (
+          item.group === "api" ||
+          item.href.startsWith("/governance") ||
+          item.keywords.toLowerCase().includes("marketplace")
+        );
+      });
+
+      if (!rest) return filteredPool.slice(0, 24);
+      const tokens = rest.split(/\s+/).filter(Boolean);
+      return filteredPool
+        .filter((item) => {
+          const hay = `${item.title} ${item.subtitle} ${item.keywords}`.toLowerCase();
+          return tokens.every((tok) => hay.includes(tok));
+        })
+        .slice(0, 24);
+    }
+
+    const q = trimmed.trim().toLowerCase();
     if (!q) {
-      // Curated default high-value jump targets across all 4 domains
-      const pages = items.filter((i) => i.group === "page").slice(0, 5);
-      const models = items.filter((i) => i.group === "model").slice(0, 4);
+      const actions = BUILTIN_ACTIONS.slice(0, 4);
+      const pages = items.filter((i) => i.group === "page").slice(0, 4);
+      const models = items.filter((i) => i.group === "model").slice(0, 3);
       const docs = items.filter((i) => i.group === "docs").slice(0, 3);
       const apis = items
         .filter((i) => i.group === "api" && i.title.includes("/v1/"))
-        .slice(0, 6);
-      return [...pages, ...models, ...docs, ...apis];
+        .slice(0, 4);
+      return [...actions, ...pages, ...models, ...docs, ...apis];
     }
 
     const tokens = q.split(/\s+/).filter(Boolean);
-    const scored: { item: SearchIndexItem; score: number }[] = [];
+    const scored: { item: CommandItem; score: number }[] = [];
 
-    for (const item of items) {
+    for (const item of allPool) {
       const titleLow = item.title.toLowerCase();
       const hay = `${titleLow} ${item.subtitle.toLowerCase()} ${item.keywords.toLowerCase()}`;
       if (!tokens.every((tok) => hay.includes(tok))) continue;
@@ -102,19 +202,30 @@ export function CommandPalette() {
       if (titleLow === q) score += 100;
       else if (titleLow.startsWith(q)) score += 50;
       else if (titleLow.includes(q)) score += 25;
-      if (item.group === "page" || item.group === "model") score += 8;
+      if (item.group === "action" || item.group === "page" || item.group === "model") {
+        score += 8;
+      }
       scored.push({ item, score });
     }
 
     scored.sort((a, b) => b.score - a.score);
     return scored.slice(0, 24).map((s) => s.item);
-  }, [items, query]);
+  }, [activePrefix, items, query]);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [query, open]);
 
-  const selectItem = (item: SearchIndexItem) => {
+  const applyPrefixHint = (prefix: ">" | "@" | "/" | "#") => {
+    setQuery((prev) => {
+      const stripped = prev.trimStart().replace(/^[>@/#]\s*/, "");
+      return activePrefix === prefix ? stripped : `${prefix} ${stripped}`;
+    });
+    trackEvent("cmdk_prefix_switched", { prefix });
+    inputRef.current?.focus();
+  };
+
+  const selectItem = (item: CommandItem) => {
     setOpen(false);
     setQuery("");
     trackEvent("cmdk_result_selected", {
@@ -139,8 +250,10 @@ export function CommandPalette() {
     }
   };
 
-  const iconForGroup = (group: SearchIndexItem["group"]) => {
+  const iconForGroup = (group: CommandItem["group"]) => {
     switch (group) {
+      case "action":
+        return <Sparkles className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />;
       case "model":
         return <Cpu className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />;
       case "docs":
@@ -156,14 +269,13 @@ export function CommandPalette() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-[12vh] z-50 w-[94vw] max-w-2xl -translate-x-1/2 overflow-hidden rounded-lg border border-border-strong bg-surface shadow-2xl focus:outline-none">
+        <Dialog.Content className="fixed left-1/2 top-[11vh] z-50 w-[94vw] max-w-2xl -translate-x-1/2 overflow-hidden rounded-lg border border-border-strong bg-surface shadow-2xl focus:outline-none">
           <Dialog.Title className="sr-only">
-            Search Keelway Models, API Endpoints, and Documentation
+            Search Keelway Actions, Models, Docs, and Governance Endpoints
           </Dialog.Title>
           <Dialog.Description className="sr-only">
-            Type to filter across 15 hybrid models, 183 OpenAPI endpoints, and
-            developer guides. Use Up and Down arrows to navigate and Enter to
-            open.
+            Type to filter universally, or prefix with &gt; for Actions, @ for
+            Models, / for Docs, and # for APIs &amp; Governance.
           </Dialog.Description>
 
           {/* Search Input Bar */}
@@ -173,6 +285,7 @@ export function CommandPalette() {
               aria-hidden="true"
             />
             <input
+              ref={inputRef}
               type="text"
               role="combobox"
               aria-expanded="true"
@@ -183,7 +296,7 @@ export function CommandPalette() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleInputKeyDown}
-              placeholder="Jump to model (keelway-core, gemini), endpoint (/v1/responses), or docs…"
+              placeholder="Search or type > actions, @ models, / docs, # APIs & governance…"
               autoFocus
               className="min-h-[36px] flex-1 bg-transparent text-sm text-fg placeholder:text-fg-dim focus:outline-none"
             />
@@ -196,17 +309,42 @@ export function CommandPalette() {
             </Dialog.Close>
           </div>
 
+          {/* Clickable Prefix Hint Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-border-subtle bg-canvas/70 px-4 py-2">
+            <span className="mr-1 font-mono text-[10px] uppercase text-fg-dim">
+              Prefix Modes:
+            </span>
+            {PREFIX_HINTS.map((hint) => {
+              const active = activePrefix === hint.prefix;
+              return (
+                <button
+                  key={hint.prefix}
+                  type="button"
+                  onClick={() => applyPrefixHint(hint.prefix)}
+                  className={cn(
+                    "min-h-[28px] rounded-sm border px-2 font-mono text-[11px] transition-colors duration-100",
+                    active
+                      ? "border-teal-accent bg-teal-surface font-semibold text-teal-accent"
+                      : "border-border-strong bg-surface text-fg-muted hover:border-teal-accent/60 hover:text-fg"
+                  )}
+                >
+                  {hint.label}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Results Listbox */}
           <div
             id="cmdk-results-list"
             role="listbox"
-            className="max-h-[58vh] overflow-y-auto p-2"
+            className="max-h-[54vh] overflow-y-auto p-2"
           >
             {results.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="font-mono text-xs text-fg-muted">
-                  No matches found for &ldquo;{query}&rdquo; across {items.length}{" "}
-                  indexed items.
+                  No matches found for &ldquo;{query}&rdquo; across{" "}
+                  {items.length + BUILTIN_ACTIONS.length} indexed items.
                 </p>
               </div>
             ) : (
@@ -224,7 +362,7 @@ export function CommandPalette() {
                     className={cn(
                       "flex min-h-[52px] w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left transition-colors duration-100",
                       isSelected
-                        ? "bg-surface-elevated border border-teal-accent/60"
+                        ? "border border-teal-accent/60 bg-surface-elevated"
                         : "border border-transparent hover:bg-surface-elevated/50"
                     )}
                   >
@@ -232,7 +370,7 @@ export function CommandPalette() {
                       {iconForGroup(item.group)}
                       <div className="min-w-0">
                         <div className="truncate font-mono text-xs font-semibold text-fg">
-                          {item.title}
+                          {item.group === "action" ? `> ${item.title}` : item.title}
                         </div>
                         <div className="truncate text-xs text-fg-muted">
                           {item.subtitle}
@@ -244,9 +382,11 @@ export function CommandPalette() {
                       <span
                         className={cn(
                           "rounded-sm px-2 py-0.5 text-[10px]",
-                          item.group === "api" && item.badge === "POST"
-                            ? "chip-amber"
-                            : "chip-neutral"
+                          item.group === "action"
+                            ? "chip-teal"
+                            : item.group === "api" && item.badge === "POST"
+                              ? "chip-amber"
+                              : "chip-neutral"
                         )}
                       >
                         {item.badge}
@@ -267,8 +407,11 @@ export function CommandPalette() {
           {/* Footer Keyboard Legend */}
           <div className="flex items-center justify-between border-t border-border-subtle bg-canvas/80 px-4 py-2 font-mono text-[11px] text-fg-muted">
             <span>
-              Indexed: <strong className="text-fg">{items.length || 211}</strong>{" "}
-              models, routes &amp; OpenAPI 3.1 operations
+              Indexed:{" "}
+              <strong className="text-fg">
+                {(items.length || 214) + BUILTIN_ACTIONS.length}
+              </strong>{" "}
+              actions, models, routes &amp; OpenAPI 3.1 operations
             </span>
             <span className="hidden sm:inline">
               ↑↓ Navigate · ↵ Open · Esc Dismiss

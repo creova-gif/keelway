@@ -47,48 +47,9 @@ except ImportError:
 
 def get_banner(plain: bool = False, use_color: Optional[bool] = None) -> str:
     """Return the distinctive Keelway terminal banner with ANSI styling or clean ASCII fallback."""
-    if use_color is None:
-        use_color = (
-            sys.stdout.isatty()
-            and os.environ.get("NO_COLOR") is None
-            and os.environ.get("TERM") != "dumb"
-            and not plain
-        )
+    from core.cli_tui import render_sovereign_tui_banner
 
-    # Determine whether terminal supports Unicode block elements
-    encoding = getattr(sys.stdout, "encoding", "utf-8") or "utf-8"
-    use_unicode = not plain and sys.platform != "win32" and "utf" in encoding.lower()
-
-    cyan = "\033[38;2;64;160;255m" if use_color else ""
-    bold = "\033[1m" if use_color else ""
-    dim = "\033[2m" if use_color else ""
-    reset = "\033[0m" if use_color else ""
-
-    if use_unicode:
-        art = [
-            r"  ██╗  ██╗███████╗███████╗██╗     ██╗    ██╗ █████╗ ██╗   ██╗",
-            r"  ██║ ██╔╝██╔════╝██╔════╝██║     ██║    ██║██╔══██╗╚██╗ ██╔╝",
-            r"  █████╔╝ █████╗  █████╗  ██║     ██║ █╗ ██║███████║ ╚████╔╝ ",
-            r"  ██╔═██╗ ██╔══╝  ██╔══╝  ██║     ██║███╗██║██╔══██║  ╚██╔╝  ",
-            r"  ██║  ██╗███████╗███████╗███████╗╚███╔███╔╝██║  ██║   ██║   ",
-            r"  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝   ",
-        ]
-    else:
-        art = [
-            r"  _  ______ _____ _ __          __     __",
-            r" | |/ /  ____|  ____| |         \ \   / /",
-            r" | ' /| |__  | |__  | |     /\   \ \_/ / ",
-            r" |  < |  __| |  __| | |    /  \   \   /  ",
-            r" | . \| |____| |____| |___/ /\ \   | |   ",
-            r" |_|\_\______|______|____/_/  \_\  |_|   ",
-        ]
-
-    lines = [f"{cyan}{line}{reset}" for line in art]
-    lines.append("")
-    lines.append(f"  {bold}Sovereign Local-First AI Developer Platform{reset}")
-    lines.append(f"  {dim}Sorvex Labs • https://keelway.dev • v0.9.0-beta{reset}")
-    lines.append("")
-    return "\n".join(lines)
+    return render_sovereign_tui_banner(plain=plain, use_color=use_color)
 
 
 def print_banner(plain: bool = False) -> None:
@@ -3930,7 +3891,9 @@ def build_parser() -> argparse.ArgumentParser:
     api_export.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
 
     from core.cli_ai import register_ai_subparsers
+    from core.cli_tui import register_platform_cli_subparsers
     register_ai_subparsers(subparsers)
+    register_platform_cli_subparsers(subparsers)
 
     return parser
 
@@ -3942,9 +3905,11 @@ def main(argv=None):
         print("Usage: keelway <command> [options]\n")
         print("Essential Commands:")
         print("  init         Initialize Keelway in current directory or git repository")
-        print("  dev          Launch Keelway Studio (Local Web & App UI)")
+        print("  dev          Launch Keelway Studio (10-View Unified Local Web & App UI)")
         print("  chat         Start interactive sovereign agent REPL")
         print("  doctor       Run sovereign system diagnostics across 7 dimensions")
+        print("  marketplace  Discover & security-scan verified agents, skills, and plugins")
+        print("  blueprint    Compile a natural-language idea into PRD, sprint issues & DAG")
         print("  package      Build sovereign offline distribution package")
         print("  run          Start governed agent run with approval gate")
         print("  test-sandbox Run tests inside OS-level verified sandbox")
@@ -3956,6 +3921,11 @@ def main(argv=None):
 
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    from core.cli_tui import dispatch_platform_cli
+    plat_rc = dispatch_platform_cli(args)
+    if plat_rc is not None:
+        return plat_rc
 
     from core.cli_ai import dispatch_ai_command
     ai_rc = dispatch_ai_command(args)
@@ -4114,6 +4084,7 @@ def main(argv=None):
             )
         )
     elif args.command in ("dev", "desktop"):
+        print_banner()
         is_desktop = getattr(args, "desktop", False) or args.command == "desktop"
         asyncio.run(
             cmd_dev(
@@ -4268,6 +4239,7 @@ def main(argv=None):
             )
         )
     elif args.command == "chat":
+        print_banner()
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":
         asyncio.run(cmd_brief(args.title, args.desc, args.files, args.failing, args.provider))
@@ -4438,4 +4410,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)
