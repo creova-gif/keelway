@@ -269,31 +269,35 @@ export function FilesExplorerSidebar({
           />
         </div>
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
-          {filteredSymbols.map((sym) => (
-            <button
-              key={`${sym.path}-${sym.name}-${sym.line}`}
-              type="button"
-              onClick={() => onSelectSymbol(sym)}
-              className="flex w-full flex-col gap-0.5 rounded-xs border border-transparent px-2 py-1.5 text-start text-xs hover:border-border-strong hover:bg-surface-elevated"
-            >
-              <div className="flex items-center justify-between gap-1.5">
-                <span className="inline-flex min-w-0 items-center gap-1.5 font-mono font-medium text-fg">
-                  <span className="rounded-xs border border-border-control/50 bg-surface px-1 text-[10px] text-teal-accent">
-                    {SYMBOL_KIND_SHORT[sym.kind]}
+          {filteredSymbols.length === 0 ? (
+            <p className="px-2 py-3 text-xs text-fg-muted">No matching symbols.</p>
+          ) : (
+            filteredSymbols.map((sym) => (
+              <button
+                key={`${sym.path}-${sym.name}-${sym.line}`}
+                type="button"
+                onClick={() => onSelectSymbol(sym)}
+                className="flex w-full flex-col gap-0.5 rounded-xs border border-transparent px-2 py-1.5 text-start text-xs hover:border-border-strong hover:bg-surface-elevated"
+              >
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="inline-flex min-w-0 items-center gap-1.5 font-mono font-medium text-fg">
+                    <span className="rounded-xs border border-border-control/50 bg-surface px-1 text-[10px] text-teal-accent">
+                      {SYMBOL_KIND_SHORT[sym.kind]}
+                    </span>
+                    <code dir="ltr" className="unicode-bidi-isolate truncate">
+                      {sym.name}
+                    </code>
                   </span>
-                  <code dir="ltr" className="unicode-bidi-isolate truncate">
-                    {sym.name}
-                  </code>
-                </span>
-                <span className="shrink-0 font-mono text-[10px] tabular-nums text-fg-dim">
-                  {`:${sym.line}`}
-                </span>
-              </div>
-              <code dir="ltr" className="unicode-bidi-isolate truncate font-mono text-[10px] text-fg-muted">
-                {sym.path}
-              </code>
-            </button>
-          ))}
+                  <span className="shrink-0 font-mono text-[10px] tabular-nums text-fg-dim">
+                    {`:${sym.line}`}
+                  </span>
+                </div>
+                <code dir="ltr" className="unicode-bidi-isolate truncate font-mono text-[10px] text-fg-muted">
+                  {sym.path}
+                </code>
+              </button>
+            ))
+          )}
         </div>
       </Tabs.Content>
     </Tabs.Root>

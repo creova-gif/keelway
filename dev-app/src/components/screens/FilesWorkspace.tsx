@@ -54,9 +54,18 @@ function basenameOf(path: string): string {
   return parts[parts.length - 1] || path;
 }
 
+export interface FilesNavigationTarget {
+  path: string;
+  line?: number;
+  nonce?: number;
+}
+
 export interface FilesWorkspaceProps {
   initialActivePath?: string;
   initialActiveLine?: number;
+  selectedPath?: string;
+  selectedLine?: number;
+  navigationTarget?: FilesNavigationTarget;
   initialViewMode?: FilesViewMode;
   initialSidebarTab?: FilesExplorerTab;
   initialSaveError?: string;
@@ -64,6 +73,8 @@ export interface FilesWorkspaceProps {
   renderSidebarInShell?: boolean;
   preferTextareaFallback?: boolean;
   onSidebarStateChange?: (sidebarProps: FilesExplorerSidebarProps) => void;
+  onTreeLoaded?: (nodes: WorkspaceFileNode[]) => void;
+  onSymbolsLoaded?: (symbols: CodeSymbolItem[]) => void;
   onCommitted?: (result: GitCommitResult) => void;
   fetchTreeFn?: typeof fetchFilesTree;
   fetchContentFn?: typeof fetchFileContent;
@@ -78,6 +89,9 @@ export interface FilesWorkspaceProps {
 export function FilesWorkspace({
   initialActivePath = "core/main.py",
   initialActiveLine = 1,
+  selectedPath,
+  selectedLine,
+  navigationTarget,
   initialViewMode = "code",
   initialSidebarTab = "tree",
   initialSaveError,
@@ -85,6 +99,8 @@ export function FilesWorkspace({
   renderSidebarInShell = false,
   preferTextareaFallback = false,
   onSidebarStateChange,
+  onTreeLoaded,
+  onSymbolsLoaded,
   onCommitted,
   fetchTreeFn = fetchFilesTree,
   fetchContentFn = fetchFileContent,
@@ -95,16 +111,19 @@ export function FilesWorkspace({
   fetchProposalFn = fetchGitProposal,
   commitFn = createGitCommit,
 }: FilesWorkspaceProps): React.JSX.Element {
+  const resolvedInitialPath = navigationTarget?.path ?? selectedPath ?? initialActivePath;
+  const resolvedInitialLine = navigationTarget?.line ?? selectedLine ?? initialActiveLine;
+
   const [tree, setTree] = useState<WorkspaceFileNode[]>([]);
   const [symbols, setSymbols] = useState<CodeSymbolItem[]>([]);
   const [diffHunks, setDiffHunks] = useState<FileDiffHunk[]>([]);
   const [sidebarTab, setSidebarTab] = useState<FilesExplorerTab>(initialSidebarTab);
   const [viewMode, setViewMode] = useState<FilesViewMode>(initialViewMode);
 
-  const [activePath, setActivePath] = useState<string>(initialActivePath);
-  const [seedErrorPath, setSeedErrorPath] = useState<string>(initialActivePath);
-  const [activeLine, setActiveLine] = useState<number>(initialActiveLine);
-  const [openPaths, setOpenPaths] = useState<string[]>([initialActivePath]);
+  const [activePath, setActivePath] = useState<string>(resolvedInitialPath);
+  const [seedErrorPath, setSeedErrorPath] = useState<string>(resolvedInitialPath);
+  const [activeLine, setActiveLine] = useState<number>(resolvedInitialLine);
+  const [openPaths, setOpenPaths] = useState<string[]>([resolvedInitialPath]);
 
   const [buffers, setBuffers] = useState<Record<string, string>>({});
   const [languages, setLanguages] = useState<Record<string, string>>({});
@@ -114,10 +133,19 @@ export function FilesWorkspace({
   const [clearedSeedErrors, setClearedSeedErrors] = useState<Record<string, boolean>>({});
 
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [saveAsOpen, setSaveAsOpen] = useState(false);
   const [saveAsTarget, setSaveAsTarget] = useState("");
   const [commitModalOpen, setCommitModalOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const initialPathRef = useRef(resolvedInitialPath);
+  const onSidebarStateChangeRef = useRef(onSidebarStateChange);
+  onSidebarStateChangeRef.current = onSidebarStateChange;
+  const onTreeLoadedRef = useRef(onTreeLoaded);
+  onTreeLoadedRef.current = onTreeLoaded;
+  const onSymbolsLoadedRef = useRef(onSymbolsLoaded);
+  onSymbolsLoadedRef.current = onSymbolsLoaded;
 
   const tabMovesFocusRef = useRef(false);
   const [tabMovesFocus, setTabMovesFocus] = useState(false);
@@ -135,13 +163,13 @@ export function FilesWorkspace({
 
   useEffect(() => {
     let cancelled = false;
-
     fetchTreeFn()
       .then((nodes) => {
         if (cancelled) return;
         setTree(nodes);
+        onTreeLoadedRef.current?.(nodes);
         const files = flattenFiles(nodes);
-        if (files.length > 0 && !files.some((f) => f.path === initialActivePath)) {
+        if (files.length > 0 && !files.some((f) => f.path === initialPathRef.current)) {
           const first = files[0].path;
           setSeedErrorPath(first);
           setActivePath(first);
@@ -149,23 +177,18 @@ export function FilesWorkspace({
         }
       })
       .catch(() => {});
-
     fetchDiffFn()
-      .then((hunks) => {
-        if (!cancelled) setDiffHunks(hunks);
-      })
+      .then((hunks) => { if (!cancelled) setDiffHunks(hunks); })
       .catch(() => {});
-
     fetchSymbolsFn()
       .then((items) => {
-        if (!cancelled) setSymbols(items);
+        if (cancelled) return;
+        setSymbols(items);
+        onSymbolsLoadedRef.current?.(items);
       })
       .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchDiffFn, fetchSymbolsFn, fetchTreeFn, initialActivePath]);
+    return () => { cancelled = true; };
+  }, [fetchDiffFn, fetchSymbolsFn, fetchTreeFn]);
 
   const loadedPathsRef = useRef<Set<string>>(new Set());
 
@@ -216,43 +239,57 @@ export function FilesWorkspace({
   const activeSaveError = effectiveSaveErrors[activePath];
   const activeContent = buffers[activePath] ?? "";
   const activeLanguage = languages[activePath] ?? "plaintext";
+  const isLargeFile = activeContent.length > LARGE_FILE_BYTES;
+  const monacoLanguage = isLargeFile ? "plaintext" : activeLanguage;
   const activeContentRef = useRef(activeContent);
   activeContentRef.current = activeContent;
-  const activeLanguageRef = useRef(activeLanguage);
-  activeLanguageRef.current = activeLanguage;
+  const monacoLanguageRef = useRef(monacoLanguage);
+  monacoLanguageRef.current = monacoLanguage;
 
   const activeAiSeq = useMemo(() => {
     if (typeof aiSeqByPath[activePath] === "number") return aiSeqByPath[activePath];
     const treeNode = flatFiles.find((n) => n.path === activePath);
     if (typeof treeNode?.aiRecordSeq === "number") return treeNode.aiRecordSeq;
-    const diffNode = diffHunks.find((h) => h.path === activePath);
-    return diffNode?.aiRecordSeq;
+    return diffHunks.find((h) => h.path === activePath)?.aiRecordSeq;
   }, [activePath, aiSeqByPath, diffHunks, flatFiles]);
 
   const changedCount = useMemo(
     () =>
       flatFiles.filter(
-        (n) =>
-          Boolean(n.gitStatus) ||
-          Boolean(n.dirty) ||
-          Boolean(dirtyByPath[n.path]) ||
-          Boolean(effectiveSaveErrors[n.path]),
+        (n) => Boolean(n.gitStatus || n.dirty || dirtyByPath[n.path] || effectiveSaveErrors[n.path]),
       ).length,
     [dirtyByPath, effectiveSaveErrors, flatFiles],
   );
 
-  const handleSelectFile = useCallback((path: string, line = 1) => {
+  const openFileTab = useCallback((path: string, line = 1) => {
     setActivePath(path);
     setActiveLine(line);
     setOpenPaths((prev) => (prev.includes(path) ? prev : [...prev, path]));
   }, []);
 
+  const externalNavKey = navigationTarget
+    ? `${navigationTarget.path}:${navigationTarget.line ?? 1}:${navigationTarget.nonce ?? 0}`
+    : selectedPath
+      ? `${selectedPath}:${selectedLine ?? 1}`
+      : "";
+  const prevNavKeyRef = useRef(externalNavKey);
+
+  useEffect(() => {
+    if (!externalNavKey || externalNavKey === prevNavKeyRef.current) return;
+    prevNavKeyRef.current = externalNavKey;
+    const targetPath = navigationTarget?.path ?? selectedPath;
+    if (targetPath) {
+      openFileTab(targetPath, navigationTarget?.line ?? selectedLine ?? 1);
+      setViewMode("code");
+    }
+  }, [externalNavKey, navigationTarget, openFileTab, selectedLine, selectedPath]);
+
   const handleSelectSymbol = useCallback(
     (sym: CodeSymbolItem) => {
-      handleSelectFile(sym.path, sym.line);
+      openFileTab(sym.path, sym.line);
       setViewMode("code");
     },
-    [handleSelectFile],
+    [openFileTab],
   );
 
   const updateBufferContent = useCallback((path: string, nextValue: string) => {
@@ -262,14 +299,15 @@ export function FilesWorkspace({
 
   const handleSave = useCallback(
     async (targetPath: string, overrideSourcePath?: string) => {
+      if (savingRef.current) return;
       const sourcePath = overrideSourcePath ?? targetPath;
       const contentToWrite = buffers[sourcePath] ?? "";
+      savingRef.current = true;
       setSaving(true);
       try {
         const res = await saveContentFn(targetPath, contentToWrite);
         if (!res.ok) {
-          const reason = res.error || "write failed";
-          setRuntimeSaveErrors((prev) => ({ ...prev, [sourcePath]: reason }));
+          setRuntimeSaveErrors((prev) => ({ ...prev, [sourcePath]: res.error || "write failed" }));
           return;
         }
         setRuntimeSaveErrors((prev) => {
@@ -283,9 +321,12 @@ export function FilesWorkspace({
         setSaveAsOpen(false);
         setStatusMessage(`Saved ${res.path}`);
       } catch (err) {
-        const reason = err instanceof Error ? err.message : "write failed";
-        setRuntimeSaveErrors((prev) => ({ ...prev, [sourcePath]: reason }));
+        setRuntimeSaveErrors((prev) => ({
+          ...prev,
+          [sourcePath]: err instanceof Error ? err.message : "write failed",
+        }));
       } finally {
+        savingRef.current = false;
         setSaving(false);
       }
     },
@@ -297,6 +338,7 @@ export function FilesWorkspace({
       if (event.defaultPrevented || document.querySelector('[role="dialog"]')) return;
       if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "s") {
         event.preventDefault();
+        if (event.repeat || savingRef.current) return;
         void handleSave(activePath);
       }
     };
@@ -381,16 +423,14 @@ export function FilesWorkspace({
         base: "vs",
         inherit: true,
         rules: [],
-        colors: { "editor.background": "#f3f6f9" },
+        colors: { "editor.background": "#f8fafc" },
       });
       const currentTheme =
-        document.documentElement.getAttribute("data-theme") === "light"
-          ? "keelway-light"
-          : "keelway-dark";
+        document.documentElement.getAttribute("data-theme") === "light" ? "keelway-light" : "keelway-dark";
 
       const instance = monaco.editor.create(monacoContainerRef.current, {
         value: activeContentRef.current,
-        language: activeLanguageRef.current,
+        language: monacoLanguageRef.current,
         theme: currentTheme,
         automaticLayout: true,
         minimap: { enabled: false },
@@ -402,15 +442,10 @@ export function FilesWorkspace({
       });
       const themeObserver = new MutationObserver(() => {
         monaco.editor.setTheme(
-          document.documentElement.getAttribute("data-theme") === "light"
-            ? "keelway-light"
-            : "keelway-dark",
+          document.documentElement.getAttribute("data-theme") === "light" ? "keelway-light" : "keelway-dark",
         );
       });
-      themeObserver.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["data-theme"],
-      });
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
       return () => {
         themeObserver.disconnect();
         sub.dispose();
@@ -423,6 +458,7 @@ export function FilesWorkspace({
   }, [activePath, updateBufferContent, useMonaco]);
 
   useEffect(() => {
+    if (!useMonaco) return;
     const inst = monacoEditorRef.current;
     if (!inst) return;
     if (inst.getValue() !== activeContent) {
@@ -436,11 +472,17 @@ export function FilesWorkspace({
     const monaco = (window as unknown as { monaco?: MonacoGlobal }).monaco;
     const model = inst.getModel?.();
     if (model && monaco?.editor.setModelLanguage) {
-      monaco.editor.setModelLanguage(model, activeLanguage);
+      monaco.editor.setModelLanguage(model, monacoLanguage);
     }
+  }, [activeContent, activeLanguage, isLargeFile, monacoLanguage, useMonaco]);
+
+  useEffect(() => {
+    if (!useMonaco) return;
+    const inst = monacoEditorRef.current;
+    if (!inst) return;
     inst.revealLineInCenter?.(activeLine);
     inst.setPosition?.({ lineNumber: activeLine, column: 1 });
-  }, [activeContent, activeLanguage, activeLine]);
+  }, [activePath, activeLine, useMonaco]);
 
   useLayoutEffect(() => {
     if (pendingCursorOffsetRef.current !== null && textareaRef.current) {
@@ -453,6 +495,7 @@ export function FilesWorkspace({
   const handleTextareaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "s") {
       event.preventDefault();
+      if (event.repeat || savingRef.current) return;
       void handleSave(activePath);
       return;
     }
@@ -494,18 +537,17 @@ export function FilesWorkspace({
       activePath,
       dirtyByPath,
       saveErrorsByPath: effectiveSaveErrors,
-      onSelectFile: (p: string) => handleSelectFile(p, 1),
+      onSelectFile: (p: string) => openFileTab(p, 1),
       onSelectSymbol: handleSelectSymbol,
     }),
-    [activePath, dirtyByPath, effectiveSaveErrors, handleSelectFile, handleSelectSymbol, sidebarTab, symbols, tree],
+    [activePath, dirtyByPath, effectiveSaveErrors, handleSelectSymbol, openFileTab, sidebarTab, symbols, tree],
   );
 
   useEffect(() => {
-    onSidebarStateChange?.(sidebarProps);
-  }, [onSidebarStateChange, sidebarProps]);
+    onSidebarStateChangeRef.current?.(sidebarProps);
+  }, [sidebarProps]);
 
   const lineCount = useMemo(() => Math.max(1, activeContent.split("\n").length), [activeContent]);
-  const isLargeFile = activeContent.length > LARGE_FILE_BYTES;
 
   return (
     <div className="flex h-full min-h-[480px] w-full overflow-hidden bg-canvas text-fg">
@@ -530,16 +572,14 @@ export function FilesWorkspace({
                   key={path}
                   type="button"
                   aria-current={isCurrent ? "true" : undefined}
-                  onClick={() => handleSelectFile(path, 1)}
+                  onClick={() => openFileTab(path, 1)}
                   className={`inline-flex min-h-ctrl-sm items-center gap-1.5 rounded-xs border px-2.5 py-1 text-xs transition-colors ${
                     isCurrent
                       ? "border-border-strong bg-surface text-fg"
                       : "border-transparent bg-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
                   }`}
                 >
-                  <code dir="ltr" className="unicode-bidi-isolate font-mono">
-                    {basenameOf(path)}
-                  </code>
+                  <code dir="ltr" className="unicode-bidi-isolate font-mono">{basenameOf(path)}</code>
                   {fileErr ? (
                     <SemanticBadge kind="not-saved" detail={fileErr} />
                   ) : isDirty ? (
@@ -619,10 +659,7 @@ export function FilesWorkspace({
         ) : null}
 
         {isLargeFile ? (
-          <div
-            role="status"
-            className="border-b border-border bg-surface-elevated px-3 py-1.5 text-xs text-fg-muted"
-          >
+          <div role="status" className="border-b border-border bg-surface-elevated px-3 py-1.5 text-xs text-fg-muted">
             Large file (&gt;512 KB) · syntax decorations paused to preserve responsiveness.
           </div>
         ) : null}
@@ -635,14 +672,11 @@ export function FilesWorkspace({
             >
               {Array.from({ length: Math.min(lineCount, 200) }, (_, i) => {
                 const ln = i + 1;
-                const isActiveLn = ln === activeLine;
                 const showAi = ln === 1 && typeof activeAiSeq === "number";
                 return (
                   <div key={ln} className="flex items-center justify-between gap-1">
-                    <span className="truncate text-[10px] text-teal-accent">
-                      {showAi ? `AI #${activeAiSeq}` : ""}
-                    </span>
-                    <span className={`tabular-nums ${isActiveLn ? "font-bold text-fg" : ""}`}>{ln}</span>
+                    <span className="truncate text-[10px] text-teal-accent">{showAi ? `AI #${activeAiSeq}` : ""}</span>
+                    <span className={`tabular-nums ${ln === activeLine ? "font-bold text-fg" : ""}`}>{ln}</span>
                   </div>
                 );
               })}
@@ -658,10 +692,7 @@ export function FilesWorkspace({
                 dir="ltr"
                 spellCheck={false}
                 value={activeContent}
-                onFocus={() => {
-                  tabMovesFocusRef.current = false;
-                  setTabMovesFocus(false);
-                }}
+                onFocus={() => { tabMovesFocusRef.current = false; setTabMovesFocus(false); }}
                 onChange={(e) => updateBufferContent(activePath, e.target.value)}
                 onKeyDown={handleTextareaKeyDown}
                 className="unicode-bidi-isolate min-h-0 flex-1 resize-none bg-code p-2.5 font-mono text-code leading-5 text-fg focus:outline-none"
@@ -674,21 +705,13 @@ export function FilesWorkspace({
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-chrome px-3 py-1 text-[11px] text-fg-muted">
           <div className="flex items-center gap-2.5 font-mono">
-            <code dir="ltr" className="unicode-bidi-isolate text-fg">
-              {activePath}
-            </code>
+            <code dir="ltr" className="unicode-bidi-isolate text-fg">{activePath}</code>
             <span className="tabular-nums">{`Ln ${activeLine}`}</span>
             <span>{activeLanguage}</span>
-            {typeof activeAiSeq === "number" ? (
-              <SemanticBadge kind="ai" detail={`#${activeAiSeq}`} />
-            ) : null}
+            {typeof activeAiSeq === "number" ? <SemanticBadge kind="ai" detail={`#${activeAiSeq}`} /> : null}
           </div>
           <div className="flex items-center gap-3">
-            {statusMessage ? (
-              <span role="status" className="font-mono text-fg">
-                {statusMessage}
-              </span>
-            ) : null}
+            {statusMessage ? <span role="status" className="font-mono text-fg">{statusMessage}</span> : null}
             <span id={editorHintId} className="font-mono text-fg-dim">
               {tabMovesFocus
                 ? "Esc armed: next Tab moves focus (Tab indents · Esc then Tab moves focus)"

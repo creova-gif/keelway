@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FilesWorkspace } from "@/components/screens/FilesWorkspace";
 import type { CodeSymbolItem, FileDiffHunk, GitCommitProposal, WorkspaceFileNode } from "@/lib/types";
@@ -48,14 +48,30 @@ describe("FilesWorkspace (Screen 05)", () => {
       content: path === "core/security/policy.py" ? "def requires_human_quorum(tier: int) -> bool:\n    return tier >= 2\n" : "app = FastAPI()\n",
     }));
 
-    render(
+    const onTreeLoaded = vi.fn();
+    const onSymbolsLoaded = vi.fn();
+    const fetchTreeFn = vi.fn(async () => SAMPLE_TREE);
+    const fetchDiffFn = vi.fn(async () => SAMPLE_DIFFS);
+    const fetchSymbolsFn = vi.fn(async () => SAMPLE_SYMBOLS);
+
+    const { rerender, container } = render(
       <React.StrictMode>
-        <FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={fetchContentFn} fetchDiffFn={async () => SAMPLE_DIFFS} fetchSymbolsFn={async () => SAMPLE_SYMBOLS} openInEditorFn={openInEditorFn} />
+        <FilesWorkspace
+          fetchTreeFn={fetchTreeFn}
+          fetchContentFn={fetchContentFn}
+          fetchDiffFn={fetchDiffFn}
+          fetchSymbolsFn={fetchSymbolsFn}
+          openInEditorFn={openInEditorFn}
+          onTreeLoaded={onTreeLoaded}
+          onSymbolsLoaded={onSymbolsLoaded}
+        />
       </React.StrictMode>,
     );
 
     const sidebar = await screen.findByRole("complementary", { name: /Files explorer/i });
     expect(sidebar).toHaveClass("w-sidebar");
+    expect(onTreeLoaded).toHaveBeenCalledWith(SAMPLE_TREE);
+    expect(onSymbolsLoaded).toHaveBeenCalledWith(SAMPLE_SYMBOLS);
     for (const status of ["M", "A", "D", "U"]) {
       expect(within(sidebar).getByText(status)).toBeInTheDocument();
     }
@@ -67,12 +83,42 @@ describe("FilesWorkspace (Screen 05)", () => {
     expect(within(sidebar).getByText(/notes\.txt/)).toBeInTheDocument();
 
     await user.click(within(sidebar).getByRole("tab", { name: /Symbols/i }));
+    const filterInput = within(sidebar).getByPlaceholderText(/Filter symbols/i);
+    await user.type(filterInput, "nonexistent_symbol");
+    expect(within(sidebar).getByText("No matching symbols.")).toBeInTheDocument();
+    await user.clear(filterInput);
+
     await user.click(within(sidebar).getByRole("button", { name: /requires_human_quorum/i }));
     await waitFor(() => expect(fetchContentFn).toHaveBeenCalledWith("core/security/policy.py"));
     expect(await screen.findByText(/Ln 14/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Open in VS Code/i }));
     expect(openInEditorFn).toHaveBeenCalledWith("core/security/policy.py", 14);
+
+    // Dirty edit in policy.py must survive external selectedPath/selectedLine navigation
+    const policyEditor = await screen.findByRole("textbox", { name: /Code editor for core\/security\/policy\.py/i });
+    fireEvent.change(policyEditor, { target: { value: "# unsaved local edit\n" } });
+    rerender(
+      <React.StrictMode>
+        <FilesWorkspace
+          selectedPath="core/main.py"
+          selectedLine={8}
+          fetchTreeFn={fetchTreeFn}
+          fetchContentFn={fetchContentFn}
+          fetchDiffFn={fetchDiffFn}
+          fetchSymbolsFn={fetchSymbolsFn}
+          openInEditorFn={openInEditorFn}
+        />
+      </React.StrictMode>,
+    );
+    expect(await screen.findByText(/Ln 8/i)).toBeInTheDocument();
+    const tabsGroup = within(container).getByRole("group", { name: /Open file tabs/i });
+    const policyTab = within(tabsGroup).getByRole("button", { name: /policy\.py/i });
+    expect(policyTab).toHaveTextContent("Modified");
+    await user.click(policyTab);
+    expect(await screen.findByRole("textbox", { name: /Code editor for core\/security\/policy\.py/i })).toHaveValue(
+      "# unsaved local edit\n",
+    );
   });
 
   it("surfaces explicit 'Not saved · disk full' badge and persistent recovery bar, clearing on Retry save or Cmd+S", async () => {
@@ -153,12 +199,13 @@ describe("FilesWorkspace (Screen 05)", () => {
     expect(document.activeElement).toBe(editor);
     unmount();
 
-    // Verify AMD window.require + editor.main.css + setValue sync guard does NOT mark newly loaded file dirty
+    // Verify AMD window.require + editor.main.css + setValue sync guard + cursor position decoupling
     const disposeSpy = vi.fn();
     const defineThemeSpy = vi.fn();
     const requireConfigSpy = vi.fn();
+    const setPositionSpy = vi.fn();
     let currentVal = "";
-    let changeCb: (() => void) | null = null;
+    const changeHolder: { cb: (() => void) | null } = { cb: null };
     const amdRequire = Object.assign(
       vi.fn((deps: string[], cb: () => void) => {
         if (deps.includes("vs/editor/editor.main")) {
@@ -169,8 +216,10 @@ describe("FilesWorkspace (Screen 05)", () => {
                 currentVal = opts.value ?? "";
                 return {
                   getValue: () => currentVal,
-                  setValue: (v: string) => { currentVal = v; changeCb?.(); },
-                  onDidChangeModelContent: (fn: () => void) => { changeCb = fn; return { dispose: vi.fn() }; },
+                  setValue: (v: string) => { currentVal = v; changeHolder.cb?.(); },
+                  setPosition: setPositionSpy,
+                  revealLineInCenter: vi.fn(),
+                  onDidChangeModelContent: (fn: () => void) => { changeHolder.cb = fn; return { dispose: vi.fn() }; },
                   dispose: disposeSpy,
                 };
               }),
@@ -183,16 +232,25 @@ describe("FilesWorkspace (Screen 05)", () => {
     );
     (window as unknown as Record<string, unknown>).require = amdRequire;
     try {
-      const mounted = render(<FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={async (path) => ({ path, language: "python", content: "app = FastAPI()\n" })} />);
+      const mounted = render(<FilesWorkspace initialActiveLine={5} fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={async (path) => ({ path, language: "python", content: "app = FastAPI()\n" })} />);
       await waitFor(() => expect(defineThemeSpy).toHaveBeenCalledWith("keelway-dark", expect.objectContaining({ colors: { "editor.background": "#090d12" } })));
+      expect(defineThemeSpy).toHaveBeenCalledWith("keelway-light", expect.objectContaining({ colors: { "editor.background": "#f8fafc" } }));
       expect(requireConfigSpy).toHaveBeenCalledWith({ paths: { vs: "/studio/assets/monaco/vs" } });
       expect(document.head.querySelector('link[href="/studio/assets/monaco/vs/editor/editor.main.css"]')).not.toBeNull();
       await waitFor(() => expect(currentVal).toBe("app = FastAPI()\n"));
       const openTabs = within(mounted.container).getByRole("group", { name: /Open file tabs/i });
       expect(within(openTabs).getByRole("button", { name: /main\.py/i })).not.toHaveTextContent("Modified");
+      const initialPosCalls = setPositionSpy.mock.calls.length;
+      act(() => {
+        currentVal = "app = FastAPI()\n# user typed\n";
+        changeHolder.cb?.();
+      });
+      await waitFor(() => expect(within(openTabs).getByRole("button", { name: /main\.py/i })).toHaveTextContent("Modified"));
+      expect(setPositionSpy).toHaveBeenCalledTimes(initialPosCalls);
       mounted.unmount();
       expect(disposeSpy).toHaveBeenCalledTimes(1);
     } finally {
+      document.head.querySelectorAll("[data-keelway-monaco-css], [data-keelway-monaco]").forEach((el) => el.remove());
       delete (window as unknown as Record<string, unknown>).monaco;
       delete (window as unknown as Record<string, unknown>).require;
     }

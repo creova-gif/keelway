@@ -313,6 +313,7 @@ export function FilesCommitModal({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (submitting || loadingProposal) return;
     const trimmed = commitMessage.trim();
     if (!trimmed) {
       setErrorText("Commit message is required.");
