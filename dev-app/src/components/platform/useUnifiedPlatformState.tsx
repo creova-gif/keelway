@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AgentsWorkspaceView } from "@/components/platform/AgentsWorkspaceView";
 import {
   AutomationWorkspaceView,
@@ -16,6 +16,17 @@ import {
 } from "@/components/platform/PmAndProductViews";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import {
+  fetchPlatformHydration,
+  postMarketplaceInstall,
+  postMarketplacePublish,
+  postMarketplaceUninstall,
+  postNoCodeBlueprint,
+  postPlatformIssue,
+  postTeamDispatch,
+  type EnterpriseRetentionMode,
+  type MarketplacePublishPayload,
+} from "@/lib/platformApi";
+import {
   generateLocalBlueprint,
   INITIAL_AUTOMATION_WORKFLOWS,
   INITIAL_DEPLOYMENTS,
@@ -26,7 +37,6 @@ import {
   INITIAL_PM_ISSUES,
   INITIAL_PRODUCT_PRDS,
   INITIAL_USER_FEEDBACK,
-  syncPlatformBlueprintOptional,
   type AutomationWorkflowItem,
   type DeploymentEnvItem,
   type ExperienceMode,
@@ -41,6 +51,12 @@ import {
   type ProductPrdItem,
   type SubscriptionTierId,
 } from "@/lib/platformData";
+
+function mergeById<T extends { id: string }>(incoming: T[], existing: T[]): T[] {
+  const seen = new Set(existing.map((item) => item.id));
+  const fresh = incoming.filter((item) => !seen.has(item.id));
+  return fresh.length > 0 ? [...fresh, ...existing] : existing;
+}
 
 export function useUnifiedPlatformState(options: {
   onJumpToIdeComposer: (prefill: string) => void;
@@ -65,26 +81,66 @@ export function useUnifiedPlatformState(options: {
   const [deployments, setDeployments] = useState<DeploymentEnvItem[]>(INITIAL_DEPLOYMENTS);
   const [latestBlueprint, setLatestBlueprint] = useState<GeneratedProjectBlueprint | null>(null);
   const [blueprintCount, setBlueprintCount] = useState(0);
+  const [retentionMode, setRetentionMode] = useState<EnterpriseRetentionMode>("standard_30d");
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchPlatformHydration("default").then((snap) => {
+      if (cancelled || !snap.hydrated) return;
+      if (snap.packages.length > 0) {
+        setPackages((prev) => mergeById(snap.packages, prev));
+      }
+      if (snap.installedPackageIds.length > 0) {
+        setInstalledPackageIds((prev) =>
+          Array.from(new Set([...prev, ...snap.installedPackageIds])),
+        );
+      }
+      if (snap.issues.length > 0) {
+        setIssues((prev) => mergeById(snap.issues, prev));
+      }
+      if (snap.prds.length > 0) {
+        setPrds((prev) => mergeById(snap.prds, prev));
+      }
+      if (snap.workflows.length > 0) {
+        setWorkflows((prev) => mergeById(snap.workflows, prev));
+      }
+      if (snap.retentionMode) {
+        setRetentionMode(snap.retentionMode);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCreateCustomAgent = useCallback((agent: LifecycleAgentItem) => {
     setAgents((prev) => [agent, ...prev]);
   }, []);
 
-  const handleDispatchTeam = useCallback((teamId: string) => {
-    setTeams((prev) =>
-      prev.map((t) =>
-        t.id === teamId
-          ? {
-              ...t,
-              lastRunStatus: "running",
-              executionSteps: t.executionSteps.map((s, idx) =>
-                idx === 0 ? { ...s, status: "done" } : s.status === "ready" ? { ...s, status: "running" } : s,
-              ),
-            }
-          : t,
-      ),
-    );
-  }, []);
+  const handleDispatchTeam = useCallback(
+    (teamId: string) => {
+      const target = teams.find((t) => t.id === teamId);
+      setTeams((prev) =>
+        prev.map((t) =>
+          t.id === teamId
+            ? {
+                ...t,
+                lastRunStatus: "running",
+                executionSteps: t.executionSteps.map((s, idx) =>
+                  idx === 0 ? { ...s, status: "done" } : s.status === "ready" ? { ...s, status: "running" } : s,
+                ),
+              }
+            : t,
+        ),
+      );
+      void postTeamDispatch(
+        teamId,
+        target?.description ?? "Execute coordinated lifecycle team workflow",
+        true,
+      );
+    },
+    [teams],
+  );
 
   const handleUpdateAgentModel = useCallback((agentId: string, modelId: string) => {
     setAgents((prev) => prev.map((a) => (a.id === agentId ? { ...a, defaultModel: modelId } : a)));
@@ -105,6 +161,11 @@ export function useUnifiedPlatformState(options: {
         },
         ...prev,
       ]);
+      void postPlatformIssue({
+        title: spec.title,
+        priority: spec.priority,
+        assignedAgentId: spec.assignedAgentId,
+      });
     },
     [],
   );
@@ -195,16 +256,29 @@ export function useUnifiedPlatformState(options: {
     );
   }, []);
 
-  const handleToggleInstallPackage = useCallback((packageId: string) => {
-    setInstalledPackageIds((prev) =>
-      prev.includes(packageId) ? prev.filter((id) => id !== packageId) : [...prev, packageId],
-    );
-  }, []);
+  const handleToggleInstallPackage = useCallback(
+    (packageId: string) => {
+      const wasInstalled = installedPackageIds.includes(packageId);
+      setInstalledPackageIds((prev) =>
+        prev.includes(packageId) ? prev.filter((id) => id !== packageId) : [...prev, packageId],
+      );
+      if (wasInstalled) {
+        void postMarketplaceUninstall(packageId, "default");
+      } else {
+        void postMarketplaceInstall(packageId, "default");
+      }
+    },
+    [installedPackageIds],
+  );
 
-  const handlePublishVerifiedPackage = useCallback((pkg: MarketplacePackageItem) => {
-    setPackages((prev) => [pkg, ...prev]);
-    setInstalledPackageIds((prev) => [...prev, pkg.id]);
-  }, []);
+  const handlePublishVerifiedPackage = useCallback(
+    (pkg: MarketplacePackageItem, publishPayload: MarketplacePublishPayload) => {
+      setPackages((prev) => [pkg, ...prev]);
+      setInstalledPackageIds((prev) => (prev.includes(pkg.id) ? prev : [...prev, pkg.id]));
+      void postMarketplacePublish(publishPayload);
+    },
+    [],
+  );
 
   const handleConfirmP10Rollback = useCallback(
     (deploymentId: string) => {
@@ -234,9 +308,9 @@ export function useUnifiedPlatformState(options: {
       setPrds((prev) => [bp.prd, ...prev]);
       setIssues((prev) => [...bp.issues, ...prev]);
       setWorkflows((prev) => [bp.workflow, ...prev]);
-      void syncPlatformBlueprintOptional(idea, templateLabel);
+      void postNoCodeBlueprint(idea, experienceMode, templateLabel);
     },
-    [blueprintCount],
+    [blueprintCount, experienceMode],
   );
 
   const renderPlatformCanvas = (recordProps: {
@@ -304,7 +378,11 @@ export function useUnifiedPlatformState(options: {
       case "security":
         return (
           <div>
-            <SecurityPostureBanner installedPackagesCount={installedPackageIds.length} />
+            <SecurityPostureBanner
+              installedPackagesCount={installedPackageIds.length}
+              retentionMode={retentionMode}
+              onRetentionModeChange={setRetentionMode}
+            />
             <RecordAuditLedger
               selectedSeq={recordProps.selectedSeq}
               onSelectSeq={recordProps.onSelectSeq}

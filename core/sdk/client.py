@@ -14,6 +14,7 @@ from core.sdk.errors import (
     RateLimitExceededError,
     ConnectionError,
 )
+from core.sdk.platform_client import AsyncPlatformClient, SyncPlatformClient
 
 
 def _handle_response_error(res: httpx.Response):
@@ -29,25 +30,26 @@ def _handle_response_error(res: httpx.Response):
 
     msg = str(detail)
     status = res.status_code
+    err_details: Dict[str, Any] = {**detail, "status": status} if isinstance(detail, dict) else {"status": status}
 
     if status == 401:
-        raise AuthenticationError(f"Authentication failed: {msg}", details={"status": status})
+        raise AuthenticationError(f"Authentication failed: {msg}", details=err_details)
     elif status == 402:
-        raise BudgetExceededError(f"Budget exceeded: {msg}", details={"status": status})
+        raise BudgetExceededError(f"Budget exceeded: {msg}", details=err_details)
     elif status == 403:
         if "air-gap" in msg.lower() or "egress" in msg.lower():
-            raise AirGapEgressError(f"Air-Gap zero-egress violation: {msg}", details={"status": status})
+            raise AirGapEgressError(f"Air-Gap zero-egress violation: {msg}", details=err_details)
         elif "quorum" in msg.lower():
-            raise QuorumRequiredError(f"Dual-human quorum required: {msg}", details={"status": status})
-        raise PermissionDeniedError(f"Permission denied: {msg}", details={"status": status})
+            raise QuorumRequiredError(f"Dual-human quorum required: {msg}", details=err_details)
+        raise PermissionDeniedError(f"Permission denied: {msg}", details=err_details)
     elif status == 404:
-        raise TaskNotFoundError(f"Resource not found: {msg}", details={"status": status})
+        raise TaskNotFoundError(f"Resource not found: {msg}", details=err_details)
     elif status == 422:
-        raise PolicyViolationError(f"Policy validation failed: {msg}", details={"status": status})
+        raise PolicyViolationError(f"Policy validation failed: {msg}", details=err_details)
     elif status == 429:
-        raise RateLimitExceededError(f"Rate limit exceeded: {msg}", details={"status": status})
+        raise RateLimitExceededError(f"Rate limit exceeded: {msg}", details=err_details)
     else:
-        raise KeelwayError(f"HTTP {status}: {msg}", details={"status": status})
+        raise KeelwayError(f"HTTP {status}: {msg}", details=err_details)
 
 
 def _normalize_messages(messages: Union[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
@@ -152,6 +154,7 @@ class AsyncKeelwayClient:
             timeout=self.timeout,
             transport=transport,
         )
+        self.platform = AsyncPlatformClient(self)
 
     async def __aenter__(self):
         return self
@@ -525,6 +528,7 @@ class KeelwayClient:
             timeout=self.timeout,
             transport=transport,
         )
+        self.platform = SyncPlatformClient(self)
 
     def __enter__(self):
         return self

@@ -14,10 +14,19 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
+from core.platform.enterprise import (
+    EnterpriseGovernanceManager,
+    EnterprisePolicyValidationError,
+    enterprise_governance_manager,
+)
 from core.platform.marketplace import (
     MarketplaceRegistry,
     MarketplaceSecurityError,
     marketplace_registry,
+)
+from core.platform.signing import (
+    Ed25519ManifestSigner,
+    manifest_signer,
 )
 from core.platform.subscription import (
     SubscriptionPolicyEngine,
@@ -40,6 +49,14 @@ def get_marketplace_registry() -> MarketplaceRegistry:
 
 def get_subscription_engine() -> SubscriptionPolicyEngine:
     return subscription_policy_engine
+
+
+def get_manifest_signer() -> Ed25519ManifestSigner:
+    return manifest_signer
+
+
+def get_enterprise_manager() -> EnterpriseGovernanceManager:
+    return enterprise_governance_manager
 
 
 router = APIRouter(
@@ -403,3 +420,71 @@ async def register_platform_extension(
             status_code=422,
             detail={"passed": False, "message": str(exc)},
         ) from exc
+
+
+class ComplianceCheckRequest(BaseModel):
+    tenant_id: str = Field(..., min_length=1, max_length=128)
+    framework: str = Field(..., min_length=1, max_length=32)
+
+
+@router.post("/marketplace/verify-signature")
+async def verify_marketplace_manifest_signature(
+    payload: Dict[str, Any] = Body(...),
+    _: Principal = Depends(current_principal),
+    signer: Ed25519ManifestSigner = Depends(get_manifest_signer),
+) -> Dict[str, Any]:
+    manifest = payload["manifest"] if isinstance(payload.get("manifest"), dict) else payload
+    extra_keys = payload.get("trusted_keys") if isinstance(payload.get("trusted_keys"), dict) else None
+    active_signer = signer
+    if extra_keys:
+        merged = signer.list_trusted_keys()
+        merged.update({str(k): str(v) for k, v in extra_keys.items()})
+        try:
+            active_signer = Ed25519ManifestSigner(trusted_keys=merged)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+    valid, reason = active_signer.verify_manifest(manifest)
+    return {
+        "valid": valid,
+        "status": reason,
+        "reason": reason,
+        "signer_key_id": manifest.get("signer_key_id"),
+        "schema": manifest.get("schema"),
+    }
+
+
+@router.get("/enterprise/policy/{tenant_id}")
+async def get_enterprise_tenant_policy(
+    tenant_id: str,
+    _: Principal = Depends(current_principal),
+    mgr: EnterpriseGovernanceManager = Depends(get_enterprise_manager),
+) -> Dict[str, Any]:
+    try:
+        return mgr.get_policy(tenant_id)
+    except EnterprisePolicyValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/enterprise/policy/{tenant_id}")
+async def put_enterprise_tenant_policy(
+    tenant_id: str,
+    payload: Dict[str, Any] = Body(...),
+    _: Principal = Depends(current_principal),
+    mgr: EnterpriseGovernanceManager = Depends(get_enterprise_manager),
+) -> Dict[str, Any]:
+    try:
+        return mgr.upsert_policy(tenant_id, payload)
+    except (EnterprisePolicyValidationError, ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/enterprise/compliance-check")
+async def evaluate_enterprise_compliance(
+    req: ComplianceCheckRequest,
+    _: Principal = Depends(current_principal),
+    mgr: EnterpriseGovernanceManager = Depends(get_enterprise_manager),
+) -> Dict[str, Any]:
+    try:
+        return mgr.evaluate_compliance_posture(tenant_id=req.tenant_id, framework=req.framework)
+    except EnterprisePolicyValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

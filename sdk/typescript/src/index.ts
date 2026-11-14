@@ -3,6 +3,8 @@
  */
 
 export { KeelwayClient } from "./client.js";
+export { PlatformNamespace } from "./platform.js";
+export type { PlatformJsonRequester } from "./platform.js";
 
 export {
   AirGapEgressError,
@@ -75,3 +77,44 @@ export type {
   TokenUsage,
   UsageSummary,
 } from "./types.js";
+
+export type {
+  CheckModelLicenseRequest,
+  CheckModelLicenseResponse,
+  CompileBlueprintRequest,
+  CompiledBlueprintResponse,
+  CreateIssueRequest,
+  CreatePrdRequest,
+  CreateWorkflowRequest,
+  DispatchTeamRequest,
+  ExtensionSpecInput,
+  InstallMarketplacePackageRequest,
+  InstallMarketplacePackageResponse,
+  LifecycleAgentsResponse,
+  ListExtensionsParams,
+  ListIssuesParams,
+  ListMarketplacePackagesParams,
+  MarketplacePackageInput,
+  MarketplacePackageListResponse,
+  MarketplacePackageRecord,
+  MarketplaceScanReport,
+  MarketplaceSecurityFinding,
+  PlatformExtensionListResponse,
+  PlatformExtensionRecord,
+  PlatformIssueListResponse,
+  PlatformIssueRecord,
+  PlatformOverviewParams,
+  PlatformOverviewResponse,
+  PlatformPrdListResponse,
+  PlatformPrdRecord,
+  PlatformViewDescriptor,
+  PlatformWorkflowListResponse,
+  PlatformWorkflowRecord,
+  QuotaCheckRequest,
+  QuotaCheckResponse,
+  SubscriptionTierDescriptor,
+  SubscriptionTiersResponse,
+  TeamRunResponse,
+  ValidateByomRequest,
+  ValidateByomResponse,
+} from "./platform-types.js";

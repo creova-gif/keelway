@@ -403,6 +403,8 @@ def test_command_palette_linear_prefix_modes_and_file_size_caps() -> None:
         WEBSITE_DIR / "src" / "components" / "governance" / "ManifestDriftSimulator.tsx",
         WEBSITE_DIR / "src" / "components" / "playground" / "UnifiedPlatformPlayground.tsx",
         WEBSITE_DIR / "src" / "app" / "playground" / "page.tsx",
+        WEBSITE_DIR / "src" / "components" / "marketplace" / "MarketplaceCatalogExplorer.tsx",
+        WEBSITE_DIR / "src" / "app" / "marketplace" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "governance" / "page.tsx",
         WEBSITE_DIR / "src" / "data" / "pricing.ts",
         WEBSITE_DIR / "src" / "components" / "pricing" / "PricingTiers.tsx",
@@ -418,3 +420,65 @@ def test_command_palette_linear_prefix_modes_and_file_size_caps() -> None:
         assert line_count < 750, (
             f"{ts_path.relative_to(KEELWAY_ROOT)} has {line_count} lines (must be strictly < 750)"
         )
+
+
+def test_dedicated_marketplace_route_catalog_and_security_explorer() -> None:
+    mp_page = WEBSITE_DIR / "src" / "app" / "marketplace" / "page.tsx"
+    mp_comp = WEBSITE_DIR / "src" / "components" / "marketplace" / "MarketplaceCatalogExplorer.tsx"
+    header_file = WEBSITE_DIR / "src" / "components" / "layout" / "Header.tsx"
+    sitemap_file = WEBSITE_DIR / "src" / "app" / "sitemap.ts"
+    search_index_file = WEBSITE_DIR / "src" / "app" / "api" / "search-index" / "route.ts"
+
+    assert mp_page.exists(), "website/src/app/marketplace/page.tsx must exist"
+    assert mp_comp.exists(), "MarketplaceCatalogExplorer.tsx must exist"
+
+    page_src = mp_page.read_text(encoding="utf-8")
+    assert len(page_src.splitlines()) < 140, "marketplace/page.tsx must remain < 140 lines"
+    assert 'canonical: "/marketplace"' in page_src
+    assert "MarketplaceCatalogExplorer" in page_src
+
+    comp_src = mp_comp.read_text(encoding="utf-8")
+    assert len(comp_src.splitlines()) < 500, "MarketplaceCatalogExplorer.tsx must remain < 500 lines"
+    for required_token in (
+        "AI Agents",
+        "Multi-Agent Systems",
+        "Agent Skills",
+        "Plugins & Extensions",
+        "Automation Workflows",
+        "Development Tools",
+        "Enterprise & Industry Solutions",
+        "All Publishers",
+        "1st-Party Sorvex Labs",
+        "Verified 3rd-Party (85/15 Split)",
+        "Enterprise Partner",
+        "keelway-pr-sentinel",
+        "keelway-release-swarm",
+        "sorvex-diataxis-writer",
+        "linear-github-mcp-bridge",
+        "kflow-ci-healer-dag",
+        "ast-boundary-profiler",
+        "finreg-sovereign-compliance",
+        "hipaa-clinical-intake-pack",
+        "nocode-crud-launchpad",
+        "Ed25519 Signed",
+        "SHA-256 Digest",
+        "Pre-Publish Security Scan: PASSED",
+        "85% Creator / 15% Platform",
+        "Apache-2.0",
+        "MIT",
+        "keelway marketplace list",
+        "keelway hub",
+        "await client.platform.installMarketplacePackage(",
+        "Publish Your Own Agent, Skill, or Plugin",
+    ):
+        assert required_token in comp_src, f"Missing '{required_token}' in MarketplaceCatalogExplorer.tsx"
+
+    header_src = header_file.read_text(encoding="utf-8")
+    assert '{ label: "Marketplace", href: "/marketplace" }' in header_src
+
+    sitemap_src = sitemap_file.read_text(encoding="utf-8")
+    assert '"/marketplace"' in sitemap_src
+
+    index_src = search_index_file.read_text(encoding="utf-8")
+    assert '"/marketplace"' in index_src or "/marketplace?" in index_src
+    assert "keelway-pr-sentinel" in index_src

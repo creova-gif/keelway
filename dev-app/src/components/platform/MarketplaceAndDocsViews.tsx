@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import type {
+  EnterpriseRetentionMode,
+  MarketplacePublishPayload,
+} from "@/lib/platformApi";
 import {
   MARKETPLACE_CATEGORIES,
   SDLC_STAGES,
@@ -16,7 +20,10 @@ export interface MarketplaceWorkspaceViewProps {
   packages: MarketplacePackageItem[];
   installedPackageIds: string[];
   onToggleInstallPackage: (packageId: string) => void;
-  onPublishVerifiedPackage: (pkg: MarketplacePackageItem) => void;
+  onPublishVerifiedPackage: (
+    pkg: MarketplacePackageItem,
+    publishPayload: MarketplacePublishPayload,
+  ) => void;
 }
 
 export function MarketplaceWorkspaceView({
@@ -33,13 +40,13 @@ export function MarketplaceWorkspaceView({
   );
   const [pkgWritePaths, setPkgWritePaths] = useState("reports/*");
   const [scanReport, setScanReport] = useState<MarketplaceScanReport | null>(null);
+  const [publishedCurrentScan, setPublishedCurrentScan] = useState(false);
 
   const visiblePackages = packages.filter((p) =>
     selectedCategory === "all" ? true : p.category === selectedCategory,
   );
 
-  const handleValidateAndPublish = (e: React.FormEvent) => {
-    e.preventDefault();
+  const evaluateCandidate = () => {
     const cleanName = pkgName.trim() || "Untitled Extension";
     const report = scanMarketplacePackageClient({
       name: cleanName,
@@ -50,21 +57,69 @@ export function MarketplaceWorkspaceView({
       networkFull: false,
       requiresP10Approval: true,
     });
+    const slug =
+      cleanName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 32) || "extension";
+    const id = `pkg-custom-${slug}-${Date.now()}`;
+    const writePathsList = pkgWritePaths
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const pkg: MarketplacePackageItem = {
+      id,
+      name: cleanName,
+      category: pkgCategory,
+      publisher: "Workspace Creator",
+      publisherTier: "verified_third_party",
+      revenueSplitLabel: report.revenueSplitLabel,
+      priceLabel: "$14 / mo",
+      summary: pkgInstructions.trim().slice(0, 140),
+      manifestSha256: report.manifestSha256,
+      securityVerified: true,
+    };
+    const publishPayload: MarketplacePublishPayload = {
+      id,
+      name: cleanName,
+      kind: pkgCategory,
+      version: "1.0.0",
+      publisher: "Workspace Creator",
+      publisher_tier: "verified_third_party",
+      pricing_model: "monthly",
+      price_usd: 14,
+      description: pkgInstructions.trim(),
+      permissions: {
+        read_paths: ["./"],
+        write_paths: writePathsList,
+        network: "none",
+        requires_p10_approval: true,
+      },
+    };
+    return { report, pkg, publishPayload };
+  };
+
+  const handleScanOnly = () => {
+    const { report } = evaluateCandidate();
     setScanReport(report);
-    if (report.passed) {
-      onPublishVerifiedPackage({
-        id: `pkg-custom-${Date.now()}`,
-        name: cleanName,
-        category: pkgCategory,
-        publisher: "Workspace Creator",
-        publisherTier: "verified_third_party",
-        revenueSplitLabel: report.revenueSplitLabel,
-        priceLabel: "$14 / mo",
-        summary: pkgInstructions.trim().slice(0, 140),
-        manifestSha256: report.manifestSha256,
-        securityVerified: true,
-      });
+    setPublishedCurrentScan(false);
+  };
+
+  const handlePublishScanned = () => {
+    const { report, pkg, publishPayload } = evaluateCandidate();
+    setScanReport(report);
+    if (!report.passed) {
+      setPublishedCurrentScan(false);
+      return;
     }
+    onPublishVerifiedPackage(pkg, publishPayload);
+    setPublishedCurrentScan(true);
+  };
+
+  const handleValidateAndPublish = (e: React.FormEvent) => {
+    e.preventDefault();
+    handlePublishScanned();
   };
 
   return (
@@ -227,9 +282,21 @@ export function MarketplaceWorkspaceView({
               className="rounded-sm border border-border-control bg-canvas px-2.5 py-1.5 font-mono text-xs text-fg"
             />
           </label>
-          <div className="md:col-span-3">
+          <div className="flex flex-wrap items-center gap-2 md:col-span-3">
+            <Button type="button" size="sm" variant="secondary" onClick={handleScanOnly}>
+              Run Security Scan
+            </Button>
             <Button type="submit" size="sm" variant="primary">
               Scan &amp; Publish Package
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              disabled={!scanReport || !scanReport.passed || publishedCurrentScan}
+              onClick={handlePublishScanned}
+            >
+              Publish Verified Package to Workspace
             </Button>
           </div>
         </form>
@@ -243,7 +310,8 @@ export function MarketplaceWorkspaceView({
               <span className="font-semibold text-ok">
                 Pre-Publish Security Scan Passed · Risk Grade A
               </span>{" "}
-              — Published with <code className="font-mono">{scanReport.manifestSha256}</code> (
+              — {publishedCurrentScan ? "Published" : "Ready to publish"} with{" "}
+              <code className="font-mono">{scanReport.manifestSha256}</code> (
               {scanReport.revenueSplitLabel}).
             </div>
           ) : (
@@ -356,21 +424,25 @@ export function DocumentationWorkspaceView({
 
 export function SecurityPostureBanner({
   installedPackagesCount,
+  retentionMode = "standard_30d",
+  onRetentionModeChange,
 }: {
   installedPackagesCount: number;
+  retentionMode?: EnterpriseRetentionMode;
+  onRetentionModeChange?: (mode: EnterpriseRetentionMode) => void;
 }): React.JSX.Element {
   return (
     <section
       aria-label="Security governance posture summary"
       className="border-b border-border bg-chrome px-4 py-3"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-sm font-semibold text-fg">
             Security Governance &amp; Sovereign Posture
           </h1>
           <p className="text-xs text-fg-muted">
-            Unified RBAC, SQLite WAL tenant isolation, plugin vulnerability scanning, and SHA-256 hash-chained Record audit ledger.
+            Unified RBAC, SQLite WAL tenant isolation, Ed25519 + SHA-256 package signing, and hash-chained Record audit ledger.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
@@ -378,8 +450,21 @@ export function SecurityPostureBanner({
             RBAC + Seatbelt Isolated
           </span>
           <span className="rounded-xs border border-ok/40 bg-ok-subtle px-2 py-0.5 text-ok">
-            {`${installedPackagesCount} Marketplace pkgs SHA-256 verified`}
+            {`Ed25519 + SHA-256 Verified (${installedPackagesCount} pkgs)`}
           </span>
+          <label className="inline-flex items-center gap-1.5 rounded-xs border border-border-control bg-surface px-2 py-0.5 text-fg">
+            <span className="text-fg-muted">Retention:</span>
+            <select
+              aria-label="Enterprise data retention policy"
+              value={retentionMode}
+              onChange={(e) => onRetentionModeChange?.(e.target.value as EnterpriseRetentionMode)}
+              className="bg-surface font-mono text-[11px] text-fg"
+            >
+              <option value="standard_30d">standard_30d (30-Day)</option>
+              <option value="regulated_365d">regulated_365d (365-Day)</option>
+              <option value="worm_7y">worm_7y (7-Year WORM)</option>
+            </select>
+          </label>
           <span className="rounded-xs border border-ochre/40 bg-ochre-subtle px-2 py-0.5 text-ochre">
             P-10 Human-Only Gate Active
           </span>

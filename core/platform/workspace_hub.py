@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 import uuid
 
 from core.platform.marketplace import MarketplaceSecurityScanner
+from core.platform.persistence import SQLitePlatformStore
 
 
 PLATFORM_VIEWS: List[Dict[str, str]] = [
@@ -123,12 +124,35 @@ SUPPORTED_EXTENSION_TYPES = {"skill", "tool", "webhook", "workflow_rule", "ui_pa
 _SENSITIVE_KEYWORDS = re.compile(r"(?i)\b(?:deploy|prod|production|migration|drop|delete|egress|external|publish)\b")
 
 
+def _next_record_id(prefix: str, items: List[Dict[str, Any]]) -> str:
+    nums = [100]
+    for item in items:
+        m = re.search(r"(\d+)$", str(item.get("id") or ""))
+        if m:
+            nums.append(int(m.group(1)))
+    return f"{prefix}-{max(nums) + 1}"
+
+
 class ExtensionRegistry:
     """External Extension SDK allowing third-party hooks without mutating core platform modules."""
 
-    def __init__(self, scanner: Optional[MarketplaceSecurityScanner] = None) -> None:
+    def __init__(
+        self,
+        scanner: Optional[MarketplaceSecurityScanner] = None,
+        store: Optional[SQLitePlatformStore] = None,
+    ) -> None:
         self.scanner = scanner or MarketplaceSecurityScanner()
+        self.store: Optional[SQLitePlatformStore] = None
         self._extensions: Dict[str, Dict[str, Any]] = {}
+        if store is not None:
+            self.bind_store(store)
+
+    def bind_store(self, store: SQLitePlatformStore) -> None:
+        self.store = store
+        for persisted in self.store.list_records("__global__", "extensions"):
+            ext_id = str(persisted.get("id") or "").strip()
+            if ext_id:
+                self._extensions[ext_id] = dict(persisted)
 
     def register_extension(self, spec: Dict[str, Any]) -> Dict[str, Any]:
         ext_id = str(spec.get("id") or "").strip()
@@ -158,6 +182,8 @@ class ExtensionRegistry:
             "registered_at": datetime.now(timezone.utc).isoformat(),
         }
         self._extensions[ext_id] = record
+        if self.store is not None:
+            self.store.upsert_record("__global__", "extensions", ext_id, record)
         return dict(record)
 
     def list_extensions(self, extension_type: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -168,84 +194,110 @@ class ExtensionRegistry:
 
 
 class UnifiedWorkspaceHub:
-    """Shared state engine across all 10 Unified Platform Views with optional JSON persistence."""
+    """Shared state engine across all 10 Unified Platform Views with SQLite WAL or JSON persistence."""
 
     def __init__(
         self,
         storage_path: Optional[Path] = None,
         extension_registry: Optional[ExtensionRegistry] = None,
+        store: Optional[SQLitePlatformStore] = None,
     ) -> None:
         self.storage_path = Path(storage_path) if storage_path else None
-        self.extensions = extension_registry or ExtensionRegistry()
+        self.store = store
+        self.extensions = extension_registry or ExtensionRegistry(store=store)
+        if extension_registry is not None and store is not None and self.extensions.store is None:
+            self.extensions.bind_store(store)
         self._workspaces: Dict[str, Dict[str, Any]] = {}
-        self._ensure_workspace("default")
         self._load()
+        self._ensure_workspace("default")
+
+    @staticmethod
+    def _seed_workspace_template(workspace_id: str) -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        return {
+            "workspace_id": workspace_id,
+            "project_name": "Keelway Sovereign Workspace" if workspace_id == "default" else workspace_id,
+            "branch": "main",
+            "active_model_id": "keelway-core:7b",
+            "experience_mode": "builder",
+            "sprints": [{"id": "SPR-01", "name": "Sprint 1 · Core Foundation", "status": "active"}],
+            "prds": [{
+                "id": "PRD-101",
+                "title": "Unified Sovereign Agent Workspace",
+                "summary": "Single local-first operating environment spanning 10 integrated engineering and business views.",
+                "status": "approved",
+                "acceptance_criteria": ["10 unified views share state", "P-10 human-only gates enforced"],
+                "created_at": now,
+            }],
+            "issues": [{
+                "id": "KEEL-101",
+                "title": "Verify OpenCore local fallback under Community quota cap",
+                "status": "in_progress",
+                "priority": "high",
+                "sprint_id": "SPR-01",
+                "prd_id": "PRD-101",
+                "assignee_agent": "qa-ci-runner",
+                "created_at": now,
+            }],
+            "workflows": [{
+                "id": "WF-101",
+                "name": "Pre-Landing Gate & Audit Verification",
+                "trigger": "git.pull_request",
+                "status": "active",
+                "nodes": [
+                    {"id": "n1", "label": "Static & Secret Scan", "agent": "security-auditor"},
+                    {"id": "n2", "label": "Pytest + Vitest Matrix", "agent": "qa-ci-runner"},
+                    {"id": "n3", "label": "P-10 Human Release Signoff", "agent": "human-operator"},
+                ],
+                "created_at": now,
+            }],
+            "docs": [{
+                "id": "DOC-101",
+                "title": "Cross-Agent Engineering Contract (AGENTS.md)",
+                "diataxis_kind": "reference",
+                "summary": "Shared workflow across Antigravity, Claude Code, Devin, and gstack.",
+            }],
+            "deployments": [{"id": "DEP-101", "environment": "local-sovereign", "status": "healthy", "ttft_p95_ms": 185, "slo_met": True}],
+            "team_runs": [],
+        }
+
+    _META_KEYS = ("project_name", "branch", "active_model_id", "experience_mode", "sprints", "docs", "deployments", "team_runs")
+
+    def _persist_workspace_to_sqlite(self, ws: Dict[str, Any]) -> None:
+        if self.store is None:
+            return
+        wid = ws["workspace_id"]
+        self.store.upsert_workspace_meta(wid, {k: ws[k] for k in self._META_KEYS})
+        for col in ("prds", "issues", "workflows"):
+            for rec in ws[col]:
+                self.store.upsert_record(wid, col, rec["id"], rec)
+
+    def _hydrate_workspace_from_sqlite(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+        if self.store is None:
+            return None
+        meta = self.store.get_workspace_meta(workspace_id)
+        prds = self.store.list_records(workspace_id, "prds")
+        issues = self.store.list_records(workspace_id, "issues")
+        workflows = self.store.list_records(workspace_id, "workflows")
+        if meta is None and not prds and not issues and not workflows:
+            return None
+        base = self._seed_workspace_template(workspace_id)
+        if meta:
+            base.update({k: meta[k] for k in self._META_KEYS if k in meta})
+        base["prds"] = prds or base["prds"]
+        base["issues"] = issues or base["issues"]
+        base["workflows"] = workflows or base["workflows"]
+        return base
 
     def _ensure_workspace(self, workspace_id: str) -> Dict[str, Any]:
         if workspace_id not in self._workspaces:
-            now = datetime.now(timezone.utc).isoformat()
-            self._workspaces[workspace_id] = {
-                "workspace_id": workspace_id,
-                "project_name": "Keelway Sovereign Workspace" if workspace_id == "default" else workspace_id,
-                "branch": "main",
-                "active_model_id": "keelway-core:7b",
-                "experience_mode": "builder",
-                "sprints": [{"id": "SPR-01", "name": "Sprint 1 · Core Foundation", "status": "active"}],
-                "prds": [
-                    {
-                        "id": "PRD-101",
-                        "title": "Unified Sovereign Agent Workspace",
-                        "summary": "Single local-first operating environment spanning 10 integrated engineering and business views.",
-                        "status": "approved",
-                        "acceptance_criteria": ["10 unified views share state", "P-10 human-only gates enforced"],
-                        "created_at": now,
-                    }
-                ],
-                "issues": [
-                    {
-                        "id": "KEEL-101",
-                        "title": "Verify OpenCore local fallback under Community quota cap",
-                        "status": "in_progress",
-                        "priority": "high",
-                        "sprint_id": "SPR-01",
-                        "prd_id": "PRD-101",
-                        "assignee_agent": "qa-ci-runner",
-                        "created_at": now,
-                    }
-                ],
-                "workflows": [
-                    {
-                        "id": "WF-101",
-                        "name": "Pre-Landing Gate & Audit Verification",
-                        "trigger": "git.pull_request",
-                        "status": "active",
-                        "nodes": [
-                            {"id": "n1", "label": "Static & Secret Scan", "agent": "security-auditor"},
-                            {"id": "n2", "label": "Pytest + Vitest Matrix", "agent": "qa-ci-runner"},
-                            {"id": "n3", "label": "P-10 Human Release Signoff", "agent": "human-operator"},
-                        ],
-                        "created_at": now,
-                    }
-                ],
-                "docs": [
-                    {
-                        "id": "DOC-101",
-                        "title": "Cross-Agent Engineering Contract (AGENTS.md)",
-                        "diataxis_kind": "reference",
-                        "summary": "Shared workflow across Antigravity, Claude Code, Devin, and gstack.",
-                    }
-                ],
-                "deployments": [
-                    {
-                        "id": "DEP-101",
-                        "environment": "local-sovereign",
-                        "status": "healthy",
-                        "ttft_p95_ms": 185,
-                        "slo_met": True,
-                    }
-                ],
-                "team_runs": [],
-            }
+            hydrated = self._hydrate_workspace_from_sqlite(workspace_id)
+            if hydrated is not None:
+                self._workspaces[workspace_id] = hydrated
+            else:
+                seeded = self._seed_workspace_template(workspace_id)
+                self._workspaces[workspace_id] = seeded
+                self._persist_workspace_to_sqlite(seeded)
         return self._workspaces[workspace_id]
 
     def _load(self) -> None:
@@ -253,15 +305,21 @@ class UnifiedWorkspaceHub:
             data = json.loads(self.storage_path.read_text(encoding="utf-8"))
             if isinstance(data.get("workspaces"), dict):
                 self._workspaces.update(data["workspaces"])
+        if self.store is not None:
+            for ws_id in self.store.list_workspaces():
+                if not ws_id.startswith("__"):
+                    hydrated = self._hydrate_workspace_from_sqlite(ws_id)
+                    if hydrated is not None:
+                        self._workspaces[ws_id] = hydrated
 
-    def _save(self) -> None:
+    def _save(self, workspace_id: Optional[str] = None) -> None:
         if self.storage_path:
             self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-            payload = {
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                "workspaces": self._workspaces,
-            }
+            payload = {"updated_at": datetime.now(timezone.utc).isoformat(), "workspaces": self._workspaces}
             self.storage_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        if self.store is not None and workspace_id and workspace_id in self._workspaces:
+            ws = self._workspaces[workspace_id]
+            self.store.upsert_workspace_meta(workspace_id, {k: ws[k] for k in self._META_KEYS})
 
     def get_overview(
         self,
@@ -357,7 +415,7 @@ class UnifiedWorkspaceHub:
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         ws["team_runs"].append(run_record)
-        self._save()
+        self._save(workspace_id)
         return dict(run_record)
 
     def list_team_runs(self, workspace_id: str = "default") -> List[Dict[str, Any]]:
@@ -378,7 +436,7 @@ class UnifiedWorkspaceHub:
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
         issue = {
-            "id": f"KEEL-{101 + len(ws['issues'])}",
+            "id": _next_record_id("KEEL", ws["issues"]),
             "title": title.strip(),
             "status": status,
             "priority": priority,
@@ -388,7 +446,9 @@ class UnifiedWorkspaceHub:
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         ws["issues"].append(issue)
-        self._save()
+        if self.store is not None:
+            self.store.upsert_record(workspace_id, "issues", issue["id"], issue)
+        self._save(workspace_id)
         return dict(issue)
 
     def list_prds(self, workspace_id: str = "default") -> List[Dict[str, Any]]:
@@ -403,7 +463,7 @@ class UnifiedWorkspaceHub:
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
         prd = {
-            "id": f"PRD-{101 + len(ws['prds'])}",
+            "id": _next_record_id("PRD", ws["prds"]),
             "title": title.strip(),
             "summary": summary.strip(),
             "status": "draft",
@@ -411,7 +471,9 @@ class UnifiedWorkspaceHub:
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         ws["prds"].append(prd)
-        self._save()
+        if self.store is not None:
+            self.store.upsert_record(workspace_id, "prds", prd["id"], prd)
+        self._save(workspace_id)
         return dict(prd)
 
     def list_workflows(self, workspace_id: str = "default") -> List[Dict[str, Any]]:
@@ -435,7 +497,7 @@ class UnifiedWorkspaceHub:
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
         wf = {
-            "id": f"WF-{101 + len(ws['workflows'])}",
+            "id": _next_record_id("WF", ws["workflows"]),
             "name": name.strip(),
             "trigger": trigger,
             "status": "active",
@@ -443,7 +505,9 @@ class UnifiedWorkspaceHub:
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         ws["workflows"].append(wf)
-        self._save()
+        if self.store is not None:
+            self.store.upsert_record(workspace_id, "workflows", wf["id"], wf)
+        self._save(workspace_id)
         return dict(wf)
 
     def compile_nocode_blueprint(

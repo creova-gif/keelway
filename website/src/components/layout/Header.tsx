@@ -16,6 +16,7 @@ export interface NavItem {
 
 export const PRIMARY_NAV: NavItem[] = [
   { label: "Playground", href: "/playground" },
+  { label: "Marketplace", href: "/marketplace" },
   { label: "Models & OpenCore", href: "/models" },
   { label: "Routing & Governance", href: "/governance" },
   { label: "Pricing", href: "/pricing" },

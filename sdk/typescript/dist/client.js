@@ -5,6 +5,7 @@
  * build runs identically across Node 20+, Bun, Deno, Cloudflare Workers, and browsers.
  */
 import { ConnectionError, KeelwayError, mapHttpError } from "./errors.js";
+import { PlatformNamespace } from "./platform.js";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7420";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const SDK_USER_AGENT = "@keelway/sdk/1.0.0";
@@ -222,6 +223,7 @@ export class KeelwayClient {
     opencore;
     governance;
     swarm;
+    platform;
     constructor(options = {}) {
         const rawBase = options.baseUrl ?? DEFAULT_BASE_URL;
         this.baseUrl = rawBase.replace(/\/+$/, "");
@@ -469,6 +471,7 @@ export class KeelwayClient {
                 });
             },
         };
+        this.platform = new PlatformNamespace((method, path, params) => this.requestJson(method, path, params));
     }
     /**
      * Probe Keelway daemon health (`/health`).
@@ -536,7 +539,20 @@ export class KeelwayClient {
             });
             const rawText = await response.text();
             if (!response.ok) {
-                throw mapHttpError(response.status, rawText);
+                let extraDetails;
+                try {
+                    const parsedErr = JSON.parse(rawText);
+                    if (parsedErr && typeof parsedErr === "object") {
+                        const detailVal = parsedErr.detail;
+                        if (detailVal && typeof detailVal === "object" && !Array.isArray(detailVal)) {
+                            extraDetails = { ...detailVal, status: response.status };
+                        }
+                    }
+                }
+                catch {
+                    // non-JSON error payload
+                }
+                throw mapHttpError(response.status, rawText, extraDetails);
             }
             if (!rawText) {
                 return undefined;

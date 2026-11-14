@@ -8634,6 +8634,192 @@
         }
       }
     },
+    "/v1/platform/marketplace/verify-signature": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Verify Marketplace Manifest Signature",
+        "operationId": "verify_marketplace_manifest_signature_v1_platform_marketplace_verify_signature_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Verify Marketplace Manifest Signature V1 Platform Marketplace Verify Signature Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/enterprise/policy/{tenant_id}": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Get Enterprise Tenant Policy",
+        "operationId": "get_enterprise_tenant_policy_v1_platform_enterprise_policy__tenant_id__get",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Enterprise Tenant Policy V1 Platform Enterprise Policy  Tenant Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Put Enterprise Tenant Policy",
+        "operationId": "put_enterprise_tenant_policy_v1_platform_enterprise_policy__tenant_id__put",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Enterprise Tenant Policy V1 Platform Enterprise Policy  Tenant Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/enterprise/compliance-check": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Evaluate Enterprise Compliance",
+        "operationId": "evaluate_enterprise_compliance_v1_platform_enterprise_compliance_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComplianceCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Evaluate Enterprise Compliance V1 Platform Enterprise Compliance Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -9504,6 +9690,28 @@
           "latency_ms"
         ],
         "title": "CompletionResponseSchema"
+      },
+      "ComplianceCheckRequest": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tenant Id"
+          },
+          "framework": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Framework"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "framework"
+        ],
+        "title": "ComplianceCheckRequest"
       },
       "DataResidencyZone": {
         "type": "string",

@@ -42,16 +42,16 @@ echo "[3/8] Running Unified Responses API, Hybrid Routing, OpenAPI Export & Miro
 echo "  ✓ Unified API, Stateful Responses, Routing Provenance, OpenAPI 3.1 & MiroFish Swarm verified."
 
 echo "[4/8] Verifying Multi-Tenant Governance, Durable SQLite WAL Store, Unified Platform & Secret Redaction..."
-"${PYTEST_BIN}" tests/test_redact.py tests/test_tenant_governance.py tests/test_persistent_governance.py tests/test_unified_platform.py -v --tb=short
-echo "  ✓ Multi-Tenant Governance, SQLite WAL Persistence, Unified 10-View Platform & Marketplace Security verified."
+"${PYTEST_BIN}" tests/test_redact.py tests/test_tenant_governance.py tests/test_persistent_governance.py tests/test_unified_platform.py tests/test_platform_persistence_and_enterprise.py -v --tb=short
+echo "  ✓ Multi-Tenant Governance, SQLite WAL Persistence, Ed25519 Signing, Enterprise Controls & Unified Platform verified."
 
 echo "[5/8] Verifying OS Command Sandbox Confinement (Seatbelt & Bubblewrap) & Studio Manifest Inspector..."
 "${PYTEST_BIN}" tests/test_agent_sandbox.py tests/test_studio.py tests/test_studio_manifest_panel.py -v --tb=short
 echo "  ✓ OS Command Sandbox & Keelway Studio Manifest Inspection Panel verified."
 
 echo "[6/8] Verifying Layer 1 Python SDK v1, Sovereign CLI TUI, Website Drift Gate & Full-Stack E2E..."
-"${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
-echo "  ✓ Python SDK v1, Sovereign CLI TUI, Product-Facts Drift Gate & Full-Stack E2E verified."
+"${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_sdk_platform.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
+echo "  ✓ Python SDK v1 + Platform SDK, Sovereign CLI TUI, Product-Facts Drift Gate & Full-Stack E2E verified."
 
 echo "[7/8] Verifying Official Zero-Dependency TypeScript SDK (@keelway/sdk) & Studio JS Syntax..."
 if command -v node >/dev/null 2>&1; then

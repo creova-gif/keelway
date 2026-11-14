@@ -6,6 +6,7 @@
  */
 
 import { ConnectionError, KeelwayError, mapHttpError } from "./errors.js";
+import { PlatformNamespace } from "./platform.js";
 import type {
   AdaptRecipeRequest,
   ChatCompletionCreateRequest,
@@ -379,6 +380,8 @@ export class KeelwayClient {
     ) => Promise<SwarmEvaluateResponse>;
   };
 
+  public readonly platform: PlatformNamespace;
+
   constructor(options: KeelwayClientOptions = {}) {
     const rawBase = options.baseUrl ?? DEFAULT_BASE_URL;
     this.baseUrl = rawBase.replace(/\/+$/, "");
@@ -637,6 +640,10 @@ export class KeelwayClient {
         });
       },
     };
+
+    this.platform = new PlatformNamespace((method, path, params) =>
+      this.requestJson(method, path, params),
+    );
   }
 
   /**
@@ -732,7 +739,19 @@ export class KeelwayClient {
 
       const rawText = await response.text();
       if (!response.ok) {
-        throw mapHttpError(response.status, rawText);
+        let extraDetails: Record<string, unknown> | undefined;
+        try {
+          const parsedErr: unknown = JSON.parse(rawText);
+          if (parsedErr && typeof parsedErr === "object") {
+            const detailVal = (parsedErr as Record<string, unknown>).detail;
+            if (detailVal && typeof detailVal === "object" && !Array.isArray(detailVal)) {
+              extraDetails = { ...(detailVal as Record<string, unknown>), status: response.status };
+            }
+          }
+        } catch {
+          // non-JSON error payload
+        }
+        throw mapHttpError(response.status, rawText, extraDetails);
       }
       if (!rawText) {
         return undefined as T;

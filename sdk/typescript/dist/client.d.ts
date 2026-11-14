@@ -4,6 +4,7 @@
  * Uses native Web Fetch, ReadableStream, TextDecoder, and AbortSignal so a single
  * build runs identically across Node 20+, Bun, Deno, Cloudflare Workers, and browsers.
  */
+import { PlatformNamespace } from "./platform.js";
 import type { AdaptRecipeRequest, ChatCompletionCreateRequest, ChatCompletionResponse, ChatCompletionStreamRequest, ChatStreamChunk, CompileModelfileRequest, CompileModelfileResponse, GovernanceAuditResponse, GovernanceDecisionResponse, GovernanceEvaluateRequest, IssuedKeyResponse, IssueKeyRequest, KeelwayClientOptions, LoadOpenCoreModelRequest, ModelListResponse, ModelsListParams, OpenCoreAdaptersResponse, OpenCoreStatusResponse, OpenCoreWeightManifest, RequestOptions, ResponseCreateRequest, ResponseObject, ResponseStreamEvent, ResponseStreamRequest, RoutingDecisionsResponse, RoutingExplainRequest, RoutingExplainResponse, SwarmEvaluateRequest, SwarmEvaluateResponse, TenantPolicy, TenantPolicyUpsertRequest, UsageSummary } from "./types.js";
 /**
  * Official Keelway Platform Client (`@keelway/sdk` v1.0.0).
@@ -62,6 +63,7 @@ export declare class KeelwayClient {
     readonly swarm: {
         evaluate: (req: SwarmEvaluateRequest, options?: RequestOptions) => Promise<SwarmEvaluateResponse>;
     };
+    readonly platform: PlatformNamespace;
     constructor(options?: KeelwayClientOptions);
     /**
      * Probe Keelway daemon health (`/health`).

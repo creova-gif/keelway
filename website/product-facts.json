@@ -35,21 +35,27 @@
     },
     "official_python_and_typescript_sdks": {
       "status": "AVAILABLE",
-      "claim": "Official Python (core.sdk) and zero-dependency TypeScript (@keelway/sdk) client SDKs with chunk-safe SSE streaming and deterministic HTTP error mapping",
-      "code_path": "core/sdk/client.py, sdk/typescript/src/client.ts",
-      "evidence_test": "tests/test_sdk_v1.py, sdk/typescript/test/sdk.test.mjs"
+      "claim": "Official Python (core.sdk) and zero-dependency TypeScript (@keelway/sdk) client SDKs with chunk-safe SSE streaming, full 20-method /v1/platform/* parity, and deterministic HTTP error mapping",
+      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts",
+      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, sdk/typescript/test/sdk.test.mjs"
     },
     "unified_10view_platform_and_nocode_builder": {
       "status": "AVAILABLE",
       "claim": "Unified 10-View Sovereign Workspace (Agents, IDE, Project Manager, Product, Automation, Marketplace, Security, Documentation, Operations, No-Code Builder) with dual Builder and Non-Coder modes, 12 lifecycle agents, Extension SDK, and natural-language blueprint compilation",
-      "code_path": "core/platform/workspace_hub.py, core/api/platform_routes.py, dev-app/src/App.tsx",
+      "code_path": "core/platform/workspace_hub.py, core/api/platform_routes.py, dev-app/src/App.tsx, dev-app/src/lib/platformApi.ts",
       "evidence_test": "tests/test_unified_platform.py, tests/test_dev_app.py"
     },
     "marketplace_and_prepublish_security_scanner": {
       "status": "AVAILABLE",
       "claim": "Keelway Marketplace supporting 1st-party and verified 3rd-party agents, multi-agent systems, skills, plugins, templates, dev tools, and enterprise solutions with mandatory pre-publication prompt-injection, shell/AST exfil, and secret scanning plus 85/15 creator revenue sharing",
-      "code_path": "core/platform/marketplace.py, core/cli_tui.py",
-      "evidence_test": "tests/test_unified_platform.py, tests/test_cli_init_and_banner.py"
+      "code_path": "core/platform/marketplace.py, core/cli_tui.py, website/src/components/marketplace/MarketplaceCatalogExplorer.tsx",
+      "evidence_test": "tests/test_unified_platform.py, tests/test_cli_init_and_banner.py, tests/test_website_facts.py"
+    },
+    "ed25519_manifest_signing_and_sqlite_platform_store": {
+      "status": "AVAILABLE",
+      "claim": "Asymmetric Ed25519 publisher manifest signing (sorvex-labs-ed25519-v1), crash-safe SQLite WAL platform persistence across Marketplace, Extension SDK, and Workspace Hub, and Enterprise retention/compliance posture controls (SOC2, HIPAA, ISO27001, GDPR)",
+      "code_path": "core/platform/signing.py, core/platform/persistence.py, core/platform/enterprise.py",
+      "evidence_test": "tests/test_platform_persistence_and_enterprise.py, tests/test_sdk_platform.py"
     },
     "five_stream_subscription_and_byom_governance": {
       "status": "AVAILABLE",
