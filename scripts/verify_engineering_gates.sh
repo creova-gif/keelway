@@ -75,8 +75,8 @@ fi
 echo "[8/8] Verifying Unified Sovereign Dev App (/app CSP, Zero-CDN, CLI & Vitest + axe-core Suite)..."
 "${PYTEST_BIN}" tests/test_dev_app.py -v --tb=short
 if command -v npm >/dev/null 2>&1 && [ -d "dev-app/node_modules" ]; then
-    (cd dev-app && npm run typecheck && npm test)
-    echo "  ✓ Unified Sovereign Dev App (/app ASGI mount, TypeScript & Vitest + axe-core) verified."
+    (cd dev-app && npm run build && npm test)
+    echo "  ✓ Unified Sovereign Dev App (/app ASGI mount, Vite dist bundle, TypeScript & Vitest + axe-core) verified."
 else
     echo "  ✓ Unified Sovereign Dev App (/app ASGI mount) verified (npm/node_modules not present; skipped frontend Vitest run)."
 fi

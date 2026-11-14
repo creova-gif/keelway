@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SCRIPT_SOURCE" ]; do
+  SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+  SCRIPT_SOURCE="$(readlink "$SCRIPT_SOURCE")"
+  [[ "$SCRIPT_SOURCE" != /* ]] && SCRIPT_SOURCE="$SCRIPT_DIR/$SCRIPT_SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+
+find_node() {
+  if [ -n "${KEELWAY_NODE_BIN:-}" ] && [ -x "${KEELWAY_NODE_BIN}" ]; then
+    printf '%s\n' "${KEELWAY_NODE_BIN}"
+    return 0
+  fi
+  if command -v node >/dev/null 2>&1; then
+    command -v node
+    return 0
+  fi
+  for candidate in "$HOME"/.nvm/versions/node/*/bin/node /opt/homebrew/bin/node /usr/local/bin/node; do
+    if [ -x "$candidate" ]; then
+      printf '%s\n' "$candidate"
+    fi
+  done | sort -V | tail -n 1
+}
+
+NODE_BIN="$(find_node || true)"
+if [ -z "$NODE_BIN" ] || [ ! -x "$NODE_BIN" ]; then
+  echo '{"ok":false,"error":"Node.js >= 22 is required for control-keelway (native WebSocket + fetch) but was not found."}' >&2
+  exit 1
+fi
+
+exec "$NODE_BIN" "$SCRIPT_DIR/control-keelway.mjs" "$@"

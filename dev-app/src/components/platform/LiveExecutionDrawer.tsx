@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import {
@@ -50,6 +50,9 @@ export function LiveExecutionDrawer({
     ? undefined
     : `RBAC Policy: role "${activeRbacRole}" cannot resolve P-10 human checkpoints (requires owner, admin, or operator).`;
 
+  const roleAtLaunchRef = useRef<RbacRoleId>(activeRbacRole);
+  roleAtLaunchRef.current = activeRbacRole;
+
   const launchStream = useCallback(async () => {
     setEvents([]);
     setStatus("streaming");
@@ -60,14 +63,14 @@ export function LiveExecutionDrawer({
       objective,
       requiresP10,
       workspaceId,
-      role: activeRbacRole,
+      role: roleAtLaunchRef.current,
       onEvent: (ev) => {
         setEvents((prev) => [...prev, ev]);
       },
     });
     setRunId(result.runId);
     setStatus(result.status);
-  }, [activeRbacRole, kind, objective, requiresP10, targetId, targetName, workspaceId]);
+  }, [kind, objective, requiresP10, targetId, targetName, workspaceId]);
 
   useEffect(() => {
     void launchStream();
