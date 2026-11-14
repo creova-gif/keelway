@@ -556,3 +556,108 @@ async def test_fastapi_runtime_routes_vault_rbac_webhooks_and_sse(tmp_path: Path
         assert (await client.delete(f"/v1/platform/webhooks/{wh_id}", headers=headers)).status_code == 200
         assert (await client.delete(f"/v1/platform/webhooks/{wh_id}", headers=headers)).status_code == 404
         assert "/v1/platform/execution/runs" in app.openapi()["paths"]
+
+
+@pytest.mark.asyncio
+async def test_p10_blocks_lateral_role_escalation_self_approval_and_spoofed_agent_receipts(
+    tmp_path: Path,
+) -> None:
+    """Locks down the two TLC /statechart counterexamples: NoBuilderSelfApproval & AuthenticHumanP10Receipt."""
+    from fastapi import FastAPI
+
+    from core.api.platform_runtime_routes import (
+        get_execution_streamer,
+        get_rbac_controller,
+        router as runtime_router,
+    )
+    from core.security.auth import Principal, current_principal
+    from core.security.rbac import Role
+
+    db_path = tmp_path / "p10_invariants.db"
+    streamer = LiveExecutionStreamer(db_path=db_path)
+    rbac = WorkspaceRbacController(db_path=db_path)
+    rbac.upsert_member("default", "alice-builder", "builder")
+    rbac.upsert_member("default", "bob-operator", "operator")
+    rbac.upsert_member("default", "carol-admin", "admin")
+
+    active = {"principal": Principal(actor="alice-builder", role=Role.ENGINEER)}
+    mini_app = FastAPI()
+    mini_app.include_router(runtime_router)
+    mini_app.dependency_overrides[get_execution_streamer] = lambda: streamer
+    mini_app.dependency_overrides[get_rbac_controller] = lambda: rbac
+    mini_app.dependency_overrides[current_principal] = lambda: active["principal"]
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=mini_app), base_url="http://testserver") as client:
+            start_resp = await client.post(
+                "/v1/platform/execution/runs",
+                json={
+                    "workspace_id": "default",
+                    "kind": "agent",
+                    "target_id": "code-architect",
+                    "objective": "Apply production migration",
+                    "requires_p10": True,
+                },
+            )
+            assert start_resp.status_code == 200
+            run_id = start_resp.json()["run_id"]
+            assert start_resp.json()["initiator"] == "alice-builder"
+
+            # Counterexample 1: builder sends X-Keelway-Role: operator -> must be 403 Forbidden (not 200)
+            escalate_resp = await client.post(
+                f"/v1/platform/execution/runs/{run_id}/p10",
+                headers={"X-Keelway-Role": "operator"},
+                json={"decision": "approve", "approver": "alice-builder", "reason": "self-approved"},
+            )
+            assert escalate_resp.status_code == 403
+
+            # Counterexample 2a: operator submits autonomous agent identity in approver -> must be rejected (400/403)
+            active["principal"] = Principal(actor="bob-operator", role=Role.ADMIN)
+            agent_spoof_resp = await client.post(
+                f"/v1/platform/execution/runs/{run_id}/p10",
+                headers={"X-Keelway-Role": "operator"},
+                json={"decision": "approve", "approver": "agent:auto-bot", "reason": "automated"},
+            )
+            assert agent_spoof_resp.status_code in (400, 403)
+
+            # Counterexample 2b: operator tries to forge another human's identity in receipt -> 403 Forbidden
+            human_spoof_resp = await client.post(
+                f"/v1/platform/execution/runs/{run_id}/p10",
+                headers={"X-Keelway-Role": "operator"},
+                json={"decision": "approve", "approver": "carol-admin", "reason": "forged"},
+            )
+            assert human_spoof_resp.status_code == 403
+
+            # Valid distinct human operator approval -> 200 OK with bob-operator sealed in receipt
+            valid_resp = await client.post(
+                f"/v1/platform/execution/runs/{run_id}/p10",
+                headers={"X-Keelway-Role": "operator"},
+                json={"decision": "approve", "approver": "bob-operator", "reason": "Reviewed diff"},
+            )
+            assert valid_resp.status_code == 200
+            body = valid_resp.json()
+            assert body["status"] == "completed"
+            assert body["p10_decision"]["approver"] == "bob-operator"
+
+            # Separation of duties: even a non-owner admin who holds both agents:dispatch and p10:approve
+            # cannot self-approve their own P-10 checkpoint
+            active["principal"] = Principal(actor="carol-admin", role=Role.ADMIN)
+            admin_run = await client.post(
+                "/v1/platform/execution/runs",
+                json={
+                    "workspace_id": "default",
+                    "kind": "agent",
+                    "target_id": "security-auditor",
+                    "objective": "Rotate tenant keys",
+                    "requires_p10": True,
+                },
+            )
+            admin_run_id = admin_run.json()["run_id"]
+            self_approve_resp = await client.post(
+                f"/v1/platform/execution/runs/{admin_run_id}/p10",
+                json={"decision": "approve", "approver": "carol-admin", "reason": "self-approve"},
+            )
+            assert self_approve_resp.status_code == 403
+    finally:
+        streamer.close()
+        rbac.close()

@@ -23,6 +23,7 @@ from core.platform.vault import _resolve_sqlite_target
 
 VALID_EXECUTION_KINDS = frozenset({"agent", "workflow"})
 VALID_P10_DECISIONS = frozenset({"approve", "deny"})
+_AUTOMATED_ACTOR_PREFIXES = ("agent:", "bot:", "service-agent:")
 
 
 def _utc_now() -> str:
@@ -109,11 +110,13 @@ class LiveExecutionStreamer:
         target_id: str,
         objective: str,
         requires_p10: bool = True,
+        initiator: str = "local-operator",
     ) -> Dict[str, Any]:
         ws = str(workspace_id or "").strip()
         clean_kind = str(kind or "").strip().lower()
         clean_target = str(target_id or "").strip()
         clean_objective = str(objective or "").strip()
+        clean_initiator = str(initiator or "local-operator").strip() or "local-operator"
 
         if not ws:
             raise ValueError("Execution 'workspace_id' must be non-empty.")
@@ -193,6 +196,7 @@ class LiveExecutionStreamer:
             "kind": clean_kind,
             "target_id": clean_target,
             "objective": clean_objective,
+            "initiator": clean_initiator,
             "requires_p10": bool(requires_p10),
             "status": run_status,
             "p10_decision": None,
@@ -245,11 +249,16 @@ class LiveExecutionStreamer:
         decision: str,
         approver: str = "local-operator",
         reason: str = "",
+        disallow_self_approval: bool = False,
     ) -> Dict[str, Any]:
         clean_decision = str(decision or "").strip().lower()
         if clean_decision not in VALID_P10_DECISIONS:
             raise ValueError("P-10 decision must be 'approve' or 'deny'.")
         clean_approver = str(approver or "local-operator").strip() or "local-operator"
+        if clean_approver.lower().startswith(_AUTOMATED_ACTOR_PREFIXES):
+            raise ValueError(
+                "P-10 is a human-only checkpoint; autonomous agent identities cannot approve or deny P-10."
+            )
         clean_reason = str(reason or "").strip()
 
         with self._lock:
@@ -257,6 +266,11 @@ class LiveExecutionStreamer:
             if current["status"] != "awaiting_p10_approval":
                 raise ValueError(
                     f"Run '{run_id}' has status '{current['status']}' and is not awaiting P-10 approval."
+                )
+            run_initiator = str(current.get("initiator") or "").strip()
+            if disallow_self_approval and run_initiator and clean_approver == run_initiator:
+                raise PermissionError(
+                    f"P-10 self-approval denied: initiator '{run_initiator}' cannot approve their own checkpoint."
                 )
 
             now = _utc_now()

@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from core.eval.pricing_mirofish import PricingMiroFishSimulator, pricing_mirofish_simulator
 from core.platform.execution_stream import LiveExecutionStreamer, live_execution_streamer
 from core.platform.rbac_webhooks import (
+    ROLE_PERMISSION_MATRIX,
     VALID_ROLES,
     SignedWebhookBus,
     WebhookValidationError,
@@ -30,7 +31,6 @@ from core.platform.vault import LocalSecretVault, VaultTamperError, local_secret
 from core.security.auth import Principal, current_principal
 from core.security.rbac import Role
 
-_ROLE_RANK = {"owner": 4, "admin": 3, "builder": 2, "operator": 2, "viewer": 0}
 _PRINCIPAL_ROLE_MAP = {
     Role.OWNER: "owner",
     Role.ADMIN: "admin",
@@ -39,6 +39,14 @@ _PRINCIPAL_ROLE_MAP = {
     Role.PHONE: "viewer",
 }
 _SSE_HEADERS = {"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"}
+
+
+def _can_narrow_to_role(ceiling_role: str, requested_role: str) -> bool:
+    ceiling_perms = ROLE_PERMISSION_MATRIX.get(ceiling_role, frozenset())
+    if "*" in ceiling_perms:
+        return requested_role in ROLE_PERMISSION_MATRIX
+    requested_perms = ROLE_PERMISSION_MATRIX.get(requested_role)
+    return requested_perms is not None and requested_perms.issubset(ceiling_perms)
 
 
 def get_secret_vault() -> LocalSecretVault:
@@ -81,7 +89,8 @@ def _enforce_workspace_permission(
 ) -> Dict[str, Any]:
     ceiling_role = _PRINCIPAL_ROLE_MAP.get(principal.role, "viewer")
     raw_header_role = request.headers.get("x-keelway-role", "").strip().lower()
-    actor_id = request.headers.get("x-keelway-actor", "").strip() or principal.actor
+    raw_header_actor = request.headers.get("x-keelway-actor", "").strip()
+    actor_id = (raw_header_actor if principal.role == Role.OWNER and raw_header_actor else principal.actor)
 
     if raw_header_role:
         if raw_header_role not in VALID_ROLES:
@@ -91,7 +100,7 @@ def _enforce_workspace_permission(
             )
         effective_role = (
             raw_header_role
-            if (principal.role == Role.OWNER or _ROLE_RANK[raw_header_role] <= _ROLE_RANK[ceiling_role])
+            if _can_narrow_to_role(ceiling_role, raw_header_role)
             else ceiling_role
         )
     else:
@@ -429,10 +438,15 @@ async def start_execution_run_route(
     streamer: LiveExecutionStreamer = Depends(get_execution_streamer),
 ) -> Union[Dict[str, Any], StreamingResponse]:
     required_perm = "workflows:run" if req.kind.strip().lower() == "workflow" else "agents:dispatch"
-    _enforce_workspace_permission(request, principal, rbac, req.workspace_id, required_perm)
+    verdict = _enforce_workspace_permission(request, principal, rbac, req.workspace_id, required_perm)
     try:
         run = streamer.start_run(
-            req.workspace_id, req.kind, req.target_id, req.objective, requires_p10=req.requires_p10
+            req.workspace_id,
+            req.kind,
+            req.target_id,
+            req.objective,
+            requires_p10=req.requires_p10,
+            initiator=verdict["actor_id"],
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -482,11 +496,36 @@ async def resolve_execution_p10_route(
         _enforce_workspace_permission(request, principal, rbac, req.workspace_id or "default", "p10:approve")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
-    _enforce_workspace_permission(request, principal, rbac, run["workspace_id"], "p10:approve")
+    verdict = _enforce_workspace_permission(request, principal, rbac, run["workspace_id"], "p10:approve")
+    authenticated_actor = verdict["actor_id"]
+    raw_approver = req.approver.strip()
+    if principal.role != Role.OWNER:
+        if raw_approver and raw_approver != "local-operator" and raw_approver != authenticated_actor:
+            if raw_approver.lower().startswith(("agent:", "bot:", "service-agent:")):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="P-10 is a human-only checkpoint; autonomous agent identities cannot approve or deny P-10.",
+                )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"P-10 approver '{raw_approver}' must match authenticated principal '{authenticated_actor}'.",
+            )
+        effective_approver = authenticated_actor
+    else:
+        effective_approver = raw_approver or authenticated_actor
+
     try:
-        return streamer.resolve_p10(run_id, req.decision, approver=req.approver, reason=req.reason)
+        return streamer.resolve_p10(
+            run_id,
+            req.decision,
+            approver=effective_approver,
+            reason=req.reason,
+            disallow_self_approval=(principal.role != Role.OWNER),
+        )
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
