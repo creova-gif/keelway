@@ -424,18 +424,11 @@ export function decodeChainVerification(raw: unknown): ChainVerificationState | 
       : raw.valid === false || raw.ok === false || raw.chain_valid === false
         ? "broken"
         : "verified";
-  const brokenAtSeq =
-    typeof raw.brokenAtSeq === "number"
-      ? raw.brokenAtSeq
-      : typeof raw.broken_at_seq === "number"
-        ? raw.broken_at_seq
-        : typeof raw.broken_at === "number"
-          ? raw.broken_at
-          : undefined;
+  const rawBroken = raw.brokenAtSeq ?? raw.broken_at_seq ?? raw.broken_at;
   return {
     status,
     totalEntries: asNumber(raw.totalEntries ?? raw.total_entries ?? raw.count, 0),
-    brokenAtSeq,
+    brokenAtSeq: typeof rawBroken === "number" ? rawBroken : undefined,
     expectedPrevHash: asString(raw.expectedPrevHash || raw.expected_prev_hash) || undefined,
     actualPrevHash: asString(raw.actualPrevHash || raw.actual_prev_hash) || undefined,
     merkleRoot: asString(raw.merkleRoot || raw.merkle_root || raw.head_hash) || undefined,
@@ -445,11 +438,7 @@ export function decodeChainVerification(raw: unknown): ChainVerificationState | 
 
 export function decodeMerkleProof(raw: unknown, fallbackSeq: number): AuditMerkleProof | null {
   if (!isRecord(raw)) return null;
-  const rawSiblings = Array.isArray(raw.siblings)
-    ? raw.siblings
-    : Array.isArray(raw.proof)
-      ? raw.proof
-      : [];
+  const rawSiblings = Array.isArray(raw.siblings) ? raw.siblings : Array.isArray(raw.proof) ? raw.proof : [];
   return {
     seq: asNumber(raw.seq, fallbackSeq),
     leafHash: asString(raw.leafHash || raw.leaf_hash),
@@ -468,38 +457,59 @@ function isEgressBarMode(v: unknown): v is EgressTelemetryState["mode"] {
 
 export function decodeAirGapAudit(raw: unknown): EgressTelemetryState | null {
   if (!isRecord(raw)) return null;
-  const sc7Compliant = typeof raw.overall_compliant === "boolean" ? raw.overall_compliant : typeof raw.sc7Compliant === "boolean" ? raw.sc7Compliant : undefined;
+  const sc7Compliant =
+    typeof raw.overall_compliant === "boolean"
+      ? raw.overall_compliant
+      : typeof raw.overallCompliant === "boolean"
+        ? raw.overallCompliant
+        : typeof raw.sc7Compliant === "boolean"
+          ? raw.sc7Compliant
+          : undefined;
   const checksList = Array.isArray(raw.sc7Checks) ? raw.sc7Checks : Array.isArray(raw.checks) ? raw.checks : null;
   const sc7Checks = checksList
     ? checksList.filter(isRecord).map((c, i) => ({
         id: asString(c.id || c.check_id, `sc7-${i + 1}`),
         label: asString(c.label || c.title || c.name, `SC-7 check #${i + 1}`),
-        passed: Boolean(c.passed ?? c.compliant ?? c.ok ?? true),
+        passed: Boolean(c.passed ?? c.compliant ?? c.ok ?? false),
         detail: asString(c.detail || c.details) || undefined,
       }))
     : isRecord(raw.checks)
       ? Object.entries(raw.checks).map(([k, v]) => ({
           id: k,
           label: isRecord(v) ? asString(v.label || v.title || v.name, k) : k,
-          passed: typeof v === "boolean" ? v : isRecord(v) ? Boolean(v.passed ?? v.compliant ?? v.ok ?? true) : Boolean(v),
+          passed: typeof v === "boolean" ? v : isRecord(v) ? Boolean(v.passed ?? v.compliant ?? v.ok ?? false) : false,
           detail: isRecord(v) ? asString(v.detail || v.details) || undefined : undefined,
         }))
       : undefined;
   const endpoints = Array.isArray(raw.endpoints)
-    ? raw.endpoints.filter(isRecord).map((e) => ({
-        host: asString(e.host || e.url, "unknown"),
-        purpose: asString(e.purpose, "egress"),
-        calls: asNumber(e.calls, 1),
-        bytesSent: typeof e.bytesSent === "number" ? e.bytesSent : typeof e.bytes_sent === "number" ? e.bytes_sent : null,
-        ...(typeof e.modelId === "string" ? { modelId: e.modelId } : {}),
-      }))
+    ? raw.endpoints.filter(isRecord).map((e) => {
+        const epBytes = e.bytesSent ?? e.bytes_sent ?? e.egressBytes ?? e.egress_bytes;
+        return {
+          host: asString(e.host || e.url, "unknown"),
+          purpose: asString(e.purpose, "egress"),
+          calls: asNumber(e.calls, 1),
+          bytesSent: typeof epBytes === "number" && Number.isFinite(epBytes) ? epBytes : null,
+          ...(typeof e.modelId === "string" ? { modelId: e.modelId } : {}),
+        };
+      })
     : [];
-  const airGapLocked = Boolean(raw.air_gap_enabled ?? raw.airGapLocked ?? false);
-  const mode: EgressTelemetryState["mode"] = isEgressBarMode(raw.mode) ? raw.mode : airGapLocked ? "air_gapped_verified" : "unmeasured";
+  const rawBytes = raw.bytes_sent ?? raw.bytesSent ?? raw.egress_bytes ?? raw.egressBytes;
+  const bytesSent = typeof rawBytes === "number" && Number.isFinite(rawBytes) ? rawBytes : null;
+  const cloudCallsCount = asNumber(raw.cloud_calls_count ?? raw.cloudCallsCount, endpoints.length);
+  const airGapLocked = Boolean(raw.air_gap_enabled ?? raw.airGapLocked ?? raw.air_gapped ?? false);
+  const mode: EgressTelemetryState["mode"] = isEgressBarMode(raw.mode)
+    ? raw.mode
+    : raw.mode === "air_gap_locked" || airGapLocked
+      ? "air_gapped_verified"
+      : cloudCallsCount > 0 || raw.offline === false
+        ? "connected_warning"
+        : bytesSent !== null
+          ? "measured_offline"
+          : "unmeasured";
   return {
     mode,
-    cloudCallsCount: asNumber(raw.cloud_calls_count ?? raw.cloudCallsCount, endpoints.length),
-    bytesSent: typeof raw.bytes_sent === "number" ? raw.bytes_sent : typeof raw.bytesSent === "number" ? raw.bytesSent : null,
+    cloudCallsCount,
+    bytesSent,
     airGapLocked,
     endpoints,
     lastCheckedAt: asString(raw.timestamp_utc || raw.lastCheckedAt) || undefined,
@@ -639,43 +649,23 @@ export function decodeGovernancePersistence(raw: unknown): GovernancePersistence
 export function decodeTenantPolicy(raw: unknown): TenantGovernancePolicy | null {
   if (!isRecord(raw)) return null;
   const rawZone = asString(raw.residencyZone || raw.residency_zone, "local_only");
-  const validZones = new Set<DataResidencyZone>([
-    "local_only",
-    "africa_sovereign",
-    "eu_sovereign",
-    "global",
-  ]);
+  const validZones = new Set<DataResidencyZone>(["local_only", "africa_sovereign", "eu_sovereign", "global"]);
+  const rawDlp = raw.dlpEnabled ?? raw.dlp_enabled ?? raw.log_redacted_prompts;
+  const rawFallback = raw.fallbackToOpencoreOnBudgetExceeded ?? raw.fallback_to_opencore_on_budget_exceeded;
   return {
     tenantId: asString(raw.tenantId || raw.tenant_id, "default"),
     name: asString(raw.name, "Local Sovereign Workspace"),
-    residencyZone: validZones.has(rawZone as DataResidencyZone)
-      ? (rawZone as DataResidencyZone)
-      : "local_only",
-    dlpEnabled:
-      typeof raw.dlpEnabled === "boolean"
-        ? raw.dlpEnabled
-        : typeof raw.dlp_enabled === "boolean"
-          ? raw.dlp_enabled
-          : typeof raw.log_redacted_prompts === "boolean"
-            ? raw.log_redacted_prompts
-            : true,
+    residencyZone: validZones.has(rawZone as DataResidencyZone) ? (rawZone as DataResidencyZone) : "local_only",
+    dlpEnabled: typeof rawDlp === "boolean" ? rawDlp : true,
     dailyBudgetUsd: asNumber(raw.dailyBudgetUsd ?? raw.daily_spend_limit_usd, 10),
     dailySpendUsd: asNumber(raw.dailySpendUsd ?? raw.daily_spend_usd, 1.42),
     monthlyBudgetUsd: asNumber(raw.monthlyBudgetUsd ?? raw.monthly_spend_limit_usd, 150),
     currentSpendUsd: asNumber(raw.currentSpendUsd ?? raw.current_spend_usd, 0),
     warnThresholdPct: asNumber(raw.warnThresholdPct ?? raw.warn_threshold_pct, 80),
     hardCapEnforced: typeof raw.hardCapEnforced === "boolean" ? raw.hardCapEnforced : true,
-    fallbackToOpencoreOnBudgetExceeded:
-      typeof raw.fallbackToOpencoreOnBudgetExceeded === "boolean"
-        ? raw.fallbackToOpencoreOnBudgetExceeded
-        : typeof raw.fallback_to_opencore_on_budget_exceeded === "boolean"
-          ? raw.fallback_to_opencore_on_budget_exceeded
-          : true,
+    fallbackToOpencoreOnBudgetExceeded: typeof rawFallback === "boolean" ? rawFallback : true,
     fallbackModelId: asString(raw.fallbackModelId || raw.fallback_model_id, "keelway-core:7b"),
-    requireHumanApprovalForNetwork:
-      typeof raw.requireHumanApprovalForNetwork === "boolean"
-        ? raw.requireHumanApprovalForNetwork
-        : true,
+    requireHumanApprovalForNetwork: typeof raw.requireHumanApprovalForNetwork === "boolean" ? raw.requireHumanApprovalForNetwork : true,
     updatedAt: asString(raw.updatedAt || raw.updated_at, new Date().toISOString()),
   };
 }

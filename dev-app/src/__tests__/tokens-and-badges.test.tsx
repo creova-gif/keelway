@@ -17,6 +17,7 @@ import {
   inspectAgentManifest,
   mintScopedKey,
 } from "@/lib/api";
+import { decodeAirGapAudit } from "@/lib/apiDecoders";
 import { isTrustedUserEvent, type StudioWsEvent } from "@/lib/types";
 import { runAxe } from "@/test/setup";
 import "@/styles/tokens.css";
@@ -563,5 +564,38 @@ describe("Tokens Rev 4 — SemanticBadge, Button & CalloutBanner primitives", ()
     } finally {
       globalThis.WebSocket = originalWs;
     }
+  });
+
+  it("fail-closes decodeAirGapAudit on camelCase overallCompliant=false, unspecified check rows, and omitted mode with egressBytes", () => {
+    const camelFalse = decodeAirGapAudit({
+      overallCompliant: false,
+      checks: [{ id: "SC7-UNSPECIFIED", name: "Loopback check without passed boolean" }],
+    });
+    expect(camelFalse?.sc7Compliant).toBe(false);
+    expect(camelFalse?.sc7Checks?.[0]?.passed).toBe(false);
+
+    const omittedCompliance = decodeAirGapAudit({});
+    expect(omittedCompliance).not.toBeNull();
+    expect(omittedCompliance?.sc7Compliant).toBeUndefined();
+    expect(omittedCompliance?.mode).toBe("unmeasured");
+    expect(omittedCompliance?.bytesSent).toBeNull();
+
+    const measuredZero = decodeAirGapAudit({ egressBytes: 0, overallCompliant: true });
+    expect(measuredZero?.sc7Compliant).toBe(true);
+    expect(measuredZero?.bytesSent).toBe(0);
+    expect(measuredZero?.mode).toBe("measured_offline");
+
+    const connectedSnake = decodeAirGapAudit({
+      egress_bytes: 4096,
+      cloud_calls_count: 1,
+      endpoints: [{ host: "api.vendor.example", egress_bytes: 4096, calls: 1 }],
+    });
+    expect(connectedSnake?.bytesSent).toBe(4096);
+    expect(connectedSnake?.mode).toBe("connected_warning");
+    expect(connectedSnake?.endpoints[0]?.bytesSent).toBe(4096);
+
+    const airGapLocked = decodeAirGapAudit({ air_gapped: true, egressBytes: 0 });
+    expect(airGapLocked?.airGapLocked).toBe(true);
+    expect(airGapLocked?.mode).toBe("air_gapped_verified");
   });
 });

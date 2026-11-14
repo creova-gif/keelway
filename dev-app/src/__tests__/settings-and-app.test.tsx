@@ -365,6 +365,7 @@ describe("Screen 11 — SettingsSystemPanels (Network, Appearance, Labs, General
     expect(document.documentElement.getAttribute("data-reduce-motion")).toBe("true");
     const tokensCss = readFileSync("src/styles/tokens.css", "utf8");
     expect(tokensCss).toContain('[data-reduce-motion="true"]');
+    expect(tokensCss).toContain("2px dashed var(--border-focus)");
 
     // Labs 6-card workbench upgrades Model benchmark & Agent swarm from Simulated (hatched + dashed) to Live (solid)
     await user.click(within(nav).getByRole("button", { name: /^Labs$/i }));
@@ -388,7 +389,27 @@ describe("Screen 11 — SettingsSystemPanels (Network, Appearance, Labs, General
 
     await user.click(within(nav).getByRole("button", { name: /Keyboard Shortcuts/i }));
     expect(screen.getByRole("table", { name: /Keyboard shortcuts reference/i })).toBeInTheDocument();
+    expect(screen.getByText(/focus open Review drawer \(⌘3\)/i)).toBeInTheDocument();
     initialRender.unmount();
+
+    // Fail-closed SC-7 Unverified badge while audit is pending or sc7Compliant is undefined (never fail-open green)
+    const unverifiedRender = render(
+      <SettingsWorkspace
+        defaultSubSection="network"
+        fetchAirGapAuditFn={async () => ({
+          mode: "unmeasured",
+          cloudCallsCount: 0,
+          bytesSent: null,
+          airGapLocked: false,
+          endpoints: [],
+          sc7Compliant: undefined,
+          sc7Checks: [],
+        })}
+      />,
+    );
+    expect(await screen.findByText("SC-7 Unverified")).toBeInTheDocument();
+    expect(screen.queryByText("SC-7 Verified")).toBeNull();
+    unverifiedRender.unmount();
 
     // Honest SC-7 audit drift badge when fetchAirGapAuditFn reports sc7Compliant === false
     render(
@@ -590,6 +611,84 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
         window.dispatchEvent(new PopStateEvent("popstate"));
       });
       expect(await screen.findByRole("heading", { name: /Keyboard Shortcuts/i })).toBeInTheDocument();
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
+  it("switches activeModelId via ⌘K CommandPalette (pausing standing Allow always rules) and surfaces Review inline on ?companion=1 including Record -> Open diff in Review", async () => {
+    const user = userEvent.setup();
+
+    // Part A: ⌘K model switch updates activeModelId + status bar AND pauses re-confirmed standing rules
+    const desktopApp = render(<App initialSection="settings" initialSettingsSubSection="permissions" />);
+    await user.click(screen.getByRole("button", { name: /Re-confirm all/i }));
+    expect(screen.queryByText(/Allow always rules are paused/i)).toBeNull();
+
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    const combo = await screen.findByRole("combobox", {
+      name: /Search commands, tasks, files, symbols, and settings/i,
+    });
+    await user.type(combo, "/reasoner-14b");
+    await user.click(await screen.findByRole("option", { name: /reasoner-14b v1\.4\.0/i }));
+
+    const statusBar = screen.getByRole("contentinfo", { name: /Workspace status bar/i });
+    expect(statusBar).toHaveTextContent("reasoner-14b v1.4.0");
+    expect(await screen.findByText("2 Allow always rules are paused until you re-confirm them.")).toBeInTheDocument();
+
+    const settingsSidebar = screen.getByRole("complementary", { name: /Settings navigation/i });
+    await user.click(within(settingsSidebar).getByRole("button", { name: /Models & 4D Routing/i }));
+    const weightsTable = await screen.findByRole("table", { name: /OpenCore local weights/i });
+    const reasonerRow = within(weightsTable).getByText("keelway-reasoner:14b").closest("tr");
+    expect(reasonerRow).not.toBeNull();
+    expect(within(reasonerRow as HTMLElement).getByText("Active")).toBeInTheDocument();
+    desktopApp.unmount();
+
+    // Part B: ?companion=1 opens inline Review on Tasks AND navigates Record -> Open diff in Review to inline Review
+    const origFetch = globalThis.fetch;
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (new URL(url, "http://localhost").pathname === "/v1/audit") {
+        return new Response(
+          JSON.stringify({
+            entries: [
+              {
+                seq: 1301,
+                timestamp: "2026-11-14T03:20:00Z",
+                actor: "coder-7b",
+                role: "agent",
+                action: "file_edit",
+                resource: "core/security/policy.py",
+                diff_path: "core/security/policy.py",
+                allowed: true,
+                entry_hash: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900",
+                prev_hash: "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      return origFetch(input, init);
+    });
+
+    try {
+      window.history.replaceState({}, "", "/app/?companion=1");
+      render(<App />);
+
+      // Tapping "Review changes" in ?companion=1 opens inline Review pane on Tasks
+      await user.click(await screen.findByRole("button", { name: /Review changes/i }));
+      expect(await screen.findByRole("complementary", { name: /Review changes/i })).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /Close review pane/i }));
+      expect(screen.queryByRole("complementary", { name: /Review changes/i })).toBeNull();
+
+      // Switch to Record in Companion nav -> click "Open diff in Review" for core/security/policy.py -> inline Review opens with that path
+      const companionNav = screen.getByRole("navigation", { name: /Companion navigation/i });
+      await user.click(within(companionNav).getByRole("button", { name: /^Record$/i }));
+      const inspector1301 = await screen.findByRole("complementary", { name: /Entry #1301 details/i });
+      await user.click(within(inspector1301).getByRole("button", { name: /Open diff in Review/i }));
+
+      const inlineReview = await screen.findByRole("complementary", { name: /Review changes/i });
+      expect(within(inlineReview).getByText("core/security/policy.py")).toBeInTheDocument();
     } finally {
       fetchSpy.mockRestore();
     }

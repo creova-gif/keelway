@@ -25,6 +25,7 @@ export interface CommandPaletteSettingItem {
   detail: string;
   settingsSection?: SettingsSubSection;
   modelId?: string;
+  modelLabel?: string;
 }
 
 export interface CommandPaletteProps {
@@ -84,13 +85,22 @@ const DEFAULT_COMMANDS: CommandPaletteActionItem[] = [
   },
 ];
 
-const DEFAULT_MODELS_AND_SETTINGS: CommandPaletteSettingItem[] = [
+export const DEFAULT_MODELS_AND_SETTINGS: CommandPaletteSettingItem[] = [
   {
     id: "model-coder-7b",
-    label: "Local OpenCore runtime",
+    label: "Local OpenCore · coder-7b v2.5.1",
     kind: "model",
     detail: "Loopback 127.0.0.1 · Q4_K_M · 0 B external egress",
-    modelId: "coder-7b v2.5.1",
+    modelId: "keelway-core:7b",
+    modelLabel: "coder-7b v2.5.1",
+  },
+  {
+    id: "model-reasoner-14b",
+    label: "Local OpenCore · reasoner-14b v1.4.0",
+    kind: "model",
+    detail: "Loopback 127.0.0.1 · Q4_K_M · 9.1 GB unified memory",
+    modelId: "keelway-reasoner:14b",
+    modelLabel: "reasoner-14b v1.4.0",
   },
   {
     id: "settings-permissions",
@@ -384,7 +394,7 @@ export function CommandPalette({
 
     const buildSettingEntries = (): PaletteEntry[] =>
       modelsAndSettings
-        .filter((m) => matches(`${m.label} ${m.detail} ${m.modelId ?? ""}`))
+        .filter((m) => matches(`${m.label} ${m.detail} ${m.modelId ?? ""} ${m.modelLabel ?? ""}`))
         .map((m) => ({
           key: `set-${m.id}`,
           group: "Models & Settings",

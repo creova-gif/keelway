@@ -7,6 +7,7 @@ import type { DoctorCheckItem } from "@/lib/types";
 
 export interface OnboardingCompletionPayload {
   workspacePath: string;
+  branch?: string;
   doctorChecks: DoctorCheckItem[];
 }
 
@@ -45,6 +46,7 @@ export function OnboardingModal({
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
 
   const hasAutoLoadedDoctorRef = useRef(false);
+  const wasOpenRef = useRef(open);
   const baseId = useId();
   const descId = `${baseId}-onboarding-desc`;
   const wsInputId = `${baseId}-workspace-path`;
@@ -52,9 +54,13 @@ export function OnboardingModal({
   useEffect(() => {
     if (!open) {
       hasAutoLoadedDoctorRef.current = false;
+      wasOpenRef.current = false;
       return;
     }
-    setStep(initialStep);
+    if (!wasOpenRef.current) {
+      setStep(initialStep);
+      wasOpenRef.current = true;
+    }
   }, [initialStep, open]);
 
   const runDoctor = useCallback(async () => {
@@ -128,7 +134,11 @@ export function OnboardingModal({
   };
 
   const handleComplete = () => {
-    onComplete({ workspacePath: workspacePath.trim() || defaultWorkspacePath, doctorChecks });
+    onComplete({
+      workspacePath: workspacePath.trim() || defaultWorkspacePath,
+      branch: openedWorkspaceInfo?.branch,
+      doctorChecks,
+    });
     onOpenChange?.(false);
   };
 
@@ -226,7 +236,7 @@ export function OnboardingModal({
                   variant="ghost"
                   onClick={() => {
                     onOpenSettingsLater?.();
-                    setStep(2);
+                    onOpenChange?.(false);
                   }}
                 >
                   Change in Settings later

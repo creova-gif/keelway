@@ -550,11 +550,11 @@ export function FilesWorkspace({
   const lineCount = useMemo(() => Math.max(1, activeContent.split("\n").length), [activeContent]);
 
   return (
-    <div className="flex h-full min-h-[480px] w-full overflow-hidden bg-canvas text-fg">
+    <div className="flex h-full min-h-[480px] w-full flex-col overflow-hidden bg-canvas text-fg md:flex-row">
       {!renderSidebarInShell ? (
         <aside
           aria-label="Files explorer"
-          className="flex w-sidebar shrink-0 flex-col overflow-hidden border-e border-border bg-chrome"
+          className="flex w-full shrink-0 flex-col overflow-hidden border-b border-border bg-chrome md:w-sidebar md:border-b-0 md:border-e"
         >
           <FilesExplorerSidebar {...sidebarProps} />
         </aside>

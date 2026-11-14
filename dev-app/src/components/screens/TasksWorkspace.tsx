@@ -468,7 +468,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     : firstPendingId;
 
   return (
-    <div className="flex h-full min-h-0 w-full overflow-hidden bg-canvas text-fg">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-canvas text-fg md:flex-row">
       {!onPoliteAnnouncement ? (
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
           {localAnnouncement}
@@ -644,7 +644,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
           aria-label="Review changes"
           tabIndex={-1}
           data-programmatic-focus="true"
-          className="flex w-review shrink-0 flex-col overflow-hidden border-s border-border bg-surface"
+          className="flex w-review max-md:w-full shrink-0 flex-col overflow-hidden border-t border-border bg-surface md:border-s md:border-t-0"
         >
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
             <h2 className="text-xs font-semibold text-fg">Review changes</h2>

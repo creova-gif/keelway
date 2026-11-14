@@ -80,7 +80,7 @@ describe("FilesWorkspace (Screen 05)", () => {
     );
 
     const sidebar = await screen.findByRole("complementary", { name: /Files explorer/i });
-    expect(sidebar).toHaveClass("w-sidebar");
+    expect(sidebar).toHaveClass("w-full", "md:w-sidebar");
     expect(onTreeLoaded).toHaveBeenCalledWith(SAMPLE_TREE);
     expect(onSymbolsLoaded).toHaveBeenCalledWith(SAMPLE_SYMBOLS);
     for (const status of ["M", "A", "D", "U"]) {

@@ -1,9 +1,15 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import * as Popover from "@radix-ui/react-popover";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
+import {
+  formatEgressBytes,
+  resolveEgressDisplay,
+  StatusBarEgress,
+} from "@/components/shell/StatusBarEgress";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import type { EgressTelemetryState, RailSection, SidebarTaskItem, TaskStatus } from "@/lib/types";
+
+export { formatEgressBytes, resolveEgressDisplay };
 
 export type LogsDrawerTab = "logs" | "terminal" | "network";
 export type CompanionTab = "approvals" | "tasks" | "record" | "status";
@@ -67,156 +73,8 @@ const RAIL_ITEMS: Array<{ section: RailSection; label: string; glyph: string }> 
   { section: "settings", label: "Settings", glyph: "⚙" },
 ];
 
-export function formatEgressBytes(bytes: number): string {
-  if (bytes <= 0) return "0 B";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function isTabMap(v: DevAppShellProps["logsDrawerContent"]): v is Partial<Record<LogsDrawerTab, React.ReactNode>> {
   return typeof v === "object" && v !== null && !React.isValidElement(v) && ("logs" in v || "terminal" in v || "network" in v);
-}
-
-interface StatusBarEgressProps {
-  egress: EgressTelemetryState;
-  offlineSetting: boolean;
-  deployPending: boolean;
-  onSwitchToLocalModel?: () => void;
-  onGoOffline?: () => void;
-}
-
-function StatusBarEgress({ egress, offlineSetting, deployPending, onSwitchToLocalModel, onGoOffline }: StatusBarEgressProps): React.JSX.Element {
-  const egressPopoverHeadingId = useId();
-
-  if (egress.mode === "measured_offline") {
-    const suffix = egress.lastCheckedAt ? ` (${egress.lastCheckedAt})` : "";
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-ok">{`Offline · verified${suffix}`}</span>
-        <span aria-hidden="true" className="text-fg-dim">·</span>
-        <span className="font-mono tabular-nums text-fg-muted">0 B sent</span>
-        <SemanticBadge kind="live" />
-      </div>
-    );
-  }
-  if (egress.mode === "air_gapped_verified") {
-    const suffix = egress.lastCheckedAt ? ` (${egress.lastCheckedAt})` : "";
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-teal-accent">{`Air-gapped · verified${suffix}`}</span>
-        <span aria-hidden="true" className="text-fg-dim">·</span>
-        <span className="font-mono text-fg-muted">sent: unmeasured</span>
-        <SemanticBadge kind="locked" />
-      </div>
-    );
-  }
-  if (egress.mode === "unknown_probe_failed") {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-warning">Network: unknown (probe failed)</span>
-        <span aria-hidden="true" className="text-fg-dim">·</span>
-        <span className="font-mono text-fg-muted">sent: unmeasured</span>
-        <SemanticBadge kind="unmeasured" />
-      </div>
-    );
-  }
-
-  if (egress.mode === "connected_warning") {
-    const bytesText =
-      egress.bytesSent !== null ? `${formatEgressBytes(egress.bytesSent)} sent` : "sent: unmeasured";
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-fg-muted">Connected</span>
-        <span aria-hidden="true" className="text-fg-dim">·</span>
-        <span className="font-medium text-warning">{`Cloud used (${egress.cloudCallsCount})`}</span>
-        <span aria-hidden="true" className="text-fg-dim">·</span>
-        <span className="font-mono tabular-nums text-fg">{bytesText}</span>
-        <SemanticBadge kind="live" />
-        <Popover.Root>
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0 font-sans text-[11px] font-medium text-fg hover:border-fg-muted"
-            >
-              Details
-            </button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              side="top"
-              align="end"
-              sideOffset={6}
-              aria-labelledby={egressPopoverHeadingId}
-              className="z-50 w-80 rounded-md border border-border-strong bg-surface p-3 text-ui text-fg shadow-popover"
-            >
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 id={egressPopoverHeadingId} className="text-xs font-semibold text-fg">
-                    Data sent this session
-                  </h2>
-                  <SemanticBadge kind="live" />
-                </div>
-                {egress.endpoints.length > 0 ? (
-                  <ul className="divide-y divide-border rounded-sm border border-border bg-canvas/60">
-                    {egress.endpoints.map((ep) => (
-                      <li
-                        key={`${ep.host}-${ep.purpose}`}
-                        className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-xs"
-                      >
-                        <div className="min-w-0">
-                          <div className="truncate font-mono text-fg">
-                            <code dir="ltr" className="unicode-bidi-isolate">{ep.host}</code>
-                          </div>
-                          <div className="truncate text-[11px] text-fg-muted">
-                            {ep.purpose}
-                            {ep.modelId ? (
-                              <>
-                                {" · "}
-                                <code dir="ltr" className="unicode-bidi-isolate">{ep.modelId}</code>
-                              </>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-end font-mono text-[11px] tabular-nums text-fg-muted">
-                          <div>{`${ep.calls} ${ep.calls === 1 ? "call" : "calls"}`}</div>
-                          <div>{ep.bytesSent !== null ? formatEgressBytes(ep.bytesSent) : "unmeasured"}</div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                <p className="text-[11px] text-fg-muted">Every request is also a Record entry.</p>
-                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                  <Button size="sm" variant="primary" onClick={() => onSwitchToLocalModel?.()}>
-                    Switch to local model
-                  </Button>
-                  <Button size="sm" variant="secondary" onClick={() => onGoOffline?.()}>
-                    Go offline
-                  </Button>
-                </div>
-              </div>
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
-      </div>
-    );
-  }
-
-  const label = deployPending
-    ? "Network: deploy pending, nothing sent yet"
-    : offlineSetting === false
-      ? "Connected"
-      : "Offline (setting)";
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-fg-muted">{label}</span>
-      <span aria-hidden="true" className="text-fg-dim">·</span>
-      <span className="font-mono text-fg-muted">sent: unmeasured</span>
-      <SemanticBadge kind="unmeasured" />
-    </div>
-  );
 }
 
 interface TasksQueueListProps {

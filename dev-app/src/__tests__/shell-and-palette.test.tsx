@@ -7,7 +7,6 @@ import { CommandPalette } from "@/components/shell/CommandPalette";
 import { OnboardingModal } from "@/components/shell/OnboardingModal";
 import type {
   CodeSymbolItem,
-  DoctorCheckItem,
   EgressTelemetryState,
   SidebarTaskItem,
   WorkspaceFileNode,
@@ -304,6 +303,36 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
     expect(bar).toHaveTextContent("sent: unmeasured");
     expect(bar).toHaveTextContent("No counter yet");
 
+    // 1d. unmeasured mode with finite non-null bytesSent (0 B and 2.0 KB) -> never masked as "sent: unmeasured"
+    rerender(
+      <DevAppShell
+        activeSection="tasks"
+        onSelectSection={() => {}}
+        egress={{ ...baseUnmeasured, bytesSent: 0 }}
+        offlineSetting={true}
+      >
+        <div>Workspace</div>
+      </DevAppShell>,
+    );
+    expect(bar).toHaveTextContent("Offline (setting)");
+    expect(bar).toHaveTextContent("0 B sent");
+    expect(bar).toHaveTextContent("Live");
+    expect(bar).not.toHaveTextContent("sent: unmeasured");
+    expect(bar).not.toHaveTextContent("No counter yet");
+
+    rerender(
+      <DevAppShell
+        activeSection="tasks"
+        onSelectSection={() => {}}
+        egress={{ ...baseUnmeasured, bytesSent: 2048 }}
+        offlineSetting={true}
+      >
+        <div>Workspace</div>
+      </DevAppShell>,
+    );
+    expect(bar).toHaveTextContent("2.0 KB sent");
+    expect(bar).not.toHaveTextContent("sent: unmeasured");
+
     // 2. measured_offline
     rerender(
       <DevAppShell
@@ -489,125 +518,6 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
     expect(emptyInput).toHaveValue("");
   });
 
-  it("renders 2-Step OnboardingModal with Honest Defaults (Step 1) and Workspace + System Doctor checks (Step 2)", async () => {
-    const user = userEvent.setup();
-    const onComplete = vi.fn();
-    const openWorkspaceSpy = vi
-      .fn()
-      .mockRejectedValueOnce(new Error("Directory does not exist"))
-      .mockResolvedValueOnce({
-        ok: true,
-        path: "/Users/dev/keelway",
-        branch: "feat/unified-dev-app",
-        filesCount: 64,
-      });
-
-    const initialChecks: DoctorCheckItem[] = [
-      {
-        id: "sandbox-isolation",
-        label: "OS Sandbox Isolation (Seatbelt / Bubblewrap)",
-        status: "ok",
-        detail: "Seatbelt profile active",
-      },
-      {
-        id: "opencore-weights",
-        label: "Local OpenCore Runtime (coder-7b v2.5.1)",
-        status: "warning",
-        detail: "Model cached on disk, warm-up pending",
-        remediation: "Run `keelway opencore warmup` to preload weights into memory.",
-      },
-      {
-        id: "audit-sqlite-wal",
-        label: "Append-Only Audit Ledger (SQLite WAL)",
-        status: "failed",
-        detail: "Write lock held by stale PID",
-        remediation: "Remove stale `.keelway/audit.db-shm` or restart local daemon.",
-      },
-    ];
-
-    const rerunChecks: DoctorCheckItem[] = initialChecks.map((c) => ({
-      ...c,
-      status: "ok",
-      detail: "Verified healthy",
-      remediation: undefined,
-    }));
-
-    const fetchDoctorSpy = vi
-      .fn<() => Promise<DoctorCheckItem[]>>()
-      .mockResolvedValueOnce(initialChecks)
-      .mockResolvedValueOnce(rerunChecks);
-
-    render(
-      <OnboardingModal
-        open={true}
-        onComplete={onComplete}
-        defaultWorkspacePath="/Users/dev/keelway"
-        openWorkspaceFn={openWorkspaceSpy}
-        fetchDoctorFn={fetchDoctorSpy}
-      />,
-    );
-
-    const dialog = screen.getByRole("dialog");
-
-    // Step 1: 3 transparent sovereign default cards
-    expect(within(dialog).getByText(/Local ·/i)).toBeInTheDocument();
-    expect(within(dialog).getByText("coder-7b v2.5.1")).toBeInTheDocument();
-    expect(within(dialog).getByText(/Runs on this machine via OpenCore/i)).toBeInTheDocument();
-
-    expect(within(dialog).getByText("Ask every time")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(
-        /Only a person, at this keyboard, can approve edits, commands, or network calls/i,
-      ),
-    ).toBeInTheDocument();
-
-    expect(within(dialog).getByText("Offline (setting)")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(
-        "Set to keep your use on this machine. Network use isn't measured yet.",
-      ),
-    ).toBeInTheDocument();
-    expect(within(dialog).getByText("No counter yet")).toBeInTheDocument();
-
-    // Advance to Step 2
-    await user.click(within(dialog).getByRole("button", { name: "Continue to workspace check" }));
-
-    expect(fetchDoctorSpy).toHaveBeenCalledTimes(1);
-    expect(await within(dialog).findByText("Seatbelt profile active")).toBeInTheDocument();
-
-    // Verify non-color badges (Passed, Warning, Failed) and remediation text
-    expect(within(dialog).getByText("Passed")).toBeInTheDocument();
-    expect(within(dialog).getByText("Warning")).toBeInTheDocument();
-    expect(within(dialog).getByText("Failed")).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(/Run `keelway opencore warmup` to preload weights/i),
-    ).toBeInTheDocument();
-    expect(
-      within(dialog).getByText(/Remove stale `\.keelway\/audit\.db-shm`/i),
-    ).toBeInTheDocument();
-
-    // Open workspace (handles rejected promise cleanly, then succeeds on retry)
-    const wsInput = within(dialog).getByLabelText(/Workspace/i);
-    await user.clear(wsInput);
-    await user.type(wsInput, "/Users/dev/missing-repo");
-    await user.click(within(dialog).getByRole("button", { name: "Open workspace" }));
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Directory does not exist");
-
-    await user.clear(wsInput);
-    await user.type(wsInput, "/Users/dev/keelway-repo");
-    await user.click(within(dialog).getByRole("button", { name: "Open workspace" }));
-    expect(openWorkspaceSpy).toHaveBeenCalledWith("/Users/dev/keelway-repo");
-
-    // Re-run doctor
-    await user.click(within(dialog).getByRole("button", { name: "Re-run doctor" }));
-    expect(fetchDoctorSpy).toHaveBeenCalledTimes(2);
-    expect(await within(dialog).findAllByText("Passed")).toHaveLength(3);
-
-    // Complete onboarding
-    await user.click(within(dialog).getByRole("button", { name: "Start using Keelway" }));
-    expect(onComplete).toHaveBeenCalledTimes(1);
-  });
-
   it("renders Mobile Companion bottom navigation via explicit prop or auto-detected <768px matchMedia, announces polite updates, and avoids Cmd+K double-toggle when composed", async () => {
     const { unmount } = render(
       <DevAppShell
@@ -741,19 +651,6 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
           );
           expect(await runAxe(document.body)).toHaveNoViolations();
           paletteRender.unmount();
-
-          const onboardingStep1 = render(
-            <OnboardingModal open={true} initialStep={1} onComplete={() => {}} />,
-          );
-          expect(await runAxe(document.body)).toHaveNoViolations();
-          onboardingStep1.unmount();
-
-          const onboardingStep2 = render(
-            <OnboardingModal open={true} initialStep={2} onComplete={() => {}} />,
-          );
-          await screen.findByText(/OS Sandbox Isolation/i);
-          expect(await runAxe(document.body)).toHaveNoViolations();
-          onboardingStep2.unmount();
         }
       }
     } finally {

@@ -145,8 +145,10 @@ async def serve_unified_dev_app(subpath: str = ""):
         "Content-Security-Policy": _STUDIO_CSP,
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
+        "Cache-Control": "no-cache",
     }
-    if subpath and (subpath == "assets" or subpath.startswith("assets/")):
+    norm = subpath.lstrip("/")
+    if norm and (norm == "assets" or norm.startswith("assets/")):
         return HTMLResponse(content="Not Found", status_code=404, headers=headers)
     if dev_app_index.exists():
         return HTMLResponse(content=dev_app_index.read_text(encoding="utf-8"), headers=headers)

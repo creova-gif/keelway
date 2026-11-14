@@ -44,6 +44,7 @@ async def test_unified_dev_app_served_under_strict_self_csp():
         assert "script-src 'self'" in csp
         assert resp.headers.get("X-Content-Type-Options") == "nosniff"
         assert resp.headers.get("Referrer-Policy") == "no-referrer"
+        assert resp.headers.get("Cache-Control") == "no-cache"
 
         html = resp.text
         assert "Keelway" in html
@@ -74,15 +75,25 @@ async def test_unified_dev_app_served_under_strict_self_csp():
 async def test_unified_dev_app_spa_subpath_and_missing_asset_404():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
+        slash_resp = await client.get("/app/")
+        assert slash_resp.status_code == 200
+        assert slash_resp.headers.get("Content-Security-Policy") == _STUDIO_CSP
+        assert slash_resp.headers.get("Cache-Control") == "no-cache"
+        assert "/app/assets/" in slash_resp.text
+
         subpath_resp = await client.get("/app/settings")
         assert subpath_resp.status_code == 200
         assert subpath_resp.headers.get("Content-Security-Policy") == _STUDIO_CSP
         assert subpath_resp.headers.get("X-Content-Type-Options") == "nosniff"
         assert subpath_resp.headers.get("Referrer-Policy") == "no-referrer"
+        assert subpath_resp.headers.get("Cache-Control") == "no-cache"
         assert "/app/assets/" in subpath_resp.text
 
         missing_asset_resp = await client.get("/app/assets/nonexistent-chunk.js")
         assert missing_asset_resp.status_code == 404
+
+        double_slash_missing_resp = await client.get("/app//assets/missing.js")
+        assert double_slash_missing_resp.status_code == 404
 
         legacy_studio_resp = await client.get("/studio")
         assert legacy_studio_resp.status_code == 200

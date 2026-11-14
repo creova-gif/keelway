@@ -32,6 +32,11 @@ if (typeof globalThis.ResizeObserver === "undefined") {
 }
 
 if (typeof window !== "undefined") {
+  if (typeof HTMLCanvasElement !== "undefined") {
+    HTMLCanvasElement.prototype.getContext = (() =>
+      null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+  }
+
   if (!window.matchMedia) {
     Object.defineProperty(window, "matchMedia", {
       writable: true,

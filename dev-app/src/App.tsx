@@ -15,113 +15,20 @@ import {
   buildLogsDrawerTabPanels, ReviewChangesContent, TasksWorkspace, type TerminalExecEntry,
 } from "@/components/screens/TasksWorkspace";
 import {
-  connectStudioWebSocket, execSandboxTerminal, fetchCodebaseSymbols,
-  fetchFilesTree, fetchStudioDiff, toggleAirGap,
+  connectStudioWebSocket, execSandboxTerminal, fetchAirGapAudit, fetchCodebaseSymbols,
+  fetchFilesTree, fetchOpenCoreWeights, fetchStudioDiff, toggleAirGap,
 } from "@/lib/api";
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
+import {
+  buildPaletteModelsAndSettings, INITIAL_PROPOSALS, INITIAL_STEP_RECEIPTS, INITIAL_TASKS,
+  mergeFocusedDiffHunks, readInitialUrlState,
+} from "@/lib/appStateHelpers";
 import type {
   CodeSymbolItem, DensityMode, EgressTelemetryState, FileDiffHunk, LocaleCode,
-  P10ApprovalDecisionPayload, P10ApprovalProposal, P10ApprovalReceipt, P10ScopedRuleSpec,
-  RailSection, ScopedPermissionRule, SettingsSubSection, SidebarTaskItem, StepReceiptItem,
-  ThemeMode, WorkspaceFileNode,
+  OpenCoreWeightItem, P10ApprovalDecisionPayload, P10ApprovalReceipt, P10ScopedRuleSpec,
+  RailSection, ScopedPermissionRule, SettingsSubSection, SidebarTaskItem, ThemeMode,
+  WorkspaceFileNode,
 } from "@/lib/types";
-
-function isRailSection(val: string | null): val is RailSection {
-  return val === "tasks" || val === "files" || val === "record" || val === "settings";
-}
-
-function isSettingsSubSection(val: string | null): val is SettingsSubSection {
-  return (
-    val === "permissions" ||
-    val === "models" ||
-    val === "governance" ||
-    val === "network" ||
-    val === "appearance" ||
-    val === "labs" ||
-    val === "general" ||
-    val === "keyboard"
-  );
-}
-
-function readInitialUrlState(): {
-  section?: RailSection;
-  settings?: SettingsSubSection;
-  companion: boolean;
-  onboarding: boolean;
-} {
-  if (typeof window === "undefined") {
-    return { companion: false, onboarding: false };
-  }
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const rawSection = params.get("section");
-    const rawSettings = params.get("settings");
-    return {
-      section: isRailSection(rawSection) ? rawSection : undefined,
-      settings: isSettingsSubSection(rawSettings) ? rawSettings : undefined,
-      companion: params.get("companion") === "1",
-      onboarding: params.get("onboarding") === "1",
-    };
-  } catch {
-    return { companion: false, onboarding: false };
-  }
-}
-
-const INITIAL_TASKS: SidebarTaskItem[] = [
-  {
-    id: "task-csp-gate",
-    title: "Harden loopback CSP & verify Studio token middleware",
-    status: "needs_approval",
-    branch: "feat/unified-dev-app",
-    modelLabel: "coder-7b v2.5.1",
-    updatedAt: "2m ago",
-    pendingApprovalId: "prop-csp-pytest",
-    filesChangedCount: 1,
-  },
-  {
-    id: "task-merkle-audit",
-    title: "Audit SHA-256 Merkle inclusion proofs",
-    status: "ready",
-    branch: "feat/unified-dev-app",
-    modelLabel: "coder-7b v2.5.1",
-    updatedAt: "14m ago",
-    filesChangedCount: 0,
-  },
-];
-
-const INITIAL_PROPOSALS: P10ApprovalProposal[] = [
-  {
-    id: "prop-csp-pytest",
-    taskId: "task-csp-gate",
-    kind: "command",
-    title: "Run pytest Studio CSP suite",
-    summary: "Execute isolated pytest verification over Studio strict CSP and loopback auth.",
-    whyReason: "Confirm X-Content-Type-Options and strict 'self' CSP headers pass before commit.",
-    command: "pytest tests/test_studio.py -q",
-    workingDir: "/workspace/keelway",
-    previewStatus: "ready",
-    modelId: "coder-7b",
-    modelVersion: "2.5.1",
-    promptVersion: "p-14",
-    confidence: "Medium",
-    createdAt: "2026-11-14T02:14:20Z",
-    recordSeqCandidate: 1284,
-  },
-];
-
-const INITIAL_STEP_RECEIPTS: StepReceiptItem[] = [
-  { id: "step-read-main", kind: "read", title: "Read file", target: "core/main.py", status: "ready", recordSeq: 1281 },
-  {
-    id: "step-edit-csp",
-    kind: "edited",
-    title: "Edited file",
-    target: "core/main.py",
-    linesAdded: 3,
-    linesRemoved: 1,
-    status: "ready",
-    recordSeq: 1283,
-  },
-];
 
 export interface AppProps {
   initialSection?: RailSection;
@@ -236,6 +143,7 @@ export function App({
 
   const [workspaceFiles, setWorkspaceFiles] = useState<WorkspaceFileNode[]>([]);
   const [workspaceSymbols, setWorkspaceSymbols] = useState<CodeSymbolItem[]>([]);
+  const [openCoreWeights, setOpenCoreWeights] = useState<OpenCoreWeightItem[]>([]);
   const [filesNavTarget, setFilesNavTarget] = useState<FilesNavigationTarget | undefined>(undefined);
   const [filesSidebarProps, setFilesSidebarProps] = useState<FilesExplorerSidebarProps | null>(null);
 
@@ -253,6 +161,9 @@ export function App({
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const navNonceRef = useRef(0);
   const taskSeqRef = useRef(3);
+  const airGapLockedRef = useRef(egress.airGapLocked);
+  airGapLockedRef.current = egress.airGapLocked;
+  const airGapReqSeqRef = useRef(0);
 
   const syncUrlParams = useCallback((nextSection: RailSection, nextSettings: SettingsSubSection) => {
     if (typeof window === "undefined" || !window.history?.replaceState) return;
@@ -291,6 +202,15 @@ export function App({
     fetchFilesTree().then((nodes) => { if (!cancelled) setWorkspaceFiles(nodes); }).catch(() => {});
     fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch(() => {});
     fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch(() => {});
+    fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch(() => {});
+    fetchAirGapAudit()
+      .then((audit) => {
+        if (!cancelled && airGapReqSeqRef.current === 0) {
+          airGapLockedRef.current = audit.airGapLocked;
+          setEgress(audit);
+        }
+      })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -304,10 +224,6 @@ export function App({
     });
     return () => sub.close();
   }, []);
-
-  const airGapLockedRef = useRef(egress.airGapLocked);
-  airGapLockedRef.current = egress.airGapLocked;
-  const airGapReqSeqRef = useRef(0);
 
   const handleToggleAirGap = useCallback(async (explicitNext?: boolean) => {
     const previous = airGapLockedRef.current;
@@ -471,7 +387,7 @@ export function App({
   const handleSelectSettingOrModel = useCallback(
     (item: CommandPaletteSettingItem) => {
       if (item.kind === "model" && item.modelId) {
-        handleSelectActiveModel("keelway-core:7b", item.modelId);
+        handleSelectActiveModel(item.modelId, item.modelLabel ?? item.label);
         return;
       }
       if (item.settingsSection) {
@@ -481,6 +397,31 @@ export function App({
       }
     },
     [handleSelectActiveModel, syncUrlParams],
+  );
+
+  const handleOpenDiffInReview = useCallback(
+    (diffPath: string, seq?: number) => {
+      setDiffHunks((prev) => mergeFocusedDiffHunks(prev, [], diffPath, seq));
+      setReviewStatus("pending");
+      setReviewOpen(true);
+      if (effectiveMobileCompanion) {
+        setCompanionTab("tasks");
+        handleSelectSection("tasks");
+      }
+      fetchStudioDiff(diffPath)
+        .then((fetched) => {
+          if (mountedRef.current) {
+            setDiffHunks((curr) => mergeFocusedDiffHunks(curr, fetched, diffPath, seq));
+          }
+        })
+        .catch(() => {});
+    },
+    [effectiveMobileCompanion, handleSelectSection],
+  );
+
+  const paletteModelsAndSettings = useMemo(
+    () => buildPaletteModelsAndSettings(openCoreWeights),
+    [openCoreWeights],
   );
 
   const activeTask = useMemo(
@@ -633,7 +574,7 @@ export function App({
             diffHunks={diffHunks}
             reviewOpen={reviewOpen}
             onToggleReview={setReviewOpen}
-            renderReviewInShell={true}
+            renderReviewInShell={!effectiveMobileCompanion}
             logsOpen={logsOpen}
             onToggleLogs={setLogsOpen}
             renderLogsInShell={true}
@@ -658,14 +599,7 @@ export function App({
             selectedSeq={recordSelectedSeq}
             onSelectSeq={setRecordSelectedSeq}
             verifyRequestNonce={recordVerifyNonce}
-            onOpenDiffInReview={(diffPath) => {
-              setDiffHunks((prev) => {
-                if (prev.length > 0) return prev;
-                const matched = getFallbackDiffHunks().filter((h) => h.path === diffPath);
-                return matched.length > 0 ? matched : getFallbackDiffHunks();
-              });
-              setReviewOpen(true);
-            }}
+            onOpenDiffInReview={handleOpenDiffInReview}
           />
         ) : (
           <SettingsWorkspace
@@ -701,6 +635,7 @@ export function App({
         tasks={tasks}
         files={workspaceFiles}
         symbols={workspaceSymbols}
+        modelsAndSettings={paletteModelsAndSettings}
         onRunCommand={handleRunCommand}
         onSelectTask={(taskId) => { setActiveTaskId(taskId); handleSelectSection("tasks"); }}
         onJumpToApprovalHeading={handleJumpToApprovalHeading}
@@ -719,9 +654,9 @@ export function App({
         open={onboardingOpen}
         onOpenChange={setOnboardingOpen}
         defaultWorkspacePath={workspacePath}
-        onComplete={({ workspacePath: chosenPath }) => {
+        onComplete={({ workspacePath: chosenPath, branch }) => {
           setWorkspacePath(chosenPath);
-          setWorkspaceBranch("feat/unified-dev-app");
+          if (branch) setWorkspaceBranch(branch);
         }}
         onOpenSettingsLater={() => {
           setOnboardingOpen(false);

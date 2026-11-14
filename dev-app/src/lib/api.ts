@@ -209,43 +209,23 @@ export async function saveFileContent(
   );
 }
 
-export async function fetchStudioDiff(): Promise<FileDiffHunk[]> {
-  return requestSameOriginDecoded(
-    "/v1/studio/diff",
-    { method: "GET" },
-    decodeStudioDiff,
-    getFallbackDiffHunks,
-  );
+export async function fetchStudioDiff(path?: string): Promise<FileDiffHunk[]> {
+  const endpoint = path ? `/v1/studio/diff?path=${encodeURIComponent(path)}` : "/v1/studio/diff";
+  return requestSameOriginDecoded(endpoint, { method: "GET" }, decodeStudioDiff, getFallbackDiffHunks);
 }
 
 export async function fetchCodebaseSymbols(): Promise<CodeSymbolItem[]> {
-  return requestSameOriginDecoded(
-    "/v1/codebase/symbols",
-    { method: "GET" },
-    decodeSymbols,
-    getFallbackSymbols,
-  );
+  return requestSameOriginDecoded("/v1/codebase/symbols", { method: "GET" }, decodeSymbols, getFallbackSymbols);
 }
 
 export async function fetchGitProposal(): Promise<GitCommitProposal> {
-  return requestSameOriginDecoded(
-    "/v1/git/proposal",
-    { method: "GET" },
-    decodeGitProposal,
-    getFallbackGitProposal,
-  );
+  return requestSameOriginDecoded("/v1/git/proposal", { method: "GET" }, decodeGitProposal, getFallbackGitProposal);
 }
 
-export async function createGitCommit(
-  message: string,
-  files?: string[],
-): Promise<GitCommitResult> {
+export async function createGitCommit(message: string, files?: string[]): Promise<GitCommitResult> {
   return requestSameOriginDecoded(
     "/v1/git/commit",
-    {
-      method: "POST",
-      body: JSON.stringify(files ? { message, files } : { message }),
-    },
+    { method: "POST", body: JSON.stringify(files ? { message, files } : { message }) },
     (raw) => decodeGitCommitResult(raw, message),
     () => createFallbackGitCommit(message),
   );

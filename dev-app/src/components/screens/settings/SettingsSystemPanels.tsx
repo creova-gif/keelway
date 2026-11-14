@@ -109,6 +109,15 @@ const INITIAL_LABS_CARDS: LabsCardRecord[] = [
   },
 ];
 
+const INITIAL_UNVERIFIED_AUDIT: EgressTelemetryState = {
+  mode: "unmeasured",
+  cloudCallsCount: 0,
+  bytesSent: null,
+  airGapLocked: false,
+  endpoints: [],
+  sc7Compliant: undefined,
+};
+
 export interface SettingsNetworkPanelProps {
   airGapEnabled: boolean;
   onToggleAirGap: () => void;
@@ -120,7 +129,7 @@ export function SettingsNetworkPanel({
   onToggleAirGap,
   fetchAirGapAuditFn = fetchAirGapAudit,
 }: SettingsNetworkPanelProps): React.JSX.Element {
-  const [audit, setAudit] = useState<EgressTelemetryState | null>(null);
+  const [audit, setAudit] = useState<EgressTelemetryState>(INITIAL_UNVERIFIED_AUDIT);
   const [auditLoading, setAuditLoading] = useState(true);
   const fetchAuditRef = useRef(fetchAirGapAuditFn);
   fetchAuditRef.current = fetchAirGapAuditFn;
@@ -190,17 +199,17 @@ export function SettingsNetworkPanel({
           <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
             NIST SP 800-53 SC-7 Boundary Protection Audit (<code dir="ltr" className="unicode-bidi-isolate font-mono">/v1/airgap/audit</code>)
           </h3>
-          {auditLoading || audit === null ? (
-            <SemanticBadge kind="ready" labelOverride="Checking SC-7…" />
+          {audit.sc7Compliant === true ? (
+            <SemanticBadge kind="passed" labelOverride="SC-7 Verified" />
           ) : audit.sc7Compliant === false ? (
             <SemanticBadge kind="reconfirm" labelOverride="SC-7 Drift · cloud active" />
           ) : (
-            <SemanticBadge kind="passed" labelOverride="SC-7 Verified" />
+            <SemanticBadge kind="unmeasured" labelOverride="SC-7 Unverified" />
           )}
         </div>
 
         <ul className="divide-y divide-border rounded-sm border border-border bg-canvas text-xs">
-          {audit === null ? (
+          {auditLoading && !audit.sc7Checks ? (
             <li className="px-3 py-2 font-mono text-fg-muted">
               Auditing loopback socket &amp; environment boundary…
             </li>
@@ -233,7 +242,7 @@ export function SettingsNetworkPanel({
           <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
             <span className="text-fg">Recorded session cloud endpoints</span>
             <span className="font-mono tabular-nums text-fg-muted">
-              {`${audit?.endpoints.length ?? 0} endpoints`}
+              {`${audit.endpoints.length} endpoints`}
             </span>
           </li>
         </ul>
@@ -567,7 +576,7 @@ export function SettingsGeneralPanel({
 const SHORTCUT_ROWS: ReadonlyArray<{ keys: string; scope: string; behavior: string }> = [
   { keys: "⌘K / Ctrl+K", scope: "Global shell", behavior: "Open Command Palette (navigation only; never runs approvals)" },
   { keys: "F6 / Shift+F6", scope: "Global shell", behavior: "Cycle landmark panes (Sidebar → Workspace → Review → Logs → Status bar)" },
-  { keys: "⌘1 / ⌘2 / ⌘3", scope: "Global shell", behavior: "Focus Sidebar (⌘1), Main workspace (⌘2), or open Review drawer (⌘3)" },
+  { keys: "⌘1 / ⌘2 / ⌘3", scope: "Global shell", behavior: "Focus Sidebar (⌘1), Main workspace (⌘2), or focus open Review drawer (⌘3)" },
   { keys: "⌘J / Ctrl+J", scope: "Global shell", behavior: "Toggle Logs, Sandbox Terminal & Network drawer" },
   { keys: "⌘⇧A / Ctrl+Shift+A", scope: "Pending P-10 gate", behavior: "Jump focus directly to active P-10 approval heading" },
   { keys: "⌘↵ / Ctrl+Enter", scope: "Composer only", behavior: "Send prompt from AgentComposer (strictly isolated from P-10 gates)" },
