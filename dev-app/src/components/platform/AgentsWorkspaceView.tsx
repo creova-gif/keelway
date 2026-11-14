@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type {
@@ -6,6 +7,7 @@ import type {
   LifecycleAgentItem,
   MultiAgentTeamItem,
 } from "@/lib/platformData";
+import type { RbacRoleId } from "@/lib/platformRuntimeApi";
 
 export interface AgentsWorkspaceViewProps {
   experienceMode: ExperienceMode;
@@ -15,6 +17,8 @@ export interface AgentsWorkspaceViewProps {
   onDispatchTeam: (teamId: string) => void;
   onUpdateAgentModel: (agentId: string, modelId: string) => void;
   onJumpToIdeTask: (promptPrefill: string) => void;
+  workspaceId?: string;
+  activeRbacRole?: RbacRoleId;
 }
 
 interface DryRunTraceStep {
@@ -32,6 +36,8 @@ export function AgentsWorkspaceView({
   onDispatchTeam,
   onUpdateAgentModel,
   onJumpToIdeTask,
+  workspaceId = "default",
+  activeRbacRole = "owner",
 }: AgentsWorkspaceViewProps): React.JSX.Element {
   const [localAgents, setLocalAgents] = useState<LifecycleAgentItem[]>(agents);
   const [localTeams, setLocalTeams] = useState<MultiAgentTeamItem[]>(teams);
@@ -50,6 +56,9 @@ export function AgentsWorkspaceView({
     "Audit module boundaries and synthesize zero-downtime implementation plan",
   );
   const [dryRunTrace, setDryRunTrace] = useState<DryRunTraceStep[] | null>(null);
+  const [liveStreamSpec, setLiveStreamSpec] = useState<{
+    targetId: string; targetName: string; objective: string; requiresP10: boolean; nonce: number;
+  } | null>(null);
 
   useEffect(() => {
     setLocalAgents(agents);
@@ -74,6 +83,18 @@ export function AgentsWorkspaceView({
     () => localAgents.find((a) => a.id === supervisedAgentId) ?? null,
     [localAgents, supervisedAgentId],
   );
+
+  const handleLaunchLiveStream = (target?: LifecycleAgentItem) => {
+    const picked = target ?? supervisedAgent ?? localAgents.find((a) => a.requiresP10) ?? localAgents[0];
+    if (!picked) return;
+    setLiveStreamSpec((prev) => ({
+      targetId: picked.id,
+      targetName: picked.name,
+      objective: dryRunObjective.trim() || "Execute scoped agent verification",
+      requiresP10: picked.requiresP10,
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
+  };
 
   const manifestJson = useMemo(() => {
     if (!supervisedAgent) return "";
@@ -181,7 +202,14 @@ export function AgentsWorkspaceView({
       </div>
 
       <section aria-label="Coordinated multi-agent teams" className="space-y-3">
-        <h2 className="text-sm font-semibold text-fg">Coordinated Multi-Agent Teams</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-fg">Coordinated Multi-Agent Teams</h2>
+          {!supervisedAgent ? (
+            <Button size="sm" variant="secondary" onClick={() => handleLaunchLiveStream()}>
+              Stream Live Execution
+            </Button>
+          ) : null}
+        </div>
         <div className="grid gap-3 lg:grid-cols-3">
           {localTeams.map((team) => (
             <article key={team.id} className="flex flex-col justify-between gap-3 rounded-md border border-border-strong bg-surface p-3.5">
@@ -265,10 +293,13 @@ export function AgentsWorkspaceView({
                 </label>
                 <div className="flex flex-wrap items-center gap-2">
                   <Button type="submit" size="sm" variant="primary">Run Supervised Dry-Run</Button>
+                  <Button type="button" size="sm" variant="secondary" onClick={() => handleLaunchLiveStream(supervisedAgent)}>
+                    Stream Live Execution
+                  </Button>
                   <Button
                     type="button"
                     size="sm"
-                    variant="secondary"
+                    variant="ghost"
                     onClick={() => onJumpToIdeTask(`[${supervisedAgent.name}] ${dryRunObjective.trim()}`)}
                   >
                     Send to IDE Composer
@@ -294,6 +325,20 @@ export function AgentsWorkspaceView({
             </div>
           </div>
         </section>
+      ) : null}
+
+      {liveStreamSpec ? (
+        <LiveExecutionDrawer
+          kind="agent"
+          targetId={liveStreamSpec.targetId}
+          targetName={liveStreamSpec.targetName}
+          objective={liveStreamSpec.objective}
+          requiresP10={liveStreamSpec.requiresP10}
+          workspaceId={workspaceId}
+          activeRbacRole={activeRbacRole}
+          runNonce={liveStreamSpec.nonce}
+          onClose={() => setLiveStreamSpec(null)}
+        />
       ) : null}
 
       <section aria-label="Lifecycle agents catalog" className="space-y-3">

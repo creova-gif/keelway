@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
@@ -11,6 +12,7 @@ import {
   type AutomationWorkflowItem, type ByomValidationResult, type DeploymentEnvItem,
   type ExperienceMode, type SubscriptionTierId, type WorkflowNodeItem,
 } from "@/lib/platformData";
+import type { RbacRoleId } from "@/lib/platformRuntimeApi";
 
 const SEED_CLUSTER_NODES: ClusterNodeItem[] = [
   { nodeId: "node-metal-local-01", runtime: "ollama_metal", runtimeLabel: "Apple Metal", region: "airgap_local", gpuModel: "Apple M-Series Metal Unified", totalVramGb: 32, freeVramGb: 32, status: "healthy", loadedModels: ["keelway-core:7b", "qwen2.5-coder:7b"] },
@@ -48,10 +50,13 @@ export interface AutomationWorkspaceViewProps {
     workflowId: string,
     step: { label: string; agentId: string; requiresP10: boolean },
   ) => void;
+  workspaceId?: string;
+  activeRbacRole?: RbacRoleId;
 }
 
 export function AutomationWorkspaceView({
   experienceMode, workflows, onCreateWorkflow, onRunWorkflow, onRetryFailedNode, onAddStepToWorkflow,
+  workspaceId = "default", activeRbacRole = "owner",
 }: AutomationWorkspaceViewProps): React.JSX.Element {
   const [wfName, setWfName] = useState("");
   const [triggerKind, setTriggerKind] = useState<"cron" | "webhook" | "event">("cron");
@@ -65,6 +70,9 @@ export function AutomationWorkspaceView({
   const [localStepsByWf, setLocalStepsByWf] = useState<Record<string, WorkflowNodeItem[]>>({});
   const [traceByWf, setTraceByWf] = useState<Record<string, string[]>>({});
   const [traceOpenByWf, setTraceOpenByWf] = useState<Record<string, boolean>>({});
+  const [liveDagSpec, setLiveDagSpec] = useState<{
+    targetId: string; targetName: string; objective: string; requiresP10: boolean; nonce: number;
+  } | null>(null);
 
   const resolvedTargetWfId = workflows.some((w) => w.id === targetWfId) ? targetWfId : (workflows[0]?.id ?? "");
 
@@ -184,6 +192,20 @@ export function AutomationWorkspaceView({
         <Button type="submit" size="sm" variant="secondary">+ Add DAG Step</Button>
       </form>
 
+      {liveDagSpec ? (
+        <LiveExecutionDrawer
+          kind="workflow"
+          targetId={liveDagSpec.targetId}
+          targetName={liveDagSpec.targetName}
+          objective={liveDagSpec.objective}
+          requiresP10={liveDagSpec.requiresP10}
+          workspaceId={workspaceId}
+          activeRbacRole={activeRbacRole}
+          runNonce={liveDagSpec.nonce}
+          onClose={() => setLiveDagSpec(null)}
+        />
+      ) : null}
+
       <section aria-label="Workflow DAG pipelines" className="space-y-3">
         <h2 className="sr-only">Configured Workflows</h2>
         {workflows.map((wf) => {
@@ -207,6 +229,20 @@ export function AutomationWorkspaceView({
                 <div className="flex flex-wrap items-center gap-2">
                   <Button size="sm" variant="ghost" aria-expanded={isTraceOpen} onClick={() => setTraceOpenByWf((prev) => ({ ...prev, [wf.id]: !isTraceOpen }))}>
                     {`Execution Trace & Logs (${logs.length})`}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    aria-label={`Stream Live DAG ${wf.name}`}
+                    onClick={() => setLiveDagSpec((prev) => ({
+                      targetId: wf.id,
+                      targetName: wf.name,
+                      objective: `Execute KFlow DAG ${wf.name} (${nodes.length} steps)`,
+                      requiresP10: true,
+                      nonce: (prev?.nonce ?? 0) + 1,
+                    }))}
+                  >
+                    Stream Live DAG
                   </Button>
                   <Button size="sm" variant="secondary" onClick={() => handleExecuteWorkflow(wf)}>Run workflow</Button>
                 </div>

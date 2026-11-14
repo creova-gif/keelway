@@ -4,10 +4,13 @@
  * Exposes all 20 `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
  * Web Fetch, `AbortSignal` timeout, and `mapHttpError` infrastructure.
  */
+import { PlatformRuntimeDelegate } from "./platform-runtime.js";
 export class PlatformNamespace {
     requestJson;
-    constructor(requestJson) {
+    runtime;
+    constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
+        this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -219,6 +222,78 @@ export class PlatformNamespace {
     }
     registerExtension(extension, options) {
         return this.requestJson("POST", "/v1/platform/extensions/register", { body: { ...extension }, options });
+    }
+    listDocs(params = {}, options) {
+        return this.runtime.listDocs(params, options);
+    }
+    createDoc(req, options) {
+        return this.runtime.createDoc(req, options);
+    }
+    updateDoc(docId, req, options) {
+        return this.runtime.updateDoc(docId, req, options);
+    }
+    updateIssue(issueId, patch, options) {
+        return this.runtime.updateIssue(issueId, patch, options);
+    }
+    listFeedback(params = {}, options) {
+        return this.runtime.listFeedback(params, options);
+    }
+    createFeedback(req, options) {
+        return this.runtime.createFeedback(req, options);
+    }
+    scanWorkspaceSecurity(req, options) {
+        return this.runtime.scanWorkspaceSecurity(req, options);
+    }
+    listWorkspaces(options) {
+        return this.runtime.listWorkspaces(options);
+    }
+    createWorkspace(req, options) {
+        return this.runtime.createWorkspace(req, options);
+    }
+    listRbacMembers(params = {}, options) {
+        return this.runtime.listRbacMembers(params, options);
+    }
+    upsertRbacMember(req, options) {
+        return this.runtime.upsertRbacMember(req, options);
+    }
+    checkRbac(req, options) {
+        return this.runtime.checkRbac(req, options);
+    }
+    listSecrets(params = {}, options) {
+        return this.runtime.listSecrets(params, options);
+    }
+    putSecret(req, options) {
+        return this.runtime.putSecret(req, options);
+    }
+    rotateSecret(name, req, options) {
+        return this.runtime.rotateSecret(name, req, options);
+    }
+    deleteSecret(name, params = {}, options) {
+        return this.runtime.deleteSecret(name, params, options);
+    }
+    listWebhooks(params = {}, options) {
+        return this.runtime.listWebhooks(params, options);
+    }
+    createWebhook(req, options) {
+        return this.runtime.createWebhook(req, options);
+    }
+    deleteWebhook(webhookId, params = {}, options) {
+        return this.runtime.deleteWebhook(webhookId, params, options);
+    }
+    testWebhook(webhookId, req, options) {
+        return this.runtime.testWebhook(webhookId, req, options);
+    }
+    verifyWebhook(req, options) {
+        return this.runtime.verifyWebhook(req, options);
+    }
+    startExecutionRun(req, options) {
+        return this.runtime.startExecutionRun(req, options);
+    }
+    resolveExecutionP10(runId, req, options) {
+        return this.runtime.resolveExecutionP10(runId, req, options);
+    }
+    streamExecutionEvents(runId, options) {
+        return this.runtime.streamExecutionEvents(runId, options);
     }
 }
 //# sourceMappingURL=platform.js.map

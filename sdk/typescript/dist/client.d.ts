@@ -75,6 +75,7 @@ export declare class KeelwayClient {
     private buildHeaders;
     private mapTransportException;
     private requestJson;
+    private requestSseFrames;
     private streamChatCompletions;
     private streamResponses;
 }

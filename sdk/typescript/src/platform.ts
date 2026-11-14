@@ -46,6 +46,8 @@ import type {
   ValidateByomRequest,
   ValidateByomResponse,
 } from "./platform-types.js";
+import type * as PT from "./platform-types.js";
+import { PlatformRuntimeDelegate, type PlatformSseRequester } from "./platform-runtime.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -60,9 +62,11 @@ export type PlatformJsonRequester = <T>(
 
 export class PlatformNamespace {
   private readonly requestJson: PlatformJsonRequester;
+  private readonly runtime: PlatformRuntimeDelegate;
 
-  constructor(requestJson: PlatformJsonRequester) {
+  constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
+    this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
   }
 
   public overview(
@@ -411,5 +415,81 @@ export class PlatformNamespace {
       "/v1/platform/extensions/register",
       { body: { ...extension }, options },
     );
+  }
+
+  public listDocs(params: PT.ListDocsParams | string = {}, options?: RequestOptions): Promise<PT.PlatformDocListResponse> {
+    return this.runtime.listDocs(params, options);
+  }
+  public createDoc(req: PT.UpsertDocRequest, options?: RequestOptions): Promise<PT.PlatformDocRecord> {
+    return this.runtime.createDoc(req, options);
+  }
+  public updateDoc(docId: string, req: PT.UpsertDocRequest, options?: RequestOptions): Promise<PT.PlatformDocRecord> {
+    return this.runtime.updateDoc(docId, req, options);
+  }
+  public updateIssue(issueId: string, patch: PT.UpdateIssueRequest, options?: RequestOptions): Promise<PlatformIssueRecord> {
+    return this.runtime.updateIssue(issueId, patch, options);
+  }
+  public listFeedback(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PT.PlatformFeedbackListResponse> {
+    return this.runtime.listFeedback(params, options);
+  }
+  public createFeedback(req: PT.CreateFeedbackRequest, options?: RequestOptions): Promise<PT.PlatformFeedbackRecord> {
+    return this.runtime.createFeedback(req, options);
+  }
+  public scanWorkspaceSecurity(req: PT.WorkspaceSecurityScanRequest, options?: RequestOptions): Promise<PT.WorkspaceSecurityScanReport> {
+    return this.runtime.scanWorkspaceSecurity(req, options);
+  }
+  public listWorkspaces(options?: RequestOptions): Promise<PT.PlatformWorkspaceListResponse> {
+    return this.runtime.listWorkspaces(options);
+  }
+  public createWorkspace(req: PT.CreateWorkspaceRequest, options?: RequestOptions): Promise<PT.PlatformWorkspaceRecord> {
+    return this.runtime.createWorkspace(req, options);
+  }
+  public listRbacMembers(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PT.RbacMemberListResponse> {
+    return this.runtime.listRbacMembers(params, options);
+  }
+  public upsertRbacMember(req: PT.UpsertRbacMemberRequest, options?: RequestOptions): Promise<PT.RbacMemberRecord> {
+    return this.runtime.upsertRbacMember(req, options);
+  }
+  public checkRbac(req: PT.CheckRbacRequest, options?: RequestOptions): Promise<PT.CheckRbacResponse> {
+    return this.runtime.checkRbac(req, options);
+  }
+  public listSecrets(params: PT.ListSecretsParams | string = {}, options?: RequestOptions): Promise<PT.VaultSecretListResponse> {
+    return this.runtime.listSecrets(params, options);
+  }
+  public putSecret(req: PT.PutSecretRequest, options?: RequestOptions): Promise<PT.VaultSecretMetadata> {
+    return this.runtime.putSecret(req, options);
+  }
+  public rotateSecret(name: string, req: PT.RotateSecretRequest | string, options?: RequestOptions): Promise<PT.VaultSecretMetadata> {
+    return this.runtime.rotateSecret(name, req, options);
+  }
+  public deleteSecret(name: string, params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PT.DeleteSecretResponse> {
+    return this.runtime.deleteSecret(name, params, options);
+  }
+  public listWebhooks(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PT.WebhookListResponse> {
+    return this.runtime.listWebhooks(params, options);
+  }
+  public createWebhook(req: PT.CreateWebhookRequest, options?: RequestOptions): Promise<PT.WebhookRecord> {
+    return this.runtime.createWebhook(req, options);
+  }
+  public deleteWebhook(webhookId: string, params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PT.DeleteWebhookResponse> {
+    return this.runtime.deleteWebhook(webhookId, params, options);
+  }
+  public testWebhook(webhookId: string, req?: PT.TestWebhookRequest, options?: RequestOptions): Promise<PT.WebhookTestReceipt> {
+    return this.runtime.testWebhook(webhookId, req, options);
+  }
+  public verifyWebhook(req: PT.VerifyWebhookRequest, options?: RequestOptions): Promise<PT.VerifyWebhookResponse> {
+    return this.runtime.verifyWebhook(req, options);
+  }
+  public startExecutionRun(req: PT.StartExecutionRunRequest, options?: RequestOptions): Promise<PT.ExecutionRunSnapshot> {
+    return this.runtime.startExecutionRun(req, options);
+  }
+  public resolveExecutionP10(runId: string, req: PT.ResolveExecutionP10Request, options?: RequestOptions): Promise<PT.ExecutionRunSnapshot> {
+    return this.runtime.resolveExecutionP10(runId, req, options);
+  }
+  public streamExecutionEvents(
+    runId: string,
+    options?: PT.StreamExecutionEventsOptions,
+  ): AsyncGenerator<Record<string, unknown>, void, unknown> {
+    return this.runtime.streamExecutionEvents(runId, options);
   }
 }

@@ -12,6 +12,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
+from core.sdk.platform_runtime_client import (
+    AsyncPlatformRuntimeMixin,
+    SyncPlatformRuntimeMixin,
+)
+
 if TYPE_CHECKING:
     from core.sdk.client import AsyncKeelwayClient, KeelwayClient
 
@@ -105,7 +110,7 @@ def _filter_issues_by_status(res: Dict[str, Any], status: Optional[str]) -> Dict
     return {**res, "issues": filtered, "total": len(filtered)}
 
 
-class AsyncPlatformClient:
+class AsyncPlatformClient(AsyncPlatformRuntimeMixin):
     """Asynchronous `/v1/platform/*` sub-client attached at `AsyncKeelwayClient.platform`."""
 
     def __init__(self, client: "AsyncKeelwayClient") -> None:
@@ -278,7 +283,7 @@ class AsyncPlatformClient:
         return await self._client._req("POST", "/v1/platform/extensions/register", json=extension)
 
 
-class SyncPlatformClient:
+class SyncPlatformClient(SyncPlatformRuntimeMixin):
     """Synchronous `/v1/platform/*` sub-client attached at `KeelwayClient.platform`."""
 
     def __init__(self, client: "KeelwayClient") -> None:

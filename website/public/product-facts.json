@@ -35,9 +35,15 @@
     },
     "official_python_and_typescript_sdks": {
       "status": "AVAILABLE",
-      "claim": "Official Python (core.sdk), zero-dependency TypeScript (@keelway/sdk), and zero-dependency Go (keelway-go) client SDKs with chunk-safe SSE streaming, full /v1/platform/* and /v1/cluster/* parity, and deterministic HTTP error mapping",
-      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, core/sdk/cluster_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts, sdk/typescript/src/cluster.ts, sdk/go/client.go, sdk/go/platform.go",
-      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, tests/test_marketplace_settlement_and_cluster_sdk.py, sdk/typescript/test/sdk.test.mjs, sdk/go/client_test.go"
+      "claim": "Official Python (core.sdk), zero-dependency TypeScript (@keelway/sdk), and zero-dependency Go (keelway-go) client SDKs with chunk-safe SSE execution streaming, full /v1/platform/* (including Vault, RBAC, Webhooks, Live Runs) and /v1/cluster/* parity, and deterministic HTTP error mapping",
+      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, core/sdk/platform_runtime_client.py, core/sdk/cluster_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts, sdk/typescript/src/platform-runtime.ts, sdk/typescript/src/cluster.ts, sdk/go/client.go, sdk/go/platform.go, sdk/go/platform_runtime.go",
+      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, tests/test_sdk_phase5_parity.py, tests/test_marketplace_settlement_and_cluster_sdk.py, sdk/typescript/test/sdk.test.mjs, sdk/typescript/test/platform-runtime.test.mjs, sdk/go/client_test.go, sdk/go/platform_runtime_test.go"
+    },
+    "encrypted_vault_rbac_webhooks_and_live_sse_runtime": {
+      "status": "AVAILABLE",
+      "claim": "AES-256-GCM + HKDF-SHA256 SQLite WAL secret vault with masked non-reversible previews, 5-role Multi-Workspace RBAC (owner, admin, builder, operator, viewer), SSRF-guarded HMAC-SHA256 signed webhooks, and live SSE Agent/KFlow execution streaming with P-10 human checkpoints",
+      "code_path": "core/platform/vault.py, core/platform/rbac_webhooks.py, core/platform/execution_stream.py, core/api/platform_runtime_routes.py, dev-app/src/components/platform/VaultAndWebhooksPanel.tsx, dev-app/src/components/platform/LiveExecutionDrawer.tsx",
+      "evidence_test": "tests/test_phase5_runtime_vault_rbac_webhooks.py, tests/test_sdk_phase5_parity.py, dev-app/src/__tests__/phase5-runtime-vault-rbac.test.tsx"
     },
     "distributed_gpu_cluster_and_postgres_governance": {
       "status": "AVAILABLE",

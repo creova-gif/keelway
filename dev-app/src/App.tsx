@@ -196,6 +196,12 @@ export function App({
     setExperienceMode,
     subscriptionTier,
     setSubscriptionTier,
+    activeWorkspaceId,
+    setActiveWorkspaceId,
+    workspaces,
+    handleCreateWorkspace,
+    activeRbacRole,
+    setActiveRbacRole,
     renderPlatformCanvas,
   } = useUnifiedPlatformState({
     onJumpToIdeComposer: handleJumpToIdeComposer,
@@ -538,6 +544,12 @@ export function App({
             workspaceBranch={workspaceBranch}
             activeModelLabel={activeModelLabel}
             pendingApprovalCount={pendingApprovalCount}
+            activeWorkspaceId={activeWorkspaceId}
+            workspaces={workspaces}
+            onSelectWorkspaceId={setActiveWorkspaceId}
+            onCreateWorkspace={handleCreateWorkspace}
+            activeRbacRole={activeRbacRole}
+            onChangeRbacRole={setActiveRbacRole}
           />
         }
         reviewDrawerOpen={reviewOpen}

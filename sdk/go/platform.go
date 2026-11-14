@@ -320,3 +320,120 @@ func (cs *ClusterService) ListLifecycle(ctx context.Context) (*ClusterLifecycle,
 	}
 	return &out, nil
 }
+
+type DocUpsertRequest struct {
+	Title        string `json:"title"`
+	DiataxisKind string `json:"diataxis_kind,omitempty"`
+	Summary      string `json:"summary,omitempty"`
+	Body         string `json:"body,omitempty"`
+	LinkedPRDID  string `json:"linked_prd_id,omitempty"`
+	WorkspaceID  string `json:"workspace_id,omitempty"`
+}
+type WorkspaceDoc struct {
+	ID           string `json:"id"`
+	Title        string `json:"title"`
+	DiataxisKind string `json:"diataxis_kind"`
+	Summary      string `json:"summary,omitempty"`
+	Body         string `json:"body,omitempty"`
+	LinkedPRDID  string `json:"linked_prd_id,omitempty"`
+	UpdatedAt    string `json:"updated_at,omitempty"`
+}
+type DocList struct {
+	WorkspaceID string         `json:"workspace_id"`
+	Count       int            `json:"count"`
+	Docs        []WorkspaceDoc `json:"docs"`
+}
+type IssuePatchRequest struct {
+	WorkspaceID   string   `json:"workspace_id,omitempty"`
+	Title         string   `json:"title,omitempty"`
+	Status        string   `json:"status,omitempty"`
+	Priority      string   `json:"priority,omitempty"`
+	SprintID      string   `json:"sprint_id,omitempty"`
+	PRDID         string   `json:"prd_id,omitempty"`
+	AssigneeAgent string   `json:"assignee_agent,omitempty"`
+	Description   string   `json:"description,omitempty"`
+	Dependencies  []string `json:"dependencies,omitempty"`
+}
+type FeedbackCreateRequest struct {
+	Persona     string  `json:"persona"`
+	Quote       string  `json:"quote"`
+	ImpactScore float64 `json:"impact_score,omitempty"`
+	LinkedPRDID string  `json:"linked_prd_id,omitempty"`
+	WorkspaceID string  `json:"workspace_id,omitempty"`
+}
+type FeedbackEntry struct {
+	ID          string  `json:"id"`
+	Persona     string  `json:"persona"`
+	Quote       string  `json:"quote"`
+	ImpactScore float64 `json:"impact_score"`
+	LinkedPRDID string  `json:"linked_prd_id,omitempty"`
+	CreatedAt   string  `json:"created_at,omitempty"`
+}
+type FeedbackList struct {
+	WorkspaceID string          `json:"workspace_id"`
+	Feedback    []FeedbackEntry `json:"feedback"`
+	Count       int             `json:"count"`
+	Total       int             `json:"total"`
+}
+type WorkspaceSecurityScanRequest struct {
+	TargetName  string   `json:"target_name,omitempty"`
+	TargetPath  string   `json:"target_path,omitempty"`
+	Content     string   `json:"content,omitempty"`
+	Snippet     string   `json:"snippet,omitempty"`
+	WritePaths  []string `json:"write_paths,omitempty"`
+	WorkspaceID string   `json:"workspace_id,omitempty"`
+}
+type WorkspaceSecurityScanReport struct {
+	WorkspaceID string `json:"workspace_id"`
+	TargetName  string `json:"target_name"`
+	MarketplaceScanReport
+}
+type WorkspaceCreateRequest struct {
+	ID            string `json:"id,omitempty"`
+	Name          string `json:"name"`
+	Branch        string `json:"branch,omitempty"`
+	IsolationMode string `json:"isolation_mode,omitempty"`
+	Description   string `json:"description,omitempty"`
+}
+type WorkspaceRecord struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Branch        string `json:"branch,omitempty"`
+	IsolationMode string `json:"isolation_mode,omitempty"`
+	CreatedAt     string `json:"created_at,omitempty"`
+}
+type WorkspaceList struct {
+	Workspaces []WorkspaceRecord `json:"workspaces"`
+	Total      int               `json:"total"`
+}
+type RBACMemberUpsertRequest struct {
+	WorkspaceID string `json:"workspace_id,omitempty"`
+	ActorID     string `json:"actor_id"`
+	Role        string `json:"role"`
+	DisplayName string `json:"display_name,omitempty"`
+}
+type RBACMember struct {
+	WorkspaceID string `json:"workspace_id,omitempty"`
+	ActorID     string `json:"actor_id"`
+	Role        string `json:"role"`
+	DisplayName string `json:"display_name,omitempty"`
+	UpdatedAt   string `json:"updated_at,omitempty"`
+}
+type RBACMemberList struct {
+	WorkspaceID string       `json:"workspace_id,omitempty"`
+	Members     []RBACMember `json:"members"`
+	Roles       []any        `json:"roles,omitempty"`
+}
+type RBACCheckRequest struct {
+	WorkspaceID string `json:"workspace_id,omitempty"`
+	ActorID     string `json:"actor_id,omitempty"`
+	Role        string `json:"role,omitempty"`
+	Permission  string `json:"permission"`
+}
+type RBACCheckResult struct {
+	Allowed     bool   `json:"allowed"`
+	Role        string `json:"role"`
+	Permission  string `json:"permission"`
+	Reason      string `json:"reason"`
+	WorkspaceID string `json:"workspace_id,omitempty"`
+}

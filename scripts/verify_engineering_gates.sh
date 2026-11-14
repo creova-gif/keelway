@@ -41,17 +41,17 @@ echo "[3/8] Running Unified Responses API, Hybrid Routing, OpenAPI Export & Miro
 "${PYTEST_BIN}" tests/test_hybrid_routing_and_api.py tests/test_responses_and_routing_api.py tests/test_mirofish_integration.py tests/test_api_export.py -v --tb=short
 echo "  ✓ Unified API, Stateful Responses, Routing Provenance, OpenAPI 3.1 & MiroFish Swarm verified."
 
-echo "[4/8] Verifying Multi-Tenant Governance, Cluster Scheduler, Postgres Adapter, Unified Platform & Settlement Ledger..."
-"${PYTEST_BIN}" tests/test_redact.py tests/test_tenant_governance.py tests/test_persistent_governance.py tests/test_unified_platform.py tests/test_platform_persistence_and_enterprise.py tests/test_cluster_and_postgres_governance.py tests/test_marketplace_settlement_and_cluster_sdk.py -v --tb=short
-echo "  ✓ Governance, GPU Cluster Scheduler, Postgres FOR UPDATE Adapter, Settlement Ledger & Unified Platform verified."
+echo "[4/8] Verifying Multi-Tenant Governance, Cluster Scheduler, Postgres Adapter, Unified Platform, Vault/RBAC/Webhooks & Settlement Ledger..."
+"${PYTEST_BIN}" tests/test_redact.py tests/test_tenant_governance.py tests/test_persistent_governance.py tests/test_unified_platform.py tests/test_platform_persistence_and_enterprise.py tests/test_cluster_and_postgres_governance.py tests/test_marketplace_settlement_and_cluster_sdk.py tests/test_phase5_runtime_vault_rbac_webhooks.py -v --tb=short
+echo "  ✓ Governance, GPU Cluster Scheduler, Postgres FOR UPDATE Adapter, Encrypted Vault, RBAC, Signed Webhooks & Unified Platform verified."
 
 echo "[5/8] Verifying OS Command Sandbox Confinement (Seatbelt & Bubblewrap) & Studio Manifest Inspector..."
 "${PYTEST_BIN}" tests/test_agent_sandbox.py tests/test_studio.py tests/test_studio_manifest_panel.py -v --tb=short
 echo "  ✓ OS Command Sandbox & Keelway Studio Manifest Inspection Panel verified."
 
-echo "[6/8] Verifying Layer 1 Python SDK v1, Sovereign CLI TUI, Website Drift Gate & Full-Stack E2E..."
-"${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_sdk_platform.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
-echo "  ✓ Python SDK v1 + Platform/Cluster SDK, Sovereign CLI TUI, Product-Facts Drift Gate & Full-Stack E2E verified."
+echo "[6/8] Verifying Layer 1 Python SDK v1 + Phase 5 Parity, Sovereign CLI TUI, Website Drift Gate & Full-Stack E2E..."
+"${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_sdk_platform.py tests/test_sdk_phase5_parity.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
+echo "  ✓ Python SDK v1 + Platform/Cluster/Runtime SDK, Sovereign CLI TUI, Product-Facts Drift Gate & Full-Stack E2E verified."
 
 echo "[7/8] Verifying Official Zero-Dependency TypeScript (@keelway/sdk), Go (keelway-go) SDKs & Studio JS Syntax..."
 if command -v node >/dev/null 2>&1; then
@@ -59,7 +59,7 @@ if command -v node >/dev/null 2>&1; then
     if [ -f "website/node_modules/.bin/tsc" ]; then
         ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
     fi
-    (cd sdk/typescript && node --test test/sdk.test.mjs)
+    (cd sdk/typescript && npm test)
     echo "  ✓ TypeScript SDK (@keelway/sdk) & Studio JS verified."
 else
     echo "  ! node not found on PATH; skipped JS/TS runtime check."

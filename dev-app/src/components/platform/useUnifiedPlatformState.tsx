@@ -58,6 +58,12 @@ import {
   type SubscriptionTierId,
   type UserFeedbackItem,
 } from "@/lib/platformData";
+import {
+  DEFAULT_WORKSPACES,
+  postCreateWorkspace,
+  type RbacRoleId,
+  type WorkspaceDirectoryItem,
+} from "@/lib/platformRuntimeApi";
 
 function mergeById<T extends { id: string }>(incoming: T[], existing: T[]): T[] {
   const seen = new Set(existing.map((item) => item.id));
@@ -74,6 +80,9 @@ export function useUnifiedPlatformState(options: {
   const [platformView, setPlatformView] = useState<PlatformViewId>("ide");
   const [experienceMode, setExperienceMode] = useState<ExperienceMode>("builder");
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTierId>("pro");
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("default");
+  const [workspaces, setWorkspaces] = useState<WorkspaceDirectoryItem[]>(DEFAULT_WORKSPACES);
+  const [activeRbacRole, setActiveRbacRole] = useState<RbacRoleId>("owner");
 
   const [agents, setAgents] = useState<LifecycleAgentItem[]>(INITIAL_LIFECYCLE_AGENTS);
   const [teams, setTeams] = useState<MultiAgentTeamItem[]>(INITIAL_MULTI_AGENT_TEAMS);
@@ -94,7 +103,7 @@ export function useUnifiedPlatformState(options: {
 
   useEffect(() => {
     let cancelled = false;
-    void fetchPlatformHydration("default").then((snap) => {
+    void fetchPlatformHydration(activeWorkspaceId).then((snap) => {
       if (cancelled || !snap.hydrated) return;
       if (snap.packages.length > 0) setPackages((prev) => mergeById(snap.packages, prev));
       if (snap.installedPackageIds.length > 0) {
@@ -110,7 +119,23 @@ export function useUnifiedPlatformState(options: {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeWorkspaceId]);
+
+  const handleCreateWorkspace = useCallback(
+    (ws: { id: string; name: string; branch: string }) => {
+      const entry: WorkspaceDirectoryItem = {
+        id: ws.id,
+        name: ws.name,
+        branch: ws.branch,
+        path: `/workspace/${ws.id}`,
+        isolationMode: "sqlite_wal_local",
+      };
+      setWorkspaces((prev) => [entry, ...prev.filter((w) => w.id !== ws.id)]);
+      setActiveWorkspaceId(ws.id);
+      void postCreateWorkspace(ws);
+    },
+    [],
+  );
 
   const handleCreateCustomAgent = useCallback((agent: LifecycleAgentItem) => {
     setAgents((prev) => [agent, ...prev]);
@@ -446,6 +471,8 @@ export function useUnifiedPlatformState(options: {
             experienceMode={experienceMode}
             agents={agents}
             teams={teams}
+            workspaceId={activeWorkspaceId}
+            activeRbacRole={activeRbacRole}
             onCreateCustomAgent={handleCreateCustomAgent}
             onDispatchTeam={handleDispatchTeam}
             onUpdateAgentModel={handleUpdateAgentModel}
@@ -490,6 +517,8 @@ export function useUnifiedPlatformState(options: {
           <AutomationWorkspaceView
             experienceMode={experienceMode}
             workflows={workflows}
+            workspaceId={activeWorkspaceId}
+            activeRbacRole={activeRbacRole}
             onCreateWorkflow={handleCreateWorkflow}
             onRunWorkflow={handleRunWorkflow}
             onRetryFailedNode={handleRetryFailedNode}
@@ -511,6 +540,8 @@ export function useUnifiedPlatformState(options: {
             installedPackagesCount={installedPackageIds.length}
             retentionMode={retentionMode}
             onRetentionModeChange={setRetentionMode}
+            workspaceId={activeWorkspaceId}
+            activeRbacRole={activeRbacRole}
             selectedSeq={recordProps.selectedSeq ?? undefined}
             onSelectSeq={recordProps.onSelectSeq}
             verifyRequestNonce={recordProps.verifyRequestNonce}
@@ -555,6 +586,12 @@ export function useUnifiedPlatformState(options: {
     setExperienceMode,
     subscriptionTier,
     setSubscriptionTier,
+    activeWorkspaceId,
+    setActiveWorkspaceId,
+    workspaces,
+    handleCreateWorkspace,
+    activeRbacRole,
+    setActiveRbacRole,
     renderPlatformCanvas,
   };
 }

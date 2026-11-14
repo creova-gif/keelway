@@ -9253,6 +9253,808 @@
         }
       }
     },
+    "/v1/platform/workspaces": {
+      "get": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "List Platform Workspaces",
+        "operationId": "list_platform_workspaces_v1_platform_workspaces_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Platform Workspaces V1 Platform Workspaces Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Create Platform Workspace",
+        "operationId": "create_platform_workspace_v1_platform_workspaces_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Platform Workspace V1 Platform Workspaces Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/rbac/members": {
+      "get": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "List Rbac Members",
+        "operationId": "list_rbac_members_v1_platform_rbac_members_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Rbac Members V1 Platform Rbac Members Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Upsert Rbac Member",
+        "operationId": "upsert_rbac_member_v1_platform_rbac_members_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RbacMemberUpsertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Upsert Rbac Member V1 Platform Rbac Members Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/rbac/check": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Evaluate Rbac Permission",
+        "operationId": "evaluate_rbac_permission_v1_platform_rbac_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RbacCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Evaluate Rbac Permission V1 Platform Rbac Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/vault/secrets": {
+      "get": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "List Vault Secrets",
+        "operationId": "list_vault_secrets_v1_platform_vault_secrets_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Namespace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Vault Secrets V1 Platform Vault Secrets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Create Or Update Vault Secret",
+        "operationId": "create_or_update_vault_secret_v1_platform_vault_secrets_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretPutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Or Update Vault Secret V1 Platform Vault Secrets Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/vault/secrets/{name}/rotate": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Rotate Vault Secret",
+        "operationId": "rotate_vault_secret_v1_platform_vault_secrets__name__rotate_post",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Name"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretRotateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rotate Vault Secret V1 Platform Vault Secrets  Name  Rotate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/vault/secrets/{name}": {
+      "delete": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Delete Vault Secret",
+        "operationId": "delete_vault_secret_v1_platform_vault_secrets__name__delete",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Name"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Vault Secret V1 Platform Vault Secrets  Name  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/webhooks": {
+      "get": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "List Workspace Webhooks",
+        "operationId": "list_workspace_webhooks_v1_platform_webhooks_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Workspace Webhooks V1 Platform Webhooks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Register Workspace Webhook",
+        "operationId": "register_workspace_webhook_v1_platform_webhooks_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Register Workspace Webhook V1 Platform Webhooks Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/webhooks/{webhook_id}": {
+      "delete": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Remove Workspace Webhook",
+        "operationId": "remove_workspace_webhook_v1_platform_webhooks__webhook_id__delete",
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Webhook Id"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Remove Workspace Webhook V1 Platform Webhooks  Webhook Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/webhooks/{webhook_id}/test": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Send Test Webhook Event",
+        "operationId": "send_test_webhook_event_v1_platform_webhooks__webhook_id__test_post",
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Webhook Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/WebhookTestRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Send Test Webhook Event V1 Platform Webhooks  Webhook Id  Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/webhooks/verify": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Verify Webhook Signature Route",
+        "operationId": "verify_webhook_signature_route_v1_platform_webhooks_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Verify Webhook Signature Route V1 Platform Webhooks Verify Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/execution/runs": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Start Execution Run Route",
+        "operationId": "start_execution_run_route_v1_platform_execution_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecutionRunStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/execution/runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Stream Execution Run Events Route",
+        "operationId": "stream_execution_run_events_route_v1_platform_execution_runs__run_id__events_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/execution/runs/{run_id}/p10": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Resolve Execution P10 Route",
+        "operationId": "resolve_execution_p10_route_v1_platform_execution_runs__run_id__p10_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecutionP10ResolveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Resolve Execution P10 Route V1 Platform Execution Runs  Run Id  P10 Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -11018,6 +11820,82 @@
         ],
         "title": "EvidenceVerifyRequest"
       },
+      "ExecutionP10ResolveRequest": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Decision",
+            "default": ""
+          },
+          "approver": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Approver",
+            "default": "local-operator"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Reason",
+            "default": ""
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "type": "object",
+        "title": "ExecutionP10ResolveRequest"
+      },
+      "ExecutionRunStartRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Kind",
+            "default": "agent"
+          },
+          "target_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Target Id",
+            "default": ""
+          },
+          "objective": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Objective",
+            "default": ""
+          },
+          "requires_p10": {
+            "type": "boolean",
+            "title": "Requires P10",
+            "default": true
+          },
+          "stream": {
+            "type": "boolean",
+            "title": "Stream",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "ExecutionRunStartRequest"
+      },
       "FeedbackCreateRequest": {
         "properties": {
           "persona": {
@@ -12698,6 +13576,66 @@
         "type": "object",
         "title": "QuotaCheckRequest"
       },
+      "RbacCheckRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "actor_id": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Actor Id",
+            "default": "local-operator"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "permission": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Permission",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "RbacCheckRequest"
+      },
+      "RbacMemberUpsertRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "actor_id": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Actor Id",
+            "default": ""
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Role",
+            "default": "viewer"
+          }
+        },
+        "type": "object",
+        "title": "RbacMemberUpsertRequest"
+      },
       "RegisterAdapterRequest": {
         "properties": {
           "adapter_id": {
@@ -13582,6 +14520,66 @@
           "api_key"
         ],
         "title": "ScopedKeyVerifyRequest"
+      },
+      "SecretPutRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Name",
+            "default": ""
+          },
+          "secret_value": {
+            "type": "string",
+            "maxLength": 16384,
+            "title": "Secret Value",
+            "default": ""
+          },
+          "namespace": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Namespace",
+            "default": "byom"
+          }
+        },
+        "type": "object",
+        "title": "SecretPutRequest"
+      },
+      "SecretRotateRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "secret_value": {
+            "type": "string",
+            "maxLength": 16384,
+            "title": "Secret Value",
+            "default": ""
+          },
+          "namespace": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namespace"
+          }
+        },
+        "type": "object",
+        "title": "SecretRotateRequest"
       },
       "SpendRecordRequest": {
         "properties": {
@@ -14480,6 +15478,124 @@
         ],
         "title": "ValidationError"
       },
+      "WebhookCreateRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "title": "Url",
+            "default": ""
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Description",
+            "default": ""
+          },
+          "secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret"
+          }
+        },
+        "type": "object",
+        "title": "WebhookCreateRequest"
+      },
+      "WebhookTestRequest": {
+        "properties": {
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "event_type": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Event Type",
+            "default": "webhook.test"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "title": "WebhookTestRequest"
+      },
+      "WebhookVerifyRequest": {
+        "properties": {
+          "payload": {
+            "title": "Payload"
+          },
+          "signature": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Signature",
+            "default": ""
+          },
+          "secret": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Secret",
+            "default": ""
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Timestamp",
+            "default": ""
+          },
+          "tolerance_seconds": {
+            "type": "integer",
+            "maximum": 86400.0,
+            "minimum": 1.0,
+            "title": "Tolerance Seconds",
+            "default": 300
+          }
+        },
+        "type": "object",
+        "required": [
+          "payload"
+        ],
+        "title": "WebhookVerifyRequest"
+      },
       "WorkflowCreateRequest": {
         "properties": {
           "name": {
@@ -14523,6 +15639,54 @@
           "name"
         ],
         "title": "WorkflowCreateRequest"
+      },
+      "WorkspaceCreateRequest": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name",
+            "default": ""
+          },
+          "branch": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Branch",
+            "default": "main"
+          },
+          "isolation_mode": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Isolation Mode",
+            "default": "seatbelt_local"
+          }
+        },
+        "type": "object",
+        "title": "WorkspaceCreateRequest"
       },
       "WorkspaceSecurityScanRequest": {
         "properties": {

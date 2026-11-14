@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { VaultAndWebhooksPanel } from "@/components/platform/VaultAndWebhooksPanel";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type { EnterpriseRetentionMode } from "@/lib/platformApi";
 import { scanMarketplacePackageClient, type MarketplaceScanReport } from "@/lib/platformData";
+import type { RbacRoleId } from "@/lib/platformRuntimeApi";
 
 export interface SecurityPostureBannerProps {
   installedPackagesCount: number;
@@ -141,6 +143,8 @@ export interface SecurityWorkspaceViewProps {
   onSelectSeq?: (seq: number | null) => void;
   verifyRequestNonce?: number;
   onOpenDiffInReview?: (diffPath: string, seq?: number) => void;
+  workspaceId?: string;
+  activeRbacRole?: RbacRoleId;
 }
 
 const SECRET_PREFIX_RE = /\b(?:sk-live-[a-zA-Z0-9_-]*|AKIA[0-9A-Z]{4,}|ghp_[a-zA-Z0-9]{4,})/;
@@ -153,6 +157,8 @@ export function SecurityWorkspaceView({
   onSelectSeq,
   verifyRequestNonce,
   onOpenDiffInReview,
+  workspaceId = "default",
+  activeRbacRole = "owner",
 }: SecurityWorkspaceViewProps): React.JSX.Element {
   const [effectiveRetention, setEffectiveRetention] = useState<EnterpriseRetentionMode>(retentionMode);
   const [framework, setFramework] = useState<ComplianceFrameworkId>("SOC2");
@@ -338,6 +344,8 @@ export function SecurityWorkspaceView({
             ) : null}
           </section>
         </div>
+
+        <VaultAndWebhooksPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
       </div>
 
       <div className="border-t border-border">

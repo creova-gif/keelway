@@ -7,6 +7,7 @@
 import { ClusterNamespace } from "./cluster.js";
 import { ConnectionError, KeelwayError, mapHttpError } from "./errors.js";
 import { PlatformNamespace } from "./platform.js";
+import { parseSseFrames } from "./platform-runtime.js";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7420";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const SDK_USER_AGENT = "@keelway/sdk/1.0.0";
@@ -76,100 +77,6 @@ function buildResponsePayload(req, stream) {
         payload.draft_model = req.draft_model;
     }
     return payload;
-}
-/**
- * Chunk-boundary-safe Server-Sent Events (SSE) parser over a Web `ReadableStream`.
- * Handles arbitrary UTF-8 multi-byte splits, CRLF/LF line endings split across chunks,
- * `: keep-alive` comments, `event:` headers, and clean termination on `[DONE]`.
- */
-async function* parseSseFrames(stream) {
-    const reader = stream.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
-    let currentEvent;
-    let dataLines = [];
-    const flushFrame = () => {
-        if (dataLines.length === 0) {
-            currentEvent = undefined;
-            return null;
-        }
-        const joined = dataLines.join("\n").trim();
-        const evt = currentEvent;
-        currentEvent = undefined;
-        dataLines = [];
-        if (!joined) {
-            return null;
-        }
-        if (joined === "[DONE]") {
-            return "DONE";
-        }
-        return { event: evt, data: joined };
-    };
-    const processLine = (rawLine) => {
-        const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-        if (line === "") {
-            return flushFrame();
-        }
-        if (line.startsWith(":")) {
-            return null;
-        }
-        if (line.startsWith("event:")) {
-            currentEvent = line.slice(6).trim();
-            return null;
-        }
-        if (line.startsWith("data:")) {
-            const value = line.slice(5).trimStart();
-            if (value.trim() === "[DONE]" && dataLines.length === 0) {
-                currentEvent = undefined;
-                return "DONE";
-            }
-            dataLines.push(value);
-            return null;
-        }
-        return null;
-    };
-    try {
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) {
-                buffer += decoder.decode();
-                break;
-            }
-            if (value) {
-                buffer += decoder.decode(value, { stream: true });
-            }
-            let newlineIdx = buffer.indexOf("\n");
-            while (newlineIdx !== -1) {
-                const rawLine = buffer.slice(0, newlineIdx);
-                buffer = buffer.slice(newlineIdx + 1);
-                const result = processLine(rawLine);
-                if (result === "DONE") {
-                    await reader.cancel().catch(() => undefined);
-                    return;
-                }
-                if (result !== null) {
-                    yield result;
-                }
-                newlineIdx = buffer.indexOf("\n");
-            }
-        }
-        if (buffer.length > 0) {
-            const trailingResult = processLine(buffer);
-            if (trailingResult === "DONE") {
-                return;
-            }
-            if (trailingResult !== null) {
-                yield trailingResult;
-            }
-        }
-        const finalFrame = flushFrame();
-        if (finalFrame !== null && finalFrame !== "DONE") {
-            yield finalFrame;
-        }
-    }
-    finally {
-        reader.releaseLock();
-    }
 }
 function createTimeoutController(timeoutMs, externalSignal) {
     const controller = new AbortController();
@@ -473,7 +380,7 @@ export class KeelwayClient {
                 });
             },
         };
-        this.platform = new PlatformNamespace((method, path, params) => this.requestJson(method, path, params));
+        this.platform = new PlatformNamespace((method, path, params) => this.requestJson(method, path, params), (method, path, params) => this.requestSseFrames(method, path, params));
         this.cluster = new ClusterNamespace((method, path, params) => this.requestJson(method, path, params));
     }
     /**
@@ -574,16 +481,17 @@ export class KeelwayClient {
             handle.cleanup();
         }
     }
-    async *streamChatCompletions(request, options) {
-        const url = this.buildUrl("/v1/chat/completions");
-        const headers = this.buildHeaders(options?.headers, true, true);
-        const effectiveTimeoutMs = options?.timeoutMs ?? this.timeoutMs;
-        const handle = createTimeoutController(effectiveTimeoutMs, options?.signal);
+    async *requestSseFrames(method, path, params = {}) {
+        const url = this.buildUrl(path, params.query);
+        const hasBody = params.body !== undefined;
+        const headers = this.buildHeaders(params.options?.headers, hasBody, true);
+        const effectiveTimeoutMs = params.options?.timeoutMs ?? this.timeoutMs;
+        const handle = createTimeoutController(effectiveTimeoutMs, params.options?.signal);
         try {
             const response = await this.fetchImpl(url, {
-                method: "POST",
+                method,
                 headers,
-                body: JSON.stringify(buildChatPayload(request, true)),
+                body: hasBody ? JSON.stringify(params.body) : undefined,
                 signal: handle.signal,
             });
             if (!response.ok) {
@@ -594,8 +502,7 @@ export class KeelwayClient {
                 return;
             }
             for await (const frame of parseSseFrames(response.body)) {
-                const parsed = JSON.parse(frame.data);
-                yield parsed;
+                yield frame;
             }
         }
         catch (err) {
@@ -605,38 +512,24 @@ export class KeelwayClient {
             handle.cleanup();
         }
     }
+    async *streamChatCompletions(request, options) {
+        for await (const frame of this.requestSseFrames("POST", "/v1/chat/completions", {
+            body: buildChatPayload(request, true),
+            options,
+        })) {
+            yield JSON.parse(frame.data);
+        }
+    }
     async *streamResponses(request, options) {
-        const url = this.buildUrl("/v1/responses");
-        const headers = this.buildHeaders(options?.headers, true, true);
-        const effectiveTimeoutMs = options?.timeoutMs ?? this.timeoutMs;
-        const handle = createTimeoutController(effectiveTimeoutMs, options?.signal);
-        try {
-            const response = await this.fetchImpl(url, {
-                method: "POST",
-                headers,
-                body: JSON.stringify(buildResponsePayload(request, true)),
-                signal: handle.signal,
-            });
-            if (!response.ok) {
-                const errBody = await response.text();
-                throw mapHttpError(response.status, errBody);
+        for await (const frame of this.requestSseFrames("POST", "/v1/responses", {
+            body: buildResponsePayload(request, true),
+            options,
+        })) {
+            const parsed = JSON.parse(frame.data);
+            if (frame.event && !parsed.event) {
+                parsed.event = frame.event;
             }
-            if (!response.body) {
-                return;
-            }
-            for await (const frame of parseSseFrames(response.body)) {
-                const parsed = JSON.parse(frame.data);
-                if (frame.event && !parsed.event) {
-                    parsed.event = frame.event;
-                }
-                yield parsed;
-            }
-        }
-        catch (err) {
-            this.mapTransportException(err, handle, effectiveTimeoutMs);
-        }
-        finally {
-            handle.cleanup();
+            yield parsed;
         }
     }
 }

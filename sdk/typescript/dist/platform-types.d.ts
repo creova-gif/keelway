@@ -327,4 +327,291 @@ export interface PlatformExtensionListResponse {
     total: number;
     [key: string]: unknown;
 }
+export interface ListDocsParams {
+    workspace_id?: string;
+    diataxis_kind?: string;
+}
+export interface UpsertDocRequest {
+    title: string;
+    diataxis_kind?: string;
+    summary?: string;
+    body?: string;
+    linked_prd_id?: string | null;
+    workspace_id?: string;
+}
+export interface PlatformDocRecord {
+    id: string;
+    title: string;
+    diataxis_kind: string;
+    summary: string;
+    body: string;
+    linked_prd_id?: string | null;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+export interface PlatformDocListResponse {
+    workspace_id: string;
+    count: number;
+    docs: PlatformDocRecord[];
+    [key: string]: unknown;
+}
+export interface UpdateIssueRequest {
+    workspace_id?: string;
+    title?: string;
+    status?: string;
+    priority?: string;
+    sprint_id?: string;
+    prd_id?: string | null;
+    assignee_agent?: string;
+    description?: string;
+    dependencies?: string[];
+}
+export interface CreateFeedbackRequest {
+    persona: string;
+    quote: string;
+    impact_score?: number;
+    linked_prd_id?: string | null;
+    workspace_id?: string;
+}
+export interface PlatformFeedbackRecord {
+    id: string;
+    persona: string;
+    quote: string;
+    impact_score: number;
+    linked_prd_id?: string | null;
+    created_at?: string;
+    [key: string]: unknown;
+}
+export interface PlatformFeedbackListResponse {
+    workspace_id: string;
+    feedback: PlatformFeedbackRecord[];
+    count: number;
+    total: number;
+    [key: string]: unknown;
+}
+export interface WorkspaceSecurityScanRequest {
+    target_name?: string;
+    target_path?: string;
+    content?: string;
+    snippet?: string;
+    write_paths?: string[];
+    workspace_id?: string;
+}
+export interface WorkspaceSecurityScanReport {
+    workspace_id: string;
+    target_name: string;
+    passed: boolean;
+    risk_grade: string;
+    findings: MarketplaceSecurityFinding[];
+    findings_count: number;
+    manifest_sha256?: string;
+    scanned_at?: string;
+    [key: string]: unknown;
+}
+export type RbacRole = "owner" | "admin" | "builder" | "operator" | "viewer" | (string & {});
+export interface CreateWorkspaceRequest {
+    id?: string;
+    workspace_id?: string;
+    name: string;
+    branch?: string;
+    isolation_mode?: string;
+    description?: string;
+}
+export interface PlatformWorkspaceRecord {
+    id: string;
+    name: string;
+    branch?: string;
+    isolation_mode?: string;
+    created_at?: string;
+    [key: string]: unknown;
+}
+export interface PlatformWorkspaceListResponse {
+    workspaces: PlatformWorkspaceRecord[];
+    total: number;
+    [key: string]: unknown;
+}
+export interface UpsertRbacMemberRequest {
+    workspace_id?: string;
+    actor_id: string;
+    role: RbacRole;
+    display_name?: string;
+}
+export interface RbacMemberRecord {
+    workspace_id?: string;
+    actor_id: string;
+    role: RbacRole;
+    display_name?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+export interface RbacMemberListResponse {
+    workspace_id?: string;
+    members: RbacMemberRecord[];
+    roles: unknown[];
+    [key: string]: unknown;
+}
+export interface CheckRbacRequest {
+    workspace_id?: string;
+    actor_id?: string;
+    role?: RbacRole;
+    permission: string;
+}
+export interface CheckRbacResponse {
+    allowed: boolean;
+    role: string;
+    permission: string;
+    reason: string;
+    workspace_id?: string;
+    actor_id?: string;
+    [key: string]: unknown;
+}
+export interface ListSecretsParams {
+    workspace_id?: string;
+    namespace?: string;
+}
+export interface PutSecretRequest {
+    name: string;
+    secret_value: string;
+    workspace_id?: string;
+    namespace?: string;
+    description?: string;
+}
+export interface RotateSecretRequest {
+    secret_value: string;
+    workspace_id?: string;
+    namespace?: string;
+}
+export interface VaultSecretMetadata {
+    name: string;
+    workspace_id?: string;
+    namespace: string;
+    masked_preview: string;
+    fingerprint_sha256: string;
+    version: number;
+    updated_at: string;
+    [key: string]: unknown;
+}
+export interface VaultSecretListResponse {
+    workspace_id?: string;
+    secrets: VaultSecretMetadata[];
+    total?: number;
+    [key: string]: unknown;
+}
+export interface DeleteSecretResponse {
+    deleted?: boolean;
+    revoked?: boolean;
+    name: string;
+    workspace_id?: string;
+    [key: string]: unknown;
+}
+export interface CreateWebhookRequest {
+    url: string;
+    events?: string[];
+    description?: string;
+    secret?: string;
+    workspace_id?: string;
+}
+export interface WebhookRecord {
+    id: string;
+    workspace_id?: string;
+    url: string;
+    events: string[];
+    description?: string;
+    active?: boolean;
+    created_at?: string;
+    [key: string]: unknown;
+}
+export interface WebhookDeliveryRecord {
+    event_id?: string;
+    webhook_id?: string;
+    event_type?: string;
+    signature?: string;
+    timestamp?: number | string;
+    status?: string;
+    [key: string]: unknown;
+}
+export interface WebhookListResponse {
+    workspace_id?: string;
+    webhooks: WebhookRecord[];
+    deliveries?: WebhookDeliveryRecord[];
+    total?: number;
+    [key: string]: unknown;
+}
+export interface DeleteWebhookResponse {
+    deleted?: boolean;
+    webhook_id?: string;
+    id?: string;
+    [key: string]: unknown;
+}
+export interface TestWebhookRequest {
+    workspace_id?: string;
+    event_type?: string;
+    payload?: Record<string, unknown>;
+}
+export interface WebhookTestReceipt {
+    webhook_id: string;
+    event_id?: string;
+    signature: string;
+    timestamp?: number | string;
+    headers?: Record<string, string>;
+    delivered?: boolean;
+    [key: string]: unknown;
+}
+export interface VerifyWebhookRequest {
+    payload: string | Record<string, unknown>;
+    signature: string;
+    secret: string;
+    timestamp?: number | string;
+    tolerance_seconds?: number;
+}
+export interface VerifyWebhookResponse {
+    valid: boolean;
+    reason?: string;
+    [key: string]: unknown;
+}
+export type ExecutionKind = "agent" | "workflow" | (string & {});
+export interface StartExecutionRunRequest {
+    kind?: ExecutionKind;
+    target_id: string;
+    objective: string;
+    workspace_id?: string;
+    requires_p10?: boolean;
+    actor_role?: string;
+    metadata?: Record<string, unknown>;
+}
+export interface ExecutionStreamEvent {
+    type?: string;
+    event?: string;
+    run_id?: string;
+    seq?: number;
+    status?: string;
+    message?: string;
+    timestamp?: string;
+    [key: string]: unknown;
+}
+export interface ExecutionRunSnapshot {
+    run_id: string;
+    workspace_id?: string;
+    kind: string;
+    target_id: string;
+    objective: string;
+    status: string;
+    requires_p10?: boolean;
+    events: ExecutionStreamEvent[];
+    [key: string]: unknown;
+}
+export interface ResolveExecutionP10Request {
+    decision: "approve" | "deny" | (string & {});
+    approver?: string;
+    actor_id?: string;
+    role?: string;
+    reason?: string;
+    workspace_id?: string;
+}
+export interface StreamExecutionEventsOptions {
+    workspace_id?: string;
+    signal?: AbortSignal;
+    timeoutMs?: number;
+    headers?: Record<string, string>;
+}
 //# sourceMappingURL=platform-types.d.ts.map
