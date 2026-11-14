@@ -2,6 +2,3 @@
 # Keelway runtime and Python services run on dedicated OpenCore / cloud hosts.
 /*
 !/website
-!/vercel.json
-website/.next
-website/node_modules
