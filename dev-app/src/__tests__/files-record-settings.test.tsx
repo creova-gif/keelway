@@ -4,6 +4,8 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { FilesWorkspace } from "@/components/screens/FilesWorkspace";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
+import { SettingsWorkspace } from "@/components/screens/SettingsWorkspace";
+import { App } from "@/App";
 import { getFallbackAuditEntries, getFallbackMerkleProof } from "@/lib/apiFallbacks";
 import type {
   AuditMerkleProof,
@@ -694,5 +696,31 @@ describe("RecordAuditLedger (Screen 06)", () => {
       document.documentElement.setAttribute("data-theme", "dark");
       document.documentElement.setAttribute("dir", "ltr");
     }
+  });
+});
+
+describe("SettingsWorkspace & App Integration (Screens 08-11)", () => {
+  it("renders Settings sub-navigation (8 sections) with prompt-drift callout and mounts unified App shell", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<SettingsWorkspace />);
+
+    const nav = screen.getByRole("navigation", { name: /Settings sections/i });
+    expect(within(nav).getByRole("button", { name: /Permissions & Manifests/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("Prompt version changed: p-13 → p-14")).toBeInTheDocument();
+    expect(screen.getByText("Only a person, at this keyboard")).toBeInTheDocument();
+
+    await user.click(within(nav).getByRole("button", { name: /Network & Egress/i }));
+    expect(
+      await screen.findByText("Set to keep your use on this machine. Network use isn't measured yet."),
+    ).toBeInTheDocument();
+    unmount();
+
+    window.history.replaceState({}, "", "/app/?token=smoke-tok");
+    const appRender = render(<App />);
+    const rail = screen.getByRole("navigation", { name: /Primary navigation/i });
+    await user.click(within(rail).getByRole("button", { name: /^Settings$/i }));
+    expect(await screen.findByText("Prompt version changed: p-13 → p-14")).toBeInTheDocument();
+    expect(window.location.search).toContain("token=smoke-tok");
+    appRender.unmount();
   });
 });
