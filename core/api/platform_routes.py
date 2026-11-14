@@ -143,6 +143,41 @@ class WorkflowCreateRequest(BaseModel):
     nodes: Optional[List[Dict[str, Any]]] = None
 
 
+class IssuePatchRequest(BaseModel):
+    workspace_id: str = Field(default="default", min_length=1, max_length=128)
+    title: Optional[str] = Field(default=None, min_length=1, max_length=300)
+    status: Optional[str] = Field(default=None, max_length=32)
+    priority: Optional[str] = Field(default=None, max_length=32)
+    sprint_id: Optional[str] = Field(default=None, max_length=64)
+    prd_id: Optional[str] = Field(default=None, max_length=64)
+    assignee_agent: Optional[str] = Field(default=None, max_length=64)
+    description: Optional[str] = Field(default=None, max_length=8000)
+    dependencies: Optional[List[str]] = None
+
+
+class DocUpsertRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=300)
+    diataxis_kind: str = Field(default="reference", min_length=1, max_length=32)
+    summary: str = Field(default="", max_length=2000)
+    body: str = Field(default="", max_length=100_000)
+    linked_prd_id: Optional[str] = Field(default=None, max_length=64)
+    workspace_id: str = Field(default="default", min_length=1, max_length=128)
+
+
+class FeedbackCreateRequest(BaseModel):
+    persona: str = Field(..., min_length=1, max_length=128)
+    quote: str = Field(..., min_length=1, max_length=4000)
+    impact_score: float = Field(default=8.0, ge=0.0, le=10.0)
+    linked_prd_id: Optional[str] = Field(default=None, max_length=64)
+    workspace_id: str = Field(default="default", min_length=1, max_length=128)
+
+
+class WorkspaceSecurityScanRequest(BaseModel):
+    target_name: str = Field(default="workspace-snippet", min_length=1, max_length=256)
+    content: str = Field(..., max_length=200_000)
+    workspace_id: str = Field(default="default", min_length=1, max_length=128)
+
+
 class NoCodeBlueprintRequest(BaseModel):
     idea: str = Field(..., min_length=1, max_length=4000)
     workspace_id: str = Field(default="default", min_length=1, max_length=128)
@@ -384,6 +419,24 @@ async def create_pm_issue(
     )
 
 
+@router.patch("/pm/issues/{issue_id}")
+async def patch_pm_issue(
+    issue_id: str,
+    req: IssuePatchRequest,
+    workspace_id: Optional[str] = Query(default=None),
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    patch_data = req.model_dump(exclude_unset=True)
+    target_ws = workspace_id or str(patch_data.pop("workspace_id", req.workspace_id))
+    try:
+        return hub.update_issue(workspace_id=target_ws, issue_id=issue_id, patch=patch_data)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @router.get("/product/prds")
 async def list_product_prds(
     workspace_id: str = Query(default="default"),
@@ -405,6 +458,98 @@ async def create_product_prd(
         summary=req.summary,
         workspace_id=req.workspace_id,
         acceptance_criteria=req.acceptance_criteria,
+    )
+
+
+@router.get("/product/feedback")
+async def list_product_feedback(
+    workspace_id: str = Query(default="default"),
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    items = hub.list_feedback(workspace_id=workspace_id)
+    return {"workspace_id": workspace_id, "feedback": items, "count": len(items), "total": len(items)}
+
+
+@router.post("/product/feedback", status_code=status.HTTP_201_CREATED)
+async def create_product_feedback(
+    req: FeedbackCreateRequest,
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    try:
+        return hub.create_feedback(
+            persona=req.persona,
+            quote=req.quote,
+            impact_score=req.impact_score,
+            linked_prd_id=req.linked_prd_id,
+            workspace_id=req.workspace_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/docs")
+async def list_workspace_docs(
+    workspace_id: str = Query(default="default"),
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    items = hub.list_docs(workspace_id=workspace_id)
+    return {"workspace_id": workspace_id, "count": len(items), "docs": items}
+
+
+@router.post("/docs", status_code=status.HTTP_201_CREATED)
+async def create_workspace_doc(
+    req: DocUpsertRequest,
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    try:
+        return hub.upsert_doc(
+            workspace_id=req.workspace_id,
+            doc_id=None,
+            title=req.title,
+            diataxis_kind=req.diataxis_kind,
+            summary=req.summary,
+            body=req.body,
+            linked_prd_id=req.linked_prd_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/docs/{doc_id}")
+async def put_workspace_doc(
+    doc_id: str,
+    req: DocUpsertRequest,
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    try:
+        return hub.upsert_doc(
+            workspace_id=req.workspace_id,
+            doc_id=doc_id,
+            title=req.title,
+            diataxis_kind=req.diataxis_kind,
+            summary=req.summary,
+            body=req.body,
+            linked_prd_id=req.linked_prd_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/security/scan")
+async def scan_workspace_security_route(
+    req: WorkspaceSecurityScanRequest,
+    _: Principal = Depends(current_principal),
+    hub: UnifiedWorkspaceHub = Depends(get_platform_hub),
+) -> Dict[str, Any]:
+    return hub.scan_workspace_security(
+        target_name=req.target_name,
+        content=req.content,
+        workspace_id=req.workspace_id,
     )
 
 

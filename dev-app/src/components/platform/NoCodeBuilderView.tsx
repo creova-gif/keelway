@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
-import type {
-  ExperienceMode,
-  GeneratedProjectBlueprint,
-  PlatformViewId,
+import {
+  generateLocalBlueprint,
+  type ExperienceMode,
+  type GeneratedProjectBlueprint,
+  type PlatformViewId,
 } from "@/lib/platformData";
 
 export interface NoCodeBuilderViewProps {
@@ -12,6 +13,14 @@ export interface NoCodeBuilderViewProps {
   latestBlueprint: GeneratedProjectBlueprint | null;
   onGenerateBlueprint: (idea: string, templateLabel: string) => void;
   onNavigateView: (view: PlatformViewId) => void;
+}
+
+interface PreviewRecordItem {
+  id: string;
+  requestor: string;
+  summary: string;
+  extraMeta: string;
+  approved: boolean;
 }
 
 const STARTER_TEMPLATES = [
@@ -32,6 +41,16 @@ const STARTER_TEMPLATES = [
   },
 ];
 
+const INITIAL_PREVIEW_RECORDS: PreviewRecordItem[] = [
+  {
+    id: "REQ-901",
+    requestor: "Maya Chen (Finance Ops)",
+    summary: "Q4 Sovereign GPU Cluster Renewal ($18,400)",
+    extraMeta: "Cost Center: INFRA-04",
+    approved: false,
+  },
+];
+
 export function NoCodeBuilderView({
   experienceMode,
   latestBlueprint,
@@ -40,11 +59,51 @@ export function NoCodeBuilderView({
 }: NoCodeBuilderViewProps): React.JSX.Element {
   const [selectedTemplate, setSelectedTemplate] = useState(STARTER_TEMPLATES[0]!.label);
   const [ideaPrompt, setIdeaPrompt] = useState(STARTER_TEMPLATES[0]!.prompt);
+  const [localBlueprint, setLocalBlueprint] = useState<GeneratedProjectBlueprint | null>(null);
+  const [showStarterPreview, setShowStarterPreview] = useState(false);
+
+  const [enableBudgetField, setEnableBudgetField] = useState(true);
+  const [enableDeptField, setEnableDeptField] = useState(true);
+  const [requestorName, setRequestorName] = useState("");
+  const [requestSummary, setRequestSummary] = useState("");
+  const [budgetCapValue, setBudgetCapValue] = useState("$4,500");
+  const [deptValue, setDeptValue] = useState("SEC-OPS");
+  const [previewRecords, setPreviewRecords] = useState<PreviewRecordItem[]>(INITIAL_PREVIEW_RECORDS);
+
+  const activeBlueprint = latestBlueprint ?? localBlueprint;
+  const previewVisible = Boolean(activeBlueprint) || showStarterPreview;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ideaPrompt.trim()) return;
-    onGenerateBlueprint(ideaPrompt.trim(), selectedTemplate);
+    const clean = ideaPrompt.trim();
+    if (!clean) return;
+    setLocalBlueprint(generateLocalBlueprint(clean, selectedTemplate, 0));
+    onGenerateBlueprint(clean, selectedTemplate);
+  };
+
+  const handleSubmitPreviewEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    const req = requestorName.trim() || "Workspace Operator";
+    const sum = requestSummary.trim() || "Standard governed workflow request";
+    const metaParts: string[] = [];
+    if (enableBudgetField && budgetCapValue.trim()) metaParts.push(`Cap: ${budgetCapValue.trim()}`);
+    if (enableDeptField && deptValue.trim()) metaParts.push(`Dept: ${deptValue.trim()}`);
+    setPreviewRecords((prev) => [
+      {
+        id: `REQ-${901 + prev.length}`,
+        requestor: req,
+        summary: sum,
+        extraMeta: metaParts.join(" · ") || "Standard Scope",
+        approved: false,
+      },
+      ...prev,
+    ]);
+    setRequestorName("");
+    setRequestSummary("");
+  };
+
+  const handleApproveEntry = (id: string) => {
+    setPreviewRecords((prev) => prev.map((rec) => (rec.id === id ? { ...rec, approved: true } : rec)));
   };
 
   return (
@@ -60,14 +119,16 @@ export function NoCodeBuilderView({
               : "Fast-prototype structured PRDs, Linear-style sprint issues, KFlow DAGs, and multi-agent execution plans directly into the active workspace."}
           </p>
         </div>
-        <SemanticBadge kind="ai" detail="Shared Workspace Sync" />
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" aria-pressed={previewVisible} onClick={() => setShowStarterPreview((prev) => !prev)}>
+            Preview Starter App
+          </Button>
+          <SemanticBadge kind="ai" detail="Shared Workspace Sync" />
+        </div>
       </div>
 
-      {/* Starter Templates */}
       <section aria-label="Starter app templates" className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-dim">
-          Starter Blueprints
-        </h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-dim">Starter Blueprints</h2>
         <div className="grid gap-2.5 md:grid-cols-3">
           {STARTER_TEMPLATES.map((tpl) => {
             const active = selectedTemplate === tpl.label;
@@ -81,9 +142,7 @@ export function NoCodeBuilderView({
                   setIdeaPrompt(tpl.prompt);
                 }}
                 className={`rounded-md border p-3 text-start transition-colors ${
-                  active
-                    ? "border-teal-accent/60 bg-teal-surface text-fg"
-                    : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
+                  active ? "border-teal-accent/60 bg-teal-surface text-fg" : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
                 }`}
               >
                 <div className="text-xs font-semibold text-fg">{tpl.label}</div>
@@ -94,12 +153,7 @@ export function NoCodeBuilderView({
         </div>
       </section>
 
-      {/* Natural-Language Prompt Studio */}
-      <form
-        onSubmit={handleSubmit}
-        aria-label="No-Code blueprint generator"
-        className="space-y-3 rounded-md border border-border-strong bg-surface p-4"
-      >
+      <form onSubmit={handleSubmit} aria-label="No-Code blueprint generator" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <label className="flex flex-col gap-1.5 text-xs font-medium text-fg">
           <span>Describe your app or workflow idea</span>
           <textarea
@@ -115,92 +169,172 @@ export function NoCodeBuilderView({
           <span className="font-mono text-[11px] text-fg-dim">
             {`Template: ${selectedTemplate} · Production publish gated by P-10 human sign-off`}
           </span>
-          <Button type="submit" variant="primary">
-            Generate Project Blueprint
-          </Button>
+          <Button type="submit" variant="primary">Generate Project Blueprint</Button>
         </div>
       </form>
 
-      {/* Live Generated Blueprint Artifacts */}
-      {latestBlueprint ? (
-        <section
-          aria-label="Generated project blueprint"
-          className="space-y-4 rounded-md border border-teal-accent/45 bg-surface p-4"
-        >
+      {activeBlueprint ? (
+        <section aria-label="Generated project blueprint" className="space-y-4 rounded-md border border-teal-accent/45 bg-surface p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
             <div>
-              <span className="font-mono text-[11px] uppercase text-teal-accent">
-                Committed to Shared Workspace
-              </span>
-              <h2 className="text-sm font-semibold text-fg">{latestBlueprint.prd.title}</h2>
+              <span className="font-mono text-[11px] uppercase text-teal-accent">Committed to Shared Workspace</span>
+              <h2 className="text-sm font-semibold text-fg">{activeBlueprint.prd.title}</h2>
             </div>
             <SemanticBadge kind="passed" labelOverride="Synced to Product, PM, Automation & Agents" />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            {/* 1. PRD Card */}
             <article className="space-y-2 rounded-sm border border-border bg-chrome p-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-fg">
-                  {`1. Structured PRD (${latestBlueprint.prd.id})`}
-                </h3>
-                <Button size="sm" variant="ghost" onClick={() => onNavigateView("product")}>
-                  Open in Product
-                </Button>
+                <h3 className="text-xs font-semibold text-fg">{`1. Structured PRD (${activeBlueprint.prd.id})`}</h3>
+                <Button size="sm" variant="ghost" onClick={() => onNavigateView("product")}>Open in Product</Button>
               </div>
-              <p className="text-xs text-fg-muted">{latestBlueprint.prd.problemStatement}</p>
+              <p className="text-xs text-fg-muted">{activeBlueprint.prd.problemStatement}</p>
             </article>
 
-            {/* 2. Sprint Issues Card */}
             <article className="space-y-2 rounded-sm border border-border bg-chrome p-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-fg">2. Sprint Issues Created</h3>
-                <Button size="sm" variant="ghost" onClick={() => onNavigateView("pm")}>
-                  Open in Project Manager
-                </Button>
+                <Button size="sm" variant="ghost" onClick={() => onNavigateView("pm")}>Open in Project Manager</Button>
               </div>
               <ul className="space-y-1 text-xs text-fg-muted">
-                {latestBlueprint.issues.map((iss) => (
-                  <li key={iss.id}>
-                    <code className="font-mono text-teal-accent">{iss.id}</code> — {iss.title}
-                  </li>
+                {activeBlueprint.issues.map((iss) => (
+                  <li key={iss.id}><code className="font-mono text-teal-accent">{iss.id}</code> — {iss.title}</li>
                 ))}
               </ul>
             </article>
 
-            {/* 3. Automation Workflow Card */}
             <article className="space-y-2 rounded-sm border border-border bg-chrome p-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-fg">
-                  {`3. Automation Workflow (${latestBlueprint.workflow.id})`}
-                </h3>
-                <Button size="sm" variant="ghost" onClick={() => onNavigateView("automation")}>
-                  Open in Automation
-                </Button>
+                <h3 className="text-xs font-semibold text-fg">{`3. Automation Workflow (${activeBlueprint.workflow.id})`}</h3>
+                <Button size="sm" variant="ghost" onClick={() => onNavigateView("automation")}>Open in Automation</Button>
               </div>
-              <div className="font-mono text-[11px] text-fg-muted">
-                {latestBlueprint.workflow.nodes.map((n) => n.label).join(" → ")}
-              </div>
+              <div className="font-mono text-[11px] text-fg-muted">{activeBlueprint.workflow.nodes.map((n) => n.label).join(" → ")}</div>
             </article>
 
-            {/* 4. Agent Squad & Governed Deployment Preview */}
             <article className="space-y-2 rounded-sm border border-border bg-chrome p-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-fg">
-                  4. Assigned Squad &amp; Governed Preview
-                </h3>
-                <Button size="sm" variant="ghost" onClick={() => onNavigateView("agents")}>
-                  Open in Agents
-                </Button>
+                <h3 className="text-xs font-semibold text-fg">4. Assigned Squad &amp; Governed Preview</h3>
+                <Button size="sm" variant="ghost" onClick={() => onNavigateView("agents")}>Open in Agents</Button>
               </div>
-              <div className="text-xs text-fg">{latestBlueprint.assignedTeamName}</div>
-              <div className="font-mono text-[11px] text-teal-accent">
-                {`Preview: ${latestBlueprint.previewUrl}`}
-              </div>
-              <div className="font-mono text-[10px] text-ochre">
-                P-10 Human Approval Required before external production promotion
-              </div>
+              <div className="text-xs text-fg">{activeBlueprint.assignedTeamName}</div>
+              <div className="font-mono text-[11px] text-teal-accent">{`Preview: ${activeBlueprint.previewUrl}`}</div>
+              <div className="font-mono text-[10px] text-ochre">P-10 Human Approval Required before external production promotion</div>
             </article>
+          </div>
+        </section>
+      ) : null}
+
+      {previewVisible ? (
+        <section aria-label="Interactive live app preview" className="space-y-4 rounded-md border border-border-strong bg-surface p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-fg">
+                {`Interactive Live App Preview · ${activeBlueprint?.prd.title ?? selectedTemplate}`}
+              </h2>
+              <p className="font-mono text-[11px] text-teal-accent">
+                {activeBlueprint?.previewUrl ?? "http://127.0.0.1:7420/preview/starter-sandbox"}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {([
+                { view: "product", label: "Jump to Product" },
+                { view: "pm", label: "Jump to Project Manager" },
+                { view: "automation", label: "Jump to Automation" },
+                { view: "agents", label: "Jump to Agents" },
+              ] as const).map((nav) => (
+                <Button key={nav.view} size="sm" variant="ghost" onClick={() => onNavigateView(nav.view)}>
+                  {nav.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 rounded-xs border border-border bg-chrome px-3 py-2 text-xs text-fg">
+            <span className="font-mono text-[11px] text-fg-dim">Customizable App Fields:</span>
+            <label className="inline-flex items-center gap-1.5">
+              <input type="checkbox" checked={enableBudgetField} onChange={(e) => setEnableBudgetField(e.target.checked)} />
+              <span>Budget Cap Field</span>
+            </label>
+            <label className="inline-flex items-center gap-1.5">
+              <input type="checkbox" checked={enableDeptField} onChange={(e) => setEnableDeptField(e.target.checked)} />
+              <span>Department Cost Center</span>
+            </label>
+          </div>
+
+          <form onSubmit={handleSubmitPreviewEntry} className="grid gap-2.5 md:grid-cols-4">
+            <label className="flex flex-col gap-1 text-xs text-fg-muted">
+              <span>Requestor name</span>
+              <input
+                type="text"
+                aria-label="Preview requestor name"
+                value={requestorName}
+                onChange={(e) => setRequestorName(e.target.value)}
+                placeholder="e.g. Jordan Patel"
+                className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-fg-muted md:col-span-2">
+              <span>Request summary</span>
+              <input
+                type="text"
+                aria-label="Preview request summary"
+                value={requestSummary}
+                onChange={(e) => setRequestSummary(e.target.value)}
+                placeholder="e.g. Approve annual SOC2 auditor access scope"
+                className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg"
+              />
+            </label>
+            {enableBudgetField ? (
+              <label className="flex flex-col gap-1 text-xs text-fg-muted">
+                <span>Budget cap</span>
+                <input type="text" aria-label="Preview budget cap" value={budgetCapValue} onChange={(e) => setBudgetCapValue(e.target.value)} className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 font-mono text-xs text-fg" />
+              </label>
+            ) : null}
+            {enableDeptField ? (
+              <label className="flex flex-col gap-1 text-xs text-fg-muted">
+                <span>Cost center</span>
+                <input type="text" aria-label="Preview cost center" value={deptValue} onChange={(e) => setDeptValue(e.target.value)} className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 font-mono text-xs text-fg" />
+              </label>
+            ) : null}
+            <div className="flex items-end">
+              <Button type="submit" size="sm" variant="primary">Submit Test Entry</Button>
+            </div>
+          </form>
+
+          <div className="overflow-x-auto rounded-xs border border-border">
+            <table aria-label="Live preview records" className="w-full border-collapse text-start text-xs">
+              <thead className="border-b border-border bg-chrome text-fg-muted">
+                <tr>
+                  <th scope="col" className="px-3 py-2 text-start font-semibold">ID</th>
+                  <th scope="col" className="px-3 py-2 text-start font-semibold">Requestor</th>
+                  <th scope="col" className="px-3 py-2 text-start font-semibold">Summary</th>
+                  <th scope="col" className="px-3 py-2 text-start font-semibold">Governance Status</th>
+                  <th scope="col" className="px-3 py-2 text-start font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border bg-canvas">
+                {previewRecords.map((rec) => (
+                  <tr key={rec.id}>
+                    <td className="px-3 py-2 font-mono text-teal-accent">{rec.id}</td>
+                    <td className="px-3 py-2 text-fg">{rec.requestor}</td>
+                    <td className="px-3 py-2 text-fg-muted">{`${rec.summary} (${rec.extraMeta})`}</td>
+                    <td className="px-3 py-2 font-mono text-[11px]">
+                      {rec.approved ? <span className="text-ok">Approved · Record Logged</span> : <span className="text-ochre">Pending P-10 Approval</span>}
+                    </td>
+                    <td className="px-3 py-2">
+                      {!rec.approved ? (
+                        <Button size="sm" variant="secondary" aria-label={`Approve Entry ${rec.id}`} onClick={() => handleApproveEntry(rec.id)}>
+                          Approve Entry
+                        </Button>
+                      ) : (
+                        <span className="font-mono text-[10px] text-fg-dim">Signed</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       ) : null}

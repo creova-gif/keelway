@@ -20,6 +20,7 @@ import uuid
 
 from core.platform.marketplace import MarketplaceSecurityScanner
 from core.platform.persistence import SQLitePlatformStore
+from core.security.redact import redact_text
 
 
 PLATFORM_VIEWS: List[Dict[str, str]] = [
@@ -121,7 +122,12 @@ SDLC_WORKFLOW_STAGES: List[Dict[str, Any]] = [
 ]
 
 SUPPORTED_EXTENSION_TYPES = {"skill", "tool", "webhook", "workflow_rule", "ui_panel"}
+VALID_DIATAXIS_KINDS = {"tutorial", "how_to", "reference", "explanation"}
+_ALLOWED_ISSUE_PATCH_FIELDS = {
+    "title", "status", "priority", "sprint_id", "prd_id", "assignee_agent", "description", "dependencies"
+}
 _SENSITIVE_KEYWORDS = re.compile(r"(?i)\b(?:deploy|prod|production|migration|drop|delete|egress|external|publish)\b")
+_LIVE_KEY_PATTERN = re.compile(r"\b(?:sk|pk|rk)[-_](?:live|test|proj|ant)[-_][A-Za-z0-9_-]{4,}")
 
 
 def _next_record_id(prefix: str, items: List[Dict[str, Any]]) -> str:
@@ -251,24 +257,26 @@ class UnifiedWorkspaceHub:
                 ],
                 "created_at": now,
             }],
-            "docs": [{
-                "id": "DOC-101",
-                "title": "Cross-Agent Engineering Contract (AGENTS.md)",
-                "diataxis_kind": "reference",
-                "summary": "Shared workflow across Antigravity, Claude Code, Devin, and gstack.",
-            }],
+            "docs": [
+                {"id": "DOC-101", "title": "Cross-Agent Engineering Contract (AGENTS.md)", "diataxis_kind": "reference", "summary": "Shared workflow across Antigravity, Claude Code, Devin, and gstack.", "body": "# Cross-Agent Contract\n\n```bash\n./scripts/verify_engineering_gates.sh\n```\n\n- [x] P-10 human-only gates enforced\n- [x] Deterministic file-size caps verified", "linked_prd_id": "PRD-101", "updated_at": now},
+                {"id": "DOC-102", "title": "Quickstart: Launch a Local-First Multi-Agent Squad", "diataxis_kind": "tutorial", "summary": "Step-by-step walkthrough from plain-language PRD to P-10 gated team execution.", "body": "# Local-First Squad Tutorial\n\n```python\nrun = hub.dispatch_agent_team('idea-to-production-squad', 'Stage preview build')\n```\n\n- [x] Select workspace & active model\n- [ ] Approve P-10 release checkpoint", "linked_prd_id": "PRD-101", "updated_at": now},
+                {"id": "DOC-103", "title": "How-To: Configure BYOM API Keys & DLP Guardrails", "diataxis_kind": "how_to", "summary": "Operational runbook for commercial API keys and zero-consumer-cookie enforcement.", "body": "# Configure BYOM & DLP\n\n```json\n{\"provider\": \"openai\", \"credential_kind\": \"api_key\"}\n```\n\n- [x] Reject consumer web cookies\n- [x] Run `/v1/platform/security/scan` preflight", "linked_prd_id": "PRD-101", "updated_at": now},
+                {"id": "DOC-104", "title": "Architecture: SQLite WAL Store & Hash-Chained Record Ledger", "diataxis_kind": "explanation", "summary": "Design rationale behind crash-safe WAL persistence and Ed25519 manifest verification.", "body": "# Sovereign Persistence Architecture\n\n```sql\nPRAGMA journal_mode=WAL;\nPRAGMA synchronous=NORMAL;\n```\n\n- [x] Zero duplicate seed hydration\n- [x] Ed25519 tamper-evident manifests", "linked_prd_id": "PRD-101", "updated_at": now},
+            ],
+            "feedback": [{"id": "FB-101", "persona": "Staff Platform Engineer", "quote": "Linking PRDs, Diataxis runbooks, and P-10 gated KFlow pipelines in one sovereign hub eliminated release drift.", "impact_score": 9.2, "linked_prd_id": "PRD-101", "created_at": now}],
             "deployments": [{"id": "DEP-101", "environment": "local-sovereign", "status": "healthy", "ttft_p95_ms": 185, "slo_met": True}],
             "team_runs": [],
         }
 
-    _META_KEYS = ("project_name", "branch", "active_model_id", "experience_mode", "sprints", "docs", "deployments", "team_runs")
+    _META_KEYS = ("project_name", "branch", "active_model_id", "experience_mode", "sprints", "deployments", "team_runs")
+    _RECORD_COLLECTIONS = ("prds", "issues", "workflows", "docs", "feedback")
 
     def _persist_workspace_to_sqlite(self, ws: Dict[str, Any]) -> None:
         if self.store is None:
             return
         wid = ws["workspace_id"]
         self.store.upsert_workspace_meta(wid, {k: ws[k] for k in self._META_KEYS})
-        for col in ("prds", "issues", "workflows"):
+        for col in self._RECORD_COLLECTIONS:
             for rec in ws[col]:
                 self.store.upsert_record(wid, col, rec["id"], rec)
 
@@ -276,17 +284,14 @@ class UnifiedWorkspaceHub:
         if self.store is None:
             return None
         meta = self.store.get_workspace_meta(workspace_id)
-        prds = self.store.list_records(workspace_id, "prds")
-        issues = self.store.list_records(workspace_id, "issues")
-        workflows = self.store.list_records(workspace_id, "workflows")
-        if meta is None and not prds and not issues and not workflows:
+        cols = {col: self.store.list_records(workspace_id, col) for col in self._RECORD_COLLECTIONS}
+        if meta is None and not any(cols.values()):
             return None
         base = self._seed_workspace_template(workspace_id)
         if meta:
             base.update({k: meta[k] for k in self._META_KEYS if k in meta})
-        base["prds"] = prds or base["prds"]
-        base["issues"] = issues or base["issues"]
-        base["workflows"] = workflows or base["workflows"]
+        for col, rows in cols.items():
+            base[col] = rows or base[col]
         return base
 
     def _ensure_workspace(self, workspace_id: str) -> Dict[str, Any]:
@@ -298,7 +303,12 @@ class UnifiedWorkspaceHub:
                 seeded = self._seed_workspace_template(workspace_id)
                 self._workspaces[workspace_id] = seeded
                 self._persist_workspace_to_sqlite(seeded)
-        return self._workspaces[workspace_id]
+        ws = self._workspaces[workspace_id]
+        if "feedback" not in ws or "docs" not in ws:
+            defaults = self._seed_workspace_template(workspace_id)
+            ws.setdefault("docs", defaults["docs"])
+            ws.setdefault("feedback", defaults["feedback"])
+        return ws
 
     def _load(self) -> None:
         if self.storage_path and self.storage_path.exists():
@@ -343,6 +353,7 @@ class UnifiedWorkspaceHub:
                 "prds": len(ws["prds"]),
                 "workflows": len(ws["workflows"]),
                 "docs": len(ws["docs"]),
+                "feedback": len(ws["feedback"]),
                 "deployments": len(ws["deployments"]),
                 "pending_p10_approvals": pending_p10,
                 "installed_packages": len(installed_packages or []),
@@ -425,14 +436,8 @@ class UnifiedWorkspaceHub:
         return [dict(i) for i in self._ensure_workspace(workspace_id)["issues"]]
 
     def create_issue(
-        self,
-        title: str,
-        workspace_id: str = "default",
-        priority: str = "medium",
-        status: str = "todo",
-        assignee_agent: str = "feature-coder",
-        prd_id: Optional[str] = None,
-        sprint_id: str = "SPR-01",
+        self, title: str, workspace_id: str = "default", priority: str = "medium", status: str = "todo",
+        assignee_agent: str = "feature-coder", prd_id: Optional[str] = None, sprint_id: str = "SPR-01",
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
         issue = {
@@ -446,6 +451,31 @@ class UnifiedWorkspaceHub:
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         ws["issues"].append(issue)
+        if self.store is not None:
+            self.store.upsert_record(workspace_id, "issues", issue["id"], issue)
+        self._save(workspace_id)
+        return dict(issue)
+
+    def update_issue(
+        self, workspace_id: str = "default", issue_id: str = "", patch: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        ws = self._ensure_workspace(workspace_id)
+        issue = next((i for i in ws["issues"] if i["id"] == issue_id), None)
+        if issue is None:
+            raise KeyError(f"Issue '{issue_id}' not found in workspace '{workspace_id}'.")
+        for key, val in (patch or {}).items():
+            if key not in _ALLOWED_ISSUE_PATCH_FIELDS:
+                continue
+            if key == "title":
+                clean_title = str(val or "").strip()
+                if not clean_title:
+                    raise ValueError("Issue 'title' cannot be empty.")
+                issue["title"] = clean_title
+            elif key == "dependencies":
+                issue["dependencies"] = list(val or [])
+            else:
+                issue[key] = val
+        issue["updated_at"] = datetime.now(timezone.utc).isoformat()
         if self.store is not None:
             self.store.upsert_record(workspace_id, "issues", issue["id"], issue)
         self._save(workspace_id)
@@ -484,6 +514,77 @@ class UnifiedWorkspaceHub:
 
     def list_docs(self, workspace_id: str = "default") -> List[Dict[str, Any]]:
         return [dict(d) for d in self._ensure_workspace(workspace_id)["docs"]]
+
+    def upsert_doc(
+        self, workspace_id: str = "default", *, doc_id: Optional[str] = None, title: str,
+        diataxis_kind: str = "reference", summary: str = "", body: str = "", linked_prd_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        clean_title = str(title or "").strip()
+        if not clean_title:
+            raise ValueError("Document 'title' is required.")
+        kind = str(diataxis_kind or "reference").strip().lower()
+        if kind not in VALID_DIATAXIS_KINDS:
+            raise ValueError(f"Invalid diataxis_kind '{kind}'. Expected one of {sorted(VALID_DIATAXIS_KINDS)}.")
+        ws = self._ensure_workspace(workspace_id)
+        now = datetime.now(timezone.utc).isoformat()
+        clean_id = str(doc_id or "").strip()
+        existing = next((d for d in ws["docs"] if d["id"] == clean_id), None) if clean_id else None
+        if existing is not None:
+            existing.update({"title": clean_title, "diataxis_kind": kind, "summary": summary.strip(), "body": body, "linked_prd_id": linked_prd_id, "updated_at": now})
+            doc = existing
+        else:
+            doc = {"id": clean_id or _next_record_id("DOC", ws["docs"]), "title": clean_title, "diataxis_kind": kind, "summary": summary.strip(), "body": body, "linked_prd_id": linked_prd_id, "updated_at": now}
+            ws["docs"].append(doc)
+        if self.store is not None:
+            self.store.upsert_record(workspace_id, "docs", doc["id"], doc)
+        self._save(workspace_id)
+        return dict(doc)
+
+    def list_feedback(self, workspace_id: str = "default") -> List[Dict[str, Any]]:
+        return [dict(f) for f in self._ensure_workspace(workspace_id)["feedback"]]
+
+    def create_feedback(
+        self, persona: str, quote: str, impact_score: float = 8.0,
+        linked_prd_id: Optional[str] = None, workspace_id: str = "default",
+    ) -> Dict[str, Any]:
+        clean_persona, clean_quote = str(persona or "").strip(), str(quote or "").strip()
+        if not clean_persona or not clean_quote:
+            raise ValueError("Feedback 'persona' and 'quote' must be non-empty.")
+        score = round(float(impact_score), 2)
+        if not (0.0 <= score <= 10.0):
+            raise ValueError("Feedback 'impact_score' must be between 0.0 and 10.0.")
+        ws = self._ensure_workspace(workspace_id)
+        entry = {
+            "id": _next_record_id("FB", ws["feedback"]), "persona": clean_persona, "quote": clean_quote,
+            "impact_score": score, "linked_prd_id": linked_prd_id, "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        ws["feedback"].append(entry)
+        if self.store is not None:
+            self.store.upsert_record(workspace_id, "feedback", entry["id"], entry)
+        self._save(workspace_id)
+        return dict(entry)
+
+    def scan_workspace_security(self, target_name: str, content: str, workspace_id: str = "default") -> Dict[str, Any]:
+        clean_target = str(target_name or "workspace-artifact").strip() or "workspace-artifact"
+        raw_content = str(content or "")
+        report = self.extensions.scanner.scan_package(
+            {"id": "ws-scan", "name": clean_target, "description": raw_content, "permissions": {"read_paths": ["./"], "write_paths": [], "network": "none"}}
+        )
+        findings = [dict(f) for f in report.get("findings", [])]
+        redacted, redact_hits = redact_text(raw_content)
+        if (redacted != raw_content or redact_hits > 0 or _LIVE_KEY_PATTERN.search(raw_content)) and not any(
+            f.get("category") == "hardcoded_secret" for f in findings
+        ):
+            findings.append({
+                "category": "hardcoded_secret", "rule_id": "workspace_secret_detected", "severity": "critical",
+                "field": "content", "message": f"Detected embedded secret or API key in '{clean_target}'.",
+            })
+        passed = len(findings) == 0
+        return {
+            "workspace_id": workspace_id, "target_name": clean_target, "passed": passed,
+            "risk_grade": "A" if passed else "BLOCKED", "findings": findings, "findings_count": len(findings),
+            "manifest_sha256": report["manifest_sha256"], "scanned_at": report["scanned_at"],
+        }
 
     def list_deployments(self, workspace_id: str = "default") -> List[Dict[str, Any]]:
         return [dict(d) for d in self._ensure_workspace(workspace_id)["deployments"]]

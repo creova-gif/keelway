@@ -440,9 +440,9 @@ export function MarketplaceCatalogExplorer() {
               <Lock className="h-4 w-4 text-teal-accent" aria-hidden="true" />
               <span>Test Pre-Publish Security Scanner</span>
             </Link>
-            <Link href="/playground" className="kw-btn kw-btn-primary">
+            <Link href="/#quickstart" className="kw-btn kw-btn-primary">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
-              <span>Try in 10-View Playground</span>
+              <span>Launch in Local Dev Tool</span>
             </Link>
           </div>
         </div>

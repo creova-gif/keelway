@@ -5,7 +5,6 @@ import { track } from "@vercel/analytics";
 export type KeelwayAnalyticsEvent =
   | "cta_quickstart_clicked"
   | "cta_early_access_clicked"
-  | "cta_playground_clicked"
   | "cockpit_lens_switched"
   | "approval_gate_decision"
   | "architecture_layer_selected"
@@ -44,10 +43,6 @@ export type KeelwayAnalyticsEvent =
   | "manifest_drift_tested"
   | "marketplace_package_scanned"
   | "cli_tui_command_simulated"
-  | "playground_workflow_completed"
-  | "playground_mode_switched"
-  | "playground_blueprint_compiled"
-  | "playground_view_selected"
   | "pricing_byom_inspected";
 
 export type EvaluatedExperimentMap = Record<string, string | boolean | number>;

@@ -56,6 +56,7 @@ export type PmIssuePriority = "urgent" | "high" | "medium" | "low";
 export interface PmIssueItem {
   id: string;
   title: string;
+  description?: string;
   status: PmIssueStatus;
   priority: PmIssuePriority;
   sprint: string;
@@ -89,6 +90,8 @@ export interface WorkflowNodeItem {
   agentId: string;
   dependsOn: string[];
   status: "passed" | "failed" | "running" | "ready";
+  requiresP10?: boolean;
+  lastOutput?: string;
   errorDetail?: string;
 }
 
@@ -139,6 +142,9 @@ export interface DocGuideItem {
   title: string;
   summary: string;
   audience: "all" | "builder" | "non_coder";
+  body?: string;
+  updatedAt?: string;
+  linkedPrdId?: string;
 }
 
 export interface SdlcStageItem {
@@ -282,10 +288,10 @@ export const INITIAL_MULTI_AGENT_TEAMS: MultiAgentTeamItem[] = [
 ];
 
 export const INITIAL_PM_ISSUES: PmIssueItem[] = [
-  { id: "KEEL-101", title: "Enforce Marketplace pre-publish prompt-injection & shell scanner", status: "in_progress", priority: "urgent", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: [], assignedAgentId: "security-auditor", linkedPrdId: "PRD-01" },
-  { id: "KEEL-102", title: "Verify BYOM consumer-subscription fail-closed compliance notice", status: "in_review", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "pr-reviewer", linkedPrdId: "PRD-01" },
-  { id: "KEEL-103", title: "Wire Unified 10-View context bar with zero context loss", status: "todo", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "feature-coder", linkedPrdId: "PRD-02" },
-  { id: "KEEL-104", title: "Publish Diataxis onboarding guide for Guided Non-Coder studio", status: "backlog", priority: "medium", sprint: "Sprint 15 · Ecosystem", milestone: "v1.1 Unified GA", dependencies: ["KEEL-103"], assignedAgentId: "tech-writer", linkedPrdId: "PRD-02" },
+  { id: "KEEL-101", title: "Enforce Marketplace pre-publish prompt-injection & shell scanner", description: "Reject guardrail-bypass directives, dynamic eval/shell=True hooks, wildcard root writes, and embedded credentials prior to registry publication.", status: "in_progress", priority: "urgent", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: [], assignedAgentId: "security-auditor", linkedPrdId: "PRD-01" },
+  { id: "KEEL-102", title: "Verify BYOM consumer-subscription fail-closed compliance notice", description: "Block ChatGPT Plus/Pro and Claude Pro/Max session cookies while routing authorized API keys and self-hosted vLLM/Ollama endpoints with $0.00 markup.", status: "in_review", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "pr-reviewer", linkedPrdId: "PRD-01" },
+  { id: "KEEL-103", title: "Wire Unified 10-View context bar with zero context loss", description: "Keep workspace path, git branch, active OpenCore model, composer draft, and pending P-10 approvals synchronized across all 10 views.", status: "todo", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "feature-coder", linkedPrdId: "PRD-02" },
+  { id: "KEEL-104", title: "Publish Diataxis onboarding guide for Guided Non-Coder studio", description: "Author step-by-step plain-English blueprint synthesis and P-10 release approval walkthrough synchronized with PRD-02.", status: "backlog", priority: "medium", sprint: "Sprint 15 · Ecosystem", milestone: "v1.1 Unified GA", dependencies: ["KEEL-103"], assignedAgentId: "tech-writer", linkedPrdId: "PRD-02" },
 ];
 
 export const INITIAL_PRODUCT_PRDS: ProductPrdItem[] = [
@@ -330,8 +336,8 @@ export const INITIAL_AUTOMATION_WORKFLOWS: AutomationWorkflowItem[] = [
     lastRunStatus: "passed",
     tokenBudget: 25_000,
     nodes: [
-      { id: "n-1", label: "Scan dependencies & SBOM", agentId: "security-auditor", dependsOn: [], status: "passed" },
-      { id: "n-2", label: "Verify SHA-256 Record chain", agentId: "qa-ci-runner", dependsOn: ["n-1"], status: "passed" },
+      { id: "n-1", label: "Scan dependencies & SBOM", agentId: "security-auditor", dependsOn: [], status: "passed", requiresP10: false, lastOutput: "SPDX 2.3 SBOM verified · 0 critical CVEs." },
+      { id: "n-2", label: "Verify SHA-256 Record chain", agentId: "qa-ci-runner", dependsOn: ["n-1"], status: "passed", requiresP10: true, lastOutput: "Merkle root & hash chain verified across 1,283 entries." },
     ],
   },
   {
@@ -342,8 +348,8 @@ export const INITIAL_AUTOMATION_WORKFLOWS: AutomationWorkflowItem[] = [
     lastRunStatus: "failed",
     tokenBudget: 40_000,
     nodes: [
-      { id: "n-3", label: "Classify changed AST modules", agentId: "issue-triager", dependsOn: [], status: "passed" },
-      { id: "n-4", label: "Warm staging preview sandbox", agentId: "devops-sre", dependsOn: ["n-3"], status: "failed", errorDetail: "Sandbox port 7429 busy; retry allocates clean ephemeral port." },
+      { id: "n-3", label: "Classify changed AST modules", agentId: "issue-triager", dependsOn: [], status: "passed", requiresP10: false, lastOutput: "3 modified modules mapped to Sprint 14 scope." },
+      { id: "n-4", label: "Warm staging preview sandbox", agentId: "devops-sre", dependsOn: ["n-3"], status: "failed", requiresP10: true, errorDetail: "Sandbox port 7429 busy; retry allocates clean ephemeral port." },
     ],
   },
 ];
@@ -370,10 +376,30 @@ export const INITIAL_MARKETPLACE_PACKAGES: MarketplacePackageItem[] = [
 ];
 
 export const INITIAL_DOC_GUIDES: DocGuideItem[] = [
-  { id: "doc-1", quadrant: "Tutorial", title: "Ship Your First Governed App in 5 Minutes", summary: "Walk from a plain-English idea in No-Code Builder to a live preview with SHA-256 Record provenance.", audience: "non_coder" },
-  { id: "doc-2", quadrant: "How-To", title: "Configure Authorized BYOM Keys & Local OpenCore", summary: "Connect OpenAI/Anthropic/Gemini API keys or local Ollama/vLLM endpoints with $0.00 markup.", audience: "all" },
-  { id: "doc-3", quadrant: "Reference", title: "Extension SDK & keelway.package/v1 Security Spec", summary: "Register custom skills, tools, and webhooks that pass MarketplaceSecurityScanner.", audience: "builder" },
-  { id: "doc-4", quadrant: "Explanation", title: "Why P-10 Human-Only Gates & Air-Gap Isolation Matter", summary: "How Seatbelt sandboxing, prompt-bound scopes, and hash-chained receipts prevent silent exfiltration.", audience: "all" },
+  {
+    id: "doc-1", quadrant: "Tutorial", title: "Ship Your First Governed App in 5 Minutes",
+    summary: "Walk from a plain-English idea in No-Code Builder to a live preview with SHA-256 Record provenance.",
+    audience: "non_coder", updatedAt: "2026-11-14T12:00:00Z", linkedPrdId: "PRD-02",
+    body: "# Ship Your First Governed App in 5 Minutes\n\n## 1. Describe Your Outcome in Plain English\nSwitch the top persona toggle to **Guided Non-Coder** and open **No-Code Builder**. Describe your internal tool (e.g., *Vendor Invoice Approval Portal with Finance Audit Trail*) and select a governed template.\n\n## 2. Inspect Linked PRD, Sprint Issues & KFlow DAG\n- **Product**: Auto-generated PRD with testable acceptance criteria and RICE score.\n- **Project Manager**: Sprint-scoped `KEEL-*` issues ready for 1-click agent delegation.\n- **Automation**: Durable KFlow DAG pipeline with retryable steps.\n\n## 3. Approve at the P-10 Human Gate\nPreview your interactive app locally on `127.0.0.1:7420` and confirm promotion through the inline **P-10 Human-Only Gate**—agents can never self-approve production deploys.",
+  },
+  {
+    id: "doc-2", quadrant: "How-To", title: "Configure Authorized BYOM Keys & Local OpenCore",
+    summary: "Connect OpenAI/Anthropic/Gemini API keys or local Ollama/vLLM endpoints with $0.00 markup.",
+    audience: "all", updatedAt: "2026-11-14T12:05:00Z", linkedPrdId: "PRD-01",
+    body: "# Configure Authorized BYOM Keys & Local OpenCore\n\n## Local OpenCore ($0.00 / Token)\nRun quantized weights (`keelway-core:7b`, `keelway-reasoner:14b`) on loopback `127.0.0.1` via Apple Metal or vLLM with zero external egress.\n\n## Authorized BYOM Routing (0% Keelway Markup)\n1. Open **Operations -> BYOM Connection Compliance Check**.\n2. Provide an organization API key (`sk-...`) or self-hosted vLLM/Ollama URL.\n3. Consumer web subscriptions (ChatGPT Plus/Pro, Claude Pro/Max cookies) are rejected fail-closed (`CREDENTIAL_TYPE_UNSUPPORTED_CONSUMER_SUBSCRIPTION`).",
+  },
+  {
+    id: "doc-3", quadrant: "Reference", title: "Extension SDK & keelway.package/v1 Security Spec",
+    summary: "Register custom skills, tools, and webhooks that pass MarketplaceSecurityScanner.",
+    audience: "builder", updatedAt: "2026-11-14T12:10:00Z", linkedPrdId: "PRD-01",
+    body: "# Extension SDK & keelway.package/v1 Security Spec\n\n## Required Manifest Fields\n- `schema`: `keelway.package/v1` signed with Ed25519 + SHA-256 digest.\n- `permissions`: Explicit `read_paths`, scoped `write_paths` (never `/` or `..`), `network` (`none` | `scoped`), and `requires_p10_approval: true`.\n\n## Pre-Publication Static Guardrails\n`MarketplaceSecurityScanner` blocks prompt-injection overrides (`PROMPT_INJECTION_GUARDRAIL_BYPASS`), dynamic `eval`/`shell=True` (`DANGEROUS_EXECUTION_HOOK`), and embedded API secrets (`EMBEDDED_SECRET_DETECTED`).",
+  },
+  {
+    id: "doc-4", quadrant: "Explanation", title: "Why P-10 Human-Only Gates & Air-Gap Isolation Matter",
+    summary: "How Seatbelt sandboxing, prompt-bound scopes, and hash-chained receipts prevent silent exfiltration.",
+    audience: "all", updatedAt: "2026-11-14T12:15:00Z", linkedPrdId: "PRD-02",
+    body: "# Why P-10 Human-Only Gates & Air-Gap Isolation Matter\n\n## Defense-in-Depth Autonomy\nKeelway separates **read/analysis (Tier 1)**, **workspace-scoped edits (Tier 2)**, and **network/deploy actions (Tier 3 / Variant C)**. Standing `Allow always` rules bind to both `modelId` and `promptVersion`, pausing automatically on drift.\n\n## Cryptographic Flight Recorder\nEvery tool call, 4D routing decision, and human P-10 approval appends to the SHA-256 hash-chained **Record** ledger under NIST SP 800-53 SC-7 air-gap enforcement.",
+  },
 ];
 
 export const SDLC_STAGES: SdlcStageItem[] = [

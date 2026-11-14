@@ -300,52 +300,59 @@ def test_governance_interactive_tamper_and_drift_labs() -> None:
     assert "ManifestDriftSimulator" in gov_src, "governance/page.tsx must mount ManifestDriftSimulator"
 
 
-def test_unified_10view_playground_route_and_navigation() -> None:
+def test_playground_redirect_and_single_row_clean_navigation() -> None:
     playground_page = WEBSITE_DIR / "src" / "app" / "playground" / "page.tsx"
     playground_comp = WEBSITE_DIR / "src" / "components" / "playground" / "UnifiedPlatformPlayground.tsx"
+    next_cfg_file = WEBSITE_DIR / "next.config.ts"
     header_file = WEBSITE_DIR / "src" / "components" / "layout" / "Header.tsx"
     sitemap_file = WEBSITE_DIR / "src" / "app" / "sitemap.ts"
     search_index_file = WEBSITE_DIR / "src" / "app" / "api" / "search-index" / "route.ts"
 
-    assert playground_page.exists(), "website/src/app/playground/page.tsx must exist"
-    assert playground_comp.exists(), "UnifiedPlatformPlayground.tsx must exist"
+    assert not playground_page.exists(), "website/src/app/playground/page.tsx must not exist"
+    assert not playground_comp.exists(), "UnifiedPlatformPlayground.tsx must not exist"
 
-    page_src = playground_page.read_text(encoding="utf-8")
-    assert len(page_src.splitlines()) < 140, "playground/page.tsx must remain < 140 lines"
-    assert 'canonical: "/playground"' in page_src
-    assert "UnifiedPlatformPlayground" in page_src
+    next_cfg_text = next_cfg_file.read_text(encoding="utf-8")
+    redirect_pattern = (
+        r'source:\s*"/playground"[\s\S]*?'
+        r'destination:\s*"/"[\s\S]*?'
+        r"permanent:\s*true"
+    )
+    assert re.search(redirect_pattern, next_cfg_text), (
+        "Missing permanent (308) redirect /playground -> / in website/next.config.ts"
+    )
 
-    comp_src = playground_comp.read_text(encoding="utf-8")
-    assert len(comp_src.splitlines()) < 550, "UnifiedPlatformPlayground.tsx must remain < 550 lines"
-    for view_label in (
-        "Builder Mode",
-        "Guided Non-Coder Mode",
-        "No-Code Builder",
-        "Agents",
-        "IDE",
-        "Project Manager",
-        "Product",
-        "Automation",
-        "Marketplace",
-        "Security",
-        "Documentation",
-        "Operations",
-        "Compile Blueprint",
-        "HIPAA-ready patient intake",
-        "Automated PR security",
-        "Multi-currency fintech invoice",
-        "P-10",
-    ):
-        assert view_label in comp_src, f"Missing '{view_label}' in UnifiedPlatformPlayground.tsx"
+    # Zero occurrences of "/playground anywhere in website/src/**/*.{ts,tsx}
+    ts_files = list((WEBSITE_DIR / "src").rglob("*.ts")) + list((WEBSITE_DIR / "src").rglob("*.tsx"))
+    assert len(ts_files) >= 15
+    for ts_file in ts_files:
+        src_text = ts_file.read_text(encoding="utf-8")
+        assert '"/playground' not in src_text, (
+            f"Stale /playground link found in {ts_file.relative_to(KEELWAY_ROOT)}"
+        )
 
     header_src = header_file.read_text(encoding="utf-8")
-    assert '"/playground"' in header_src and "Playground" in header_src
+    primary_nav_match = re.search(r"export const PRIMARY_NAV[\s\S]*?\];", header_src)
+    assert primary_nav_match, "PRIMARY_NAV must be defined in Header.tsx"
+    primary_nav_block = primary_nav_match.group(0)
+    assert "Playground" not in primary_nav_block
+    for nav_label in (
+        "Marketplace",
+        "Models & OpenCore",
+        "Routing & Governance",
+        "Pricing",
+        "Docs",
+        "API Reference",
+    ):
+        assert f'"{nav_label}"' in primary_nav_block, f"Missing '{nav_label}' in Header.tsx PRIMARY_NAV"
+
+    for layout_token in ("lg:flex-nowrap", "gap-x-4", "px-2.5", "text-[13px]", "min-h-[44px]"):
+        assert layout_token in header_src, f"Missing single-row header token '{layout_token}' in Header.tsx"
 
     sitemap_src = sitemap_file.read_text(encoding="utf-8")
-    assert '"/playground"' in sitemap_src
+    assert '"/playground"' not in sitemap_src
 
     index_src = search_index_file.read_text(encoding="utf-8")
-    assert "/playground" in index_src
+    assert "/playground" not in index_src
     assert "Marketplace" in index_src and "No-Code" in index_src
 
 
@@ -390,7 +397,7 @@ def test_command_palette_linear_prefix_modes_and_file_size_caps() -> None:
         "@ Models",
         "/ Docs",
         "# APIs & Governance",
-        "Launch 10-View Playground",
+        "Launch 10-View Local Dev Tool",
         "Simulate Record Tamper Lab",
         "Open No-Code Blueprint Builder",
         "Compare BYOM & Pro Pricing",
@@ -401,8 +408,6 @@ def test_command_palette_linear_prefix_modes_and_file_size_caps() -> None:
     checked_files = (
         WEBSITE_DIR / "src" / "components" / "governance" / "RecordTamperLab.tsx",
         WEBSITE_DIR / "src" / "components" / "governance" / "ManifestDriftSimulator.tsx",
-        WEBSITE_DIR / "src" / "components" / "playground" / "UnifiedPlatformPlayground.tsx",
-        WEBSITE_DIR / "src" / "app" / "playground" / "page.tsx",
         WEBSITE_DIR / "src" / "components" / "marketplace" / "MarketplaceCatalogExplorer.tsx",
         WEBSITE_DIR / "src" / "app" / "marketplace" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "governance" / "page.tsx",
@@ -522,7 +527,7 @@ def test_website_customer_privacy_and_user_journeys() -> None:
     journeys_src = journeys_file.read_text(encoding="utf-8")
     for required_journey in (
         "Founders & Non-Technical Builders",
-        "/playground?mode=noncoder",
+        "Guided No-Code Builder",
         "Software & AI Engineers",
         "/#quickstart",
         "Startups & Product Teams",

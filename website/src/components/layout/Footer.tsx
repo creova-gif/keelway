@@ -4,7 +4,7 @@ import { ArrowUpRight, ShieldCheck } from "lucide-react";
 
 /**
  * Global Multi-Column Footer linking all core customer journeys:
- * Non-Coder & Builder Playground, Signed Marketplace, Models, Governance,
+ * Local Dev Tool Quickstart, Signed Marketplace, Models, Governance,
  * Pricing, Developer Docs, OpenAPI spec, and Enterprise Onboarding.
  */
 export function Footer() {
@@ -54,10 +54,10 @@ export function Footer() {
             <ul className="mt-3 space-y-1 text-sm">
               <li>
                 <Link
-                  href="/playground"
+                  href="/#quickstart"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  10-View Playground
+                  Local Dev Tool (10 Views)
                 </Link>
               </li>
               <li>
@@ -150,10 +150,10 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/playground?mode=noncoder"
+                  href="/docs#surfaces"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  Guided No-Code Builder
+                  Guided No-Code &amp; Surfaces
                 </Link>
               </li>
               <li>

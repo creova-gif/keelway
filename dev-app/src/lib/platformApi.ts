@@ -1,7 +1,7 @@
 import { getStudioToken } from "@/lib/api";
 import type {
-  AutomationWorkflowItem, ExperienceMode, MarketplaceCategoryId, MarketplacePackageItem,
-  PmIssueItem, PmIssuePriority, PmIssueStatus, ProductPrdItem,
+  AutomationWorkflowItem, DocGuideItem, ExperienceMode, MarketplaceCategoryId,
+  MarketplacePackageItem, PmIssueItem, PmIssuePriority, PmIssueStatus, ProductPrdItem, UserFeedbackItem,
 } from "@/lib/platformData";
 
 export type EnterpriseRetentionMode = "ephemeral_0d" | "standard_30d" | "regulated_365d" | "worm_7y";
@@ -9,6 +9,7 @@ export type EnterpriseRetentionMode = "ephemeral_0d" | "standard_30d" | "regulat
 export interface PlatformHydrationSnapshot {
   hydrated: boolean; packages: MarketplacePackageItem[]; installedPackageIds: string[];
   issues: PmIssueItem[]; prds: ProductPrdItem[]; workflows: AutomationWorkflowItem[];
+  docs?: DocGuideItem[]; feedback?: UserFeedbackItem[];
   retentionMode?: EnterpriseRetentionMode;
 }
 
@@ -141,6 +142,7 @@ function decodeServerIssue(raw: unknown): PmIssueItem | null {
   const priority: PmIssuePriority = pr === "urgent" || pr === "high" || pr === "low" ? pr : "medium";
   return {
     id: raw.id, title: raw.title, status, priority,
+    description: typeof raw.description === "string" ? raw.description : undefined,
     sprint: typeof raw.sprint === "string" ? raw.sprint : String(raw.sprint_id ?? "Sprint 14 · Sovereign Platform"),
     milestone: typeof raw.milestone === "string" ? raw.milestone : "v1.1 Unified GA",
     dependencies: Array.isArray(raw.dependencies) ? raw.dependencies.filter((d): d is string => typeof d === "string") : [],
@@ -185,21 +187,58 @@ function decodeServerWorkflow(raw: unknown): AutomationWorkflowItem | null {
       agentId: String(n.agentId ?? n.agent ?? "workflow-automator"),
       dependsOn: Array.isArray(n.dependsOn) ? n.dependsOn.filter((d): d is string => typeof d === "string") : [],
       status: n.status === "failed" ? "failed" : "passed",
+      requiresP10: typeof n.requiresP10 === "boolean" ? n.requiresP10 : typeof n.requires_p10 === "boolean" ? n.requires_p10 : undefined,
+      lastOutput: typeof n.lastOutput === "string" ? n.lastOutput : typeof n.last_output === "string" ? n.last_output : undefined,
     })),
+  };
+}
+
+async function safeGetJson(path: string, query?: Record<string, string | undefined>): Promise<unknown> {
+  const res = await requestPlatformJson(path, { method: "GET" }, query);
+  return res.ok ? res.data : null;
+}
+
+function decodeServerDoc(raw: unknown): DocGuideItem | null {
+  if (!isRecord(raw) || typeof raw.id !== "string" || typeof raw.title !== "string") return null;
+  const kindRaw = String(raw.quadrant ?? raw.diataxis_kind ?? "Reference").toLowerCase();
+  const quadrant: DocGuideItem["quadrant"] =
+    kindRaw === "tutorial" ? "Tutorial" : kindRaw === "how-to" || kindRaw === "how_to" ? "How-To"
+      : kindRaw === "explanation" ? "Explanation" : "Reference";
+  const audRaw = String(raw.audience ?? "all");
+  return {
+    id: raw.id, quadrant, title: raw.title,
+    summary: typeof raw.summary === "string" ? raw.summary : "",
+    audience: audRaw === "builder" || audRaw === "non_coder" ? audRaw : "all",
+    body: typeof raw.body === "string" ? raw.body : undefined,
+    updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : typeof raw.updated_at === "string" ? raw.updated_at : undefined,
+    linkedPrdId: typeof raw.linkedPrdId === "string" ? raw.linkedPrdId : typeof raw.linked_prd_id === "string" ? raw.linked_prd_id : undefined,
+  };
+}
+
+function decodeServerFeedback(raw: unknown): UserFeedbackItem | null {
+  if (!isRecord(raw) || typeof raw.id !== "string" || typeof raw.quote !== "string") return null;
+  return {
+    id: raw.id,
+    persona: typeof raw.persona === "string" ? raw.persona : "Workspace Operator",
+    quote: raw.quote,
+    impactScore: Number(raw.impactScore ?? raw.impact_score ?? 8.5),
+    linkedPrdId: String(raw.linkedPrdId ?? raw.linked_prd_id ?? "PRD-01"),
   };
 }
 
 export async function fetchPlatformHydration(workspaceId = "default"): Promise<PlatformHydrationSnapshot> {
   const q = { workspace_id: workspaceId };
-  const [overviewRes, mpRes, issuesRes, prdsRes, wfRes] = await Promise.all([
+  const [overviewRes, mpRes, issuesRes, prdsRes, wfRes, docsData, fbData] = await Promise.all([
     requestPlatformJson("/v1/platform/overview", { method: "GET" }, q),
     requestPlatformJson("/v1/platform/marketplace/packages", { method: "GET" }, q),
     requestPlatformJson("/v1/platform/pm/issues", { method: "GET" }, q),
     requestPlatformJson("/v1/platform/product/prds", { method: "GET" }, q),
     requestPlatformJson("/v1/platform/automation/workflows", { method: "GET" }, q),
+    safeGetJson("/v1/platform/docs", q),
+    safeGetJson("/v1/platform/product/feedback", q),
   ]);
   if (!(overviewRes.ok || mpRes.ok || issuesRes.ok || prdsRes.ok || wfRes.ok)) {
-    return { hydrated: false, packages: [], installedPackageIds: [], issues: [], prds: [], workflows: [] };
+    return { hydrated: false, packages: [], installedPackageIds: [], issues: [], prds: [], workflows: [], docs: [], feedback: [] };
   }
   const ov = isRecord(overviewRes.data) ? overviewRes.data : {};
   const mp = isRecord(mpRes.data) ? mpRes.data : {};
@@ -217,6 +256,8 @@ export async function fetchPlatformHydration(workspaceId = "default"): Promise<P
   const rawIssues = isRecord(issuesRes.data) && Array.isArray(issuesRes.data.issues) ? issuesRes.data.issues : Array.isArray(ov.issues) ? ov.issues : [];
   const rawPrds = isRecord(prdsRes.data) && Array.isArray(prdsRes.data.prds) ? prdsRes.data.prds : Array.isArray(ov.prds) ? ov.prds : [];
   const rawWfs = isRecord(wfRes.data) && Array.isArray(wfRes.data.workflows) ? wfRes.data.workflows : Array.isArray(ov.workflows) ? ov.workflows : [];
+  const rawDocs = isRecord(docsData) && Array.isArray(docsData.docs) ? docsData.docs : Array.isArray(docsData) ? docsData : Array.isArray(ov.docs) ? ov.docs : [];
+  const rawFb = isRecord(fbData) && Array.isArray(fbData.feedback) ? fbData.feedback : Array.isArray(fbData) ? fbData : [];
   const ent = isRecord(ov.enterprise) ? ov.enterprise : {};
   const retCandidate = String(ov.retention_mode ?? ent.retention_mode ?? "") as EnterpriseRetentionMode;
   return {
@@ -226,6 +267,8 @@ export async function fetchPlatformHydration(workspaceId = "default"): Promise<P
     issues: rawIssues.map(decodeServerIssue).filter((i): i is PmIssueItem => i !== null),
     prds: rawPrds.map(decodeServerPrd).filter((p): p is ProductPrdItem => p !== null),
     workflows: rawWfs.map(decodeServerWorkflow).filter((w): w is AutomationWorkflowItem => w !== null),
+    docs: rawDocs.map(decodeServerDoc).filter((d): d is DocGuideItem => d !== null),
+    feedback: rawFb.map(decodeServerFeedback).filter((f): f is UserFeedbackItem => f !== null),
     retentionMode: VALID_RETENTION.has(retCandidate) ? retCandidate : undefined,
   };
 }
@@ -343,4 +386,80 @@ export async function postClusterNodeAction(nodeId: string, action: "drain" | "r
     method: "POST", body: JSON.stringify({ node_id: nodeId, action }),
   });
   return { ok: res.ok, data: res.data };
+}
+
+async function safeMutateRecord(path: string, method: "POST" | "PUT" | "PATCH", body: unknown): Promise<Record<string, unknown> | null> {
+  const res = await requestPlatformJson(path, { method, body: JSON.stringify(body) });
+  if (!res.ok) return null;
+  return isRecord(res.data) ? res.data : { ok: true };
+}
+
+export interface PlatformDocPayload {
+  title: string; diataxis_kind: string; summary: string; body: string; linked_prd_id?: string; workspace_id?: string;
+}
+
+export async function postPlatformDoc(payload: PlatformDocPayload): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/docs", "POST", { workspace_id: "default", ...payload });
+}
+
+export async function putPlatformDoc(docId: string, payload: PlatformDocPayload): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord(`/v1/platform/docs/${encodeURIComponent(docId)}`, "PUT", { workspace_id: "default", ...payload });
+}
+
+export async function postPlatformPrd(payload: {
+  title: string; summary: string; acceptance_criteria: string[]; workspace_id?: string;
+}): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/product/prds", "POST", { workspace_id: "default", ...payload });
+}
+
+export async function patchPlatformIssue(issueId: string, patch: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord(`/v1/platform/pm/issues/${encodeURIComponent(issueId)}`, "PATCH", { workspace_id: "default", ...patch });
+}
+
+export async function postProductFeedback(payload: {
+  persona: string; quote: string; impact_score: number; linked_prd_id?: string; workspace_id?: string;
+}): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/product/feedback", "POST", { workspace_id: "default", ...payload });
+}
+
+export async function postPlatformWorkflow(payload: {
+  name: string; trigger: string; nodes: Array<Record<string, unknown>>; workspace_id?: string;
+}): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/automation/workflows", "POST", { workspace_id: "default", ...payload });
+}
+
+export async function postMarketplacePurchase(packageId: string, buyerTenantId = "default"): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/marketplace/purchase", "POST", {
+    package_id: packageId, buyer_tenant_id: buyerTenantId, workspace_id: "default",
+  });
+}
+
+export async function postSecurityScan(payload: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/security/scan", "POST", { workspace_id: "default", ...payload });
+}
+
+export async function postEnterpriseComplianceCheck(payload: {
+  tenant_id: string; framework: string;
+}): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord("/v1/platform/enterprise/compliance-check", "POST", payload);
+}
+
+export async function postClusterSchedule(payload: {
+  model_id: string; required_vram_gb: number; region?: string; privacy_tier?: string;
+}): Promise<Record<string, unknown> | null> {
+  const regionResidency = payload.region ?? "global";
+  const rawPrivacy = payload.privacy_tier ?? (regionResidency === "airgap_local" ? "air_gap" : "standard");
+  return safeMutateRecord("/v1/cluster/schedule", "POST", {
+    model_id: payload.model_id,
+    required_vram_gb: payload.required_vram_gb,
+    region_residency: regionResidency,
+    privacy_level: rawPrivacy === "airgap_local" ? "air_gap" : rawPrivacy,
+  });
+}
+
+export async function postModelLifecycleAction(
+  action: "promote" | "rollback",
+  payload: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  return safeMutateRecord(`/v1/cluster/lifecycle/${action}`, "POST", payload);
 }

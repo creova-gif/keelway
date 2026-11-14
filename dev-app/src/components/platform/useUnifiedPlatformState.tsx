@@ -7,22 +7,27 @@ import {
 import {
   DocumentationWorkspaceView,
   MarketplaceWorkspaceView,
-  SecurityPostureBanner,
+  SecurityWorkspaceView,
 } from "@/components/platform/MarketplaceAndDocsViews";
 import { NoCodeBuilderView } from "@/components/platform/NoCodeBuilderView";
 import {
   ProductWorkspaceView,
   ProjectManagerView,
 } from "@/components/platform/PmAndProductViews";
-import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import {
   fetchPlatformHydration,
+  patchPlatformIssue,
   postMarketplaceInstall,
   postMarketplacePublish,
   postMarketplaceUninstall,
   postNoCodeBlueprint,
+  postPlatformDoc,
   postPlatformIssue,
+  postPlatformPrd,
+  postPlatformWorkflow,
+  postProductFeedback,
   postTeamDispatch,
+  putPlatformDoc,
   type EnterpriseRetentionMode,
   type MarketplacePublishPayload,
 } from "@/lib/platformApi";
@@ -39,6 +44,7 @@ import {
   INITIAL_USER_FEEDBACK,
   type AutomationWorkflowItem,
   type DeploymentEnvItem,
+  type DocGuideItem,
   type ExperienceMode,
   type GeneratedProjectBlueprint,
   type LifecycleAgentItem,
@@ -50,6 +56,7 @@ import {
   type PmIssueStatus,
   type ProductPrdItem,
   type SubscriptionTierId,
+  type UserFeedbackItem,
 } from "@/lib/platformData";
 
 function mergeById<T extends { id: string }>(incoming: T[], existing: T[]): T[] {
@@ -72,6 +79,8 @@ export function useUnifiedPlatformState(options: {
   const [teams, setTeams] = useState<MultiAgentTeamItem[]>(INITIAL_MULTI_AGENT_TEAMS);
   const [issues, setIssues] = useState<PmIssueItem[]>(INITIAL_PM_ISSUES);
   const [prds, setPrds] = useState<ProductPrdItem[]>(INITIAL_PRODUCT_PRDS);
+  const [docs, setDocs] = useState<DocGuideItem[]>(INITIAL_DOC_GUIDES);
+  const [feedback, setFeedback] = useState<UserFeedbackItem[]>(INITIAL_USER_FEEDBACK);
   const [workflows, setWorkflows] = useState<AutomationWorkflowItem[]>(INITIAL_AUTOMATION_WORKFLOWS);
   const [packages, setPackages] = useState<MarketplacePackageItem[]>(INITIAL_MARKETPLACE_PACKAGES);
   const [installedPackageIds, setInstalledPackageIds] = useState<string[]>([
@@ -87,26 +96,16 @@ export function useUnifiedPlatformState(options: {
     let cancelled = false;
     void fetchPlatformHydration("default").then((snap) => {
       if (cancelled || !snap.hydrated) return;
-      if (snap.packages.length > 0) {
-        setPackages((prev) => mergeById(snap.packages, prev));
-      }
+      if (snap.packages.length > 0) setPackages((prev) => mergeById(snap.packages, prev));
       if (snap.installedPackageIds.length > 0) {
-        setInstalledPackageIds((prev) =>
-          Array.from(new Set([...prev, ...snap.installedPackageIds])),
-        );
+        setInstalledPackageIds((prev) => Array.from(new Set([...prev, ...snap.installedPackageIds])));
       }
-      if (snap.issues.length > 0) {
-        setIssues((prev) => mergeById(snap.issues, prev));
-      }
-      if (snap.prds.length > 0) {
-        setPrds((prev) => mergeById(snap.prds, prev));
-      }
-      if (snap.workflows.length > 0) {
-        setWorkflows((prev) => mergeById(snap.workflows, prev));
-      }
-      if (snap.retentionMode) {
-        setRetentionMode(snap.retentionMode);
-      }
+      if (snap.issues.length > 0) setIssues((prev) => mergeById(snap.issues, prev));
+      if (snap.prds.length > 0) setPrds((prev) => mergeById(snap.prds, prev));
+      if (snap.workflows.length > 0) setWorkflows((prev) => mergeById(snap.workflows, prev));
+      if (snap.docs && snap.docs.length > 0) setDocs((prev) => mergeById(snap.docs!, prev));
+      if (snap.feedback && snap.feedback.length > 0) setFeedback((prev) => mergeById(snap.feedback!, prev));
+      if (snap.retentionMode) setRetentionMode(snap.retentionMode);
     });
     return () => {
       cancelled = true;
@@ -172,7 +171,31 @@ export function useUnifiedPlatformState(options: {
 
   const handleUpdateIssueStatus = useCallback((issueId: string, status: PmIssueStatus) => {
     setIssues((prev) => prev.map((iss) => (iss.id === issueId ? { ...iss, status } : iss)));
+    void patchPlatformIssue(issueId, { status });
   }, []);
+
+  const handleUpdateIssueDetails = useCallback(
+    (issueId: string, updates: { description?: string; dependencies?: string[]; linkedPrdId?: string }) => {
+      setIssues((prev) =>
+        prev.map((iss) =>
+          iss.id === issueId
+            ? {
+                ...iss,
+                description: updates.description ?? iss.description,
+                dependencies: updates.dependencies ?? iss.dependencies,
+                linkedPrdId: updates.linkedPrdId ?? iss.linkedPrdId,
+              }
+            : iss,
+        ),
+      );
+      void patchPlatformIssue(issueId, {
+        description: updates.description,
+        dependencies: updates.dependencies,
+        prd_id: updates.linkedPrdId,
+      });
+    },
+    [],
+  );
 
   const handleDelegateIssueToAgent = useCallback((issueId: string) => {
     setIssues((prev) =>
@@ -182,6 +205,7 @@ export function useUnifiedPlatformState(options: {
           : iss,
       ),
     );
+    void patchPlatformIssue(issueId, { status: "in_progress", assignee_agent: "feature-coder" });
   }, []);
 
   const handleToggleCriterion = useCallback((prdId: string, criterionId: string) => {
@@ -199,6 +223,79 @@ export function useUnifiedPlatformState(options: {
     );
   }, []);
 
+  const handleCreatePrd = useCallback((prd: ProductPrdItem) => {
+    setPrds((prev) => [prd, ...prev]);
+    void postPlatformPrd({
+      title: prd.title,
+      summary: prd.problemStatement,
+      acceptance_criteria: prd.acceptanceCriteria.map((ac) => ac.text),
+    });
+  }, []);
+
+  const handleGenerateIssuesFromPrd = useCallback((prd: ProductPrdItem) => {
+    const newIssueTitle = `Implement ${prd.title} acceptance criteria`;
+    setIssues((prev) => {
+      const nextId = `KEEL-${105 + prev.length}`;
+      setPrds((currPrds) =>
+        currPrds.map((p) =>
+          p.id === prd.id && !p.linkedIssueIds.includes(nextId)
+            ? { ...p, linkedIssueIds: [...p.linkedIssueIds, nextId] }
+            : p,
+        ),
+      );
+      return [
+        {
+          id: nextId,
+          title: newIssueTitle,
+          status: "todo",
+          priority: "high",
+          sprint: "Sprint 14 · Sovereign Platform",
+          milestone: "v1.1 Unified GA",
+          dependencies: [],
+          assignedAgentId: "feature-coder",
+          linkedPrdId: prd.id,
+        },
+        ...prev,
+      ];
+    });
+    void postPlatformIssue({
+      title: newIssueTitle,
+      priority: "high",
+      assignedAgentId: "feature-coder",
+      prdId: prd.id,
+    });
+  }, []);
+
+  const handleCreateFeedback = useCallback((entry: UserFeedbackItem) => {
+    setFeedback((prev) => [entry, ...prev]);
+    void postProductFeedback({
+      persona: entry.persona,
+      quote: entry.quote,
+      impact_score: entry.impactScore,
+      linked_prd_id: entry.linkedPrdId,
+    });
+  }, []);
+
+  const handleSaveDoc = useCallback((saved: DocGuideItem & { body: string }) => {
+    let existed = false;
+    setDocs((prev) => {
+      existed = prev.some((d) => d.id === saved.id);
+      return existed ? prev.map((d) => (d.id === saved.id ? { ...d, ...saved } : d)) : [saved, ...prev];
+    });
+    const payload = {
+      title: saved.title,
+      diataxis_kind: saved.quadrant.toLowerCase().replace("-", "_"),
+      summary: saved.summary,
+      body: saved.body,
+      linked_prd_id: saved.linkedPrdId,
+    };
+    if (existed) {
+      void putPlatformDoc(saved.id, payload);
+    } else {
+      void postPlatformDoc(payload);
+    }
+  }, []);
+
   const handleCreateWorkflow = useCallback(
     (spec: {
       name: string;
@@ -206,6 +303,10 @@ export function useUnifiedPlatformState(options: {
       triggerSpec: string;
       tokenBudget: number;
     }) => {
+      const nodes = [
+        { id: `nw-${Date.now()}-1`, label: "Execute primary agent step", agentId: "workflow-automator", dependsOn: [], status: "ready" as const },
+        { id: `nw-${Date.now()}-2`, label: "Verify output & log Record receipt", agentId: "qa-ci-runner", dependsOn: ["step-1"], status: "ready" as const },
+      ];
       setWorkflows((prev) => [
         {
           id: `WF-0${prev.length + 1}`,
@@ -214,13 +315,36 @@ export function useUnifiedPlatformState(options: {
           triggerSpec: spec.triggerSpec,
           lastRunStatus: "ready",
           tokenBudget: spec.tokenBudget,
-          nodes: [
-            { id: `nw-${Date.now()}-1`, label: "Execute primary agent step", agentId: "workflow-automator", dependsOn: [], status: "ready" },
-            { id: `nw-${Date.now()}-2`, label: "Verify output & log Record receipt", agentId: "qa-ci-runner", dependsOn: ["step-1"], status: "ready" },
-          ],
+          nodes,
         },
         ...prev,
       ]);
+      void postPlatformWorkflow({
+        name: spec.name,
+        trigger: spec.triggerSpec,
+        nodes: nodes.map((n) => ({ id: n.id, label: n.label, agent: n.agentId })),
+      });
+    },
+    [],
+  );
+
+  const handleAddStepToWorkflow = useCallback(
+    (workflowId: string, step: { label: string; agentId: string; requiresP10: boolean }) => {
+      setWorkflows((prev) =>
+        prev.map((wf) => {
+          if (wf.id !== workflowId) return wf;
+          const prevId = wf.nodes[wf.nodes.length - 1]?.id;
+          const nextNode = {
+            id: `n-custom-${wf.nodes.length + 1}`,
+            label: step.label,
+            agentId: step.agentId,
+            dependsOn: prevId ? [prevId] : [],
+            status: "ready" as const,
+            requiresP10: step.requiresP10,
+          };
+          return { ...wf, nodes: [...wf.nodes, nextNode] };
+        }),
+      );
     },
     [],
   );
@@ -247,11 +371,7 @@ export function useUnifiedPlatformState(options: {
           n.id === nodeId ? { ...n, status: "passed" as const, errorDetail: undefined } : n,
         );
         const anyFailed = updatedNodes.some((n) => n.status === "failed");
-        return {
-          ...wf,
-          lastRunStatus: anyFailed ? "failed" : "passed",
-          nodes: updatedNodes,
-        };
+        return { ...wf, lastRunStatus: anyFailed ? "failed" : "passed", nodes: updatedNodes };
       }),
     );
   }, []);
@@ -341,9 +461,15 @@ export function useUnifiedPlatformState(options: {
             experienceMode={experienceMode}
             issues={issues}
             agents={agents}
+            prds={prds}
             onCreateIssue={handleCreateIssue}
             onUpdateIssueStatus={handleUpdateIssueStatus}
             onDelegateIssueToAgent={handleDelegateIssueToAgent}
+            onUpdateIssueDetails={handleUpdateIssueDetails}
+            onOpenInIde={(prefill) => {
+              setPlatformView("ide");
+              onJumpToIdeComposer(prefill);
+            }}
           />
         );
       case "product":
@@ -351,9 +477,12 @@ export function useUnifiedPlatformState(options: {
           <ProductWorkspaceView
             experienceMode={experienceMode}
             prds={prds}
-            feedback={INITIAL_USER_FEEDBACK}
+            feedback={feedback}
             onToggleCriterion={handleToggleCriterion}
             onJumpToPm={() => setPlatformView("pm")}
+            onCreatePrd={handleCreatePrd}
+            onGenerateIssuesFromPrd={handleGenerateIssuesFromPrd}
+            onCreateFeedback={handleCreateFeedback}
           />
         );
       case "automation":
@@ -364,6 +493,7 @@ export function useUnifiedPlatformState(options: {
             onCreateWorkflow={handleCreateWorkflow}
             onRunWorkflow={handleRunWorkflow}
             onRetryFailedNode={handleRetryFailedNode}
+            onAddStepToWorkflow={handleAddStepToWorkflow}
           />
         );
       case "marketplace":
@@ -377,25 +507,23 @@ export function useUnifiedPlatformState(options: {
         );
       case "security":
         return (
-          <div>
-            <SecurityPostureBanner
-              installedPackagesCount={installedPackageIds.length}
-              retentionMode={retentionMode}
-              onRetentionModeChange={setRetentionMode}
-            />
-            <RecordAuditLedger
-              selectedSeq={recordProps.selectedSeq}
-              onSelectSeq={recordProps.onSelectSeq}
-              verifyRequestNonce={recordProps.verifyRequestNonce}
-              onOpenDiffInReview={recordProps.onOpenDiffInReview}
-            />
-          </div>
+          <SecurityWorkspaceView
+            installedPackagesCount={installedPackageIds.length}
+            retentionMode={retentionMode}
+            onRetentionModeChange={setRetentionMode}
+            selectedSeq={recordProps.selectedSeq ?? undefined}
+            onSelectSeq={recordProps.onSelectSeq}
+            verifyRequestNonce={recordProps.verifyRequestNonce}
+            onOpenDiffInReview={recordProps.onOpenDiffInReview}
+          />
         );
       case "docs":
         return (
           <DocumentationWorkspaceView
             experienceMode={experienceMode}
-            guides={INITIAL_DOC_GUIDES}
+            guides={docs}
+            activePrdTitle={prds[0]?.title}
+            onSaveDoc={handleSaveDoc}
           />
         );
       case "operations":

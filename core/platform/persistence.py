@@ -20,6 +20,8 @@ VALID_WORKSPACE_COLLECTIONS = frozenset(
         "issues",
         "prds",
         "workflows",
+        "docs",
+        "feedback",
         "extensions",
         "enterprise_policies",
     }
@@ -66,19 +68,25 @@ class SQLitePlatformStore:
         return self._journal_mode
 
     def _init_schema_locked(self) -> None:
+        records_ddl = (
+            "CREATE TABLE IF NOT EXISTS workspace_records ("
+            "workspace_id TEXT NOT NULL, "
+            "collection TEXT NOT NULL CHECK (collection IN ("
+            "'issues', 'prds', 'workflows', 'docs', 'feedback', 'extensions', 'enterprise_policies')), "
+            "record_id TEXT NOT NULL, payload_json TEXT NOT NULL, updated_at TEXT NOT NULL, "
+            "PRIMARY KEY (workspace_id, collection, record_id)); "
+            "CREATE INDEX IF NOT EXISTS idx_workspace_records_lookup ON workspace_records(workspace_id, collection);"
+        )
         with self._conn:
             self._conn.executescript(
-                """
+                f"""
                 CREATE TABLE IF NOT EXISTS marketplace_packages (
                     id TEXT PRIMARY KEY,
                     kind TEXT NOT NULL,
                     payload_json TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
-
-                CREATE INDEX IF NOT EXISTS idx_marketplace_packages_kind
-                    ON marketplace_packages(kind);
-
+                CREATE INDEX IF NOT EXISTS idx_marketplace_packages_kind ON marketplace_packages(kind);
                 CREATE TABLE IF NOT EXISTS workspace_installs (
                     workspace_id TEXT NOT NULL,
                     package_id TEXT NOT NULL,
@@ -86,30 +94,13 @@ class SQLitePlatformStore:
                     installed_at TEXT NOT NULL,
                     PRIMARY KEY (workspace_id, package_id)
                 );
-
-                CREATE INDEX IF NOT EXISTS idx_workspace_installs_ws
-                    ON workspace_installs(workspace_id);
-
-                CREATE TABLE IF NOT EXISTS workspace_records (
-                    workspace_id TEXT NOT NULL,
-                    collection TEXT NOT NULL CHECK (
-                        collection IN ('issues', 'prds', 'workflows', 'extensions', 'enterprise_policies')
-                    ),
-                    record_id TEXT NOT NULL,
-                    payload_json TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (workspace_id, collection, record_id)
-                );
-
-                CREATE INDEX IF NOT EXISTS idx_workspace_records_lookup
-                    ON workspace_records(workspace_id, collection);
-
+                CREATE INDEX IF NOT EXISTS idx_workspace_installs_ws ON workspace_installs(workspace_id);
+                {records_ddl}
                 CREATE TABLE IF NOT EXISTS workspace_meta (
                     workspace_id TEXT PRIMARY KEY,
                     meta_json TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
-
                 CREATE TABLE IF NOT EXISTS marketplace_settlements (
                     settlement_id TEXT PRIMARY KEY,
                     package_id TEXT NOT NULL,
@@ -117,11 +108,21 @@ class SQLitePlatformStore:
                     payload_json TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 );
-
                 CREATE INDEX IF NOT EXISTS idx_marketplace_settlements_tenant
                     ON marketplace_settlements(buyer_tenant_id);
                 """
             )
+            ddl_row = self._conn.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='workspace_records'"
+            ).fetchone()
+            if ddl_row and "'docs'" not in str(ddl_row["sql"]):
+                self._conn.executescript(
+                    "ALTER TABLE workspace_records RENAME TO _workspace_records_legacy; "
+                    "DROP INDEX IF EXISTS idx_workspace_records_lookup; "
+                    f"{records_ddl} "
+                    "INSERT INTO workspace_records SELECT * FROM _workspace_records_legacy; "
+                    "DROP TABLE _workspace_records_legacy;"
+                )
 
     def close(self) -> None:
         with self._lock:
@@ -358,7 +359,7 @@ class SQLitePlatformStore:
                 """
                 SELECT DISTINCT workspace_id FROM (
                     SELECT workspace_id FROM workspace_records
-                    WHERE collection IN ('issues', 'prds', 'workflows')
+                    WHERE collection IN ('issues', 'prds', 'workflows', 'docs', 'feedback')
                     UNION
                     SELECT workspace_id FROM workspace_meta
                 )

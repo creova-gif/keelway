@@ -25,14 +25,14 @@ const JOURNEYS: JourneyCard[] = [
     title: "Founders & Non-Technical Builders",
     audience: "Launch apps, internal tools & workflows in plain English",
     summary:
-      "Describe what your business needs and let Guided Non-Coder Mode compile requirements, tasks, visual previews, and safe automations — without touching terminal configs.",
+      "Run `keelway dev` to launch the local Keelway Dev Tool with the Guided No-Code Builder and all 10 Unified Workspace Views — compile plain-English briefs, tasks, and safe automations locally with zero cloud lock-in.",
     highlights: [
-      "Natural-language app & workflow builder",
+      "Guided No-Code Builder + all 10 Unified Workspace Views locally",
       "Plain-English safety approvals before changes go live",
-      "Start at $0 on the Free Community tier",
+      "Zero cloud lock-in · Start at $0 on the Free Community tier",
     ],
-    ctaLabel: "Open Guided No-Code Builder",
-    href: "/playground?mode=noncoder",
+    ctaLabel: "Launch Local Dev Tool (60s)",
+    href: "/#quickstart",
     icon: Sparkles,
   },
   {

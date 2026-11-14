@@ -15,7 +15,6 @@ export interface NavItem {
 }
 
 export const PRIMARY_NAV: NavItem[] = [
-  { label: "Playground", href: "/playground" },
   { label: "Marketplace", href: "/marketplace" },
   { label: "Models & OpenCore", href: "/models" },
   { label: "Routing & Governance", href: "/governance" },
@@ -64,12 +63,12 @@ export function Header() {
 
       {/* Main Navigation Row */}
       <div className="mx-auto max-w-container px-4 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2.5 lg:flex-nowrap">
           {/* Official Keelway Brand Lockup (brand.html canonical SVG) */}
           <Link
             href="/"
             aria-label="Keelway home"
-            className="inline-flex min-h-[44px] items-center gap-2.5 rounded-sm pr-2 text-lg font-bold tracking-tight text-fg transition-opacity duration-150 hover:opacity-90"
+            className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-sm pr-1 text-lg font-bold tracking-tight text-fg transition-opacity duration-150 hover:opacity-90"
           >
             <svg
               width="30"
@@ -89,16 +88,16 @@ export function Header() {
           </Link>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-2 lg:order-3">
+          <div className="flex shrink-0 items-center gap-1.5 lg:order-3">
             <button
               type="button"
               onClick={openCommandPalette}
               aria-label="Search models, API endpoints, and docs (Command+K)"
               title="Instant Search (⌘K / Ctrl+K)"
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-border-strong bg-surface px-3 font-mono text-xs text-fg-muted transition-colors duration-150 hover:border-teal-accent hover:text-fg"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-sm border border-border-strong bg-surface px-2.5 font-mono text-xs text-fg-muted transition-colors duration-150 hover:border-teal-accent hover:text-fg"
             >
               <Search className="h-3.5 w-3.5 text-teal-accent" aria-hidden="true" />
-              <span className="hidden md:inline">Search</span>
+              <span className="hidden 2xl:inline">Search</span>
               <kbd className="rounded-sm border border-border-subtle bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-fg">
                 ⌘K
               </kbd>
@@ -115,7 +114,7 @@ export function Header() {
               title={
                 theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
               }
-              className="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-border-strong bg-surface text-fg-muted transition-colors duration-150 hover:border-teal-accent hover:text-fg"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-border-strong bg-surface text-fg-muted transition-colors duration-150 hover:border-teal-accent hover:text-fg"
             >
               {theme === "dark" ? (
                 <Sun className="h-4 w-4" aria-hidden="true" />
@@ -129,7 +128,7 @@ export function Header() {
               onClick={() =>
                 trackEvent("cta_quickstart_clicked", { location: "header" })
               }
-              className="kw-btn kw-btn-secondary hidden sm:inline-flex"
+              className="kw-btn kw-btn-secondary hidden whitespace-nowrap px-3 text-[13px] xl:inline-flex"
             >
               <Terminal className="h-4 w-4 text-teal-accent" aria-hidden="true" />
               <span>Quickstart</span>
@@ -140,16 +139,16 @@ export function Header() {
               onClick={() =>
                 trackEvent("cta_early_access_clicked", { location: "header" })
               }
-              className="kw-btn kw-btn-primary"
+              className="kw-btn kw-btn-primary whitespace-nowrap px-3.5 text-[13px]"
             >
               <span>Request Access</span>
             </Link>
           </div>
 
-          {/* Primary Navigation — Always Visible, Wraps Cleanly at Phone Width per brand.html */}
+          {/* Primary Navigation — Single Row on Desktop (lg+), Wraps Cleanly on Mobile */}
           <nav
             aria-label="Primary"
-            className="order-3 flex w-full items-center gap-1 overflow-x-auto border-t border-border-subtle pt-2 lg:order-2 lg:w-auto lg:border-t-0 lg:pt-0"
+            className="order-3 flex w-full items-center gap-0.5 overflow-x-auto border-t border-border-subtle pt-2 lg:order-2 lg:w-auto lg:border-t-0 lg:pt-0"
           >
             {PRIMARY_NAV.map((item) => {
               const isActive =
@@ -161,7 +160,7 @@ export function Header() {
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex min-h-[44px] shrink-0 items-center rounded-sm px-3 text-sm font-medium transition-colors duration-150",
+                    "inline-flex min-h-[44px] shrink-0 items-center whitespace-nowrap rounded-sm px-2.5 text-[13px] font-medium transition-colors duration-150",
                     isActive
                       ? "bg-surface-elevated text-teal-accent"
                       : "text-fg-muted hover:bg-surface hover:text-fg"

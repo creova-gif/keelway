@@ -672,6 +672,7 @@ export function App({
         symbols={workspaceSymbols}
         modelsAndSettings={paletteModelsAndSettings}
         onRunCommand={handleRunCommand}
+        onSelectPlatformView={handleSelectPlatformView}
         onSelectTask={(taskId) => { setActiveTaskId(taskId); handleSelectSection("tasks"); }}
         onJumpToApprovalHeading={handleJumpToApprovalHeading}
         onSelectFile={(filePath) => {

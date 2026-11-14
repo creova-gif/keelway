@@ -524,4 +524,110 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("supports Documentation Markdown Studio & PRD Sync, Product RICE PRD authoring + Sprint Issue generation, PM Kanban & Issue Inspector, and Security Compliance + Live Scanner with 0 axe violations", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
+    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+
+    // 1. Documentation: Living Markdown Studio edit + Save Document + Sync Doc from Active PRD
+    await user.click(within(platformNav).getByRole("button", { name: /^Documentation$/i }));
+    const mdEditor = screen.getByLabelText(/Markdown document editor/i);
+    await user.type(mdEditor, "\n## Live Operator Runbook Note\n- [x] Verified local loopback sync");
+    await user.click(screen.getByRole("button", { name: /^Save Document$/i }));
+    expect(screen.getByText(/Saved to Workspace/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Sync Doc from Active PRD/i }));
+    expect(await axe(container)).toHaveNoViolations();
+
+    // 2. Product: Author New PRD with RICE calculator + Generate Sprint Issues + Log Customer Feedback
+    await user.click(within(platformNav).getByRole("button", { name: /^Product$/i }));
+    await user.type(screen.getByLabelText(/^PRD title$/i), "Zero-Trust Webhook Audit Vault");
+    await user.click(screen.getByRole("button", { name: /\+ Author New PRD/i }));
+    expect(screen.getByRole("heading", { name: "Zero-Trust Webhook Audit Vault" })).toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: /Generate Sprint Issues for/i })[0]!);
+    expect(screen.getByText(/Sprint Issues Synced/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/Customer persona/i), "CISO · Regulated Health");
+    await user.type(screen.getByLabelText(/Customer feedback quote/i), "Need deterministic local audit logs.");
+    await user.click(screen.getByRole("button", { name: /\+ Log Customer Feedback/i }));
+    expect(screen.getByText(/CISO · Regulated Health/i)).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
+
+    // 3. Project Manager: Kanban Board toggle + Issue Detail Inspector
+    await user.click(within(platformNav).getByRole("button", { name: /^Project Manager$/i }));
+    expect(screen.getByText(/Implement Zero-Trust Webhook Audit Vault acceptance criteria/i)).toBeInTheDocument();
+    const layoutGroup = screen.getByRole("group", { name: /Project Manager layout/i });
+    await user.click(within(layoutGroup).getByRole("button", { name: /Kanban Board/i }));
+    expect(screen.getByRole("region", { name: /Kanban sprint board/i })).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: /^Inspect KEEL-/i })[0]!);
+    const issueDesc = screen.getByLabelText(/Issue description/i);
+    await user.clear(issueDesc);
+    await user.type(issueDesc, "Updated specification with P-10 checkpoint.");
+    await user.click(screen.getByRole("button", { name: /Save Issue Details/i }));
+    expect(await axe(container)).toHaveNoViolations();
+
+    // 4. Security: HIPAA Compliance Posture Evaluator + Live Workspace Secret/Injection Scanner
+    await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
+    const fwGroup = screen.getByRole("group", { name: /Compliance frameworks/i });
+    await user.click(within(fwGroup).getByRole("button", { name: "HIPAA" }));
+    expect(screen.getByText(/164\.312\(a\)/i)).toBeInTheDocument();
+
+    const scanTextarea = screen.getByLabelText(/Workspace manifest or code snippet to scan/i);
+    await user.click(screen.getByRole("button", { name: /^Run Security Scan$/i }));
+    expect(screen.getByText(/Risk Grade A · Zero Findings/i)).toBeInTheDocument();
+
+    await user.clear(scanTextarea);
+    await user.type(scanTextarea, "export API_TOKEN=sk-live-9988776655secret");
+    await user.click(screen.getByRole("button", { name: /^Run Security Scan$/i }));
+    expect(screen.getByRole("alert")).toHaveTextContent(/Risk Grade: BLOCKED/i);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("supports Cmd+K CommandPalette 10-view navigation, Agent Session Supervisor dry-runs, Automation DAG step authoring, Cluster Workload Placement, and No-Code Live App Preview", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
+
+    // 1. Open CommandPalette and jump directly to Documentation Knowledge Base via 10-view command
+    await user.click(screen.getByRole("button", { name: /Open command palette/i }));
+    const paletteSearch = await screen.findByRole("combobox", { name: /Search commands, tasks, files/i });
+    await user.type(paletteSearch, "Open Documentation Knowledge Base");
+    await user.keyboard("{Enter}");
+    expect(await screen.findByRole("heading", { name: /Documentation Knowledge Base & 9-Stage SDLC/i })).toBeInTheDocument();
+
+    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+
+    // 2. Agents: Inspect & Supervise + Run Supervised Dry-Run
+    await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
+    await user.click(screen.getByRole("button", { name: /Inspect & Supervise feature-coder/i }));
+    await user.click(screen.getByRole("button", { name: /Run Supervised Dry-Run/i }));
+    expect(screen.getByText(/HELD FOR HUMAN P-10/i)).toBeInTheDocument();
+
+    // 3. Automation: Add custom DAG step + Run workflow execution trace
+    await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
+    await user.type(screen.getByLabelText(/^Step label$/i), "Sign Ed25519 Release Attestation");
+    await user.click(screen.getByRole("button", { name: /\+ Add DAG Step/i }));
+    expect(screen.getByText("Sign Ed25519 Release Attestation")).toBeInTheDocument();
+
+    // 4. Operations: Interactive Workload Placement Scheduler + Canary Promotion
+    await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
+    await user.click(screen.getByRole("button", { name: /^Schedule Workload$/i }));
+    expect(screen.getByText(/Scheduled on node-metal-local-01/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Promote Canary -> 100% Stable/i }));
+    expect(screen.getAllByText(/100% stable/i).length).toBeGreaterThanOrEqual(2);
+
+    // 5. No-Code Builder: Interactive Live App Preview submission + P-10 entry approval
+    await user.click(within(platformNav).getByRole("button", { name: /^No-Code Builder$/i }));
+    const previewBtn = screen.queryByRole("button", { name: /Preview Starter App/i });
+    if (previewBtn) await user.click(previewBtn);
+    await user.type(screen.getByLabelText(/Preview requestor name/i), "Alex Rivera");
+    await user.type(screen.getByLabelText(/Preview request summary/i), "Provision HIPAA sovereign tenant");
+    await user.click(screen.getByRole("button", { name: /Submit Test Entry/i }));
+    expect(screen.getByText("Alex Rivera")).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: /^Approve Entry /i })[0]!);
+    expect(screen.getAllByText(/Approved · Record Logged/i).length).toBeGreaterThan(0);
+    expect(await axe(container)).toHaveNoViolations();
+  });
 });

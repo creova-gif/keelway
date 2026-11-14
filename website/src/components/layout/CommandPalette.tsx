@@ -21,13 +21,13 @@ type CommandItem = SearchIndexItem | (Omit<SearchIndexItem, "group"> & { group: 
 
 const BUILTIN_ACTIONS: CommandItem[] = [
   {
-    id: "act-playground",
+    id: "act-dev-tool",
     group: "action",
-    title: "Launch 10-View Playground",
-    subtitle: "Interactive Builder & Guided Non-Coder Mode across all 10 Keelway views",
+    title: "Launch 10-View Local Dev Tool",
+    subtitle: "Run keelway dev locally (:7420/app) for Builder & Guided Non-Coder Mode",
     badge: "ACTION",
-    href: "/playground",
-    keywords: "action launch 10-view playground builder non-coder workbench",
+    href: "/#quickstart",
+    keywords: "action launch 10-view dev tool studio builder non-coder workbench quickstart",
   },
   {
     id: "act-tamper-lab",
@@ -42,10 +42,10 @@ const BUILTIN_ACTIONS: CommandItem[] = [
     id: "act-nocode-builder",
     group: "action",
     title: "Open No-Code Blueprint Builder",
-    subtitle: "Compile natural-language product briefs into PRDs, sprint issues & DAGs",
+    subtitle: "Launch keelway dev locally to compile briefs into PRDs, sprint issues & DAGs",
     badge: "ACTION",
-    href: "/playground",
-    keywords: "action open no-code blueprint builder prd issues dag",
+    href: "/#quickstart",
+    keywords: "action open no-code blueprint builder prd issues dag quickstart",
   },
   {
     id: "act-byom-pricing",
@@ -152,7 +152,7 @@ export function CommandPalette() {
       const rest = trimmed.slice(1).trim().toLowerCase();
       const filteredPool = allPool.filter((item) => {
         if (activePrefix === ">") {
-          return item.group === "action" || item.href.startsWith("/playground");
+          return item.group === "action";
         }
         if (activePrefix === "@") {
           return item.group === "model";

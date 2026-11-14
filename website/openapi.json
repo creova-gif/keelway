@@ -8417,6 +8417,76 @@
         }
       }
     },
+    "/v1/platform/pm/issues/{issue_id}": {
+      "patch": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Patch Pm Issue",
+        "operationId": "patch_pm_issue_v1_platform_pm_issues__issue_id__patch",
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Issue Id"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssuePatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Patch Pm Issue V1 Platform Pm Issues  Issue Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/platform/product/prds": {
       "get": {
         "tags": [
@@ -8486,6 +8556,275 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Create Product Prd V1 Platform Product Prds Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/product/feedback": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Product Feedback",
+        "operationId": "list_product_feedback_v1_platform_product_feedback_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Product Feedback V1 Platform Product Feedback Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Create Product Feedback",
+        "operationId": "create_product_feedback_v1_platform_product_feedback_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Product Feedback V1 Platform Product Feedback Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/docs": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Workspace Docs",
+        "operationId": "list_workspace_docs_v1_platform_docs_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Workspace Docs V1 Platform Docs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Create Workspace Doc",
+        "operationId": "create_workspace_doc_v1_platform_docs_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocUpsertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Workspace Doc V1 Platform Docs Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/docs/{doc_id}": {
+      "put": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Put Workspace Doc",
+        "operationId": "put_workspace_doc_v1_platform_docs__doc_id__put",
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Doc Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocUpsertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Workspace Doc V1 Platform Docs  Doc Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/security/scan": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Scan Workspace Security Route",
+        "operationId": "scan_workspace_security_route_v1_platform_security_scan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceSecurityScanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Scan Workspace Security Route V1 Platform Security Scan Post"
                 }
               }
             }
@@ -10447,6 +10786,59 @@
         ],
         "title": "DetachAdapterRequest"
       },
+      "DocUpsertRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "diataxis_kind": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Diataxis Kind",
+            "default": "reference"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Summary",
+            "default": ""
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 100000,
+            "title": "Body",
+            "default": ""
+          },
+          "linked_prd_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Prd Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "DocUpsertRequest"
+      },
       "DriftCompareRequest": {
         "properties": {
           "candidate_run_id": {
@@ -10625,6 +11017,54 @@
           "package"
         ],
         "title": "EvidenceVerifyRequest"
+      },
+      "FeedbackCreateRequest": {
+        "properties": {
+          "persona": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Persona"
+          },
+          "quote": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Quote"
+          },
+          "impact_score": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Impact Score",
+            "default": 8.0
+          },
+          "linked_prd_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Prd Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "persona",
+          "quote"
+        ],
+        "title": "FeedbackCreateRequest"
       },
       "GovernanceAuditEntry": {
         "properties": {
@@ -11028,6 +11468,118 @@
           "title"
         ],
         "title": "IssueCreateRequest"
+      },
+      "IssuePatchRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "sprint_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sprint Id"
+          },
+          "prd_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prd Id"
+          },
+          "assignee_agent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Agent"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "dependencies": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dependencies"
+          }
+        },
+        "type": "object",
+        "title": "IssuePatchRequest"
       },
       "KeyAuthenticationResult": {
         "properties": {
@@ -13971,6 +14523,34 @@
           "name"
         ],
         "title": "WorkflowCreateRequest"
+      },
+      "WorkspaceSecurityScanRequest": {
+        "properties": {
+          "target_name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Target Name",
+            "default": "workspace-snippet"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 200000,
+            "title": "Content"
+          },
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Workspace Id",
+            "default": "default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "WorkspaceSecurityScanRequest"
       }
     }
   }
