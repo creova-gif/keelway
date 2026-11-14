@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { evaluate } from "flags/next";
 import {
   ArrowRight,
   Cpu,
@@ -9,21 +10,38 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
+import { expHomeGateFlag, expQuickstartCliFlag } from "@/flags";
+import { ExperimentFlagValues } from "@/components/experiments/ExperimentFlagValues";
+import { HeroCtaLinks } from "@/components/home/HeroCtaLinks";
 import { HeroControlCockpit } from "@/components/home/HeroControlCockpit";
 import { RecordedDemosShowcase } from "@/components/home/RecordedDemosShowcase";
 import { ArchitectureTopology } from "@/components/home/ArchitectureTopology";
 import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
+import { P10InteractiveDeck } from "@/components/home/P10InteractiveDeck";
 import { QuickstartTerminal } from "@/components/home/QuickstartTerminal";
 import { EarlyAccessForm } from "@/components/home/EarlyAccessForm";
 
 /**
  * Page 1 (Stage 1): Keelway Home (/)
  * Dual-Track Conversion Hub serving both Self-Serve OSS/AI Builders and
- * Enterprise CTOs / Security Architects.
+ * Enterprise CTOs / Security Architects, instrumented with server-evaluated
+ * Vercel Flags (`exp-home-gate-v1` and `exp-quickstart-cli-v1`).
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const [homeGateVariant, quickstartCliVariant] = await evaluate([
+    expHomeGateFlag,
+    expQuickstartCliFlag,
+  ]);
+
   return (
     <div>
+      <ExperimentFlagValues
+        surface="home"
+        values={{
+          "exp-home-gate-v1": homeGateVariant,
+          "exp-quickstart-cli-v1": quickstartCliVariant,
+        }}
+      />
       {/* ====================================================================
           HERO — Blueprint Surface + Live Operable Control-Plane Cockpit
           ==================================================================== */}
@@ -61,15 +79,7 @@ export default function HomePage() {
                 and provider boundary is approved, redacted, and hash-chained.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link href="#quickstart" className="kw-btn kw-btn-primary">
-                  <span>Start in 60 Seconds</span>
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-                <Link href="/models" className="kw-btn kw-btn-secondary">
-                  <span>Explore OpenCore &amp; Frontier Models</span>
-                </Link>
-              </div>
+              <HeroCtaLinks />
 
               {/* Radical Transparency Telemetry Strip */}
               <dl className="mt-9 grid grid-cols-3 gap-4 border-t border-border-subtle pt-6 font-mono">
@@ -187,9 +197,14 @@ export default function HomePage() {
       <ArchitectureTopology />
 
       {/* ====================================================================
-          INTERACTIVE 5-STEP AGENT APPROVAL GATE STEPPER
+          A/B EXPERIMENT 1 (`exp-home-gate-v1`):
+          Control (`control-stepper`) vs Treatment (`interactive-p10-deck`)
           ==================================================================== */}
-      <ApprovalGateStepper />
+      {homeGateVariant === "interactive-p10-deck" ? (
+        <P10InteractiveDeck />
+      ) : (
+        <ApprovalGateStepper />
+      )}
 
       {/* ====================================================================
           OPENCORE vs. FRONTIER COMPARISON SNAPSHOT
@@ -319,9 +334,9 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          60-SECOND MULTI-SURFACE QUICKSTART TERMINAL
+          60-SECOND MULTI-SURFACE QUICKSTART TERMINAL (`exp-quickstart-cli-v1`)
           ==================================================================== */}
-      <QuickstartTerminal />
+      <QuickstartTerminal variant={quickstartCliVariant} />
 
       {/* ====================================================================
           EARLY ACCESS & ENTERPRISE VPC INTAKE FORM

@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Check, Copy, ArrowRight } from "lucide-react";
+import { Check, Copy, ArrowRight, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
+import type { QuickstartCliVariant } from "@/flags";
 
 interface SnippetTab {
   id: string;
@@ -16,6 +17,13 @@ interface SnippetTab {
 
 const SNIPPETS: SnippetTab[] = [
   {
+    id: "tui",
+    label: "Interactive CLI Boot",
+    filename: "keelway — Sovereign TUI",
+    code: `curl -fsSL https://kora-sable.vercel.app/install.sh | sh
+keelway init && keelway dev`,
+  },
+  {
     id: "cli",
     label: "Local Studio & CLI",
     filename: "terminal — zsh",
@@ -23,7 +31,7 @@ const SNIPPETS: SnippetTab[] = [
 cd kora && python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-# Launch Keelway Studio (127.0.0.1:7420) or Hybrid API (127.0.0.1:8000)
+# Launch Keelway Sovereign Dev App (127.0.0.1:7420/app) or Hybrid API (:8000)
 python3 cli.py dev
 python3 cli.py opencore --status`,
   },
@@ -60,30 +68,67 @@ chat = client.chat.completions.create(
 )
 print(chat.choices[0].message.content)`,
   },
-  {
-    id: "install",
-    label: "1-Line Installer",
-    filename: "install.sh",
-    code: `curl -fsSL https://kora-sable.vercel.app/install.sh | sh
-keelway doctor
-keelway swarm --workers 8 --task "Run security regression audit"`,
-  },
 ];
 
+const TUI_SLASH_OUTPUTS: Record<string, string[]> = {
+  boot: [
+    "  [✓] Workspace bound: ~/projects/payments-api (git: main)",
+    "  [✓] OS Sandbox verified: macOS Seatbelt · P-10 Human Gate armed",
+    "  [✓] Local OpenCore online: keelway-core:7b (Apple Metal · 0 B egress)",
+    "  Tip: Click a slash command below or run `keelway dev` to open /app.",
+  ],
+  "/model": [
+    "  ▸ Active: keelway-core:7b (Apache-2.0 · Local Metal · $0.00/1M)",
+    "    Available Frontier: gemini-3.5-flash-lite · claude-sonnet-4-6 · gpt-5.4-mini",
+    "    Note: Switching models pauses standing Allow-always rules for re-confirm.",
+  ],
+  "/airgap": [
+    "  [LOCKED] Sovereign Air-Gap Mode: ENABLED (NIST SP 800-53 SC-7)",
+    "  Outbound cloud sockets blocked at gateway · Local loopback 127.0.0.1 only.",
+  ],
+  "/audit": [
+    "  [✓] SQLite WAL Flight Chain verified: 1,285 entries intact",
+    "  Latest root: sha256:f91a83e54b20c67d · 0 tamper mismatches.",
+  ],
+  "keelway dev": [
+    "  [+] Starting Keelway Unified Sovereign Dev App on http://127.0.0.1:7420/app",
+    "  [+] CSP: default-src 'self'; script-src 'self' · Opening workbench...",
+  ],
+};
+
+interface QuickstartTerminalProps {
+  variant?: QuickstartCliVariant;
+}
+
 /**
- * 60-Second Multi-Surface Quickstart Terminal with accessible clipboard copy.
+ * 60-Second Multi-Surface Quickstart Terminal supporting `exp-quickstart-cli-v1`:
+ * - `code-tabs-default` (Control): defaults to copyable `Local Studio & CLI` snippet
+ * - `interactive-tui-boot` (Treatment): defaults to Claude-Code-style boxed `KEELWAY` TUI boot
  */
-export function QuickstartTerminal() {
-  const [activeTab, setActiveTab] = useState<string>("cli");
+export function QuickstartTerminal({
+  variant = "code-tabs-default",
+}: QuickstartTerminalProps) {
+  const defaultTab = variant === "interactive-tui-boot" ? "tui" : "cli";
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
+  const [tuiCmd, setTuiCmd] = useState<string>("boot");
   const [copied, setCopied] = useState<boolean>(false);
 
-  const current = SNIPPETS.find((s) => s.id === activeTab) ?? SNIPPETS[0];
+  const visibleSnippets =
+    variant === "interactive-tui-boot"
+      ? SNIPPETS
+      : SNIPPETS.filter((s) => s.id !== "tui");
+
+  const current =
+    visibleSnippets.find((s) => s.id === activeTab) ?? visibleSnippets[0];
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(current.code);
       setCopied(true);
-      trackEvent("code_snippet_copied", { tab: activeTab });
+      trackEvent("code_snippet_copied", {
+        tab: activeTab,
+        quickstart_variant: variant,
+      });
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback ignored if clipboard blocked
@@ -94,6 +139,8 @@ export function QuickstartTerminal() {
     <section
       id="quickstart"
       aria-labelledby="quickstart-heading"
+      data-experiment-key="exp-quickstart-cli-v1"
+      data-experiment-variant={variant}
       className="border-t border-border-subtle py-20"
     >
       <div className="mx-auto max-w-container px-4 sm:px-6">
@@ -135,14 +182,14 @@ export function QuickstartTerminal() {
                     aria-label="Quickstart code surfaces"
                     className="flex flex-wrap gap-1"
                   >
-                    {SNIPPETS.map((tab) => (
+                    {visibleSnippets.map((tab) => (
                       <Tabs.Trigger
                         key={tab.id}
                         value={tab.id}
                         className={cn(
                           "min-h-[40px] rounded-sm px-3 font-mono text-xs font-semibold transition-colors duration-150",
                           activeTab === tab.id
-                            ? "bg-canvas text-teal-accent border border-border-strong"
+                            ? "border border-border-strong bg-canvas text-teal-accent"
                             : "text-fg-muted hover:text-fg"
                         )}
                       >
@@ -178,21 +225,99 @@ export function QuickstartTerminal() {
                   {current.filename}
                 </div>
 
-                {SNIPPETS.map((tab) => (
+                {visibleSnippets.map((tab) => (
                   <Tabs.Content
                     key={tab.id}
                     value={tab.id}
-                    className="focus:outline-none"
+                    className="bg-canvas p-4 focus:outline-none"
                   >
-                    <pre className="overflow-x-auto bg-canvas p-5 font-mono text-xs leading-relaxed text-fg">
-                      <code>{tab.code}</code>
-                    </pre>
+                    {tab.id === "tui" ? (
+                      <div className="space-y-3 font-mono text-xs">
+                        <div className="overflow-x-auto rounded-md border border-teal-accent/40 bg-surface/60 p-3.5 leading-[1.35]">
+                          <div className="text-fg-dim">
+                            ╭─── <span className="font-bold text-teal-accent">Keelway v1.1</span> · Sovereign Local-First AI Platform ───╮
+                          </div>
+                          <pre className="mt-2 select-none text-[10px] leading-[1.15] text-teal-accent sm:text-[11px]">
+{`  ██╗  ██╗███████╗███████╗██╗     ██╗    ██╗ █████╗ ██╗   ██╗
+  ██║ ██╔╝██╔════╝██╔════╝██║     ██║    ██║██╔══██╗╚██╗ ██╔╝
+  █████╔╝ █████╗  █████╗  ██║     ██║ █╗ ██║███████║ ╚████╔╝ 
+  ██╔═██╗ ██╔══╝  ██╔══╝  ██║     ██║███╗██║██╔══██║  ╚██╔╝  
+  ██║  ██╗███████╗███████╗███████╗╚███╔███╔╝██║  ██║   ██║   
+  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝   `}
+                          </pre>
+                          <div className="mt-2.5 grid grid-cols-1 gap-1 border-t border-border-subtle pt-2 text-[11px] text-fg-muted sm:grid-cols-2">
+                            <div>
+                              Workspace:{" "}
+                              <span className="text-fg">~/payments-api (main)</span>
+                            </div>
+                            <div>
+                              Runtime:{" "}
+                              <span className="text-teal-accent">
+                                OpenCore · keelway-core:7b
+                              </span>
+                            </div>
+                            <div>
+                              Sandbox:{" "}
+                              <span className="text-fg">Seatbelt (verified)</span>
+                            </div>
+                            <div>
+                              Egress:{" "}
+                              <span className="text-teal-accent">
+                                Air-Gap Ready · 0 B
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-2 text-fg-dim">
+                            ╰──────────────────────── Sorvex Labs • https://keelway.dev ──╯
+                          </div>
+                        </div>
+
+                        {/* Interactive Slash Command Simulator */}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 text-[11px] text-fg-muted">
+                            <Terminal className="h-3 w-3 text-teal-accent" aria-hidden="true" />
+                            Try CLI command:
+                          </span>
+                          {(["/model", "/airgap", "/audit", "keelway dev"] as const).map(
+                            (cmd) => (
+                              <button
+                                key={cmd}
+                                type="button"
+                                onClick={() => {
+                                  setTuiCmd(cmd);
+                                  trackEvent("cli_tui_command_simulated", {
+                                    command: cmd,
+                                  });
+                                }}
+                                className={cn(
+                                  "rounded-sm border px-2 py-1 text-[11px] transition-colors",
+                                  tuiCmd === cmd
+                                    ? "border-teal-accent bg-teal-accent/10 text-teal-accent"
+                                    : "border-border-strong bg-surface text-fg-muted hover:text-fg"
+                                )}
+                              >
+                                {cmd}
+                              </button>
+                            )
+                          )}
+                        </div>
+
+                        <div className="rounded-sm border border-border-subtle bg-surface/50 p-3 text-[11px] leading-relaxed text-fg">
+                          {(TUI_SLASH_OUTPUTS[tuiCmd] ?? TUI_SLASH_OUTPUTS.boot).map(
+                            (line) => (
+                              <div key={line}>{line}</div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <pre className="overflow-x-auto font-mono text-xs leading-6 text-fg">
+                        <code>{tab.code}</code>
+                      </pre>
+                    )}
                   </Tabs.Content>
                 ))}
               </Tabs.Root>
-              <span className="sr-only" aria-live="polite">
-                {copied ? `${current.label} snippet copied to clipboard.` : ""}
-              </span>
             </div>
           </div>
         </div>

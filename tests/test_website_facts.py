@@ -211,3 +211,42 @@ def test_official_typescript_sdk_zero_deps_and_node_suite() -> None:
             timeout=30,
         )
         assert proc.returncode == 0, f"@keelway/sdk Node test suite failed:\n{proc.stdout}\n{proc.stderr}"
+
+
+def test_vercel_flags_ab_experiments_and_funnel_wiring() -> None:
+    flags_file = WEBSITE_DIR / "src" / "flags.ts"
+    discovery_route = WEBSITE_DIR / "src" / "app" / ".well-known" / "vercel" / "flags" / "route.ts"
+    analytics_file = WEBSITE_DIR / "src" / "lib" / "analytics.ts"
+    p10_deck_file = WEBSITE_DIR / "src" / "components" / "home" / "P10InteractiveDeck.tsx"
+    flag_values_file = WEBSITE_DIR / "src" / "components" / "experiments" / "ExperimentFlagValues.tsx"
+    middleware_file = WEBSITE_DIR / "src" / "middleware.ts"
+
+    for required in (flags_file, discovery_route, analytics_file, p10_deck_file, flag_values_file, middleware_file):
+        assert required.exists(), f"Missing A/B experimentation file: {required.relative_to(KEELWAY_ROOT)}"
+
+    flags_src = flags_file.read_text(encoding="utf-8")
+    for token in (
+        "exp-home-gate-v1",
+        "control-stepper",
+        "interactive-p10-deck",
+        "exp-quickstart-cli-v1",
+        "code-tabs-default",
+        "interactive-tui-boot",
+        "vercelAdapter",
+    ):
+        assert token in flags_src, f"Expected '{token}' in website/src/flags.ts"
+
+    analytics_src = analytics_file.read_text(encoding="utf-8")
+    for evt in (
+        "experiment_exposed",
+        "p10_deck_action",
+        "p10_escalation_triggered",
+        "cli_tui_command_simulated",
+        "$feature_flag_called",
+    ):
+        assert evt in analytics_src, f"Expected funnel hook '{evt}' in website/src/lib/analytics.ts"
+
+    p10_src = p10_deck_file.read_text(encoding="utf-8")
+    assert "Only you can approve" in p10_src
+    assert "Approvals are never run from here" in p10_src
+    assert "Confirm external send" in p10_src

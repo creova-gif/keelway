@@ -135,6 +135,8 @@ export function ApprovalGateStepper() {
     <section
       id="workflow"
       aria-labelledby="workflow-heading"
+      data-experiment-key="exp-home-gate-v1"
+      data-experiment-variant="control-stepper"
       className="border-t border-border-subtle bg-surface/35 py-20"
     >
       <div className="mx-auto max-w-container px-4 sm:px-6">
