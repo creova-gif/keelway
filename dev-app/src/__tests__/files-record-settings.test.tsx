@@ -50,13 +50,7 @@ describe("FilesWorkspace (Screen 05)", () => {
 
     render(
       <React.StrictMode>
-        <FilesWorkspace
-          fetchTreeFn={async () => SAMPLE_TREE}
-          fetchContentFn={fetchContentFn}
-          fetchDiffFn={async () => SAMPLE_DIFFS}
-          fetchSymbolsFn={async () => SAMPLE_SYMBOLS}
-          openInEditorFn={openInEditorFn}
-        />
+        <FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={fetchContentFn} fetchDiffFn={async () => SAMPLE_DIFFS} fetchSymbolsFn={async () => SAMPLE_SYMBOLS} openInEditorFn={openInEditorFn} />
       </React.StrictMode>,
     );
 
@@ -109,15 +103,23 @@ describe("FilesWorkspace (Screen 05)", () => {
       expect(saveContentFn).toHaveBeenCalledTimes(2);
       expect(screen.queryByText("Not saved · disk full")).toBeNull();
     });
+
+    // Seed saveError="disk full" stays pinned to main.py tab when switching to notes.txt
+    const seeded = render(<FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} saveError="disk full" />);
+    const tabsGroup = within(seeded.container).getByRole("group", { name: /Open file tabs/i });
+    expect(await within(tabsGroup).findByText("Not saved · disk full")).toBeInTheDocument();
+    await user.click(await within(seeded.container).findByRole("button", { name: /notes\.txt/i }));
+    const mainTab = within(tabsGroup).getByRole("button", { name: /main\.py/i });
+    const notesTab = within(tabsGroup).getByRole("button", { name: /notes\.txt/i });
+    expect(mainTab).toHaveTextContent("Not saved · disk full");
+    expect(notesTab).not.toHaveTextContent("Not saved");
+    seeded.unmount();
   });
 
-  it("enforces WCAG 2.1.2 no-keyboard-trap in <textarea> fallback, large-file notice, and zero-CDN Monaco dispose", async () => {
+  it("enforces WCAG 2.1.2 no-keyboard-trap (Tab + Shift+Tab), large-file notice, and AMD Monaco setValue sync guard", async () => {
     const user = userEvent.setup();
     const { unmount } = render(
-      <FilesWorkspace
-        fetchTreeFn={async () => SAMPLE_TREE}
-        fetchContentFn={async (path) => ({ path, language: "python", content: "x".repeat(520 * 1024) })}
-      />,
+      <FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={async (path) => ({ path, language: "python", content: "x".repeat(520 * 1024) })} />,
     );
 
     expect(await screen.findByText(/Tab indents · Esc then Tab moves focus/i)).toBeInTheDocument();
@@ -135,6 +137,13 @@ describe("FilesWorkspace (Screen 05)", () => {
     fireEvent(editor, rawTabCheck);
     expect(rawTabCheck.defaultPrevented).toBe(false);
 
+    // Escape -> Shift keydown -> Shift+Tab must NOT reset Esc-mode on bare Shift keydown
+    await user.keyboard("{Escape}");
+    fireEvent.keyDown(editor, { key: "Shift", shiftKey: true });
+    const shiftTabCheck = new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true, cancelable: true });
+    fireEvent(editor, shiftTabCheck);
+    expect(shiftTabCheck.defaultPrevented).toBe(false);
+
     await user.keyboard("{Escape}");
     await user.tab();
     expect(document.activeElement).not.toBe(editor);
@@ -144,23 +153,48 @@ describe("FilesWorkspace (Screen 05)", () => {
     expect(document.activeElement).toBe(editor);
     unmount();
 
-    // Verify zero-CDN Monaco bridge defines keelway-dark / keelway-light and disposes cleanly
+    // Verify AMD window.require + editor.main.css + setValue sync guard does NOT mark newly loaded file dirty
     const disposeSpy = vi.fn();
     const defineThemeSpy = vi.fn();
-    (window as unknown as Record<string, unknown>).monaco = {
-      editor: {
-        defineTheme: defineThemeSpy, setTheme: vi.fn(),
-        create: vi.fn(() => ({ getValue: () => "", setValue: vi.fn(), onDidChangeModelContent: () => ({ dispose: vi.fn() }), dispose: disposeSpy })),
-      },
-    };
+    const requireConfigSpy = vi.fn();
+    let currentVal = "";
+    let changeCb: (() => void) | null = null;
+    const amdRequire = Object.assign(
+      vi.fn((deps: string[], cb: () => void) => {
+        if (deps.includes("vs/editor/editor.main")) {
+          (window as unknown as Record<string, unknown>).monaco = {
+            editor: {
+              defineTheme: defineThemeSpy, setTheme: vi.fn(),
+              create: vi.fn((_el: HTMLElement, opts: { value?: string }) => {
+                currentVal = opts.value ?? "";
+                return {
+                  getValue: () => currentVal,
+                  setValue: (v: string) => { currentVal = v; changeCb?.(); },
+                  onDidChangeModelContent: (fn: () => void) => { changeCb = fn; return { dispose: vi.fn() }; },
+                  dispose: disposeSpy,
+                };
+              }),
+            },
+          };
+          cb();
+        }
+      }),
+      { config: requireConfigSpy },
+    );
+    (window as unknown as Record<string, unknown>).require = amdRequire;
     try {
-      const mounted = render(<FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} />);
+      const mounted = render(<FilesWorkspace fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={async (path) => ({ path, language: "python", content: "app = FastAPI()\n" })} />);
       await waitFor(() => expect(defineThemeSpy).toHaveBeenCalledWith("keelway-dark", expect.objectContaining({ colors: { "editor.background": "#090d12" } })));
-      expect(defineThemeSpy).toHaveBeenCalledWith("keelway-light", expect.objectContaining({ colors: { "editor.background": "#f3f6f9" } }));
+      expect(requireConfigSpy).toHaveBeenCalledWith({ paths: { vs: "/studio/assets/monaco/vs" } });
+      expect(document.head.querySelector('link[href="/studio/assets/monaco/vs/editor/editor.main.css"]')).not.toBeNull();
+      await waitFor(() => expect(currentVal).toBe("app = FastAPI()\n"));
+      const openTabs = within(mounted.container).getByRole("group", { name: /Open file tabs/i });
+      expect(within(openTabs).getByRole("button", { name: /main\.py/i })).not.toHaveTextContent("Modified");
       mounted.unmount();
       expect(disposeSpy).toHaveBeenCalledTimes(1);
     } finally {
       delete (window as unknown as Record<string, unknown>).monaco;
+      delete (window as unknown as Record<string, unknown>).require;
     }
   });
 

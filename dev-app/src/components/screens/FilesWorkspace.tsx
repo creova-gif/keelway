@@ -19,6 +19,12 @@ export type FilesViewMode = "code" | "unified" | "split";
 
 const LARGE_FILE_BYTES = 512 * 1024;
 const MONACO_SELF_LOADER_SRC = "/studio/assets/monaco/vs/loader.js";
+const MONACO_SELF_CSS_HREF = "/studio/assets/monaco/vs/editor/editor.main.css";
+
+interface AmdRequireFunction {
+  (deps: string[], onLoad: () => void, onError?: (err: unknown) => void): void;
+  config?: (options: { paths: Record<string, string> }) => void;
+}
 
 interface MonacoDisposable {
   dispose(): void;
@@ -96,6 +102,7 @@ export function FilesWorkspace({
   const [viewMode, setViewMode] = useState<FilesViewMode>(initialViewMode);
 
   const [activePath, setActivePath] = useState<string>(initialActivePath);
+  const [seedErrorPath, setSeedErrorPath] = useState<string>(initialActivePath);
   const [activeLine, setActiveLine] = useState<number>(initialActiveLine);
   const [openPaths, setOpenPaths] = useState<string[]>([initialActivePath]);
 
@@ -119,6 +126,7 @@ export function FilesWorkspace({
 
   const monacoContainerRef = useRef<HTMLDivElement | null>(null);
   const monacoEditorRef = useRef<MonacoEditorInstance | null>(null);
+  const isSyncingMonacoRef = useRef(false);
   const [monacoReady, setMonacoReady] = useState(false);
   const [monacoFailed, setMonacoFailed] = useState(false);
 
@@ -135,6 +143,7 @@ export function FilesWorkspace({
         const files = flattenFiles(nodes);
         if (files.length > 0 && !files.some((f) => f.path === initialActivePath)) {
           const first = files[0].path;
+          setSeedErrorPath(first);
           setActivePath(first);
           setOpenPaths([first]);
         }
@@ -195,14 +204,14 @@ export function FilesWorkspace({
       }
     }
     const seedError = saveError ?? initialSaveError;
-    if (seedError && !clearedSeedErrors[activePath]) {
-      map[activePath] = seedError;
+    if (seedError && !clearedSeedErrors[seedErrorPath]) {
+      map[seedErrorPath] = seedError;
     }
     for (const [p, err] of Object.entries(runtimeSaveErrors)) {
       map[p] = err;
     }
     return map;
-  }, [activePath, clearedSeedErrors, flatFiles, initialSaveError, runtimeSaveErrors, saveError]);
+  }, [clearedSeedErrors, flatFiles, initialSaveError, runtimeSaveErrors, saveError, seedErrorPath]);
 
   const activeSaveError = effectiveSaveErrors[activePath];
   const activeContent = buffers[activePath] ?? "";
@@ -297,18 +306,46 @@ export function FilesWorkspace({
 
   useEffect(() => {
     if (preferTextareaFallback || typeof window === "undefined") return;
-    const win = window as unknown as { monaco?: MonacoGlobal };
-    if (win.monaco?.editor) {
-      setMonacoReady(true);
-      return;
-    }
-    if (import.meta.env.MODE === "test") return;
+    let cancelled = false;
+    const win = window as unknown as { monaco?: MonacoGlobal; require?: AmdRequireFunction };
 
-    let script = document.querySelector<HTMLScriptElement>(`script[src="${MONACO_SELF_LOADER_SRC}"]`);
-    const onLoad = () => {
-      if ((window as unknown as { monaco?: MonacoGlobal }).monaco?.editor) setMonacoReady(true);
+    const ensureMonacoCss = () => {
+      if (!document.querySelector(`link[href="${MONACO_SELF_CSS_HREF}"]`)) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = MONACO_SELF_CSS_HREF;
+        link.dataset.keelwayMonacoCss = "true";
+        document.head.appendChild(link);
+      }
     };
-    const onError = () => setMonacoFailed(true);
+
+    const activateMonacoViaAmd = (): boolean => {
+      if (win.monaco?.editor) {
+        ensureMonacoCss();
+        if (!cancelled) setMonacoReady(true);
+        return true;
+      }
+      if (typeof win.require === "function" && typeof win.require.config === "function") {
+        ensureMonacoCss();
+        win.require.config({ paths: { vs: "/studio/assets/monaco/vs" } });
+        win.require(
+          ["vs/editor/editor.main"],
+          () => { if (!cancelled) setMonacoReady(true); },
+          () => { if (!cancelled) setMonacoFailed(true); },
+        );
+        return true;
+      }
+      return false;
+    };
+
+    if (activateMonacoViaAmd() || import.meta.env.MODE === "test") {
+      return () => { cancelled = true; };
+    }
+
+    ensureMonacoCss();
+    let script = document.querySelector<HTMLScriptElement>(`script[src="${MONACO_SELF_LOADER_SRC}"]`);
+    const onLoad = () => { if (!activateMonacoViaAmd() && !cancelled) setMonacoFailed(true); };
+    const onError = () => { if (!cancelled) setMonacoFailed(true); };
 
     if (!script) {
       script = document.createElement("script");
@@ -320,6 +357,7 @@ export function FilesWorkspace({
     script.addEventListener("load", onLoad);
     script.addEventListener("error", onError);
     return () => {
+      cancelled = true;
       script?.removeEventListener("load", onLoad);
       script?.removeEventListener("error", onError);
     };
@@ -359,6 +397,7 @@ export function FilesWorkspace({
       });
       monacoEditorRef.current = instance;
       const sub = instance.onDidChangeModelContent(() => {
+        if (isSyncingMonacoRef.current) return;
         updateBufferContent(activePath, instance.getValue());
       });
       const themeObserver = new MutationObserver(() => {
@@ -386,7 +425,14 @@ export function FilesWorkspace({
   useEffect(() => {
     const inst = monacoEditorRef.current;
     if (!inst) return;
-    if (inst.getValue() !== activeContent) inst.setValue(activeContent);
+    if (inst.getValue() !== activeContent) {
+      isSyncingMonacoRef.current = true;
+      try {
+        inst.setValue(activeContent);
+      } finally {
+        isSyncingMonacoRef.current = false;
+      }
+    }
     const monaco = (window as unknown as { monaco?: MonacoGlobal }).monaco;
     const model = inst.getModel?.();
     if (model && monaco?.editor.setModelLanguage) {
@@ -428,6 +474,9 @@ export function FilesWorkspace({
       const next = `${activeContent.slice(0, start)}  ${activeContent.slice(end)}`;
       pendingCursorOffsetRef.current = start + 2;
       updateBufferContent(activePath, next);
+      return;
+    }
+    if (event.key === "Shift" || event.key === "Control" || event.key === "Alt" || event.key === "Meta") {
       return;
     }
     if (!event.metaKey && !event.ctrlKey && !event.altKey) {
@@ -540,23 +589,10 @@ export function FilesWorkspace({
               description="Your edits are still held safely in the in-memory buffer. Free disk space or save to another path."
               actions={
                 <>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    shortcutHint="⌘S"
-                    loading={saving}
-                    onClick={() => void handleSave(activePath)}
-                  >
+                  <Button size="sm" variant="primary" shortcutHint="⌘S" loading={saving} onClick={() => void handleSave(activePath)}>
                     Retry save
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => {
-                      setSaveAsTarget(`${activePath}.bak`);
-                      setSaveAsOpen((prev) => !prev);
-                    }}
-                  >
+                  <Button size="sm" variant="secondary" onClick={() => { setSaveAsTarget(`${activePath}.bak`); setSaveAsOpen((prev) => !prev); }}>
                     Save as...
                   </Button>
                 </>
@@ -564,15 +600,10 @@ export function FilesWorkspace({
             />
             {saveAsOpen ? (
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (saveAsTarget.trim()) void handleSave(saveAsTarget.trim(), activePath);
-                }}
+                onSubmit={(e) => { e.preventDefault(); if (saveAsTarget.trim()) void handleSave(saveAsTarget.trim(), activePath); }}
                 className="mt-2 flex flex-wrap items-center gap-2 rounded-sm border border-border-strong bg-surface p-2"
               >
-                <label htmlFor={saveAsInputId} className="text-xs font-medium text-fg">
-                  Save copy as
-                </label>
+                <label htmlFor={saveAsInputId} className="text-xs font-medium text-fg">Save copy as</label>
                 <input
                   id={saveAsInputId}
                   type="text"
@@ -581,9 +612,7 @@ export function FilesWorkspace({
                   onChange={(e) => setSaveAsTarget(e.target.value)}
                   className="unicode-bidi-isolate min-h-ctrl-sm flex-1 rounded-xs border border-border-control bg-canvas px-2.5 py-1 font-mono text-xs text-fg"
                 />
-                <Button type="submit" size="sm" variant="primary" loading={saving}>
-                  Save copy
-                </Button>
+                <Button type="submit" size="sm" variant="primary" loading={saving}>Save copy</Button>
               </form>
             ) : null}
           </div>
