@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import type { LogsDrawerTab } from "@/components/shell/DevAppShell";
+import { AgentComposer } from "@/components/screens/AgentComposer";
 import { DiffLinesView, P10ApprovalCard } from "@/components/screens/P10ApprovalCard";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
@@ -329,7 +330,6 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     execTerminalFn = execSandboxTerminal, toggleAirGapFn = toggleAirGap,
   } = props;
   const workspaceHeadingId = useId();
-  const composerId = useId();
 
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const internalApprovalHeadingRef = useRef<HTMLHeadingElement | null>(null);
@@ -412,6 +412,22 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     announce("Active agent run stopped.");
   }, [announce, controlledRunning, onStopRun]);
 
+  const toggleReviewPane = useCallback(
+    (next: boolean) => {
+      if (controlledReviewOpen === undefined) setUncontrolledReviewOpen(next);
+      onToggleReview?.(next);
+    },
+    [controlledReviewOpen, onToggleReview],
+  );
+
+  const toggleLogsPane = useCallback(
+    (next: boolean) => {
+      if (controlledLogsOpen === undefined) setUncontrolledLogsOpen(next);
+      onToggleLogs?.(next);
+    },
+    [controlledLogsOpen, onToggleLogs],
+  );
+
   useEffect(() => {
     const handleWindowKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || document.querySelector('[role="dialog"]')) return;
@@ -422,6 +438,16 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
         handleStopRun();
         return;
       }
+      if (
+        !event.shiftKey &&
+        event.key.toLowerCase() === "j" &&
+        !renderLogsInShell &&
+        !document.getElementById("kw-main-workspace")
+      ) {
+        event.preventDefault();
+        toggleLogsPane(!isLogsOpen);
+        return;
+      }
       if (event.shiftKey && event.key.toLowerCase() === "a" && undecidedProposals.length > 0) {
         event.preventDefault();
         internalApprovalHeadingRef.current?.focus();
@@ -429,17 +455,14 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     };
     window.addEventListener("keydown", handleWindowKeyDown);
     return () => window.removeEventListener("keydown", handleWindowKeyDown);
-  }, [effectiveRunning, handleStopRun, undecidedProposals.length]);
-
-  const toggleReviewPane = (next: boolean) => {
-    if (controlledReviewOpen === undefined) setUncontrolledReviewOpen(next);
-    onToggleReview?.(next);
-  };
-
-  const toggleLogsPane = (next: boolean) => {
-    if (controlledLogsOpen === undefined) setUncontrolledLogsOpen(next);
-    onToggleLogs?.(next);
-  };
+  }, [
+    effectiveRunning,
+    handleStopRun,
+    isLogsOpen,
+    renderLogsInShell,
+    toggleLogsPane,
+    undecidedProposals.length,
+  ]);
 
   const handleProposalDecision = useCallback(
     (
@@ -520,7 +543,6 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
 
   const completedPlanCount = planSteps.filter((s) => s.done).length;
   const firstPendingId = undecidedProposals[0]?.id;
-  const isSendSoftDisabled = !runtimeReachable || composerValue.trim().length === 0;
 
   return (
     <div className="flex h-full min-h-0 w-full overflow-hidden bg-canvas text-fg">
@@ -545,7 +567,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
               <Button size="sm" variant="secondary" aria-expanded={isReviewOpen} onClick={() => toggleReviewPane(!isReviewOpen)}>
                 {`Review changes (${activeHunks.length})`}
               </Button>
-              <Button size="sm" variant="ghost" aria-expanded={isLogsOpen} onClick={() => toggleLogsPane(!isLogsOpen)}>
+              <Button size="sm" variant="ghost" shortcutHint="⌘J" aria-expanded={isLogsOpen} onClick={() => toggleLogsPane(!isLogsOpen)}>
                 Logs &amp; Terminal
               </Button>
             </div>
@@ -631,41 +653,13 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
             ))}
           </div>
 
-          <div className="mt-4 rounded-md border border-border-strong bg-surface p-3">
-            <label htmlFor={composerId} className="mb-1.5 block text-xs font-medium text-fg-muted">
-              Ask agent or follow up in workspace
-            </label>
-            <textarea
-              id={composerId}
-              ref={composerRef}
-              rows={2}
-              value={composerValue}
-              onChange={(e) => setComposerValue(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key === "Enter") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  submitComposerPrompt();
-                }
-              }}
-              placeholder="Describe the change, cite a file, or ask a question…"
-              className="w-full resize-y rounded-sm border border-border-control bg-canvas px-2.5 py-1.5 text-ui text-fg placeholder:text-fg-dim"
-            />
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[11px] text-fg-dim">
-                ⌘↵ sends prompt only · never approves pending P-10 gates
-              </span>
-              <Button
-                size="sm"
-                variant="primary"
-                shortcutHint="⌘↵"
-                aria-disabled={isSendSoftDisabled ? "true" : undefined}
-                onClick={submitComposerPrompt}
-              >
-                Send
-              </Button>
-            </div>
-          </div>
+          <AgentComposer
+            value={composerValue}
+            onChange={setComposerValue}
+            onSubmitPrompt={submitComposerPrompt}
+            runtimeReachable={runtimeReachable}
+            textareaRef={composerRef}
+          />
         </section>
 
         {!renderLogsInShell && isLogsOpen ? (

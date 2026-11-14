@@ -177,6 +177,25 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
     expect(onSendPrompt).toHaveBeenCalledWith("Verify script-src self header");
     expect(onSubmitDecision).not.toHaveBeenCalled();
 
+    // Slash "/" menu filtering + ArrowDown/Escape/Enter insertion inserts "/qa " without submitting or approving P-10
+    await user.type(composer, "/");
+    const fullSlashListbox = screen.getByRole("listbox", { name: /Slash skills/i });
+    expect(within(fullSlashListbox).getAllByRole("option").length).toBeGreaterThanOrEqual(5);
+    fireEvent.keyDown(composer, { key: "ArrowDown" });
+    fireEvent.keyDown(composer, { key: "Escape" });
+    expect(screen.queryByRole("listbox", { name: /Slash skills/i })).toBeNull();
+
+    await user.clear(composer);
+    await user.type(composer, "/rev");
+    const slashListbox = screen.getByRole("listbox", { name: /Slash skills/i });
+    expect(within(slashListbox).getByRole("option", { name: /\/review/i })).toBeInTheDocument();
+    expect(within(slashListbox).queryByRole("option", { name: /\/ship/i })).toBeNull();
+    fireEvent.keyDown(composer, { key: "Enter" });
+    expect(composer).toHaveValue("/review ");
+    expect(screen.queryByRole("listbox", { name: /Slash skills/i })).toBeNull();
+    expect(onSendPrompt).toHaveBeenCalledTimes(1);
+    expect(onSubmitDecision).not.toHaveBeenCalled();
+
     // Runtime unreachable keeps textarea editable while soft-disabling Send so drafts are preserved
     const offlineView = render(
       <TasksWorkspace
@@ -297,7 +316,7 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
       }),
     );
 
-    // Fresh ready proposal MUST reject untrusted synthetic click events (__kwUntrustedSynthetic: true)
+    // Fresh ready proposal MUST reject untrusted synthetic click & keydown events, then accept trusted Cmd+Shift+Y
     onSubmitDecision.mockClear();
     const readyView = render(
       <P10ApprovalCard
@@ -311,7 +330,19 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
       { __kwUntrustedSynthetic: true },
     );
     readyAllowBtn.dispatchEvent(untrustedClick);
+
+    const untrustedKey = Object.assign(
+      new KeyboardEvent("keydown", { key: "y", metaKey: true, shiftKey: true, bubbles: true, cancelable: true }),
+      { __kwUntrustedSynthetic: true },
+    );
+    window.dispatchEvent(untrustedKey);
     expect(onSubmitDecision).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(window, { key: "Y", metaKey: true, shiftKey: true });
+    expect(onSubmitDecision).toHaveBeenCalledTimes(1);
+    expect(onSubmitDecision).toHaveBeenLastCalledWith(
+      expect.objectContaining({ proposalId: "prop-ready-untrusted", decision: "allow_once" }),
+    );
     readyView.unmount();
   });
 
@@ -355,9 +386,15 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
 
     const confirmRegion = screen.getByRole("region", { name: /Confirm external send/i });
     expect(confirmRegion).toBeInTheDocument();
+    const cancelConfirmBtn = within(confirmRegion).getByRole("button", { name: "Cancel" });
+    expect(document.activeElement).toBe(cancelConfirmBtn);
+    await user.tab();
+    expect(document.activeElement).toBe(
+      within(confirmRegion).getByRole("button", { name: /Confirm send once/i }),
+    );
 
     // Cancel closes inline confirmation without dispatching
-    await user.click(within(confirmRegion).getByRole("button", { name: "Cancel" }));
+    await user.click(cancelConfirmBtn);
     expect(screen.queryByRole("region", { name: /Confirm external send/i })).toBeNull();
     expect(onSubmitDecision).not.toHaveBeenCalled();
 
@@ -421,6 +458,16 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
       }),
     );
     scopedView.unmount();
+
+    // Verify unedited command matching network tool stays fail-closed Variant C WITHOUT claiming "escalated by edit"
+    const uneditedCurlView = render(
+      <P10ApprovalCard
+        proposal={makeProposal({ id: "prop-unedited-curl", kind: "command", command: "curl https://api.example.com" })}
+      />,
+    );
+    expect(within(uneditedCurlView.container).queryByRole("button", { name: /Allow always/i })).toBeNull();
+    expect(within(uneditedCurlView.container).queryByText("Network + command (escalated by edit)")).toBeNull();
+    uneditedCurlView.unmount();
 
     // 4C. Edit request B -> C Escalation ("npm test" -> "npm test && curl https://evil.example")
     onSubmitDecision.mockClear();
@@ -580,7 +627,14 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
     expect(toggleAirGapSpy).toHaveBeenCalledWith(true);
     expect(await within(logsRegion).findByText(/Air-gapped · verified/i)).toBeInTheDocument();
 
-    // 5. Stop Cmd+. halts active run
+    // 5. Stop Cmd+. halts active run, and header Logs button shows ⌘J + standalone Cmd+J toggles Logs drawer
+    const headerLogsBtn = screen.getByRole("button", { name: /Logs & Terminal/i });
+    expect(within(headerLogsBtn).getByText("⌘J")).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "j", metaKey: true });
+    expect(screen.queryByRole("region", { name: /Logs and terminal/i })).toBeNull();
+    fireEvent.keyDown(window, { key: "j", metaKey: true });
+    expect(screen.getByRole("region", { name: /Logs and terminal/i })).toBeInTheDocument();
+
     fireEvent.keyDown(window, { key: ".", metaKey: true });
     expect(onStopRun).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("button", { name: /^Stop/i })).toBeNull();
@@ -605,7 +659,13 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
             />,
           );
 
-          // Open the Allow always (scoped) Radix Popover so portal dialog accessibility is audited too
+          // Open "/" slash listbox + Allow always (scoped) Radix Popover so both menus are axe-audited
+          const auditComposer = within(auditView.container).getByRole("textbox", {
+            name: /Ask agent|Instruction|Composer/i,
+          });
+          await user.type(auditComposer, "/");
+          expect(within(auditView.container).getByRole("listbox", { name: /Slash skills/i })).toBeInTheDocument();
+
           await user.click(
             within(auditView.container).getByRole("button", { name: /Allow always \(scoped\)/i }),
           );

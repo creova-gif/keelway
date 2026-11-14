@@ -271,6 +271,7 @@ export function P10ApprovalCard({
   const confirmRegionHeadingId = useId();
 
   const allowOnceBtnRef = useRef<HTMLButtonElement | null>(null);
+  const cancelConfirmBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const [trackedProposalId, setTrackedProposalId] = useState(proposal.id);
   const [editedCommand, setEditedCommand] = useState(proposal.command ?? "");
@@ -318,12 +319,19 @@ export function P10ApprovalCard({
     proposal.targetPath !== undefined && editedTargetPath.trim() !== proposal.targetPath.trim();
   const isModified = hasCommandModified || hasTargetModified;
 
+  const matchesNetworkCommand = NETWORK_ESCALATION_PATTERN.test(editedCommand);
   const escalatedByEdit =
-    proposal.kind !== "network_deploy" && NETWORK_ESCALATION_PATTERN.test(editedCommand);
-  const effectiveVariantC = proposal.kind === "network_deploy" || escalatedByEdit;
+    proposal.kind !== "network_deploy" && hasCommandModified && matchesNetworkCommand;
+  const effectiveVariantC = proposal.kind === "network_deploy" || matchesNetworkCommand;
   const isRegulated = Boolean(isDomainRegulated || proposal.domainPolicyCode);
   const isClickOnlyGate = effectiveVariantC || isRegulated;
   const isPreviewLocked = proposal.previewStatus !== "ready";
+
+  useEffect(() => {
+    if (confirmExternalOpen) {
+      cancelConfirmBtnRef.current?.focus();
+    }
+  }, [confirmExternalOpen]);
 
   const actionLabel = escalatedByEdit
     ? "Network + command (escalated by edit)"
@@ -557,6 +565,20 @@ export function P10ApprovalCard({
         </p>
       ) : null}
 
+      <div className="space-y-1">
+        <label htmlFor={denyReasonId} className="block text-[11px] font-medium text-fg-muted">
+          Deny reason (optional)
+        </label>
+        <input
+          id={denyReasonId}
+          type="text"
+          value={denyReason}
+          onChange={(e) => setDenyReason(e.target.value)}
+          placeholder="Optional note recorded in ledger and returned to agent…"
+          className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg placeholder:text-fg-dim"
+        />
+      </div>
+
       {confirmExternalOpen ? (
         <div
           role="region"
@@ -569,8 +591,10 @@ export function P10ApprovalCard({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              ref={cancelConfirmBtnRef}
               size="sm"
               variant="secondary"
+              autoFocus
               onClick={() => {
                 setConfirmExternalOpen(false);
                 allowOnceBtnRef.current?.focus();
@@ -593,20 +617,6 @@ export function P10ApprovalCard({
           </div>
         </div>
       ) : null}
-
-      <div className="space-y-1">
-        <label htmlFor={denyReasonId} className="block text-[11px] font-medium text-fg-muted">
-          Deny reason (optional)
-        </label>
-        <input
-          id={denyReasonId}
-          type="text"
-          value={denyReason}
-          onChange={(e) => setDenyReason(e.target.value)}
-          placeholder="Optional note recorded in ledger and returned to agent…"
-          className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg placeholder:text-fg-dim"
-        />
-      </div>
 
       {submitError ? <p role="alert" className="text-xs text-danger">{submitError}</p> : null}
 
