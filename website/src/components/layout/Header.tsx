@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Github, Moon, Search, Sun, Terminal } from "lucide-react";
+import { Moon, Search, ShieldCheck, Sun, Terminal } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { openCommandPalette } from "./CommandPalette";
 import { cn } from "@/lib/utils";
@@ -44,22 +44,20 @@ export function Header() {
               className="inline-block h-2 w-2 rounded-full bg-teal-accent"
               aria-hidden="true"
             />
-            <span>KEELWAY v1 HYBRID ENGINE</span>
+            <span>KEELWAY PLATFORM</span>
             <span className="hidden sm:inline text-fg-dim">·</span>
             <span className="hidden sm:inline">
-              OPENCORE WEIGHTS + FRONTIER APIS + HASH-CHAINED AUDIT
+              LOCAL-FIRST AGENTS · 10 UNIFIED VIEWS · ZERO-MARKUP BYOM
             </span>
           </div>
           <div className="flex items-center gap-3 font-mono text-[11px]">
-            <a
-              href="https://github.com/creova-gif/kora"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/docs"
               className="inline-flex items-center gap-1.5 text-fg-muted transition-colors duration-150 hover:text-teal-accent"
             >
-              <Github className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Apache-2.0</span>
-            </a>
+              <ShieldCheck className="h-3.5 w-3.5 text-teal-accent" aria-hidden="true" />
+              <span>Open-Core · Apache-2.0</span>
+            </Link>
           </div>
         </div>
       </div>

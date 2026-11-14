@@ -134,7 +134,7 @@ const PUBLISH_STEPS = [
   },
   {
     step: "03", title: "Ed25519 Sign & SemVer Publish",
-    summary: "Canonical JSON payload is hashed (SHA-256) and signed with your publisher Ed25519 key (KEEL-MANIFEST-007).",
+    summary: "Canonical JSON payload is hashed (SHA-256) and signed with your verified publisher Ed25519 key.",
     code: `const signed = await client.platform.publishMarketplacePackage({\n  ...manifest, publisher_tier: "verified_third_party", pricing_model: "monthly", price_usd: 19\n});`,
   },
   {
@@ -356,7 +356,7 @@ export function MarketplaceCatalogExplorer() {
             <p className="text-fg-muted">0 prompt-injection · 0 shell-exfil · 0 live secrets · least-privilege permission scope</p>
             <div className="space-y-1 border-t border-border-subtle pt-2 font-mono text-[11px]">
               <div className="flex justify-between gap-2">
-                <span className="text-fg-dim">Signer Key (KEEL-MANIFEST-007):</span>
+                <span className="text-fg-dim">Publisher Signing Key:</span>
                 <span className="text-fg">{selected.keyId}</span>
               </div>
               <div>

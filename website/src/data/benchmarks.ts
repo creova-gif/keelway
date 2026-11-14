@@ -1,7 +1,7 @@
 /**
  * Empirical Hybrid AI Benchmark Dataset (Server-Safe Module).
  * Combines measured Apple Silicon Metal / vLLM CUDA OpenCore runs and
- * commercial Frontier API runs from Keelway's MiroFish evaluation harness.
+ * commercial Frontier API runs from Keelway's multi-agent evaluation harness.
  */
 
 export interface BenchmarkPoint {
@@ -126,7 +126,7 @@ export const EMPIRICAL_BENCHMARKS: BenchmarkPoint[] = [
     qualityIndex: 88.5,
     isParetoOptimal: true,
     hardwareOrEndpoint: "Google Cloud TLS API",
-    notes: "Measured live MiroFish escalation judge (1M context, ultra-low cost).",
+    notes: "Measured live multi-agent escalation judge (1M context, ultra-low cost).",
   },
   {
     id: "gpt-4o-mini",
@@ -178,6 +178,6 @@ export const EMPIRICAL_BENCHMARKS: BenchmarkPoint[] = [
     qualityIndex: 96.2,
     isParetoOptimal: true,
     hardwareOrEndpoint: "Anthropic Commercial API",
-    notes: "Top-tier complex multi-file refactor & MiroFish consensus judge.",
+    notes: "Top-tier complex multi-file refactor & multi-agent consensus judge.",
   },
 ];

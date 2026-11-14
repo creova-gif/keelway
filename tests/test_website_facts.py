@@ -482,3 +482,60 @@ def test_dedicated_marketplace_route_catalog_and_security_explorer() -> None:
     index_src = search_index_file.read_text(encoding="utf-8")
     assert '"/marketplace"' in index_src or "/marketplace?" in index_src
     assert "keelway-pr-sentinel" in index_src
+
+
+def test_website_customer_privacy_and_user_journeys() -> None:
+    """Ensure zero private/internal engineering artifacts leak onto customer pages and all 4 journeys resolve."""
+    forbidden_private_tokens = (
+        "creova-gif",
+        "creovas-projects",
+        "kora.git",
+        "KEEL-MANIFEST-",
+        "KEEL-PLATFORM-",
+        "KEEL-SEC-",
+        "KEEL-GOV-",
+        "verify_engineering_gates.sh",
+        "Antigravity",
+        "gstack",
+        "Signup intake is not configured yet",
+    )
+
+    scanned_files = list((WEBSITE_DIR / "src").rglob("*.ts")) + list(
+        (WEBSITE_DIR / "src").rglob("*.tsx")
+    )
+    scanned_files.append(WEBSITE_DIR / "public" / "install.sh")
+    scanned_files.append(WEBSITE_DIR / "public" / "product-facts.json")
+
+    for file_path in scanned_files:
+        text = file_path.read_text(encoding="utf-8")
+        for token in forbidden_private_tokens:
+            assert token not in text, (
+                f"Private/internal token '{token}' leaked in customer-facing {file_path.relative_to(KEELWAY_ROOT)}"
+            )
+
+    # Verify all 4 customer user journeys are present and routed from Home
+    home_src = (WEBSITE_DIR / "src" / "app" / "page.tsx").read_text(encoding="utf-8")
+    journeys_file = WEBSITE_DIR / "src" / "components" / "home" / "CustomerJourneyGrid.tsx"
+    assert journeys_file.exists(), "CustomerJourneyGrid.tsx must exist"
+    assert "CustomerJourneyGrid" in home_src
+
+    journeys_src = journeys_file.read_text(encoding="utf-8")
+    for required_journey in (
+        "Founders & Non-Technical Builders",
+        "/playground?mode=noncoder",
+        "Software & AI Engineers",
+        "/#quickstart",
+        "Startups & Product Teams",
+        "/marketplace",
+        "Enterprises & Security Leaders",
+        "/governance",
+    ):
+        assert required_journey in journeys_src, (
+            f"Missing customer journey target '{required_journey}' in CustomerJourneyGrid.tsx"
+        )
+
+    # Verify onboarding intake route supports non-coders, creators, and enterprises without 500 unconfigured failure
+    intake_src = (WEBSITE_DIR / "src" / "app" / "api" / "early-access" / "route.ts").read_text(encoding="utf-8")
+    assert "founder_ops" in intake_src and "nocode_automation" in intake_src
+    assert "referenceId" in intake_src
+

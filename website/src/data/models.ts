@@ -455,7 +455,7 @@ export const CATALOG_MODELS: CatalogModel[] = [
     licensePermissive: false,
     recommendedVramGb: null,
     description:
-      "Sub-second 1M-context frontier synthesis judge used in MiroFish hybrid swarms alongside local OpenCore workers.",
+      "Sub-second 1M-context frontier synthesis judge used in hybrid multi-agent swarms alongside local OpenCore workers.",
   },
   {
     id: "gemini-2.5-flash",

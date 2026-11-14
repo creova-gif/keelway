@@ -88,7 +88,7 @@ function hasVercelFlagsCredentials(): boolean {
 }
 
 /**
- * Experiment 1 (`exp-home-gate-v1` on creovas-projects/kora):
+ * Experiment 1 (`exp-home-gate-v1`):
  * Tests the existing 5-stage ApprovalGateStepper (`control-stepper`) against
  * the Cursor-inspired interactive P-10 Diff & Risk-Escalation Deck (`interactive-p10-deck`).
  */
@@ -133,7 +133,7 @@ export const expHomeGateFlag = flag<HomeGateVariant, KeelwayFlagEntities>({
 });
 
 /**
- * Experiment 2 (`exp-quickstart-cli-v1` on creovas-projects/kora):
+ * Experiment 2 (`exp-quickstart-cli-v1`):
  * Tests static code snippet tabs (`code-tabs-default`) against the Claude-Code-style
  * interactive Keelway TUI boot preview (`interactive-tui-boot`).
  */

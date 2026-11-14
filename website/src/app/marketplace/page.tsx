@@ -50,7 +50,7 @@ export default function MarketplacePage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
                 <span className="chip-teal rounded-sm px-2 py-0.5">
-                  KEEL-MANIFEST-007
+                  VERIFIED MARKETPLACE
                 </span>
                 <span className="text-fg-muted">
                   7 Categories · Ed25519 Signed · 85/15 Creator Split

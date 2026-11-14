@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "source_repository": "https://github.com/creova-gif/kora.git",
+  "source_repository": "https://keelway.dev",
   "deployment_url": "https://kora-sable.vercel.app",
   "features": {
     "dual_mode_agent_builder_and_cross_repo_runtime": {

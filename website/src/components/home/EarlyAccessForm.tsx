@@ -39,13 +39,14 @@ export function EarlyAccessForm() {
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         error?: string;
-        preview?: boolean;
+        referenceId?: string;
       };
 
       if (res.ok && data.ok) {
         setStatus("success");
+        const refSuffix = data.referenceId ? ` (Ref: ${data.referenceId})` : "";
         setMessage(
-          `Request recorded for ${email.trim()} — our engineering team will follow up with ${region.toUpperCase()} onboarding details.`
+          `Request confirmed for ${email.trim()}${refSuffix} — our team will follow up with ${region.toUpperCase()} onboarding details.`
         );
         trackEvent("early_access_submitted", { role, interest, region });
       } else {
@@ -71,18 +72,19 @@ export function EarlyAccessForm() {
           <div className="frame-crosshair rounded-lg border border-border-strong bg-surface p-6 shadow-xl sm:p-8">
             <div className="text-center">
               <span className="chip-teal inline-block rounded-sm px-2.5 py-1">
-                ENTERPRISE &amp; TEAM ONBOARDING
+                TEAM, STARTUP &amp; ENTERPRISE ONBOARDING
               </span>
               <h2
                 id="ea-heading"
                 className="mt-3 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
               >
-                Request Hybrid Cloud &amp; Sovereign VPC Access
+                Get Guided Onboarding, Team Sync, or Dedicated VPC Access
               </h2>
               <p className="mt-2 text-sm text-fg-muted">
-                Need hosted CRDT workspace sync, dedicated OpenCore GPU runners,
-                or regional data residency across Africa, EU, US, or air-gapped
-                VPCs? Tell us about your workload.
+                Whether you&apos;re launching a startup without writing code,
+                rolling out Keelway Pro across an engineering team, publishing
+                on the Marketplace, or deploying inside a private VPC — tell us
+                how we can help.
               </p>
             </div>
 
@@ -122,13 +124,16 @@ export function EarlyAccessForm() {
                     onChange={(e) => setRole(e.target.value)}
                     className="mt-1.5 min-h-[44px] w-full rounded-md border border-border-strong bg-canvas px-3 text-sm text-fg focus:border-teal-accent"
                   >
-                    <option value="ai_engineer">AI / Platform Engineer</option>
+                    <option value="founder_ops">
+                      Founder / Product or Operations Builder
+                    </option>
+                    <option value="ai_engineer">Software / AI Engineer</option>
                     <option value="cto_vp">CTO / VP of Engineering</option>
                     <option value="security_lead">
-                      Security &amp; Governance Architect
+                      Security, Risk &amp; Governance Architect
                     </option>
-                    <option value="ml_researcher">
-                      Applied ML / OpenCore Researcher
+                    <option value="creator_partner">
+                      Marketplace Creator / Solution Partner
                     </option>
                   </select>
                 </div>
@@ -140,7 +145,7 @@ export function EarlyAccessForm() {
                     htmlFor="interest-select"
                     className="block font-mono text-xs font-semibold text-fg"
                   >
-                    Primary Workload
+                    Primary Goal
                   </label>
                   <select
                     id="interest-select"
@@ -149,20 +154,23 @@ export function EarlyAccessForm() {
                     onChange={(e) => setInterest(e.target.value)}
                     className="mt-1.5 min-h-[44px] w-full rounded-md border border-border-strong bg-canvas px-3 text-sm text-fg focus:border-teal-accent"
                   >
+                    <option value="nocode_automation">
+                      No-Code App &amp; Business Workflow Automation
+                    </option>
                     <option value="hybrid_routing">
-                      Hybrid OpenCore + Frontier API Routing
+                      Hybrid OpenCore + Cloud BYOM Model Routing
                     </option>
                     <option value="local">
-                      Local Desktop IDE &amp; OpenCore Weights
-                    </option>
-                    <option value="agent">
-                      Approval-Gated Autonomous Agents
+                      Local Desktop IDE &amp; Private OpenCore Models
                     </option>
                     <option value="team">
-                      Team Governance &amp; Spend Caps
+                      Team Workspace, Sprint PM &amp; Spend Caps
+                    </option>
+                    <option value="marketplace_publish">
+                      Publishing Marketplace Agents, Skills &amp; Plugins
                     </option>
                     <option value="vpc">
-                      Dedicated Customer-Owned VPC Fleet
+                      Dedicated Enterprise VPC / Air-Gapped Deployment
                     </option>
                   </select>
                 </div>

@@ -83,7 +83,6 @@ const jsonLdSchema = {
       name: "Keelway",
       url: SITE_URL,
       logo: `${SITE_URL}/favicon.svg`,
-      sameAs: ["https://github.com/creova-gif/kora"],
     },
     {
       "@type": "SoftwareApplication",

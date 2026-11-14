@@ -286,7 +286,7 @@ print(resp.status_code)`,
     id: "swarm",
     method: "POST",
     path: "/v1/eval/swarm",
-    title: "Run MiroFish Hybrid Multi-Agent Swarm",
+    title: "Run Hybrid Multi-Agent Swarm",
     description:
       "Dispatches parallel high-volume simulation entities to $0.00 local OpenCore workers and synthesizes executive consensus on a Frontier judge.",
     curl: `curl -X POST http://127.0.0.1:8000/v1/eval/swarm \\

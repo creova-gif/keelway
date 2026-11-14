@@ -73,11 +73,10 @@ export default function GovernancePage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
                 <span className="chip-teal rounded-sm px-2 py-0.5">
-                  LAYERS 5 &amp; 6
+                  SECURITY &amp; GOVERNANCE
                 </span>
                 <span className="text-fg-muted">
-                  Deterministic 4D Router · Multi-Tenant Spend &amp; Residency
-                  Governance
+                  Deterministic 4D Router · Spend Caps · SOC2 / HIPAA / GDPR Ready
                 </span>
               </div>
 

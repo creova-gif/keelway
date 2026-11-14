@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 
 /**
- * Global Multi-Column Footer linking all core platform pages, OpenAPI spec,
- * installer script, Brand Kit, and open-source repository.
+ * Global Multi-Column Footer linking all core customer journeys:
+ * Non-Coder & Builder Playground, Signed Marketplace, Models, Governance,
+ * Pricing, Developer Docs, OpenAPI spec, and Enterprise Onboarding.
  */
 export function Footer() {
   return (
@@ -31,25 +32,42 @@ export function Footer() {
               <span>Keelway</span>
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-fg-muted">
-              The sovereign hybrid AI control plane. Run open-weight OpenCore
-              models locally alongside governed frontier APIs with deterministic
-              4D routing and hash-chained execution proofs.
+              The unified local-first AI agent platform for developers,
+              non-technical builders, startups, and enterprises. Build,
+              automate, and govern software and business workflows in one
+              workspace.
             </p>
             <div className="mt-5 inline-flex items-center gap-2 rounded-sm border border-border-strong bg-canvas px-3 py-2 font-mono text-xs text-fg-muted">
               <ShieldCheck
                 className="h-4 w-4 shrink-0 text-teal-accent"
                 aria-hidden="true"
               />
-              <span>167/167 Engineering Gates Verified · Apache-2.0</span>
+              <span>Open-Core Apache-2.0 · Ed25519 Signed Extensions</span>
             </div>
           </div>
 
-          {/* Platform */}
+          {/* Product & Journeys */}
           <div>
             <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-fg">
               Platform
             </h2>
             <ul className="mt-3 space-y-1 text-sm">
+              <li>
+                <Link
+                  href="/playground"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                >
+                  10-View Playground
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/marketplace"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                >
+                  Signed Marketplace
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/models"
@@ -60,26 +78,10 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/governance"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
-                >
-                  Hybrid Routing &amp; Governance
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/pricing"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  Pricing &amp; VPC Tiers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/#workflow"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
-                >
-                  5-Step Approval Gate
+                  Pricing &amp; BYOM
                 </Link>
               </li>
             </ul>
@@ -96,7 +98,7 @@ export function Footer() {
                   href="/docs"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  Documentation
+                  Documentation &amp; SDKs
                 </Link>
               </li>
               <li>
@@ -104,7 +106,7 @@ export function Footer() {
                   href="/api-reference"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  Interactive API Reference
+                  API Reference
                 </Link>
               </li>
               <li>
@@ -132,37 +134,42 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Open Source & Identity */}
+          {/* Security & Enterprise */}
           <div>
             <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-fg">
-              Identity &amp; OSS
+              Enterprise &amp; Trust
             </h2>
             <ul className="mt-3 space-y-1 text-sm">
+              <li>
+                <Link
+                  href="/governance"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                >
+                  Security &amp; Governance
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/playground?mode=noncoder"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                >
+                  Guided No-Code Builder
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/brand"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  Brand Kit &amp; Tokens
+                  Brand Kit
                 </Link>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/creova-gif/kora"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-[44px] items-center gap-1 text-fg-muted transition-colors duration-150 hover:text-teal-accent"
-                >
-                  <span>GitHub Repository</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
               </li>
               <li>
                 <Link
                   href="/#early-access"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
                 >
-                  Enterprise Early Access
+                  Team &amp; VPC Onboarding
                 </Link>
               </li>
             </ul>
@@ -176,7 +183,7 @@ export function Footer() {
             <span className="font-mono text-fg">Apache-2.0</span>.
           </p>
           <p className="font-mono text-[11px]">
-            local-first · open-weight + frontier · zero unauthorized egress
+            local-first · open-weight + frontier · human-approved execution
           </p>
         </div>
       </div>

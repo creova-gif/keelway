@@ -1,20 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
-  Bot,
-  BookOpen,
-  CheckCircle2,
-  Code2,
-  FileText,
-  Gauge,
-  Kanban,
-  Package,
-  Play,
-  ShieldCheck,
-  Sparkles,
-  UserCheck,
-  Workflow,
+  Bot, BookOpen, CheckCircle2, Code2, FileText, Gauge, Kanban,
+  Package, Play, ShieldCheck, Sparkles, UserCheck, Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
@@ -159,6 +149,21 @@ export function UnifiedPlatformPlayground() {
   const [p10Approved, setP10Approved] = useState(false);
   const [doneIssues, setDoneIssues] = useState<string[]>(["KW-201"]);
   const [packages, setPackages] = useState(INITIAL_MARKETPLACE);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const qMode = params.get("mode");
+    if (qMode === "noncoder" || qMode === "non_coder") {
+      setMode("non_coder");
+    } else if (qMode === "builder") {
+      setMode("builder");
+    }
+    const qView = params.get("view") as UnifiedViewId | null;
+    if (qView && UNIFIED_VIEWS.some((v) => v.id === qView)) {
+      setActiveView(qView);
+    }
+  }, []);
 
   const activeBlueprint = useMemo(() => {
     const matched = PRESETS.find((p) => p.id === selectedPresetId) ?? PRESETS[0];
@@ -489,9 +494,9 @@ export function UnifiedPlatformPlayground() {
 
         {activeView === "docs" && (
           <div className="space-y-2 rounded-md border border-border-strong bg-canvas p-4 text-xs">
-            <div className="font-mono font-bold uppercase text-teal-accent">Diataxis Runbook &amp; 9-Stage Cross-Agent SDLC Contract</div>
+            <div className="font-mono font-bold uppercase text-teal-accent">Living Product &amp; Engineering Knowledge Base</div>
             <p className="text-fg-muted">
-              Synchronized across <code>AGENTS.md</code>, Antigravity, Claude Code, Devin, and gstack: Requirements → Architecture → Issue Tracking → Implementation → Security Scan → Human P-10 Approval → Docs → Deploy → Continuous Eval.
+              Automatically keeps onboarding guides, architecture runbooks, customer help docs, and API references synchronized whenever PRDs, workflows, or approved code changes ship.
             </p>
           </div>
         )}
@@ -515,6 +520,15 @@ export function UnifiedPlatformPlayground() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border-strong bg-surface px-5 py-4 text-xs">
+        <span className="font-medium text-fg-muted">Ready to run this workspace locally or deploy for your team?</span>
+        <div className="flex flex-wrap gap-2.5">
+          <Link href="/#quickstart" className="kw-btn kw-btn-primary text-xs">Install Free CLI</Link>
+          <Link href="/marketplace" className="kw-btn kw-btn-secondary text-xs">Browse Marketplace</Link>
+          <Link href="/pricing" className="kw-btn kw-btn-secondary text-xs">Compare Plans</Link>
+        </div>
       </div>
     </div>
   );

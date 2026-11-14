@@ -27,29 +27,31 @@ keelway init && keelway dev`,
     id: "cli",
     label: "Local Studio & CLI",
     filename: "terminal — zsh",
-    code: `git clone https://github.com/creova-gif/kora.git
-cd kora && python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+    code: `# Install Keelway CLI & OpenCore local runtime (macOS / Linux)
+curl -fsSL https://kora-sable.vercel.app/install.sh | sh
 
-# Launch Keelway Sovereign Dev App (127.0.0.1:7420/app) or Hybrid API (:8000)
-python3 cli.py dev
-python3 cli.py opencore --status`,
+# Initialize your project & open the 10-View Workspace (127.0.0.1:7420/app)
+keelway init
+keelway dev`,
   },
   {
     id: "python",
-    label: "Python SDK v1",
-    filename: "hybrid_agent.py",
-    code: `from core.sdk import KeelwayClient
+    label: "Python & TS SDKs",
+    filename: "hybrid_agent.ts",
+    code: `import { KeelwayClient } from "@keelway/sdk";
 
-client = KeelwayClient(base_url="http://127.0.0.1:8000", api_key="kw_live_dev")
+const client = new KeelwayClient({
+  baseUrl: "http://127.0.0.1:8000",
+  apiKey: "kw_live_dev",
+});
 
-# Zero-egress local OpenCore execution with 4D routing provenance
-res = client.responses.create(
-    model="keelway-core:7b",
-    input="Audit src/billing/retry.py for integer rounding bugs.",
-    privacy="private",
-)
-print(res.output_text, res.provenance.data_boundary)`,
+// Zero-egress local OpenCore execution with 4D routing provenance
+const res = await client.responses.create({
+  model: "keelway-core:7b",
+  input: "Audit src/billing/retry.py for integer rounding bugs.",
+  privacy_level: "private",
+});
+console.log(res.output_text);`,
   },
   {
     id: "openai",
@@ -147,29 +149,28 @@ export function QuickstartTerminal({
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
-              04 // 5-MINUTE QUICKSTART
+              QUICKSTART FOR DEVELOPERS &amp; TEAMS
             </p>
             <h2
               id="quickstart-heading"
               className="mt-2 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
             >
-              Start locally in 60 seconds. Scale to governed hybrid fleets when
-              ready.
+              Start locally in 60 seconds. Connect cloud APIs when you choose.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-fg-muted">
-              No mandatory cloud account, no vendor lock-in, and zero telemetry
-              behind your back. Pull an Apache-2.0 OpenCore weight manifest onto
-              Apple Silicon or CUDA, or connect Gemini, OpenAI, and Anthropic
-              through the exact same typed SDK.
+              No mandatory cloud account, no vendor lock-in, and zero hidden
+              telemetry. Run local OpenCore models free on Apple Silicon or CUDA,
+              or bring your own OpenAI, Anthropic, and Gemini API keys with 0%
+              token markup.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/docs" className="kw-btn kw-btn-primary">
-                <span>Read Full Documentation</span>
+                <span>Read Documentation</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link href="/api-reference" className="kw-btn kw-btn-secondary">
-                <span>Explore 183 API Endpoints</span>
+                <span>Explore 200+ API Endpoints</span>
               </Link>
             </div>
           </div>

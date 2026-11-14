@@ -1,8 +1,7 @@
 #!/bin/sh
-# Keelway installer (POSIX sh)
-# Usage: from a clone of https://github.com/creova-gif/kora
-#   sh website/install.sh
-# This script is not a keelway.dev or get.keelway.dev installer.
+# Keelway Local-First AI Platform Installer (POSIX sh)
+# Usage:
+#   curl -fsSL https://kora-sable.vercel.app/install.sh | sh
 
 set -eu
 
@@ -11,15 +10,13 @@ die() { printf '[x] %s\n' "$*" >&2; exit 1; }
 
 say ""
 say "================================================================="
-say "  Installing Keelway - Sovereign Agent Engineering Runtime"
+say "  Installing Keelway - Unified Local-First AI Agent Platform"
 say "================================================================="
 say ""
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 say "[+] System detected: ${OS} (${ARCH})"
-
-command -v git >/dev/null 2>&1 || die "git is required but was not found."
 
 PYTHON="${KEELWAY_PYTHON:-}"
 if [ -z "$PYTHON" ]; then
@@ -31,25 +28,25 @@ if [ -z "$PYTHON" ]; then
         fi
     done
 fi
-[ -n "$PYTHON" ] || die "Python 3.11+ is required. Install it or set KEELWAY_PYTHON=/path/to/python3.11."
+[ -n "$PYTHON" ] || die "Python 3.11+ is required. Install Python 3.11+ or set KEELWAY_PYTHON=/path/to/python3."
 say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/app}"
+INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/runtime}"
 BIN_DIR="${HOME}/.local/bin"
-mkdir -p "$(dirname "$INSTALL_DIR")" "$BIN_DIR"
+mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 
-if [ -d "${INSTALL_DIR}/.git" ]; then
-    say "[+] Updating existing Keelway installation..."
-    git -C "$INSTALL_DIR" pull --quiet origin main
-else
-    say "[+] Downloading Keelway core..."
-    git clone --depth 1 --quiet https://github.com/creova-gif/kora.git "$INSTALL_DIR"
-fi
-
-say "[+] Creating virtual environment and installing dependencies..."
+say "[+] Creating isolated Keelway virtual environment..."
 "$PYTHON" -m venv "${INSTALL_DIR}/.venv"
 "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet --upgrade pip
-"${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "$INSTALL_DIR"
+
+if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
+    say "[+] Installing Keelway from local checkout (${KEELWAY_SOURCE_DIR})..."
+    "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${KEELWAY_SOURCE_DIR}"
+else
+    KEELWAY_PACKAGE="${KEELWAY_PACKAGE:-keelway}"
+    say "[+] Installing ${KEELWAY_PACKAGE} CLI & OpenCore runtime..."
+    "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet "${KEELWAY_PACKAGE}"
+fi
 
 ln -sf "${INSTALL_DIR}/.venv/bin/keelway" "${BIN_DIR}/keelway"
 
@@ -57,12 +54,10 @@ case ":${PATH}:" in
     *":${BIN_DIR}:"*) ;;
     *)
         say ""
-        say "[!] Add ${BIN_DIR} to your PATH in ~/.bashrc or ~/.zshrc:"
-        say "    export PATH=\"\${HOME}/.local/bin:\$PATH\""
-        say ""
+        say "[!] Add ${BIN_DIR} to your PATH in ~/.zshrc or ~/.bashrc:"
+        say "    export PATH=\"${BIN_DIR}:\$PATH\""
         ;;
 esac
 
-say "[ok] Installation complete."
-say "Run 'keelway dev' to launch Keelway Studio at http://localhost:7420"
-say "Run 'keelway doctor' to run system diagnostic checks."
+say ""
+say "[+] Keelway installed. Run 'keelway init && keelway dev' to launch your workspace."

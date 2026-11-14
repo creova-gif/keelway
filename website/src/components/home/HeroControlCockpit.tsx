@@ -40,7 +40,7 @@ async function sha256Hex(payload: string): Promise<string> {
  * Replaces static marketing screenshots with 3 live, operable Keelway instruments:
  * 1. Human Approval Gate (computes real WebCrypto SHA-256 chain seals on click)
  * 2. 4D Hybrid Router (switches between Zero-Egress OpenCore and Frontier Cloud)
- * 3. MiroFish 12-Agent Swarm Arbitrage telemetry
+ * 3. Hybrid 12-Agent Swarm Arbitrage telemetry
  */
 export function HeroControlCockpit() {
   const prefersReducedMotion = useReducedMotion();
@@ -457,7 +457,7 @@ export function HeroControlCockpit() {
           </motion.div>
         </Tabs.Content>
 
-        {/* LENS 3: MiroFish Hybrid Swarm Arbitrage */}
+        {/* LENS 3: Hybrid Multi-Agent Swarm Arbitrage */}
         <Tabs.Content value="swarm" className="p-5 focus:outline-none">
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}

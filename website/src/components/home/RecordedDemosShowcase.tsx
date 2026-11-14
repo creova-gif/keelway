@@ -23,43 +23,43 @@ interface DemoClip {
 const DEMO_CLIPS: DemoClip[] = [
   {
     id: "studio",
-    tabLabel: "1. Studio Approval Gate (:7420)",
+    tabLabel: "1. Workspace Approval Gate",
     badge: "60FPS CAPTURE · KEELWAY STUDIO",
-    title: "Human-in-the-Loop AST Diff & Hash-Chained Flight Seal",
+    title: "Human-in-the-Loop Code Diff & Cryptographic Audit Receipt",
     subtitle:
-      "Recorded execution of `python3 cli.py dev`: inspecting a multi-hunk billing patch under `AutonomyPolicy.CONFIRM_MUTATION`, running focused `pytest` verification, and sealing SHA-256 chain head `82ba9c55491fd91c`.",
-    command: "python3 cli.py dev --port 7420",
+      "Real capture of `keelway dev`: reviewing a multi-file billing fix before any file changes on disk, running automated verification, and recording a tamper-evident SHA-256 audit receipt.",
+    command: "keelway dev --port 7420",
     webmSrc: "/demos/studio-approval-loop.webm",
     mp4Src: "/demos/studio-approval-loop.mp4",
     posterSrc: "/demos/studio-poster.png",
     metrics: [
-      { label: "Autonomy Policy", value: "CONFIRM_MUTATION" },
-      { label: "Test Gate", value: "14 / 14 Passed" },
-      { label: "Flight Chain Head", value: "82ba9c55491fd91c" },
+      { label: "Safety Gate", value: "Human Approval Required" },
+      { label: "Verification", value: "14 / 14 Checks Passed" },
+      { label: "Audit Receipt", value: "SHA-256 Verified" },
     ],
   },
   {
     id: "metal",
-    tabLabel: "2. Live Ollama Metal Stream",
-    badge: "60FPS CAPTURE · APPLE SILICON MLX",
-    title: "Zero-Egress OpenCore Token Streaming on Local Hardware",
+    tabLabel: "2. Local Private Model Stream",
+    badge: "60FPS CAPTURE · APPLE SILICON",
+    title: "Private On-Device AI Inference with Zero Cloud Egress",
     subtitle:
-      "Captured live against local `qwen3.5:latest` (`7.6 GB` unified memory on Apple Metal MLX) via `POST /v1/responses` with `privacy_level=\"private\"` — zero bytes transmitted to external cloud APIs.",
+      "Captured live running a local OpenCore model on Apple Silicon unified memory (`privacy_level=\"private\"`) — zero prompts or customer files ever leave your machine.",
     command:
-      "python3 cli.py route --model keelway-core:7b --privacy private --stream",
+      "keelway route --model keelway-core:7b --privacy private --stream",
     webmSrc: "/demos/cli-metal-stream.webm",
     mp4Src: "/demos/cli-metal-stream.mp4",
     posterSrc: "/demos/cli-poster.png",
     metrics: [
-      { label: "Local Runner", value: "Apple Metal MLX (7.6GB)" },
-      { label: "External Egress", value: "0 Bytes" },
-      { label: "Marginal Token Cost", value: "$0.00 / 1M" },
+      { label: "Hardware", value: "Local Apple Silicon" },
+      { label: "Cloud Egress", value: "0 Bytes" },
+      { label: "Token Cost", value: "$0.00 / 1M" },
     ],
   },
 ];
 
 /**
- * Devin-style High-Frame-Rate Recorded Studio & CLI Demo Loops.
+ * High-Frame-Rate Recorded Studio & CLI Demo Loops.
  * Pairs crisp 60fps WebM/MP4 captures alongside interactive React instruments,
  * honoring `prefers-reduced-motion` with explicit Play/Pause controls.
  */
@@ -121,21 +121,21 @@ export function RecordedDemosShowcase() {
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
-              00.5 // VERIFIED RUNTIME CAPTURES (60FPS)
+              REAL PRODUCT CAPTURES · ZERO MOCKUPS
             </p>
             <h2
               id="recorded-demos-heading"
               className="mt-2 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
             >
-              Watch Keelway Studio &amp; Local Metal Inference in Action
+              See Keelway Running Live on Local Hardware
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-              Real 60fps captures recorded directly from{" "}
+              60fps captures from{" "}
               <code className="font-mono text-xs text-fg">
-                python3 cli.py dev
+                keelway dev
               </code>{" "}
-              and live Apple Silicon MLX weight execution — zero synthetic
-              mockups.
+              showing human-approved changes and private on-device model
+              streaming.
             </p>
           </div>
         </div>

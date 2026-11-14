@@ -160,27 +160,23 @@ export function DocsHub() {
             Getting Started in 5 Minutes
           </h2>
           <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Clone the Apache-2.0 repository and launch locally — no hosted
-            account, no proprietary package registry, and zero forced cloud
-            telemetry.
+            Install the open-core CLI and launch your workspace locally — no
+            mandatory cloud account, no lock-in, and zero hidden telemetry.
           </p>
 
           <CodePanel
             id="docs-quickstart-bash"
-            title="bash — local setup & verification"
-            code={`git clone https://github.com/creova-gif/kora.git
-cd kora
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+            title="bash — local setup & workspace launch"
+            code={`# 1. Install Keelway CLI & OpenCore runtime (macOS / Linux)
+curl -fsSL https://kora-sable.vercel.app/install.sh | sh
 
-# 1. Run all 5 engineering verification stages (167 automated tests)
-./scripts/verify_engineering_gates.sh
+# 2. Initialize your project & open the 10-View Workspace (http://127.0.0.1:7420/app)
+keelway init
+keelway dev
 
-# 2. Launch Keelway Studio IDE on loopback (http://127.0.0.1:7420)
-python3 cli.py dev
-
-# 3. Launch the Unified Hybrid AI & Governance Server (http://127.0.0.1:8000)
-make serve`}
+# 3. Inspect local OpenCore models or browse verified Marketplace extensions
+keelway opencore --status
+keelway marketplace list`}
           />
         </section>
 
@@ -205,48 +201,47 @@ make serve`}
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="rounded-md border border-border-strong bg-surface p-4">
               <div className="font-mono text-xs font-bold text-teal-accent">
-                1. Keelway Studio (127.0.0.1:7420)
+                1. 10-View Unified Workspace (:7420/app)
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Local-first developer IDE launched via{" "}
-                <code className="text-fg">python3 cli.py dev</code> with real-time
-                external editor sync (VS Code, Cursor, Zed) and interactive diff
-                gates.
+                Switch seamlessly between{" "}
+                <code className="text-fg">Builder Mode</code> and{" "}
+                <code className="text-fg">Guided Non-Coder Mode</code> across
+                IDE, Agents, Project Manager, PRDs, Automation, and Marketplace.
               </p>
             </div>
 
             <div className="rounded-md border border-border-strong bg-surface p-4">
               <div className="font-mono text-xs font-bold text-teal-accent">
-                2. Hybrid API &amp; Governance Server (:8000)
+                2. Hybrid Model &amp; Governance Gateway (:8000)
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                FastAPI control plane (<code className="text-fg">make serve</code>)
-                serving <code className="text-fg">/v1/responses</code>,{" "}
-                <code className="text-fg">/v1/chat/completions</code>, 4D routing,
+                Serves <code className="text-fg">/v1/responses</code>,{" "}
+                <code className="text-fg">/v1/chat/completions</code>,{" "}
+                <code className="text-fg">/v1/platform/*</code>, 4D routing,
                 and tenant spend policies.
               </p>
             </div>
 
             <div className="rounded-md border border-border-strong bg-surface p-4">
               <div className="font-mono text-xs font-bold text-teal-accent">
-                3. 6-Tab Air-Gap Web Console
+                3. Signed Marketplace &amp; Extension SDK
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Zero-CDN governance dashboard bundled with strict CSP headers for
-                inspecting models, OpenCore LoRAs, routing receipts, and tenant
-                budgets.
+                Discover, verify, and publish Ed25519-signed agents, skills,
+                plugins, and workflow templates with pre-publish security scans.
               </p>
             </div>
 
             <div className="rounded-md border border-border-strong bg-surface p-4">
               <div className="font-mono text-xs font-bold text-teal-accent">
-                4. Typed Python SDK v1 &amp; CLI
+                4. Official Python &amp; TypeScript SDKs
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Sync &amp; async <code className="text-fg">KeelwayClient</code>{" "}
-                with typed error hierarchy (<code className="text-fg">BudgetExceededError</code>,{" "}
-                <code className="text-fg">AirGapEgressError</code>) plus{" "}
-                <code className="text-fg">cli.py</code> subcommands.
+                Sync/async <code className="text-fg">core.sdk</code> and
+                zero-dependency <code className="text-fg">@keelway/sdk</code>{" "}
+                with full <code className="text-fg">client.platform</code>{" "}
+                parity and typed governance errors.
               </p>
             </div>
           </div>
@@ -274,19 +269,16 @@ make serve`}
 
           <CodePanel
             id="docs-opencore-cli"
-            title="bash — legitimate weight pull & Modelfile registration"
+            title="bash — local OpenCore model & QLoRA registration"
             code={`# Pull an Apache-2.0 base checkpoint locally via Ollama
 ollama pull qwen2.5-coder:7b
 
 # Inspect local runtime discovery & registered OpenCore manifests
-python3 cli.py opencore --status
+keelway opencore --status
 
 # Compile a deterministic OpenCore Modelfile and register keelway-coder:7b
-python3 cli.py opencore --modelfile keelway-coder:7b > Modelfile.coder
-ollama create 'keelway-coder:7b' -f './Modelfile.coder'
-
-# Generate a synthetic domain/multilingual QLoRA adaptation recipe
-python3 cli.py opencore --adapt swahili`}
+keelway opencore --modelfile keelway-coder:7b > Modelfile.coder
+ollama create 'keelway-coder:7b' -f './Modelfile.coder'`}
           />
         </section>
 
@@ -364,52 +356,51 @@ turn2 = client.responses.create(
           </p>
         </section>
 
-        {/* 6. Honest v1 Capabilities vs. Roadmap */}
+        {/* 6. Available Today vs. Cloud & Enterprise Rollout */}
         <section
           id="status"
           aria-labelledby="doc-status-h"
           className="scroll-mt-28 border-t border-border-subtle pt-12"
         >
           <span className="chip-amber inline-block rounded-sm px-2 py-0.5">
-            SECTION 06 · RADICAL TRANSPARENCY
+            SECTION 06 · PLATFORM AVAILABILITY
           </span>
           <h2 id="doc-status-h" className="mt-2 text-2xl font-bold text-fg">
-            Functioning v1 Capabilities vs. Active Roadmap
+            Available Today vs. Managed Cloud Rollout
           </h2>
           <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            We distinguish strictly between capabilities verified by automated
-            repository tests today and multi-region infrastructure currently in
-            staged rollout:
+            Clear visibility into what ships today in the local-first platform
+            and what is rolling out for managed cloud &amp; enterprise fleets:
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
             <div className="rounded-lg border border-teal-accent/50 bg-surface p-5">
               <div className="flex items-center gap-2 font-mono text-xs font-bold text-teal-accent">
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                <span>VERIFIED TODAY IN REPO (167/167 GATES)</span>
+                <span>AVAILABLE TODAY (LOCAL &amp; SELF-HOSTED)</span>
               </div>
               <ul className="mt-3 space-y-2 text-xs leading-relaxed text-fg-muted">
                 <li>
-                  • Unified <code className="text-fg">/v1/models</code>,{" "}
-                  <code className="text-fg">/v1/chat/completions</code>,{" "}
-                  <code className="text-fg">/v1/responses</code>, and SSE streaming
+                  • 10-View Unified Workspace (<code className="text-fg">Builder</code>{" "}
+                  &amp; <code className="text-fg">Guided Non-Coder</code> modes)
+                  with crash-safe SQLite WAL persistence
                 </li>
                 <li>
-                  • Live Ollama Metal, vLLM OpenAI-compatible bridge, Google
-                  Gemini (<code className="text-fg">x-goog-api-key</code>), OpenAI
-                  &amp; Anthropic adapters
+                  • OpenCore local runtime (Ollama Metal &amp; vLLM) + authorized
+                  BYOM adapters for OpenAI, Anthropic, and Google Gemini
                 </li>
                 <li>
-                  • OpenCore Modelfile compiler, SHA-256 LoRA registry &amp;
-                  speculative lookahead decoding
+                  • Signed Marketplace with Ed25519 manifest verification,
+                  pre-publish security scanner, and 85/15 creator splits
                 </li>
                 <li>
-                  • Deterministic 4D routing provenance &amp; MiroFish hybrid
-                  swarm evaluation harness
+                  • Official Python (<code className="text-fg">core.sdk</code>) &amp;
+                  zero-dependency TypeScript (<code className="text-fg">@keelway/sdk</code>)
+                  SDKs
                 </li>
                 <li>
                   • Scoped <code className="text-fg">kw_live_*</code> keys, USD
-                  spend caps, secret redaction &amp; hash-chained audit logs
+                  spend caps, human-only approval gates &amp; SHA-256 audit trails
                 </li>
               </ul>
             </div>
@@ -417,24 +408,24 @@ turn2 = client.responses.create(
             <div className="rounded-lg border border-border-strong bg-surface p-5">
               <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-alert">
                 <Clock className="h-4 w-4" aria-hidden="true" />
-                <span>IN PROGRESS / EARLY ACCESS ROADMAP</span>
+                <span>MANAGED CLOUD &amp; ENTERPRISE ONBOARDING</span>
               </div>
               <ul className="mt-3 space-y-2 text-xs leading-relaxed text-fg-muted">
                 <li>
-                  • Managed multi-region cloud control plane &amp; hosted CRDT
-                  team workspace relays
+                  • Hosted multi-seat cloud sync &amp; real-time team workspace
+                  relays
                 </li>
                 <li>
-                  • Turnkey customer-owned VPC Terraform modules for AWS, GCP
-                  &amp; African sovereign data centers
+                  • Turnkey customer-owned VPC deployments across AWS, GCP, EU,
+                  US &amp; regional edge data centers
                 </li>
                 <li>
-                  • Native TypeScript / Go SDK packages published to npm &amp;
-                  pkg.go.dev
+                  • Official Go SDK (<code className="text-fg">keelway-go</code>)
+                  and multi-node GPU cluster autoscaling
                 </li>
                 <li>
-                  • Hardware enclave attestation (Tier-2 HAL) for confidential
-                  GPU clusters
+                  • Dedicated enterprise SLA, SSO/SAML directory sync &amp;
+                  custom agent engineering
                 </li>
               </ul>
               <Link
@@ -442,7 +433,7 @@ turn2 = client.responses.create(
                 className="mt-4 inline-flex min-h-[40px] items-center gap-1.5 font-mono text-xs font-semibold text-teal-accent hover:underline"
               >
                 <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Join Early Access for Hosted &amp; VPC Rollouts →</span>
+                <span>Request Team or Enterprise VPC Onboarding →</span>
               </Link>
             </div>
           </div>
