@@ -80,6 +80,10 @@
   --red-surface: rgba(248, 113, 113, 0.14);
   --red-ink: #2a0606;
 
+  /* Dual-cue Diff Line Surfaces */
+  --diff-add-bg: rgba(74, 222, 128, 0.12);
+  --diff-del-bg: rgba(248, 113, 113, 0.14);
+
   /* Canonical Shell Geometry */
   --shell-rail-w: 48px;
   --shell-sidebar-w: 240px;
@@ -136,6 +140,9 @@
   --red-danger: #b91c1c;
   --red-surface: rgba(185, 28, 28, 0.1);
   --red-ink: #ffffff;
+
+  --diff-add-bg: rgba(21, 128, 61, 0.1);
+  --diff-del-bg: rgba(185, 28, 28, 0.1);
 
   --shadow-popover: 0 8px 24px rgba(15, 23, 42, 0.12);
   --shadow-modal: 0 20px 48px rgba(15, 23, 42, 0.18);
