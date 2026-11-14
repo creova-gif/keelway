@@ -24,6 +24,10 @@ from core.platform.marketplace import (
     MarketplaceSecurityError,
     marketplace_registry,
 )
+from core.platform.settlement import (
+    MarketplaceSettlementLedger,
+    marketplace_settlement_ledger,
+)
 from core.platform.signing import (
     Ed25519ManifestSigner,
     manifest_signer,
@@ -57,6 +61,10 @@ def get_manifest_signer() -> Ed25519ManifestSigner:
 
 def get_enterprise_manager() -> EnterpriseGovernanceManager:
     return enterprise_governance_manager
+
+
+def get_settlement_ledger() -> MarketplaceSettlementLedger:
+    return marketplace_settlement_ledger
 
 
 router = APIRouter(
@@ -94,6 +102,13 @@ class LicenseCheckRequest(BaseModel):
 class MarketplaceInstallRequest(BaseModel):
     package_id: str = Field(..., min_length=1, max_length=128)
     workspace_id: str = Field(default="default", min_length=1, max_length=128)
+    config: Optional[Dict[str, Any]] = None
+
+
+class MarketplacePurchaseRequest(BaseModel):
+    package_id: str = Field(..., min_length=1, max_length=128)
+    buyer_tenant_id: str = Field(default="default", min_length=1, max_length=128)
+    workspace_id: Optional[str] = Field(default=None, max_length=128)
     config: Optional[Dict[str, Any]] = None
 
 
@@ -269,6 +284,48 @@ async def uninstall_marketplace_package(
     mp: MarketplaceRegistry = Depends(get_marketplace_registry),
 ) -> Dict[str, Any]:
     return mp.uninstall_package(package_id=req.package_id, workspace_id=req.workspace_id)
+
+
+@router.post("/marketplace/purchase")
+async def purchase_marketplace_package(
+    req: MarketplacePurchaseRequest,
+    _: Principal = Depends(current_principal),
+    mp: MarketplaceRegistry = Depends(get_marketplace_registry),
+    ledger: MarketplaceSettlementLedger = Depends(get_settlement_ledger),
+) -> Dict[str, Any]:
+    active_ledger = (
+        MarketplaceSettlementLedger(registry=mp, store=mp.store)
+        if (ledger is marketplace_settlement_ledger and mp is not marketplace_registry and mp.store is not None)
+        else ledger
+    )
+    try:
+        record = active_ledger.purchase_package(
+            package_id=req.package_id,
+            buyer_tenant_id=req.buyer_tenant_id,
+            workspace_id=req.workspace_id,
+            config=req.config,
+            registry=mp,
+        )
+        return {**record.to_dict(), "installed": True}
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+
+@router.get("/marketplace/settlements")
+async def list_marketplace_settlements(
+    tenant_id: Optional[str] = Query(default=None),
+    _: Principal = Depends(current_principal),
+    mp: MarketplaceRegistry = Depends(get_marketplace_registry),
+    ledger: MarketplaceSettlementLedger = Depends(get_settlement_ledger),
+) -> Dict[str, Any]:
+    active_ledger = (
+        MarketplaceSettlementLedger(registry=mp, store=mp.store)
+        if (ledger is marketplace_settlement_ledger and mp is not marketplace_registry and mp.store is not None)
+        else ledger
+    )
+    return active_ledger.summarize_settlements(tenant_id=tenant_id)
 
 
 @router.get("/agents")

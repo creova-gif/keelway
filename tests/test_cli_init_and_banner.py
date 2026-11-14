@@ -242,3 +242,49 @@ def test_cli_blueprint_compiles_idea_to_governed_artifacts(capsys, tmp_path: Pat
     human_bp = capsys.readouterr().out
     assert "PRD" in human_bp and "P-10" in human_bp
 
+
+def test_cli_cluster_nodes_schedule_and_lifecycle_with_fallback(capsys, monkeypatch):
+    """Verify `keelway cluster` (`nodes`, `schedule`, `lifecycle`) works live and via deterministic fallback."""
+    assert main(["cluster", "nodes", "--json"]) == 0
+    nodes_out = json.loads(capsys.readouterr().out)
+    assert nodes_out["count"] >= 3
+    assert any("vram" in json.dumps(n).lower() for n in nodes_out["nodes"])
+
+    assert main(["cluster", "nodes"]) == 0
+    assert "Keelway GPU Cluster Fleet" in capsys.readouterr().out
+
+    assert main(["cluster", "schedule", "--model", "keelway-core:7b", "--vram", "16", "--region", "us", "--json"]) == 0
+    sched_out = json.loads(capsys.readouterr().out)
+    assert sched_out["scheduled"] is True
+    assert sched_out["model_id"] == "keelway-core:7b"
+    assert sched_out["selected_node_id"]
+
+    # Exceeding cluster VRAM capacity returns non-zero exit code with structured reason
+    assert main(["cluster", "schedule", "--model", "frontier-mega:405b", "--vram", "4096", "--json"]) == 1
+    over_out = json.loads(capsys.readouterr().out)
+    assert over_out["scheduled"] is False
+
+    assert main(["cluster", "lifecycle", "--json"]) == 0
+    life_out = json.loads(capsys.readouterr().out)
+    assert life_out["count"] >= 2
+    assert any(m["model_id"] == "keelway-core:7b" for m in life_out["entries"])
+
+    assert main(["cluster", "lifecycle"]) == 0
+    assert "Keelway Model Lifecycle Registry" in capsys.readouterr().out
+
+    # Deterministic fallback when core.cluster modules are unavailable
+    import sys
+
+    monkeypatch.setitem(sys.modules, "core.cluster.scheduler", None)
+    monkeypatch.setitem(sys.modules, "core.cluster.lifecycle", None)
+    assert main(["cluster", "nodes", "--json"]) == 0
+    fb_nodes = json.loads(capsys.readouterr().out)
+    assert fb_nodes["count"] == 3
+    assert main(["cluster", "schedule", "--model", "keelway-core:7b", "--vram", "16", "--region", "eu", "--json"]) == 0
+    fb_sched = json.loads(capsys.readouterr().out)
+    assert fb_sched["scheduled"] is True
+    assert fb_sched["region"] == "eu"
+    assert main(["cluster", "lifecycle", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["count"] == 2
+
+

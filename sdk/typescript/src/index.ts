@@ -3,6 +3,22 @@
  */
 
 export { KeelwayClient } from "./client.js";
+export { ClusterNamespace } from "./cluster.js";
+export type {
+  ClusterGovernanceAdapterStatusResponse,
+  ClusterJsonRequester,
+  ClusterLifecycleResponse,
+  ClusterListNodesParams,
+  ClusterNodeListResponse,
+  ClusterNodeRecord,
+  ClusterScheduleRequest,
+  ClusterScheduleResponse,
+  PromoteClusterModelRequest,
+  RegisterClusterNodeRequest,
+  ReserveClusterBudgetRequest,
+  ReserveClusterBudgetResponse,
+  RollbackClusterModelRequest,
+} from "./cluster.js";
 export { PlatformNamespace } from "./platform.js";
 export type { PlatformJsonRequester } from "./platform.js";
 
@@ -94,11 +110,14 @@ export type {
   ListExtensionsParams,
   ListIssuesParams,
   ListMarketplacePackagesParams,
+  ListMarketplaceSettlementsParams,
   MarketplacePackageInput,
   MarketplacePackageListResponse,
   MarketplacePackageRecord,
   MarketplaceScanReport,
   MarketplaceSecurityFinding,
+  MarketplaceSettlementRecord,
+  MarketplaceSettlementSummaryResponse,
   PlatformExtensionListResponse,
   PlatformExtensionRecord,
   PlatformIssueListResponse,
@@ -110,6 +129,7 @@ export type {
   PlatformViewDescriptor,
   PlatformWorkflowListResponse,
   PlatformWorkflowRecord,
+  PurchaseMarketplacePackageRequest,
   QuotaCheckRequest,
   QuotaCheckResponse,
   SubscriptionTierDescriptor,

@@ -54,6 +54,31 @@ const res = await client.responses.create({
 console.log(res.output_text);`,
   },
   {
+    id: "go",
+    label: "Go SDK",
+    filename: "main.go",
+    code: `package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/keelway/keelway-go"
+)
+
+func main() {
+	client := keelway.NewClient("http://127.0.0.1:8000", keelway.WithAPIKey("kw_live_dev"))
+	res, err := client.Responses.Create(context.Background(), keelway.ResponseCreateRequest{
+		Model:        "keelway-core:7b",
+		Input:        "Audit billing/retry.go for integer rounding bugs.",
+		PrivacyLevel: "private",
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res.OutputText)
+}`,
+  },
+  {
     id: "openai",
     label: "OpenAI Drop-In",
     filename: "openai_compat.py",

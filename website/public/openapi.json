@@ -8149,6 +8149,100 @@
         }
       }
     },
+    "/v1/platform/marketplace/purchase": {
+      "post": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "Purchase Marketplace Package",
+        "operationId": "purchase_marketplace_package_v1_platform_marketplace_purchase_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketplacePurchaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Purchase Marketplace Package V1 Platform Marketplace Purchase Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/marketplace/settlements": {
+      "get": {
+        "tags": [
+          "Unified Platform"
+        ],
+        "summary": "List Marketplace Settlements",
+        "operationId": "list_marketplace_settlements_v1_platform_marketplace_settlements_get",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Marketplace Settlements V1 Platform Marketplace Settlements Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/platform/agents": {
       "get": {
         "tags": [
@@ -8820,6 +8914,446 @@
         }
       }
     },
+    "/v1/cluster/nodes": {
+      "get": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "List Cluster Nodes",
+        "operationId": "list_cluster_nodes_v1_cluster_nodes_get",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "runtime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Runtime"
+            }
+          },
+          {
+            "name": "include_drained",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Drained"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Cluster Nodes V1 Cluster Nodes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/nodes/register": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Register Cluster Node",
+        "operationId": "register_cluster_node_v1_cluster_nodes_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NodeRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterNode"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/nodes/{node_id}/drain": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Drain Cluster Node",
+        "operationId": "drain_cluster_node_v1_cluster_nodes__node_id__drain_post",
+        "parameters": [
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterNode"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/nodes/{node_id}/restore": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Restore Cluster Node",
+        "operationId": "restore_cluster_node_v1_cluster_nodes__node_id__restore_post",
+        "parameters": [
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterNode"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/schedule": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Schedule Model Placement",
+        "operationId": "schedule_model_placement_v1_cluster_schedule_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulePlacementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlacementDecision"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/lifecycle": {
+      "get": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "List Model Lifecycle",
+        "operationId": "list_model_lifecycle_v1_cluster_lifecycle_get",
+        "parameters": [
+          {
+            "name": "stage",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Model Lifecycle V1 Cluster Lifecycle Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/lifecycle/promote": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Promote Lifecycle Model",
+        "operationId": "promote_lifecycle_model_v1_cluster_lifecycle_promote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LifecyclePromoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelLifecycleEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/lifecycle/rollback": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Rollback Lifecycle Canary",
+        "operationId": "rollback_lifecycle_canary_v1_cluster_lifecycle_rollback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LifecycleRollbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelLifecycleEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/governance-adapter/status": {
+      "get": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Get Governance Adapter Status",
+        "operationId": "get_governance_adapter_status_v1_cluster_governance_adapter_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Governance Adapter Status V1 Cluster Governance Adapter Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cluster/governance-adapter/reserve-budget": {
+      "post": {
+        "tags": [
+          "Cluster & Fleet"
+        ],
+        "summary": "Reserve Cluster Governance Budget",
+        "operationId": "reserve_cluster_governance_budget_v1_cluster_governance_adapter_reserve_budget_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveBudgetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetReservationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -9243,6 +9777,85 @@
         "type": "object",
         "title": "BenchmarkEvalRequest"
       },
+      "BudgetReservationResult": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          },
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "reserved",
+              "fallback_opencore",
+              "deny_http_402"
+            ],
+            "title": "Action"
+          },
+          "status_code": {
+            "type": "integer",
+            "title": "Status Code"
+          },
+          "amount_usd": {
+            "type": "number",
+            "title": "Amount Usd"
+          },
+          "monthly_limit_usd": {
+            "type": "number",
+            "title": "Monthly Limit Usd"
+          },
+          "spent_usd": {
+            "type": "number",
+            "title": "Spent Usd"
+          },
+          "remaining_usd": {
+            "type": "number",
+            "title": "Remaining Usd"
+          },
+          "fallback_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Model Id"
+          },
+          "audit_seq": {
+            "type": "integer",
+            "title": "Audit Seq"
+          },
+          "prev_hash": {
+            "type": "string",
+            "title": "Prev Hash"
+          },
+          "entry_hash": {
+            "type": "string",
+            "title": "Entry Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "allowed",
+          "action",
+          "status_code",
+          "amount_usd",
+          "monthly_limit_usd",
+          "spent_usd",
+          "remaining_usd",
+          "audit_seq",
+          "prev_hash",
+          "entry_hash"
+        ],
+        "title": "BudgetReservationResult"
+      },
       "BundleExportRequest": {
         "properties": {
           "bundle_name": {
@@ -9427,6 +10040,103 @@
         ],
         "title": "ChatCompletionResponse",
         "description": "Normalized non-streaming completion response."
+      },
+      "ClusterNode": {
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Node Id"
+          },
+          "runtime": {
+            "type": "string",
+            "enum": [
+              "ollama_metal",
+              "vllm",
+              "ray_serve"
+            ],
+            "title": "Runtime"
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "airgap_local",
+              "us",
+              "eu",
+              "africa"
+            ],
+            "title": "Region"
+          },
+          "gpu_model": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Gpu Model",
+            "default": "Generic Accelerator"
+          },
+          "gpu_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Gpu Count",
+            "default": 1
+          },
+          "total_vram_gb": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Total Vram Gb"
+          },
+          "free_vram_gb": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Free Vram Gb"
+          },
+          "utilization_pct": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Utilization Pct",
+            "default": 0.0
+          },
+          "active_requests": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Active Requests",
+            "default": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "drained",
+              "unhealthy"
+            ],
+            "title": "Status",
+            "default": "healthy"
+          },
+          "loaded_models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Loaded Models"
+          },
+          "last_heartbeat_at": {
+            "type": "string",
+            "title": "Last Heartbeat At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "node_id",
+          "runtime",
+          "region",
+          "total_vram_gb",
+          "free_vram_gb",
+          "last_heartbeat_at"
+        ],
+        "title": "ClusterNode",
+        "description": "Registered GPU inference worker node in the Keelway cluster fleet."
       },
       "CompileModelfileRequest": {
         "properties": {
@@ -10408,6 +11118,57 @@
         ],
         "title": "LicenseCheckRequest"
       },
+      "LifecyclePromoteRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "target_stage": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Target Stage",
+            "default": "stable"
+          },
+          "traffic_weight_pct": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Traffic Weight Pct",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id"
+        ],
+        "title": "LifecyclePromoteRequest"
+      },
+      "LifecycleRollbackRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "default": "SLO regression detected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id"
+        ],
+        "title": "LifecycleRollbackRequest"
+      },
       "LoadModelRequest": {
         "properties": {
           "model_id": {
@@ -10603,6 +11364,52 @@
         ],
         "title": "MarketplaceInstallRequest"
       },
+      "MarketplacePurchaseRequest": {
+        "properties": {
+          "package_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Package Id"
+          },
+          "buyer_tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Buyer Tenant Id",
+            "default": "default"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "package_id"
+        ],
+        "title": "MarketplacePurchaseRequest"
+      },
       "MemoryCreateRequest": {
         "properties": {
           "key": {
@@ -10742,6 +11549,97 @@
         ],
         "title": "ModelCategory"
       },
+      "ModelLifecycleEntry": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "canary",
+              "stable",
+              "deprecated",
+              "retired"
+            ],
+            "title": "Stage"
+          },
+          "traffic_weight_pct": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Traffic Weight Pct"
+          },
+          "benchmark_pass_rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Benchmark Pass Rate"
+          },
+          "ttft_p95_ms": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Ttft P95 Ms"
+          },
+          "ttft_slo_ms": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Ttft Slo Ms"
+          },
+          "fallback_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Model Id"
+          },
+          "rollback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rollback Reason"
+          },
+          "rolled_back_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rolled Back At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id",
+          "stage",
+          "traffic_weight_pct",
+          "benchmark_pass_rate",
+          "ttft_p95_ms",
+          "ttft_slo_ms",
+          "updated_at"
+        ],
+        "title": "ModelLifecycleEntry",
+        "description": "Tracked deployment stage, canary split, and SLO metrics for a registered model."
+      },
       "NoCodeBlueprintRequest": {
         "properties": {
           "idea": {
@@ -10775,6 +11673,79 @@
           "idea"
         ],
         "title": "NoCodeBlueprintRequest"
+      },
+      "NodeRegisterRequest": {
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Node Id"
+          },
+          "runtime": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Runtime"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Region"
+          },
+          "total_vram_gb": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Total Vram Gb"
+          },
+          "free_vram_gb": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Vram Gb"
+          },
+          "gpu_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Gpu Count",
+            "default": 1
+          },
+          "gpu_model": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Gpu Model",
+            "default": "Generic Accelerator"
+          },
+          "loaded_models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Loaded Models"
+          },
+          "active_requests": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Active Requests",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "node_id",
+          "runtime",
+          "region",
+          "total_vram_gb"
+        ],
+        "title": "NodeRegisterRequest"
       },
       "OpenCoreInferRequest": {
         "properties": {
@@ -10961,6 +11932,91 @@
           "expires_at"
         ],
         "title": "PairingCodeResponse"
+      },
+      "PlacementDecision": {
+        "properties": {
+          "selected_node_id": {
+            "type": "string",
+            "title": "Selected Node Id"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "runtime": {
+            "type": "string",
+            "enum": [
+              "ollama_metal",
+              "vllm",
+              "ray_serve"
+            ],
+            "title": "Runtime"
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "airgap_local",
+              "us",
+              "eu",
+              "africa"
+            ],
+            "title": "Region"
+          },
+          "privacy_level": {
+            "type": "string",
+            "title": "Privacy Level"
+          },
+          "region_residency": {
+            "type": "string",
+            "title": "Region Residency"
+          },
+          "required_vram_gb": {
+            "type": "number",
+            "title": "Required Vram Gb"
+          },
+          "tensor_parallel": {
+            "type": "integer",
+            "title": "Tensor Parallel"
+          },
+          "estimated_queue_ms": {
+            "type": "number",
+            "title": "Estimated Queue Ms"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "candidates_evaluated": {
+            "type": "integer",
+            "title": "Candidates Evaluated"
+          },
+          "receipt_sha256": {
+            "type": "string",
+            "title": "Receipt Sha256"
+          },
+          "decided_at": {
+            "type": "string",
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "selected_node_id",
+          "model_id",
+          "runtime",
+          "region",
+          "privacy_level",
+          "region_residency",
+          "required_vram_gb",
+          "tensor_parallel",
+          "estimated_queue_ms",
+          "score",
+          "candidates_evaluated",
+          "receipt_sha256",
+          "decided_at"
+        ],
+        "title": "PlacementDecision",
+        "description": "Deterministic placement decision and cryptographic SHA-256 scheduling receipt."
       },
       "PluginInstallRequest": {
         "properties": {
@@ -11279,6 +12335,69 @@
           "source_uri"
         ],
         "title": "ResearchSummaryResponse"
+      },
+      "ReserveBudgetRequest": {
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tenant Id",
+            "default": "default"
+          },
+          "amount_usd": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Amount Usd"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "capability": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Capability",
+            "default": "cluster.inference"
+          },
+          "monthly_limit_usd": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Limit Usd"
+          },
+          "fallback_to_opencore": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback To Opencore"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount_usd"
+        ],
+        "title": "ReserveBudgetRequest"
       },
       "ResolveConflictRequest": {
         "properties": {
@@ -11636,6 +12755,59 @@
           "state"
         ],
         "title": "SandboxTestResponse"
+      },
+      "SchedulePlacementRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "required_vram_gb": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Required Vram Gb",
+            "default": 16.0
+          },
+          "region_residency": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Region Residency",
+            "default": "global"
+          },
+          "privacy_level": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Privacy Level",
+            "default": "standard"
+          },
+          "runtime_preference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Preference"
+          },
+          "tensor_parallel": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Tensor Parallel",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_id"
+        ],
+        "title": "SchedulePlacementRequest"
       },
       "ScopedAPIKeyMetadata": {
         "properties": {

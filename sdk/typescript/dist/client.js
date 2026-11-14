@@ -4,6 +4,7 @@
  * Uses native Web Fetch, ReadableStream, TextDecoder, and AbortSignal so a single
  * build runs identically across Node 20+, Bun, Deno, Cloudflare Workers, and browsers.
  */
+import { ClusterNamespace } from "./cluster.js";
 import { ConnectionError, KeelwayError, mapHttpError } from "./errors.js";
 import { PlatformNamespace } from "./platform.js";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7420";
@@ -224,6 +225,7 @@ export class KeelwayClient {
     governance;
     swarm;
     platform;
+    cluster;
     constructor(options = {}) {
         const rawBase = options.baseUrl ?? DEFAULT_BASE_URL;
         this.baseUrl = rawBase.replace(/\/+$/, "");
@@ -472,6 +474,7 @@ export class KeelwayClient {
             },
         };
         this.platform = new PlatformNamespace((method, path, params) => this.requestJson(method, path, params));
+        this.cluster = new ClusterNamespace((method, path, params) => this.requestJson(method, path, params));
     }
     /**
      * Probe Keelway daemon health (`/health`).

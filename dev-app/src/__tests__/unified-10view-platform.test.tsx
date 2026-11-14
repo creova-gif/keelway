@@ -460,4 +460,68 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     await user.click(within(offlineNav).getByRole("button", { name: /^Security$/i }));
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("renders GPU Cluster fleet drain/restore, Canary lifecycle weights, and Marketplace Settlement ledger in Operations with 0 axe violations", async () => {
+    const user = userEvent.setup();
+    window.history.replaceState({}, "", "/app/?token=ops-tok-77");
+    const calls: Array<{ url: string; method: string }> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const method = (init?.method ?? "GET").toUpperCase();
+      calls.push({ url, method });
+      const pathname = new URL(url, "http://localhost").pathname;
+      if (pathname === "/v1/platform/marketplace/settlements" && method === "GET") {
+        return new Response(
+          JSON.stringify({
+            settlements: [],
+            totals: { count: 5, gross_usd: 200.0, creator_payout_usd: 170.0, platform_fee_usd: 30.0 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    const { container } = render(<App />);
+    await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
+    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+    await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
+
+    const clusterSec = screen.getByRole("region", { name: /Multi-node GPU cluster and model canary rollout/i });
+    expect(within(clusterSec).getByText("node-metal-local-01")).toBeInTheDocument();
+    expect(within(clusterSec).getByText(/Apple Metal · 32GB · airgap_local/i)).toBeInTheDocument();
+    expect(within(clusterSec).getByText("node-vllm-us-01")).toBeInTheDocument();
+    expect(within(clusterSec).getByText(/vLLM · 160GB · us/i)).toBeInTheDocument();
+    expect(within(clusterSec).getByText("node-vllm-eu-01")).toBeInTheDocument();
+    expect(within(clusterSec).getByText(/vLLM · 80GB · eu/i)).toBeInTheDocument();
+    expect(within(clusterSec).getByText("node-ray-af-01")).toBeInTheDocument();
+    expect(within(clusterSec).getByText(/Ray Serve · 48GB · africa/i)).toBeInTheDocument();
+
+    expect(within(clusterSec).getByText("keelway-core:7b")).toBeInTheDocument();
+    expect(within(clusterSec).getByText("100% stable")).toBeInTheDocument();
+    expect(within(clusterSec).getByText("keelway-coder:14b-v2")).toBeInTheDocument();
+    expect(within(clusterSec).getByText("15% canary")).toBeInTheDocument();
+
+    await user.click(within(clusterSec).getByRole("button", { name: /^Drain Node node-vllm-us-01$/i }));
+    expect(within(clusterSec).getByText("Drained")).toBeInTheDocument();
+    const restoreBtn = within(clusterSec).getByRole("button", { name: /^Restore Node node-vllm-us-01$/i });
+    await user.click(restoreBtn);
+    expect(within(clusterSec).getByRole("button", { name: /^Drain Node node-vllm-us-01$/i })).toBeInTheDocument();
+
+    const settlementSec = screen.getByRole("region", { name: /Marketplace settlement and creator payout ledger/i });
+    expect(within(settlementSec).getByText(/85% Creator \/ 15% Platform/i)).toBeInTheDocument();
+    await waitFor(() => expect(within(settlementSec).getByText("$200.00 USD")).toBeInTheDocument());
+    expect(within(settlementSec).getByText("$170.00 USD")).toBeInTheDocument();
+    expect(within(settlementSec).getByText("$30.00 USD")).toBeInTheDocument();
+
+    expect(calls.some((c) => c.url.includes("/v1/cluster/nodes?token=ops-tok-77") && c.method === "GET")).toBe(true);
+    expect(calls.some((c) => c.url.includes("/v1/cluster/lifecycle?token=ops-tok-77") && c.method === "GET")).toBe(true);
+    expect(calls.some((c) => c.url.includes("/v1/cluster/nodes/node-vllm-us-01/drain") && c.method === "POST")).toBe(true);
+    expect(calls.some((c) => c.url.includes("/v1/cluster/nodes/node-vllm-us-01/restore") && c.method === "POST")).toBe(true);
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
 });

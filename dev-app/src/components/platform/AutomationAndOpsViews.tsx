@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import {
+  fetchClusterAndSettlementSnapshot,
+  postClusterNodeAction,
+  type ClusterNodeItem,
+  type MarketplaceSettlementSummary,
+  type ModelCanaryItem,
+} from "@/lib/platformApi";
 import {
   BYOM_CONSUMER_COMPLIANCE_CALLOUT,
   SUBSCRIPTION_TIERS,
@@ -12,6 +19,39 @@ import {
   type ExperienceMode,
   type SubscriptionTierId,
 } from "@/lib/platformData";
+
+const SEED_CLUSTER_NODES: ClusterNodeItem[] = [
+  {
+    nodeId: "node-metal-local-01", runtime: "ollama_metal", runtimeLabel: "Apple Metal",
+    region: "airgap_local", gpuModel: "Apple M-Series Metal Unified", totalVramGb: 32, freeVramGb: 32,
+    status: "healthy", loadedModels: ["keelway-core:7b", "qwen2.5-coder:7b"],
+  },
+  {
+    nodeId: "node-vllm-us-01", runtime: "vllm", runtimeLabel: "vLLM",
+    region: "us", gpuModel: "NVIDIA H100 80GB", totalVramGb: 160, freeVramGb: 160,
+    status: "healthy", loadedModels: ["keelway-coder:14b-v2", "deepseek-r1:70b"],
+  },
+  {
+    nodeId: "node-vllm-eu-01", runtime: "vllm", runtimeLabel: "vLLM",
+    region: "eu", gpuModel: "NVIDIA A100 80GB", totalVramGb: 80, freeVramGb: 80,
+    status: "healthy", loadedModels: ["qwen2.5-coder:7b"],
+  },
+  {
+    nodeId: "node-ray-af-01", runtime: "ray_serve", runtimeLabel: "Ray Serve",
+    region: "africa", gpuModel: "NVIDIA L40S 48GB", totalVramGb: 48, freeVramGb: 48,
+    status: "healthy", loadedModels: ["keelway-core:7b"],
+  },
+];
+
+const SEED_MODEL_CANARIES: ModelCanaryItem[] = [
+  { modelId: "keelway-core:7b", stage: "stable", trafficWeightPct: 100 },
+  { modelId: "keelway-coder:14b-v2", stage: "canary", trafficWeightPct: 15 },
+];
+
+const SEED_SETTLEMENT_SUMMARY: MarketplaceSettlementSummary = {
+  count: 14, grossUsd: 480.0, creatorPayoutUsd: 408.0, platformFeeUsd: 72.0,
+  verifiedSplitLabel: "85% Creator / 15% Platform",
+};
 
 export interface AutomationWorkspaceViewProps {
   experienceMode: ExperienceMode;
@@ -218,6 +258,33 @@ export function OperationsWorkspaceView({
   >("api_key");
   const [byomPreview, setByomPreview] = useState("sk-authorized-org-key");
   const [byomCheck, setByomCheck] = useState<ByomValidationResult | null>(null);
+  const [clusterNodes, setClusterNodes] = useState<ClusterNodeItem[]>(SEED_CLUSTER_NODES);
+  const [modelCanaries, setModelCanaries] = useState<ModelCanaryItem[]>(SEED_MODEL_CANARIES);
+  const [settlement, setSettlement] = useState<MarketplaceSettlementSummary>(SEED_SETTLEMENT_SUMMARY);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchClusterAndSettlementSnapshot().then((snap) => {
+      if (cancelled || !snap) return;
+      if (snap.nodes.length > 0) setClusterNodes(snap.nodes);
+      if (snap.canaries.length > 0) setModelCanaries(snap.canaries);
+      if (snap.settlement) setSettlement(snap.settlement);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleToggleNodeDrain = (nodeId: string) => {
+    const current = clusterNodes.find((n) => n.nodeId === nodeId);
+    const action: "drain" | "restore" = current?.status === "drained" ? "restore" : "drain";
+    setClusterNodes((prev) =>
+      prev.map((n) =>
+        n.nodeId === nodeId ? { ...n, status: action === "drain" ? "drained" : "healthy" } : n,
+      ),
+    );
+    void postClusterNodeAction(nodeId, action);
+  };
 
   const tier = SUBSCRIPTION_TIERS[subscriptionTier];
   const dailyUsed = 42_000;
@@ -418,6 +485,101 @@ export function OperationsWorkspaceView({
               </article>
             );
           })}
+        </div>
+      </section>
+
+      {/* Multi-Node GPU Cluster & Model Canary Rollout */}
+      <section
+        aria-label="Multi-node GPU cluster and model canary rollout"
+        className="space-y-3 rounded-md border border-border-strong bg-surface p-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-fg">
+            Multi-Node GPU Cluster &amp; Model Canary Rollout
+          </h2>
+          <SemanticBadge
+            kind="opencore"
+            detail={`${clusterNodes.filter((n) => n.status !== "drained").length}/${clusterNodes.length} Nodes Active`}
+          />
+        </div>
+
+        <div className="grid gap-2.5 md:grid-cols-2">
+          {clusterNodes.map((node) => {
+            const isDrained = node.status === "drained";
+            return (
+              <article
+                key={node.nodeId}
+                className="flex flex-wrap items-center justify-between gap-2.5 rounded-sm border border-border bg-chrome p-3"
+              >
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-mono text-xs font-semibold text-fg">{node.nodeId}</h3>
+                    <SemanticBadge
+                      kind={isDrained ? "reconfirm" : "passed"}
+                      labelOverride={isDrained ? "Drained" : "Healthy"}
+                    />
+                  </div>
+                  <div className="font-mono text-[11px] text-fg-muted">
+                    {`${node.runtimeLabel} · ${node.totalVramGb}GB · ${node.region}`}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant={isDrained ? "warning-cta" : "secondary"}
+                  aria-label={`${isDrained ? "Restore Node" : "Drain Node"} ${node.nodeId}`}
+                  onClick={() => handleToggleNodeDrain(node.nodeId)}
+                >
+                  {isDrained ? "Restore Node" : "Drain Node"}
+                </Button>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <span className="text-xs font-semibold text-fg">Model Canary Traffic Weights:</span>
+          {modelCanaries.map((canary) => (
+            <span
+              key={canary.modelId}
+              className="inline-flex items-center gap-1.5 rounded-xs border border-border-strong bg-chrome px-2.5 py-1 font-mono text-xs text-fg"
+            >
+              <span className="text-teal-accent">{canary.modelId}</span>
+              <span className="text-fg-muted">{`${canary.trafficWeightPct}% ${canary.stage}`}</span>
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* Marketplace Settlement & Creator Payout Ledger */}
+      <section
+        aria-label="Marketplace settlement and creator payout ledger"
+        className="space-y-3 rounded-md border border-border-strong bg-surface p-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-fg">
+            Marketplace Settlement &amp; Creator Payout Ledger
+          </h2>
+          <SemanticBadge kind="passed" labelOverride={settlement.verifiedSplitLabel} />
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-sm border border-border bg-chrome p-2.5">
+            <div className="text-[11px] text-fg-muted">Verified Gross Volume (USD)</div>
+            <div className="mt-0.5 font-mono text-sm font-semibold text-fg">
+              {`$${settlement.grossUsd.toFixed(2)} USD`}
+            </div>
+          </div>
+          <div className="rounded-sm border border-border bg-chrome p-2.5">
+            <div className="text-[11px] text-fg-muted">Creator Payout (85% Split)</div>
+            <div className="mt-0.5 font-mono text-sm font-semibold text-teal-accent">
+              {`$${settlement.creatorPayoutUsd.toFixed(2)} USD`}
+            </div>
+          </div>
+          <div className="rounded-sm border border-border bg-chrome p-2.5">
+            <div className="text-[11px] text-fg-muted">Platform Fee (15% Split)</div>
+            <div className="mt-0.5 font-mono text-sm font-semibold text-fg">
+              {`$${settlement.platformFeeUsd.toFixed(2)} USD`}
+            </div>
+          </div>
         </div>
       </section>
     </div>

@@ -176,6 +176,24 @@ class AsyncPlatformClient:
             body["config"] = config
         return await self._client._req("POST", "/v1/platform/marketplace/install", json=body)
 
+    async def purchase_marketplace_package(
+        self,
+        package_id: str,
+        buyer_tenant_id: str = "default",
+        workspace_id: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        body: Dict[str, Any] = {"package_id": package_id, "buyer_tenant_id": buyer_tenant_id}
+        if workspace_id is not None:
+            body["workspace_id"] = workspace_id
+        if config is not None:
+            body["config"] = config
+        return await self._client._req("POST", "/v1/platform/marketplace/purchase", json=body)
+
+    async def list_marketplace_settlements(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        params: Optional[Dict[str, Any]] = {"tenant_id": tenant_id} if tenant_id is not None else None
+        return await self._client._req("GET", "/v1/platform/marketplace/settlements", params=params)
+
     async def list_agents(self, workspace_id: str = "default") -> Dict[str, Any]:
         return await self._client._req("GET", "/v1/platform/agents", params={"workspace_id": workspace_id})
 
@@ -330,6 +348,24 @@ class SyncPlatformClient:
         if config is not None:
             body["config"] = config
         return self._client._req("POST", "/v1/platform/marketplace/install", json=body)
+
+    def purchase_marketplace_package(
+        self,
+        package_id: str,
+        buyer_tenant_id: str = "default",
+        workspace_id: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        body: Dict[str, Any] = {"package_id": package_id, "buyer_tenant_id": buyer_tenant_id}
+        if workspace_id is not None:
+            body["workspace_id"] = workspace_id
+        if config is not None:
+            body["config"] = config
+        return self._client._req("POST", "/v1/platform/marketplace/purchase", json=body)
+
+    def list_marketplace_settlements(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        params: Optional[Dict[str, Any]] = {"tenant_id": tenant_id} if tenant_id is not None else None
+        return self._client._req("GET", "/v1/platform/marketplace/settlements", params=params)
 
     def list_agents(self, workspace_id: str = "default") -> Dict[str, Any]:
         return self._client._req("GET", "/v1/platform/agents", params={"workspace_id": workspace_id})

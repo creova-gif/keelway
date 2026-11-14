@@ -18,6 +18,8 @@
 | **KEEL-WEB-006** | Next.js 15 Flagship Website Redesign & 4 Competitive Upgrades | `WEBSITE / UX` | `VERIFIED_COMPLETE` | Google Antigravity | 2026-11-13 | `main` |
 | **KEEL-PLATFORM-010** | Unified 10-View AI-Native Agent Platform, Marketplace Security, 5-Stream BYOM & Sovereign CLI TUI | `PLATFORM / FULLSTACK` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 | **KEEL-MANIFEST-007** | Phase 2: Ed25519 Manifest Signing, SQLite WAL Platform Store, Enterprise Governance, Python/TS SDK Parity & `/marketplace` | `SECURITY / PLATFORM` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
+| **KEEL-CLUSTER-008** | Distributed Multi-Node GPU Cluster Scheduler, PostgreSQL `FOR UPDATE` Governance Adapter & Model Lifecycle Registry | `CLUSTER / GOV` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
+| **KEEL-SDK-009** | Official Zero-Dependency Go SDK (`keelway-go`), Marketplace Commercial Settlement Ledger & Cross-SDK Cluster Parity | `SDK / MARKETPLACE` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 
 ---
 
@@ -31,10 +33,10 @@
 - **KEEL-SDK-005**: Shipped zero-dependency TypeScript/JS SDK (`sdk/typescript` — `@keelway/sdk` v1.0.0) with chunk-boundary-safe SSE streaming and full typed error parity (`7/7` Node test suites), plus synchronized `product-facts.json` and `tests/test_website_facts.py`.
 - **KEEL-WEB-006**: Built the 7-route Next.js 15 + React 19 + Tailwind + Radix + Framer Motion website (`website/`) with Global `Cmd+K` instant search across `226` targets (`186` OpenAPI 3.1 endpoints), 60fps Studio & Apple Metal runtime captures, empirical TTFT/Cost scatter plots, and a rate-limited live `/api/sandbox/routing-explain` network playground.
 - **KEEL-PLATFORM-010 & KEEL-MANIFEST-007**: Shipped the 10-View Unified Sovereign Platform (`IDE`, `Agents`, `Project Manager`, `Product`, `Automation`, `Marketplace`, `Security`, `Documentation`, `Operations`, `No-Code Builder`), 5-stream subscription + BYOM governance, Ed25519 manifest signing (`sorvex-labs-ed25519-v1`), `SQLitePlatformStore` WAL persistence, Enterprise retention/compliance (`SOC2`/`HIPAA`/`ISO27001`/`GDPR`), 20-method Python & TypeScript SDK parity (`client.platform`), Dev App live `/v1/platform/*` hydration, and dedicated `/marketplace` + `/playground` website routes.
+- **KEEL-CLUSTER-008 & KEEL-SDK-009**: Shipped the Distributed Multi-Node GPU Cluster Scheduler (`vllm`/`ray_serve`/`ollama_metal`), PostgreSQL 16+ `SELECT ... FOR UPDATE` Governance Adapter, Model Lifecycle Canary/Stable Registry, Marketplace Commercial Settlement Ledger (`85/15`, `80/20`, `0/100` integer-cent splits + SHA-256 receipts), Official Zero-Dependency Go Client SDK (`sdk/go` — `keelway-go`), Python/TS `client.cluster` parity, CLI `keelway cluster`, Dev App Operations Cluster & Settlement UI, and customer-clean Website Quickstart & Docs sync (`219` OpenAPI 3.1 endpoints).
 
 ---
 
 ## 3. Next Candidate Backlog Tasks
 
-1. **KEEL-CLUSTER-008**: Distributed Multi-Node vLLM / Ray GPU Cluster Scheduler & PostgreSQL Row-Locked Governance Adapter.
-2. **KEEL-SDK-009**: Official Go Client SDK (`keelway-go`) with Streaming SSE & Typed Governance Errors.
+All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tri-Language SDK (`Python`, `TypeScript`, `Go`) backlog items are `VERIFIED_COMPLETE`.

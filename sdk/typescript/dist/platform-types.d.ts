@@ -152,6 +152,49 @@ export interface InstallMarketplacePackageResponse {
     status: string;
     [key: string]: unknown;
 }
+export interface PurchaseMarketplacePackageRequest {
+    package_id: string;
+    buyer_tenant_id?: string;
+    workspace_id?: string;
+    config?: Record<string, unknown>;
+}
+export interface MarketplaceSettlementRecord {
+    settlement_id: string;
+    package_id: string;
+    package_version: string;
+    buyer_tenant_id: string;
+    publisher_tier: string;
+    gross_cents: number;
+    creator_payout_cents: number;
+    platform_fee_cents: number;
+    gross_usd: number;
+    creator_payout_usd: number;
+    platform_fee_usd: number;
+    split_label: string;
+    license_spdx: string;
+    entitlement_sha256: string;
+    receipt_sha256: string;
+    created_at: string;
+    installed?: boolean;
+    [key: string]: unknown;
+}
+export interface ListMarketplaceSettlementsParams {
+    tenant_id?: string;
+}
+export interface MarketplaceSettlementSummaryResponse {
+    settlements: MarketplaceSettlementRecord[];
+    totals: {
+        count: number;
+        gross_cents?: number;
+        creator_payout_cents?: number;
+        platform_fee_cents?: number;
+        gross_usd: number;
+        creator_payout_usd: number;
+        platform_fee_usd: number;
+        [key: string]: unknown;
+    };
+    [key: string]: unknown;
+}
 export interface LifecycleAgentsResponse {
     agents: Record<string, unknown>[];
     teams: Record<string, unknown>[];

@@ -22,6 +22,25 @@ export interface MarketplacePublishPayload {
   };
 }
 
+export interface ClusterNodeItem {
+  nodeId: string; runtime: "ollama_metal" | "vllm" | "ray_serve"; runtimeLabel: string;
+  region: "airgap_local" | "us" | "eu" | "africa"; gpuModel: string;
+  totalVramGb: number; freeVramGb: number;
+  status: "healthy" | "drained" | "unhealthy"; loadedModels: string[];
+}
+
+export interface ModelCanaryItem {
+  modelId: string; stage: "stable" | "canary" | "deprecated" | "retired" | "shadow"; trafficWeightPct: number;
+}
+
+export interface MarketplaceSettlementSummary {
+  count: number; grossUsd: number; creatorPayoutUsd: number; platformFeeUsd: number; verifiedSplitLabel: string;
+}
+
+export interface ClusterAndSettlementSnapshot {
+  nodes: ClusterNodeItem[]; canaries: ModelCanaryItem[]; settlement: MarketplaceSettlementSummary | null;
+}
+
 const INITIAL_FETCH_FN = typeof globalThis.fetch === "function" ? globalThis.fetch : undefined;
 const VALID_CATEGORIES = new Set<MarketplaceCategoryId>([
   "ai_agent", "multi_agent_system", "agent_skill", "plugin_extension",
@@ -43,8 +62,8 @@ function shouldSkipUnmockedTestFetch(): boolean {
 }
 
 function buildPlatformUrl(path: string, query?: Record<string, string | undefined>): string {
-  if (!path.startsWith("/v1/platform/")) {
-    throw new Error(`Security violation: platformApi allows only /v1/platform/* paths, got ${path}`);
+  if (!path.startsWith("/v1/platform/") && !path.startsWith("/v1/cluster/")) {
+    throw new Error(`Security violation: platformApi allows only /v1/platform/* or /v1/cluster/* paths, got ${path}`);
   }
   const search = new URLSearchParams();
   if (query) {
@@ -267,6 +286,61 @@ export async function postNoCodeBlueprint(
   const res = await requestPlatformJson("/v1/platform/nocode/blueprint", {
     method: "POST",
     body: JSON.stringify({ idea, workspace_id: workspaceId, experience_mode: experienceMode, target_stack: targetStack }),
+  });
+  return { ok: res.ok, data: res.data };
+}
+
+function decodeClusterNode(raw: unknown): ClusterNodeItem | null {
+  if (!isRecord(raw) || typeof (raw.node_id ?? raw.nodeId) !== "string") return null;
+  const rtRaw = String(raw.runtime ?? "vllm");
+  const runtime: ClusterNodeItem["runtime"] = rtRaw === "ollama_metal" || rtRaw === "ray_serve" ? rtRaw : "vllm";
+  const runtimeLabel = runtime === "ollama_metal" ? "Apple Metal" : runtime === "ray_serve" ? "Ray Serve" : "vLLM";
+  const regRaw = String(raw.region ?? "us");
+  const region: ClusterNodeItem["region"] = regRaw === "airgap_local" || regRaw === "eu" || regRaw === "africa" ? regRaw : "us";
+  const totalVramGb = typeof raw.total_vram_gb === "number" ? raw.total_vram_gb : typeof raw.totalVramGb === "number" ? raw.totalVramGb : 32;
+  const freeVramGb = typeof raw.free_vram_gb === "number" ? raw.free_vram_gb : typeof raw.freeVramGb === "number" ? raw.freeVramGb : totalVramGb;
+  const stRaw = String(raw.status ?? "healthy");
+  return {
+    nodeId: String(raw.node_id ?? raw.nodeId), runtime, runtimeLabel, region,
+    gpuModel: String(raw.gpu_model ?? raw.gpuModel ?? runtimeLabel), totalVramGb, freeVramGb,
+    status: stRaw === "drained" || stRaw === "unhealthy" ? stRaw : "healthy",
+    loadedModels: Array.isArray(raw.loaded_models ?? raw.loadedModels) ? ((raw.loaded_models ?? raw.loadedModels) as unknown[]).map(String) : [],
+  };
+}
+
+export async function fetchClusterAndSettlementSnapshot(): Promise<ClusterAndSettlementSnapshot | null> {
+  const [nodesRes, lcRes, setRes] = await Promise.all([
+    requestPlatformJson("/v1/cluster/nodes", { method: "GET" }),
+    requestPlatformJson("/v1/cluster/lifecycle", { method: "GET" }),
+    requestPlatformJson("/v1/platform/marketplace/settlements", { method: "GET" }),
+  ]);
+  if (!(nodesRes.ok || lcRes.ok || setRes.ok)) return null;
+  const rawNodes = Array.isArray(nodesRes.data) ? nodesRes.data : isRecord(nodesRes.data) && Array.isArray(nodesRes.data.nodes) ? nodesRes.data.nodes : [];
+  const lcObj = isRecord(lcRes.data) ? lcRes.data : {};
+  const rawLc = Array.isArray(lcRes.data) ? lcRes.data : Array.isArray(lcObj.entries) ? lcObj.entries : Array.isArray(lcObj.models) ? lcObj.models : Array.isArray(lcObj.canaries) ? lcObj.canaries : [];
+  const canaries: ModelCanaryItem[] = rawLc.filter(isRecord).map((m) => ({
+    modelId: String(m.model_id ?? m.modelId ?? m.id ?? "keelway-core:7b"),
+    stage: m.stage === "canary" || m.stage === "deprecated" || m.stage === "retired" || m.stage === "shadow" ? m.stage : "stable",
+    trafficWeightPct: Number(m.traffic_weight_pct ?? m.trafficWeightPct ?? m.canary_weight_pct ?? m.weight_pct ?? 100),
+  }));
+  const stRoot = isRecord(setRes.data) ? setRes.data : {};
+  const stTotals = isRecord(stRoot.totals) ? stRoot.totals : stRoot;
+  const hasSettlement = isRecord(stRoot.totals) || typeof stTotals.gross_usd === "number" || typeof stTotals.grossUsd === "number";
+  return {
+    nodes: rawNodes.map(decodeClusterNode).filter((n): n is ClusterNodeItem => n !== null),
+    canaries,
+    settlement: hasSettlement ? {
+      count: Number(stTotals.count ?? 0), grossUsd: Number(stTotals.gross_usd ?? stTotals.grossUsd ?? 0),
+      creatorPayoutUsd: Number(stTotals.creator_payout_usd ?? stTotals.creatorPayoutUsd ?? 0),
+      platformFeeUsd: Number(stTotals.platform_fee_usd ?? stTotals.platformFeeUsd ?? 0),
+      verifiedSplitLabel: "85% Creator / 15% Platform",
+    } : null,
+  };
+}
+
+export async function postClusterNodeAction(nodeId: string, action: "drain" | "restore"): Promise<{ ok: boolean; data: unknown }> {
+  const res = await requestPlatformJson(`/v1/cluster/nodes/${encodeURIComponent(nodeId)}/${action}`, {
+    method: "POST", body: JSON.stringify({ node_id: nodeId, action }),
   });
   return { ok: res.ok, data: res.data };
 }

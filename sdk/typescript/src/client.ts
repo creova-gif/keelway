@@ -5,6 +5,7 @@
  * build runs identically across Node 20+, Bun, Deno, Cloudflare Workers, and browsers.
  */
 
+import { ClusterNamespace } from "./cluster.js";
 import { ConnectionError, KeelwayError, mapHttpError } from "./errors.js";
 import { PlatformNamespace } from "./platform.js";
 import type {
@@ -381,6 +382,7 @@ export class KeelwayClient {
   };
 
   public readonly platform: PlatformNamespace;
+  public readonly cluster: ClusterNamespace;
 
   constructor(options: KeelwayClientOptions = {}) {
     const rawBase = options.baseUrl ?? DEFAULT_BASE_URL;
@@ -642,6 +644,9 @@ export class KeelwayClient {
     };
 
     this.platform = new PlatformNamespace((method, path, params) =>
+      this.requestJson(method, path, params),
+    );
+    this.cluster = new ClusterNamespace((method, path, params) =>
       this.requestJson(method, path, params),
     );
   }

@@ -87,6 +87,28 @@ export class PlatformNamespace {
         }
         return this.requestJson("POST", "/v1/platform/marketplace/install", { body, options });
     }
+    purchaseMarketplacePackage(req, options) {
+        const body = typeof req === "string"
+            ? { package_id: req, buyer_tenant_id: "default" }
+            : {
+                package_id: req.package_id,
+                buyer_tenant_id: req.buyer_tenant_id ?? "default",
+            };
+        if (typeof req !== "string") {
+            if (req.workspace_id !== undefined) {
+                body.workspace_id = req.workspace_id;
+            }
+            if (req.config !== undefined) {
+                body.config = req.config;
+            }
+        }
+        return this.requestJson("POST", "/v1/platform/marketplace/purchase", { body, options });
+    }
+    listMarketplaceSettlements(params = {}, options) {
+        const tenantId = typeof params === "string" ? params : params.tenant_id;
+        const query = tenantId !== undefined ? { tenant_id: tenantId } : undefined;
+        return this.requestJson("GET", "/v1/platform/marketplace/settlements", { query, options });
+    }
     listAgents(params = {}, options) {
         return this.requestJson("GET", "/v1/platform/agents", {
             query: { workspace_id: params.workspace_id ?? "default" },

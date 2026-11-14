@@ -3910,6 +3910,7 @@ def main(argv=None):
         print("  doctor       Run sovereign system diagnostics across 7 dimensions")
         print("  marketplace  Discover & security-scan verified agents, skills, and plugins")
         print("  blueprint    Compile a natural-language idea into PRD, sprint issues & DAG")
+        print("  cluster      Inspect GPU cluster worker nodes, schedule placements & lifecycle")
         print("  package      Build sovereign offline distribution package")
         print("  run          Start governed agent run with approval gate")
         print("  test-sandbox Run tests inside OS-level verified sandbox")

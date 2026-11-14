@@ -109,6 +109,17 @@ class SQLitePlatformStore:
                     meta_json TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS marketplace_settlements (
+                    settlement_id TEXT PRIMARY KEY,
+                    package_id TEXT NOT NULL,
+                    buyer_tenant_id TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_marketplace_settlements_tenant
+                    ON marketplace_settlements(buyer_tenant_id);
                 """
             )
 
@@ -377,3 +388,57 @@ class SQLitePlatformStore:
                 (workspace_id,),
             ).fetchone()
             return json.loads(str(row["meta_json"])) if row is not None else None
+
+    # ------------------------------------------------------------------
+    # Marketplace Commercial Settlements CRUD (`marketplace_settlements`)
+    # ------------------------------------------------------------------
+    def upsert_settlement(
+        self,
+        settlement_id: str,
+        package_id: str,
+        buyer_tenant_id: str,
+        payload: Dict[str, Any],
+        created_at: Optional[str] = None,
+    ) -> None:
+        ts = created_at or _utc_now()
+        encoded = json.dumps(payload, separators=(",", ":"), default=str)
+        with self._lock, self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO marketplace_settlements (
+                    settlement_id, package_id, buyer_tenant_id, payload_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(settlement_id) DO UPDATE SET
+                    package_id = excluded.package_id,
+                    buyer_tenant_id = excluded.buyer_tenant_id,
+                    payload_json = excluded.payload_json,
+                    created_at = excluded.created_at
+                """,
+                (settlement_id, package_id, buyer_tenant_id, encoded, ts),
+            )
+
+    def get_settlement(self, settlement_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT payload_json FROM marketplace_settlements WHERE settlement_id = ?",
+                (settlement_id,),
+            ).fetchone()
+            return json.loads(str(row["payload_json"])) if row is not None else None
+
+    def list_settlements(self, buyer_tenant_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        with self._lock:
+            if buyer_tenant_id:
+                rows = self._conn.execute(
+                    """
+                    SELECT payload_json FROM marketplace_settlements
+                    WHERE buyer_tenant_id = ?
+                    ORDER BY rowid ASC
+                    """,
+                    (buyer_tenant_id,),
+                ).fetchall()
+            else:
+                rows = self._conn.execute(
+                    "SELECT payload_json FROM marketplace_settlements ORDER BY rowid ASC"
+                ).fetchall()
+            return [json.loads(str(r["payload_json"])) for r in rows]

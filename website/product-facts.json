@@ -35,9 +35,21 @@
     },
     "official_python_and_typescript_sdks": {
       "status": "AVAILABLE",
-      "claim": "Official Python (core.sdk) and zero-dependency TypeScript (@keelway/sdk) client SDKs with chunk-safe SSE streaming, full 20-method /v1/platform/* parity, and deterministic HTTP error mapping",
-      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts",
-      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, sdk/typescript/test/sdk.test.mjs"
+      "claim": "Official Python (core.sdk), zero-dependency TypeScript (@keelway/sdk), and zero-dependency Go (keelway-go) client SDKs with chunk-safe SSE streaming, full /v1/platform/* and /v1/cluster/* parity, and deterministic HTTP error mapping",
+      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, core/sdk/cluster_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts, sdk/typescript/src/cluster.ts, sdk/go/client.go, sdk/go/platform.go",
+      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, tests/test_marketplace_settlement_and_cluster_sdk.py, sdk/typescript/test/sdk.test.mjs, sdk/go/client_test.go"
+    },
+    "distributed_gpu_cluster_and_postgres_governance": {
+      "status": "AVAILABLE",
+      "claim": "Distributed multi-node GPU cluster scheduler across vLLM, Ray Serve, and Apple Metal workers with VRAM/tensor-parallel placement, model canary/stable lifecycle promotion & rollback, and PostgreSQL 16+ SELECT FOR UPDATE row-locked governance parity",
+      "code_path": "core/cluster/scheduler.py, core/cluster/postgres_adapter.py, core/cluster/lifecycle.py, core/api/cluster_routes.py",
+      "evidence_test": "tests/test_cluster_and_postgres_governance.py"
+    },
+    "marketplace_commercial_settlement_ledger": {
+      "status": "AVAILABLE",
+      "claim": "Marketplace commercial settlement ledger with zero-drift integer-cent splits (85/15 creator, 80/20 partner, 0/100 first-party), SPDX license attribution, cryptographic SHA-256 purchase receipts, and SQLite WAL durability",
+      "code_path": "core/platform/settlement.py, core/api/platform_routes.py",
+      "evidence_test": "tests/test_marketplace_settlement_and_cluster_sdk.py"
     },
     "unified_10view_platform_and_nocode_builder": {
       "status": "AVAILABLE",

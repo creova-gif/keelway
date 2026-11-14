@@ -21,10 +21,13 @@ import type {
   ListExtensionsParams,
   ListIssuesParams,
   ListMarketplacePackagesParams,
+  ListMarketplaceSettlementsParams,
   MarketplacePackageInput,
   MarketplacePackageListResponse,
   MarketplacePackageRecord,
   MarketplaceScanReport,
+  MarketplaceSettlementRecord,
+  MarketplaceSettlementSummaryResponse,
   PlatformExtensionListResponse,
   PlatformExtensionRecord,
   PlatformIssueListResponse,
@@ -35,6 +38,7 @@ import type {
   PlatformPrdRecord,
   PlatformWorkflowListResponse,
   PlatformWorkflowRecord,
+  PurchaseMarketplacePackageRequest,
   QuotaCheckRequest,
   QuotaCheckResponse,
   SubscriptionTiersResponse,
@@ -195,6 +199,46 @@ export class PlatformNamespace {
       "POST",
       "/v1/platform/marketplace/install",
       { body, options },
+    );
+  }
+
+  public purchaseMarketplacePackage(
+    req: PurchaseMarketplacePackageRequest | string,
+    options?: RequestOptions,
+  ): Promise<MarketplaceSettlementRecord> {
+    const body: Record<string, unknown> =
+      typeof req === "string"
+        ? { package_id: req, buyer_tenant_id: "default" }
+        : {
+            package_id: req.package_id,
+            buyer_tenant_id: req.buyer_tenant_id ?? "default",
+          };
+    if (typeof req !== "string") {
+      if (req.workspace_id !== undefined) {
+        body.workspace_id = req.workspace_id;
+      }
+      if (req.config !== undefined) {
+        body.config = req.config;
+      }
+    }
+    return this.requestJson<MarketplaceSettlementRecord>(
+      "POST",
+      "/v1/platform/marketplace/purchase",
+      { body, options },
+    );
+  }
+
+  public listMarketplaceSettlements(
+    params: ListMarketplaceSettlementsParams | string = {},
+    options?: RequestOptions,
+  ): Promise<MarketplaceSettlementSummaryResponse> {
+    const tenantId = typeof params === "string" ? params : params.tenant_id;
+    const query: Record<string, string> | undefined =
+      tenantId !== undefined ? { tenant_id: tenantId } : undefined;
+    return this.requestJson<MarketplaceSettlementSummaryResponse>(
+      "GET",
+      "/v1/platform/marketplace/settlements",
+      { query, options },
     );
   }
 

@@ -407,6 +407,9 @@ class MarketplaceRegistry:
             "security_report": report,
         }
 
+        if payload.get("license_spdx") or payload.get("license"):
+            record["license_spdx"] = str(payload.get("license_spdx") or payload.get("license"))
+
         if payload.get("ed25519_signature") and payload.get("signer_key_id"):
             record["signer_key_id"] = str(payload["signer_key_id"])
             record["ed25519_signature"] = str(payload["ed25519_signature"])

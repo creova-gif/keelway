@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import http from "node:http";
 import { after, before, describe, it } from "node:test";
 
@@ -6,6 +7,7 @@ import {
   AirGapEgressError,
   AuthenticationError,
   BudgetExceededError,
+  ClusterNamespace,
   ConnectionError,
   KeelwayClient,
   KeelwayError,
@@ -191,6 +193,93 @@ async function startEphemeralKeelwayServer() {
     }
     if (req.method === "POST" && reqUrl.pathname === "/v1/platform/marketplace/install") {
       return sendJson(200, { package_id: parsedBody.package_id, workspace_id: parsedBody.workspace_id, status: "installed" });
+    }
+    if (req.method === "POST" && reqUrl.pathname === "/v1/platform/marketplace/purchase") {
+      if (parsedBody.package_id === "missing-pkg") {
+        return sendJson(404, { detail: "Marketplace package 'missing-pkg' not found." });
+      }
+      return sendJson(200, {
+        settlement_id: "stl_ts_001",
+        package_id: parsedBody.package_id,
+        package_version: "1.3.1",
+        buyer_tenant_id: parsedBody.buyer_tenant_id ?? "default",
+        publisher_tier: "verified_third_party",
+        gross_cents: 1500,
+        creator_payout_cents: 1275,
+        platform_fee_cents: 225,
+        gross_usd: 15.0,
+        creator_payout_usd: 12.75,
+        platform_fee_usd: 2.25,
+        split_label: "85/15 (85% Creator / 15% Platform)",
+        license_spdx: "LicenseRef-Keelway-Marketplace-Commercial",
+        entitlement_sha256: "e".repeat(64),
+        receipt_sha256: "f".repeat(64),
+        created_at: "2026-11-14T12:00:00Z",
+        installed: true,
+      });
+    }
+    if (req.method === "GET" && reqUrl.pathname === "/v1/platform/marketplace/settlements") {
+      const tid = searchParams.tenant_id ?? "default";
+      return sendJson(200, {
+        settlements: [
+          {
+            settlement_id: "stl_ts_001",
+            package_id: "linear-github-mcp-bridge",
+            package_version: "1.3.1",
+            buyer_tenant_id: tid,
+            publisher_tier: "verified_third_party",
+            gross_cents: 1500,
+            creator_payout_cents: 1275,
+            platform_fee_cents: 225,
+            gross_usd: 15.0,
+            creator_payout_usd: 12.75,
+            platform_fee_usd: 2.25,
+            split_label: "85/15 (85% Creator / 15% Platform)",
+            license_spdx: "LicenseRef-Keelway-Marketplace-Commercial",
+            entitlement_sha256: "e".repeat(64),
+            receipt_sha256: "f".repeat(64),
+            created_at: "2026-11-14T12:00:00Z",
+          },
+        ],
+        totals: { count: 1, gross_usd: 15.0, creator_payout_usd: 12.75, platform_fee_usd: 2.25 },
+      });
+    }
+
+    // --- Distributed Cluster (/v1/cluster/*) ---
+    if (req.method === "GET" && reqUrl.pathname === "/v1/cluster/nodes") {
+      return sendJson(200, {
+        nodes: [{ node_id: "node-eu-01", region: searchParams.region ?? "eu-central-1", runtime: searchParams.runtime ?? "vllm", status: "ready" }],
+        count: 1,
+      });
+    }
+    if (req.method === "POST" && reqUrl.pathname === "/v1/cluster/nodes/register") {
+      return sendJson(200, { ...parsedBody, status: "ready" });
+    }
+    if (req.method === "POST" && reqUrl.pathname.endsWith("/drain") && reqUrl.pathname.startsWith("/v1/cluster/nodes/")) {
+      const nodeId = decodeURIComponent(reqUrl.pathname.split("/")[4]);
+      return sendJson(200, { node_id: nodeId, status: "drained" });
+    }
+    if (req.method === "POST" && reqUrl.pathname.endsWith("/restore") && reqUrl.pathname.startsWith("/v1/cluster/nodes/")) {
+      const nodeId = decodeURIComponent(reqUrl.pathname.split("/")[4]);
+      return sendJson(200, { node_id: nodeId, status: "ready" });
+    }
+    if (req.method === "POST" && reqUrl.pathname === "/v1/cluster/schedule") {
+      return sendJson(200, { scheduled: true, selected_node_id: "node-eu-01", model_id: parsedBody.model_id });
+    }
+    if (req.method === "GET" && reqUrl.pathname === "/v1/cluster/lifecycle") {
+      return sendJson(200, { deployments: [{ model_id: "keelway-core:7b", stage: "production" }] });
+    }
+    if (req.method === "POST" && reqUrl.pathname === "/v1/cluster/lifecycle/promote") {
+      return sendJson(200, { model_id: parsedBody.model_id, stage: parsedBody.target_stage ?? "production" });
+    }
+    if (req.method === "POST" && reqUrl.pathname === "/v1/cluster/lifecycle/rollback") {
+      return sendJson(200, { model_id: parsedBody.model_id, rolled_back: true });
+    }
+    if (req.method === "GET" && reqUrl.pathname === "/v1/cluster/governance-adapter/status") {
+      return sendJson(200, { status: "active", active: true });
+    }
+    if (req.method === "POST" && reqUrl.pathname === "/v1/cluster/governance-adapter/reserve-budget") {
+      return sendJson(200, { allowed: true, reserved: true, reservation_id: "resv_ts_01", tenant_id: parsedBody.tenant_id });
     }
     if (req.method === "GET" && reqUrl.pathname === "/v1/platform/agents") {
       return sendJson(200, { agents: [{ id: "feature-coder" }], teams: [{ id: "idea-to-production-squad" }], runs: [] });
@@ -412,6 +501,48 @@ describe("@keelway/sdk v1.0.0 — Official Zero-Dependency TypeScript SDK", () =
     assert.equal((await client.platform.compileBlueprint({ idea: "Vendor compliance portal", workspace_id: "ws-ts" })).architecture_summary.target_stack, "react-fastapi-sqlite");
     assert.equal((await client.platform.listExtensions({ workspace_id: "ws-ts" })).total, 1);
     assert.equal((await client.platform.registerExtension({ id: "slack-bridge", extension_type: "webhook" })).status, "registered");
+  });
+
+  it("covers client.cluster parity, Marketplace commercial settlements, and zero runtime dependencies", async () => {
+    assert.ok(client.cluster instanceof ClusterNamespace);
+
+    const pkgJson = JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    assert.equal(pkgJson.dependencies, undefined, "@keelway/sdk must preserve zero runtime dependencies");
+
+    const settlement = await client.platform.purchaseMarketplacePackage({
+      package_id: "linear-github-mcp-bridge",
+      buyer_tenant_id: "tenant-nairobi",
+    });
+    assert.equal(settlement.settlement_id, "stl_ts_001");
+    assert.equal(settlement.gross_cents, 1500);
+    assert.equal(settlement.creator_payout_cents + settlement.platform_fee_cents, settlement.gross_cents);
+    assert.equal(settlement.creator_payout_usd, 12.75);
+    assert.equal(settlement.platform_fee_usd, 2.25);
+
+    await assert.rejects(
+      () => client.platform.purchaseMarketplacePackage({ package_id: "missing-pkg" }),
+      (err) => err instanceof TaskNotFoundError && err.status === 404,
+    );
+
+    const summary = await client.platform.listMarketplaceSettlements({ tenant_id: "tenant-nairobi" });
+    assert.equal(summary.totals.count, 1);
+    assert.equal(summary.totals.gross_usd, 15.0);
+    assert.equal(summary.settlements[0].buyer_tenant_id, "tenant-nairobi");
+
+    srv.recorded.length = 0;
+    const nodes = await client.cluster.listNodes({ region: "eu-central-1", runtime: "vllm", include_drained: false });
+    assert.equal(nodes.nodes[0].node_id, "node-eu-01");
+    assert.deepEqual(srv.recorded[0].searchParams, { include_drained: "false", region: "eu-central-1", runtime: "vllm" });
+
+    assert.equal((await client.cluster.registerNode({ node_id: "node-eu-02", region: "eu-central-1", total_vram_gb: 80 })).status, "ready");
+    assert.equal((await client.cluster.drainNode("node-eu-02")).status, "drained");
+    assert.equal((await client.cluster.restoreNode("node-eu-02")).status, "ready");
+    assert.equal((await client.cluster.schedule({ model_id: "keelway-core:7b", required_vram_gb: 16 })).selected_node_id, "node-eu-01");
+    assert.equal((await client.cluster.listLifecycle()).deployments[0].stage, "production");
+    assert.equal((await client.cluster.promoteModel({ model_id: "keelway-core:7b", target_stage: "production" })).stage, "production");
+    assert.equal((await client.cluster.rollbackModel({ model_id: "keelway-core:7b", reason: "latency_spike" })).rolled_back, true);
+    assert.equal((await client.cluster.governanceAdapterStatus()).active, true);
+    assert.equal((await client.cluster.reserveBudget({ tenant_id: "tenant-nairobi", estimated_cost_usd: 0.25 })).reserved, true);
   });
 
   it("maps every HTTP error code (401, 402, 403 air-gap/quorum/permission, 404, 422, 429, 500) identically to Python SDK", async () => {

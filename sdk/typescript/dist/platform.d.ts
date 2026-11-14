@@ -4,7 +4,7 @@
  * Exposes all 20 `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
  * Web Fetch, `AbortSignal` timeout, and `mapHttpError` infrastructure.
  */
-import type { CheckModelLicenseRequest, CheckModelLicenseResponse, CompileBlueprintRequest, CompiledBlueprintResponse, CreateIssueRequest, CreatePrdRequest, CreateWorkflowRequest, DispatchTeamRequest, ExtensionSpecInput, InstallMarketplacePackageRequest, InstallMarketplacePackageResponse, LifecycleAgentsResponse, ListExtensionsParams, ListIssuesParams, ListMarketplacePackagesParams, MarketplacePackageInput, MarketplacePackageListResponse, MarketplacePackageRecord, MarketplaceScanReport, PlatformExtensionListResponse, PlatformExtensionRecord, PlatformIssueListResponse, PlatformIssueRecord, PlatformOverviewParams, PlatformOverviewResponse, PlatformPrdListResponse, PlatformPrdRecord, PlatformWorkflowListResponse, PlatformWorkflowRecord, QuotaCheckRequest, QuotaCheckResponse, SubscriptionTiersResponse, TeamRunResponse, ValidateByomRequest, ValidateByomResponse } from "./platform-types.js";
+import type { CheckModelLicenseRequest, CheckModelLicenseResponse, CompileBlueprintRequest, CompiledBlueprintResponse, CreateIssueRequest, CreatePrdRequest, CreateWorkflowRequest, DispatchTeamRequest, ExtensionSpecInput, InstallMarketplacePackageRequest, InstallMarketplacePackageResponse, LifecycleAgentsResponse, ListExtensionsParams, ListIssuesParams, ListMarketplacePackagesParams, ListMarketplaceSettlementsParams, MarketplacePackageInput, MarketplacePackageListResponse, MarketplacePackageRecord, MarketplaceScanReport, MarketplaceSettlementRecord, MarketplaceSettlementSummaryResponse, PlatformExtensionListResponse, PlatformExtensionRecord, PlatformIssueListResponse, PlatformIssueRecord, PlatformOverviewParams, PlatformOverviewResponse, PlatformPrdListResponse, PlatformPrdRecord, PlatformWorkflowListResponse, PlatformWorkflowRecord, PurchaseMarketplacePackageRequest, QuotaCheckRequest, QuotaCheckResponse, SubscriptionTiersResponse, TeamRunResponse, ValidateByomRequest, ValidateByomResponse } from "./platform-types.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -23,6 +23,8 @@ export declare class PlatformNamespace {
     scanMarketplacePackage(pkg: MarketplacePackageInput, options?: RequestOptions): Promise<MarketplaceScanReport>;
     publishMarketplacePackage(pkg: MarketplacePackageInput, options?: RequestOptions): Promise<MarketplacePackageRecord>;
     installMarketplacePackage(req: InstallMarketplacePackageRequest, options?: RequestOptions): Promise<InstallMarketplacePackageResponse>;
+    purchaseMarketplacePackage(req: PurchaseMarketplacePackageRequest | string, options?: RequestOptions): Promise<MarketplaceSettlementRecord>;
+    listMarketplaceSettlements(params?: ListMarketplaceSettlementsParams | string, options?: RequestOptions): Promise<MarketplaceSettlementSummaryResponse>;
     listAgents(params?: {
         workspace_id?: string;
     }, options?: RequestOptions): Promise<LifecycleAgentsResponse>;

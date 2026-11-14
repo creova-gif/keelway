@@ -235,11 +235,12 @@ keelway marketplace list`}
 
             <div className="rounded-md border border-border-strong bg-surface p-4">
               <div className="font-mono text-xs font-bold text-teal-accent">
-                4. Official Python &amp; TypeScript SDKs
+                4. Official Python, TypeScript &amp; Go SDKs
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Sync/async <code className="text-fg">core.sdk</code> and
-                zero-dependency <code className="text-fg">@keelway/sdk</code>{" "}
+                Sync/async <code className="text-fg">core.sdk</code>,{" "}
+                <code className="text-fg">@keelway/sdk</code>, and
+                zero-dependency <code className="text-fg">keelway-go</code>{" "}
                 with full <code className="text-fg">client.platform</code>{" "}
                 parity and typed governance errors.
               </p>
@@ -394,9 +395,15 @@ turn2 = client.responses.create(
                   pre-publish security scanner, and 85/15 creator splits
                 </li>
                 <li>
-                  • Official Python (<code className="text-fg">core.sdk</code>) &amp;
-                  zero-dependency TypeScript (<code className="text-fg">@keelway/sdk</code>)
-                  SDKs
+                  • Official Python (<code className="text-fg">core.sdk</code>),
+                  zero-dependency TypeScript (<code className="text-fg">@keelway/sdk</code>),
+                  and Official Go SDK (<code className="text-fg">keelway-go</code>)
+                </li>
+                <li>
+                  • Multi-Node GPU Cluster Scheduler (<code className="text-fg">vLLM</code>{" "}
+                  / <code className="text-fg">Ray</code> /{" "}
+                  <code className="text-fg">Ollama Metal</code>) with node
+                  drain/restore &amp; canary traffic weights
                 </li>
                 <li>
                   • Scoped <code className="text-fg">kw_live_*</code> keys, USD
@@ -420,8 +427,8 @@ turn2 = client.responses.create(
                   US &amp; regional edge data centers
                 </li>
                 <li>
-                  • Official Go SDK (<code className="text-fg">keelway-go</code>)
-                  and multi-node GPU cluster autoscaling
+                  • Hosted Enterprise Billing Portal &amp; Managed Regional Edge
+                  Relays
                 </li>
                 <li>
                   • Dedicated enterprise SLA, SSO/SAML directory sync &amp;
