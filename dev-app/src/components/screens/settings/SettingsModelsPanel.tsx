@@ -44,10 +44,13 @@ export function SettingsModelsPanel({
   const latencyId = useId();
   const costId = useId();
 
+  const mountedRef = useRef(true);
+  const explainingRef = useRef(false);
   const fetchWeightsRef = useRef(fetchWeightsFn);
   fetchWeightsRef.current = fetchWeightsFn;
 
   useEffect(() => {
+    mountedRef.current = true;
     let cancelled = false;
     setLoadingWeights(true);
     fetchWeightsRef
@@ -65,6 +68,7 @@ export function SettingsModelsPanel({
       });
     return () => {
       cancelled = true;
+      mountedRef.current = false;
     };
   }, []);
 
@@ -89,6 +93,8 @@ export function SettingsModelsPanel({
 
   const handleExplainRoute = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (explainingRef.current) return;
+    explainingRef.current = true;
     setExplaining(true);
     try {
       const result = await explainRoutingFn({
@@ -100,9 +106,12 @@ export function SettingsModelsPanel({
         candidateEndpoint: candidateEndpoint.trim(),
         preferLocal: candidateEndpoint.includes("127.0.0.1"),
       });
-      setExplainResult(result);
+      if (mountedRef.current) setExplainResult(result);
+    } catch {
+      // Retain previous dry-run output if explain call fails
     } finally {
-      setExplaining(false);
+      explainingRef.current = false;
+      if (mountedRef.current) setExplaining(false);
     }
   };
 

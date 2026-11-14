@@ -313,15 +313,26 @@ let fileContentsState: Record<string, StoredFallbackFile> = structuredClone(INIT
 let manifestsState: AgentManifestItem[] = structuredClone(INITIAL_MANIFESTS);
 let governancePolicyState: TenantGovernancePolicy = structuredClone(INITIAL_GOVERNANCE_POLICY);
 let scopedKeysState: ScopedApiKeyItem[] = structuredClone(INITIAL_SCOPED_KEYS);
-let mintedSecretsState: Record<string, string> = {};
+let mintedDigestsState: Record<string, string> = {};
 let keySeqCounter = 1;
+
+function hashFallbackSecret(secret: string): string {
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < secret.length; i++) {
+    const ch = secret.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 0x01000193) >>> 0;
+    h2 = Math.imul(h2 ^ (ch + i), 0x85ebca6b) >>> 0;
+  }
+  return `fnv1a64:${h1.toString(16).padStart(8, "0")}${h2.toString(16).padStart(8, "0")}`;
+}
 
 export function resetApiFallbackState(): void {
   fileContentsState = structuredClone(INITIAL_FILE_CONTENTS);
   manifestsState = structuredClone(INITIAL_MANIFESTS);
   governancePolicyState = structuredClone(INITIAL_GOVERNANCE_POLICY);
   scopedKeysState = structuredClone(INITIAL_SCOPED_KEYS);
-  mintedSecretsState = {};
+  mintedDigestsState = {};
   keySeqCounter = 1;
 }
 
@@ -588,7 +599,7 @@ export function mintFallbackScopedKey(label: string, scopes: string[], capUsd: n
     revokedAt: null,
   };
   scopedKeysState = [created, ...scopedKeysState];
-  mintedSecretsState[plaintextSecret] = created.id;
+  mintedDigestsState[hashFallbackSecret(plaintextSecret)] = created.id;
   return {
     key: structuredClone(created),
     plaintextSecret,
@@ -601,7 +612,7 @@ export function verifyFallbackScopedKey(apiKey: string): ScopedKeyVerifyResult {
   if (!trimmed.startsWith("kw_live_")) {
     return { valid: false, scopes: [], reason: "Invalid key prefix: expected kw_live_*" };
   }
-  const exactId = mintedSecretsState[trimmed];
+  const exactId = mintedDigestsState[hashFallbackSecret(trimmed)];
   const matched = scopedKeysState.find(
     (k) => !k.revokedAt && (k.id === exactId || (trimmed.length >= 16 && trimmed.startsWith(k.prefix.replace("…", "")))),
   );

@@ -409,13 +409,24 @@ export function SettingsLabsPanel({
   runBenchmarkFn = runLabsBenchmark,
 }: SettingsLabsPanelProps): React.JSX.Element {
   const [cards, setCards] = useState<LabsCardRecord[]>(INITIAL_LABS_CARDS);
-  const [runningId, setRunningId] = useState<string | null>(null);
+  const [runningIds, setRunningIds] = useState<Record<string, boolean>>({});
+  const runningSetRef = useRef<Set<string>>(new Set());
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleRunCard = async (card: LabsCardRecord) => {
-    if (!card.runKind) return;
-    setRunningId(card.id);
+    if (!card.runKind || runningSetRef.current.has(card.id)) return;
+    runningSetRef.current.add(card.id);
+    setRunningIds((prev) => ({ ...prev, [card.id]: true }));
     try {
       const res = await runBenchmarkFn(card.runKind);
+      if (!mountedRef.current) return;
       setCards((prev) =>
         prev.map((item) =>
           item.id === card.id
@@ -429,8 +440,17 @@ export function SettingsLabsPanel({
             : item,
         ),
       );
+    } catch {
+      // Retain existing epistemic status if benchmark run fails
     } finally {
-      setRunningId(null);
+      runningSetRef.current.delete(card.id);
+      if (mountedRef.current) {
+        setRunningIds((prev) => {
+          const next = { ...prev };
+          delete next[card.id];
+          return next;
+        });
+      }
     }
   };
 
@@ -479,7 +499,7 @@ export function SettingsLabsPanel({
                   <Button
                     size="sm"
                     variant={card.epistemicStatus === "live" ? "secondary" : "primary"}
-                    loading={runningId === card.id}
+                    loading={Boolean(runningIds[card.id])}
                     onClick={() => void handleRunCard(card)}
                   >
                     {card.actionLabel}

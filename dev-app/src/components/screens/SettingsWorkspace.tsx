@@ -229,10 +229,17 @@ export function SettingsWorkspace({
   mintKeyFn,
   verifyKeyFn,
   fetchSbomFn,
-  toggleAirGapFn = toggleAirGap,
+  toggleAirGapFn,
   fetchAirGapAuditFn,
   runBenchmarkFn,
 }: SettingsWorkspaceProps): React.JSX.Element {
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   const [uncontrolledSubSection, setUncontrolledSubSection] =
     useState<SettingsSubSection>(defaultSubSection);
   const currentSubSection = controlledSubSection ?? uncontrolledSubSection;
@@ -261,6 +268,21 @@ export function SettingsWorkspace({
 
   const [uncontrolledAirGap, setUncontrolledAirGap] = useState(false);
   const currentAirGap = controlledAirGap ?? uncontrolledAirGap;
+  const currentAirGapRef = useRef(currentAirGap);
+  currentAirGapRef.current = currentAirGap;
+  const airGapReqSeqRef = useRef(0);
+
+  useEffect(() => {
+    if (currentTheme !== "system" || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const onChange = () => applyThemeToDocument("system");
+    applyThemeToDocument("system");
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    }
+    return undefined;
+  }, [currentTheme]);
 
   const [uncontrolledRules, setUncontrolledRules] = useState<ScopedPermissionRule[]>(() =>
     structuredClone(DEFAULT_SCOPED_RULES),
@@ -349,13 +371,22 @@ export function SettingsWorkspace({
   );
 
   const triggerToggleAirGap = useCallback(async () => {
-    const desired = !currentAirGap;
+    const previous = currentAirGapRef.current;
+    const desired = !previous;
+    if (controlledAirGap !== undefined && onToggleAirGap !== undefined && toggleAirGapFn === undefined) {
+      onToggleAirGap(desired);
+      return;
+    }
+    currentAirGapRef.current = desired;
+    const reqSeq = ++airGapReqSeqRef.current;
     if (controlledAirGap === undefined) {
       setUncontrolledAirGap(desired);
     }
     onToggleAirGap?.(desired);
     try {
-      const res = await toggleAirGapFn(desired);
+      const res = await (toggleAirGapFn ?? toggleAirGap)(desired);
+      if (!mountedRef.current || reqSeq !== airGapReqSeqRef.current) return;
+      currentAirGapRef.current = res.airGapEnabled;
       if (controlledAirGap === undefined) {
         setUncontrolledAirGap(res.airGapEnabled);
       }
@@ -363,9 +394,13 @@ export function SettingsWorkspace({
         onToggleAirGap?.(res.airGapEnabled);
       }
     } catch {
-      // Retain optimistic local toggle if offline fallback already handled it
+      if (!mountedRef.current || reqSeq !== airGapReqSeqRef.current) return;
+      currentAirGapRef.current = previous;
+      if (controlledAirGap === undefined) {
+        setUncontrolledAirGap(previous);
+      }
     }
-  }, [controlledAirGap, currentAirGap, onToggleAirGap, toggleAirGapFn]);
+  }, [controlledAirGap, onToggleAirGap, toggleAirGapFn]);
 
   useEffect(() => {
     if (disableGlobalAirGapShortcut || typeof window === "undefined") {

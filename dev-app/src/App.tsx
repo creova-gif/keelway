@@ -171,6 +171,35 @@ export function App({
   const [locale, setLocale] = useState<LocaleCode>("en-US");
   const [reduceMotion, setReduceMotion] = useState(false);
 
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  useEffect(() => {
+    if (themeMode !== "system" || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const onChange = () => applyThemeToDocument("system");
+    applyThemeToDocument("system");
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    }
+    return undefined;
+  }, [themeMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPopState = () => {
+      const next = readInitialUrlState();
+      if (next.section) setActiveSection(next.section);
+      if (next.settings) setSettingsSubSection(next.settings);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   const [workspacePath, setWorkspacePath] = useState("/workspace/keelway");
   const [workspaceBranch, setWorkspaceBranch] = useState("feat/unified-dev-app");
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(
@@ -276,21 +305,30 @@ export function App({
     return () => sub.close();
   }, []);
 
+  const airGapLockedRef = useRef(egress.airGapLocked);
+  airGapLockedRef.current = egress.airGapLocked;
+  const airGapReqSeqRef = useRef(0);
+
   const handleToggleAirGap = useCallback(async (explicitNext?: boolean) => {
-    setEgress((prev) => {
-      const desired = explicitNext ?? !prev.airGapLocked;
-      void toggleAirGap(desired)
-        .then((res) => {
-          setEgress((curr) => ({
-            ...curr,
-            airGapLocked: res.airGapEnabled,
-            mode: res.mode,
-            lastCheckedAt: res.verifiedAt,
-          }));
-        })
-        .catch(() => {});
-      return { ...prev, airGapLocked: desired, mode: desired ? "air_gapped_verified" : "unmeasured" };
-    });
+    const previous = airGapLockedRef.current;
+    const desired = explicitNext ?? !previous;
+    airGapLockedRef.current = desired;
+    const reqSeq = ++airGapReqSeqRef.current;
+    setEgress((prev) => ({
+      ...prev,
+      airGapLocked: desired,
+      mode: desired ? "air_gapped_verified" : "unmeasured",
+    }));
+    try {
+      const res = await toggleAirGap(desired);
+      if (!mountedRef.current || reqSeq !== airGapReqSeqRef.current) return;
+      airGapLockedRef.current = res.airGapEnabled;
+      setEgress((curr) => ({ ...curr, airGapLocked: res.airGapEnabled, mode: res.mode, lastCheckedAt: res.verifiedAt }));
+    } catch {
+      if (!mountedRef.current || reqSeq !== airGapReqSeqRef.current) return;
+      airGapLockedRef.current = previous;
+      setEgress((curr) => ({ ...curr, airGapLocked: previous, mode: previous ? "air_gapped_verified" : "unmeasured" }));
+    }
   }, []);
 
   useEffect(() => {

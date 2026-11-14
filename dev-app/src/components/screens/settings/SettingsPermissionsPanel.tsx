@@ -73,11 +73,14 @@ export function SettingsPermissionsPanel({
 }: SettingsPermissionsPanelProps): React.JSX.Element {
   const [manifests, setManifests] = useState<AgentManifestItem[]>([]);
   const [manifestsLoading, setManifestsLoading] = useState(true);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [togglingIds, setTogglingIds] = useState<Record<string, boolean>>({});
   const [manifestJson, setManifestJson] = useState(SAMPLE_MANIFEST_JSON);
   const [inspectResult, setInspectResult] = useState<ManifestInspectResult | null>(null);
   const [inspecting, setInspecting] = useState(false);
 
+  const mountedRef = useRef(true);
+  const togglingSetRef = useRef<Set<string>>(new Set());
+  const inspectingRef = useRef(false);
   const firstReconfirmRef = useRef<HTMLButtonElement | null>(null);
   const rulesTableRef = useRef<HTMLTableElement | null>(null);
   const manifestInputId = useId();
@@ -85,6 +88,7 @@ export function SettingsPermissionsPanel({
   fetchManifestsRef.current = fetchManifestsFn;
 
   useEffect(() => {
+    mountedRef.current = true;
     let cancelled = false;
     setManifestsLoading(true);
     fetchManifestsRef
@@ -102,6 +106,7 @@ export function SettingsPermissionsPanel({
       });
     return () => {
       cancelled = true;
+      mountedRef.current = false;
     };
   }, []);
 
@@ -154,25 +159,52 @@ export function SettingsPermissionsPanel({
   };
 
   const handleToggleManifest = async (item: AgentManifestItem) => {
-    setTogglingId(item.id);
+    if (togglingSetRef.current.has(item.id)) return;
+    togglingSetRef.current.add(item.id);
+    setTogglingIds((prev) => ({ ...prev, [item.id]: true }));
     try {
       const updated = await toggleManifestFn(item.id, !item.enabled);
+      if (!mountedRef.current) return;
       setManifests((prev) =>
         prev.map((m) => (m.id === item.id ? { ...m, enabled: updated.enabled } : m)),
       );
+    } catch {
+      // Preserve current manifest enabled state if toggle fails
     } finally {
-      setTogglingId(null);
+      togglingSetRef.current.delete(item.id);
+      if (mountedRef.current) {
+        setTogglingIds((prev) => {
+          const next = { ...prev };
+          delete next[item.id];
+          return next;
+        });
+      }
     }
   };
 
   const handleValidateManifest = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (inspectingRef.current) return;
+    inspectingRef.current = true;
     setInspecting(true);
     try {
       const result = await inspectManifestFn(manifestJson);
-      setInspectResult(result);
+      if (mountedRef.current) setInspectResult(result);
+    } catch {
+      if (mountedRef.current) {
+        setInspectResult({
+          valid: false,
+          schemaVersion: "keelway.agent/v1",
+          riskLevel: "high",
+          requiresHumanP10: true,
+          capabilities: [],
+          warnings: [],
+          errors: ["Failed to inspect manifest — loopback inspector unavailable."],
+        });
+      }
     } finally {
-      setInspecting(false);
+      inspectingRef.current = false;
+      if (mountedRef.current) setInspecting(false);
     }
   };
 
@@ -462,7 +494,7 @@ export function SettingsPermissionsPanel({
                         variant={item.enabled ? "secondary" : "danger-ghost"}
                         aria-pressed={item.enabled}
                         aria-label={`Kill-switch for ${item.name}@${item.version}: ${item.enabled ? "Enabled" : "Disabled"}`}
-                        loading={togglingId === item.id}
+                        loading={Boolean(togglingIds[item.id])}
                         onClick={() => void handleToggleManifest(item)}
                       >
                         {item.enabled ? "Enabled" : "Disabled"}

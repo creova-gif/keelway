@@ -5,6 +5,20 @@ import { resetApiFallbackState } from "@/lib/apiFallbacks";
 
 afterEach(() => {
   resetApiFallbackState();
+  if (typeof window !== "undefined" && window.history?.replaceState) {
+    try {
+      window.history.replaceState({}, "", "/");
+    } catch {
+      // Ignore history errors in constrained environments
+    }
+  }
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.setAttribute("data-density", "default");
+    document.documentElement.removeAttribute("data-reduce-motion");
+    document.documentElement.setAttribute("dir", "ltr");
+    document.documentElement.setAttribute("lang", "en");
+  }
 });
 
 class ResizeObserverMock {

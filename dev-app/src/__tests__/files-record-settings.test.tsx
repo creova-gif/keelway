@@ -717,10 +717,14 @@ describe("SettingsWorkspace & App Integration (Screens 08-11)", () => {
 
     window.history.replaceState({}, "", "/app/?token=smoke-tok");
     const appRender = render(<App />);
-    const rail = screen.getByRole("navigation", { name: /Primary navigation/i });
-    await user.click(within(rail).getByRole("button", { name: /^Settings$/i }));
-    expect(await screen.findByText("Prompt version changed: p-13 → p-14")).toBeInTheDocument();
-    expect(window.location.search).toContain("token=smoke-tok");
-    appRender.unmount();
+    try {
+      const rail = screen.getByRole("navigation", { name: /Primary navigation/i });
+      await user.click(within(rail).getByRole("button", { name: /^Settings$/i }));
+      expect(await screen.findByText("Prompt version changed: p-13 → p-14")).toBeInTheDocument();
+      expect(window.location.search).toContain("token=smoke-tok");
+    } finally {
+      appRender.unmount();
+      window.history.replaceState({}, "", "/");
+    }
   });
 });

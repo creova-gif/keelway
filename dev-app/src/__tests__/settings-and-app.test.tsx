@@ -238,10 +238,11 @@ describe("Screen 10 — SettingsGovernancePanel (Governance, Tenant Keys & Spend
     await user.type(verifyInput, mintedToken);
     await user.click(screen.getByRole("button", { name: /^Verify key$/i }));
     expect(await screen.findByText("Key valid")).toBeInTheDocument();
+    expect(verifyInput).toHaveValue("");
     initialRender.unmount();
 
     // Ephemeral non-WAL warning badge when persistence.healthy === false
-    render(
+    const nonWalRender = render(
       <SettingsWorkspace
         defaultSubSection="governance"
         fetchPersistenceFn={async () => ({
@@ -256,6 +257,62 @@ describe("Screen 10 — SettingsGovernancePanel (Governance, Tenant Keys & Spend
       />,
     );
     expect(await screen.findByText("Ephemeral memory · not WAL")).toBeInTheDocument();
+    nonWalRender.unmount();
+  });
+
+  it("locks Mint modal mid-flight until mintKeyFn resolves and rolls back optimistic policy updates on error", async () => {
+    const user = userEvent.setup();
+    let resolveMint: ((val: {
+      key: { id: string; label: string; prefix: string; scopes: string[]; spendCapUsd: number; spentUsd: number; createdAt: string; lastUsedAt: null };
+      plaintextSecret: string;
+      oneTimeWarning: string;
+    }) => void) | null = null;
+
+    render(
+      <SettingsWorkspace
+        defaultSubSection="governance"
+        updatePolicyFn={async () => {
+          throw new Error("Simulated SQLite write error");
+        }}
+        mintKeyFn={() =>
+          new Promise((resolve) => {
+            resolveMint = resolve;
+          })
+        }
+      />,
+    );
+
+    const residencySelect = await screen.findByLabelText(/Data residency zone/i);
+    expect(residencySelect).toHaveValue("local_only");
+    await user.selectOptions(residencySelect, "eu_sovereign");
+    await waitFor(() => expect(residencySelect).toHaveValue("local_only"));
+
+    await user.click(screen.getByRole("button", { name: /\+ Mint scoped key/i }));
+    const dialog = await screen.findByRole("dialog", { name: /Mint scoped key/i });
+    await user.click(within(dialog).getByRole("button", { name: /Generate scoped key/i }));
+
+    const cancelBtn = within(dialog).getByRole("button", { name: /^Cancel$/i });
+    expect(cancelBtn).toBeDisabled();
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("dialog", { name: /Mint scoped key/i })).toBeInTheDocument();
+
+    act(() => {
+      resolveMint?.({
+        key: {
+          id: "k-midflight",
+          label: "ci-scoped-verifier",
+          prefix: "kw_live_midf",
+          scopes: ["audit:read"],
+          spendCapUsd: 25,
+          spentUsd: 0,
+          createdAt: "2026-11-14T03:00:00Z",
+          lastUsedAt: null,
+        },
+        plaintextSecret: "kw_live_midf_secret_12345",
+        oneTimeWarning: "Save this key now — Keelway stores only its SHA-256 digest and cannot show it again.",
+      });
+    });
+    expect(await within(dialog).findByTestId("minted-plaintext-secret")).toHaveTextContent("kw_live_midf_secret_12345");
   });
 });
 
@@ -492,6 +549,49 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
       companionRender.unmount();
     } finally {
       vi.unstubAllGlobals();
+    }
+  });
+
+  it("sends exactly one /v1/studio/airgap POST per toggle under React.StrictMode and syncs section on popstate", async () => {
+    const user = userEvent.setup();
+    const airgapCalls: string[] = [];
+    const origFetch = globalThis.fetch;
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/v1/studio/airgap") && (init?.method ?? "GET").toUpperCase() === "POST") {
+        airgapCalls.push(String(init?.body ?? ""));
+        return new Response(
+          JSON.stringify({ air_gap_enabled: airgapCalls.length === 1, verified_at: "2026-11-14T03:10:00Z" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      return origFetch(input, init);
+    });
+
+    try {
+      render(
+        <React.StrictMode>
+          <App initialSection="settings" initialSettingsSubSection="network" />
+        </React.StrictMode>,
+      );
+
+      const airGapBtn = await screen.findByRole("button", { name: /Air-Gap Lock/i });
+      await user.click(airGapBtn);
+      await waitFor(() => expect(airGapBtn).toHaveAttribute("aria-pressed", "true"));
+      expect(airgapCalls).toHaveLength(1);
+
+      fireEvent.keyDown(window, { key: "a", code: "KeyA", altKey: true });
+      await waitFor(() => expect(airGapBtn).toHaveAttribute("aria-pressed", "false"));
+      expect(airgapCalls).toHaveLength(2);
+
+      // Browser Back/Forward popstate syncs section + sub-section
+      act(() => {
+        window.history.pushState({}, "", "/app/?section=settings&settings=keyboard");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      });
+      expect(await screen.findByRole("heading", { name: /Keyboard Shortcuts/i })).toBeInTheDocument();
+    } finally {
+      fetchSpy.mockRestore();
     }
   });
 });
