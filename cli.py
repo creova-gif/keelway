@@ -446,7 +446,20 @@ def _launch_desktop_window(url: str):
     webbrowser.open(url)
 
 
-async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = False):
+def _resolve_dev_launch_path(legacy_studio: bool = False) -> str:
+    """Resolve the launch URL path for `keelway dev` / `keelway desktop`."""
+    dev_app_index = Path(__file__).resolve().parent / "core" / "dev_app_dist" / "index.html"
+    if not legacy_studio and dev_app_index.exists():
+        return "/app"
+    return "/"
+
+
+async def cmd_dev(
+    port: int = 7420,
+    host: str = "127.0.0.1",
+    desktop: bool = False,
+    legacy_studio: bool = False,
+):
     """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
     import threading
@@ -457,22 +470,27 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = Fal
     from core.config import settings
     from core.security.auth import launch_token
     os.environ["KEELWAY_DEV_CLI"] = "1"
+    launch_path = _resolve_dev_launch_path(legacy_studio=legacy_studio)
     if settings.auth_required:
-        print(f"  Studio: http://{host}:{port}/?token={launch_token()}")
+        print(f"  Studio: http://{host}:{port}{launch_path}?token={launch_token()}")
         print("  (owner launch token; changes every run unless KEELWAY_API_TOKEN is set)")
     else:
-        print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
+        print(f"  Studio: http://{host}:{port}{launch_path}  (AUTH_REQUIRED=false: no token needed)")
     lan = _lan_ip() if host in ("0.0.0.0", "::") else None
     if lan:
         if settings.auth_required:
             print(f"  Phone (Keelway Mobile, same Wi-Fi): run `keelway mobile pair --port {port}` for a pairing link")
         else:
-            print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}/")
+            print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}{launch_path}")
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
     def auto_open_target():
-        target_url = f"http://{host}:{port}/?token={launch_token()}" if settings.auth_required else f"http://{host}:{port}"
+        target_url = (
+            f"http://{host}:{port}{launch_path}?token={launch_token()}"
+            if settings.auth_required
+            else f"http://{host}:{port}{launch_path}"
+        )
         if desktop:
             _launch_desktop_window(target_url)
         else:
@@ -3333,11 +3351,21 @@ def build_parser() -> argparse.ArgumentParser:
     dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     dev_parser.add_argument("--desktop", "--app", dest="desktop", action="store_true", help="Launch in standalone desktop application window mode")
+    dev_parser.add_argument(
+        "--legacy-studio",
+        action="store_true",
+        help="Launch the legacy vanilla Studio UI at / instead of the unified Dev App at /app",
+    )
 
     # desktop (dedicated alias for standalone desktop window)
     desktop_parser = subparsers.add_parser("desktop", help="Launch Keelway Studio as a standalone desktop application window")
     desktop_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     desktop_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    desktop_parser.add_argument(
+        "--legacy-studio",
+        action="store_true",
+        help="Launch the legacy vanilla Studio UI at / instead of the unified Dev App at /app",
+    )
 
     demo_parser = subparsers.add_parser("demo", help="Seed a sample project and open the Studio on it (own folder + DB)")
     demo_parser.add_argument("--dir", type=Path, default=None, help="Demo folder (default: ~/keelway-demo)")
@@ -4087,7 +4115,14 @@ def main(argv=None):
         )
     elif args.command in ("dev", "desktop"):
         is_desktop = getattr(args, "desktop", False) or args.command == "desktop"
-        asyncio.run(cmd_dev(args.port, args.host, desktop=is_desktop))
+        asyncio.run(
+            cmd_dev(
+                args.port,
+                args.host,
+                desktop=is_desktop,
+                legacy_studio=getattr(args, "legacy_studio", False),
+            )
+        )
     elif args.command == "demo":
         from core import demo
         sys.exit(demo.run(args.dir or demo.DEFAULT_DIR, args.port, args.host, args.reset))
