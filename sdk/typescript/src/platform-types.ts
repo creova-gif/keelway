@@ -393,3 +393,14 @@ export interface ResolveExecutionP10Request {
 export interface StreamExecutionEventsOptions {
   workspace_id?: string; signal?: AbortSignal; timeoutMs?: number; headers?: Record<string, string>;
 }
+
+// --- Phase 6: Calibrated Pricing & MiroFish Elasticity Simulation ---
+
+export type PricingScheduleMode = "compare" | "calibrated" | "legacy" | (string & {});
+
+export interface PricingSimulationRequest {
+  schedule?: PricingScheduleMode;
+  seats?: number;
+  monthly_api_spend_usd?: number;
+  run_swarm?: boolean;
+}

@@ -185,6 +185,16 @@ func TestPlatformPhase5WorkspacesRBACVaultWebhooksAndExecutionSSE(t *testing.T) 
 			var req map[string]any
 			_ = json.NewDecoder(r.Body).Decode(&req)
 			_ = json.NewEncoder(w).Encode(map[string]any{"run_id": "run_go_1", "status": map[bool]string{true: "completed", false: "aborted_by_p10"}[req["decision"] == "approve"]})
+		case r.Method == http.MethodPost && p == "/v1/platform/pricing/simulate":
+			var req map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&req)
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"schedule":              req["schedule"],
+				"seats":                 req["seats"],
+				"monthly_api_spend_usd": req["monthly_api_spend_usd"],
+				"run_swarm":             req["run_swarm"],
+				"calibrated":            map[string]any{"pro_annual_usd": 29.0, "byom_annual_usd": 15.0, "pricing_health_score": 96.5},
+			})
 		default:
 			http.NotFound(w, r)
 		}
@@ -271,5 +281,14 @@ func TestPlatformPhase5WorkspacesRBACVaultWebhooksAndExecutionSSE(t *testing.T) 
 	resolved, err := c.Platform.ResolveExecutionP10(ctx, "run_go_1", ExecutionP10Request{Decision: "approve", Approver: "usr_1", Role: "owner"})
 	if err != nil || resolved.Status != "completed" {
 		t.Fatalf("ResolveExecutionP10 failed: %+v, err=%v", resolved, err)
+	}
+
+	simDefault, err := c.Platform.SimulatePricing(ctx, PricingSimulationRequest{})
+	if err != nil || simDefault["schedule"] != "compare" || simDefault["run_swarm"] != true {
+		t.Fatalf("SimulatePricing default failed: %+v, err=%v", simDefault, err)
+	}
+	simCustom, err := c.Platform.SimulatePricing(ctx, PricingSimulationRequest{Schedule: "calibrated", Seats: 12, MonthlyAPISpendUSD: 2400, RunSwarm: true})
+	if err != nil || simCustom["schedule"] != "calibrated" || simCustom["seats"] != float64(12) {
+		t.Fatalf("SimulatePricing custom failed: %+v, err=%v", simCustom, err)
 	}
 }

@@ -77,9 +77,9 @@
     },
     "five_stream_subscription_and_byom_governance": {
       "status": "AVAILABLE",
-      "claim": "Five-stream subscription and BYOM policy engine (Community, Pro, BYOM, Enterprise, Marketplace) enforcing Community open-weight quotas, SPDX/commercial license checks, and explicit fail-closed rejection of consumer web subscriptions as third-party API credentials",
-      "code_path": "core/platform/subscription.py, website/src/components/pricing/PricingTiers.tsx",
-      "evidence_test": "tests/test_unified_platform.py, tests/test_website_facts.py"
+      "claim": "Calibrated five-tier subscription and BYOM policy engine (Community $0, BYOM $15/$19 with 0% token proxy markup, Pro $29/$35, Enterprise Custom, Marketplace 85/15) validated by a 5-persona MiroFish OASIS market & P50/P95 unit-economics swarm simulator, enforcing open-weight quotas, SPDX/commercial license checks, and fail-closed rejection of consumer web subscriptions as third-party API credentials",
+      "code_path": "core/platform/subscription.py, core/eval/pricing_mirofish.py, core/cli_runtime.py, website/src/components/pricing/PricingTiers.tsx, dev-app/src/components/platform/QuotaAndPricingSimulatorPanel.tsx",
+      "evidence_test": "tests/test_unified_platform.py, tests/test_pricing_mirofish.py, tests/test_cli_runtime_phase6.py, tests/test_website_facts.py, dev-app/src/__tests__/phase6-ops-pricing-simulator.test.tsx"
     },
     "tier2_hardware_security_hal": {
       "status": "EXPERIMENTAL",

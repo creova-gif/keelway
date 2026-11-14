@@ -38,7 +38,7 @@ echo "[2/8] Running Hybrid AI Model Registry, Provider Adapter & OpenCore Runtim
 echo "  ✓ Model Registry, Provider Adapters & OpenCore Neural Runtime verified."
 
 echo "[3/8] Running Unified Responses API, Hybrid Routing, OpenAPI Export & MiroFish Swarm Tests..."
-"${PYTEST_BIN}" tests/test_hybrid_routing_and_api.py tests/test_responses_and_routing_api.py tests/test_mirofish_integration.py tests/test_api_export.py -v --tb=short
+"${PYTEST_BIN}" tests/test_hybrid_routing_and_api.py tests/test_responses_and_routing_api.py tests/test_mirofish_integration.py tests/test_pricing_mirofish.py tests/test_api_export.py -v --tb=short
 echo "  ✓ Unified API, Stateful Responses, Routing Provenance, OpenAPI 3.1 & MiroFish Swarm verified."
 
 echo "[4/8] Verifying Multi-Tenant Governance, Cluster Scheduler, Postgres Adapter, Unified Platform, Vault/RBAC/Webhooks & Settlement Ledger..."
@@ -49,9 +49,9 @@ echo "[5/8] Verifying OS Command Sandbox Confinement (Seatbelt & Bubblewrap) & S
 "${PYTEST_BIN}" tests/test_agent_sandbox.py tests/test_studio.py tests/test_studio_manifest_panel.py -v --tb=short
 echo "  ✓ OS Command Sandbox & Keelway Studio Manifest Inspection Panel verified."
 
-echo "[6/8] Verifying Layer 1 Python SDK v1 + Phase 5 Parity, Sovereign CLI TUI, Website Drift Gate & Full-Stack E2E..."
-"${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_sdk_platform.py tests/test_sdk_phase5_parity.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
-echo "  ✓ Python SDK v1 + Platform/Cluster/Runtime SDK, Sovereign CLI TUI, Product-Facts Drift Gate & Full-Stack E2E verified."
+echo "[6/8] Verifying Layer 1 Python SDK v1 + Phase 5/6 Parity, Sovereign CLI TUI & Runtime, Website Drift Gate & Full-Stack E2E..."
+"${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_sdk_platform.py tests/test_sdk_phase5_parity.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_cli_runtime_phase6.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
+echo "  ✓ Python SDK v1 + Platform/Cluster/Runtime SDK, Sovereign CLI TUI & Runtime, Product-Facts Drift Gate & Full-Stack E2E verified."
 
 echo "[7/8] Verifying Official Zero-Dependency TypeScript (@keelway/sdk), Go (keelway-go) SDKs & Studio JS Syntax..."
 if command -v node >/dev/null 2>&1; then

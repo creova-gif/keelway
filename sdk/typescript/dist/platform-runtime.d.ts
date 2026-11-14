@@ -47,5 +47,6 @@ export declare class PlatformRuntimeDelegate {
     startExecutionRun(req: PT.StartExecutionRunRequest, options?: RequestOptions): Promise<PT.ExecutionRunSnapshot>;
     resolveExecutionP10(runId: string, req: PT.ResolveExecutionP10Request, options?: RequestOptions): Promise<PT.ExecutionRunSnapshot>;
     streamExecutionEvents(runId: string, options?: PT.StreamExecutionEventsOptions): AsyncGenerator<Record<string, unknown>, void, unknown>;
+    simulatePricing(req?: PT.PricingSimulationRequest, options?: RequestOptions): Promise<Record<string, unknown>>;
 }
 //# sourceMappingURL=platform-runtime.d.ts.map

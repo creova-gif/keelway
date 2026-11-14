@@ -343,4 +343,17 @@ export class PlatformRuntimeDelegate {
       yield parsed;
     }
   }
+
+  public simulatePricing(
+    req: PT.PricingSimulationRequest = {},
+    options?: RequestOptions,
+  ): Promise<Record<string, unknown>> {
+    const body: Record<string, unknown> = {
+      schedule: req.schedule ?? "compare",
+      seats: req.seats ?? 8,
+      monthly_api_spend_usd: req.monthly_api_spend_usd ?? 1200.0,
+      run_swarm: req.run_swarm ?? true,
+    };
+    return this.requestJson("POST", "/v1/platform/pricing/simulate", { body, options });
+  }
 }

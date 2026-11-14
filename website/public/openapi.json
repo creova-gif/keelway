@@ -10055,6 +10055,56 @@
         }
       }
     },
+    "/v1/platform/pricing/simulate": {
+      "post": {
+        "tags": [
+          "Unified Platform Runtime"
+        ],
+        "summary": "Simulate Platform Pricing Route",
+        "operationId": "simulate_platform_pricing_route_v1_platform_pricing_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PricingSimulationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Simulate Platform Pricing Route V1 Platform Pricing Simulate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -13511,6 +13561,43 @@
           "summary"
         ],
         "title": "PrdCreateRequest"
+      },
+      "PricingSimulationRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "schedule": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Schedule",
+            "default": "compare"
+          },
+          "seats": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Seats",
+            "default": 8
+          },
+          "monthly_api_spend_usd": {
+            "type": "number",
+            "maximum": 10000000.0,
+            "minimum": 0.0,
+            "title": "Monthly Api Spend Usd",
+            "default": 1200.0
+          },
+          "run_swarm": {
+            "type": "boolean",
+            "title": "Run Swarm",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "PricingSimulationRequest"
       },
       "Provider": {
         "type": "string",

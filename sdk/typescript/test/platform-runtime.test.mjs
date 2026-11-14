@@ -148,6 +148,16 @@ async function startRuntimeMockServer() {
         events: [{ type: "p10.resolved", decision: parsedBody.decision }],
       });
     }
+    if (req.method === "POST" && p === "/v1/platform/pricing/simulate") {
+      return sendJson(200, {
+        schedule: parsedBody.schedule ?? "compare",
+        seats: parsedBody.seats ?? 8,
+        monthly_api_spend_usd: parsedBody.monthly_api_spend_usd ?? 1200,
+        run_swarm: Boolean(parsedBody.run_swarm),
+        calibrated: { pro_annual_usd: 29, byom_annual_usd: 15, pricing_health_score: 96.5 },
+        legacy: { pro_annual_usd: 39, pricing_health_score: 54.0 },
+      });
+    }
     return sendJson(404, { detail: `Unhandled ${req.method} ${p}` });
   });
 
@@ -252,5 +262,25 @@ describe("@keelway/sdk Phase 4 + Phase 5 Platform Runtime Parity", () => {
     const resolved = await client.platform.resolveExecutionP10("run_live_01", { decision: "approve", approver: "usr_owner", reason: "Reviewed migration diff" });
     assert.equal(resolved.status, "completed");
     assert.equal(srv.recorded.at(-1).body.approver, "usr_owner");
+  });
+
+  it("simulates calibrated vs legacy pricing schedules via POST /v1/platform/pricing/simulate", async () => {
+    const defSim = await client.platform.simulatePricing();
+    assert.equal(defSim.schedule, "compare");
+    assert.equal(defSim.seats, 8);
+    assert.equal(defSim.monthly_api_spend_usd, 1200);
+    assert.equal(defSim.run_swarm, true);
+    assert.equal(defSim.calibrated.pro_annual_usd, 29);
+
+    const customSim = await client.platform.simulatePricing({
+      schedule: "calibrated",
+      seats: 16,
+      monthly_api_spend_usd: 2500,
+      run_swarm: false,
+    });
+    assert.equal(customSim.schedule, "calibrated");
+    assert.equal(customSim.seats, 16);
+    assert.equal(customSim.monthly_api_spend_usd, 2500);
+    assert.equal(customSim.run_swarm, false);
   });
 });

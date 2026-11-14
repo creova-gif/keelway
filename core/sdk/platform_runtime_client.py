@@ -237,6 +237,12 @@ class AsyncPlatformRuntimeMixin:
     async def resolve_execution_p10(self, run_id: str, decision: str, approver: str = "local-operator", reason: str = "") -> Dict[str, Any]:
         return await self._client._req("POST", f"/v1/platform/execution/runs/{_seg(run_id, 'run_id')}/p10", json={"decision": decision, "approver": approver, "reason": reason})
 
+    async def simulate_pricing(
+        self, schedule: str = "compare", seats: int = 8, monthly_api_spend_usd: float = 1200.0, run_swarm: bool = True
+    ) -> Dict[str, Any]:
+        body = {"schedule": schedule, "seats": seats, "monthly_api_spend_usd": monthly_api_spend_usd, "run_swarm": run_swarm}
+        return await self._client._req("POST", "/v1/platform/pricing/simulate", json=body)
+
 
 class SyncPlatformRuntimeMixin:
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
@@ -351,3 +357,9 @@ class SyncPlatformRuntimeMixin:
 
     def resolve_execution_p10(self, run_id: str, decision: str, approver: str = "local-operator", reason: str = "") -> Dict[str, Any]:
         return self._client._req("POST", f"/v1/platform/execution/runs/{_seg(run_id, 'run_id')}/p10", json={"decision": decision, "approver": approver, "reason": reason})
+
+    def simulate_pricing(
+        self, schedule: str = "compare", seats: int = 8, monthly_api_spend_usd: float = 1200.0, run_swarm: bool = True
+    ) -> Dict[str, Any]:
+        body = {"schedule": schedule, "seats": seats, "monthly_api_spend_usd": monthly_api_spend_usd, "run_swarm": run_swarm}
+        return self._client._req("POST", "/v1/platform/pricing/simulate", json=body)

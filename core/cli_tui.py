@@ -342,9 +342,18 @@ def register_platform_cli_subparsers(subparsers: argparse._SubParsersAction) -> 
     cl_life.add_argument("--stage", default=None, help="Optional stage filter (canary, stable, deprecated)")
     cl_life.add_argument("--json", action="store_true", help="Emit JSON output")
 
+    from core.cli_runtime import register_runtime_cli_subparsers
+
+    register_runtime_cli_subparsers(subparsers)
+
 
 def dispatch_platform_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch `marketplace` and `blueprint` CLI commands. Returns exit code or None."""
+    """Dispatch `marketplace`, `blueprint`, `cluster`, and Phase 6 runtime CLI commands."""
+    from core.cli_runtime import dispatch_runtime_cli
+
+    runtime_rc = dispatch_runtime_cli(args)
+    if runtime_rc is not None:
+        return runtime_rc
     cmd = getattr(args, "command", None)
     if cmd == "marketplace":
         sub = getattr(args, "marketplace_command", None) or "list"

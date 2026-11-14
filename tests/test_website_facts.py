@@ -359,12 +359,34 @@ def test_playground_redirect_and_single_row_clean_navigation() -> None:
 def test_five_stream_pricing_and_byom_compliance_disclosure() -> None:
     pricing_data_file = WEBSITE_DIR / "src" / "data" / "pricing.ts"
     pricing_tiers_file = WEBSITE_DIR / "src" / "components" / "pricing" / "PricingTiers.tsx"
+    pricing_page_file = WEBSITE_DIR / "src" / "app" / "pricing" / "page.tsx"
 
     data_src = pricing_data_file.read_text(encoding="utf-8")
     tiers_src = pricing_tiers_file.read_text(encoding="utf-8")
+    page_src = pricing_page_file.read_text(encoding="utf-8")
     combined_src = data_src + "\n" + tiers_src
 
-    assert len(tiers_src.splitlines()) < 620, "PricingTiers.tsx must remain < 620 lines"
+    assert len(tiers_src.splitlines()) < 560, "PricingTiers.tsx must remain < 560 lines"
+    assert len(data_src.splitlines()) < 180, "pricing.ts must remain < 180 lines"
+    assert len(page_src.splitlines()) < 110, "pricing/page.tsx must remain < 110 lines"
+
+    # Calibrated $15 BYOM and $29 Keelway Pro pricing tokens must appear in both PricingTiers.tsx and pricing/page.tsx
+    for calibrated_price in ("$15", "$29"):
+        assert calibrated_price in tiers_src, f"Missing calibrated '{calibrated_price}' in PricingTiers.tsx"
+        assert calibrated_price in page_src, f"Missing calibrated '{calibrated_price}' in pricing/page.tsx"
+        assert calibrated_price in data_src, f"Missing calibrated '{calibrated_price}' in data/pricing.ts"
+
+    # Internal STREAM 1..5 labels must never appear in PricingTiers.tsx (or pricing data/page)
+    for forbidden_stream_label in ("STREAM 1", "STREAM 2", "STREAM 3", "STREAM 4", "STREAM 5"):
+        assert forbidden_stream_label not in tiers_src, (
+            f"Internal label '{forbidden_stream_label}' must not appear in PricingTiers.tsx"
+        )
+        assert forbidden_stream_label not in data_src, (
+            f"Internal label '{forbidden_stream_label}' must not appear in data/pricing.ts"
+        )
+        assert forbidden_stream_label not in page_src, (
+            f"Internal label '{forbidden_stream_label}' must not appear in pricing/page.tsx"
+        )
 
     for stream_token in (
         "Free / Community",
@@ -376,7 +398,7 @@ def test_five_stream_pricing_and_byom_compliance_disclosure() -> None:
         "85%",
         "15%",
     ):
-        assert stream_token in combined_src, f"Missing 5-stream pricing token '{stream_token}'"
+        assert stream_token in combined_src, f"Missing pricing token '{stream_token}'"
 
     # Mandatory explicit compliance notice in BOTH UI banner/card and FAQ data
     for target_name, target_src in (("PricingTiers.tsx", tiers_src), ("data/pricing.ts", data_src)):

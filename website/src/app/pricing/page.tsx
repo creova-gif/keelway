@@ -7,14 +7,14 @@ import { SITE_URL } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Pricing, BYOM & Marketplace Tiers",
   description:
-    "Transparent 5-stream pricing for Keelway: $0 Free/Community OpenCore, $39/mo Keelway Pro, 0%-markup BYOM API routing, Enterprise Sovereign VPC, and 85/15 Creator Marketplace.",
+    "Transparent pricing for Keelway: $0 Free/Community OpenCore, $15/mo 0%-markup BYOM API routing (500K tok/day fallback), $29/mo Keelway Pro (2.5M tok/day + BYOM), Enterprise Sovereign VPC, and 85/15 Creator Marketplace.",
   alternates: {
     canonical: "/pricing",
   },
   openGraph: {
     title: "Pricing, BYOM & Creator Marketplace · Keelway",
     description:
-      "Start free locally under Apache-2.0 or scale to Keelway Pro, compliant 0%-markup BYOM, Enterprise VPCs, and verified Marketplace extensions.",
+      "Start free locally under Apache-2.0, route cloud APIs at $15/mo with 0% token markup, or scale to $29/mo Keelway Pro, Enterprise Sovereign VPCs, and verified Marketplace extensions.",
     url: `${SITE_URL}/pricing`,
   },
 };
@@ -33,7 +33,7 @@ const faqJsonLd = {
 };
 
 /**
- * Page 4 (Stage 4a): Pricing & Deployment Tiers (/pricing)
+ * Page 4: Pricing, 0%-Markup BYOM & Deployment Tiers (/pricing)
  */
 export default function PricingPage() {
   return (
@@ -50,12 +50,12 @@ export default function PricingPage() {
       >
         <div className="mx-auto max-w-container px-4 sm:px-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
               <span className="chip-teal rounded-sm px-2 py-0.5">
                 ZERO TOKEN TAX
               </span>
               <span className="text-fg-muted">
-                Apache-2.0 OpenCore · BYOK Cloud Routing · Dedicated Sovereign
+                $0 OpenCore · $15/mo BYOM (0% Markup) · $29/mo Pro · Sovereign
                 VPC
               </span>
             </div>
@@ -71,9 +71,17 @@ export default function PricingPage() {
 
             <p className="mt-4 text-base leading-relaxed text-fg-muted sm:text-lg">
               Run Keelway locally forever under{" "}
-              <code className="font-mono text-sm text-fg">Apache-2.0</code>, or
-              add multi-tenant governance, hosted workspace sync, and dedicated
-              regional GPU runners as your engineering organization grows.
+              <code className="font-mono text-sm text-fg">Apache-2.0</code>,
+              connect authorized frontier API keys at{" "}
+              <strong className="font-semibold text-fg">$15/seat/mo</strong>{" "}
+              with <code className="font-mono text-sm text-fg">0%</code> token
+              markup, or unlock the full 12-agent stack and{" "}
+              <code className="font-mono text-sm text-fg">2.5M tok/day</code>{" "}
+              open-weight pool on{" "}
+              <strong className="font-semibold text-fg">
+                Keelway Pro ($29/mo)
+              </strong>
+              .
             </p>
           </div>
         </div>

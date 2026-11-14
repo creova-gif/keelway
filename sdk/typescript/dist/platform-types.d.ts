@@ -614,4 +614,11 @@ export interface StreamExecutionEventsOptions {
     timeoutMs?: number;
     headers?: Record<string, string>;
 }
+export type PricingScheduleMode = "compare" | "calibrated" | "legacy" | (string & {});
+export interface PricingSimulationRequest {
+    schedule?: PricingScheduleMode;
+    seats?: number;
+    monthly_api_spend_usd?: number;
+    run_swarm?: boolean;
+}
 //# sourceMappingURL=platform-types.d.ts.map

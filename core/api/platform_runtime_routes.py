@@ -16,6 +16,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, sta
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from core.eval.pricing_mirofish import PricingMiroFishSimulator, pricing_mirofish_simulator
 from core.platform.execution_stream import LiveExecutionStreamer, live_execution_streamer
 from core.platform.rbac_webhooks import (
     VALID_ROLES,
@@ -54,6 +55,10 @@ def get_webhook_bus() -> SignedWebhookBus:
 
 def get_execution_streamer() -> LiveExecutionStreamer:
     return live_execution_streamer
+
+
+def get_pricing_simulator() -> PricingMiroFishSimulator:
+    return pricing_mirofish_simulator
 
 
 router = APIRouter(
@@ -171,6 +176,14 @@ class ExecutionP10ResolveRequest(BaseModel):
     approver: str = Field(default="local-operator", max_length=128)
     reason: str = Field(default="", max_length=1000)
     workspace_id: Optional[str] = Field(default=None, max_length=128)
+
+
+class PricingSimulationRequest(BaseModel):
+    workspace_id: str = Field(default="default", max_length=128)
+    schedule: str = Field(default="compare", max_length=64)
+    seats: int = Field(default=8, ge=1, le=10_000)
+    monthly_api_spend_usd: float = Field(default=1200.0, ge=0.0, le=10_000_000.0)
+    run_swarm: bool = True
 
 
 @router.get("/workspaces")
@@ -474,5 +487,33 @@ async def resolve_execution_p10_route(
         return streamer.resolve_p10(run_id, req.decision, approver=req.approver, reason=req.reason)
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.post("/pricing/simulate")
+async def simulate_platform_pricing_route(
+    request: Request,
+    req: Optional[PricingSimulationRequest] = Body(default=None),
+    principal: Principal = Depends(current_principal),
+    rbac: WorkspaceRbacController = Depends(get_rbac_controller),
+    simulator: PricingMiroFishSimulator = Depends(get_pricing_simulator),
+) -> Dict[str, Any]:
+    effective_req = req or PricingSimulationRequest()
+    _enforce_workspace_permission(request, principal, rbac, effective_req.workspace_id, "read:all")
+    mode = effective_req.schedule.strip().lower()
+    try:
+        if mode == "compare":
+            return await simulator.compare_schedules(
+                seats=effective_req.seats,
+                monthly_api_spend_usd=effective_req.monthly_api_spend_usd,
+                run_swarm=effective_req.run_swarm,
+            )
+        return await simulator.simulate_schedule(
+            mode,
+            seats=effective_req.seats,
+            monthly_api_spend_usd=effective_req.monthly_api_spend_usd,
+            run_swarm=effective_req.run_swarm,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

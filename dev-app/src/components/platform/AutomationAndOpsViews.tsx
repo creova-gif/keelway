@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
+import { QuotaAndPricingSimulatorPanel } from "@/components/platform/QuotaAndPricingSimulatorPanel";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
@@ -297,10 +298,12 @@ export interface OperationsWorkspaceViewProps {
   subscriptionTier: SubscriptionTierId;
   deployments: DeploymentEnvItem[];
   onConfirmP10Rollback: (deploymentId: string) => void;
+  workspaceId?: string;
+  activeRbacRole?: RbacRoleId;
 }
 
 export function OperationsWorkspaceView({
-  subscriptionTier, deployments, onConfirmP10Rollback,
+  subscriptionTier, deployments, onConfirmP10Rollback, workspaceId = "default", activeRbacRole = "owner",
 }: OperationsWorkspaceViewProps): React.JSX.Element {
   const [pendingRollbackId, setPendingRollbackId] = useState<string | null>(null);
   const [byomProvider, setByomProvider] = useState("Anthropic / OpenAI");
@@ -423,6 +426,8 @@ export function OperationsWorkspaceView({
           <div className="font-mono text-xs text-ok">Runner Availability: 99.96% (SLO Met)</div>
         </article>
       </section>
+
+      <QuotaAndPricingSimulatorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <section aria-label="BYOM credential compliance verifier" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <h2 className="text-sm font-semibold text-fg">BYOM Connection Compliance Check</h2>

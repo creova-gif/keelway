@@ -22,6 +22,7 @@
 | **KEEL-SDK-009** | Official Zero-Dependency Go SDK (`keelway-go`), Marketplace Commercial Settlement Ledger & Cross-SDK Cluster Parity | `SDK / MARKETPLACE` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 | **KEEL-DEVAPP-011** | Phase 4: 10-View Local Dev Tool (`:7420/app`) Full Persistence & Website `/playground` Cleanup | `DEV-APP / WEBSITE` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 | **KEEL-RUNTIME-012** | Phase 5: Live SSE Agent/DAG Execution, AES-256-GCM Secret Vault, Multi-Workspace RBAC, Signed Webhooks & Tri-SDK Parity | `PLATFORM / SECURITY / SDK` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
+| **KEEL-PRICING-013** | Phase 6: Calibrated 5-Tier Pricing Ladder, MiroFish 5-Persona Market & Unit-Economics Swarm Simulator, Sovereign CLI Runtime & Operations Quota UI | `PRICING / EVAL / CLI / UI` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 
 ---
 

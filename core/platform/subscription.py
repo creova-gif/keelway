@@ -1,13 +1,13 @@
 """
-Keelway 5-Stream Subscription, BYOM Compliance, Quota Fair-Use & Model License Policy Engine.
+Keelway Calibrated 5-Tier Subscription, BYOM Compliance, Quota Fair-Use & Model License Policy Engine.
 
-Models the five canonical access and monetization streams:
-1. `community` — Free / Community Tier ($0, open-core local platform, $0.00/tok local hardware, fair-use quotas)
-2. `pro` — Keelway Pro ($39/seat/mo annual, $49 monthly, multi-agent orchestration, higher limits)
-3. `byom` — Bring Your Own Model (authorized OpenAI/Anthropic/Gemini/self-hosted vLLM API credentials;
+Models the five transparent access and monetization tiers:
+1. `community` — Free / Community Tier ($0, open-core Apache-2.0 local platform, $0.00/tok local hardware, fair-use quotas)
+2. `pro` — Keelway Pro ($29/seat/mo annual, $35 monthly, 0% token markup BYOM included, multi-agent orchestration, higher limits)
+3. `byom` — Bring Your Own Model ($15/seat/mo annual, $19 monthly, 0% token markup, authorized OpenAI/Anthropic/Gemini/self-hosted vLLM API credentials;
    platform bills separately for orchestration, workspace, and automation execution)
-4. `enterprise` — Keelway Enterprise (dedicated VPC/on-prem, RBAC, retention policies, auditability, SLAs)
-5. `marketplace` — Marketplace creator/platform revenue-share accounting
+4. `enterprise` — Keelway Enterprise (Dedicated VPC · Air-Gap · SLA, RBAC, retention policies, auditability, SLAs)
+5. `marketplace` — Marketplace creator/platform revenue-share accounting (85/15 verified creator split)
 
 Enforces a hard fail-closed compliance guard (`validate_byom_credential`) ensuring consumer web
 subscriptions (ChatGPT Plus/Pro/Team web, Claude Pro/Max web, session cookies, unofficial tokens)
@@ -50,6 +50,7 @@ SUBSCRIPTION_TIERS: Dict[str, Dict[str, Any]] = {
         "id": "community",
         "name": "Free / Community",
         "stream_kind": "open_core_community",
+        "badge_label": "OPEN-CORE · APACHE-2.0",
         "monthly_price_usd": 0,
         "annual_monthly_price_usd": 0,
         "local_hardware_token_cost_usd": 0.0,
@@ -71,8 +72,10 @@ SUBSCRIPTION_TIERS: Dict[str, Dict[str, Any]] = {
         "id": "pro",
         "name": "Keelway Pro",
         "stream_kind": "saas_seat_subscription",
-        "monthly_price_usd": 49,
-        "annual_monthly_price_usd": 39,
+        "badge_label": "MOST POPULAR · FULL STACK",
+        "monthly_price_usd": 35,
+        "annual_monthly_price_usd": 29,
+        "token_markup_pct": 0.0,
         "local_hardware_token_cost_usd": 0.0,
         "daily_open_weight_tokens": 2_500_000,
         "rpm_limit": 120,
@@ -86,14 +89,16 @@ SUBSCRIPTION_TIERS: Dict[str, Dict[str, Any]] = {
             "kspaces_encrypted_sync",
             "priority_open_weight_routing",
             "nocode_blueprint_compiler",
+            "zero_token_markup_byom_included",
         ],
     },
     "byom": {
         "id": "byom",
         "name": "Bring Your Own Model (BYOM)",
         "stream_kind": "byom_orchestration_seat",
-        "monthly_price_usd": 29,
-        "annual_monthly_price_usd": 24,
+        "badge_label": "BYOM · 0% TOKEN MARKUP",
+        "monthly_price_usd": 19,
+        "annual_monthly_price_usd": 15,
         "token_markup_pct": 0.0,
         "local_hardware_token_cost_usd": 0.0,
         "daily_open_weight_tokens": 500_000,
@@ -118,9 +123,10 @@ SUBSCRIPTION_TIERS: Dict[str, Dict[str, Any]] = {
         "id": "enterprise",
         "name": "Keelway Enterprise",
         "stream_kind": "enterprise_custom_vpc",
+        "badge_label": "SOVEREIGN VPC & SLA",
         "monthly_price_usd": None,
         "annual_monthly_price_usd": None,
-        "pricing_label": "Custom Annual / Usage / Dedicated VPC",
+        "pricing_label": "Dedicated VPC · Air-Gap · SLA",
         "local_hardware_token_cost_usd": 0.0,
         "daily_open_weight_tokens": 50_000_000,
         "rpm_limit": 2_000,
@@ -142,6 +148,7 @@ SUBSCRIPTION_TIERS: Dict[str, Dict[str, Any]] = {
         "id": "marketplace",
         "name": "Keelway Marketplace",
         "stream_kind": "ecosystem_revenue_share",
+        "badge_label": "CREATOR MARKETPLACE · 85/15",
         "monthly_price_usd": 0,
         "annual_monthly_price_usd": 0,
         "revenue_splits": MARKETPLACE_SPLITS,

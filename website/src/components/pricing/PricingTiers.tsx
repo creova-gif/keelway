@@ -4,17 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import * as Accordion from "@radix-ui/react-accordion";
 import {
-  AlertTriangle,
-  ArrowRight,
-  Building2,
-  Check,
-  ChevronDown,
-  Cpu,
-  KeyRound,
-  Minus,
-  PackageCheck,
-  ShieldCheck,
-  Users,
+  AlertTriangle, ArrowRight, Building2, Check, ChevronDown,
+  Cpu, KeyRound, Minus, PackageCheck, ShieldCheck, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
@@ -23,6 +14,8 @@ import {
   MARKETPLACE_PUBLISHER_SPLITS,
   PRICING_FAQS,
 } from "@/data/pricing";
+
+const API_SPEND_PRESETS = [500, 1200, 5000, 15000] as const;
 
 function renderCell(val: string | boolean) {
   if (val === true) {
@@ -43,112 +36,167 @@ function renderCell(val: string | boolean) {
 }
 
 /**
- * 5-Stream Subscription, BYOM Compliance, Enterprise VPC & Creator Marketplace Pricing.
+ * Calibrated Platform Subscription, 0%-Markup BYOM, Sovereign VPC & Creator Marketplace Pricing.
  */
 export function PricingTiers() {
   const [annual, setAnnual] = useState<boolean>(true);
   const [seats, setSeats] = useState<number>(8);
+  const [monthlyApiSpend, setMonthlyApiSpend] = useState<number>(1200);
 
-  const perSeatPrice = annual ? 39 : 49;
-  const estimatedTeamMonthly = seats * perSeatPrice;
+  const byomSeatPrice = annual ? 15 : 19;
+  const proSeatPrice = annual ? 29 : 35;
+  const estimatedByomMonthly = seats * byomSeatPrice;
+  const estimatedProMonthly = seats * proSeatPrice;
+  const proxySavingsMonthly = Math.round(monthlyApiSpend * 0.2);
 
   return (
     <div className="space-y-16">
-      {/* ====================================================================
-          1. BILLING CADENCE & TEAM SEAT CALCULATOR BAR
-          ==================================================================== */}
-      <div className="flex flex-col items-start justify-between gap-6 rounded-lg border border-border-strong bg-surface p-5 sm:flex-row sm:items-center sm:p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="font-mono text-xs font-semibold uppercase text-fg-muted">
-            Billing Cadence:
-          </span>
-          <div
-            role="group"
-            aria-label="Billing cycle"
-            className="inline-flex rounded-sm border border-border-strong bg-canvas p-0.5"
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setAnnual(true);
-                trackEvent("pricing_billing_toggled", { cycle: "annual" });
-              }}
-              className={cn(
-                "min-h-[40px] rounded-sm px-3.5 font-mono text-xs font-semibold transition-colors duration-150",
-                annual
-                  ? "bg-teal-accent text-teal-ink"
-                  : "text-fg-muted hover:text-fg"
-              )}
+      {/* 1. Interactive Team & Proxy-Tax Calculator Bar */}
+      <div className="space-y-5 rounded-lg border border-border-strong bg-surface p-5 sm:p-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-4">
+            <div className="font-mono text-xs font-semibold uppercase text-fg-muted">
+              Billing Cadence
+            </div>
+            <div
+              role="group"
+              aria-label="Billing cycle"
+              className="mt-2 inline-flex rounded-sm border border-border-strong bg-canvas p-0.5"
             >
-              Annual (Save 20%)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAnnual(false);
-                trackEvent("pricing_billing_toggled", { cycle: "monthly" });
-              }}
-              className={cn(
-                "min-h-[40px] rounded-sm px-3.5 font-mono text-xs font-semibold transition-colors duration-150",
-                !annual
-                  ? "bg-teal-accent text-teal-ink"
-                  : "text-fg-muted hover:text-fg"
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setAnnual(true);
+                  trackEvent("pricing_billing_toggled", { cycle: "annual" });
+                }}
+                className={cn(
+                  "min-h-[38px] whitespace-nowrap rounded-sm px-3 font-mono text-xs font-semibold transition-colors duration-150",
+                  annual ? "bg-teal-accent text-teal-ink" : "text-fg-muted hover:text-fg"
+                )}
+              >
+                Annual (Save ~18%)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAnnual(false);
+                  trackEvent("pricing_billing_toggled", { cycle: "monthly" });
+                }}
+                className={cn(
+                  "min-h-[38px] whitespace-nowrap rounded-sm px-3 font-mono text-xs font-semibold transition-colors duration-150",
+                  !annual ? "bg-teal-accent text-teal-ink" : "text-fg-muted hover:text-fg"
+                )}
+              >
+                Monthly
+              </button>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <label htmlFor="seat-slider" className="font-semibold uppercase text-fg-muted">
+                Team Seats
+              </label>
+              <span className="font-bold tabular-nums text-teal-accent">
+                {seats} {seats === 1 ? "seat" : "seats"}
+              </span>
+            </div>
+            <input
+              id="seat-slider"
+              type="range"
+              min={1}
+              max={50}
+              step={1}
+              value={seats}
+              onChange={(e) => setSeats(Number(e.target.value))}
+              className="mt-3 h-2 w-full cursor-pointer accent-[#2DD4BF]"
+            />
+          </div>
+
+          <div className="lg:col-span-4">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <span className="font-semibold uppercase text-fg-muted">
+                Monthly Cloud API Spend
+              </span>
+              <span className="font-bold tabular-nums text-fg">
+                ${monthlyApiSpend.toLocaleString("en-US")}/mo
+              </span>
+            </div>
+            <div
+              role="group"
+              aria-label="Monthly cloud API spend"
+              className="mt-2 grid grid-cols-4 gap-1.5"
             >
-              Monthly
-            </button>
+              {API_SPEND_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => {
+                    setMonthlyApiSpend(preset);
+                    trackEvent("pricing_byom_inspected", {
+                      source: "calculator",
+                      monthly_spend: preset,
+                    });
+                  }}
+                  className={cn(
+                    "min-h-[34px] whitespace-nowrap rounded-sm border px-2 font-mono text-[11px] font-semibold tabular-nums transition-colors duration-150",
+                    monthlyApiSpend === preset
+                      ? "border-teal-accent bg-teal-surface text-teal-accent"
+                      : "border-border-strong bg-canvas text-fg-muted hover:text-fg"
+                  )}
+                >
+                  {preset === 15000 ? "$15,000/mo" : `$${preset.toLocaleString("en-US")}`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="w-full sm:w-80">
-          <div className="flex items-center justify-between font-mono text-xs">
-            <label htmlFor="seat-slider" className="text-fg-muted">
-              Keelway Pro / BYOM Seats:
-            </label>
-            <span className="font-bold tabular-nums text-teal-accent">
-              {seats} {seats === 1 ? "seat" : "seats"} (${estimatedTeamMonthly}
-              /mo)
+        <div className="grid grid-cols-1 gap-3 border-t border-border-subtle pt-4 font-mono text-xs sm:grid-cols-3">
+          <div className="flex items-center justify-between rounded-sm border border-border-subtle bg-canvas px-3.5 py-2.5">
+            <span className="text-fg-muted">BYOM Team:</span>
+            <span className="font-bold tabular-nums text-fg">
+              ${estimatedByomMonthly.toLocaleString("en-US")}/mo
             </span>
           </div>
-          <input
-            id="seat-slider"
-            type="range"
-            min={1}
-            max={50}
-            step={1}
-            value={seats}
-            onChange={(e) => setSeats(Number(e.target.value))}
-            className="mt-2 h-2 w-full cursor-pointer accent-[#2DD4BF]"
-          />
+          <div className="flex items-center justify-between rounded-sm border border-teal-accent/40 bg-teal-surface/20 px-3.5 py-2.5">
+            <span className="text-fg-muted">Keelway Pro Team:</span>
+            <span className="font-bold tabular-nums text-teal-accent">
+              ${estimatedProMonthly.toLocaleString("en-US")}/mo
+            </span>
+          </div>
+          <div className="flex items-center justify-between rounded-sm border border-border-subtle bg-canvas px-3.5 py-2.5">
+            <span className="text-fg-muted">Saved vs 20% Proxy Markup:</span>
+            <span className="font-bold tabular-nums text-teal-accent">
+              +${proxySavingsMonthly.toLocaleString("en-US")}/mo ($
+              {(proxySavingsMonthly * 12).toLocaleString("en-US")}/yr)
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ====================================================================
-          2. STREAMS 1–4: CORE PLATFORM, PRO, BYOM & ENTERPRISE CARDS
-          ==================================================================== */}
+      {/* 2. Platform Tiers in Natural Left-to-Right Price Progression */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {/* Stream 1: Free / Community Tier */}
+        {/* Card 1: Free / Community Tier ($0) */}
         <article className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-5">
           <div>
-            <div className="flex items-center justify-between">
-              <span className="chip-neutral rounded-sm px-2 py-1">
-                STREAM 1 · APACHE-2.0
+            <div className="flex items-center justify-between gap-2">
+              <span className="chip-neutral whitespace-nowrap rounded-sm px-2 py-1">
+                OPEN-CORE · APACHE-2.0
               </span>
-              <Cpu className="h-5 w-5 text-teal-accent" aria-hidden="true" />
+              <Cpu className="h-5 w-5 shrink-0 text-teal-accent" aria-hidden="true" />
             </div>
-            <h2 className="mt-4 text-lg font-bold text-fg">
-              Free / Community Tier
-            </h2>
+            <h2 className="mt-4 text-lg font-bold text-fg">Free / Community Tier</h2>
             <p className="mt-1 text-xs text-fg-muted">
-              Open-core local platform, OpenCore weights, selected agents &amp;
-              dev tools.
+              Open-core local platform, OpenCore weights, selected agents &amp; dev tools.
             </p>
-            <div className="mt-4 flex items-baseline gap-2 font-mono">
-              <span className="text-3xl font-extrabold tabular-nums text-fg">
-                $0
-              </span>
+            <div className="mt-4 flex items-baseline gap-2 whitespace-nowrap font-mono">
+              <span className="text-3xl font-extrabold tabular-nums text-fg">$0</span>
               <span className="text-xs text-fg-muted">forever</span>
             </div>
+            <p className="mt-1 font-mono text-[11px] text-fg-muted">
+              Local hardware · $0.00/tok inference
+            </p>
             <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg-muted">
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
@@ -176,78 +224,29 @@ export function PricingTiers() {
           </div>
         </article>
 
-        {/* Stream 2: Keelway Pro (Highlighted) */}
-        <article className="frame-crosshair flex flex-col justify-between rounded-lg border-2 border-teal-accent bg-surface p-5 shadow-xl">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="chip-teal rounded-sm px-2 py-1">
-                STREAM 2 · MOST POPULAR
-              </span>
-              <Users className="h-5 w-5 text-teal-accent" aria-hidden="true" />
-            </div>
-            <h2 className="mt-4 text-lg font-bold text-fg">Keelway Pro</h2>
-            <p className="mt-1 text-xs text-fg-muted">
-              12 lifecycle AI agents, multi-agent squads, KSpaces sync &amp;
-              higher quotas.
-            </p>
-            <div className="mt-4 flex items-baseline gap-1.5 font-mono">
-              <span className="text-3xl font-extrabold tabular-nums text-fg">
-                ${perSeatPrice}
-              </span>
-              <span className="text-xs text-fg-muted">
-                / seat / mo {annual ? "(annual)" : "(monthly)"}
-              </span>
-            </div>
-            <p className="mt-1 font-mono text-[11px] text-teal-accent">
-              {seats} {seats === 1 ? "seat" : "seats"} = $
-              {estimatedTeamMonthly.toLocaleString("en-US")}/mo
-            </p>
-            <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg">
-              <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
-                <span>All 12 specialized lifecycle agents &amp; squads</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
-                <span>2.5M daily open-weight tokens &amp; 120 RPM ceiling</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
-                <span>Full 10-View Workspace + hosted KSpaces CRDT sync</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
-                <span>Unlimited KFlow automation workflows &amp; PM boards</span>
-              </li>
-            </ul>
-          </div>
-          <div className="mt-6">
-            <Link href="/#early-access" className="kw-btn kw-btn-primary w-full text-xs">
-              <span>Start Keelway Pro</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
-        </article>
-
-        {/* Stream 3: Bring Your Own Model (BYOM) */}
+        {/* Card 2: Bring Your Own Model (BYOM) ($15 / $19) */}
         <article className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-5">
           <div>
-            <div className="flex items-center justify-between">
-              <span className="chip-teal rounded-sm px-2 py-1">
-                STREAM 3 · 0% MARKUP
+            <div className="flex items-center justify-between gap-2">
+              <span className="chip-teal whitespace-nowrap rounded-sm px-2 py-1">
+                BYOM · 0% TOKEN MARKUP
               </span>
-              <KeyRound className="h-5 w-5 text-teal-accent" aria-hidden="true" />
+              <KeyRound className="h-5 w-5 shrink-0 text-teal-accent" aria-hidden="true" />
             </div>
-            <h2 className="mt-4 text-lg font-bold text-fg">
-              Bring Your Own Model (BYOM)
-            </h2>
+            <h2 className="mt-4 text-lg font-bold text-fg">Bring Your Own Model (BYOM)</h2>
             <p className="mt-1 text-xs text-fg-muted">
               Connect authorized provider API keys with 0% token proxy markup.
             </p>
-            <div className="mt-4 flex items-baseline gap-1.5 font-mono">
-              <span className="text-2xl font-extrabold text-fg">0% Markup</span>
-              <span className="text-xs text-fg-muted">+ platform seat</span>
+            <div className="mt-4 flex items-baseline gap-1.5 whitespace-nowrap font-mono">
+              <span className="text-3xl font-extrabold tabular-nums text-fg">
+                ${byomSeatPrice}
+              </span>
+              <span className="text-xs text-fg-muted">/ seat / mo</span>
             </div>
+            <p className="mt-1 font-mono text-[11px] text-teal-accent">
+              {seats} {seats === 1 ? "seat" : "seats"} = $
+              {estimatedByomMonthly.toLocaleString("en-US")}/mo · 0% token markup
+            </p>
             <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg-muted">
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
@@ -255,7 +254,7 @@ export function PricingTiers() {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
-                <span>Billed separately for Keelway orchestration &amp; workspace</span>
+                <span>500K tok/day open-weight fallback pool (60 RPM)</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
@@ -279,25 +278,76 @@ export function PricingTiers() {
           </div>
         </article>
 
-        {/* Stream 4: Keelway Enterprise */}
+        {/* Card 3: Keelway Pro ($29 / $35 — Highlighted Most Popular) */}
+        <article className="frame-crosshair flex flex-col justify-between rounded-lg border-2 border-teal-accent bg-surface p-5 shadow-xl">
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="chip-teal whitespace-nowrap rounded-sm px-2 py-1">
+                MOST POPULAR · FULL STACK
+              </span>
+              <Users className="h-5 w-5 shrink-0 text-teal-accent" aria-hidden="true" />
+            </div>
+            <h2 className="mt-4 text-lg font-bold text-fg">Keelway Pro</h2>
+            <p className="mt-1 text-xs text-fg-muted">
+              12 lifecycle AI agents, multi-agent squads, KSpaces sync &amp; 0%-markup BYOM.
+            </p>
+            <div className="mt-4 flex items-baseline gap-1.5 whitespace-nowrap font-mono">
+              <span className="text-3xl font-extrabold tabular-nums text-fg">
+                ${proSeatPrice}
+              </span>
+              <span className="text-xs text-fg-muted">/ seat / mo</span>
+            </div>
+            <p className="mt-1 font-mono text-[11px] text-teal-accent">
+              {seats} {seats === 1 ? "seat" : "seats"} = $
+              {estimatedProMonthly.toLocaleString("en-US")}/mo · 2.5M tok/day + BYOM included
+            </p>
+            <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg">
+              <li className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <span>All 12 specialized lifecycle agents &amp; squads</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <span>2.5M daily open-weight tokens (120 RPM) + BYOM vault</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <span>Full 10-View Workspace + hosted KSpaces CRDT sync</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <span>Unlimited KFlow automation workflows &amp; PM boards</span>
+              </li>
+            </ul>
+          </div>
+          <div className="mt-6">
+            <Link href="/#early-access" className="kw-btn kw-btn-primary w-full text-xs">
+              <span>Start Keelway Pro</span>
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </article>
+
+        {/* Card 4: Keelway Enterprise (Custom) */}
         <article className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-5">
           <div>
-            <div className="flex items-center justify-between">
-              <span className="chip-amber rounded-sm px-2 py-1">
-                STREAM 4 · SOVEREIGN VPC
+            <div className="flex items-center justify-between gap-2">
+              <span className="chip-amber whitespace-nowrap rounded-sm px-2 py-1">
+                SOVEREIGN VPC &amp; SLA
               </span>
-              <Building2 className="h-5 w-5 text-amber-alert" aria-hidden="true" />
+              <Building2 className="h-5 w-5 shrink-0 text-amber-alert" aria-hidden="true" />
             </div>
-            <h2 className="mt-4 text-lg font-bold text-fg">
-              Keelway Enterprise
-            </h2>
+            <h2 className="mt-4 text-lg font-bold text-fg">Keelway Enterprise</h2>
             <p className="mt-1 text-xs text-fg-muted">
               Dedicated VPC or air-gapped clusters, custom AI systems &amp; SLAs.
             </p>
-            <div className="mt-4 flex items-baseline gap-2 font-mono">
+            <div className="mt-4 flex items-baseline gap-2 whitespace-nowrap font-mono">
               <span className="text-3xl font-extrabold text-fg">Custom</span>
-              <span className="text-xs text-fg-muted">annual / usage / VPC</span>
+              <span className="text-xs text-fg-muted">annual contract</span>
             </div>
+            <p className="mt-1 whitespace-nowrap font-mono text-[11px] text-amber-alert">
+              Dedicated VPC · Air-Gap · SLA
+            </p>
             <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg-muted">
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />
@@ -326,27 +376,19 @@ export function PricingTiers() {
         </article>
       </div>
 
-      {/* ====================================================================
-          MANDATORY BYOM CONSUMER-SUBSCRIPTION COMPLIANCE NOTICE BANNER
-          ==================================================================== */}
+      {/* 3. Mandatory BYOM Consumer-Subscription Compliance Notice Banner */}
       <section
         id="byom-compliance"
         aria-labelledby="byom-compliance-heading"
         className="rounded-lg border border-amber-alert/70 bg-amber-surface p-5 sm:p-6"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <AlertTriangle
-            className="mt-0.5 h-5 w-5 shrink-0 text-amber-alert"
-            aria-hidden="true"
-          />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-alert" aria-hidden="true" />
           <div>
             <div className="font-mono text-xs font-bold uppercase text-amber-alert">
               BYOM Provider Credential &amp; Subscription Compliance Notice
             </div>
-            <h3
-              id="byom-compliance-heading"
-              className="mt-1 text-base font-bold text-fg"
-            >
+            <h3 id="byom-compliance-heading" className="mt-1 text-base font-bold text-fg">
               Authorized API Credentials Required — Consumer Web Subscriptions Are Separate
             </h3>
             <p className="mt-1.5 text-xs leading-relaxed text-fg">
@@ -366,9 +408,7 @@ export function PricingTiers() {
         </div>
       </section>
 
-      {/* ====================================================================
-          STREAM 5: KEELWAY MARKETPLACE & CREATOR ECONOMY (85% / 15%)
-          ==================================================================== */}
+      {/* 4. Keelway Marketplace & Creator Economy (85% / 15%) */}
       <section
         id="marketplace-economy"
         aria-labelledby="marketplace-economy-heading"
@@ -378,12 +418,9 @@ export function PricingTiers() {
           <div className="max-w-2xl">
             <span className="chip-teal inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
               <PackageCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              STREAM 5 · MARKETPLACE &amp; CREATOR ECONOMY
+              CREATOR MARKETPLACE · 85/15
             </span>
-            <h2
-              id="marketplace-economy-heading"
-              className="mt-3 text-2xl font-bold tracking-tight text-fg"
-            >
+            <h2 id="marketplace-economy-heading" className="mt-3 text-2xl font-bold tracking-tight text-fg">
               85% Creator / 15% Platform Revenue Share — Security-Validated Pre-Listing
             </h2>
             <p className="mt-1.5 text-sm text-fg-muted">
@@ -400,63 +437,44 @@ export function PricingTiers() {
 
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
           {MARKETPLACE_PUBLISHER_SPLITS.map((item) => (
-            <div
-              key={item.tier}
-              className="rounded-md border border-border-strong bg-canvas p-4"
-            >
-              <div className="font-mono text-xs font-semibold text-fg-muted">
-                {item.tier}
-              </div>
+            <div key={item.tier} className="rounded-md border border-border-strong bg-canvas p-4">
+              <div className="font-mono text-xs font-semibold text-fg-muted">{item.tier}</div>
               <div className="mt-2 flex items-baseline gap-2 font-mono">
-                <span className="text-xl font-extrabold text-teal-accent">
-                  {item.creatorShare}
-                </span>
+                <span className="text-xl font-extrabold text-teal-accent">{item.creatorShare}</span>
                 <span className="text-xs text-fg-muted">/ {item.platformShare}</span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-fg-muted">
-                {item.scope}
-              </p>
+              <p className="mt-2 text-xs leading-relaxed text-fg-muted">{item.scope}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ====================================================================
-          3. ACCESSIBLE RESPONSIVE FEATURE COMPARISON MATRIX
-          ==================================================================== */}
+      {/* 5. Accessible Responsive Feature Comparison Matrix */}
       <section aria-labelledby="matrix-heading">
-        <h2
-          id="matrix-heading"
-          className="text-2xl font-bold tracking-tight text-fg"
-        >
-          5-Stream Platform Capability Matrix
+        <h2 id="matrix-heading" className="text-2xl font-bold tracking-tight text-fg">
+          Platform Capability Matrix
         </h2>
         <div className="mt-5 overflow-x-auto rounded-lg border border-border-strong bg-surface">
-          <table className="w-full min-w-[740px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-border-strong bg-surface-elevated font-mono text-xs uppercase text-fg">
                 <th scope="col" className="px-4 py-3.5">Capability</th>
-                <th scope="col" className="px-4 py-3.5 text-center">Community ($0)</th>
-                <th scope="col" className="px-4 py-3.5 text-center text-teal-accent">Keelway Pro</th>
-                <th scope="col" className="px-4 py-3.5 text-center">BYOM (0% Markup)</th>
-                <th scope="col" className="px-4 py-3.5 text-center">Enterprise VPC</th>
+                <th scope="col" className="whitespace-nowrap px-4 py-3.5 text-center">Community ($0)</th>
+                <th scope="col" className="whitespace-nowrap px-4 py-3.5 text-center">BYOM ($15/mo · 0% Markup)</th>
+                <th scope="col" className="whitespace-nowrap px-4 py-3.5 text-center text-teal-accent">Keelway Pro ($29/mo)</th>
+                <th scope="col" className="whitespace-nowrap px-4 py-3.5 text-center">Enterprise VPC</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle">
               {COMPARISON_ROWS.map((row) => (
-                <tr
-                  key={row.feature}
-                  className="transition-colors duration-150 hover:bg-surface-elevated/50"
-                >
+                <tr key={row.feature} className="transition-colors duration-150 hover:bg-surface-elevated/50">
                   <th scope="row" className="px-4 py-3.5 font-medium text-fg">
-                    <div className="font-mono text-[10px] uppercase text-fg-dim">
-                      {row.category}
-                    </div>
+                    <div className="font-mono text-[10px] uppercase text-fg-dim">{row.category}</div>
                     <div className="mt-0.5 text-xs sm:text-sm">{row.feature}</div>
                   </th>
                   <td className="px-4 py-3.5 text-center">{renderCell(row.community)}</td>
-                  <td className="bg-teal-surface/20 px-4 py-3.5 text-center">{renderCell(row.pro)}</td>
                   <td className="px-4 py-3.5 text-center">{renderCell(row.byom)}</td>
+                  <td className="bg-teal-surface/20 px-4 py-3.5 text-center">{renderCell(row.pro)}</td>
                   <td className="px-4 py-3.5 text-center">{renderCell(row.enterprise)}</td>
                 </tr>
               ))}
@@ -465,17 +483,12 @@ export function PricingTiers() {
         </div>
       </section>
 
-      {/* ====================================================================
-          4. RADIX ACCESSIBLE ACCORDION FAQ
-          ==================================================================== */}
+      {/* 6. Radix Accessible Accordion FAQ */}
       <section aria-labelledby="faq-heading" className="max-w-3xl">
         <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
           LICENSING, BYOM COMPLIANCE &amp; MARKETPLACE FAQ
         </p>
-        <h2
-          id="faq-heading"
-          className="mt-2 text-2xl font-bold tracking-tight text-fg"
-        >
+        <h2 id="faq-heading" className="mt-2 text-2xl font-bold tracking-tight text-fg">
           Frequently Asked Questions
         </h2>
 

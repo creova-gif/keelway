@@ -492,4 +492,10 @@ export class PlatformNamespace {
   ): AsyncGenerator<Record<string, unknown>, void, unknown> {
     return this.runtime.streamExecutionEvents(runId, options);
   }
+  public simulatePricing(
+    req?: PT.PricingSimulationRequest,
+    options?: RequestOptions,
+  ): Promise<Record<string, unknown>> {
+    return this.runtime.simulatePricing(req, options);
+  }
 }

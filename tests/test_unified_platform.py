@@ -59,11 +59,18 @@ def test_five_monetization_streams_and_community_pro_limits() -> None:
     assert community["max_active_workflows"] == 3
 
     pro = tiers["pro"]
-    assert pro["annual_monthly_price_usd"] == 39
-    assert pro["monthly_price_usd"] == 49
+    assert pro["annual_monthly_price_usd"] == 29
+    assert pro["monthly_price_usd"] == 35
+    assert pro["token_markup_pct"] == 0.0
     assert pro["daily_open_weight_tokens"] == 2_500_000
     assert pro["rpm_limit"] == 120
     assert pro["max_concurrent_agents"] == 12
+    assert "zero_token_markup_byom_included" in pro["capabilities"]
+
+    byom = tiers["byom"]
+    assert byom["annual_monthly_price_usd"] == 15
+    assert byom["monthly_price_usd"] == 19
+    assert byom["token_markup_pct"] == 0.0
 
     enterprise = tiers["enterprise"]
     assert "dedicated_vpc" in enterprise["capabilities"]

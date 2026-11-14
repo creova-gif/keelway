@@ -295,5 +295,8 @@ export class PlatformNamespace {
     streamExecutionEvents(runId, options) {
         return this.runtime.streamExecutionEvents(runId, options);
     }
+    simulatePricing(req, options) {
+        return this.runtime.simulatePricing(req, options);
+    }
 }
 //# sourceMappingURL=platform.js.map

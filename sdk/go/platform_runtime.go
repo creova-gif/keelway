@@ -126,6 +126,12 @@ type ExecutionP10Request struct {
 	Reason      string `json:"reason,omitempty"`
 	WorkspaceID string `json:"workspace_id,omitempty"`
 }
+type PricingSimulationRequest struct {
+	Schedule           string  `json:"schedule,omitempty"`
+	Seats              int     `json:"seats,omitempty"`
+	MonthlyAPISpendUSD float64 `json:"monthly_api_spend_usd,omitempty"`
+	RunSwarm           bool    `json:"run_swarm"`
+}
 
 type ExecutionEventStream struct {
 	ctx     context.Context
@@ -360,4 +366,30 @@ func (p *PlatformService) StreamExecutionEvents(ctx context.Context, runID strin
 		return nil, parseAPIError(resp.StatusCode, raw)
 	}
 	return &ExecutionEventStream{ctx: httpReq.Context(), body: resp.Body, reader: bufio.NewReader(resp.Body)}, nil
+}
+
+func (p *PlatformService) SimulatePricing(ctx context.Context, req PricingSimulationRequest) (map[string]any, error) {
+	runSwarm := req.RunSwarm
+	if req == (PricingSimulationRequest{}) {
+		runSwarm = true
+	}
+	seats := req.Seats
+	if seats <= 0 {
+		seats = 8
+	}
+	spend := req.MonthlyAPISpendUSD
+	if spend <= 0 {
+		spend = 1200.0
+	}
+	body := map[string]any{
+		"schedule":              firstString(req.Schedule, "compare"),
+		"seats":                 seats,
+		"monthly_api_spend_usd": spend,
+		"run_swarm":             runSwarm,
+	}
+	var out map[string]any
+	if err := p.client.doJSON(ctx, http.MethodPost, "/v1/platform/pricing/simulate", nil, body, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
