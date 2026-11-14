@@ -195,6 +195,26 @@ export interface FileDiffHunk {
   lines: P10DiffLine[];
 }
 
+export interface GitCommitProposal {
+  clean: boolean;
+  branch: string;
+  filesCount: number;
+  files: Array<{ path: string; status: string }>;
+  proposedTitle: string;
+  proposedMessage: string;
+  patchHash: string;
+  diffPreview?: string;
+}
+
+export interface GitCommitResult {
+  ok: boolean;
+  commitSha: string;
+  branch: string;
+  message: string;
+  author: string;
+  clean: boolean;
+}
+
 /* ==========================================================================
    Record SHA-256 Hash-Chained Audit Ledger (Screen 06)
    ========================================================================== */

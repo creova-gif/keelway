@@ -1,6 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 import axeCore, { type AxeResults, type RunOptions } from "axe-core";
-import { expect } from "vitest";
+import { afterEach, expect } from "vitest";
+import { resetApiFallbackState } from "@/lib/apiFallbacks";
+
+afterEach(() => {
+  resetApiFallbackState();
+});
 
 class ResizeObserverMock {
   observe(): void {}

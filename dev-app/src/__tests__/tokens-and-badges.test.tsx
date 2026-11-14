@@ -4,8 +4,20 @@ import userEvent from "@testing-library/user-event";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
-import { explainRouting, fetchAirGapAudit, fetchSystemDoctor } from "@/lib/api";
-import { isTrustedUserEvent } from "@/lib/types";
+import {
+  connectStudioWebSocket,
+  createGitCommit,
+  explainRouting,
+  exportAuditBundle,
+  fetchAgentManifests,
+  fetchAirGapAudit,
+  fetchFilesTree,
+  fetchGitProposal,
+  fetchSystemDoctor,
+  inspectAgentManifest,
+  mintScopedKey,
+} from "@/lib/api";
+import { isTrustedUserEvent, type StudioWsEvent } from "@/lib/types";
 import { runAxe } from "@/test/setup";
 import "@/styles/tokens.css";
 
@@ -162,6 +174,18 @@ describe("Tokens Rev 4 — SemanticBadge, Button & CalloutBanner primitives", ()
     expect(lockedBtn).toHaveAttribute("aria-describedby", "lock-msg");
     fireEvent.click(lockedBtn);
     expect(onLockedClick).not.toHaveBeenCalled();
+
+    // Direct aria-disabled="true" prop must not be overwritten and must suppress onClick
+    const onDirectAriaDisabledClick = vi.fn();
+    rerender(
+      <Button variant="secondary" aria-disabled="true" onClick={onDirectAriaDisabledClick}>
+        Caller soft-disabled
+      </Button>,
+    );
+    const directSoftDisabledBtn = screen.getByRole("button", { name: "Caller soft-disabled" });
+    expect(directSoftDisabledBtn).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(directSoftDisabledBtn);
+    expect(onDirectAriaDisabledClick).not.toHaveBeenCalled();
   });
 
   it("renders persistent CalloutBanner variants (status vs alert) with zero auto-dismiss timers", () => {
@@ -294,6 +318,250 @@ describe("Tokens Rev 4 — SemanticBadge, Button & CalloutBanner primitives", ()
     } finally {
       fetchSpy.mockRestore();
       window.history.replaceState({}, "", originalLocation);
+    }
+  });
+
+  it("normalizes live FastAPI envelopes, snake_case payloads, NDJSON audit exports, and flat WebSocket frames", async () => {
+    // Invalid manifest JSON fails fast locally without needing a network round-trip
+    const badManifest = await inspectAgentManifest("{invalid json");
+    expect(badManifest.valid).toBe(false);
+    expect(badManifest.errors[0]).toMatch(/Invalid JSON/i);
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    try {
+      // 1. fetchFilesTree root directory object envelope
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            name: "keelway",
+            path: ".",
+            type: "directory",
+            children: [
+              { name: "cli.py", path: "cli.py", type: "file", git_status: "M" },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const tree = await fetchFilesTree();
+      expect(tree).toHaveLength(1);
+      expect(tree[0]).toMatchObject({
+        name: "cli.py",
+        path: "cli.py",
+        type: "file",
+        language: "python",
+        gitStatus: "M",
+      });
+
+      // 2. fetchAgentManifests { manifests, count, signing_key_present } envelope
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            count: 1,
+            signing_key_present: true,
+            manifests: [
+              {
+                id: "sec-scanner@2.0.0",
+                name: "sec-scanner",
+                version: "2.0.0",
+                description: "Scans workspace dependencies",
+                enabled: true,
+                signature_status: "valid",
+                governance_summary: { tools: ["read_file", "scan_sbom"], network: "none", max_tier: 1 },
+                canonical_json: '{"name":"sec-scanner"}',
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const manifests = await fetchAgentManifests();
+      expect(manifests).toHaveLength(1);
+      expect(manifests[0]).toMatchObject({
+        id: "sec-scanner@2.0.0",
+        signatureStatus: "verified",
+        networkAllowed: false,
+        maxTier: 1,
+        tools: ["read_file", "scan_sbom"],
+      });
+
+      // 3. exportAuditBundle plain-text application/x-ndjson response
+      const ndjsonBody = [
+        JSON.stringify({
+          seq: 10,
+          timestamp: "2026-11-14T02:00:00Z",
+          actor: "alice",
+          role: "engineer",
+          action: "workspace_open",
+          resource: "/repo",
+          allowed: true,
+          entry_hash: "abc123hash",
+        }),
+        JSON.stringify({
+          seq: 11,
+          timestamp: "2026-11-14T02:01:00Z",
+          actor: "4d-router",
+          role: "policy",
+          action: "egress_blocked",
+          resource: "https://cloud.example",
+          allowed: false,
+          entry_hash: "def456hash",
+        }),
+      ].join("\n");
+      fetchSpy.mockResolvedValueOnce(
+        new Response(ndjsonBody, {
+          status: 200,
+          headers: { "Content-Type": "application/x-ndjson; charset=utf-8" },
+        }),
+      );
+      const bundle = await exportAuditBundle();
+      expect(bundle.jsonl).toContain("abc123hash");
+      expect(bundle.csv).toContain("workspace_open");
+      expect(bundle.csv).toContain("egress_blocked");
+
+      // 4. explainRouting snake_case FastAPI response
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            decision_id: "rdec_123456",
+            requested_model: "llama-3.3-70b",
+            selected_provider: null,
+            fallback_chain: [],
+            reason: "private: blocked because data_boundary=external_vendor_api",
+            governance_provenance: { data_boundary: "external_vendor_api" },
+            estimated_cost_usd: 0,
+            privacy_level: "private",
+            privacy_compliant: false,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const routeExplanation = await explainRouting({
+        taskKind: "refactor auth",
+        privacy: "private",
+        maxLatencyMs: 500,
+        maxCostUsd: 0.02,
+        candidateEndpoint: "https://openweight.vendor.example/v1",
+      });
+      expect(routeExplanation.allowed).toBe(false);
+      expect(routeExplanation.decision).toBe("blocked_fail_closed");
+      expect(routeExplanation.dataBoundary).toBe("external_vendor_api");
+      expect(Array.isArray(routeExplanation.evaluatedCandidates)).toBe(true);
+      expect(routeExplanation.evaluatedCandidates.length).toBeGreaterThan(0);
+
+      // 5. mintScopedKey + fetchGitProposal + createGitCommit snake_case FastAPI responses
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            key_id: "key_live_01",
+            tenant_id: "default",
+            name: "ci-runner",
+            key_prefix: "kw_live_0011",
+            scopes: ["audit:read"],
+            created_at: "2026-11-14T02:30:00Z",
+            revoked: false,
+            api_key: "kw_live_001122_secretvalue",
+          }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const minted = await mintScopedKey("ci-runner", ["audit:read"], 25);
+      expect(minted.plaintextSecret).toBe("kw_live_001122_secretvalue");
+      expect(minted.key.id).toBe("key_live_01");
+      expect(minted.key.prefix).toBe("kw_live_0011");
+
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            clean: false,
+            branch: "feat/unified-dev-app",
+            files_count: 1,
+            files: [{ path: "core/main.py", status: "M" }],
+            proposed_title: "feat(core): update 1 file(s)",
+            proposed_message: "feat(core): update 1 file(s)\n\n- [M] core/main.py",
+            patch_hash: "deadbeef",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const proposal = await fetchGitProposal();
+      expect(proposal.filesCount).toBe(1);
+      expect(proposal.proposedTitle).toBe("feat(core): update 1 file(s)");
+
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: "committed",
+            commit_sha: "abcdef1234567890",
+            branch: "feat/unified-dev-app",
+            message: "feat(core): update 1 file(s)",
+            author: "Dev <dev@keelway.local>",
+            clean: true,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const commitRes = await createGitCommit("feat(core): update 1 file(s)");
+      expect(commitRes.ok).toBe(true);
+      expect(commitRes.commitSha).toBe("abcdef1234567890");
+    } finally {
+      fetchSpy.mockRestore();
+    }
+
+    // 6. connectStudioWebSocket preserves flat FastAPI frames and cleans up handlers on close()
+    const receivedEvents: StudioWsEvent[] = [];
+    let createdSocket: {
+      url: string;
+      readyState: number;
+      onopen: ((ev: Event) => void) | null;
+      onmessage: ((ev: MessageEvent) => void) | null;
+      onerror: ((ev: Event) => void) | null;
+      onclose: ((ev: CloseEvent) => void) | null;
+      close: ReturnType<typeof vi.fn>;
+    } | null = null;
+
+    class MockStudioWebSocket {
+      static OPEN = 1;
+      static CONNECTING = 0;
+      url: string;
+      readyState = 1;
+      onopen: ((ev: Event) => void) | null = null;
+      onmessage: ((ev: MessageEvent) => void) | null = null;
+      onerror: ((ev: Event) => void) | null = null;
+      onclose: ((ev: CloseEvent) => void) | null = null;
+      close = vi.fn();
+      constructor(url: string) {
+        this.url = url;
+        createdSocket = this;
+      }
+    }
+
+    const originalWs = globalThis.WebSocket;
+    globalThis.WebSocket = MockStudioWebSocket as unknown as typeof WebSocket;
+    try {
+      const handle = connectStudioWebSocket((ev) => receivedEvents.push(ev));
+      expect(createdSocket).not.toBeNull();
+      createdSocket!.onmessage?.(
+        new MessageEvent("message", {
+          data: JSON.stringify({
+            type: "air_gap_status_changed",
+            air_gapped: true,
+            timestamp: "2026-11-14T02:35:00Z",
+          }),
+        }),
+      );
+      expect(receivedEvents).toHaveLength(1);
+      expect(receivedEvents[0]).toEqual({
+        type: "air_gap_status_changed",
+        payload: { air_gapped: true },
+        timestamp: "2026-11-14T02:35:00Z",
+      });
+
+      handle.close();
+      expect(createdSocket!.onmessage).toBeNull();
+      expect(createdSocket!.close).toHaveBeenCalledTimes(1);
+    } finally {
+      globalThis.WebSocket = originalWs;
     }
   });
 });

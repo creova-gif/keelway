@@ -55,13 +55,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     type = "button",
     className = "",
     onClick,
+    "aria-disabled": ariaDisabledProp,
     "aria-describedby": ariaDescribedBy,
     children,
     ...rest
   },
   ref,
 ) {
-  const isSoftDisabled = Boolean(previewLocked || loading);
+  const isCallerAriaDisabled =
+    ariaDisabledProp === true || ariaDisabledProp === "true";
+  const isSoftDisabled = Boolean(previewLocked || loading || isCallerAriaDisabled);
   const isHardDisabled = Boolean(disabled);
   const isInactive = isSoftDisabled || isHardDisabled;
 
