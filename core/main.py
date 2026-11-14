@@ -113,11 +113,15 @@ app.include_router(opencore_router)
 app.include_router(responses_router)
 app.include_router(governance_router)
 
-# Mount Keelway Studio Web UI
+# Mount Keelway Studio Web UI & Unified Sovereign Dev App
 studio_dir = Path(__file__).resolve().parent / "studio"
 index_file = studio_dir / "index.html"
 web_console_file = Path(__file__).resolve().parent.parent / "web-console" / "index.html"
+dev_app_dir = Path(__file__).resolve().parent / "dev_app_dist"
+dev_app_index = dev_app_dir / "index.html"
 app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
+if (dev_app_dir / "assets").exists():
+    app.mount("/app/assets", StaticFiles(directory=dev_app_dir / "assets"), name="dev-app-assets")
 
 # Studio is local-first: allow self only (scripts/styles/fonts/workers/connect).
 _STUDIO_CSP = (
@@ -132,6 +136,25 @@ _STUDIO_CSP = (
     "base-uri 'self'; "
     "frame-ancestors 'none'"
 )
+
+
+@app.get("/app", response_class=HTMLResponse, tags=["Studio"], include_in_schema=False)
+@app.get("/app/{subpath:path}", response_class=HTMLResponse, tags=["Studio"], include_in_schema=False)
+async def serve_unified_dev_app(subpath: str = ""):
+    headers = {
+        "Content-Security-Policy": _STUDIO_CSP,
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
+    }
+    if subpath and (subpath == "assets" or subpath.startswith("assets/")):
+        return HTMLResponse(content="Not Found", status_code=404, headers=headers)
+    if dev_app_index.exists():
+        return HTMLResponse(content=dev_app_index.read_text(encoding="utf-8"), headers=headers)
+    return HTMLResponse(
+        content="<h1>Keelway Unified Dev App</h1><p>Compiled dev-app bundle not found.</p>",
+        status_code=404,
+        headers=headers,
+    )
 
 
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
