@@ -3,7 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FilesWorkspace } from "@/components/screens/FilesWorkspace";
-import type { CodeSymbolItem, FileDiffHunk, GitCommitProposal, WorkspaceFileNode } from "@/lib/types";
+import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
+import { getFallbackAuditEntries, getFallbackMerkleProof } from "@/lib/apiFallbacks";
+import type {
+  ChainVerificationState,
+  CodeSymbolItem,
+  FileDiffHunk,
+  GitCommitProposal,
+  WorkspaceFileNode,
+} from "@/lib/types";
 import { runAxe } from "@/test/setup";
 import "@/styles/tokens.css";
 
@@ -322,6 +330,248 @@ describe("FilesWorkspace (Screen 05)", () => {
           await screen.findByRole("dialog");
           expect(await runAxe(document.body)).toHaveNoViolations();
         }
+        unmount();
+      }
+    } finally {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("dir", "ltr");
+    }
+  });
+});
+
+describe("RecordAuditLedger (Screen 06)", () => {
+  it("renders all 7 canonical forensic columns, model+prompt provenance, human-only approval, and keyboard row navigation", async () => {
+    const user = userEvent.setup();
+    const entries = getFallbackAuditEntries();
+
+    render(
+      <React.StrictMode>
+        <RecordAuditLedger
+          initialEntries={entries}
+          initialChainState={{ status: "verified", totalEntries: 1283, merkleRoot: "e3b0c442", verifiedAt: "2026-11-14T02:15:00Z" }}
+          defaultInspectorOpen={false}
+        />
+      </React.StrictMode>,
+    );
+
+    const table = screen.getByRole("table", { name: /Record SHA-256 audit ledger/i });
+    const headers = within(table).getAllByRole("columnheader").map((th) => th.textContent?.trim());
+    expect(headers).toEqual(["When (ET)", "Who", "What", "Model", "Approval", "Outcome", "Integrity"]);
+
+    expect(within(table).getAllByText("coder-7b 2.5.1 · p-14").length).toBeGreaterThan(0);
+    expect(within(table).getAllByText("Allow once · you").length).toBeGreaterThan(0);
+    expect(within(table).getByText("Denied · policy")).toBeInTheDocument();
+    expect(within(table).getByText("Passed")).toBeInTheDocument();
+    expect(within(table).getByText("Allowed")).toBeInTheDocument();
+    expect(within(table).getByText("Blocked")).toBeInTheDocument();
+
+    // Keyboard ArrowDown / Enter row navigation opens the 360px inspector
+    const row1283Btn = within(table).getByRole("button", { name: /#1283/i });
+    row1283Btn.focus();
+    await user.keyboard("{ArrowDown}");
+    const row1282Btn = within(table).getByRole("button", { name: /#1282/i });
+    expect(document.activeElement).toBe(row1282Btn);
+    await user.keyboard("{Enter}");
+    expect(await screen.findByRole("complementary", { name: /Entry #1282 details/i })).toBeInTheDocument();
+  });
+
+  it("renders intact green chain verification vs broken chain alert (#1279) with Open entry #1279 & Export report recovery", async () => {
+    const user = userEvent.setup();
+    const entries = getFallbackAuditEntries();
+    const exportBundleFn = vi.fn().mockResolvedValue({
+      format: "keelway-record-bundle/v1",
+      generatedAt: "2026-11-14T02:20:00Z",
+      jsonl: '{"seq":1279}\n',
+      csv: "seq,hash\n1279,7f6e5d4c\n",
+      verifierScript: "#!/usr/bin/env python3\n",
+      chainStatus: "broken" as const,
+    });
+
+    const intact = render(
+      <RecordAuditLedger
+        initialEntries={entries}
+        initialChainState={{ status: "verified", totalEntries: 1283, merkleRoot: "e3b0c44298fc1c14" }}
+        defaultInspectorOpen={false}
+      />,
+    );
+    const verifiedBanner = screen.getByRole("status");
+    expect(verifiedBanner).toHaveAttribute("data-callout-variant", "chain-verified");
+    expect(verifiedBanner).toHaveTextContent("Chain verified · 1,283 entries · no gaps");
+    intact.unmount();
+
+    const brokenState: ChainVerificationState = {
+      status: "broken",
+      totalEntries: 1283,
+      brokenAtSeq: 1279,
+      expectedPrevHash: "9999aaaa",
+      actualPrevHash: "00112233",
+    };
+    render(
+      <RecordAuditLedger
+        initialEntries={entries}
+        initialChainState={brokenState}
+        defaultInspectorOpen={false}
+        exportBundleFn={exportBundleFn}
+      />,
+    );
+
+    const alertBanner = screen.getByRole("alert");
+    expect(alertBanner).toHaveAttribute("data-callout-variant", "chain-broken");
+    expect(alertBanner).toHaveTextContent("Chain broken at entry #1279: hash doesn't match the previous entry");
+    expect(alertBanner).toHaveTextContent("Entries after #1279 can't be trusted.");
+
+    await user.click(within(alertBanner).getByRole("button", { name: /Open entry #1279/i }));
+    const inspector = await screen.findByRole("complementary", { name: /Entry #1279 details/i });
+    expect(inspector).toHaveClass("w-inspector");
+    expect(within(inspector).getByText("Entry #1279")).toBeInTheDocument();
+
+    await user.click(within(alertBanner).getByRole("button", { name: /Export report/i }));
+    expect(exportBundleFn).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(/keelway-record-bundle\/v1/i)).toBeInTheDocument();
+  });
+
+  it("opens 360px 4D Provenance & Merkle Inspector on #1283, jumps prev (#1282), triggers Open diff in Review, and closes on Escape", async () => {
+    const user = userEvent.setup();
+    const entries = getFallbackAuditEntries();
+    const fetchMerkleProofFn = vi.fn(async (seq: number) => getFallbackMerkleProof(seq));
+    const onOpenDiffInReview = vi.fn();
+    const onSelectSeq = vi.fn();
+
+    render(
+      <RecordAuditLedger
+        initialEntries={entries}
+        initialChainState={{ status: "verified", totalEntries: 3 }}
+        defaultInspectorOpen={false}
+        fetchMerkleProofFn={fetchMerkleProofFn}
+        onOpenDiffInReview={onOpenDiffInReview}
+        onSelectSeq={onSelectSeq}
+      />,
+    );
+
+    const table = screen.getByRole("table", { name: /Record SHA-256 audit ledger/i });
+    await user.click(within(table).getByRole("button", { name: /#1283/i }));
+
+    const inspector = await screen.findByRole("complementary", { name: /Entry #1283 details/i });
+    expect(inspector).toHaveClass("w-inspector");
+    expect(onSelectSeq).toHaveBeenCalledWith(1283);
+    expect(fetchMerkleProofFn).toHaveBeenCalledWith(1283);
+
+    expect(within(inspector).getByText(/sha256:9f4c2e8a71b0d43e6f92a1c88e051d2b/i)).toBeInTheDocument();
+    expect(within(inspector).getByText(/local_loopback/i)).toBeInTheDocument();
+    expect(within(inspector).getByText(/opencore-local/i)).toBeInTheDocument();
+    expect(within(inspector).getByText(/8f3d9a12c4e7b0516a98e2d3f4c5b6a7/i)).toBeInTheDocument();
+    expect(await within(inspector).findByText(/Verified/i)).toBeInTheDocument();
+    expect(within(inspector).getByText(/2 sibling hashes/i)).toBeInTheDocument();
+
+    await user.click(within(inspector).getByRole("button", { name: /Open diff in Review/i }));
+    expect(onOpenDiffInReview).toHaveBeenCalledWith("core/main.py", 1283);
+
+    await user.click(within(inspector).getByRole("button", { name: /\(#1282\)/i }));
+    const prevInspector = await screen.findByRole("complementary", { name: /Entry #1282 details/i });
+    expect(fetchMerkleProofFn).toHaveBeenCalledWith(1282);
+    expect(within(prevInspector).getByRole("button", { name: /Open diff in Review/i })).toBeDisabled();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("complementary", { name: /Entry #1282 details/i })).toBeNull();
+  });
+
+  it("supports 6-dimension filtering, Verify chain, Export, error/retry/empty states, and passes axe-core across dark, light, and dir='rtl'", async () => {
+    const user = userEvent.setup();
+    const entries = getFallbackAuditEntries();
+    const verifyChainFn = vi.fn().mockResolvedValue({
+      status: "verified" as const,
+      totalEntries: 3,
+      merkleRoot: "e3b0c44298fc1c14",
+      verifiedAt: "2026-11-14T02:25:00Z",
+    });
+    const exportBundleFn = vi.fn().mockResolvedValue({
+      format: "keelway-record-bundle/v1",
+      generatedAt: "2026-11-14T02:25:00Z",
+      jsonl: '{"seq":1283}\n',
+      csv: "seq,hash\n1283,8f3d9a12\n",
+      verifierScript: "#!/usr/bin/env python3\n",
+      chainStatus: "verified" as const,
+    });
+
+    // Loading, empty, and Error + Retry operational states
+    const loadingView = render(<RecordAuditLedger initialEntries={[]} loading />);
+    expect(screen.getByText(/Loading SHA-256 Record entries/i)).toBeInTheDocument();
+    loadingView.unmount();
+
+    const emptyView = render(<RecordAuditLedger initialEntries={[]} initialChainState={{ status: "verified", totalEntries: 0 }} />);
+    expect(screen.getByText("No entries recorded yet")).toBeInTheDocument();
+    emptyView.unmount();
+
+    const failingFetch = vi.fn().mockRejectedValueOnce(new Error("sqlite wal busy")).mockResolvedValueOnce(entries);
+    const errRender = render(<RecordAuditLedger fetchEntriesFn={failingFetch} verifyChainFn={verifyChainFn} />);
+    expect(await screen.findByText(/sqlite wal busy/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Retry/i }));
+    expect(await screen.findByText(/Showing 3 of 3 entries/i)).toBeInTheDocument();
+    errRender.unmount();
+
+    // Controlled selectedSeq jump from external caller (TasksWorkspace / App.tsx)
+    const controlled = render(
+      <RecordAuditLedger initialEntries={entries} initialChainState={{ status: "verified", totalEntries: 3 }} selectedSeq={1283} />,
+    );
+    expect(await screen.findByRole("complementary", { name: /Entry #1283 details/i })).toBeInTheDocument();
+    controlled.rerender(
+      <RecordAuditLedger initialEntries={entries} initialChainState={{ status: "verified", totalEntries: 3 }} selectedSeq={1279} />,
+    );
+    expect(await screen.findByRole("complementary", { name: /Entry #1279 details/i })).toBeInTheDocument();
+    controlled.unmount();
+
+    // Filter bar + Verify chain + Export + axe-core WCAG 2.2 AA
+    try {
+      for (const [theme, dir] of [["dark", "ltr"], ["light", "ltr"], ["dark", "rtl"]] as const) {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("dir", dir);
+
+        const { unmount } = render(
+          <main aria-label="Record workspace test host">
+            <RecordAuditLedger
+              initialEntries={entries}
+              initialChainState={{ status: "verified", totalEntries: 3 }}
+              verifyChainFn={verifyChainFn}
+              exportBundleFn={exportBundleFn}
+            />
+          </main>,
+        );
+
+        expect(await screen.findByRole("complementary", { name: /Entry #1283 details/i })).toBeInTheDocument();
+
+        if (theme === "dark" && dir === "ltr") {
+          expect(screen.getByLabelText(/Target/i)).toBeInTheDocument();
+          expect(screen.getByLabelText(/Who/i)).toBeInTheDocument();
+          expect(screen.getByLabelText(/Action/i)).toBeInTheDocument();
+          expect(screen.getByLabelText(/Model/i)).toBeInTheDocument();
+          expect(screen.getByLabelText(/Date/i)).toBeInTheDocument();
+
+          await user.selectOptions(screen.getByLabelText(/Who/i), "human");
+          expect(screen.getByText("Showing 1 of 3 entries")).toBeInTheDocument();
+          await user.selectOptions(screen.getByLabelText(/Who/i), "all");
+
+          const outcomeSelect = screen.getByLabelText(/Outcome/i);
+          await user.selectOptions(outcomeSelect, "blocked");
+          expect(screen.getByText("Showing 1 of 3 entries")).toBeInTheDocument();
+          const table = screen.getByRole("table", { name: /Record SHA-256 audit ledger/i });
+          expect(within(table).getByRole("button", { name: /#1279/i })).toBeInTheDocument();
+          expect(within(table).queryByRole("button", { name: /#1283/i })).toBeNull();
+
+          const searchBox = screen.getByRole("searchbox", { name: /Search Record entries/i });
+          await user.type(searchBox, "no_such_entry_xyz");
+          expect(screen.getByText("No Record entries match the current filters")).toBeInTheDocument();
+
+          await user.click(screen.getAllByRole("button", { name: /Clear filters/i })[0]);
+          expect(screen.getByText("Showing 3 of 3 entries")).toBeInTheDocument();
+
+          await user.click(screen.getByRole("button", { name: /Verify chain/i }));
+          expect(verifyChainFn).toHaveBeenCalled();
+
+          await user.click(screen.getByRole("button", { name: /Export…/i }));
+          expect(exportBundleFn).toHaveBeenCalledTimes(1);
+        }
+
+        expect(await runAxe(document.body)).toHaveNoViolations();
         unmount();
       }
     } finally {
