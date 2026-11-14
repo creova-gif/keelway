@@ -25,6 +25,7 @@ export interface P10ApprovalCardProps {
   receipt?: P10ApprovalReceipt | null;
   headingRef?: React.Ref<HTMLHeadingElement>;
   enableKeyboardShortcuts?: boolean;
+  onFocusCapture?: React.FocusEventHandler<HTMLElement>;
   onSubmitDecision?: (
     payload: P10ApprovalDecisionPayload,
   ) => Promise<P10ApprovalReceipt | void> | P10ApprovalReceipt | void;
@@ -260,6 +261,7 @@ export function P10ApprovalCard({
   receipt: controlledReceipt,
   headingRef,
   enableKeyboardShortcuts = true,
+  onFocusCapture,
   onSubmitDecision,
   onRetryPreview,
   onCreateScopedRule,
@@ -270,8 +272,11 @@ export function P10ApprovalCard({
   const denyReasonId = useId();
   const confirmRegionHeadingId = useId();
 
+  const articleRef = useRef<HTMLElement | null>(null);
   const allowOnceBtnRef = useRef<HTMLButtonElement | null>(null);
   const cancelConfirmBtnRef = useRef<HTMLButtonElement | null>(null);
+  const latestProposalIdRef = useRef(proposal.id);
+  latestProposalIdRef.current = proposal.id;
 
   const [trackedProposalId, setTrackedProposalId] = useState(proposal.id);
   const [editedCommand, setEditedCommand] = useState(proposal.command ?? "");
@@ -313,10 +318,11 @@ export function P10ApprovalCard({
   );
 
   const activeReceipt = controlledReceipt !== undefined ? controlledReceipt : internalReceipt;
+  const isCommandProposal = proposal.kind !== "file_edit";
   const hasCommandModified =
-    proposal.command !== undefined && editedCommand.trim() !== proposal.command.trim();
+    isCommandProposal && editedCommand.trim() !== (proposal.command ?? "").trim();
   const hasTargetModified =
-    proposal.targetPath !== undefined && editedTargetPath.trim() !== proposal.targetPath.trim();
+    !isCommandProposal && editedTargetPath.trim() !== (proposal.targetPath ?? "").trim();
   const isModified = hasCommandModified || hasTargetModified;
 
   const matchesNetworkCommand = NETWORK_ESCALATION_PATTERN.test(editedCommand);
@@ -383,10 +389,12 @@ export function P10ApprovalCard({
           setSubmitting(true);
           Promise.resolve(result)
             .then((resolved) => {
+              if (latestProposalIdRef.current !== proposal.id) return;
               setInternalReceipt(resolved ?? fallback);
               setSubmitting(false);
             })
             .catch((err: unknown) => {
+              if (latestProposalIdRef.current !== proposal.id) return;
               setSubmitting(false);
               setSubmitError(err instanceof Error ? err.message : "Failed to record P-10 decision.");
             });
@@ -411,6 +419,8 @@ export function P10ApprovalCard({
       if (event.defaultPrevented || document.querySelector('[role="dialog"]')) return;
       if (!isTrustedUserEvent(event)) return;
       if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || event.altKey) return;
+      const focusedCard = document.activeElement?.closest("[data-p10-card]");
+      if (focusedCard && focusedCard !== articleRef.current) return;
 
       const lower = event.key.toLowerCase();
       if (lower === "y") {
@@ -476,10 +486,12 @@ export function P10ApprovalCard({
     dispatchDecision("allow_once");
   };
 
-  const isCommandProposal = proposal.command !== undefined || proposal.kind === "command";
+  const showShortcuts = enableKeyboardShortcuts && !isClickOnlyGate;
 
   return (
     <article
+      ref={articleRef}
+      onFocusCapture={onFocusCapture}
       aria-labelledby={headingId}
       data-p10-card={proposal.id}
       data-p10-variant={effectiveVariantC ? "C" : proposal.kind === "command" ? "B" : "A"}
@@ -627,7 +639,7 @@ export function P10ApprovalCard({
             size="md"
             variant="warning-cta"
             clickOnly={isClickOnlyGate}
-            shortcutHint={isClickOnlyGate ? undefined : "⌘⇧Y"}
+            shortcutHint={showShortcuts ? "⌘⇧Y" : undefined}
             previewLocked={isPreviewLocked}
             lockReasonId={lockReasonId}
             loading={submitting}
@@ -672,7 +684,7 @@ export function P10ApprovalCard({
           size="md"
           variant="danger-ghost"
           clickOnly={isClickOnlyGate}
-          shortcutHint={isClickOnlyGate ? undefined : "⌘⇧N"}
+          shortcutHint={showShortcuts ? "⌘⇧N" : undefined}
           onClick={(e) => {
             if (guardTrusted(e)) dispatchDecision("deny");
           }}

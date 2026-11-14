@@ -4,7 +4,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DevAppShell } from "@/components/shell/DevAppShell";
 import { P10ApprovalCard } from "@/components/screens/P10ApprovalCard";
-import { TasksWorkspace } from "@/components/screens/TasksWorkspace";
+import { buildLogsDrawerTabPanels, TasksWorkspace } from "@/components/screens/TasksWorkspace";
 import type {
   FileDiffHunk,
   P10ApprovalDecisionPayload,
@@ -36,60 +36,11 @@ function makeProposal(overrides: Partial<P10ApprovalProposal> = {}): P10Approval
 }
 
 const SAMPLE_RECEIPTS: StepReceiptItem[] = [
-  {
-    id: "step-read-1",
-    kind: "read",
-    title: "Read file",
-    target: "core/main.py",
-    detail: "Read lines 1–42 (UTF-8)",
-    output: 'app = FastAPI(title="Keelway Sovereign Runtime")',
-    status: "ready",
-    recordSeq: 1280,
-  },
-  {
-    id: "step-search-1",
-    kind: "searched",
-    title: "Searched symbols",
-    target: "requires_human_quorum",
-    detail: "2 matches across core/security/",
-    output: "core/security/policy.py:3: def requires_human_quorum(...)",
-    status: "ready",
-    recordSeq: 1281,
-  },
-  {
-    id: "step-edit-1",
-    kind: "edited",
-    title: "Edited file",
-    target: "core/main.py",
-    detail: "+3 / -1 lines staged in working tree",
-    output: "+ _STUDIO_CSP = \"default-src 'self'\"",
-    status: "ready",
-    linesAdded: 3,
-    linesRemoved: 1,
-    recordSeq: 1282,
-  },
-  {
-    id: "step-test-pass",
-    kind: "test",
-    title: "Ran pytest suite",
-    target: "pytest tests/test_policy.py -q",
-    output: "4 passed in 0.18s",
-    status: "passed",
-    exitCode: 0,
-    durationMs: 180,
-    recordSeq: 1283,
-  },
-  {
-    id: "step-test-fail",
-    kind: "test",
-    title: "Ran CSP header check",
-    target: "pytest tests/test_csp.py -q",
-    output: "FAILED tests/test_csp.py::test_strict_self_csp - AssertionError",
-    status: "failed",
-    exitCode: 1,
-    durationMs: 210,
-    recordSeq: 1284,
-  },
+  { id: "step-read-1", kind: "read", title: "Read file", target: "core/main.py", detail: "Read lines 1–42 (UTF-8)", output: 'app = FastAPI(title="Keelway Sovereign Runtime")', status: "ready", recordSeq: 1280 },
+  { id: "step-search-1", kind: "searched", title: "Searched symbols", target: "requires_human_quorum", detail: "2 matches across core/security/", output: "core/security/policy.py:3: def requires_human_quorum(...)", status: "ready", recordSeq: 1281 },
+  { id: "step-edit-1", kind: "edited", title: "Edited file", target: "core/main.py", detail: "+3 / -1 lines staged in working tree", output: "+ _STUDIO_CSP = \"default-src 'self'\"", status: "ready", linesAdded: 3, linesRemoved: 1, recordSeq: 1282 },
+  { id: "step-test-pass", kind: "test", title: "Ran pytest suite", target: "pytest tests/test_policy.py -q", output: "4 passed in 0.18s", status: "passed", exitCode: 0, durationMs: 180, recordSeq: 1283 },
+  { id: "step-test-fail", kind: "test", title: "Ran CSP header check", target: "pytest tests/test_csp.py -q", output: "FAILED tests/test_csp.py::test_strict_self_csp - AssertionError", status: "failed", exitCode: 1, durationMs: 210, recordSeq: 1284 },
 ];
 
 const SAMPLE_DIFF_HUNKS: FileDiffHunk[] = [
@@ -679,5 +630,100 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
       document.documentElement.setAttribute("dir", "ltr");
       document.documentElement.setAttribute("data-theme", "dark");
     }
+  });
+
+  it("Gate 6: disambiguates multi-card hotkeys & <kbd> hints, surfaces async submit errors, and syncs taskId/receipts/shell drawers", async () => {
+    const user = userEvent.setup();
+    const onSubmitDecision = vi.fn();
+    const card1 = makeProposal({ id: "prop-multi-1", title: "Card One pytest", command: "pytest tests/a.py" });
+    const card2 = makeProposal({ id: "prop-multi-2", title: "Card Two vitest", command: "npx vitest run" });
+    const card3 = makeProposal({ id: "prop-multi-3", title: "Card Three ruff", command: "ruff check ." });
+
+    const { container, rerender, unmount } = render(
+      <TasksWorkspace
+        taskId="task-a"
+        taskTitle="Multi-card approval check"
+        proposals={[card1, card2, card3]}
+        diffHunks={SAMPLE_DIFF_HUNKS}
+        onSubmitDecision={onSubmitDecision}
+      />,
+    );
+
+    const elCard1 = container.querySelector('[data-p10-card="prop-multi-1"]') as HTMLElement;
+    const elCard2 = container.querySelector('[data-p10-card="prop-multi-2"]') as HTMLElement;
+    const elCard3 = container.querySelector('[data-p10-card="prop-multi-3"]') as HTMLElement;
+    expect(within(elCard1).getByText("⌘⇧Y")).toBeInTheDocument();
+    expect(within(elCard2).queryByText("⌘⇧Y")).toBeNull();
+    expect(within(elCard2).queryByText("⌘⇧N")).toBeNull();
+    expect(within(elCard3).queryByText("⌘⇧Y")).toBeNull();
+
+    // Unfocused Cmd+Shift+Y fires strictly once on Card 1 (first pending card)
+    fireEvent.keyDown(window, { key: "Y", metaKey: true, shiftKey: true });
+    expect(onSubmitDecision).toHaveBeenCalledTimes(1);
+    expect(onSubmitDecision).toHaveBeenLastCalledWith(
+      expect.objectContaining({ proposalId: "prop-multi-1", decision: "allow_once" }),
+    );
+    expect(screen.getByTestId("p10-receipt-prop-multi-1")).toBeInTheDocument();
+
+    // Card 2 is now first pending (shows <kbd>), Card 3 still hides <kbd>; focusing inside Card 3 transfers <kbd> and routes Cmd+Shift+N to Card 3 (never Card 2)
+    expect(within(elCard2).getByText("⌘⇧Y")).toBeInTheDocument();
+    expect(within(elCard3).queryByText("⌘⇧Y")).toBeNull();
+    await user.click(within(elCard3).getByLabelText(/Deny reason/i));
+    expect(within(elCard3).getByText("⌘⇧Y")).toBeInTheDocument();
+    expect(within(elCard2).queryByText("⌘⇧Y")).toBeNull();
+
+    fireEvent.keyDown(window, { key: "N", metaKey: true, shiftKey: true });
+    expect(onSubmitDecision).toHaveBeenCalledTimes(2);
+    expect(onSubmitDecision).toHaveBeenLastCalledWith(
+      expect.objectContaining({ proposalId: "prop-multi-3", decision: "deny" }),
+    );
+    expect(screen.getByTestId("p10-receipt-prop-multi-3")).toBeInTheDocument();
+
+    // Switching taskId + diffHunks + external receipts updates workspace cleanly
+    rerender(
+      <TasksWorkspace
+        taskId="task-b"
+        taskTitle="Switched task"
+        proposals={[card1]}
+        receipts={{
+          "prop-multi-1": {
+            proposalId: "prop-multi-1",
+            recordSeq: 1305,
+            decision: "allow_once",
+            summary: "Card One pytest",
+            modifiedByUser: false,
+            decidedAt: "2026-11-14T04:00:00Z",
+            actorLabel: "you (local keyboard)",
+          },
+        }}
+        diffHunks={[]}
+        defaultReviewOpen={true}
+        renderLogsInShell={true}
+      />,
+    );
+    expect(screen.getByTestId("p10-receipt-prop-multi-1")).toHaveTextContent("Record #1305");
+    expect(screen.getByText(/Review changes \(0\)/i)).toBeInTheDocument();
+    const panels = buildLogsDrawerTabPanels({
+      logLines: ["[loopback] ready"],
+      terminalCommand: "",
+      onTerminalCommandChange: () => {},
+      terminalRunning: false,
+      terminalHistory: [],
+      onRunTerminal: (e) => e.preventDefault(),
+      egressMode: "unmeasured",
+      airGapEnabled: false,
+      onToggleAirGap: () => {},
+    });
+    expect(panels.logs).toBeTruthy();
+    expect(panels.terminal).toBeTruthy();
+    expect(panels.network).toBeTruthy();
+    unmount();
+
+    // Rejected async onSubmitDecision surfaces role="alert"
+    const rejectSubmit = vi.fn().mockRejectedValueOnce(new Error("SQLite WAL lock busy"));
+    const errView = render(<P10ApprovalCard proposal={makeProposal({ id: "prop-err" })} onSubmitDecision={rejectSubmit} />);
+    await user.click(within(errView.container).getByRole("button", { name: /Allow once/i }));
+    expect(await within(errView.container).findByRole("alert")).toHaveTextContent("SQLite WAL lock busy");
+    errView.unmount();
   });
 });

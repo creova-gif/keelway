@@ -64,11 +64,13 @@ export function AgentComposer({
     textareaRef?.current?.focus();
   };
 
+  const isSendSoftDisabled = !runtimeReachable || value.trim().length === 0;
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key === "Enter") {
       event.preventDefault();
       event.stopPropagation();
-      onSubmitPrompt();
+      if (!isSendSoftDisabled) onSubmitPrompt();
       return;
     }
 
@@ -97,8 +99,6 @@ export function AgentComposer({
       setDismissedForValue(value);
     }
   };
-
-  const isSendSoftDisabled = !runtimeReachable || value.trim().length === 0;
 
   return (
     <div className="relative mt-4 rounded-md border border-border-strong bg-surface p-3">
