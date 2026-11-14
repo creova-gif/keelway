@@ -1,25 +1,9 @@
 import type {
-  AgentManifestItem,
-  AuditMerkleProof,
-  ChainVerificationState,
-  CodeSymbolItem,
-  DataResidencyZone,
-  DoctorCheckItem,
-  EgressTelemetryState,
-  FileDiffHunk,
-  GitCommitProposal,
-  GitCommitResult,
-  GovernancePersistenceInfo,
-  ManifestInspectResult,
-  MintedScopedApiKeyResult,
-  OpenCoreWeightItem,
-  P10DiffLine,
-  RecordLedgerEntry,
-  RoutingExplainRequest,
-  RoutingExplainResult,
-  ScopedApiKeyItem,
-  TenantGovernancePolicy,
-  WorkspaceFileNode,
+  AgentManifestItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
+  DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal, GitCommitResult,
+  GovernancePersistenceInfo, ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
+  P10DiffLine, RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem,
+  TenantGovernancePolicy, WorkspaceFileNode,
 } from "./types";
 import { inferLanguageFromPath } from "./apiFallbacks";
 
@@ -284,6 +268,11 @@ export function decodeManifestItem(raw: unknown): AgentManifestItem | null {
         ? "invalid"
         : "unsigned";
   const tierNum = asNumber(raw.maxTier ?? raw.max_tier ?? gov.max_tier, 2);
+  const rawWarnings = Array.isArray(raw.securityWarnings)
+    ? raw.securityWarnings
+    : Array.isArray(raw.security_warnings)
+      ? raw.security_warnings
+      : undefined;
 
   return {
     id,
@@ -296,6 +285,9 @@ export function decodeManifestItem(raw: unknown): AgentManifestItem | null {
     networkAllowed,
     maxTier: tierNum <= 1 ? 1 : tierNum >= 3 ? 3 : 2,
     signatureStatus,
+    securityWarnings: rawWarnings
+      ? rawWarnings.filter((w): w is string => typeof w === "string")
+      : undefined,
     rawJson:
       typeof raw.rawJson === "string"
         ? raw.rawJson
@@ -470,19 +462,49 @@ export function decodeMerkleProof(raw: unknown, fallbackSeq: number): AuditMerkl
   };
 }
 
+function isEgressBarMode(v: unknown): v is EgressTelemetryState["mode"] {
+  return v === "unmeasured" || v === "measured_offline" || v === "air_gapped_verified" || v === "unknown_probe_failed" || v === "connected_warning";
+}
+
 export function decodeAirGapAudit(raw: unknown): EgressTelemetryState | null {
   if (!isRecord(raw)) return null;
-  if (typeof raw.mode === "string" && Array.isArray(raw.endpoints)) {
-    return raw as unknown as EgressTelemetryState;
-  }
-  const airGapLocked = Boolean(raw.air_gap_enabled ?? raw.airGapLocked ?? raw.overall_compliant);
+  const sc7Compliant = typeof raw.overall_compliant === "boolean" ? raw.overall_compliant : typeof raw.sc7Compliant === "boolean" ? raw.sc7Compliant : undefined;
+  const checksList = Array.isArray(raw.sc7Checks) ? raw.sc7Checks : Array.isArray(raw.checks) ? raw.checks : null;
+  const sc7Checks = checksList
+    ? checksList.filter(isRecord).map((c, i) => ({
+        id: asString(c.id || c.check_id, `sc7-${i + 1}`),
+        label: asString(c.label || c.title || c.name, `SC-7 check #${i + 1}`),
+        passed: Boolean(c.passed ?? c.compliant ?? c.ok ?? true),
+        detail: asString(c.detail || c.details) || undefined,
+      }))
+    : isRecord(raw.checks)
+      ? Object.entries(raw.checks).map(([k, v]) => ({
+          id: k,
+          label: isRecord(v) ? asString(v.label || v.title || v.name, k) : k,
+          passed: typeof v === "boolean" ? v : isRecord(v) ? Boolean(v.passed ?? v.compliant ?? v.ok ?? true) : Boolean(v),
+          detail: isRecord(v) ? asString(v.detail || v.details) || undefined : undefined,
+        }))
+      : undefined;
+  const endpoints = Array.isArray(raw.endpoints)
+    ? raw.endpoints.filter(isRecord).map((e) => ({
+        host: asString(e.host || e.url, "unknown"),
+        purpose: asString(e.purpose, "egress"),
+        calls: asNumber(e.calls, 1),
+        bytesSent: typeof e.bytesSent === "number" ? e.bytesSent : typeof e.bytes_sent === "number" ? e.bytes_sent : null,
+        ...(typeof e.modelId === "string" ? { modelId: e.modelId } : {}),
+      }))
+    : [];
+  const airGapLocked = Boolean(raw.air_gap_enabled ?? raw.airGapLocked ?? false);
+  const mode: EgressTelemetryState["mode"] = isEgressBarMode(raw.mode) ? raw.mode : airGapLocked ? "air_gapped_verified" : "unmeasured";
   return {
-    mode: airGapLocked ? "air_gapped_verified" : "unmeasured",
-    cloudCallsCount: asNumber(raw.cloud_calls_count ?? raw.cloudCallsCount, 0),
-    bytesSent: typeof raw.bytes_sent === "number" ? raw.bytes_sent : null,
+    mode,
+    cloudCallsCount: asNumber(raw.cloud_calls_count ?? raw.cloudCallsCount, endpoints.length),
+    bytesSent: typeof raw.bytes_sent === "number" ? raw.bytes_sent : typeof raw.bytesSent === "number" ? raw.bytesSent : null,
     airGapLocked,
-    endpoints: [],
+    endpoints,
     lastCheckedAt: asString(raw.timestamp_utc || raw.lastCheckedAt) || undefined,
+    sc7Compliant,
+    sc7Checks,
   };
 }
 
@@ -547,7 +569,10 @@ export function decodeRoutingExplanation(
       : [];
     const rawPrivacy = asString(raw.privacy_level, req.privacy);
     const privacyClassification: RoutingExplainResult["privacyClassification"] =
-      rawPrivacy === "private" || rawPrivacy === "internal" || rawPrivacy === "public"
+      rawPrivacy === "private" ||
+      rawPrivacy === "standard" ||
+      rawPrivacy === "internal" ||
+      rawPrivacy === "public"
         ? rawPrivacy
         : req.privacy;
 
@@ -576,8 +601,12 @@ export function decodeRoutingExplanation(
         : dataBoundary === "external_vendor_api"
           ? "routed_cloud"
           : "routed_local",
-      selectedModel: privacyCompliant ? asString(raw.requested_model) || "coder-7b@2.5.1" : "none",
-      provider: selectedProvider ?? "blocked",
+      selectedModel: privacyCompliant
+        ? asString(raw.requested_model) || req.model || "coder-7b@2.5.1"
+        : "none",
+      provider: selectedProvider ?? asString(prov.operator, "blocked"),
+      license: typeof prov.license === "string" ? prov.license : undefined,
+      hosting: typeof prov.hosting === "string" ? prov.hosting : undefined,
       dataBoundary,
       privacyClassification,
       estimatedCostUsd: asNumber(raw.estimated_cost_usd, 0),
@@ -622,7 +651,17 @@ export function decodeTenantPolicy(raw: unknown): TenantGovernancePolicy | null 
     residencyZone: validZones.has(rawZone as DataResidencyZone)
       ? (rawZone as DataResidencyZone)
       : "local_only",
-    monthlyBudgetUsd: asNumber(raw.monthlyBudgetUsd ?? raw.monthly_spend_limit_usd, 50),
+    dlpEnabled:
+      typeof raw.dlpEnabled === "boolean"
+        ? raw.dlpEnabled
+        : typeof raw.dlp_enabled === "boolean"
+          ? raw.dlp_enabled
+          : typeof raw.log_redacted_prompts === "boolean"
+            ? raw.log_redacted_prompts
+            : true,
+    dailyBudgetUsd: asNumber(raw.dailyBudgetUsd ?? raw.daily_spend_limit_usd, 10),
+    dailySpendUsd: asNumber(raw.dailySpendUsd ?? raw.daily_spend_usd, 1.42),
+    monthlyBudgetUsd: asNumber(raw.monthlyBudgetUsd ?? raw.monthly_spend_limit_usd, 150),
     currentSpendUsd: asNumber(raw.currentSpendUsd ?? raw.current_spend_usd, 0),
     warnThresholdPct: asNumber(raw.warnThresholdPct ?? raw.warn_threshold_pct, 80),
     hardCapEnforced: typeof raw.hardCapEnforced === "boolean" ? raw.hardCapEnforced : true,

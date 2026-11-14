@@ -29,6 +29,7 @@ import {
   toggleAgentManifest,
   toggleAirGap,
   updateGovernancePolicy,
+  verifyScopedKey,
 } from "@/lib/api";
 import type {
   DensityMode,
@@ -185,6 +186,7 @@ export interface SettingsWorkspaceProps {
   updatePolicyFn?: typeof updateGovernancePolicy;
   fetchKeysFn?: typeof fetchScopedKeys;
   mintKeyFn?: typeof mintScopedKey;
+  verifyKeyFn?: typeof verifyScopedKey;
   fetchSbomFn?: typeof fetchSbom;
   toggleAirGapFn?: typeof toggleAirGap;
   fetchAirGapAuditFn?: typeof fetchAirGapAudit;
@@ -225,6 +227,7 @@ export function SettingsWorkspace({
   updatePolicyFn,
   fetchKeysFn,
   mintKeyFn,
+  verifyKeyFn,
   fetchSbomFn,
   toggleAirGapFn = toggleAirGap,
   fetchAirGapAuditFn,
@@ -408,11 +411,11 @@ export function SettingsWorkspace({
   }, [sidebarNode]);
 
   return (
-    <div className="flex h-full min-h-[480px] w-full overflow-hidden bg-canvas text-ui text-fg">
+    <div className="flex h-full min-h-[480px] w-full flex-col overflow-hidden bg-canvas text-ui text-fg md:flex-row">
       {!renderSidebarInShell ? (
         <aside
           aria-label="Settings navigation"
-          className="flex w-sidebar shrink-0 flex-col overflow-hidden border-e border-border bg-chrome"
+          className="flex w-full shrink-0 flex-col overflow-x-auto border-b border-border bg-chrome md:w-sidebar md:overflow-hidden md:border-b-0 md:border-e"
         >
           {sidebarNode}
         </aside>
@@ -443,6 +446,7 @@ export function SettingsWorkspace({
               updatePolicyFn={updatePolicyFn}
               fetchKeysFn={fetchKeysFn}
               mintKeyFn={mintKeyFn}
+              verifyKeyFn={verifyKeyFn}
               fetchSbomFn={fetchSbomFn}
             />
           ) : currentSubSection === "network" ? (

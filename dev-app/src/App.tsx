@@ -147,6 +147,24 @@ export function App({
     initialSettingsSubSection ?? urlInit.settings ?? "permissions",
   );
   const [companionTab, setCompanionTab] = useState<CompanionTab>("tasks");
+  const [isNarrowViewport, setIsNarrowViewport] = useState<boolean>(() =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia("(max-width: 767px)").matches
+      : false,
+  );
+  const effectiveMobileCompanion = isMobileCompanion ?? (urlInit.companion || isNarrowViewport);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mql = window.matchMedia("(max-width: 767px)");
+    const onChange = (e: MediaQueryListEvent) => setIsNarrowViewport(e.matches);
+    setIsNarrowViewport(mql.matches);
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    }
+    return undefined;
+  }, []);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
   const [densityMode, setDensityMode] = useState<DensityMode>("default");
@@ -561,7 +579,7 @@ export function App({
         mainAriaLabel={mainAriaLabel}
         politeAnnouncement={politeAnnouncement}
         isDesktopApp={isDesktopApp}
-        isMobileCompanion={isMobileCompanion ?? (urlInit.companion ? true : undefined)}
+        isMobileCompanion={effectiveMobileCompanion}
         activeCompanionTab={companionTab}
         onSelectCompanionTab={setCompanionTab}
       >
@@ -592,7 +610,7 @@ export function App({
         ) : activeSection === "files" ? (
           <FilesWorkspace
             navigationTarget={filesNavTarget}
-            renderSidebarInShell={true}
+            renderSidebarInShell={!effectiveMobileCompanion}
             onSidebarStateChange={setFilesSidebarProps}
             onTreeLoaded={setWorkspaceFiles}
             onSymbolsLoaded={setWorkspaceSymbols}
@@ -615,7 +633,7 @@ export function App({
           <SettingsWorkspace
             activeSubSection={settingsSubSection}
             onSelectSubSection={handleSelectSettingsSubSection}
-            renderSidebarInShell={true}
+            renderSidebarInShell={!effectiveMobileCompanion}
             themeMode={themeMode}
             onThemeModeChange={(next) => { setThemeMode(next); applyThemeToDocument(next); }}
             densityMode={densityMode}

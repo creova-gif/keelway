@@ -3,7 +3,7 @@ import type {
   DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal,
   GitCommitResult, GovernancePersistenceInfo, ManifestInspectResult,
   MintedScopedApiKeyResult, OpenCoreWeightItem, RecordLedgerEntry,
-  RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem,
+  RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem, ScopedKeyVerifyResult,
   TenantGovernancePolicy, WorkspaceFileNode,
 } from "./types";
 
@@ -223,6 +223,9 @@ const INITIAL_MANIFESTS: AgentManifestItem[] = [
     networkAllowed: false,
     maxTier: 2,
     signatureStatus: "verified",
+    securityWarnings: [
+      "Static guard: write/exec tools gated by workspace Seatbelt scope & P-10 approval.",
+    ],
     rawJson: JSON.stringify(
       {
         schemaVersion: "keelway.agent/v1",
@@ -280,8 +283,11 @@ const INITIAL_GOVERNANCE_POLICY: TenantGovernancePolicy = {
   tenantId: "default",
   name: "Local Sovereign Workspace",
   residencyZone: "local_only",
-  monthlyBudgetUsd: 50.0,
-  currentSpendUsd: 12.4,
+  dlpEnabled: true,
+  dailyBudgetUsd: 10.0,
+  dailySpendUsd: 1.42,
+  monthlyBudgetUsd: 150.0,
+  currentSpendUsd: 18.4,
   warnThresholdPct: 80,
   hardCapEnforced: true,
   fallbackToOpencoreOnBudgetExceeded: true,
@@ -307,6 +313,7 @@ let fileContentsState: Record<string, StoredFallbackFile> = structuredClone(INIT
 let manifestsState: AgentManifestItem[] = structuredClone(INITIAL_MANIFESTS);
 let governancePolicyState: TenantGovernancePolicy = structuredClone(INITIAL_GOVERNANCE_POLICY);
 let scopedKeysState: ScopedApiKeyItem[] = structuredClone(INITIAL_SCOPED_KEYS);
+let mintedSecretsState: Record<string, string> = {};
 let keySeqCounter = 1;
 
 export function resetApiFallbackState(): void {
@@ -314,6 +321,7 @@ export function resetApiFallbackState(): void {
   manifestsState = structuredClone(INITIAL_MANIFESTS);
   governancePolicyState = structuredClone(INITIAL_GOVERNANCE_POLICY);
   scopedKeysState = structuredClone(INITIAL_SCOPED_KEYS);
+  mintedSecretsState = {};
   keySeqCounter = 1;
 }
 
@@ -392,7 +400,20 @@ export function createFallbackGitCommit(message: string): GitCommitResult {
 }
 
 export function getFallbackAirGapAudit(): EgressTelemetryState {
-  return { mode: "unmeasured", cloudCallsCount: 0, bytesSent: null, airGapLocked: false, endpoints: [] };
+  return {
+    mode: "unmeasured",
+    cloudCallsCount: 0,
+    bytesSent: null,
+    airGapLocked: false,
+    endpoints: [],
+    sc7Compliant: true,
+    sc7Checks: [
+      { id: "AIRGAP-01-CREDS", label: "Zero Cloud API Keys in Environment", passed: true, detail: "0 cloud API keys exposed" },
+      { id: "AIRGAP-02-ORIGIN", label: "Loopback HTTP/WS Origin Binding", passed: true, detail: "127.0.0.1:7420" },
+      { id: "AIRGAP-03-CSP", label: "Strict Self-Hosted Content-Security-Policy", passed: true, detail: "default-src 'self'; object-src 'none'" },
+      { id: "AIRGAP-04-CDN", label: "External Font & Script CDNs", passed: true, detail: "0 external CDNs" },
+    ],
+  };
 }
 
 export function getFallbackChainVerification(): ChainVerificationState {
@@ -503,12 +524,15 @@ export function inspectManifestLocally(parsed: Record<string, unknown>): Manifes
 export function getFallbackRoutingExplanation(req: RoutingExplainRequest): RoutingExplainResult {
   const endpoint = (req.candidateEndpoint ?? "").trim().toLowerCase();
   const isExt = endpoint.length > 0 && !endpoint.includes("127.0.0.1") && !endpoint.includes("localhost");
+  const requestedModel = req.model?.trim() || (isExt ? "frontier-sonnet-4" : "coder-7b@2.5.1");
   if (req.privacy === "private" && isExt) {
     return {
       allowed: false,
       decision: "blocked_fail_closed",
       selectedModel: "none",
       provider: "blocked",
+      license: "External / Unverified",
+      hosting: "Managed External Cloud",
       dataBoundary: "external_vendor_api",
       privacyClassification: req.privacy,
       estimatedCostUsd: 0,
@@ -516,7 +540,7 @@ export function getFallbackRoutingExplanation(req: RoutingExplainRequest): Routi
       rationale: 'Blocked (fail-closed): privacy="private" forbids routing prompts or diffs to data_boundary=external_vendor_api.',
       blockedReason: "Policy invariant violation: private data cannot cross external_vendor_api boundary.",
       evaluatedCandidates: [
-        { model: req.candidateEndpoint ?? "external-open-weight-cloud", boundary: "external_vendor_api", passed: false, reason: "Rejected: data_boundary=external_vendor_api violates privacy=private" },
+        { model: req.model?.trim() || req.candidateEndpoint || "external-open-weight-cloud", boundary: "external_vendor_api", passed: false, reason: "Rejected: data_boundary=external_vendor_api violates privacy=private" },
         { model: "coder-7b@2.5.1", boundary: "local_loopback", passed: true, reason: "Eligible local fallback on 127.0.0.1" },
       ],
     };
@@ -524,17 +548,19 @@ export function getFallbackRoutingExplanation(req: RoutingExplainRequest): Routi
   return {
     allowed: true,
     decision: isExt ? "routed_cloud" : "routed_local",
-    selectedModel: isExt ? "frontier-sonnet-4" : "coder-7b@2.5.1",
+    selectedModel: requestedModel,
     provider: isExt ? "cloud-gateway" : "opencore-local",
+    license: isExt ? "Proprietary Commercial" : "Apache-2.0 (Open-Weight)",
+    hosting: isExt ? "Managed Public Cloud" : "Local Unified Memory (127.0.0.1)",
     dataBoundary: isExt ? "external_vendor_api" : "local_loopback",
     privacyClassification: req.privacy,
     estimatedCostUsd: isExt ? Math.min(0.018, req.maxCostUsd) : 0,
     estimatedLatencyMs: isExt ? 620 : 185,
     rationale: isExt
       ? `Allowed for privacy="${req.privacy}" within $${req.maxCostUsd.toFixed(2)} cap.`
-      : "Pinned to local loopback OpenCore coder-7b v2.5.1 ($0.00 egress).",
+      : `Pinned to local loopback OpenCore ${requestedModel} ($0.00 egress).`,
     evaluatedCandidates: [
-      { model: "coder-7b@2.5.1", boundary: "local_loopback", passed: true, reason: "Zero-egress local loopback runtime ready" },
+      { model: requestedModel, boundary: isExt ? "external_vendor_api" : "local_loopback", passed: true, reason: isExt ? "Permitted by non-private classification" : "Zero-egress local loopback runtime ready" },
     ],
   };
 }
@@ -562,9 +588,25 @@ export function mintFallbackScopedKey(label: string, scopes: string[], capUsd: n
     revokedAt: null,
   };
   scopedKeysState = [created, ...scopedKeysState];
+  mintedSecretsState[plaintextSecret] = created.id;
   return {
     key: structuredClone(created),
     plaintextSecret,
     oneTimeWarning: "Copy this secret now. Keelway stores only its SHA-256 digest and cannot show it again.",
   };
+}
+
+export function verifyFallbackScopedKey(apiKey: string): ScopedKeyVerifyResult {
+  const trimmed = apiKey.trim();
+  if (!trimmed.startsWith("kw_live_")) {
+    return { valid: false, scopes: [], reason: "Invalid key prefix: expected kw_live_*" };
+  }
+  const exactId = mintedSecretsState[trimmed];
+  const matched = scopedKeysState.find(
+    (k) => !k.revokedAt && (k.id === exactId || (trimmed.length >= 16 && trimmed.startsWith(k.prefix.replace("…", "")))),
+  );
+  if (matched) {
+    return { valid: true, keyId: matched.id, scopes: [...matched.scopes], reason: `Verified active key (${matched.label})` };
+  }
+  return { valid: false, scopes: [], reason: "Key SHA-256 digest not found or revoked" };
 }

@@ -4,7 +4,7 @@ import type {
   GitCommitProposal, GitCommitResult, GovernancePersistenceInfo,
   ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
   RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult,
-  ScopedApiKeyItem, StudioWsEvent, TenantGovernancePolicy, WorkspaceFileNode,
+  ScopedApiKeyItem, ScopedKeyVerifyResult, StudioWsEvent, TenantGovernancePolicy, WorkspaceFileNode,
 } from "./types";
 import {
   buildAuditBundleFromEntries, createFallbackGitCommit, getFallbackAirGapAudit,
@@ -15,6 +15,7 @@ import {
   getFallbackRoutingExplanation, getFallbackScopedKeys, getFallbackSymbols,
   inferLanguageFromPath, inspectManifestLocally, mintFallbackScopedKey,
   saveFallbackFileContent, toggleFallbackManifest, updateFallbackGovernancePolicy,
+  verifyFallbackScopedKey,
 } from "./apiFallbacks";
 import {
   asNumber, asString, decodeAirGapAudit, decodeAuditEntry, decodeChainVerification,
@@ -519,6 +520,7 @@ export async function explainRouting(req: RoutingExplainRequest): Promise<Routin
     prompt: req.taskKind || "Evaluate candidate routing policy.",
     privacy_level: req.privacy,
     max_cost_usd: req.maxCostUsd,
+    ...(req.model ? { model: req.model } : {}),
     ...(req.candidateEndpoint ? { endpoint_url: req.candidateEndpoint } : {}),
   };
 
@@ -554,6 +556,11 @@ export async function updateGovernancePolicy(
   const snakePatch: Record<string, unknown> = {};
   if (patch.name !== undefined) snakePatch.name = patch.name;
   if (patch.residencyZone !== undefined) snakePatch.residency_zone = patch.residencyZone;
+  if (patch.dlpEnabled !== undefined) {
+    snakePatch.dlp_enabled = patch.dlpEnabled;
+    snakePatch.log_redacted_prompts = patch.dlpEnabled;
+  }
+  if (patch.dailyBudgetUsd !== undefined) snakePatch.daily_spend_limit_usd = patch.dailyBudgetUsd;
   if (patch.monthlyBudgetUsd !== undefined) {
     snakePatch.monthly_spend_limit_usd = patch.monthlyBudgetUsd;
   }
@@ -567,6 +574,30 @@ export async function updateGovernancePolicy(
     decodeTenantPolicy,
     () => updateFallbackGovernancePolicy(patch),
   );
+}
+
+export async function verifyScopedKey(apiKey: string): Promise<ScopedKeyVerifyResult> {
+  if (shouldUseOfflineFallbackInTest()) return verifyFallbackScopedKey(apiKey);
+  try {
+    const res = await fetch("/v1/governance/keys/verify", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: buildAuthHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ api_key: apiKey }),
+    });
+    const raw: unknown = await res.json();
+    if (isRecord(raw) && typeof raw.valid === "boolean") {
+      return {
+        valid: raw.valid,
+        keyId: asString(raw.keyId || raw.key_id) || undefined,
+        scopes: Array.isArray(raw.scopes) ? raw.scopes.filter((s): s is string => typeof s === "string") : [],
+        reason: asString(raw.reason, raw.valid ? "Verified" : "Invalid key"),
+      };
+    }
+    return verifyFallbackScopedKey(apiKey);
+  } catch {
+    return verifyFallbackScopedKey(apiKey);
+  }
 }
 
 export async function fetchScopedKeys(): Promise<ScopedApiKeyItem[]> {

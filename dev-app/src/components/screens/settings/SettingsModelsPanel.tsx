@@ -29,6 +29,7 @@ export function SettingsModelsPanel({
   const [taskPreview, setTaskPreview] = useState(
     "Refactor Studio auth middleware and verify pytest suite.",
   );
+  const [candidateModel, setCandidateModel] = useState("coder-7b@2.5.1");
   const [privacy, setPrivacy] = useState<RoutingExplainRequest["privacy"]>("private");
   const [candidateEndpoint, setCandidateEndpoint] = useState("http://127.0.0.1:7420");
   const [maxLatencyMs, setMaxLatencyMs] = useState(500);
@@ -37,6 +38,7 @@ export function SettingsModelsPanel({
   const [explainResult, setExplainResult] = useState<RoutingExplainResult | null>(null);
 
   const taskId = useId();
+  const modelSelectId = useId();
   const privacyId = useId();
   const endpointId = useId();
   const latencyId = useId();
@@ -91,6 +93,7 @@ export function SettingsModelsPanel({
     try {
       const result = await explainRoutingFn({
         taskKind: taskPreview,
+        model: candidateModel,
         privacy,
         maxLatencyMs,
         maxCostUsd,
@@ -321,17 +324,36 @@ export function SettingsModelsPanel({
         </div>
 
         <form onSubmit={(e) => void handleExplainRoute(e)} className="space-y-3">
-          <div className="space-y-1">
-            <label htmlFor={taskId} className="block text-xs font-medium text-fg">
-              Task / Prompt preview
-            </label>
-            <input
-              id={taskId}
-              type="text"
-              value={taskPreview}
-              onChange={(e) => setTaskPreview(e.target.value)}
-              className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg"
-            />
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="md:col-span-2 space-y-1">
+              <label htmlFor={taskId} className="block text-xs font-medium text-fg">
+                Task / Prompt preview
+              </label>
+              <input
+                id={taskId}
+                type="text"
+                value={taskPreview}
+                onChange={(e) => setTaskPreview(e.target.value)}
+                className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor={modelSelectId} className="block text-xs font-medium text-fg">
+                Candidate model
+              </label>
+              <select
+                id={modelSelectId}
+                value={candidateModel}
+                onChange={(e) => setCandidateModel(e.target.value)}
+                className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2 py-1 font-mono text-xs text-fg"
+              >
+                <option value="coder-7b@2.5.1">coder-7b@2.5.1 (OpenCore)</option>
+                <option value="reasoner-14b@1.4.0">reasoner-14b@1.4.0 (OpenCore)</option>
+                <option value="llama-3.3-70b">llama-3.3-70b (Open-weight)</option>
+                <option value="frontier-sonnet-4">frontier-sonnet-4 (Frontier)</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-4">
@@ -344,13 +366,14 @@ export function SettingsModelsPanel({
                 value={privacy}
                 onChange={(e) => {
                   const v = e.target.value;
-                  if (v === "private" || v === "internal" || v === "public") {
+                  if (v === "private" || v === "standard" || v === "internal" || v === "public") {
                     setPrivacy(v);
                   }
                 }}
                 className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2 py-1 text-xs text-fg"
               >
                 <option value="private">private (loopback only)</option>
+                <option value="standard">standard (hybrid policy-gated)</option>
                 <option value="internal">internal (VPC eligible)</option>
                 <option value="public">public (cloud eligible)</option>
               </select>
@@ -447,7 +470,7 @@ export function SettingsModelsPanel({
               </code>
             </div>
 
-            <dl className="grid gap-2 rounded-xs border border-border bg-surface p-2.5 sm:grid-cols-4">
+            <dl className="grid gap-2 rounded-xs border border-border bg-surface p-2.5 sm:grid-cols-3 md:grid-cols-6">
               <div>
                 <dt className="text-[11px] text-fg-muted">Selected Model</dt>
                 <dd className="font-mono font-semibold text-fg">
@@ -455,21 +478,37 @@ export function SettingsModelsPanel({
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] text-fg-muted">Provider / Operator</dt>
+                <dt className="text-[11px] text-fg-muted">License</dt>
                 <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.provider}</code>
+                  <code dir="ltr" className="unicode-bidi-isolate">
+                    {explainResult.license ?? (explainResult.dataBoundary === "local_loopback" ? "Apache-2.0" : "Proprietary")}
+                  </code>
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] text-fg-muted">Privacy</dt>
+                <dt className="text-[11px] text-fg-muted">Hosting</dt>
                 <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.privacyClassification}</code>
+                  <code dir="ltr" className="unicode-bidi-isolate">
+                    {explainResult.hosting ?? (explainResult.dataBoundary === "local_loopback" ? "Local Unified Memory" : "Managed Cloud")}
+                  </code>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] text-fg-muted">Operator</dt>
+                <dd className="font-mono font-semibold text-fg">
+                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.provider}</code>
                 </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-fg-muted">Data Boundary</dt>
                 <dd className="font-mono font-semibold text-fg">
                   <code dir="ltr" className="unicode-bidi-isolate">{explainResult.dataBoundary}</code>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] text-fg-muted">Privacy</dt>
+                <dd className="font-mono font-semibold text-fg">
+                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.privacyClassification}</code>
                 </dd>
               </div>
             </dl>

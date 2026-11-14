@@ -427,6 +427,18 @@ export function SettingsPermissionsPanel({
                         </code>
                       </div>
                       <div className="text-[11px] text-fg-muted">{item.description}</div>
+                      {item.securityWarnings && item.securityWarnings.length > 0 ? (
+                        <ul className="mt-1 space-y-1">
+                          {item.securityWarnings.map((warn) => (
+                            <li
+                              key={warn}
+                              className="rounded-xs border border-warning bg-warning-subtle px-1.5 py-0.5 text-[11px] text-fg"
+                            >
+                              {warn}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
                     </td>
                     <td className="px-3 py-2 font-mono text-fg-muted">
                       <code dir="ltr" className="unicode-bidi-isolate">{item.schemaVersion}</code>

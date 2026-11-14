@@ -10,12 +10,14 @@ import {
   fetchScopedKeys,
   mintScopedKey,
   updateGovernancePolicy,
+  verifyScopedKey,
 } from "@/lib/api";
 import type {
   DataResidencyZone,
   GovernancePersistenceInfo,
   MintedScopedApiKeyResult,
   ScopedApiKeyItem,
+  ScopedKeyVerifyResult,
   TenantGovernancePolicy,
 } from "@/lib/types";
 
@@ -25,6 +27,7 @@ export interface SettingsGovernancePanelProps {
   updatePolicyFn?: typeof updateGovernancePolicy;
   fetchKeysFn?: typeof fetchScopedKeys;
   mintKeyFn?: typeof mintScopedKey;
+  verifyKeyFn?: typeof verifyScopedKey;
   fetchSbomFn?: typeof fetchSbom;
 }
 
@@ -32,8 +35,11 @@ const DEFAULT_POLICY: TenantGovernancePolicy = {
   tenantId: "default",
   name: "Local Sovereign Workspace",
   residencyZone: "local_only",
-  monthlyBudgetUsd: 50.0,
-  currentSpendUsd: 12.4,
+  dlpEnabled: true,
+  dailyBudgetUsd: 10.0,
+  dailySpendUsd: 1.42,
+  monthlyBudgetUsd: 150.0,
+  currentSpendUsd: 18.4,
   warnThresholdPct: 80,
   hardCapEnforced: true,
   fallbackToOpencoreOnBudgetExceeded: true,
@@ -57,13 +63,16 @@ export function SettingsGovernancePanel({
   updatePolicyFn = updateGovernancePolicy,
   fetchKeysFn = fetchScopedKeys,
   mintKeyFn = mintScopedKey,
+  verifyKeyFn = verifyScopedKey,
   fetchSbomFn = fetchSbom,
 }: SettingsGovernancePanelProps): React.JSX.Element {
   const [persistence, setPersistence] = useState<GovernancePersistenceInfo | null>(null);
   const [policy, setPolicy] = useState<TenantGovernancePolicy>(DEFAULT_POLICY);
-  const [budgetDraft, setBudgetDraft] = useState("50");
-  const [dlpRedaction, setDlpRedaction] = useState(true);
+  const [budgetDraft, setBudgetDraft] = useState("150");
   const [keys, setKeys] = useState<ScopedApiKeyItem[]>([]);
+  const [verifyTokenInput, setVerifyTokenInput] = useState("");
+  const [verifyingKey, setVerifyingKey] = useState(false);
+  const [verifyKeyResult, setVerifyKeyResult] = useState<ScopedKeyVerifyResult | null>(null);
   const [sbomInfo, setSbomInfo] = useState<{
     spdxVersion: string;
     packagesCount: number;
@@ -91,6 +100,7 @@ export function SettingsGovernancePanel({
   const keyCapId = useId();
   const savedKeyId = useId();
   const doneHelperId = useId();
+  const verifyKeyInputId = useId();
 
   const fetchPersistenceRef = useRef(fetchPersistenceFn);
   fetchPersistenceRef.current = fetchPersistenceFn;
@@ -123,6 +133,24 @@ export function SettingsGovernancePanel({
     setPolicy((prev) => ({ ...prev, residencyZone: nextZone }));
     const updated = await updatePolicyFn({ residencyZone: nextZone });
     setPolicy(updated);
+  };
+
+  const handleDlpToggle = async (checked: boolean) => {
+    setPolicy((prev) => ({ ...prev, dlpEnabled: checked }));
+    const updated = await updatePolicyFn({ dlpEnabled: checked });
+    setPolicy(updated);
+  };
+
+  const handleVerifyKey = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!verifyTokenInput.trim()) return;
+    setVerifyingKey(true);
+    try {
+      const res = await verifyKeyFn(verifyTokenInput.trim());
+      setVerifyKeyResult(res);
+    } finally {
+      setVerifyingKey(false);
+    }
   };
 
   const handleBudgetUpdate = async (event: React.FormEvent) => {
@@ -192,6 +220,9 @@ export function SettingsGovernancePanel({
     setCopiedSecret(true);
   };
 
+  const dailySpend = policy.dailySpendUsd ?? 1.42;
+  const dailyBudget = policy.dailyBudgetUsd ?? 10.0;
+  const dailyPct = dailyBudget > 0 ? Math.min(100, Math.round((dailySpend / dailyBudget) * 100)) : 100;
   const spendPct =
     policy.monthlyBudgetUsd > 0
       ? Math.min(100, Math.round((policy.currentSpendUsd / policy.monthlyBudgetUsd) * 100))
@@ -218,7 +249,7 @@ export function SettingsGovernancePanel({
           {persistence?.healthy !== false ? (
             <SemanticBadge kind="passed" labelOverride="SQLite WAL Crash-Safe" />
           ) : (
-            <SemanticBadge kind="failed" labelOverride="Persistence degraded" />
+            <SemanticBadge kind="reconfirm" labelOverride="Ephemeral memory · not WAL" />
           )}
           <span className="font-mono text-fg">
             {`${persistence?.engine ?? "SQLite 3"} · journal=${persistence?.journalMode ?? "WAL"} · sync=${persistence?.synchronous ?? "NORMAL"}`}
@@ -286,8 +317,8 @@ export function SettingsGovernancePanel({
             <input
               id={dlpCheckboxId}
               type="checkbox"
-              checked={dlpRedaction}
-              onChange={(e) => setDlpRedaction(e.target.checked)}
+              checked={policy.dlpEnabled ?? true}
+              onChange={(e) => void handleDlpToggle(e.target.checked)}
               className="h-4 w-4 accent-teal-accent"
             />
             <label htmlFor={dlpCheckboxId} className="text-xs text-fg">
@@ -302,38 +333,62 @@ export function SettingsGovernancePanel({
         aria-label="USD spend caps and OpenCore fallback"
         className="space-y-4 rounded-md border border-border-strong bg-surface p-4"
       >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
-              USD Spend Caps &amp; OpenCore Fallback
-            </h3>
-            <p className="mt-0.5 text-xs text-fg-muted">
-              Hard budget ceiling with zero-downtime fallback to{" "}
-              <code dir="ltr" className="unicode-bidi-isolate font-mono text-fg">
-                {policy.fallbackModelId}
-              </code>{" "}
-              ($0.00/tok local loopback).
-            </p>
-          </div>
-          <span className="font-mono text-xs font-semibold tabular-nums text-fg">
-            {`$${policy.currentSpendUsd.toFixed(2)} / $${policy.monthlyBudgetUsd.toFixed(2)}`}
-          </span>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+            USD Spend Caps &amp; OpenCore Fallback
+          </h3>
+          <p className="mt-0.5 text-xs text-fg-muted">
+            Hard budget ceiling with zero-downtime fallback to{" "}
+            <code dir="ltr" className="unicode-bidi-isolate font-mono text-fg">
+              {policy.fallbackModelId}
+            </code>{" "}
+            ($0.00/tok local loopback).
+          </p>
         </div>
 
-        <div
-          role="progressbar"
-          aria-label="Monthly USD spend"
-          aria-valuenow={Number(policy.currentSpendUsd.toFixed(2))}
-          aria-valuemin={0}
-          aria-valuemax={Math.max(1, policy.monthlyBudgetUsd)}
-          className="h-2.5 w-full overflow-hidden rounded-xs border border-border bg-chrome"
-        >
-          <div
-            className={`h-full transition-all ${
-              isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-teal-accent"
-            }`}
-            style={{ width: `${spendPct}%` }}
-          />
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-medium text-fg">Daily USD Spend</span>
+              <span className="font-mono font-semibold tabular-nums text-fg">
+                {`$${dailySpend.toFixed(2)} / $${dailyBudget.toFixed(2)}`}
+              </span>
+            </div>
+            <div
+              role="progressbar"
+              aria-label="Daily USD spend"
+              aria-valuenow={Number(dailySpend.toFixed(2))}
+              aria-valuemin={0}
+              aria-valuemax={Math.max(1, dailyBudget)}
+              className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
+            >
+              <div className="h-full bg-teal-accent transition-all" style={{ width: `${dailyPct}%` }} />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-medium text-fg">Monthly USD Spend</span>
+              <span className="font-mono font-semibold tabular-nums text-fg">
+                {`$${policy.currentSpendUsd.toFixed(2)} / $${policy.monthlyBudgetUsd.toFixed(2)}`}
+              </span>
+            </div>
+            <div
+              role="progressbar"
+              aria-label="Monthly USD spend"
+              aria-valuenow={Number(policy.currentSpendUsd.toFixed(2))}
+              aria-valuemin={0}
+              aria-valuemax={Math.max(1, policy.monthlyBudgetUsd)}
+              className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
+            >
+              <div
+                className={`h-full transition-all ${
+                  isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-teal-accent"
+                }`}
+                style={{ width: `${spendPct}%` }}
+              />
+            </div>
+          </div>
         </div>
 
         <form onSubmit={(e) => void handleBudgetUpdate(e)} className="flex flex-wrap items-end gap-2.5">
@@ -448,6 +503,38 @@ export function SettingsGovernancePanel({
             </tbody>
           </table>
         </div>
+
+        <form onSubmit={(e) => void handleVerifyKey(e)} className="space-y-2 rounded-sm border border-border bg-canvas p-3 text-xs">
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="min-w-48 flex-1 space-y-1">
+              <label htmlFor={verifyKeyInputId} className="block font-medium text-fg">
+                Verify scoped key (<code dir="ltr" className="unicode-bidi-isolate font-mono">POST /v1/governance/keys/verify</code>)
+              </label>
+              <input
+                id={verifyKeyInputId}
+                type="password"
+                dir="ltr"
+                value={verifyTokenInput}
+                onChange={(e) => setVerifyTokenInput(e.target.value)}
+                placeholder="kw_live_…"
+                className="unicode-bidi-isolate min-h-ctrl-sm w-full rounded-xs border border-border-control bg-surface px-2.5 py-1 font-mono text-xs text-fg"
+              />
+            </div>
+            <Button type="submit" size="sm" variant="secondary" loading={verifyingKey}>
+              Verify key
+            </Button>
+          </div>
+          {verifyKeyResult ? (
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+              {verifyKeyResult.valid ? (
+                <SemanticBadge kind="passed" labelOverride="Key valid" />
+              ) : (
+                <SemanticBadge kind="failed" labelOverride="Key rejected" />
+              )}
+              <span className="text-fg-muted">{verifyKeyResult.reason}</span>
+            </div>
+          ) : null}
+        </form>
       </section>
 
       {/* One-Time Key Reveal Radix Modal */}

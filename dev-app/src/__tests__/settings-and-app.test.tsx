@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -60,6 +61,7 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
 
     const manifestTable = await screen.findByRole("table", { name: /Agent manifest registry/i });
     expect(within(manifestTable).getByText("test-fixer@1.2.0")).toBeInTheDocument();
+    expect(within(manifestTable).getByText(/Static guard: write\/exec tools gated by workspace Seatbelt scope/i)).toBeInTheDocument();
     expect(within(manifestTable).getAllByText("keelway.agent/v1").length).toBeGreaterThan(0);
     expect(within(manifestTable).getAllByText("Verified").length).toBeGreaterThan(0);
 
@@ -125,18 +127,29 @@ describe("Screen 09 — SettingsModelsPanel (Models & 4D Hybrid Routing)", () =>
     // Switch active model to reasoner-14b -> standing Allow always rules must require re-confirmation
     await user.click(within(weightsTable).getByRole("button", { name: /Set active reasoner-14b/i }));
 
-    // Dry-run 4D Routing: 1) default local loopback -> Routed local
+    // Dry-run 4D Routing: 1) select candidate model + local loopback -> Routed local with 4D tuple
+    const modelSelect = screen.getByLabelText(/Candidate model/i);
+    await user.selectOptions(modelSelect, "reasoner-14b@1.4.0");
     await user.click(screen.getByRole("button", { name: /Explain 4D route \(\$0\.00 · 0 tokens\)/i }));
     const routeReceipt = await screen.findByTestId("routing-explain-receipt");
     expect(within(routeReceipt).getByText("Routed local")).toBeInTheDocument();
+    expect(within(routeReceipt).getByText("License")).toBeInTheDocument();
+    expect(within(routeReceipt).getByText("Hosting")).toBeInTheDocument();
+    expect(within(routeReceipt).getByText("Operator")).toBeInTheDocument();
+    expect(within(routeReceipt).getByText("Data Boundary")).toBeInTheDocument();
     expect(within(routeReceipt).getAllByText("local_loopback").length).toBeGreaterThan(0);
 
-    // Dry-run 4D Routing: 2) privacy="private" + external cloud endpoint -> Blocked · fail-closed
+    // Dry-run 4D Routing: 2) privacy="standard" + external cloud endpoint -> Routed cloud
     const privacySelect = screen.getByLabelText(/Privacy classification/i);
-    await user.selectOptions(privacySelect, "private");
+    await user.selectOptions(privacySelect, "standard");
     const endpointInput = screen.getByLabelText(/Candidate endpoint/i);
     await user.clear(endpointInput);
     await user.type(endpointInput, "https://api.external-vendor.example/v1");
+    await user.click(screen.getByRole("button", { name: /Explain 4D route \(\$0\.00 · 0 tokens\)/i }));
+    expect(await within(routeReceipt).findByText("Routed cloud")).toBeInTheDocument();
+
+    // Dry-run 4D Routing: 3) privacy="private" + external cloud endpoint -> Blocked · fail-closed
+    await user.selectOptions(privacySelect, "private");
     await user.click(screen.getByRole("button", { name: /Explain 4D route \(\$0\.00 · 0 tokens\)/i }));
 
     const blockedAlert = await screen.findByRole("alert");
@@ -153,7 +166,7 @@ describe("Screen 09 — SettingsModelsPanel (Models & 4D Hybrid Routing)", () =>
 describe("Screen 10 — SettingsGovernancePanel (Governance, Tenant Keys & Spend Caps)", () => {
   it("renders SQLite WAL strip, updates residency & OpenCore fallback policy, and enforces one-time kw_live_* key save gate", async () => {
     const user = userEvent.setup();
-    render(<SettingsWorkspace defaultSubSection="governance" />);
+    const initialRender = render(<SettingsWorkspace defaultSubSection="governance" />);
 
     expect(await screen.findByText("SQLite WAL Crash-Safe")).toBeInTheDocument();
     expect(screen.getByText(".keelway/governance.db")).toBeInTheDocument();
@@ -164,9 +177,17 @@ describe("Screen 10 — SettingsGovernancePanel (Governance, Tenant Keys & Spend
     await user.selectOptions(residencySelect, "africa_sovereign");
     await waitFor(() => expect(residencySelect).toHaveValue("africa_sovereign"));
 
-    // USD spend meter + OpenCore fallback target keelway-core:7b + SBOM inspection
+    // Daily ($1.42 / $10.00) and Monthly ($18.40 / $150.00) USD spend meters + DLP toggle + OpenCore fallback + SBOM
+    expect(screen.getByRole("progressbar", { name: /Daily USD spend/i })).toBeInTheDocument();
+    expect(screen.getByText("$1.42 / $10.00")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: /Monthly USD spend/i })).toBeInTheDocument();
+    expect(screen.getByText("$18.40 / $150.00")).toBeInTheDocument();
     expect(screen.getByText("keelway-core:7b")).toBeInTheDocument();
+
+    const dlpCheckbox = screen.getByRole("checkbox", { name: /Redact secrets & PII before external egress/i });
+    expect(dlpCheckbox).toBeChecked();
+    await user.click(dlpCheckbox);
+    await waitFor(() => expect(dlpCheckbox).not.toBeChecked());
     const fallbackCheckbox = screen.getByRole("checkbox", {
       name: /Auto-fallback to local OpenCore when budget exceeded/i,
     });
@@ -186,7 +207,8 @@ describe("Screen 10 — SettingsGovernancePanel (Governance, Tenant Keys & Spend
     await user.click(within(dialog).getByRole("button", { name: /Generate scoped key/i }));
 
     const secretCode = await within(dialog).findByTestId("minted-plaintext-secret");
-    expect(secretCode.textContent).toMatch(/^kw_live_/);
+    const mintedToken = secretCode.textContent ?? "";
+    expect(mintedToken).toMatch(/^kw_live_/);
     expect(
       within(dialog).getByText(/Keelway stores only its SHA-256 digest and cannot show it again/i),
     ).toBeInTheDocument();
@@ -208,22 +230,46 @@ describe("Screen 10 — SettingsGovernancePanel (Governance, Tenant Keys & Spend
     await user.click(doneBtn);
     await waitFor(() => expect(screen.queryByRole("dialog", { name: /Mint scoped key/i })).toBeNull());
 
-    // Prefix-only table now lists ci-audit-bot without plaintext secret
+    // Prefix-only table now lists ci-audit-bot without plaintext secret + inline Verify key check
     const keysTable = screen.getByRole("table", { name: /Scoped tenant API keys/i });
     expect(within(keysTable).getByText("ci-audit-bot")).toBeInTheDocument();
+
+    const verifyInput = screen.getByLabelText(/Verify scoped key/i);
+    await user.type(verifyInput, mintedToken);
+    await user.click(screen.getByRole("button", { name: /^Verify key$/i }));
+    expect(await screen.findByText("Key valid")).toBeInTheDocument();
+    initialRender.unmount();
+
+    // Ephemeral non-WAL warning badge when persistence.healthy === false
+    render(
+      <SettingsWorkspace
+        defaultSubSection="governance"
+        fetchPersistenceFn={async () => ({
+          engine: "In-Memory",
+          journalMode: "MEMORY",
+          synchronous: "OFF",
+          dbPath: ":memory:",
+          walBytes: 0,
+          foreignKeys: true,
+          healthy: false,
+        })}
+      />,
+    );
+    expect(await screen.findByText("Ephemeral memory · not WAL")).toBeInTheDocument();
   });
 });
 
 describe("Screen 11 — SettingsSystemPanels (Network, Appearance, Labs, General & Keyboard)", () => {
   it("renders Orla's exact copy, guards Alt+A Air-Gap shortcut when typing in inputs, updates theme/density/RTL, and upgrades Labs from Simulated to Live", async () => {
     const user = userEvent.setup();
-    render(<SettingsWorkspace defaultSubSection="network" />);
+    const initialRender = render(<SettingsWorkspace defaultSubSection="network" />);
 
     expect(
       await screen.findByText("Set to keep your use on this machine. Network use isn't measured yet."),
     ).toBeInTheDocument();
     expect(screen.getByText("No counter yet")).toBeInTheDocument();
     expect((await screen.findAllByText(/NIST SP 800-53 SC-7/i)).length).toBeGreaterThan(0);
+    expect(await screen.findByText("SC-7 Verified")).toBeInTheDocument();
     expect(screen.getByText("127.0.0.1:7420")).toBeInTheDocument();
 
     const airGapBtn = screen.getByRole("button", { name: /Air-Gap Lock/i });
@@ -260,6 +306,8 @@ describe("Screen 11 — SettingsSystemPanels (Network, Appearance, Labs, General
     const reduceMotionBox = screen.getByRole("checkbox", { name: /Reduce motion/i });
     await user.click(reduceMotionBox);
     expect(document.documentElement.getAttribute("data-reduce-motion")).toBe("true");
+    const tokensCss = readFileSync("src/styles/tokens.css", "utf8");
+    expect(tokensCss).toContain('[data-reduce-motion="true"]');
 
     // Labs 6-card workbench upgrades Model benchmark & Agent swarm from Simulated (hatched + dashed) to Live (solid)
     await user.click(within(nav).getByRole("button", { name: /^Labs$/i }));
@@ -283,6 +331,27 @@ describe("Screen 11 — SettingsSystemPanels (Network, Appearance, Labs, General
 
     await user.click(within(nav).getByRole("button", { name: /Keyboard Shortcuts/i }));
     expect(screen.getByRole("table", { name: /Keyboard shortcuts reference/i })).toBeInTheDocument();
+    initialRender.unmount();
+
+    // Honest SC-7 audit drift badge when fetchAirGapAuditFn reports sc7Compliant === false
+    render(
+      <SettingsWorkspace
+        defaultSubSection="network"
+        fetchAirGapAuditFn={async () => ({
+          mode: "connected_warning",
+          cloudCallsCount: 1,
+          bytesSent: null,
+          airGapLocked: false,
+          endpoints: [],
+          sc7Compliant: false,
+          sc7Checks: [
+            { id: "AIRGAP-01-CREDS", label: "Zero Cloud API Keys in Environment", passed: false, detail: "OPENAI_API_KEY exposed" },
+          ],
+        })}
+      />,
+    );
+    expect(await screen.findByText("SC-7 Drift · cloud active")).toBeInTheDocument();
+    expect(screen.getByText("OPENAI_API_KEY exposed")).toBeInTheDocument();
   });
 });
 
@@ -409,6 +478,18 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
 
       unmount();
       expect(closeSpy).toHaveBeenCalledTimes(1);
+
+      // Mobile Companion (?companion=1): tapping "Status" renders SettingsSubNav so all 8 sections remain reachable
+      window.history.replaceState({}, "", "/app/?token=ws-tok&companion=1");
+      const companionRender = render(<App />);
+      const companionBar = screen.getByRole("navigation", { name: /Companion navigation/i });
+      await user.click(within(companionBar).getByRole("button", { name: /^Status$/i }));
+      const mobileSettingsNav = await screen.findByRole("navigation", { name: /Settings sections/i });
+      await user.click(within(mobileSettingsNav).getByRole("button", { name: /Network & Egress/i }));
+      expect(
+        await screen.findByText("Set to keep your use on this machine. Network use isn't measured yet."),
+      ).toBeInTheDocument();
+      companionRender.unmount();
     } finally {
       vi.unstubAllGlobals();
     }

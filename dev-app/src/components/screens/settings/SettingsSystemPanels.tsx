@@ -121,17 +121,22 @@ export function SettingsNetworkPanel({
   fetchAirGapAuditFn = fetchAirGapAudit,
 }: SettingsNetworkPanelProps): React.JSX.Element {
   const [audit, setAudit] = useState<EgressTelemetryState | null>(null);
+  const [auditLoading, setAuditLoading] = useState(true);
   const fetchAuditRef = useRef(fetchAirGapAuditFn);
   fetchAuditRef.current = fetchAirGapAuditFn;
 
   useEffect(() => {
     let cancelled = false;
+    setAuditLoading(true);
     fetchAuditRef
       .current()
       .then((res) => {
         if (!cancelled) setAudit(res);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setAuditLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -185,26 +190,46 @@ export function SettingsNetworkPanel({
           <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
             NIST SP 800-53 SC-7 Boundary Protection Audit (<code dir="ltr" className="unicode-bidi-isolate font-mono">/v1/airgap/audit</code>)
           </h3>
-          <SemanticBadge kind="passed" labelOverride="SC-7 Verified" />
+          {auditLoading || audit === null ? (
+            <SemanticBadge kind="ready" labelOverride="Checking SC-7…" />
+          ) : audit.sc7Compliant === false ? (
+            <SemanticBadge kind="reconfirm" labelOverride="SC-7 Drift · cloud active" />
+          ) : (
+            <SemanticBadge kind="passed" labelOverride="SC-7 Verified" />
+          )}
         </div>
 
         <ul className="divide-y divide-border rounded-sm border border-border bg-canvas text-xs">
-          <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-            <span className="text-fg">Loopback HTTP/WS origin binding</span>
-            <code dir="ltr" className="unicode-bidi-isolate font-mono text-teal-accent">
-              127.0.0.1:7420
-            </code>
-          </li>
-          <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-            <span className="text-fg">Content-Security-Policy (strict self-hosted assets)</span>
-            <code dir="ltr" className="unicode-bidi-isolate font-mono text-fg-muted">
-              {"default-src 'self'; object-src 'none'"}
-            </code>
-          </li>
-          <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-            <span className="text-fg">External font / script CDNs</span>
-            <span className="font-mono text-ok">0 external CDNs</span>
-          </li>
+          {audit === null ? (
+            <li className="px-3 py-2 font-mono text-fg-muted">
+              Auditing loopback socket &amp; environment boundary…
+            </li>
+          ) : audit.sc7Checks && audit.sc7Checks.length > 0 ? (
+            audit.sc7Checks.map((chk) => (
+              <li key={chk.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                <span className="text-fg">{chk.label}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {chk.detail ? (
+                    <code dir="ltr" className="unicode-bidi-isolate font-mono text-fg-muted">
+                      {chk.detail}
+                    </code>
+                  ) : null}
+                  {chk.passed ? (
+                    <SemanticBadge kind="passed" labelOverride="Pass" />
+                  ) : (
+                    <SemanticBadge kind="reconfirm" labelOverride="Drift" />
+                  )}
+                </div>
+              </li>
+            ))
+          ) : (
+            <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+              <span className="text-fg">Loopback HTTP/WS origin binding</span>
+              <code dir="ltr" className="unicode-bidi-isolate font-mono text-teal-accent">
+                127.0.0.1:7420
+              </code>
+            </li>
+          )}
           <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
             <span className="text-fg">Recorded session cloud endpoints</span>
             <span className="font-mono tabular-nums text-fg-muted">

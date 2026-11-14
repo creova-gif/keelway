@@ -50,6 +50,8 @@ export interface EgressTelemetryState {
   airGapLocked: boolean;
   endpoints: EgressEndpointSummary[];
   lastCheckedAt?: string;
+  sc7Compliant?: boolean;
+  sc7Checks?: Array<{ id: string; label: string; passed: boolean; detail?: string }>;
 }
 
 /* ==========================================================================
@@ -309,6 +311,7 @@ export interface AgentManifestItem {
   networkAllowed: boolean;
   maxTier: 1 | 2 | 3;
   signatureStatus: "verified" | "unsigned" | "invalid";
+  securityWarnings?: string[];
   rawJson?: string;
 }
 
@@ -339,7 +342,8 @@ export interface OpenCoreWeightItem {
 
 export interface RoutingExplainRequest {
   taskKind: string;
-  privacy: "private" | "internal" | "public";
+  model?: string;
+  privacy: "private" | "standard" | "internal" | "public";
   maxLatencyMs: number;
   maxCostUsd: number;
   candidateEndpoint?: string;
@@ -351,8 +355,10 @@ export interface RoutingExplainResult {
   decision: "routed_local" | "routed_cloud" | "blocked_fail_closed";
   selectedModel: string;
   provider: string;
+  license?: string;
+  hosting?: string;
   dataBoundary: "local_loopback" | "sovereign_vpc" | "external_vendor_api";
-  privacyClassification: "private" | "internal" | "public";
+  privacyClassification: "private" | "standard" | "internal" | "public";
   estimatedCostUsd: number;
   estimatedLatencyMs: number;
   rationale: string;
@@ -385,6 +391,9 @@ export interface TenantGovernancePolicy {
   tenantId: string;
   name: string;
   residencyZone: DataResidencyZone;
+  dlpEnabled?: boolean;
+  dailyBudgetUsd?: number;
+  dailySpendUsd?: number;
   monthlyBudgetUsd: number;
   currentSpendUsd: number;
   warnThresholdPct: number;
@@ -393,6 +402,13 @@ export interface TenantGovernancePolicy {
   fallbackModelId: string;
   requireHumanApprovalForNetwork: boolean;
   updatedAt: string;
+}
+
+export interface ScopedKeyVerifyResult {
+  valid: boolean;
+  keyId?: string;
+  scopes: string[];
+  reason: string;
 }
 
 export interface ScopedApiKeyItem {
