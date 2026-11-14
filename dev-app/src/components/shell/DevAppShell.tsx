@@ -712,7 +712,12 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
           ) : null}
           {activeModelLabel ? (
             <span className="truncate font-mono text-fg-muted">
-              Local · <code dir="ltr" className="unicode-bidi-isolate">{activeModelLabel}</code>
+              {/^(local|cloud)\b/i.test(activeModelLabel)
+                ? ""
+                : egress.mode === "connected_warning" || offlineSetting === false
+                  ? "Model · "
+                  : "Local · "}
+              <code dir="ltr" className="unicode-bidi-isolate">{activeModelLabel}</code>
             </span>
           ) : null}
           {typeof recordSeqLatest === "number" ? (

@@ -349,6 +349,7 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       <DevAppShell
         activeSection="tasks"
         onSelectSection={() => {}}
+        activeModelLabel="frontier-sonnet-4"
         onSwitchToLocalModel={onSwitchToLocalModel}
         onGoOffline={onGoOffline}
         egress={{
@@ -372,6 +373,8 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
     );
 
     expect(bar).toHaveTextContent("Connected");
+    expect(bar).toHaveTextContent("Model · frontier-sonnet-4");
+    expect(bar).not.toHaveTextContent("Local · frontier-sonnet-4");
     expect(bar).toHaveTextContent("Cloud used (2)");
     expect(bar).toHaveTextContent("14.0 KB sent");
     expect(bar).toHaveTextContent("Live");
@@ -489,12 +492,15 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
   it("renders 2-Step OnboardingModal with Honest Defaults (Step 1) and Workspace + System Doctor checks (Step 2)", async () => {
     const user = userEvent.setup();
     const onComplete = vi.fn();
-    const openWorkspaceSpy = vi.fn().mockResolvedValue({
-      ok: true,
-      path: "/Users/dev/keelway",
-      branch: "feat/unified-dev-app",
-      filesCount: 64,
-    });
+    const openWorkspaceSpy = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Directory does not exist"))
+      .mockResolvedValueOnce({
+        ok: true,
+        path: "/Users/dev/keelway",
+        branch: "feat/unified-dev-app",
+        filesCount: 64,
+      });
 
     const initialChecks: DoctorCheckItem[] = [
       {
@@ -580,8 +586,13 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       within(dialog).getByText(/Remove stale `\.keelway\/audit\.db-shm`/i),
     ).toBeInTheDocument();
 
-    // Open workspace
+    // Open workspace (handles rejected promise cleanly, then succeeds on retry)
     const wsInput = within(dialog).getByLabelText(/Workspace/i);
+    await user.clear(wsInput);
+    await user.type(wsInput, "/Users/dev/missing-repo");
+    await user.click(within(dialog).getByRole("button", { name: "Open workspace" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Directory does not exist");
+
     await user.clear(wsInput);
     await user.type(wsInput, "/Users/dev/keelway-repo");
     await user.click(within(dialog).getByRole("button", { name: "Open workspace" }));
@@ -648,84 +659,106 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       window.matchMedia = originalMatchMedia;
     }
 
-    // Composed DevAppShell + CommandPalette: single Cmd+K opens palette cleanly without double-toggling
-    function ComposedShellAndPalette(): React.JSX.Element {
+    // Composed DevAppShell + CommandPalette: single Cmd+K opens palette cleanly, resets controlled query on reopen, and ignores Cmd+K while OnboardingModal is open
+    const user = userEvent.setup();
+    function ComposedShellAndPalette({ onboardingOpen = false }: { onboardingOpen?: boolean }): React.JSX.Element {
       const [paletteOpen, setPaletteOpen] = React.useState(false);
       return (
-        <DevAppShell
-          activeSection="tasks"
-          onSelectSection={() => {}}
-          onOpenCommandPalette={() => setPaletteOpen((prev) => !prev)}
-        >
-          <div>Composed workspace</div>
-          <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
-        </DevAppShell>
-      );
-    }
-
-    render(<ComposedShellAndPalette />);
-    fireEvent.keyDown(window, { key: "k", metaKey: true });
-    expect(await screen.findByRole("dialog", { name: /Command palette/i })).toBeInTheDocument();
-  });
-
-  it("passes WCAG 2.2 AA axe-core checks across DevAppShell, open CommandPalette, and OnboardingModal in Dark, Light, and RTL modes", async () => {
-    for (const theme of ["dark", "light"] as const) {
-      for (const dir of ["ltr", "rtl"] as const) {
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.setAttribute("dir", dir);
-
-        // 1. DevAppShell with Review + Logs drawers open
-        const shellRender = render(
+        <React.StrictMode>
           <DevAppShell
             activeSection="tasks"
             onSelectSection={() => {}}
-            tasks={SAMPLE_TASKS}
-            pendingApprovalCount={2}
-            reviewDrawerOpen={true}
-            reviewDrawerContent={<div>Contextual diff review</div>}
-            logsDrawerOpen={true}
-            workspaceBranch="feat/unified-dev-app"
-            activeModelLabel="coder-7b v2.5.1"
+            onOpenCommandPalette={() => setPaletteOpen((prev) => !prev)}
           >
-            <section aria-label="Task stream">
-              <h1>Update CSP headers</h1>
-              <p>Awaiting human review.</p>
-            </section>
-          </DevAppShell>,
-        );
-        expect(await runAxe(shellRender.container)).toHaveNoViolations();
-        shellRender.unmount();
-
-        // 2. Open CommandPalette
-        const paletteRender = render(
-          <CommandPalette
-            open={true}
-            onOpenChange={() => {}}
-            tasks={SAMPLE_TASKS}
-            files={SAMPLE_FILES}
-            symbols={SAMPLE_SYMBOLS}
-          />,
-        );
-        expect(await runAxe(document.body)).toHaveNoViolations();
-        paletteRender.unmount();
-
-        // 3. Open OnboardingModal (Step 1 & Step 2)
-        const onboardingStep1 = render(
-          <OnboardingModal open={true} initialStep={1} onComplete={() => {}} />,
-        );
-        expect(await runAxe(document.body)).toHaveNoViolations();
-        onboardingStep1.unmount();
-
-        const onboardingStep2 = render(
-          <OnboardingModal open={true} initialStep={2} onComplete={() => {}} />,
-        );
-        await screen.findByText(/OS Sandbox Isolation/i);
-        expect(await runAxe(document.body)).toHaveNoViolations();
-        onboardingStep2.unmount();
-      }
+            <div>Composed workspace</div>
+            <button type="button" onClick={() => setPaletteOpen(true)}>Open controlled palette</button>
+            <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} files={[{ path: "docs/my guide.md", name: "my guide.md", type: "file" }]} />
+            <OnboardingModal open={onboardingOpen} initialStep={2} onComplete={() => {}} />
+          </DevAppShell>
+        </React.StrictMode>
+      );
     }
 
-    document.documentElement.setAttribute("dir", "ltr");
-    document.documentElement.setAttribute("data-theme", "dark");
+    const composed = render(<ComposedShellAndPalette onboardingOpen={false} />);
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    const paletteDlg = await screen.findByRole("dialog", { name: /Command palette/i });
+    const combo = within(paletteDlg).getByRole("combobox");
+    expect(combo.getAttribute("aria-activedescendant") ?? "").not.toMatch(/\s/);
+    await user.type(combo, "my guide");
+    expect(combo).toHaveValue("my guide");
+    await user.keyboard("{Escape}");
+
+    // Controlled reopen via parent state resets query to empty
+    await user.click(screen.getByRole("button", { name: "Open controlled palette" }));
+    const reopenedDlg = await screen.findByRole("dialog", { name: /Command palette/i });
+    expect(within(reopenedDlg).getByRole("combobox")).toHaveValue("");
+    await user.keyboard("{Escape}");
+
+    // StrictMode Step 2 OnboardingModal loads doctor checks cleanly AND blocks Cmd+K dialog stacking
+    composed.rerender(<ComposedShellAndPalette onboardingOpen={true} />);
+    expect(await screen.findByText(/OS Sandbox Isolation/i)).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    expect(screen.queryByRole("dialog", { name: /Command palette/i })).toBeNull();
+    composed.unmount();
+  });
+
+  it("passes WCAG 2.2 AA axe-core checks across DevAppShell, open CommandPalette, and OnboardingModal in Dark, Light, and RTL modes", async () => {
+    try {
+      for (const theme of ["dark", "light"] as const) {
+        for (const dir of ["ltr", "rtl"] as const) {
+          document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.setAttribute("dir", dir);
+
+          const shellRender = render(
+            <DevAppShell
+              activeSection="tasks"
+              onSelectSection={() => {}}
+              tasks={SAMPLE_TASKS}
+              pendingApprovalCount={2}
+              reviewDrawerOpen={true}
+              reviewDrawerContent={<div>Contextual diff review</div>}
+              logsDrawerOpen={true}
+              workspaceBranch="feat/unified-dev-app"
+              activeModelLabel="coder-7b v2.5.1"
+            >
+              <section aria-label="Task stream">
+                <h1>Update CSP headers</h1>
+                <p>Awaiting human review.</p>
+              </section>
+            </DevAppShell>,
+          );
+          expect(await runAxe(shellRender.container)).toHaveNoViolations();
+          shellRender.unmount();
+
+          const paletteRender = render(
+            <CommandPalette
+              open={true}
+              onOpenChange={() => {}}
+              tasks={SAMPLE_TASKS}
+              files={SAMPLE_FILES}
+              symbols={SAMPLE_SYMBOLS}
+            />,
+          );
+          expect(await runAxe(document.body)).toHaveNoViolations();
+          paletteRender.unmount();
+
+          const onboardingStep1 = render(
+            <OnboardingModal open={true} initialStep={1} onComplete={() => {}} />,
+          );
+          expect(await runAxe(document.body)).toHaveNoViolations();
+          onboardingStep1.unmount();
+
+          const onboardingStep2 = render(
+            <OnboardingModal open={true} initialStep={2} onComplete={() => {}} />,
+          );
+          await screen.findByText(/OS Sandbox Isolation/i);
+          expect(await runAxe(document.body)).toHaveNoViolations();
+          onboardingStep2.unmount();
+        }
+      }
+    } finally {
+      document.documentElement.setAttribute("dir", "ltr");
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
   });
 });

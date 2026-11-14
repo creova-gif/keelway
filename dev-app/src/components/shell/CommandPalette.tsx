@@ -220,11 +220,20 @@ export function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const wasOpenRef = useRef(false);
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
   const descId = `${baseId}-desc`;
 
   const isOpen = controlledOpen ?? uncontrolledOpen;
+
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      setQuery(initialQuery);
+      setSelectedIndex(0);
+    }
+    wasOpenRef.current = isOpen;
+  }, [initialQuery, isOpen]);
 
   const setOpen = useCallback(
     (next: boolean) => {
@@ -246,6 +255,7 @@ export function CommandPalette({
     }
     const handleGlobalKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
+      if (!isOpen && document.querySelector('[role="dialog"]')) return;
       if (
         (event.metaKey || event.ctrlKey) &&
         !event.shiftKey &&
@@ -452,8 +462,14 @@ export function CommandPalette({
 
   const activeOptionId =
     clampedIndex >= 0 && flatEntries[clampedIndex]
-      ? `${baseId}-opt-${flatEntries[clampedIndex].key}`
+      ? `${baseId}-opt-${clampedIndex}`
       : undefined;
+
+  useEffect(() => {
+    if (isOpen && activeOptionId) {
+      document.getElementById(activeOptionId)?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [activeOptionId, isOpen]);
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown") {
@@ -571,7 +587,7 @@ export function CommandPalette({
                   {group.items.map((entry) => {
                     const idx = entryIndexMap.get(entry.key) ?? -1;
                     const isSelected = idx === clampedIndex;
-                    const optionId = `${baseId}-opt-${entry.key}`;
+                    const optionId = `${baseId}-opt-${idx}`;
                     return (
                       <div
                         key={entry.key}

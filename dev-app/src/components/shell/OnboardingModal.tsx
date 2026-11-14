@@ -40,7 +40,9 @@ export function OnboardingModal({
   } | null>(null);
   const [doctorChecks, setDoctorChecks] = useState<DoctorCheckItem[]>([]);
   const [doctorLoading, setDoctorLoading] = useState(false);
+  const [doctorError, setDoctorError] = useState<string | null>(null);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
 
   const hasAutoLoadedDoctorRef = useRef(false);
   const baseId = useId();
@@ -57,9 +59,12 @@ export function OnboardingModal({
 
   const runDoctor = useCallback(async () => {
     setDoctorLoading(true);
+    setDoctorError(null);
     try {
       const checks = await fetchDoctorFn();
       setDoctorChecks(checks);
+    } catch (err) {
+      setDoctorError(err instanceof Error ? err.message : "System doctor check failed.");
     } finally {
       setDoctorLoading(false);
     }
@@ -69,13 +74,19 @@ export function OnboardingModal({
     if (!open || step !== 2 || hasAutoLoadedDoctorRef.current) {
       return;
     }
-    hasAutoLoadedDoctorRef.current = true;
     let cancelled = false;
     setDoctorLoading(true);
+    setDoctorError(null);
     fetchDoctorFn()
       .then((checks) => {
         if (!cancelled) {
+          hasAutoLoadedDoctorRef.current = true;
           setDoctorChecks(checks);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setDoctorError(err instanceof Error ? err.message : "System doctor check failed.");
         }
       })
       .finally(() => {
@@ -95,6 +106,7 @@ export function OnboardingModal({
       return;
     }
     setWorkspaceLoading(true);
+    setWorkspaceError(null);
     try {
       const res = await openWorkspaceFn(trimmed);
       if (res.ok) {
@@ -103,7 +115,13 @@ export function OnboardingModal({
           branch: res.branch,
           filesCount: res.filesCount,
         });
+      } else {
+        setWorkspaceError("Unable to open workspace directory.");
       }
+    } catch (err) {
+      setWorkspaceError(
+        err instanceof Error ? err.message : "Unable to open workspace directory.",
+      );
     } finally {
       setWorkspaceLoading(false);
     }
@@ -263,6 +281,11 @@ export function OnboardingModal({
                     ({openedWorkspaceInfo.filesCount} files)
                   </p>
                 ) : null}
+                {workspaceError ? (
+                  <p role="alert" className="text-xs text-danger">
+                    {workspaceError}
+                  </p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -279,6 +302,11 @@ export function OnboardingModal({
                     Re-run doctor
                   </Button>
                 </div>
+                {doctorError ? (
+                  <p role="alert" className="text-xs text-danger">
+                    {doctorError}
+                  </p>
+                ) : null}
 
                 <ul className="divide-y divide-border rounded-md border border-border-strong bg-canvas/70">
                   {doctorChecks.map((check) => (
