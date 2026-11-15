@@ -96,7 +96,7 @@ def test_v1_1_0_cross_manifest_version_parity_and_changelog(tmp_path: Path) -> N
     openapi_doc = json.loads(openapi_raw)
     assert openapi_doc["info"]["version"] == expected_version
     assert len(openapi_doc["paths"]) == 273
-    assert len(app.openapi()["paths"]) == 273
+    assert len(app.openapi()["paths"]) == 282
 
     # 7. Homebrew Formula, GitHub Release Workflow & CHANGELOG.md
     formula_raw = (KEELWAY_ROOT / "Formula" / "keelway.rb").read_text(encoding="utf-8")

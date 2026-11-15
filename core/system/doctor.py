@@ -32,12 +32,13 @@ class DiagnosticSection:
     name: str
     status: str  # "OK" | "WARN" | "FAIL"
     details: Dict[str, Any]
+    fix: str = ""
 
 
 @dataclass
 class SystemDoctorReport:
     timestamp_utc: str
-    overall_status: str  # "HEALTHY" | "DEGRADED"
+    overall_status: str  # "HEALTHY" | "DEGRADED" (gate works, no local model) | "BLOCKED" (gated commands will be denied)
     environment: str
     python_version: str
     os_platform: str
@@ -50,8 +51,13 @@ class SystemDoctorReport:
             "environment": self.environment,
             "python_version": self.python_version,
             "os_platform": self.os_platform,
+            "exit_code": self.exit_code,
             "sections": [asdict(s) for s in self.sections],
         }
+
+    @property
+    def exit_code(self) -> int:
+        return {"HEALTHY": 0, "DEGRADED": 1}.get(self.overall_status, 2)
 
 
 class SystemDoctor:
@@ -105,6 +111,7 @@ class SystemDoctor:
             name="Model Providers & Gateway",
             status="OK" if local_avail else "WARN",
             details=provider_details,
+            fix="" if local_avail else "Install a local model: ollama pull qwen2.5-coder:7b (chat and agents need one; the command gate does not)",
         ))
 
         # 4. Air-Gap Zero-Egress Attestation
@@ -150,13 +157,14 @@ class SystemDoctor:
         # 7. Tier 2 Hardware Security HAL
         sections.append(DiagnosticSection(
             name="Tier 2 Hardware Security HAL",
-            status="OK",
+            status="WARN",
             details={
-                "dual_worm_storage": "VERIFIED (ADR-076..080)",
-                "tpm_measured_boot": "VERIFIED (ADR-062/064)",
-                "piv_smartcard": "VERIFIED (ADR-051/053, CRL <= 72h)",
-                "root_recovery": "READY (2-of-3 Shamir threshold)",
+                "dual_worm_storage": "not checked on this machine",
+                "tpm_measured_boot": "not checked on this machine",
+                "piv_smartcard": "not checked on this machine",
+                "root_recovery": "not checked on this machine",
             },
+            fix="Hardware attestation is only verified on enterprise deployments with the hardware present.",
         ))
 
         # 8. KStack Skills Catalog Integrity
@@ -269,7 +277,7 @@ class SystemDoctor:
                 sandbox_verified = False
                 sandbox_reason = f"Verification error: {exc}"
 
-        sandbox_status = "OK" if sandbox_verified else "WARN"
+        sandbox_status = "OK" if sandbox_verified else "FAIL"
         sections.append(DiagnosticSection(
             name="Sandbox Backend Status",
             status=sandbox_status,
@@ -281,11 +289,33 @@ class SystemDoctor:
                 "isolation_mode": "ENFORCED" if sandbox_verified else "UNCONFINED",
                 "verification_result": sandbox_reason,
             },
+            fix="" if sandbox_verified else (
+                f"Gated commands will be denied until the sandbox verifies: {BubblewrapBackend.diagnostic_reason()}"
+                if sys.platform == "linux" else "Gated commands need macOS seatbelt (sandbox-exec) or Linux bubblewrap."
+            ),
         ))
+
+        from core.cli_gate import hook_health
+        hook = hook_health()
+        hook_status = "FAIL" if hook["tampered"] or (hook["installed"] is False and hook.get("settings_path")) else (
+            "OK" if hook["installed"] else "WARN")
+        sections.append(DiagnosticSection(
+            name="Claude Code Command Gate",
+            status=hook_status,
+            details={"installed": hook["installed"], "tampered": hook["tampered"], "api_reachable": hook["api"], "detail": hook["detail"]},
+            fix="" if hook_status == "OK" else "Run: keelway hook install --claude-code",
+        ))
+
+        if any(sec.status == "FAIL" and sec.name in ("Sandbox Backend Status", "Claude Code Command Gate") for sec in sections):
+            overall = "BLOCKED"
+        elif overall_ok and local_avail:
+            overall = "HEALTHY"
+        else:
+            overall = "DEGRADED"
 
         return SystemDoctorReport(
             timestamp_utc=now_iso,
-            overall_status="HEALTHY" if overall_ok else "DEGRADED",
+            overall_status=overall,
             environment=settings.env,
             python_version=sys.version.split()[0],
             os_platform=f"{platform.system()} {platform.release()}",

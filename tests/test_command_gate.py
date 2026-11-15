@@ -356,3 +356,27 @@ def test_deny_reasons_have_unique_codes_and_one_fix():
     codes = [r.code for r in gate.DENY_REASONS.values()]
     assert len(codes) == len(set(codes))
     assert all(r.reason and not r.reason.endswith(".") for r in gate.DENY_REASONS.values())
+
+
+# ---- doctor (T4) -----------------------------------------------------------------
+def _report(status):
+    from core.system.doctor import SystemDoctorReport
+    return SystemDoctorReport("t", status, "dev", "3", "Linux", [])
+
+
+def test_doctor_exit_codes_follow_the_verdict():
+    assert [_report(s).exit_code for s in ("HEALTHY", "DEGRADED", "BLOCKED")] == [0, 1, 2]
+
+
+@pytest.mark.asyncio
+async def test_doctor_blocks_on_tampered_hook_and_never_claims_unchecked_hardware(tmp_path, monkeypatch):
+    from core.system.doctor import SystemDoctor
+    monkeypatch.setenv("KEELWAY_HOME", str(tmp_path / "kh"))
+    settings_file = tmp_path / ".claude" / "settings.local.json"
+    digest = gate.install_settings(settings_file, "/opt/keelway")
+    gate.save_gate_config({"settings_path": str(settings_file), "entries_sha256": digest, "api_url": "http://127.0.0.1:9"})
+    settings_file.write_text(json.dumps({"hooks": {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "keelway hook gate"}]}]}}))
+    report = await SystemDoctor.run_diagnostics()
+    sections = {s.name: s for s in report.sections}
+    assert sections["Claude Code Command Gate"].status == "FAIL" and report.overall_status == "BLOCKED"
+    assert "VERIFIED" not in json.dumps(sections["Tier 2 Hardware Security HAL"].details)

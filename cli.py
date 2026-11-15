@@ -1864,7 +1864,7 @@ async def cmd_doctor(json_output: bool = False):
     if json_output:
         import json
         print(json.dumps(report.to_dict(), indent=2))
-        return 0
+        return report.exit_code
 
     print("\n" + "=" * 68)
     print("  KEELWAY — Sovereign System Diagnostics & Enterprise Pre-Flight")
@@ -1881,11 +1881,13 @@ async def cmd_doctor(json_output: bool = False):
                     print(f"          - {sub_k:<24}: {sub_v}")
             else:
                 print(f"      • {k.replace('_', ' ').title():<28}: {v}")
+        if section.fix:
+            print(f"      Fix: {section.fix}")
 
     print("\n" + "=" * 68)
     print(f"  Diagnostic Result: {report.overall_status} — {len(report.sections)}/{len(report.sections)} Dimensions Evaluated.")
     print("=" * 68 + "\n")
-    return 0
+    return report.exit_code
 
 
 async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, target: str = "", action_name: str = "", task_id: str = "") -> int:
@@ -4140,7 +4142,7 @@ def main(argv=None):
             sys.exit(cli_gate.cmd_hook_status())
         sys.exit(cli_gate.cmd_hook_gate())
     elif args.command == "doctor":
-        asyncio.run(cmd_doctor(json_output=getattr(args, "json", False)))
+        sys.exit(asyncio.run(cmd_doctor(json_output=getattr(args, "json", False))))
     elif args.command == "mobile":
         sys.exit(asyncio.run(cmd_mobile(
             action=args.mobile_command,

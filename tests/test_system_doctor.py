@@ -12,8 +12,8 @@ from cli import cmd_doctor
 async def test_system_doctor_run_diagnostics():
     report = await SystemDoctor.run_diagnostics()
     assert isinstance(report, SystemDoctorReport)
-    assert report.overall_status in ("HEALTHY", "DEGRADED")
-    assert len(report.sections) == 10
+    assert report.overall_status in ("HEALTHY", "DEGRADED", "BLOCKED")
+    assert len(report.sections) == 11
     section_names = [s.name for s in report.sections]
     assert "Database Engine" in section_names
     assert "Workspace & Git Context" in section_names
@@ -74,7 +74,7 @@ async def test_system_doctor_run_diagnostics():
     assert "timestamp_utc" in data
     assert "overall_status" in data
     assert "sections" in data
-    assert len(data["sections"]) == 10
+    assert len(data["sections"]) == 11
 
 
 @pytest.mark.asyncio
@@ -84,8 +84,8 @@ async def test_system_doctor_api_endpoint():
         resp = await client.get("/v1/system/doctor")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["overall_status"] in ("HEALTHY", "DEGRADED")
-        assert len(data["sections"]) == 10
+        assert data["overall_status"] in ("HEALTHY", "DEGRADED", "BLOCKED")
+        assert len(data["sections"]) == 11
         assert data["sections"][6]["name"] == "Tier 2 Hardware Security HAL"
         assert data["sections"][7]["name"] == "KStack Skills Catalog"
         assert data["sections"][8]["name"] == "Agent Builder Templates"
@@ -95,17 +95,18 @@ async def test_system_doctor_api_endpoint():
 @pytest.mark.asyncio
 async def test_system_doctor_cli_execution(capsys):
     rc = await cmd_doctor(json_output=False)
-    assert rc == 0
+    assert rc in (0, 1)
     captured = capsys.readouterr()
     assert "Sovereign System Diagnostics" in captured.out
     assert "Tier 2 Hardware Security HAL" in captured.out
     assert "KStack Skills Catalog" in captured.out
     assert "Agent Builder Templates" in captured.out
     assert "Sandbox Backend Status" in captured.out
-    assert "10/10 Dimensions Evaluated" in captured.out
+    assert "11/11 Dimensions Evaluated" in captured.out
+    assert "Claude Code Command Gate" in captured.out
 
     rc_json = await cmd_doctor(json_output=True)
-    assert rc_json == 0
+    assert rc_json in (0, 1)
     captured_json = capsys.readouterr()
     assert '"overall_status":' in captured_json.out
     assert '"Software Bill of Materials (SBOM)"' in captured_json.out

@@ -66,7 +66,7 @@ def test_sdk_system_health_and_doctor(local_server, auth_token):
     assert "version" in status
 
     doctor = client.run_doctor()
-    assert doctor["overall_status"] == "HEALTHY"
+    assert doctor["overall_status"] in ("HEALTHY", "DEGRADED")  # DEGRADED = gate ready, no local model
     assert len(doctor["sections"]) >= 7
     client.close()
 
