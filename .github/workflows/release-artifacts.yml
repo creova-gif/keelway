@@ -27,10 +27,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build Python wheel and sdist
+      - name: Build and install Python wheel and sdist
         run: |
           python -m pip install --upgrade pip build
           python -m build --outdir dist/
+          python -m pip install dist/*.whl
 
       - name: Generate and cryptographically verify CycloneDX 1.5 SBOM
         env:
