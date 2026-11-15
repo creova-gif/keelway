@@ -54,6 +54,7 @@ import { PlatformEnterpriseDelegate, type ApproveP10QuorumRequest, type Configur
 import { PlatformKbrainDelegate, type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
 import { PlatformDevxDelegate, type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
 import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
+import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -71,6 +72,7 @@ export class PlatformNamespace {
   private readonly kbrain: PlatformKbrainDelegate;
   private readonly devx: PlatformDevxDelegate;
   public readonly studio: PlatformStudioClient;
+  public readonly debugger: PlatformDebuggerClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -81,6 +83,7 @@ export class PlatformNamespace {
     this.kbrain = new PlatformKbrainDelegate(requestJson);
     this.devx = new PlatformDevxDelegate(requestJson);
     this.studio = new PlatformStudioClient(requestJson);
+    this.debugger = new PlatformDebuggerClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -602,6 +605,28 @@ export class PlatformNamespace {
   }
   public listPromptGateRuns(paramsOrWorkspaceId: ListPromptGateRunsParams | string = {}, options?: RequestOptions): Promise<PromptGateRunListResponse> {
     return this.studio.listPromptGateRuns(paramsOrWorkspaceId, options);
+  }
+
+  public setBreakpoint(payload: SetBreakpointRequest = {}, options?: RequestOptions): Promise<DebuggerBreakpointRecord> {
+    return this.debugger.setBreakpoint(payload, options);
+  }
+  public listBreakpoints(paramsOrWorkspaceId: ListBreakpointsParams | string = {}, options?: RequestOptions): Promise<DebuggerBreakpointListResponse> {
+    return this.debugger.listBreakpoints(paramsOrWorkspaceId, options);
+  }
+  public deleteBreakpoint(breakpointId: string, paramsOrWorkspaceId: DeleteBreakpointParams | string = {}, options?: RequestOptions): Promise<DeleteBreakpointResponse> {
+    return this.debugger.deleteBreakpoint(breakpointId, paramsOrWorkspaceId, options);
+  }
+  public startDebugSession(payload: StartDebugSessionRequest = {}, options?: RequestOptions): Promise<DebuggerSessionRecord> {
+    return this.debugger.startDebugSession(payload, options);
+  }
+  public listDebugSessions(paramsOrWorkspaceId: ListDebugSessionsParams | string = {}, options?: RequestOptions): Promise<DebuggerSessionListResponse> {
+    return this.debugger.listDebugSessions(paramsOrWorkspaceId, options);
+  }
+  public stepDebugSession(sessionId: string, payloadOrAction: StepDebugSessionRequest | DebuggerStepAction = {}, options?: RequestOptions): Promise<DebuggerSessionRecord> {
+    return this.debugger.stepDebugSession(sessionId, payloadOrAction, options);
+  }
+  public getDebuggerCodelens(paramsOrWorkspaceId: GetDebuggerCodelensParams | string = {}, options?: RequestOptions): Promise<DebuggerCodelensResponse> {
+    return this.debugger.getDebuggerCodelens(paramsOrWorkspaceId, options);
   }
 }
 

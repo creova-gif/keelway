@@ -232,14 +232,15 @@ keelway marketplace list`}
 
             <div className="rounded-md border border-border-strong bg-surface p-4">
               <div className="font-mono text-xs font-bold text-teal-accent">
-                4. Official Python, TypeScript &amp; Go SDKs
+                4. Official Python, TypeScript, Go SDKs &amp; VS Code / Cursor Bridge
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
                 Sync/async <code className="text-fg">core.sdk</code>,{" "}
-                <code className="text-fg">@keelway/sdk</code>, and
-                zero-dependency <code className="text-fg">keelway-go</code>{" "}
-                with full <code className="text-fg">client.platform</code>{" "}
-                parity and typed governance errors.
+                <code className="text-fg">@keelway/sdk</code>,{" "}
+                <code className="text-fg">keelway-go</code>, and{" "}
+                <code className="text-fg">vscode-keelway</code> IDE bridge with
+                conditional <code className="text-fg">F10/F11</code> breakpoints,
+                DLP-guarded state mutation, and 4D Routing CodeLens.
               </p>
             </div>
           </div>

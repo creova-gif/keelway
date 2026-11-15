@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FlightTapeDebuggerPanel } from "@/components/platform/FlightTapeDebuggerPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { McpInspectorPanel } from "@/components/platform/McpInspectorPanel";
+import { StepDebuggerAndBridgePanel } from "@/components/platform/StepDebuggerAndBridgePanel";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type {
@@ -480,6 +481,8 @@ export function AgentsWorkspaceView({
           </div>
         </form>
       </section>
+
+      <StepDebuggerAndBridgePanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <McpInspectorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
     </div>

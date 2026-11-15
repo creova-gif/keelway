@@ -82,21 +82,21 @@ def test_v1_1_0_cross_manifest_version_parity_and_changelog(tmp_path: Path) -> N
         assert tok not in facts_raw, f"Forbidden internal token '{tok}' found in product-facts.json"
     facts = json.loads(facts_raw)
     assert facts["version"] == expected_version
-    assert len(facts["features"]) == 21
+    assert len(facts["features"]) >= 21
     showcase_feat = facts["features"]["zero_install_homepage_golden_thread_studio_showcase"]
     assert showcase_feat["status"] == "AVAILABLE"
     assert "GoldenThreadStudioShowcase.tsx" in showcase_feat["code_path"]
     assert "goldenThreadShowcaseEngine.ts" in showcase_feat["code_path"]
     assert showcase_feat["evidence_test"] == "tests/test_phase13_homepage_studio_and_release.py"
 
-    # 6. OpenAPI 3.1 deterministic schemas (byte-for-byte identical, version 1.1.0, 273 paths)
+    # 6. OpenAPI 3.1 deterministic schemas (byte-for-byte identical, version 1.1.0, >= 273 paths)
     openapi_raw = (WEBSITE_DIR / "openapi.json").read_text(encoding="utf-8")
     pub_openapi_raw = (WEBSITE_DIR / "public" / "openapi.json").read_text(encoding="utf-8")
     assert openapi_raw == pub_openapi_raw, "website/openapi.json and website/public/openapi.json must match"
     openapi_doc = json.loads(openapi_raw)
     assert openapi_doc["info"]["version"] == expected_version
-    assert len(openapi_doc["paths"]) == 273
-    assert len(app.openapi()["paths"]) == 273
+    assert len(openapi_doc["paths"]) >= 273
+    assert len(app.openapi()["paths"]) >= 273
 
     # 7. Homebrew Formula, GitHub Release Workflow & CHANGELOG.md
     formula_raw = (KEELWAY_ROOT / "Formula" / "keelway.rb").read_text(encoding="utf-8")

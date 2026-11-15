@@ -13,6 +13,7 @@ import { type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type E
 import { type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
 import { type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
 import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
+import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -28,6 +29,7 @@ export declare class PlatformNamespace {
     private readonly kbrain;
     private readonly devx;
     readonly studio: PlatformStudioClient;
+    readonly debugger: PlatformDebuggerClient;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -119,6 +121,13 @@ export declare class PlatformNamespace {
     listBlastRadiusAudits(paramsOrWorkspaceId?: ListBlastRadiusAuditsParams | string, options?: RequestOptions): Promise<BlastRadiusAuditListResponse>;
     evaluatePromptGate(payload: EvaluatePromptGateRequest, options?: RequestOptions): Promise<PromptGateEvaluationResult>;
     listPromptGateRuns(paramsOrWorkspaceId?: ListPromptGateRunsParams | string, options?: RequestOptions): Promise<PromptGateRunListResponse>;
+    setBreakpoint(payload?: SetBreakpointRequest, options?: RequestOptions): Promise<DebuggerBreakpointRecord>;
+    listBreakpoints(paramsOrWorkspaceId?: ListBreakpointsParams | string, options?: RequestOptions): Promise<DebuggerBreakpointListResponse>;
+    deleteBreakpoint(breakpointId: string, paramsOrWorkspaceId?: DeleteBreakpointParams | string, options?: RequestOptions): Promise<DeleteBreakpointResponse>;
+    startDebugSession(payload?: StartDebugSessionRequest, options?: RequestOptions): Promise<DebuggerSessionRecord>;
+    listDebugSessions(paramsOrWorkspaceId?: ListDebugSessionsParams | string, options?: RequestOptions): Promise<DebuggerSessionListResponse>;
+    stepDebugSession(sessionId: string, payloadOrAction?: StepDebugSessionRequest | DebuggerStepAction, options?: RequestOptions): Promise<DebuggerSessionRecord>;
+    getDebuggerCodelens(paramsOrWorkspaceId?: GetDebuggerCodelensParams | string, options?: RequestOptions): Promise<DebuggerCodelensResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

@@ -11,6 +11,7 @@ import { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
 import { PlatformKbrainDelegate } from "./platformKbrain.js";
 import { PlatformDevxDelegate } from "./platformDevx.js";
 import { PlatformStudioClient } from "./platformStudio.js";
+import { PlatformDebuggerClient } from "./platformDebugger.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -20,6 +21,7 @@ export class PlatformNamespace {
     kbrain;
     devx;
     studio;
+    debugger;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -29,6 +31,7 @@ export class PlatformNamespace {
         this.kbrain = new PlatformKbrainDelegate(requestJson);
         this.devx = new PlatformDevxDelegate(requestJson);
         this.studio = new PlatformStudioClient(requestJson);
+        this.debugger = new PlatformDebuggerClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -415,6 +418,27 @@ export class PlatformNamespace {
     }
     listPromptGateRuns(paramsOrWorkspaceId = {}, options) {
         return this.studio.listPromptGateRuns(paramsOrWorkspaceId, options);
+    }
+    setBreakpoint(payload = {}, options) {
+        return this.debugger.setBreakpoint(payload, options);
+    }
+    listBreakpoints(paramsOrWorkspaceId = {}, options) {
+        return this.debugger.listBreakpoints(paramsOrWorkspaceId, options);
+    }
+    deleteBreakpoint(breakpointId, paramsOrWorkspaceId = {}, options) {
+        return this.debugger.deleteBreakpoint(breakpointId, paramsOrWorkspaceId, options);
+    }
+    startDebugSession(payload = {}, options) {
+        return this.debugger.startDebugSession(payload, options);
+    }
+    listDebugSessions(paramsOrWorkspaceId = {}, options) {
+        return this.debugger.listDebugSessions(paramsOrWorkspaceId, options);
+    }
+    stepDebugSession(sessionId, payloadOrAction = {}, options) {
+        return this.debugger.stepDebugSession(sessionId, payloadOrAction, options);
+    }
+    getDebuggerCodelens(paramsOrWorkspaceId = {}, options) {
+        return this.debugger.getDebuggerCodelens(paramsOrWorkspaceId, options);
     }
 }
 export { PlatformNamespace as PlatformClient };

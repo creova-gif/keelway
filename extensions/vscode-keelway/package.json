@@ -1,0 +1,90 @@
+{
+  "name": "vscode-keelway",
+  "publisher": "keelway",
+  "displayName": "Keelway Dev — Sovereign Agent Debugger & 4D Studio Bridge",
+  "description": "Official zero-dependency VS Code and Cursor extension for Keelway 4D Agent CodeLens, Conditional Step Debugging, and Sovereign Loopback Studio Bridge.",
+  "version": "1.1.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/extension.js",
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=20.0.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:typescript",
+    "onUri",
+    "onCommand:keelway.attachBridge",
+    "onCommand:keelway.openStudioPanel"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "keelway.attachBridge",
+        "title": "Keelway: Attach 4D Studio Bridge"
+      },
+      {
+        "command": "keelway.toggleConditionalBreakpoint",
+        "title": "Keelway: Toggle Conditional Agent Breakpoint"
+      },
+      {
+        "command": "keelway.stepOverNode",
+        "title": "Keelway: Step Over Workflow Node"
+      },
+      {
+        "command": "keelway.stepIntoAgent",
+        "title": "Keelway: Step Into Agent Prompt & Tools"
+      },
+      {
+        "command": "keelway.continueExecution",
+        "title": "Keelway: Continue Workflow Execution"
+      },
+      {
+        "command": "keelway.openStudioPanel",
+        "title": "Keelway: Open 4D Studio Debugger Panel"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "keelway.stepOverNode",
+        "key": "F10",
+        "when": "keelwayDebugPaused"
+      },
+      {
+        "command": "keelway.stepIntoAgent",
+        "key": "F11",
+        "when": "keelwayDebugPaused"
+      },
+      {
+        "command": "keelway.continueExecution",
+        "key": "F5",
+        "when": "keelwayDebugPaused"
+      }
+    ],
+    "configuration": {
+      "title": "Keelway Dev",
+      "properties": {
+        "keelway.controlPlaneUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:7420",
+          "description": "Local loopback URL for the Keelway Sovereign Control Plane."
+        },
+        "keelway.defaultWorkspace": {
+          "type": "string",
+          "default": "default",
+          "description": "Default Keelway workspace identifier for step debugging and CodeLens telemetry."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "../../website/node_modules/.bin/tsc -p tsconfig.json",
+    "test": "node --test test/extension.test.mjs"
+  }
+}

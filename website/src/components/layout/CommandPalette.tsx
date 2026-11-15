@@ -30,6 +30,15 @@ const BUILTIN_ACTIONS: CommandItem[] = [
     keywords: "action studio golden thread langgraph kflow ast scrubber blast radius prompt gate",
   },
   {
+    id: "act-step-debugger-bridge",
+    group: "action",
+    title: "Attach VS Code / Cursor Step-Through Debugger",
+    subtitle: "Live conditional breakpoints, F10/F11 stepping, DLP state mutation & 4D Routing CodeLens",
+    badge: "DEBUGGER",
+    href: "/docs#surfaces",
+    keywords: "action step debugger conditional breakpoints f10 f11 codelens vscode cursor ide bridge",
+  },
+  {
     id: "act-dev-tool",
     group: "action",
     title: "Launch 10-View Local Dev Tool",

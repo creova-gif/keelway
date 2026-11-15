@@ -50,6 +50,15 @@ export async function GET() {
       keywords: "studio golden thread bidirectional langgraph stategraph kflow ast flight tape blast radius prompt gate",
     },
     {
+      id: "page-step-debugger-bridge",
+      group: "page",
+      title: "Live Step-Through Debugger & VS Code / Cursor Extension Bridge",
+      subtitle: "Conditional gutter breakpoints, F10/F11 frame stepping, DLP-guarded state mutation & 4D CodeLens",
+      badge: "DEBUGGER",
+      href: "/docs#surfaces",
+      keywords: "step debugger breakpoints f10 f11 codelens vscode cursor extension bridge dlp state mutation",
+    },
+    {
       id: "page-dev-tool",
       group: "page",
       title: "Keelway Dev Tool & 10-View Workspace",

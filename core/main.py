@@ -29,6 +29,7 @@ from core.api.platform_enterprise_routes import router as platform_enterprise_ro
 from core.api.platform_kbrain_routes import router as platform_kbrain_router
 from core.api.platform_devx_routes import router as platform_devx_routes_router
 from core.api.platform_studio_routes import platform_studio_router
+from core.api.platform_debugger_routes import platform_debugger_router
 from .api.cluster_routes import router as cluster_router
 import asyncio
 from core.security.auth import launch_token
@@ -129,6 +130,7 @@ app.include_router(platform_enterprise_router)
 app.include_router(platform_kbrain_router)
 app.include_router(platform_devx_routes_router)
 app.include_router(platform_studio_router)
+app.include_router(platform_debugger_router)
 app.include_router(cluster_router)
 
 # Mount Keelway Studio Web UI & Unified Sovereign Dev App

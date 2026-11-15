@@ -63,10 +63,12 @@ jobs:
           npm --prefix website ci
           npm --prefix website run typecheck
           npm --prefix website run build
-      - name: Compile & test official @keelway/sdk TypeScript package
+      - name: Compile & test official @keelway/sdk TypeScript package & VS Code/Cursor Bridge Extension
         run: |
           ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
           npm --prefix sdk/typescript test
+          ./website/node_modules/.bin/tsc -p extensions/vscode-keelway/tsconfig.json
+          npm --prefix extensions/vscode-keelway test
       - name: Vet & test official keelway-go SDK with race detector
         run: |
           cd sdk/go && go vet ./... && go test ./... -race

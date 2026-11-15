@@ -16,6 +16,8 @@ import io
 import json
 from typing import Any, Dict, List, Optional
 
+from core.cli_debugger import dispatch_debugger_cli, register_debugger_cli_subparsers
+
 _FALLBACK_CALIBRATED: Dict[str, Any] = {
     "pro_annual_usd": 29, "byom_annual_usd": 15, "supportive_rate": 1.0,
     "hidden_fee_distrust_score": 0.0, "pricing_health_score": 96.5,
@@ -208,16 +210,21 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_kbrain_khub_cli_subparsers(subparsers)
     register_devx_cli_subparsers(subparsers)
     register_studio_cli_subparsers(subparsers)
+    register_debugger_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, and Studio CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, and Debugger CLI subcommands."""
     from core.cli_devx import dispatch_devx_cli
     from core.cli_enterprise import dispatch_enterprise_cli
     from core.cli_kbrain_khub import dispatch_kbrain_khub_cli
     from core.cli_kflow_crdt import dispatch_kflow_crdt_cli
     from core.cli_mcp_eval import dispatch_mcp_eval_cli
     from core.cli_studio import dispatch_studio_cli
+
+    debugger_rc = dispatch_debugger_cli(args)
+    if debugger_rc is not None:
+        return debugger_rc
 
     studio_rc = dispatch_studio_cli(args)
     if studio_rc is not None:

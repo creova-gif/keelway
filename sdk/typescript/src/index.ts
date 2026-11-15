@@ -29,6 +29,8 @@ export { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
 export { PlatformKbrainDelegate } from "./platformKbrain.js";
 export { PlatformDevxDelegate } from "./platformDevx.js";
 export { PlatformStudioClient, PlatformStudioDelegate } from "./platformStudio.js";
+export { PlatformDebuggerClient, PlatformDebuggerDelegate } from "./platformDebugger.js";
+export type * from "./platformDebugger.js";
 
 export {
   AirGapEgressError,

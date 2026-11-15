@@ -16,6 +16,10 @@ from urllib.parse import quote
 import httpx
 
 from core.sdk.errors import ConnectionError
+from core.sdk.platform_debugger_client import (
+    AsyncPlatformDebuggerMixin,
+    SyncPlatformDebuggerMixin,
+)
 from core.sdk.platform_devx_client import (
     AsyncPlatformDevxMixin,
     SyncPlatformDevxMixin,
@@ -154,6 +158,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformKbrainMixin,
     AsyncPlatformDevxMixin,
     AsyncPlatformStudioMixin,
+    AsyncPlatformDebuggerMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -282,6 +287,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformKbrainMixin,
     SyncPlatformDevxMixin,
     SyncPlatformStudioMixin,
+    SyncPlatformDebuggerMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
