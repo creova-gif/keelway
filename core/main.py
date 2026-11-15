@@ -21,6 +21,7 @@ from core.api.sync_routes import router as sync_router
 from core.api.opencore_routes import router as opencore_router
 from core.api.responses_routes import router as responses_router
 from core.api.governance_routes import router as governance_router
+from core.api.gate_routes import router as gate_router
 from core.api.platform_routes import router as platform_router
 from core.api.platform_runtime_routes import router as platform_runtime_router
 from core.api.platform_mcp_routes import router as platform_mcp_router
@@ -121,6 +122,7 @@ app.include_router(sync_router)
 app.include_router(opencore_router)
 app.include_router(responses_router)
 app.include_router(governance_router)
+app.include_router(gate_router)
 app.include_router(platform_router)
 app.include_router(platform_runtime_router)
 app.include_router(platform_mcp_router)

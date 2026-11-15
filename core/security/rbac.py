@@ -15,6 +15,7 @@ class Role(str, Enum):
     ENGINEER = "engineer"
     AUDITOR = "auditor"  # Read-only for compliance/security review
     PHONE = "phone"  # Paired phone: sees agent runs and approves or denies their steps, nothing else
+    GATE = "gate"  # Claude Code hook: submits commands for approval and redeems tickets, nothing else
 
 
 class Permission(str, Enum):
@@ -25,6 +26,7 @@ class Permission(str, Enum):
     MANAGE_KEYS = "manage_keys"
     VIEW_AUDIT_LOGS = "view_audit_logs"
     APPROVE_AGENT_STEPS = "approve_agent_steps"
+    GATE_SUBMIT = "gate_submit"
 
 
 ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
@@ -47,6 +49,9 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
     ],
     Role.PHONE: [
         Permission.APPROVE_AGENT_STEPS,
+    ],
+    Role.GATE: [
+        Permission.GATE_SUBMIT,
     ],
 }
 

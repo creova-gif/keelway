@@ -42,11 +42,30 @@ PHONE_ROUTES = (
     ("GET", re.compile(r"/v1/agent/runs")),
     ("GET", re.compile(r"/v1/agent/status/[^/]+")),
     ("POST", re.compile(r"/v1/agent/approve/[^/]+")),
+    ("GET", re.compile(r"/v1/gate/pending")),
+    ("POST", re.compile(r"/v1/gate/requests/[^/]+/decision")),
+    ("POST", re.compile(r"/v1/gate/deny-waiting")),
 )
+
+# Everything the Claude Code hook's gate token may call. It can ask, never decide.
+GATE_ROUTES = (
+    ("POST", re.compile(r"/v1/gate/requests")),
+    ("GET", re.compile(r"/v1/gate/requests/[^/]+/wait")),
+    ("POST", re.compile(r"/v1/gate/redeem")),
+    ("POST", re.compile(r"/v1/gate/requests/[^/]+/result")),
+    ("POST", re.compile(r"/v1/gate/tamper")),
+)
+
+ROLE_ROUTES = {Role.PHONE: PHONE_ROUTES, Role.GATE: GATE_ROUTES}
 
 
 def phone_route_allowed(method: str, path: str) -> bool:
     return any(method == m and rx.fullmatch(path) for m, rx in PHONE_ROUTES)
+
+
+def role_route_allowed(role: Role, method: str, path: str) -> bool:
+    routes = ROLE_ROUTES.get(role)
+    return routes is None or any(method == m and rx.fullmatch(path) for m, rx in routes)
 
 
 def _aware(dt: Optional[datetime]) -> Optional[datetime]:
@@ -169,11 +188,15 @@ async def current_principal(request: Request) -> Principal:
             detail="Missing or invalid API token.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if principal.role == Role.PHONE and not phone_route_allowed(request.method, request.url.path):
-        await record_audit(principal, "phone_route", f"{request.method} {request.url.path}", False)
+    if not role_route_allowed(principal.role, request.method, request.url.path):
+        await record_audit(principal, f"{principal.role.value}_route", f"{request.method} {request.url.path}", False)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="A paired phone can only view agent runs and approve or deny their steps.",
+            detail=(
+                "A paired phone can only view agent runs and approve or deny their steps."
+                if principal.role == Role.PHONE else
+                "A gate token can only submit commands for approval and redeem approved tickets."
+            ),
         )
     return principal
 

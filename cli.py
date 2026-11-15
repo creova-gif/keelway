@@ -3338,6 +3338,28 @@ def build_parser() -> argparse.ArgumentParser:
     doctor_parser = subparsers.add_parser("doctor", help="Run sovereign enterprise system diagnostics across 7 dimensions")
     doctor_parser.add_argument("--json", action="store_true", help="Output diagnostics report in JSON format")
 
+    # exec / hook (Claude Code command gate)
+    exec_parser = subparsers.add_parser("exec", help="Run one approved command in the verified sandbox (used by the Claude Code hook)")
+    exec_parser.add_argument("--ticket", required=True, help="Single-use approval ticket from the gate")
+    exec_parser.add_argument("--timeout", type=int, default=120, help="Seconds before the sandboxed command is killed (default: 120)")
+    exec_parser.add_argument("exec_command", nargs=argparse.REMAINDER, help="-- '<command>'")
+
+    hook_parser = subparsers.add_parser("hook", help="Gate Claude Code's shell commands behind your approval")
+    hook_sub = hook_parser.add_subparsers(dest="hook_command", required=True)
+    hook_install = hook_sub.add_parser("install", help="Add Keelway's PreToolUse hook to Claude Code settings")
+    hook_install.add_argument("--claude-code", action="store_true", help="Target Claude Code (the only agent supported in this beta)")
+    hook_install.add_argument("--scope", choices=["local", "project", "user"], default="local",
+                              help="local: .claude/settings.local.json (default); project: .claude/settings.json; user: ~/.claude/settings.json")
+    hook_install.add_argument("--project-dir", default=None, help="Project folder (default: current folder)")
+    hook_install.add_argument("--port", type=int, default=7420, help="Keelway port (default: 7420)")
+    hook_install.add_argument("--no-start", action="store_true", help="Don't start Keelway if it isn't running")
+    hook_install.add_argument("--no-open", action="store_true", help="Don't open the approvals page")
+    hook_uninstall = hook_sub.add_parser("uninstall", help="Remove Keelway's hook entries and revoke the gate token")
+    hook_uninstall.add_argument("--scope", choices=["local", "project", "user"], default="local")
+    hook_uninstall.add_argument("--project-dir", default=None)
+    hook_sub.add_parser("status", help="Show whether the hook is installed, untampered and reachable")
+    hook_sub.add_parser("gate", help="(internal) Claude Code PreToolUse handler: reads the event on stdin")
+
     # mobile (Mission Control & Phone Pairing)
     mobile_parser = subparsers.add_parser("mobile", help="Keelway Mobile Phone Mission Control pairing & management")
     mobile_sub = mobile_parser.add_subparsers(dest="mobile_command", required=True)
@@ -4105,6 +4127,18 @@ def main(argv=None):
             role=getattr(args, "role", "engineer"),
             token_id=getattr(args, "token_id", ""),
         ))
+    elif args.command == "exec":
+        from core.cli_gate import cmd_exec
+        sys.exit(cmd_exec(args.ticket, args.exec_command, timeout=args.timeout))
+    elif args.command == "hook":
+        from core import cli_gate
+        if args.hook_command == "install":
+            sys.exit(cli_gate.cmd_hook_install(args.scope, args.project_dir, start=not args.no_start, open_browser=not args.no_open, port=args.port))
+        if args.hook_command == "uninstall":
+            sys.exit(cli_gate.cmd_hook_uninstall(args.scope, args.project_dir))
+        if args.hook_command == "status":
+            sys.exit(cli_gate.cmd_hook_status())
+        sys.exit(cli_gate.cmd_hook_gate())
     elif args.command == "doctor":
         asyncio.run(cmd_doctor(json_output=getattr(args, "json", False)))
     elif args.command == "mobile":
