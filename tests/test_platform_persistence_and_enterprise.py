@@ -16,11 +16,13 @@ from fastapi.testclient import TestClient
 from core.main import app
 from core.platform import (
     CURATED_SEED_PACKAGES,
+    FIRST_PARTY_SIGNING_KEY_ENV,
     SORVEX_FIRST_PARTY_KEY_ID,
     Ed25519ManifestSigner,
     EnterpriseGovernanceManager,
     EnterprisePolicyValidationError,
     MarketplaceRegistry,
+    MarketplaceSecurityError,
     SQLitePlatformStore,
     UnifiedWorkspaceHub,
     generate_publisher_keypair,
@@ -110,7 +112,11 @@ def test_ed25519_agent_manifest_and_sorvex_first_party_seed_verification() -> No
     tampered_agent = {**signed_agent, "risk_tier": "A"}
     assert signer.verify_manifest(tampered_agent) == (False, "INVALID_ED25519_SIGNATURE")
 
-    # Built-in 1st-party Sorvex Labs seed packages are signed and verifiable out of the box
+
+def test_first_party_seed_packages_signed_with_configured_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    priv_pem, _ = generate_publisher_keypair()
+    monkeypatch.setenv(FIRST_PARTY_SIGNING_KEY_ENV, priv_pem.decode("ascii"))
+
     registry = MarketplaceRegistry()
     first_party_pkgs = registry.list_packages(publisher_tier="first_party")
     assert len(first_party_pkgs) >= 3
@@ -120,6 +126,41 @@ def test_ed25519_agent_manifest_and_sorvex_first_party_seed_verification() -> No
         assert default_verifier.verify_manifest(pkg) == (True, "VERIFIED_ED25519")
         tampered = {**pkg, "price_usd": 9999.0}
         assert default_verifier.verify_manifest(tampered) == (False, "INVALID_ED25519_SIGNATURE")
+
+
+def test_first_party_seed_packages_unsigned_without_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(FIRST_PARTY_SIGNING_KEY_ENV, raising=False)
+    registry = MarketplaceRegistry()
+    first_party_pkgs = registry.list_packages(publisher_tier="first_party")
+    assert len(first_party_pkgs) >= 3
+    for pkg in first_party_pkgs:
+        assert "ed25519_signature" not in pkg
+        assert Ed25519ManifestSigner().verify_manifest(pkg) == (False, "UNSIGNED_MANIFEST")
+
+
+def test_legacy_derivable_first_party_key_is_not_trusted(monkeypatch: pytest.MonkeyPatch) -> None:
+    import base64
+    import hashlib
+
+    monkeypatch.delenv(FIRST_PARTY_SIGNING_KEY_ENV, raising=False)
+    seed = hashlib.sha256(b"keelway.manifest.sorvex-labs.first-party.ed25519.v1").digest()
+    prefix = bytes.fromhex("302e020100300506032b657004220420")
+    legacy_pem = (
+        "-----BEGIN PRIVATE KEY-----\n" + base64.b64encode(prefix + seed).decode("ascii") + "\n-----END PRIVATE KEY-----\n"
+    ).encode("ascii")
+    signer = Ed25519ManifestSigner()
+    forged = signer.sign_manifest({"schema": "keelway.package/v1", "id": "evil"}, legacy_pem, SORVEX_FIRST_PARTY_KEY_ID)
+    assert signer.verify_manifest(forged) == (False, "UNKNOWN_PUBLISHER_KEY")
+
+
+def test_publishing_first_party_tier_requires_trusted_signature(monkeypatch: pytest.MonkeyPatch) -> None:
+    priv_pem, _ = generate_publisher_keypair()
+    monkeypatch.setenv(FIRST_PARTY_SIGNING_KEY_ENV, priv_pem.decode("ascii"))
+    registry = MarketplaceRegistry()
+    payload = {"id": "impostor.agent", "kind": "ai_agent", "name": "Impostor", "publisher_tier": "first_party"}
+    with pytest.raises(MarketplaceSecurityError):
+        registry.publish_package(payload)
+    assert "impostor.agent" not in {p["id"] for p in registry.list_packages()}
 
 
 # ---------------------------------------------------------------------------

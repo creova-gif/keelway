@@ -37,11 +37,12 @@ from core.platform.settlement import (
     marketplace_settlement_ledger,
 )
 from core.platform.signing import (
+    FIRST_PARTY_SIGNING_KEY_ENV,
     SORVEX_FIRST_PARTY_KEY_ID,
     Ed25519ManifestSigner,
     canonical_manifest_bytes,
     generate_publisher_keypair,
-    get_sorvex_first_party_keypair,
+    load_first_party_signing_key,
     manifest_signer,
 )
 from core.platform.subscription import (
@@ -77,6 +78,7 @@ __all__ = [
     "PackageKind",
     "SDLC_WORKFLOW_STAGES",
     "SETTLEMENT_SPLIT_LABELS",
+    "FIRST_PARTY_SIGNING_KEY_ENV",
     "SORVEX_FIRST_PARTY_KEY_ID",
     "SQLitePlatformStore",
     "SUBSCRIPTION_TIERS",
@@ -97,7 +99,7 @@ __all__ = [
     "canonical_manifest_bytes",
     "enterprise_governance_manager",
     "generate_publisher_keypair",
-    "get_sorvex_first_party_keypair",
+    "load_first_party_signing_key",
     "manifest_signer",
     "marketplace_registry",
     "marketplace_settlement_ledger",

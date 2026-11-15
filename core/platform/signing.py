@@ -12,8 +12,11 @@ import base64
 import copy
 import hashlib
 import json
+import os
 import secrets
 from typing import Any, Dict, Optional, Tuple
+
+from core.platform.manifest_keys import TRUSTED_FIRST_PARTY_MANIFEST_KEYS
 
 try:
     from cryptography.exceptions import InvalidSignature
@@ -28,6 +31,7 @@ except ImportError:  # pragma: no cover - exercised in lightweight venvs
     _HAS_CRYPTOGRAPHY = False
 
 SORVEX_FIRST_PARTY_KEY_ID = "sorvex-labs-ed25519-v1"
+FIRST_PARTY_SIGNING_KEY_ENV = "KEELWAY_FIRST_PARTY_MANIFEST_SIGNING_KEY"
 _EXCLUDED_SIGNING_FIELDS = frozenset({"ed25519_signature", "signer_key_id", "security_report"})
 _PKCS8_ED25519_PREFIX = bytes.fromhex("302e020100300506032b657004220420")
 
@@ -173,10 +177,21 @@ def generate_publisher_keypair() -> Tuple[bytes, str]:
     return _seed_to_keypair(secrets.token_bytes(32))
 
 
-def get_sorvex_first_party_keypair() -> Tuple[bytes, str]:
-    """Return deterministic Sorvex Labs first-party manifest signing keypair for curated seed packages."""
-    seed = hashlib.sha256(b"keelway.manifest.sorvex-labs.first-party.ed25519.v1").digest()
-    return _seed_to_keypair(seed)
+def load_first_party_signing_key() -> Optional[Tuple[bytes, str]]:
+    """Sorvex Labs first-party signing key from `FIRST_PARTY_SIGNING_KEY_ENV`, or None when unset."""
+    pem_text = os.environ.get(FIRST_PARTY_SIGNING_KEY_ENV, "").strip()
+    if not pem_text:
+        return None
+    return _seed_to_keypair(_seed_from_pem(pem_text.replace("\\n", "\n").encode("ascii")))
+
+
+def default_trusted_manifest_keys() -> Dict[str, str]:
+    """First-party public keys from `manifest_keys.py`, plus the configured signing key's public half."""
+    keys = dict(TRUSTED_FIRST_PARTY_MANIFEST_KEYS)
+    loaded = load_first_party_signing_key()
+    if loaded is not None:
+        keys[SORVEX_FIRST_PARTY_KEY_ID] = loaded[1]
+    return keys
 
 
 def canonical_manifest_bytes(manifest: Dict[str, Any]) -> bytes:
@@ -190,13 +205,9 @@ class Ed25519ManifestSigner:
     """Signs and verifies `keelway.package/v1` and `keelway.agent/v1` manifests (`KEEL-MANIFEST-007`)."""
 
     def __init__(self, trusted_keys: Optional[Dict[str, str]] = None) -> None:
-        if trusted_keys is None:
-            _, first_party_pub = get_sorvex_first_party_keypair()
-            self._trusted_keys: Dict[str, str] = {SORVEX_FIRST_PARTY_KEY_ID: first_party_pub}
-        else:
-            self._trusted_keys = {}
-            for k_id, pub_b64 in trusted_keys.items():
-                self.register_trusted_key(k_id, pub_b64)
+        self._trusted_keys: Dict[str, str] = {}
+        for k_id, pub_b64 in (default_trusted_manifest_keys() if trusted_keys is None else trusted_keys).items():
+            self.register_trusted_key(k_id, pub_b64)
 
     def register_trusted_key(self, key_id: str, public_key_b64: str) -> None:
         clean_id = str(key_id or "").strip()

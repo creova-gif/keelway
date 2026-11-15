@@ -22,7 +22,7 @@ from core.platform.persistence import SQLitePlatformStore
 from core.platform.signing import (
     SORVEX_FIRST_PARTY_KEY_ID,
     Ed25519ManifestSigner,
-    get_sorvex_first_party_keypair,
+    load_first_party_signing_key,
 )
 from core.platform.subscription import MARKETPLACE_SPLITS, subscription_policy_engine
 from core.security.redact import redact_text
@@ -328,7 +328,7 @@ class MarketplaceRegistry:
 
         for seed in CURATED_SEED_PACKAGES:
             if seed["id"] not in self._packages:
-                self.publish_package(seed)
+                self.publish_package(seed, _curated_seed=True)
 
         if self.store is not None:
             for row in self.store.list_all_installs():
@@ -348,7 +348,7 @@ class MarketplaceRegistry:
                     "installed_at": row["installed_at"],
                 }
 
-    def publish_package(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def publish_package(self, payload: Dict[str, Any], *, _curated_seed: bool = False) -> Dict[str, Any]:
         pkg_id = str(payload.get("id") or "").strip()
         if not pkg_id:
             raise ValueError("Package 'id' is required.")
@@ -360,7 +360,8 @@ class MarketplaceRegistry:
         if publisher_tier not in MARKETPLACE_SPLITS:
             raise ValueError(f"Unsupported publisher_tier '{publisher_tier}'.")
 
-        if payload.get("ed25519_signature") or payload.get("signer_key_id"):
+        has_signature = bool(payload.get("ed25519_signature") or payload.get("signer_key_id"))
+        if has_signature or (publisher_tier == "first_party" and not _curated_seed):
             sig_ok, sig_reason = self.signer.verify_manifest(payload)
             if not sig_ok:
                 raise MarketplaceSecurityError(
@@ -413,9 +414,10 @@ class MarketplaceRegistry:
         if payload.get("ed25519_signature") and payload.get("signer_key_id"):
             record["signer_key_id"] = str(payload["signer_key_id"])
             record["ed25519_signature"] = str(payload["ed25519_signature"])
-        elif publisher_tier == "first_party":
-            sorvex_pem, _ = get_sorvex_first_party_keypair()
-            record = self.signer.sign_manifest(record, sorvex_pem, SORVEX_FIRST_PARTY_KEY_ID)
+        elif publisher_tier == "first_party" and _curated_seed:
+            first_party_key = load_first_party_signing_key()
+            if first_party_key is not None:
+                record = self.signer.sign_manifest(record, first_party_key[0], SORVEX_FIRST_PARTY_KEY_ID)
 
         self._packages[pkg_id] = record
         if self.store is not None:
