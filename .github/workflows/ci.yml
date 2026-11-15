@@ -85,10 +85,11 @@ jobs:
           python-version: "3.12"
       - name: Build wheel & verify isolated install, SPA assets, Golden Suite, and CycloneDX SBOM
         run: |
+          rm -rf dist/
           python -m pip install --upgrade pip build
           python -m build --wheel --outdir dist/
           python -m venv /tmp/wheel-venv
-          /tmp/wheel-venv/bin/pip install "$GITHUB_WORKSPACE"/dist/keelway-1.0.0-py3-none-any.whl
+          /tmp/wheel-venv/bin/pip install "$GITHUB_WORKSPACE"/dist/keelway-*-py3-none-any.whl
           cd /tmp
           /tmp/wheel-venv/bin/python -c "import pathlib, core; root = pathlib.Path(core.__file__).resolve().parent; assert (root / 'dev_app_dist' / 'index.html').is_file(); assert (root / 'studio' / 'index.html').is_file()"
           /tmp/wheel-venv/bin/keelway eval-suite --category all --json

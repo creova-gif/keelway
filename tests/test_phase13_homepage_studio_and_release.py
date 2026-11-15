@@ -105,6 +105,10 @@ def test_v1_1_0_cross_manifest_version_parity_and_changelog(tmp_path: Path) -> N
     release_wf_raw = (KEELWAY_ROOT / ".github" / "workflows" / "release-artifacts.yml").read_text(encoding="utf-8")
     assert 'default: "v1.1.0"' in release_wf_raw
 
+    ci_wf_raw = (KEELWAY_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    assert "keelway-1.0.0-py3-none-any.whl" not in ci_wf_raw
+    assert "keelway-*-py3-none-any.whl" in ci_wf_raw
+
     changelog_raw = (KEELWAY_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     idx_110 = changelog_raw.find("## [1.1.0]")
     idx_100 = changelog_raw.find("## [1.0.0]")
