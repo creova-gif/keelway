@@ -31,6 +31,7 @@
 | **KEEL-STUDIO-019** | Phase 12: Golden-Thread 4-Stage Journey Bar, Bidirectional KFlow ↔ Code Split Studio, Interactive Flight-Tape Waterfall Scrubber, Sandbox Blast-Radius Radar & Prompt Regression Gate | `STUDIO / AST / SANDBOX / SDK / UX` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 | **KEEL-LAUNCH-020** | Phase 13: Zero-Install Homepage Golden-Thread Studio Showcase (`/#studio-showcase`) & Official Signed `v1.1.0` GitHub Release | `WEBSITE / STUDIO / RELEASE / GA` | `VERIFIED_COMPLETE` | Google Antigravity (2-Agent Parallel Wave) | 2026-11-15 | `main` (`v1.1.0`) |
 | **KEEL-DEBUG-021** | Phase 14: Live Step-Through Debugger Breakpoints & Official VS Code / Cursor Extension Bridge | `DEBUGGER / IDE-BRIDGE / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
+| **KEEL-KFLOW-022** | Phase 15: Bounded Cyclic & Conditional KFlow Sub-Graphs + Pre-Run Cost/Privacy Autopilot | `KFLOW / CYCLIC / AUTOPILOT / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 
 ---
 

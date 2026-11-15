@@ -55,6 +55,7 @@ import { PlatformKbrainDelegate, type KbrainFactRecord, type KbrainFactResolutio
 import { PlatformDevxDelegate, type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
 import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
 import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
+import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -73,6 +74,7 @@ export class PlatformNamespace {
   private readonly devx: PlatformDevxDelegate;
   public readonly studio: PlatformStudioClient;
   public readonly debugger: PlatformDebuggerClient;
+  public readonly cyclic: PlatformCyclicClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -84,6 +86,7 @@ export class PlatformNamespace {
     this.devx = new PlatformDevxDelegate(requestJson);
     this.studio = new PlatformStudioClient(requestJson);
     this.debugger = new PlatformDebuggerClient(requestJson);
+    this.cyclic = new PlatformCyclicClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -627,6 +630,25 @@ export class PlatformNamespace {
   }
   public getDebuggerCodelens(paramsOrWorkspaceId: GetDebuggerCodelensParams | string = {}, options?: RequestOptions): Promise<DebuggerCodelensResponse> {
     return this.debugger.getDebuggerCodelens(paramsOrWorkspaceId, options);
+  }
+
+  public validateCyclicKflow(req?: ValidateCyclicKflowRequest, options?: RequestOptions): Promise<CyclicKflowValidationResponse> {
+    return this.cyclic.validateCyclicKflow(req, options);
+  }
+  public executeCyclicKflow(req?: ExecuteCyclicKflowRequest, options?: RequestOptions): Promise<CyclicKflowRunRecord> {
+    return this.cyclic.executeCyclicKflow(req, options);
+  }
+  public listCyclicKflowRuns(params?: ListCyclicKflowRunsParams, options?: RequestOptions): Promise<CyclicKflowRunListResponse> {
+    return this.cyclic.listCyclicKflowRuns(params, options);
+  }
+  public getCyclicKflowRun(runId: string, workspaceId?: string, options?: RequestOptions): Promise<CyclicKflowRunRecord> {
+    return this.cyclic.getCyclicKflowRun(runId, workspaceId, options);
+  }
+  public simulateKflowAutopilot(req?: SimulateKflowAutopilotRequest, options?: RequestOptions): Promise<AutopilotSimulationRecord> {
+    return this.cyclic.simulateKflowAutopilot(req, options);
+  }
+  public listKflowAutopilotSimulations(params?: ListAutopilotSimulationsParams, options?: RequestOptions): Promise<AutopilotSimulationListResponse> {
+    return this.cyclic.listKflowAutopilotSimulations(params, options);
   }
 }
 

@@ -16,7 +16,17 @@ import io
 import json
 from typing import Any, Dict, List, Optional
 
+from core.cli_cyclic import dispatch_cyclic_cli, register_cyclic_cli_subparsers
 from core.cli_debugger import dispatch_debugger_cli, register_debugger_cli_subparsers
+from core.cli_devx import dispatch_devx_cli, register_devx_cli_subparsers
+from core.cli_enterprise import dispatch_enterprise_cli, register_enterprise_cli_subparsers
+from core.cli_kbrain_khub import dispatch_kbrain_khub_cli, register_kbrain_khub_cli_subparsers
+from core.cli_kflow_crdt import dispatch_kflow_crdt_cli, register_kflow_crdt_cli_subparsers
+from core.cli_mcp_eval import dispatch_mcp_eval_cli, register_mcp_eval_cli_subparsers
+from core.cli_studio import dispatch_studio_cli, register_studio_cli_subparsers
+from core.platform.execution_stream import LiveExecutionStreamer
+from core.platform.rbac_webhooks import WorkspaceRbacController
+from core.platform.vault import LocalSecretVault
 
 _FALLBACK_CALIBRATED: Dict[str, Any] = {
     "pro_annual_usd": 29, "byom_annual_usd": 15, "supportive_rate": 1.0,
@@ -197,13 +207,6 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     pe.add_argument("--api-spend", dest="api_spend", type=float, default=1200.0, help="Monthly BYOM API spend in USD")
     pe.add_argument("--json", action="store_true", help="Emit JSON pricing report")
 
-    from core.cli_devx import register_devx_cli_subparsers
-    from core.cli_enterprise import register_enterprise_cli_subparsers
-    from core.cli_kbrain_khub import register_kbrain_khub_cli_subparsers
-    from core.cli_kflow_crdt import register_kflow_crdt_cli_subparsers
-    from core.cli_mcp_eval import register_mcp_eval_cli_subparsers
-    from core.cli_studio import register_studio_cli_subparsers
-
     register_mcp_eval_cli_subparsers(subparsers)
     register_kflow_crdt_cli_subparsers(subparsers)
     register_enterprise_cli_subparsers(subparsers)
@@ -211,16 +214,14 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_devx_cli_subparsers(subparsers)
     register_studio_cli_subparsers(subparsers)
     register_debugger_cli_subparsers(subparsers)
+    register_cyclic_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, and Debugger CLI subcommands."""
-    from core.cli_devx import dispatch_devx_cli
-    from core.cli_enterprise import dispatch_enterprise_cli
-    from core.cli_kbrain_khub import dispatch_kbrain_khub_cli
-    from core.cli_kflow_crdt import dispatch_kflow_crdt_cli
-    from core.cli_mcp_eval import dispatch_mcp_eval_cli
-    from core.cli_studio import dispatch_studio_cli
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, and Cyclic CLI subcommands."""
+    cyclic_rc = dispatch_cyclic_cli(args)
+    if cyclic_rc is not None:
+        return cyclic_rc
 
     debugger_rc = dispatch_debugger_cli(args)
     if debugger_rc is not None:
@@ -252,8 +253,6 @@ def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
     cmd = getattr(args, "command", None)
 
     if cmd == "vault":
-        from core.platform.vault import LocalSecretVault
-
         sub = getattr(args, "vault_command", None) or "list"
         as_json, ws_id = bool(getattr(args, "json", False)), str(getattr(args, "workspace_id", "default"))
         vault = LocalSecretVault(db_path=getattr(args, "db_path", None))
@@ -291,7 +290,6 @@ def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
         sub = getattr(args, "workspace_command", None) or "list"
         if sub in {"add", "use", "remove", "delete"}:
             return None
-        from core.platform.rbac_webhooks import WorkspaceRbacController
 
         as_json = bool(getattr(args, "json", False))
         ctrl = WorkspaceRbacController(db_path=getattr(args, "db_path", None))
@@ -329,7 +327,6 @@ def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
             msg = "run requires --kind <agent|workflow>, --target <ID>, and --objective <TEXT>."
             print(json.dumps({"error": msg}, indent=2) if as_json else f"[-] {msg}")
             return 2
-        from core.platform.execution_stream import LiveExecutionStreamer
 
         streamer = LiveExecutionStreamer(db_path=getattr(args, "db_path", None))
         try:

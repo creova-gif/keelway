@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BidirectionalKflowStudioPanel } from "@/components/platform/BidirectionalKflowStudioPanel";
+import { CyclicKflowAndAutopilotPanel } from "@/components/platform/CyclicKflowAndAutopilotPanel";
 import { KSpacesCrdtAndKflowPanel } from "@/components/platform/KSpacesCrdtAndKflowPanel";
 import { LangGraphMigratorPanel } from "@/components/platform/LangGraphMigratorPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
@@ -140,6 +141,12 @@ export function AutomationWorkspaceView({
       <BidirectionalKflowStudioPanel
         workspaceId={workspaceId}
         workflowId={activeWorkflow?.id ?? "WF-01"}
+        activeRbacRole={activeRbacRole}
+      />
+
+      <CyclicKflowAndAutopilotPanel
+        workspaceId={workspaceId}
+        workflowId={activeWorkflow?.id ?? "WF-CYCLIC-01"}
         activeRbacRole={activeRbacRole}
       />
 

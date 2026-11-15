@@ -30,6 +30,15 @@ const BUILTIN_ACTIONS: CommandItem[] = [
     keywords: "action studio golden thread langgraph kflow ast scrubber blast radius prompt gate",
   },
   {
+    id: "act-cyclic-kflow-autopilot",
+    group: "action",
+    title: "Simulate Cyclic KFlow & Cost/Privacy Autopilot",
+    subtitle: "Bounded reflection loops, map-reduce fan-out, saga compensation & pre-run OpenCore fallback",
+    badge: "AUTOPILOT",
+    href: "/docs#surfaces",
+    keywords: "action cyclic kflow reflection loop map reduce saga compensation autopilot p95 cost airgap privacy",
+  },
+  {
     id: "act-step-debugger-bridge",
     group: "action",
     title: "Attach VS Code / Cursor Step-Through Debugger",

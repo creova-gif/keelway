@@ -2,22 +2,10 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  BookOpen,
-  Check,
-  CheckCircle2,
-  Clock,
-  Copy,
-  ShieldCheck,
-  Terminal,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Check, CheckCircle2, Clock, Copy, ShieldCheck, Terminal } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
-interface DocSectionLink {
-  id: string;
-  label: string;
-}
+interface DocSectionLink { id: string; label: string; }
 
 const DOC_SECTIONS: DocSectionLink[] = [
   { id: "quickstart", label: "1. 5-Minute Quickstart" },
@@ -28,15 +16,7 @@ const DOC_SECTIONS: DocSectionLink[] = [
   { id: "status", label: "6. Verified v1 vs. Roadmap" },
 ];
 
-function CodePanel({
-  id,
-  title,
-  code,
-}: {
-  id: string;
-  title: string;
-  code: string;
-}) {
+function CodePanel({ id, title, code }: { id: string; title: string; code: string }) {
   const [copied, setCopied] = useState(false);
 
   const onCopy = async () => {
@@ -440,6 +420,12 @@ turn2 = client.responses.create(
                   Blast-Radius Radar (<code className="text-fg">blast-radius</code>)
                   &amp; Inline Prompt Regression Gate (
                   <code className="text-fg">prompt-gate</code>)
+                </li>
+                <li>
+                  • Bounded Cyclic &amp; Conditional KFlow Sub-Graphs (
+                  <code className="text-fg">kflow-cyclic</code>), Saga
+                  Compensation &amp; Pre-Run Hybrid Cost/Privacy Autopilot (
+                  <code className="text-fg">autopilot</code>)
                 </li>
               </ul>
             </div>

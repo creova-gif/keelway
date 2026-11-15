@@ -31,6 +31,8 @@ export { PlatformDevxDelegate } from "./platformDevx.js";
 export { PlatformStudioClient, PlatformStudioDelegate } from "./platformStudio.js";
 export { PlatformDebuggerClient, PlatformDebuggerDelegate } from "./platformDebugger.js";
 export type * from "./platformDebugger.js";
+export { PlatformCyclicClient, PlatformCyclicDelegate } from "./platformCyclic.js";
+export type * from "./platformCyclic.js";
 
 export {
   AirGapEgressError,

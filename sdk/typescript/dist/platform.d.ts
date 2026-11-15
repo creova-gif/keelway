@@ -14,6 +14,7 @@ import { type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListRes
 import { type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
 import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
 import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
+import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -30,6 +31,7 @@ export declare class PlatformNamespace {
     private readonly devx;
     readonly studio: PlatformStudioClient;
     readonly debugger: PlatformDebuggerClient;
+    readonly cyclic: PlatformCyclicClient;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -128,6 +130,12 @@ export declare class PlatformNamespace {
     listDebugSessions(paramsOrWorkspaceId?: ListDebugSessionsParams | string, options?: RequestOptions): Promise<DebuggerSessionListResponse>;
     stepDebugSession(sessionId: string, payloadOrAction?: StepDebugSessionRequest | DebuggerStepAction, options?: RequestOptions): Promise<DebuggerSessionRecord>;
     getDebuggerCodelens(paramsOrWorkspaceId?: GetDebuggerCodelensParams | string, options?: RequestOptions): Promise<DebuggerCodelensResponse>;
+    validateCyclicKflow(req?: ValidateCyclicKflowRequest, options?: RequestOptions): Promise<CyclicKflowValidationResponse>;
+    executeCyclicKflow(req?: ExecuteCyclicKflowRequest, options?: RequestOptions): Promise<CyclicKflowRunRecord>;
+    listCyclicKflowRuns(params?: ListCyclicKflowRunsParams, options?: RequestOptions): Promise<CyclicKflowRunListResponse>;
+    getCyclicKflowRun(runId: string, workspaceId?: string, options?: RequestOptions): Promise<CyclicKflowRunRecord>;
+    simulateKflowAutopilot(req?: SimulateKflowAutopilotRequest, options?: RequestOptions): Promise<AutopilotSimulationRecord>;
+    listKflowAutopilotSimulations(params?: ListAutopilotSimulationsParams, options?: RequestOptions): Promise<AutopilotSimulationListResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

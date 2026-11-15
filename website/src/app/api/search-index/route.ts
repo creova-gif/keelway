@@ -50,6 +50,15 @@ export async function GET() {
       keywords: "studio golden thread bidirectional langgraph stategraph kflow ast flight tape blast radius prompt gate",
     },
     {
+      id: "page-cyclic-kflow-autopilot",
+      group: "page",
+      title: "Bounded Cyclic KFlow & Cost/Privacy Autopilot",
+      subtitle: "Reflection loops, map-reduce fan-out, saga compensation & pre-run P50/P95 OpenCore routing",
+      badge: "AUTOPILOT",
+      href: "/docs#surfaces",
+      keywords: "cyclic kflow reflection loop map-reduce saga compensation autopilot p95 spend airgap_strict eu_residency",
+    },
+    {
       id: "page-step-debugger-bridge",
       group: "page",
       title: "Live Step-Through Debugger & VS Code / Cursor Extension Bridge",
