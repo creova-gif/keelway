@@ -627,7 +627,7 @@ class EnterpriseIdentitySiemManager:
                     "class_uid": ev["class_uid"], "category_name": ev["category_name"], "time": ev["time"],
                     "severity_id": ev["severity_id"], "workspace_id": ws, "event_type": ev["event_type"],
                     "activity_name": ev["activity_name"], "message": clean_msg,
-                    "metadata": {"version": "1.1.0", "product": {"name": "Keelway", "vendor_name": "Sorvex Labs", "version": "1.0.0"}},
+                    "metadata": {"version": "1.1.0", "product": {"name": "Keelway", "vendor_name": "Sorvex Labs", "version": "1.1.0"}},
                 })
                 if fmt == "ocsf":
                     records.append(ocsf_rec)
@@ -675,10 +675,10 @@ class EnterpriseIdentitySiemManager:
         otlp_dict: Dict[str, Any] = {
             "resource": {"attributes": [
                 {"key": "service.name", "value": {"stringValue": "keelway-core"}},
-                {"key": "service.version", "value": {"stringValue": "1.0.0"}},
+                {"key": "service.version", "value": {"stringValue": "1.1.0"}},
                 {"key": "keelway.workspace_id", "value": {"stringValue": ws}},
             ]},
-            "scopeMetrics": [{"scope": {"name": "keelway.platform.observability", "version": "1.0.0"}, "metrics": otlp_metrics}],
+            "scopeMetrics": [{"scope": {"name": "keelway.platform.observability", "version": "1.1.0"}, "metrics": otlp_metrics}],
         }
         return {
             "workspace_id": ws, "format": norm_fmt, "generated_at": now_iso,

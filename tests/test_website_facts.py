@@ -47,7 +47,7 @@ def test_product_facts_manifest_integrity() -> None:
         "website/product-facts.json and website/public/product-facts.json must stay in sync"
     )
 
-    assert public_data["version"] == "1.0.0"
+    assert public_data["version"] == "1.1.0"
     features = public_data["features"]
     assert isinstance(features, dict) and len(features) >= 7
 
@@ -196,7 +196,7 @@ def test_official_typescript_sdk_zero_deps_and_node_suite() -> None:
     pkg_json = json.loads((ts_dir / "package.json").read_text(encoding="utf-8"))
 
     assert pkg_json["name"] == "@keelway/sdk"
-    assert pkg_json["version"] == "1.0.0"
+    assert pkg_json["version"] == "1.1.0"
     assert not pkg_json.get("dependencies"), "@keelway/sdk must have zero runtime npm dependencies"
     assert (ts_dir / "dist" / "index.js").exists(), "Compiled sdk/typescript/dist/index.js must exist"
     assert (ts_dir / "dist" / "index.d.ts").exists(), "Compiled sdk/typescript/dist/index.d.ts must exist"

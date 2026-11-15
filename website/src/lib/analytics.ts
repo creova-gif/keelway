@@ -43,7 +43,11 @@ export type KeelwayAnalyticsEvent =
   | "manifest_drift_tested"
   | "marketplace_package_scanned"
   | "cli_tui_command_simulated"
-  | "pricing_byom_inspected";
+  | "pricing_byom_inspected"
+  | "golden_thread_stage_switched"
+  | "golden_thread_code_synced"
+  | "golden_thread_tape_scrubbed"
+  | "golden_thread_prompt_gated";
 
 export type EvaluatedExperimentMap = Record<string, string | boolean | number>;
 

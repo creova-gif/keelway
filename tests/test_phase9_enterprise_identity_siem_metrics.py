@@ -272,7 +272,7 @@ def test_scim_quorum_siem_dlp_and_observability_metrics(tmp_path: Path) -> None:
             for secret in (leaked_openai, leaked_kw, leaked_gh):
                 assert secret not in dumped
             if fmt == "ocsf":
-                assert exp["records"][0]["metadata"]["product"]["version"] == "1.0.0"
+                assert exp["records"][0]["metadata"]["product"]["version"] == "1.1.0"
             elif fmt == "cef":
                 assert all(line.startswith("CEF:0|SorvexLabs|Keelway|1.0.0|") for line in exp["records"])
             else:
@@ -293,7 +293,7 @@ def test_scim_quorum_siem_dlp_and_observability_metrics(tmp_path: Path) -> None:
         assert '# TYPE keelway_p10_quorum_approved_total counter' in prom_m["prometheus_text"]
         assert 'keelway_scim_active_users{workspace="ws-sec"} 1' in prom_m["prometheus_text"]
         attrs = {a["key"]: a["value"]["stringValue"] for a in otlp_m["otlp_resource_metrics"]["resource"]["attributes"]}
-        assert attrs["service.name"] == "keelway-core" and attrs["service.version"] == "1.0.0"
+        assert attrs["service.name"] == "keelway-core" and attrs["service.version"] == "1.1.0"
         assert len(otlp_m["otlp_resource_metrics"]["scopeMetrics"][0]["metrics"]) == 6
     finally:
         mgr.close()
@@ -440,7 +440,7 @@ async def test_fastapi_enterprise_routes_rbac_quorum_status_codes_and_live_v1(tm
             assert met_r.status_code == 200 and "keelway_p10_quorum_approved_total" in met_r.json()["prometheus_text"]
             assert (await client.get("/v1/platform/observability/metrics?format=bad", headers=viewer_hdrs)).status_code == 400
 
-        assert live_app.version == "1.0.0"
+        assert live_app.version == "1.1.0"
         live_paths = live_app.openapi()["paths"]
         for route_path in (
             "/v1/platform/enterprise/oidc", "/v1/platform/enterprise/oidc/exchange",

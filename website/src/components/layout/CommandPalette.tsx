@@ -21,6 +21,15 @@ type CommandItem = SearchIndexItem | (Omit<SearchIndexItem, "group"> & { group: 
 
 const BUILTIN_ACTIONS: CommandItem[] = [
   {
+    id: "act-golden-thread-studio",
+    group: "action",
+    title: "Try Golden-Thread Studio Showcase",
+    subtitle: "Zero-install LangGraph-to-KFlow SVG canvas, AST line sync, Flight-Tape scrubber & Prompt Gate",
+    badge: "STUDIO",
+    href: "/#studio-showcase",
+    keywords: "action studio golden thread langgraph kflow ast scrubber blast radius prompt gate",
+  },
+  {
     id: "act-dev-tool",
     group: "action",
     title: "Launch 10-View Local Dev Tool",
@@ -260,8 +269,12 @@ export function CommandPalette() {
         return <BookOpen className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />;
       case "api":
         return <Webhook className="h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />;
-      default:
+      case "page":
         return <LayoutGrid className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />;
+      default: {
+        const _exhaustive: never = group;
+        return _exhaustive;
+      }
     }
   };
 

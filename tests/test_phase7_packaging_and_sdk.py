@@ -51,7 +51,7 @@ def test_pyproject_wheel_package_data_resolves_studio_and_dev_app_assets() -> No
     data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
 
     assert data["project"]["name"] == "keelway"
-    assert data["project"]["version"] == "1.0.0"
+    assert data["project"]["version"] == "1.1.0"
 
     core_patterns = data["tool"]["setuptools"]["package-data"]["core"]
     for required in (

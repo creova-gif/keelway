@@ -167,7 +167,7 @@ def cmd_init(
     config_file = keelway_dir / "config.json"
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
     cfg_data = {
-        "version": "1.0.0",
+        "version": "1.1.0",
         "workspace": {
             "name": ws_path.name,
             "root": str(ws_path),

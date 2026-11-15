@@ -3,7 +3,7 @@ class Keelway < Formula
 
   desc "Customer-managed hybrid AI governance, MCP control plane, and multi-agent platform"
   homepage "https://github.com/creova-gif/kora"
-  url "https://github.com/creova-gif/kora.git", tag: "v1.0.0"
+  url "https://github.com/creova-gif/kora.git", tag: "v1.1.0"
   license "Apache-2.0"
   head "https://github.com/creova-gif/kora.git", branch: "main"
 

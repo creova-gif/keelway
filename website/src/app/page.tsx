@@ -12,6 +12,7 @@ import { ExperimentFlagValues } from "@/components/experiments/ExperimentFlagVal
 import { HeroCtaLinks } from "@/components/home/HeroCtaLinks";
 import { HeroControlCockpit } from "@/components/home/HeroControlCockpit";
 import { CustomerJourneyGrid } from "@/components/home/CustomerJourneyGrid";
+import { GoldenThreadStudioShowcase } from "@/components/home/GoldenThreadStudioShowcase";
 import { RecordedDemosShowcase } from "@/components/home/RecordedDemosShowcase";
 import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
 import { P10InteractiveDeck } from "@/components/home/P10InteractiveDeck";
@@ -125,6 +126,11 @@ export default async function HomePage() {
           2. PERSONA & USER JOURNEY ROUTER (Founders, Devs, Startups, Enterprise)
           ==================================================================== */}
       <CustomerJourneyGrid />
+
+      {/* ====================================================================
+          2B. ZERO-INSTALL GOLDEN-THREAD STUDIO SHOWCASE (#studio-showcase)
+          ==================================================================== */}
+      <GoldenThreadStudioShowcase />
 
       {/* ====================================================================
           3. CORE PLATFORM ECOSYSTEM — Workspace, Open-Core Models & Marketplace

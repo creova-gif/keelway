@@ -69,7 +69,7 @@ def test_cmd_init_non_git_workspace(tmp_path: Path):
     assert cfg_file.is_file()
 
     cfg = json.loads(cfg_file.read_text(encoding="utf-8"))
-    assert cfg["version"] == "1.0.0"
+    assert cfg["version"] == "1.1.0"
     assert cfg["workspace"]["name"] == "sample_project"
     assert cfg["workspace"]["git_enabled"] is False
     assert cfg["runtime"]["default_provider"] == "local"

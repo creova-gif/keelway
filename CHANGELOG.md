@@ -3,6 +3,26 @@
 All notable changes to **Keelway** are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-11-15
+
+### Added
+- **Zero-Install Homepage Golden-Thread Studio Showcase (`/#studio-showcase`)**: Browser-native interactive studio on the Next.js 15 website converting LangGraph `StateGraph` pipelines into KFlow topological/cyclic graphs, bidirectional Python & `@keelway/sdk` TypeScript code generation with AST line highlighting, Flame Waterfall Flight-Tape scrubbing with `$0.00` cached counterfactual forks, Seatbelt/Bubblewrap Blast-Radius probe radar, and live Prompt Regression gating.
+- **Golden-Thread 4-Stage Journey Bar, Bidirectional KFlow ↔ Code Split Studio & Sandbox Blast-Radius Radar (`/app` & `/v1/platform/studio/*`)**:
+  - `POST /v1/platform/studio/kflow/sync`, `POST /v1/platform/studio/blast-radius`, `GET /v1/platform/studio/blast-radius`, `POST /v1/platform/studio/prompt-gate`, and `GET /v1/platform/studio/prompt-gate` with static AST line-span mapping (`Lstart–Lend`, zero `eval`/`exec`), `sync_sha256` drift digests, Seatbelt/Bubblewrap confinement receipts (`audit_sha256`), and inline Golden Eval prompt/schema regression gates (`gate_sha256`).
+  - Sovereign CLI commands `keelway kflow-sync`, `keelway blast-radius`, and `keelway prompt-gate`, plus 5-method Tri-SDK parity across Python (`core.sdk`), TypeScript (`@keelway/sdk` `v1.1.0`), and Go (`github.com/keelway/keelway-go`).
+- **Flight-Tape Time-Travel Debugger, OTel GenAI Wedge & Static AST LangGraph Migrator**:
+  - `POST /v1/platform/traces/ingest` (with pre-storage DLP secret redaction), `GET /v1/platform/traces`, `POST /v1/platform/traces/{trace_id}/fork` (reusing `$0` cached upstream steps and computing frontier-to-OpenCore spend deltas), and `POST /v1/platform/traces/{trace_id}/promote-eval`.
+  - `POST /v1/platform/migrate/langgraph` performing zero-`eval` static AST analysis to convert LangGraph `StateGraph` + `interrupt()` graphs into bounded KFlow topologies with injected `p10_human_gate` checkpoints, alongside `keelway traces` and `keelway migrate` CLI subcommands.
+- **4-K Architecture Completion — KBrain Hybrid Memory Graph & KHub Air-Gapped Skill Mirror**:
+  - Scope-governed workspace memory graph (`local_session < project < team < org`) via `POST /v1/platform/kbrain/facts`, `POST /v1/platform/kbrain/search` (BM25 + character 3-gram cosine hybrid recall), and `POST /v1/platform/kbrain/resolve-conflict` with fail-closed DLP secret rejection and P-10 owner/operator conflict resolution.
+  - Air-gapped `.tar.gz` mirror export/import (`POST /v1/platform/khub/mirror/export` & `POST /v1/platform/khub/mirror/import`) hardened with symlink, hardlink, and path-traversal `filter="data"` confinement plus Ed25519/SHA-256 verification.
+- **Enterprise OIDC/SCIM 2.0 Federation, Dual-Human P-10 Quorum & SIEM/OTLP Observability**:
+  - SSRF-guarded `OIDC`/`SAML` federation (`PUT/GET /v1/platform/enterprise/oidc`, `POST /v1/platform/enterprise/oidc/exchange`) with AES-256-GCM encrypted signing keys and RFC 7643/7644 `SCIM 2.0` user provisioning (`POST/GET/PATCH /v1/platform/enterprise/scim/v2/Users`) synced with workspace RBAC.
+  - 2-of-2 distinct-signer Dual-Human P-10 Quorum (`POST /v1/platform/enterprise/p10-quorum/approve`, enforcing `RequesterCannotSelfApprove`), DLP-redacted OCSF v1.1 / ArcSight CEF / JSONL SIEM audit export (`GET /v1/platform/enterprise/siem/export`, `product.version="1.1.0"`), OpenTelemetry OTLP JSON & Prometheus metrics (`GET /v1/platform/observability/metrics`), and automated GitHub Release CycloneDX 1.5 SBOM + `SHA256SUMS.txt` attestation workflow (`.github/workflows/release-artifacts.yml`).
+
+### Changed
+- **Cross-Manifest `v1.1.0` Release Synchronization**: Synchronized release version `1.1.0` across `pyproject.toml`, `core.main:app`, `cli.py`, `@keelway/sdk`, Next.js website (`website/package.json`, `product-facts.json`, `openapi.json`), Homebrew formula (`Formula/keelway.rb`), SIEM/OTLP resource metadata, and GitHub Release artifacts workflow.
+
 ## [1.0.0] — 2026-11-15
 
 ### Added

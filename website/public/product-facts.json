@@ -1,8 +1,14 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "source_repository": "https://keelway.dev",
   "deployment_url": "https://kora-sable.vercel.app",
   "features": {
+    "zero_install_homepage_golden_thread_studio_showcase": {
+      "status": "AVAILABLE",
+      "claim": "Zero-install interactive Golden-Thread Studio Showcase on the public homepage enabling live LangGraph-to-KFlow SVG topology conversion, bidirectional Python and TypeScript SDK AST line sync, counterfactual Flight-Tape scrubbing, sandbox blast-radius inspection, and prompt regression gating",
+      "code_path": "website/src/components/home/GoldenThreadStudioShowcase.tsx, website/src/lib/goldenThreadShowcaseEngine.ts",
+      "evidence_test": "tests/test_phase13_homepage_studio_and_release.py"
+    },
     "dual_mode_agent_builder_and_cross_repo_runtime": {
       "status": "AVAILABLE",
       "claim": "Cross-repository Agent Builder export/import with SHA-256 integrity validation and shared runtime policy containment",
