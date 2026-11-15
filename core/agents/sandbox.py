@@ -34,7 +34,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 ENV_KEEP = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TZ", "VIRTUAL_ENV")
 # Areas that hold other people's and other projects' files. The workspace is allowed back in afterwards.
 DENY_READ_ROOTS = ("/Users", "/Volumes", "/private/var/root")
-PROTECTED_WRITE = (".git", ".keelway", ".kora")
+PROTECTED_WRITE = (".git", ".keelway", ".kora", ".claude")
 PROTECTED_READ = (".keelway", ".kora")
 
 

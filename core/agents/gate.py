@@ -229,7 +229,7 @@ class GateStore:
         self._tapes: Dict[str, FlightRecorder] = {}
 
     # ---- tape -----------------------------------------------------------
-    def _record(self, req: GateRequest, event_type: str, payload: Dict[str, Any]) -> None:
+    def _record(self, req: GateRequest, event_type: str, payload: Dict[str, Any]) -> bool:
         recorder = self._tapes.get(req.id)
         if recorder is None:
             tape_dir = self.tape_dir or Path(req.workspace_root) / ".keelway" / "recordings"
@@ -240,6 +240,8 @@ class GateStore:
             req.tape_path = str(recorder.save_tape())
         except OSError:
             req.tape_path = None
+            return False
+        return True
 
     # ---- lifecycle ------------------------------------------------------
     def _expire(self, req: GateRequest) -> None:
@@ -343,7 +345,8 @@ class GateStore:
                 raise TicketRejected("does not match this command or folder", req)
             req.redeemed_at = self.clock()
             req._ticket = None
-            self._record(req, "gate_redeemed", {"command_sha256": req.command_sha256, "cwd": cwd})
+            if not self._record(req, "gate_redeemed", {"command_sha256": req.command_sha256, "cwd": cwd}):
+                raise TicketRejected("could not be recorded (the flight tape is not writable)", req)
             return req
 
     def record_result(self, request_id: str, result: Dict[str, Any]) -> GateRequest:
@@ -456,7 +459,12 @@ def is_protected_path(file_path: str, cwd: str) -> bool:
     if not file_path:
         return False
     raw = Path(os.path.expanduser(file_path))
-    path = Path(os.path.realpath(raw if raw.is_absolute() else Path(cwd) / raw))
+    absolute = raw if raw.is_absolute() else Path(cwd) / raw
+    # Check the path as named and as resolved, so a symlinked settings file is still protected.
+    return any(_is_protected(Path(p)) for p in {os.path.normpath(absolute), os.path.realpath(absolute)})
+
+
+def _is_protected(path: Path) -> bool:
     parts = path.parts
     if ".keelway" in parts or ".kora" in parts:
         return True
@@ -693,7 +701,7 @@ def run_exec(ticket: str, command: str, client: GateClient, cwd: Optional[str] =
     sandbox = factory(root, grant["sandbox"]["backend"])
     result: Dict[str, Any]
     try:
-        run = sandbox.run(shlex.join(["sh", "-c", inner]), timeout=timeout)
+        run = sandbox.run(shlex.join(["bash" if shutil.which("bash") else "sh", "-c", inner]), timeout=timeout)
     except (SandboxUnavailable, ValueError, OSError) as exc:
         result = {"exit_code": 126, "sandbox_failure": isinstance(exc, (SandboxUnavailable, OSError)), "backend": grant["sandbox"]["backend"]}
         _report(client, grant["id"], result)

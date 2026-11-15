@@ -266,7 +266,7 @@ def test_hook_allow_rewrites_to_keelway_exec_and_exec_runs_in_the_sandbox(api, t
             return SandboxResult(0, "hi\ntwo\n", "", False, 4.0, "bubblewrap")
 
     assert gate.run_exec(argv[3], argv[5], gc, cwd=str(tmp_path), sandbox_factory=Box) == 0
-    assert ran == [(str(tmp_path.resolve()), "bubblewrap", "sh -c 'echo '\"'\"'hi'\"'\"' && echo two'")]
+    assert ran == [(str(tmp_path.resolve()), "bubblewrap", ("bash" if shutil.which("bash") else "sh") + " -c 'echo '\"'\"'hi'\"'\"' && echo two'")]
     assert "hi\ntwo" in capfd.readouterr().out
     assert gate.run_exec(argv[3], argv[5], gc, cwd=str(tmp_path), sandbox_factory=Box) == 126
     assert "KW-G07" in capfd.readouterr().err
@@ -380,3 +380,59 @@ async def test_doctor_blocks_on_tampered_hook_and_never_claims_unchecked_hardwar
     sections = {s.name: s for s in report.sections}
     assert sections["Claude Code Command Gate"].status == "FAIL" and report.overall_status == "BLOCKED"
     assert "VERIFIED" not in json.dumps(sections["Tier 2 Hardware Security HAL"].details)
+
+
+def test_symlinked_settings_stay_protected(tmp_path):
+    outside = tmp_path / "elsewhere.json"
+    outside.write_text("{}")
+    (tmp_path / ".claude").mkdir()
+    (tmp_path / ".claude" / "settings.local.json").symlink_to(outside)
+    assert gate.is_protected_path(".claude/settings.local.json", str(tmp_path))
+
+
+def test_redeem_refuses_when_the_tape_cannot_be_written(store, tmp_path, monkeypatch):
+    req = store.submit("pytest -q", str(tmp_path), sandbox=OK)
+    store.decide(req.id, True, "you")
+    ticket = store.ticket(req)
+    monkeypatch.setattr(store._tapes[req.id], "save_tape", lambda *a, **k: (_ for _ in ()).throw(OSError("disk full")))
+    with pytest.raises(TicketRejected, match="could not be recorded"):
+        store.redeem(ticket, "pytest -q", str(tmp_path))
+
+
+def test_sandbox_keeps_claude_settings_read_only():
+    from core.agents.sandbox import PROTECTED_WRITE
+    assert ".claude" in PROTECTED_WRITE
+
+
+def test_uninstall_one_project_keeps_the_others(tmp_path, monkeypatch):
+    import core.cli_gate as cli_gate
+
+    monkeypatch.setenv("KEELWAY_HOME", str(tmp_path / "kh"))
+    monkeypatch.setenv("KEELWAY_API_URL", "http://127.0.0.1:9")
+    revoked, n = [], iter(range(10))
+
+    async def mint(label):
+        i = next(n)
+        return f"id{i}", f"tok{i}"
+
+    async def revoke(token_id):
+        revoked.append(token_id)
+
+    monkeypatch.setattr(cli_gate, "_mint_gate_token", mint)
+    monkeypatch.setattr(cli_gate, "_revoke_token", revoke)
+    a, b = tmp_path / "a", tmp_path / "b"
+    a.mkdir()
+    b.mkdir()
+    (b / ".claude").mkdir()
+    (b / ".claude" / "settings.local.json").write_text("{not json")
+    assert cli_gate.cmd_hook_install(project_dir=str(a), start=False, open_browser=False) == 0
+    assert cli_gate.cmd_hook_install(project_dir=str(b), start=False, open_browser=False) == 1
+    assert gate.load_gate_config()["token"] == "tok0" and revoked == []
+    (b / ".claude" / "settings.local.json").write_text("{}")
+    assert cli_gate.cmd_hook_install(project_dir=str(b), start=False, open_browser=False) == 0
+    assert revoked == ["id0"]
+    assert cli_gate.cmd_hook_uninstall(project_dir=str(a)) == 0
+    config = gate.load_gate_config()
+    assert config["token"] == "tok1" and config["settings_path"] == str(b / ".claude" / "settings.local.json")
+    assert cli_gate.cmd_hook_uninstall(project_dir=str(b)) == 0
+    assert not gate.gate_config_path().exists() and revoked == ["id0", "id1"]

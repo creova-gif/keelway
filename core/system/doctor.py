@@ -298,12 +298,13 @@ class SystemDoctor:
         from core.cli_gate import hook_health
         hook = hook_health()
         hook_status = "FAIL" if hook["tampered"] or (hook["installed"] is False and hook.get("settings_path")) else (
-            "OK" if hook["installed"] else "WARN")
+            "OK" if hook["installed"] and hook["api"] else "WARN")
         sections.append(DiagnosticSection(
             name="Claude Code Command Gate",
             status=hook_status,
             details={"installed": hook["installed"], "tampered": hook["tampered"], "api_reachable": hook["api"], "detail": hook["detail"]},
-            fix="" if hook_status == "OK" else "Run: keelway hook install --claude-code",
+            fix="" if hook_status == "OK" else (
+                "Start it with: keelway dev" if hook["installed"] and not hook["tampered"] else "Run: keelway hook install --claude-code"),
         ))
 
         if any(sec.status == "FAIL" and sec.name in ("Sandbox Backend Status", "Claude Code Command Gate") for sec in sections):

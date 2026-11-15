@@ -93,20 +93,21 @@ def cmd_hook_install(scope: str = "local", project_dir: Optional[str] = None, st
     settings_file = gate.settings_path_for(scope, project)
     keelway_bin = _keelway_bin()
     old = gate.load_gate_config()
-    if old.get("token_id"):
-        asyncio.run(_revoke_token(old["token_id"]))
-    token_id, token = asyncio.run(_mint_gate_token(f"gate: claude-code {project.name}"))
     try:
         digest = gate.install_settings(settings_file, keelway_bin)
     except ValueError as exc:
         print(f"[-] Could not update {settings_file}: {exc}")
         return 1
+    token_id, token = asyncio.run(_mint_gate_token(f"gate: claude-code {project.name}"))
     base_url = os.environ.get("KEELWAY_API_URL") or f"http://127.0.0.1:{port}"
+    entry = {"entries_sha256": digest, "project_dir": str(project), "installed_at": time.time()}
+    installs = {**old.get("installs", {}), str(settings_file): entry}
     gate.save_gate_config({
-        "token": token, "token_id": token_id, "api_url": base_url, "installed_at": time.time(),
-        "settings_path": str(settings_file), "entries_sha256": digest, "keelway_bin": keelway_bin,
-        "project_dir": str(project),
+        "token": token, "token_id": token_id, "api_url": base_url, "keelway_bin": keelway_bin,
+        "settings_path": str(settings_file), **entry, "installs": installs,
     })
+    if old.get("token_id"):
+        asyncio.run(_revoke_token(old["token_id"]))
     print(f"✓ Hook installed ({gate.COMMAND_MATCHER}) in {settings_file}")
 
     studio = base_url
@@ -142,9 +143,15 @@ def cmd_hook_uninstall(scope: str = "local", project_dir: Optional[str] = None) 
     import asyncio
 
     config = gate.load_gate_config()
-    project = Path(project_dir or config.get("project_dir") or os.getcwd()).resolve()
-    settings_file = Path(config["settings_path"]) if config.get("settings_path") and not project_dir else gate.settings_path_for(scope, project)
+    settings_file = gate.settings_path_for(scope, Path(project_dir or os.getcwd()).resolve())
     removed = gate.uninstall_settings(settings_file)
+    installs = {k: v for k, v in config.get("installs", {}).items() if k != str(settings_file)}
+    if installs:
+        path, entry = next(iter(installs.items()))
+        gate.save_gate_config({**config, "settings_path": path, **entry, "installs": installs})
+        print(f"✓ Removed {removed} Keelway hook entr{'y' if removed == 1 else 'ies'} from {settings_file}; "
+              f"{len(installs)} other install(s) keep the gate token.")
+        return 0
     if config.get("token_id"):
         asyncio.run(_revoke_token(config["token_id"]))
     try:
@@ -203,4 +210,6 @@ def cmd_hook_status() -> int:
         print("  First approved command: none yet")
     else:
         print(f"  First approved command: {int(seconds // 60)}m{int(seconds % 60):02d}s after install")
-    return 0 if health["installed"] and not health["tampered"] else 2
+    if not health["installed"] or health["tampered"]:
+        return 2
+    return 0 if health["api"] else 1

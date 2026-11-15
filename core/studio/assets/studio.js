@@ -48,7 +48,7 @@ const STRINGS = {
   zh: { search: '搜索文件、符号和命令', signOut: '退出', explorer: '资源管理器', changes: '更改', tasks: '任务', memory: '记忆', save: '保存', tagline: '本地优先 · 确定性 · 属于你', welcomeTitle: '与从不离开你电脑的智能体一起构建。', welcomeBody: '每一步都被记录、可重放、可审计。', start: '开始', signIn: '登录', signInTitle: '登录 Keelway', next: '下一步', done: '开始使用', skipTour: '跳过', airOn: '已隔离', airOff: '允许云端', activity: '活动', allow: '允许', deny: '拒绝', openFile: '打开文件', giveGoal: '给智能体一个目标', reviewChanges: '查看更改' },
 };
 const MORE = {
-  en: { manifests: 'Manifests', files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed', allowAlways: 'Allow always…', alwaysScope: 'Scope', alwaysConfirm: 'Allow and remember', cancel: 'Cancel', alwaysHelpPath: 'Future {tool} requests for paths matching this pattern run without asking, in this workspace only. * matches within one folder, ** spans folders.', alwaysHelpCmd: 'Future runs of exactly this command run without asking, in this workspace only.', rulesTitle: 'Standing approvals', rulesHint: 'Only for "Ask before changes" runs. Keelway and git internals always ask.', noRules: 'None yet. Every change asks first.', revoke: 'Revoke', ruleSaved: 'Standing approval saved', autoApproved: 'Allowed by standing approval', scopeRequired: 'Enter a file pattern or command to remember.', gateTitle: 'Needs approval · {time} left', gateFrom: 'asked by {who}', gateSandboxOk: 'Runs in verified sandbox ({backend})', gateSandboxBad: 'Sandbox not verified: will be blocked', gateWaiting: '+{n} waiting', gateWaitingSr: '{n} more waiting', gateDenyAll: 'Deny all waiting', gateAnnounce: 'Approval needed, {minutes} minutes. {who} wants to run: {command}', gateOneMin: 'One minute left to approve this command', gateTenSec: 'Ten seconds left to approve this command', gateShowAll: 'Show all {n} lines', gateDecided: 'Decision sealed into the record' },
+  en: { manifests: 'Manifests', files: 'Files', record: 'Record', labs: 'Labs', runs: 'Agent runs', backlog: 'Backlog', noRuns: 'No runs yet. Describe a goal below and Keelway plans it before touching anything.', needsApproval: 'Needs approval', allowOnce: 'Allow once', approvalNote: 'Your decision is sealed into the record.', why: 'Why', action: 'Action', target: 'Target', network: 'Network', recordBody: 'Every agent step and permission decision, sealed and replayable.', labsBody: 'Experiments. Anything marked Simulated never touches real systems or money.', simulated: 'Simulated', real: 'Runs for real', composerPh: 'Ask Keelway to change something…', back: 'Back', filesEmpty: 'Open a file from the explorer, or press Ctrl K to search.', flight: 'Flight tapes', auditTitle: 'Permission log', healing: 'Self-healing', ledger: 'Payments', runWithAgent: 'Run with agent', queued: 'Queued', running: 'Running', doneStep: 'Done', failedStep: 'Failed', output: 'Output', stepOf: '{done} of {total} steps', netAir: '0 bytes · air-gapped', netCloud: 'not measured · cloud allowed', approvalsWaiting: 'Needs approval · {n}', wantsEdit: 'Keelway wants to edit {target}', wantsWrite: 'Keelway wants to write {target}', wantsRun: 'Keelway wants to run a command', wantsTool: 'Keelway wants to use {tool}', chainOk: 'Chain verified: {n} entries, no gaps · head {head}', chainBroken: 'Chain broken at entry {seq}', localModel: 'Local model', skip: 'Skip to content', status_planning: 'Planning', status_awaiting_approval: 'Needs approval', status_executing_tool: 'Running', status_idle: 'Idle', status_completed: 'Completed', status_failed: 'Failed', allowAlways: 'Allow always…', alwaysScope: 'Scope', alwaysConfirm: 'Allow and remember', cancel: 'Cancel', alwaysHelpPath: 'Future {tool} requests for paths matching this pattern run without asking, in this workspace only. * matches within one folder, ** spans folders.', alwaysHelpCmd: 'Future runs of exactly this command run without asking, in this workspace only.', rulesTitle: 'Standing approvals', rulesHint: 'Only for "Ask before changes" runs. Keelway and git internals always ask.', noRules: 'None yet. Every change asks first.', revoke: 'Revoke', ruleSaved: 'Standing approval saved', autoApproved: 'Allowed by standing approval', scopeRequired: 'Enter a file pattern or command to remember.', gateTimeLeft: '{time} left', gateFrom: 'asked by {who}', gateSandboxOk: 'Runs in verified sandbox ({backend})', gateSandboxBad: 'Sandbox not verified: will be blocked', gateWaiting: '+{n} waiting', gateWaitingSr: '{n} more waiting', gateDenyAll: 'Deny all waiting', gateAnnounce: 'Approval needed, {minutes} minutes. {who} wants to run: {command}', gateOneMin: 'One minute left to approve this command', gateTenSec: 'Ten seconds left to approve this command', gateShowAll: 'Show all {n} lines', gateDecided: 'Decision sealed into the record' },
   es: { allowAlways: 'Permitir siempre…', rulesTitle: 'Aprobaciones permanentes', revoke: 'Revocar', files: 'Archivos', record: 'Registro', runs: 'Ejecuciones', backlog: 'Pendientes', needsApproval: 'Requiere aprobación', allowOnce: 'Permitir una vez', composerPh: 'Pide a Keelway que cambie algo…', newTask: 'Nueva tarea', recordBody: 'Cada paso y decisión, sellados y reproducibles.', labsBody: 'Experimentos. Lo marcado como Simulado nunca toca sistemas ni dinero reales.', simulated: 'Simulado' },
   fr: { allowAlways: 'Toujours autoriser…', rulesTitle: 'Autorisations permanentes', revoke: 'Révoquer', files: 'Fichiers', record: 'Registre', runs: 'Exécutions', backlog: 'À faire', needsApproval: 'Approbation requise', allowOnce: 'Autoriser une fois', composerPh: 'Demandez à Keelway de modifier quelque chose…', newTask: 'Nouvelle tâche', recordBody: 'Chaque étape et décision, scellées et rejouables.', labsBody: 'Expériences. Ce qui est marqué Simulé ne touche jamais de vrais systèmes ni d’argent.', simulated: 'Simulé' },
   pt: { allowAlways: 'Permitir sempre…', rulesTitle: 'Aprovações permanentes', revoke: 'Revogar', files: 'Arquivos', record: 'Registro', runs: 'Execuções', backlog: 'Pendências', needsApproval: 'Requer aprovação', allowOnce: 'Permitir uma vez', composerPh: 'Peça ao Keelway para mudar algo…', newTask: 'Nova tarefa', recordBody: 'Cada passo e decisão, selados e reproduzíveis.', labsBody: 'Experimentos. O que está marcado como Simulado nunca toca sistemas ou dinheiro reais.', simulated: 'Simulado' },
@@ -184,7 +184,7 @@ async function loadMe() {
 async function signIn(e) {
   e.preventDefault();
   localStorage.setItem('keelway.token', $('signin-token').value.trim());
-  try { await loadMe(); $('signin-token').value = ''; hideSignIn(); toast(`${t('signIn')} · ${state.me.actor}`); await startSession(); }
+  try { await loadMe(); $('signin-token').value = ''; hideSignIn(); toast(`${t('signIn')} · ${state.me.actor}`); startGatePolling(); await startSession(); }
   catch (err) { localStorage.removeItem('keelway.token'); showSignIn(t('badToken')); }
 }
 function signOut() { localStorage.removeItem('keelway.token'); const ws = state.ws; state.ws = null; if (ws) ws.close(); showSignIn(); }
@@ -3952,7 +3952,7 @@ function wire() {
 }
 
 // ---------- Command gate (Claude Code hook requests) ----------
-const gateUi = { current: null, milestones: new Set(), timer: null, poll: null, expanded: false };
+const gateUi = { current: null, milestones: new Set(), timer: null, poll: null, expanded: false, signature: '' };
 const GATE_FOLD_LINES = 6;
 
 function gateClock(seconds) {
@@ -3967,7 +3967,8 @@ function gateMount() {
       style: 'position:fixed;inset-inline-end:16px;bottom:16px;z-index:60;width:min(560px,calc(100vw - 32px));max-height:80vh;overflow:auto;padding:16px;' });
     const live = h('div', { id: 'gate-live', class: 'sr-only', 'aria-live': 'polite', 'aria-atomic': 'true' });
     root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && gateUi.current) { e.preventDefault(); gateDecide(gateUi.current.id, false); } });
-    document.body.append(root, live);
+    const style = h('style', {}, '@media (max-width: 480px) { #gate-card .gate-actions { flex-direction: column; } #gate-card .gate-actions button { flex: none; width: 100%; } }');
+    document.body.append(style, root, live);
   }
   return root;
 }
@@ -3981,35 +3982,49 @@ function gateButton(label, tone, onclick) {
   return h('button', { type: 'button', class: `rounded-md px-3 font-medium ${tone}`, style: 'min-height:44px;flex:1 1 140px;', onclick }, label);
 }
 
+function gateSignature(pending) {
+  return `${pending.map((r) => r.id).join(',')}|${gateUi.expanded}`;
+}
+
 function renderGateCard(pending) {
   const root = gateMount();
   const req = pending[0];
-  if (!req) { root.classList.add('hidden'); root.replaceChildren(); gateUi.current = null; return; }
+  if (!req) { root.classList.add('hidden'); root.replaceChildren(); gateUi.current = null; gateUi.signature = ''; return; }
   if (!gateUi.current || gateUi.current.id !== req.id) {
     gateUi.milestones = new Set(); gateUi.expanded = false;
     gateAnnounce(fmt('gateAnnounce', { minutes: Math.round(req.seconds_left / 60), who: req.requester, command: req.command }));
   }
   gateUi.current = req;
+  const signature = gateSignature(pending);
+  if (signature === gateUi.signature) {
+    const el = $('gate-countdown');
+    if (el) el.textContent = fmt('gateTimeLeft', { time: gateClock(req.seconds_left) });
+    return;
+  }
+  gateUi.signature = signature;
+  const hadFocus = root.contains(document.activeElement);
   const lines = req.command.split('\n');
   const folded = lines.length > GATE_FOLD_LINES && !gateUi.expanded;
   const shown = folded ? lines.slice(0, GATE_FOLD_LINES).join('\n') : req.command;
   const waiting = pending.length - 1;
   const sandboxOk = req.sandbox && req.sandbox.verified;
-  root.replaceChildren(
+  const allow = gateButton(t('allowOnce'), 'bg-accent text-white', () => gateDecide(req.id, true));
+  const children = [
     h('div', { class: 'flex items-center justify-between gap-2', style: 'margin-bottom:8px;' },
-      h('h2', { id: 'gate-title', class: 'font-semibold text-warn' }, h('span', {}, t('needsApproval')), ' · ', h('span', { id: 'gate-countdown', 'aria-hidden': 'true' }, gateClock(req.seconds_left))),
+      h('h2', { id: 'gate-title', class: 'font-semibold text-warn' }, t('needsApproval')),
       waiting > 0 ? h('span', { class: 'rounded-md border px-2 text-sm', 'aria-label': fmt('gateWaitingSr', { n: waiting }) }, fmt('gateWaiting', { n: waiting })) : null),
     h('pre', { class: 'font-mono text-sm rounded-md border p-2', style: 'white-space:pre-wrap;word-break:break-word;margin:0;', dir: 'ltr' }, h('bdi', { dir: 'ltr' }, `$ ${shown}`)),
     folded ? h('button', { type: 'button', class: 'text-sm underline', style: 'min-height:44px;', onclick: () => { gateUi.expanded = true; renderGateCard(pending); } }, fmt('gateShowAll', { n: lines.length })) : null,
     h('p', { class: 'text-sm text-ide-muted', style: 'margin:8px 0 4px;' }, h('bdi', { dir: 'ltr' }, req.cwd), ' · ', fmt('gateFrom', { who: req.requester })),
-    h('p', { class: `text-sm ${sandboxOk ? 'text-ok' : 'text-warn'}`, style: 'margin:0 0 12px;' }, sandboxOk ? `✓ ${fmt('gateSandboxOk', { backend: req.sandbox.backend })}` : t('gateSandboxBad')),
-    h('div', { class: 'flex flex-wrap gap-2' },
-      gateButton(t('allowOnce'), 'bg-accent text-white', () => gateDecide(req.id, true)),
-      gateButton(t('deny'), 'border', () => gateDecide(req.id, false))),
+    h('p', { class: `text-sm ${sandboxOk ? 'text-ok' : 'text-warn'}`, style: 'margin:0 0 4px;' }, sandboxOk ? `✓ ${fmt('gateSandboxOk', { backend: req.sandbox.backend })}` : t('gateSandboxBad')),
+    h('p', { id: 'gate-countdown', class: 'text-sm text-warn', style: 'margin:0 0 12px;', 'aria-hidden': 'true' }, fmt('gateTimeLeft', { time: gateClock(req.seconds_left) })),
+    h('div', { class: 'gate-actions flex flex-wrap gap-2' }, allow, gateButton(t('deny'), 'border', () => gateDecide(req.id, false))),
     waiting > 0 ? h('button', { type: 'button', class: 'text-sm underline', style: 'min-height:44px;margin-top:4px;', onclick: gateDenyAll }, t('gateDenyAll')) : null,
     h('p', { class: 'text-xs text-ide-muted', style: 'margin-top:8px;' }, t('approvalNote')),
-  );
+  ];
+  root.replaceChildren(...children.filter((c) => c != null));
   root.classList.remove('hidden');
+  if (hadFocus) allow.focus();
 }
 
 function gateTick() {
@@ -4017,7 +4032,7 @@ function gateTick() {
   if (!req) return;
   req.seconds_left = Math.max(0, req.seconds_left - 1);
   const el = $('gate-countdown');
-  if (el) el.textContent = gateClock(req.seconds_left);
+  if (el) el.textContent = fmt('gateTimeLeft', { time: gateClock(req.seconds_left) });
   if (req.seconds_left <= 60 && !gateUi.milestones.has(60)) { gateUi.milestones.add(60); gateAnnounce(t('gateOneMin')); }
   if (req.seconds_left <= 10 && !gateUi.milestones.has(10)) { gateUi.milestones.add(10); gateAnnounce(t('gateTenSec')); }
 }
