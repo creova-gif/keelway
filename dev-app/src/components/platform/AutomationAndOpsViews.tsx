@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { KSpacesCrdtAndKflowPanel } from "@/components/platform/KSpacesCrdtAndKflowPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { QuotaAndPricingSimulatorPanel } from "@/components/platform/QuotaAndPricingSimulatorPanel";
+import { SiemAndObservabilityPanel } from "@/components/platform/SiemAndObservabilityPanel";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
@@ -378,6 +379,8 @@ export function OperationsWorkspaceView({
       </section>
 
       <QuotaAndPricingSimulatorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
+      <SiemAndObservabilityPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <section aria-label="BYOM credential compliance verifier" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <h2 className="text-sm font-semibold text-fg">BYOM Connection Compliance Check</h2>

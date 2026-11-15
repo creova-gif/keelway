@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CycloneDxSbomPanel } from "@/components/platform/CycloneDxSbomPanel";
+import { EnterpriseIdentityAndQuorumPanel } from "@/components/platform/EnterpriseIdentityAndQuorumPanel";
 import { GoldenEvalScorecardPanel } from "@/components/platform/GoldenEvalScorecardPanel";
 import { VaultAndWebhooksPanel } from "@/components/platform/VaultAndWebhooksPanel";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
@@ -346,6 +347,8 @@ export function SecurityWorkspaceView({
             ) : null}
           </section>
         </div>
+
+        <EnterpriseIdentityAndQuorumPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
         <VaultAndWebhooksPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 

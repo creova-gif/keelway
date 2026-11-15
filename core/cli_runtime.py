@@ -195,17 +195,24 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     pe.add_argument("--api-spend", dest="api_spend", type=float, default=1200.0, help="Monthly BYOM API spend in USD")
     pe.add_argument("--json", action="store_true", help="Emit JSON pricing report")
 
+    from core.cli_enterprise import register_enterprise_cli_subparsers
     from core.cli_kflow_crdt import register_kflow_crdt_cli_subparsers
     from core.cli_mcp_eval import register_mcp_eval_cli_subparsers
 
     register_mcp_eval_cli_subparsers(subparsers)
     register_kflow_crdt_cli_subparsers(subparsers)
+    register_enterprise_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch `vault`, `workspace`, `run`, `pricing-eval`, `mcp`, `eval-suite`, `kflow`, `kspaces-sync`, and `sbom`."""
+    """Dispatch runtime, MCP, KFlow/CRDT, and Enterprise sovereign CLI subcommands."""
+    from core.cli_enterprise import dispatch_enterprise_cli
     from core.cli_kflow_crdt import dispatch_kflow_crdt_cli
     from core.cli_mcp_eval import dispatch_mcp_eval_cli
+
+    enterprise_rc = dispatch_enterprise_cli(args)
+    if enterprise_rc is not None:
+        return enterprise_rc
 
     kflow_crdt_rc = dispatch_kflow_crdt_cli(args)
     if kflow_crdt_rc is not None:

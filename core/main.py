@@ -25,6 +25,7 @@ from core.api.platform_routes import router as platform_router
 from core.api.platform_runtime_routes import router as platform_runtime_router
 from core.api.platform_mcp_routes import router as platform_mcp_router
 from core.api.platform_kflow_routes import router as platform_kflow_router
+from core.api.platform_enterprise_routes import router as platform_enterprise_router
 from .api.cluster_routes import router as cluster_router
 import asyncio
 from core.security.auth import launch_token
@@ -71,7 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="Keelway Core",
-    version="0.1.0",
+    version="1.0.0",
     description="Shared Intelligence Infrastructure & Multi-Provider Model Gateway.",
     lifespan=lifespan,
 )
@@ -121,6 +122,7 @@ app.include_router(platform_router)
 app.include_router(platform_runtime_router)
 app.include_router(platform_mcp_router)
 app.include_router(platform_kflow_router)
+app.include_router(platform_enterprise_router)
 app.include_router(cluster_router)
 
 # Mount Keelway Studio Web UI & Unified Sovereign Dev App

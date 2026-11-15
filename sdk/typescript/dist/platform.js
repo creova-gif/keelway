@@ -7,16 +7,19 @@
 import { PlatformRuntimeDelegate } from "./platform-runtime.js";
 import { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
 import { PlatformKflowDelegate } from "./platformKflow.js";
+import { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
     mcpEval;
     kflow;
+    enterprise;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
         this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
         this.kflow = new PlatformKflowDelegate(requestJson);
+        this.enterprise = new PlatformEnterpriseDelegate(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -328,6 +331,24 @@ export class PlatformNamespace {
     }
     getPlatformSbom(params = {}, options) {
         return this.kflow.getPlatformSbom(params, options);
+    }
+    configureOidcProvider(req, options) {
+        return this.enterprise.configureOidcProvider(req, options);
+    }
+    listScimUsers(params = {}, options) {
+        return this.enterprise.listScimUsers(params, options);
+    }
+    provisionScimUser(req, options) {
+        return this.enterprise.provisionScimUser(req, options);
+    }
+    approveP10Quorum(req, options) {
+        return this.enterprise.approveP10Quorum(req, options);
+    }
+    exportSiemAudit(params = {}, options) {
+        return this.enterprise.exportSiemAudit(params, options);
+    }
+    getObservabilityMetrics(params = {}, options) {
+        return this.enterprise.getObservabilityMetrics(params, options);
     }
 }
 //# sourceMappingURL=platform.js.map

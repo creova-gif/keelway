@@ -9,6 +9,7 @@ import type * as PT from "./platform-types.js";
 import { type PlatformSseRequester } from "./platform-runtime.js";
 import { type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
 import { type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
+import { type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -20,6 +21,7 @@ export declare class PlatformNamespace {
     private readonly runtime;
     private readonly mcpEval;
     private readonly kflow;
+    private readonly enterprise;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -87,5 +89,11 @@ export declare class PlatformNamespace {
     syncKspacesCrdt(req: SyncKspacesCrdtRequest, options?: RequestOptions): Promise<KspacesSyncResponse>;
     getKspacesState(params?: GetKspacesStateParams | string, options?: RequestOptions): Promise<KspacesStateResponse>;
     getPlatformSbom(params?: GetPlatformSbomParams | string, options?: RequestOptions): Promise<PlatformSbomResponse>;
+    configureOidcProvider(req: ConfigureOidcProviderRequest, options?: RequestOptions): Promise<OidcProviderConfigResponse>;
+    listScimUsers(params?: ListScimUsersParams | string, options?: RequestOptions): Promise<ScimUserListResponse>;
+    provisionScimUser(req: ProvisionScimUserRequest, options?: RequestOptions): Promise<ScimUserResource>;
+    approveP10Quorum(req: ApproveP10QuorumRequest, options?: RequestOptions): Promise<P10QuorumStatusResponse>;
+    exportSiemAudit(params?: ExportSiemAuditParams | string, options?: RequestOptions): Promise<SiemAuditExportResponse>;
+    getObservabilityMetrics(params?: GetObservabilityMetricsParams | string, options?: RequestOptions): Promise<ObservabilityMetricsResponse>;
 }
 //# sourceMappingURL=platform.d.ts.map

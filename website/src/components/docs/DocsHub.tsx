@@ -409,6 +409,22 @@ turn2 = client.responses.create(
                   • Scoped <code className="text-fg">kw_live_*</code> keys, USD
                   spend caps, human-only approval gates &amp; SHA-256 audit trails
                 </li>
+                <li>
+                  • Model Context Protocol (<code className="text-fg">2025-06-18</code>)
+                  server/tool control plane &amp; 16-probe Golden Benchmark /
+                  Red-Team Suite
+                </li>
+                <li>
+                  • Topological KFlow multi-wave DAGs, KSpaces LWW-Element-Set
+                  CRDT sync &amp; CycloneDX 1.5 SBOM provenance
+                </li>
+                <li>
+                  • Enterprise OIDC/SAML federation, SCIM 2.0 user provisioning,
+                  Dual-Human P-10 Quorum, SIEM (<code className="text-fg">OCSF</code>{" "}
+                  / <code className="text-fg">CEF</code> /{" "}
+                  <code className="text-fg">JSONL</code>) export &amp; Prometheus /
+                  OpenTelemetry OTLP metrics
+                </li>
               </ul>
             </div>
 
