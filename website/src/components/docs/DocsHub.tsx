@@ -425,6 +425,11 @@ turn2 = client.responses.create(
                   <code className="text-fg">JSONL</code>) export &amp; Prometheus /
                   OpenTelemetry OTLP metrics
                 </li>
+                <li>
+                  • 4-K Sovereign Architecture with KBrain scope-governed hybrid
+                  BM25 / n-gram memory &amp; KHub SHA-256 air-gapped skill
+                  mirrors (<code className="text-fg">.skill.tar.gz</code>)
+                </li>
               </ul>
             </div>
 

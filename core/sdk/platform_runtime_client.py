@@ -20,6 +20,10 @@ from core.sdk.platform_enterprise_client import (
     AsyncPlatformEnterpriseMixin,
     SyncPlatformEnterpriseMixin,
 )
+from core.sdk.platform_kbrain_client import (
+    AsyncPlatformKbrainMixin,
+    SyncPlatformKbrainMixin,
+)
 from core.sdk.platform_kflow_client import (
     AsyncPlatformKflowMixin,
     SyncPlatformKflowMixin,
@@ -139,6 +143,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformMcpEvalMixin,
     AsyncPlatformKflowMixin,
     AsyncPlatformEnterpriseMixin,
+    AsyncPlatformKbrainMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -264,6 +269,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformMcpEvalMixin,
     SyncPlatformKflowMixin,
     SyncPlatformEnterpriseMixin,
+    SyncPlatformKbrainMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 

@@ -11211,6 +11211,276 @@
         }
       }
     },
+    "/v1/platform/kbrain/facts": {
+      "post": {
+        "tags": [
+          "Unified Platform KBrain Hybrid Memory & KHub Air-Gapped Registry"
+        ],
+        "summary": "Record Platform Kbrain Fact Route",
+        "operationId": "record_platform_kbrain_fact_route_v1_platform_kbrain_facts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KBrainRecordFactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Record Platform Kbrain Fact Route V1 Platform Kbrain Facts Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/kbrain/search": {
+      "get": {
+        "tags": [
+          "Unified Platform KBrain Hybrid Memory & KHub Air-Gapped Registry"
+        ],
+        "summary": "Search Platform Kbrain Facts Route",
+        "operationId": "search_platform_kbrain_facts_route_v1_platform_kbrain_search_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Query"
+            }
+          },
+          {
+            "name": "max_scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "org",
+              "title": "Max Scope"
+            }
+          },
+          {
+            "name": "include_conflicts",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Conflicts"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Search Platform Kbrain Facts Route V1 Platform Kbrain Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/kbrain/facts/{fact_id}/resolve": {
+      "post": {
+        "tags": [
+          "Unified Platform KBrain Hybrid Memory & KHub Air-Gapped Registry"
+        ],
+        "summary": "Resolve Platform Kbrain Fact Route",
+        "operationId": "resolve_platform_kbrain_fact_route_v1_platform_kbrain_facts__fact_id__resolve_post",
+        "parameters": [
+          {
+            "name": "fact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Fact Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KBrainResolveFactRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Resolve Platform Kbrain Fact Route V1 Platform Kbrain Facts  Fact Id  Resolve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/khub/skills": {
+      "get": {
+        "tags": [
+          "Unified Platform KBrain Hybrid Memory & KHub Air-Gapped Registry"
+        ],
+        "summary": "List Platform Khub Skills Route",
+        "operationId": "list_platform_khub_skills_route_v1_platform_khub_skills_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Khub Skills Route V1 Platform Khub Skills Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/khub/mirror/verify": {
+      "post": {
+        "tags": [
+          "Unified Platform KBrain Hybrid Memory & KHub Air-Gapped Registry"
+        ],
+        "summary": "Verify Platform Khub Mirror Route",
+        "operationId": "verify_platform_khub_mirror_route_v1_platform_khub_mirror_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KHubMirrorVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Verify Platform Khub Mirror Route V1 Platform Khub Mirror Verify Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -13633,6 +13903,103 @@
         "type": "object",
         "title": "IssuePatchRequest"
       },
+      "KBrainRecordFactRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Key",
+            "default": ""
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 8192,
+            "title": "Statement",
+            "default": ""
+          },
+          "scope": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Scope",
+            "default": "project"
+          },
+          "provenance_uri": {
+            "type": "string",
+            "maxLength": 1024,
+            "title": "Provenance Uri",
+            "default": "workspace"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "auto_approve": {
+            "type": "boolean",
+            "title": "Auto Approve",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "KBrainRecordFactRequest"
+      },
+      "KBrainResolveFactRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "resolution": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Resolution",
+            "default": "approve"
+          },
+          "approver_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Id"
+          }
+        },
+        "type": "object",
+        "title": "KBrainResolveFactRequest"
+      },
       "KFlowExecuteRequest": {
         "properties": {
           "workspace_id": {
@@ -13683,6 +14050,25 @@
         },
         "type": "object",
         "title": "KFlowExecuteRequest"
+      },
+      "KHubMirrorVerifyRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "skill_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skill Ids"
+          }
+        },
+        "type": "object",
+        "title": "KHubMirrorVerifyRequest"
       },
       "KSpacesSyncRequest": {
         "properties": {

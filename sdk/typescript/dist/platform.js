@@ -8,18 +8,21 @@ import { PlatformRuntimeDelegate } from "./platform-runtime.js";
 import { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
 import { PlatformKflowDelegate } from "./platformKflow.js";
 import { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
+import { PlatformKbrainDelegate } from "./platformKbrain.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
     mcpEval;
     kflow;
     enterprise;
+    kbrain;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
         this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
         this.kflow = new PlatformKflowDelegate(requestJson);
         this.enterprise = new PlatformEnterpriseDelegate(requestJson);
+        this.kbrain = new PlatformKbrainDelegate(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -349,6 +352,21 @@ export class PlatformNamespace {
     }
     getObservabilityMetrics(params = {}, options) {
         return this.enterprise.getObservabilityMetrics(params, options);
+    }
+    recordKbrainFact(req, options) {
+        return this.kbrain.recordKbrainFact(req, options);
+    }
+    searchKbrainFacts(params = {}, options) {
+        return this.kbrain.searchKbrainFacts(params, options);
+    }
+    resolveKbrainFact(factId, req, options) {
+        return this.kbrain.resolveKbrainFact(factId, req, options);
+    }
+    listKhubSkills(params = {}, options) {
+        return this.kbrain.listKhubSkills(params, options);
+    }
+    verifyKhubMirror(req = {}, options) {
+        return this.kbrain.verifyKhubMirror(req, options);
     }
 }
 //# sourceMappingURL=platform.js.map

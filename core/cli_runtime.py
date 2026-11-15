@@ -196,19 +196,26 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     pe.add_argument("--json", action="store_true", help="Emit JSON pricing report")
 
     from core.cli_enterprise import register_enterprise_cli_subparsers
+    from core.cli_kbrain_khub import register_kbrain_khub_cli_subparsers
     from core.cli_kflow_crdt import register_kflow_crdt_cli_subparsers
     from core.cli_mcp_eval import register_mcp_eval_cli_subparsers
 
     register_mcp_eval_cli_subparsers(subparsers)
     register_kflow_crdt_cli_subparsers(subparsers)
     register_enterprise_cli_subparsers(subparsers)
+    register_kbrain_khub_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, and Enterprise sovereign CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, and KBrain/KHub sovereign CLI subcommands."""
     from core.cli_enterprise import dispatch_enterprise_cli
+    from core.cli_kbrain_khub import dispatch_kbrain_khub_cli
     from core.cli_kflow_crdt import dispatch_kflow_crdt_cli
     from core.cli_mcp_eval import dispatch_mcp_eval_cli
+
+    kbrain_khub_rc = dispatch_kbrain_khub_cli(args)
+    if kbrain_khub_rc is not None:
+        return kbrain_khub_rc
 
     enterprise_rc = dispatch_enterprise_cli(args)
     if enterprise_rc is not None:

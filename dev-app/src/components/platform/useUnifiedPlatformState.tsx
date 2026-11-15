@@ -530,6 +530,8 @@ export function useUnifiedPlatformState(options: {
           <MarketplaceWorkspaceView
             packages={packages}
             installedPackageIds={installedPackageIds}
+            workspaceId={activeWorkspaceId}
+            activeRbacRole={activeRbacRole}
             onToggleInstallPackage={handleToggleInstallPackage}
             onPublishVerifiedPackage={handlePublishVerifiedPackage}
           />
@@ -554,6 +556,8 @@ export function useUnifiedPlatformState(options: {
             experienceMode={experienceMode}
             guides={docs}
             activePrdTitle={prds[0]?.title}
+            workspaceId={activeWorkspaceId}
+            activeRbacRole={activeRbacRole}
             onSaveDoc={handleSaveDoc}
           />
         );
@@ -562,6 +566,8 @@ export function useUnifiedPlatformState(options: {
           <OperationsWorkspaceView
             subscriptionTier={subscriptionTier}
             deployments={deployments}
+            workspaceId={activeWorkspaceId}
+            activeRbacRole={activeRbacRole}
             onConfirmP10Rollback={handleConfirmP10Rollback}
           />
         );

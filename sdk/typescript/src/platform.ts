@@ -51,6 +51,7 @@ import { PlatformRuntimeDelegate, type PlatformSseRequester } from "./platform-r
 import { PlatformMcpEvalDelegate, type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
 import { PlatformKflowDelegate, type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
 import { PlatformEnterpriseDelegate, type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
+import { PlatformKbrainDelegate, type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -65,6 +66,7 @@ export class PlatformNamespace {
   private readonly mcpEval: PlatformMcpEvalDelegate;
   private readonly kflow: PlatformKflowDelegate;
   private readonly enterprise: PlatformEnterpriseDelegate;
+  private readonly kbrain: PlatformKbrainDelegate;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -72,6 +74,7 @@ export class PlatformNamespace {
     this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
     this.kflow = new PlatformKflowDelegate(requestJson);
     this.enterprise = new PlatformEnterpriseDelegate(requestJson);
+    this.kbrain = new PlatformKbrainDelegate(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -522,5 +525,21 @@ export class PlatformNamespace {
   }
   public getObservabilityMetrics(params: GetObservabilityMetricsParams | string = {}, options?: RequestOptions): Promise<ObservabilityMetricsResponse> {
     return this.enterprise.getObservabilityMetrics(params, options);
+  }
+
+  public recordKbrainFact(req: RecordKbrainFactRequest, options?: RequestOptions): Promise<KbrainFactRecord> {
+    return this.kbrain.recordKbrainFact(req, options);
+  }
+  public searchKbrainFacts(params: SearchKbrainFactsParams | string = {}, options?: RequestOptions): Promise<SearchKbrainFactsResponse> {
+    return this.kbrain.searchKbrainFacts(params, options);
+  }
+  public resolveKbrainFact(factId: string, req: ResolveKbrainFactRequest | KbrainFactResolution, options?: RequestOptions): Promise<KbrainFactRecord> {
+    return this.kbrain.resolveKbrainFact(factId, req, options);
+  }
+  public listKhubSkills(params: ListKhubSkillsParams | string = {}, options?: RequestOptions): Promise<KhubSkillListResponse> {
+    return this.kbrain.listKhubSkills(params, options);
+  }
+  public verifyKhubMirror(req: VerifyKhubMirrorRequest | string[] = {}, options?: RequestOptions): Promise<VerifyKhubMirrorResponse> {
+    return this.kbrain.verifyKhubMirror(req, options);
   }
 }

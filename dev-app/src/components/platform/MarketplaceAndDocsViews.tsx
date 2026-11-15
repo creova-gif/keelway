@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { KHubAirgapMirrorPanel } from "@/components/platform/KHubAirgapMirrorPanel";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type { MarketplacePublishPayload } from "@/lib/platformApi";
@@ -9,6 +10,7 @@ import {
   type MarketplacePackageItem,
   type MarketplaceScanReport,
 } from "@/lib/platformData";
+import type { WorkspaceRbacRole } from "@/lib/platformKbrainApi";
 
 export {
   DocumentationWorkspaceView,
@@ -29,6 +31,8 @@ export interface MarketplaceWorkspaceViewProps {
     pkg: MarketplacePackageItem,
     publishPayload: MarketplacePublishPayload,
   ) => void;
+  workspaceId?: string;
+  activeRbacRole?: WorkspaceRbacRole;
 }
 
 type PublisherTierFilter = "all" | "first_party" | "verified_third_party" | "enterprise_partner";
@@ -51,6 +55,8 @@ export function MarketplaceWorkspaceView({
   installedPackageIds,
   onToggleInstallPackage,
   onPublishVerifiedPackage,
+  workspaceId = "default",
+  activeRbacRole = "owner",
 }: MarketplaceWorkspaceViewProps): React.JSX.Element {
   const [selectedCategory, setSelectedCategory] = useState<MarketplaceCategoryId | "all">("all");
   const [publisherFilter, setPublisherFilter] = useState<PublisherTierFilter>("all");
@@ -183,6 +189,8 @@ export function MarketplaceWorkspaceView({
         </div>
         <SemanticBadge kind="passed" labelOverride={`${localInstalledIds.length} Installed`} />
       </div>
+
+      <KHubAirgapMirrorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label className="min-w-[240px] flex-1">

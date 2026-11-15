@@ -26,6 +26,7 @@ export type { ParsedSseFrame, PlatformSseRequester } from "./platform-runtime.js
 export { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
 export { PlatformKflowDelegate } from "./platformKflow.js";
 export { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
+export { PlatformKbrainDelegate } from "./platformKbrain.js";
 
 export {
   AirGapEgressError,

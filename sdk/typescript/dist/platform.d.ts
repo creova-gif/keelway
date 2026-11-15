@@ -10,6 +10,7 @@ import { type PlatformSseRequester } from "./platform-runtime.js";
 import { type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
 import { type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
 import { type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
+import { type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -22,6 +23,7 @@ export declare class PlatformNamespace {
     private readonly mcpEval;
     private readonly kflow;
     private readonly enterprise;
+    private readonly kbrain;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -95,5 +97,10 @@ export declare class PlatformNamespace {
     approveP10Quorum(req: ApproveP10QuorumRequest, options?: RequestOptions): Promise<P10QuorumStatusResponse>;
     exportSiemAudit(params?: ExportSiemAuditParams | string, options?: RequestOptions): Promise<SiemAuditExportResponse>;
     getObservabilityMetrics(params?: GetObservabilityMetricsParams | string, options?: RequestOptions): Promise<ObservabilityMetricsResponse>;
+    recordKbrainFact(req: RecordKbrainFactRequest, options?: RequestOptions): Promise<KbrainFactRecord>;
+    searchKbrainFacts(params?: SearchKbrainFactsParams | string, options?: RequestOptions): Promise<SearchKbrainFactsResponse>;
+    resolveKbrainFact(factId: string, req: ResolveKbrainFactRequest | KbrainFactResolution, options?: RequestOptions): Promise<KbrainFactRecord>;
+    listKhubSkills(params?: ListKhubSkillsParams | string, options?: RequestOptions): Promise<KhubSkillListResponse>;
+    verifyKhubMirror(req?: VerifyKhubMirrorRequest | string[], options?: RequestOptions): Promise<VerifyKhubMirrorResponse>;
 }
 //# sourceMappingURL=platform.d.ts.map

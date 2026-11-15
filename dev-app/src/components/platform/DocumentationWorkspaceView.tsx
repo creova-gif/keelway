@@ -1,13 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { KBrainMemoryGraphPanel } from "@/components/platform/KBrainMemoryGraphPanel";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SDLC_STAGES, type DocGuideItem, type ExperienceMode } from "@/lib/platformData";
+import type { WorkspaceRbacRole } from "@/lib/platformKbrainApi";
 
 export interface DocumentationWorkspaceViewProps {
   experienceMode: ExperienceMode;
   guides: DocGuideItem[];
   activePrdTitle?: string;
   onSaveDoc?: (doc: DocGuideItem & { body: string }) => void;
+  workspaceId?: string;
+  activeRbacRole?: WorkspaceRbacRole;
 }
 
 type RichDocItem = DocGuideItem & { body: string; updatedAt: string; linkedPrdId?: string };
@@ -105,6 +109,8 @@ export function DocumentationWorkspaceView({
   guides,
   activePrdTitle,
   onSaveDoc,
+  workspaceId = "default",
+  activeRbacRole = "owner",
 }: DocumentationWorkspaceViewProps): React.JSX.Element {
   const [docs, setDocs] = useState<RichDocItem[]>(() =>
     guides.map((g, i) => ({ ...g, body: buildDefaultBody(g), updatedAt: i === 0 ? "2m ago" : "14m ago" })),
@@ -219,6 +225,8 @@ export function DocumentationWorkspaceView({
           Antigravity · Claude Code · Devin · gstack
         </span>
       </div>
+
+      <KBrainMemoryGraphPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div role="group" aria-label="Diataxis quadrants" className="flex flex-wrap gap-1.5">
