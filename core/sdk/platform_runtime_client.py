@@ -36,6 +36,10 @@ from core.sdk.platform_mcp_eval_client import (
     AsyncPlatformMcpEvalMixin,
     SyncPlatformMcpEvalMixin,
 )
+from core.sdk.platform_studio_client import (
+    AsyncPlatformStudioMixin,
+    SyncPlatformStudioMixin,
+)
 
 if TYPE_CHECKING:
     from core.sdk.client import AsyncKeelwayClient, KeelwayClient
@@ -149,6 +153,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformEnterpriseMixin,
     AsyncPlatformKbrainMixin,
     AsyncPlatformDevxMixin,
+    AsyncPlatformStudioMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -276,6 +281,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformEnterpriseMixin,
     SyncPlatformKbrainMixin,
     SyncPlatformDevxMixin,
+    SyncPlatformStudioMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 

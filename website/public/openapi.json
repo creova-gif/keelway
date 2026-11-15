@@ -11764,6 +11764,265 @@
         }
       }
     },
+    "/v1/platform/studio/kflow/sync": {
+      "post": {
+        "tags": [
+          "Unified Platform Golden-Thread Studio, Bidirectional AST Sync & Blast-Radius"
+        ],
+        "summary": "Sync Studio Kflow Route",
+        "operationId": "sync_studio_kflow_route_v1_platform_studio_kflow_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KFlowStudioSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Sync Studio Kflow Route V1 Platform Studio Kflow Sync Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/studio/blast-radius/record": {
+      "post": {
+        "tags": [
+          "Unified Platform Golden-Thread Studio, Bidirectional AST Sync & Blast-Radius"
+        ],
+        "summary": "Record Studio Blast Radius Route",
+        "operationId": "record_studio_blast_radius_route_v1_platform_studio_blast_radius_record_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlastRadiusRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Record Studio Blast Radius Route V1 Platform Studio Blast Radius Record Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/studio/blast-radius": {
+      "get": {
+        "tags": [
+          "Unified Platform Golden-Thread Studio, Bidirectional AST Sync & Blast-Radius"
+        ],
+        "summary": "List Studio Blast Radius Route",
+        "operationId": "list_studio_blast_radius_route_v1_platform_studio_blast_radius_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "trace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trace Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Studio Blast Radius Route V1 Platform Studio Blast Radius Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/studio/prompt-gate/evaluate": {
+      "post": {
+        "tags": [
+          "Unified Platform Golden-Thread Studio, Bidirectional AST Sync & Blast-Radius"
+        ],
+        "summary": "Evaluate Studio Prompt Gate Route",
+        "operationId": "evaluate_studio_prompt_gate_route_v1_platform_studio_prompt_gate_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptGateEvaluateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Evaluate Studio Prompt Gate Route V1 Platform Studio Prompt Gate Evaluate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/studio/prompt-gate/runs": {
+      "get": {
+        "tags": [
+          "Unified Platform Golden-Thread Studio, Bidirectional AST Sync & Blast-Radius"
+        ],
+        "summary": "List Studio Prompt Gate Runs Route",
+        "operationId": "list_studio_prompt_gate_runs_route_v1_platform_studio_prompt_gate_runs_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Studio Prompt Gate Runs Route V1 Platform Studio Prompt Gate Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -12626,6 +12885,113 @@
         },
         "type": "object",
         "title": "BenchmarkEvalRequest"
+      },
+      "BlastRadiusRecordRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "workflow_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Id"
+          },
+          "fs_reads": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fs Reads"
+          },
+          "fs_writes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fs Writes"
+          },
+          "blocked_paths": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked Paths"
+          },
+          "egress_attempts": {
+            "type": "integer",
+            "title": "Egress Attempts",
+            "default": 0
+          },
+          "blocked_egress_hosts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked Egress Hosts"
+          },
+          "p10_gates_triggered": {
+            "type": "integer",
+            "title": "P10 Gates Triggered",
+            "default": 0
+          },
+          "seatbelted": {
+            "type": "boolean",
+            "title": "Seatbelted",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "BlastRadiusRecordRequest"
       },
       "BudgetReservationResult": {
         "properties": {
@@ -14334,6 +14700,67 @@
         "type": "object",
         "title": "KFlowExecuteRequest"
       },
+      "KFlowStudioSyncRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "direction": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Direction",
+            "default": "code_to_graph"
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Language",
+            "default": "python"
+          },
+          "workflow_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workflow Id",
+            "default": "WF-STUDIO-01"
+          },
+          "source_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Code"
+          },
+          "nodes": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nodes"
+          },
+          "persist": {
+            "type": "boolean",
+            "title": "Persist",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "KFlowStudioSyncRequest"
+      },
       "KHubMirrorVerifyRequest": {
         "properties": {
           "workspace_id": {
@@ -15762,6 +16189,54 @@
         },
         "type": "object",
         "title": "PricingSimulationRequest"
+      },
+      "PromptGateEvaluateRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "candidate_prompt_version": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Candidate Prompt Version",
+            "default": "p-15"
+          },
+          "candidate_model_id": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Candidate Model Id",
+            "default": "keelway-core:7b"
+          },
+          "candidate_prompt_text": {
+            "type": "string",
+            "title": "Candidate Prompt Text",
+            "default": ""
+          },
+          "required_json_keys": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Json Keys"
+          },
+          "min_pass_rate": {
+            "type": "number",
+            "title": "Min Pass Rate",
+            "default": 0.9
+          }
+        },
+        "type": "object",
+        "title": "PromptGateEvaluateRequest"
       },
       "Provider": {
         "type": "string",

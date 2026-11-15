@@ -433,6 +433,13 @@ turn2 = client.responses.create(
                   <code className="text-fg">migrate-langgraph</code> Static AST
                   Importer across the CLI and Python/TypeScript/Go SDKs
                 </li>
+                <li>
+                  • Golden-Thread Bidirectional KFlow Studio (
+                  <code className="text-fg">kflow-sync</code>), Seatbelt Sandbox
+                  Blast-Radius Radar (<code className="text-fg">blast-radius</code>)
+                  &amp; Inline Prompt Regression Gate (
+                  <code className="text-fg">prompt-gate</code>)
+                </li>
               </ul>
             </div>
 

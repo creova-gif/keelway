@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { GoldenThreadJourneyBar } from "@/components/platform/GoldenThreadJourneyBar";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTION_TIERS } from "@/lib/platformData";
 import {
@@ -174,6 +175,12 @@ export function PlatformWorkspaceBar({
           <Button type="button" size="sm" variant="ghost" onClick={() => setCreatingWs(false)}>Cancel</Button>
         </form>
       ) : null}
+
+      <GoldenThreadJourneyBar
+        activeView={activeView}
+        onSelectView={onSelectView}
+        experienceMode={experienceMode}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <nav aria-label="Unified platform views" className="flex flex-wrap items-center gap-1">

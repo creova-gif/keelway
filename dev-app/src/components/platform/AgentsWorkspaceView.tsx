@@ -203,6 +203,8 @@ export function AgentsWorkspaceView({
         <SemanticBadge kind="opencore" detail={`${localAgents.length} agents registered`} />
       </div>
 
+      <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
       <section aria-label="Coordinated multi-agent teams" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-fg">Coordinated Multi-Agent Teams</h2>
@@ -478,8 +480,6 @@ export function AgentsWorkspaceView({
           </div>
         </form>
       </section>
-
-      <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <McpInspectorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
     </div>

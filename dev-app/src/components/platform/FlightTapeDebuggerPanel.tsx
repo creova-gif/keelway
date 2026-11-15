@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FlightTapeScrubberAndRadar } from "@/components/platform/FlightTapeScrubberAndRadar";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import {
@@ -207,6 +208,18 @@ export function FlightTapeDebuggerPanel({
           ) : null}
         </div>
       ) : null}
+
+      <FlightTapeScrubberAndRadar
+        workspaceId={workspaceId}
+        activeRbacRole={activeRbacRole}
+        canMutate={canMutate}
+        activeTape={activeTape}
+        forkStepIndex={forkStepIndex}
+        onChangeForkStepIndex={setForkStepIndex}
+        overrideModel={overrideModel}
+        overridePrompt={overridePrompt}
+        onStudioError={setErrorBanner}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-2.5">

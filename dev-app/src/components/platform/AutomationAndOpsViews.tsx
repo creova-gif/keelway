@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BidirectionalKflowStudioPanel } from "@/components/platform/BidirectionalKflowStudioPanel";
 import { KSpacesCrdtAndKflowPanel } from "@/components/platform/KSpacesCrdtAndKflowPanel";
 import { LangGraphMigratorPanel } from "@/components/platform/LangGraphMigratorPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
@@ -135,6 +136,12 @@ export function AutomationWorkspaceView({
         </div>
         <SemanticBadge kind="opencore" detail={`${workflows.length} KFlow DAGs`} />
       </div>
+
+      <BidirectionalKflowStudioPanel
+        workspaceId={workspaceId}
+        workflowId={activeWorkflow?.id ?? "WF-01"}
+        activeRbacRole={activeRbacRole}
+      />
 
       <KSpacesCrdtAndKflowPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} activeWorkflow={activeWorkflow} />
 

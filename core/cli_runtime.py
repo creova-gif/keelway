@@ -200,21 +200,28 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     from core.cli_kbrain_khub import register_kbrain_khub_cli_subparsers
     from core.cli_kflow_crdt import register_kflow_crdt_cli_subparsers
     from core.cli_mcp_eval import register_mcp_eval_cli_subparsers
+    from core.cli_studio import register_studio_cli_subparsers
 
     register_mcp_eval_cli_subparsers(subparsers)
     register_kflow_crdt_cli_subparsers(subparsers)
     register_enterprise_cli_subparsers(subparsers)
     register_kbrain_khub_cli_subparsers(subparsers)
     register_devx_cli_subparsers(subparsers)
+    register_studio_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, and DevX sovereign CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, and Studio CLI subcommands."""
     from core.cli_devx import dispatch_devx_cli
     from core.cli_enterprise import dispatch_enterprise_cli
     from core.cli_kbrain_khub import dispatch_kbrain_khub_cli
     from core.cli_kflow_crdt import dispatch_kflow_crdt_cli
     from core.cli_mcp_eval import dispatch_mcp_eval_cli
+    from core.cli_studio import dispatch_studio_cli
+
+    studio_rc = dispatch_studio_cli(args)
+    if studio_rc is not None:
+        return studio_rc
 
     devx_rc = dispatch_devx_cli(args)
     if devx_rc is not None:

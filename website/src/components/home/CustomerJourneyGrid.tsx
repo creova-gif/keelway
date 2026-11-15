@@ -59,7 +59,7 @@ const JOURNEYS: JourneyCard[] = [
     highlights: [
       "10 connected views with zero context switching",
       "Signed Marketplace agents, skills & plugins (85/15 creator split)",
-      "Predictable $39/seat Pro pricing & spend caps",
+      "Predictable $29/seat Pro pricing & spend caps",
     ],
     ctaLabel: "Explore Signed Marketplace",
     href: "/marketplace",

@@ -53,6 +53,7 @@ import { PlatformKflowDelegate, type ExecuteKflowDagRequest, type GetKspacesStat
 import { PlatformEnterpriseDelegate, type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
 import { PlatformKbrainDelegate, type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
 import { PlatformDevxDelegate, type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
+import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -69,6 +70,7 @@ export class PlatformNamespace {
   private readonly enterprise: PlatformEnterpriseDelegate;
   private readonly kbrain: PlatformKbrainDelegate;
   private readonly devx: PlatformDevxDelegate;
+  public readonly studio: PlatformStudioClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -78,6 +80,7 @@ export class PlatformNamespace {
     this.enterprise = new PlatformEnterpriseDelegate(requestJson);
     this.kbrain = new PlatformKbrainDelegate(requestJson);
     this.devx = new PlatformDevxDelegate(requestJson);
+    this.studio = new PlatformStudioClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -583,6 +586,22 @@ export class PlatformNamespace {
   }
   public migrateLanggraphSource(payload: MigrateLanggraphRequest, options?: RequestOptions): Promise<LanggraphMigrationResult> {
     return this.devx.migrateLanggraphSource(payload, options);
+  }
+
+  public syncKflowStudio(payload: SyncKflowStudioRequest = {}, options?: RequestOptions): Promise<StudioKflowSyncResult> {
+    return this.studio.syncKflowStudio(payload, options);
+  }
+  public recordBlastRadius(payload: RecordBlastRadiusRequest = {}, options?: RequestOptions): Promise<BlastRadiusAuditRecord> {
+    return this.studio.recordBlastRadius(payload, options);
+  }
+  public listBlastRadiusAudits(paramsOrWorkspaceId: ListBlastRadiusAuditsParams | string = {}, options?: RequestOptions): Promise<BlastRadiusAuditListResponse> {
+    return this.studio.listBlastRadiusAudits(paramsOrWorkspaceId, options);
+  }
+  public evaluatePromptGate(payload: EvaluatePromptGateRequest, options?: RequestOptions): Promise<PromptGateEvaluationResult> {
+    return this.studio.evaluatePromptGate(payload, options);
+  }
+  public listPromptGateRuns(paramsOrWorkspaceId: ListPromptGateRunsParams | string = {}, options?: RequestOptions): Promise<PromptGateRunListResponse> {
+    return this.studio.listPromptGateRuns(paramsOrWorkspaceId, options);
   }
 }
 

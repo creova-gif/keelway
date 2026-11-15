@@ -28,6 +28,7 @@
 | **KEEL-ENT-016** | Phase 9: Enterprise OIDC/SCIM 2.0 Federation, Dual-Human P-10 Quorum, SIEM Audit Streaming, OpenTelemetry/Prometheus Metrics & GitHub Release Automation | `ENTERPRISE / SIEM / OTLP / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 | **KEEL-KBRAIN-017** | Phase 10: 4-K Sovereign Architecture Completion — KBrain Hybrid BM25/3-Gram Memory Graph, KHub Air-Gapped Skill Mirror, Tarfile Hardening & Tri-SDK Parity | `KBRAIN / KHUB / SECURITY / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 | **KEEL-DEVX-018** | Phase 11: Flight-Tape Time-Travel Debugger, OTel GenAI Trace Wedge, 1-Click Trace-to-Eval Promotion & LangGraph Static AST Migrator | `DEVX / OTEL / REPLAY / AST / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
+| **KEEL-STUDIO-019** | Phase 12: Golden-Thread 4-Stage Journey Bar, Bidirectional KFlow ↔ Code Split Studio, Interactive Flight-Tape Waterfall Scrubber, Sandbox Blast-Radius Radar & Prompt Regression Gate | `STUDIO / AST / SANDBOX / SDK / UX` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 
 ---
 

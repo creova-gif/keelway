@@ -12,6 +12,7 @@ import { type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatfo
 import { type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
 import { type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
 import { type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
+import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -26,6 +27,7 @@ export declare class PlatformNamespace {
     private readonly enterprise;
     private readonly kbrain;
     private readonly devx;
+    readonly studio: PlatformStudioClient;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -112,6 +114,11 @@ export declare class PlatformNamespace {
     listEvalDatasetCases(workspaceId?: string, options?: RequestOptions): Promise<EvalDatasetListResponse>;
     listEvalDatasetCases(params?: ListEvalDatasetCasesParams, options?: RequestOptions): Promise<EvalDatasetListResponse>;
     migrateLanggraphSource(payload: MigrateLanggraphRequest, options?: RequestOptions): Promise<LanggraphMigrationResult>;
+    syncKflowStudio(payload?: SyncKflowStudioRequest, options?: RequestOptions): Promise<StudioKflowSyncResult>;
+    recordBlastRadius(payload?: RecordBlastRadiusRequest, options?: RequestOptions): Promise<BlastRadiusAuditRecord>;
+    listBlastRadiusAudits(paramsOrWorkspaceId?: ListBlastRadiusAuditsParams | string, options?: RequestOptions): Promise<BlastRadiusAuditListResponse>;
+    evaluatePromptGate(payload: EvaluatePromptGateRequest, options?: RequestOptions): Promise<PromptGateEvaluationResult>;
+    listPromptGateRuns(paramsOrWorkspaceId?: ListPromptGateRunsParams | string, options?: RequestOptions): Promise<PromptGateRunListResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

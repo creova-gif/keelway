@@ -433,4 +433,5 @@ export type * from "./platformKflow.js";
 export type * from "./platformEnterprise.js";
 export type * from "./platformKbrain.js";
 export type * from "./platformDevx.js";
+export type * from "./platformStudio.js";
 //# sourceMappingURL=types.d.ts.map

@@ -10,6 +10,7 @@ import { PlatformKflowDelegate } from "./platformKflow.js";
 import { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
 import { PlatformKbrainDelegate } from "./platformKbrain.js";
 import { PlatformDevxDelegate } from "./platformDevx.js";
+import { PlatformStudioClient } from "./platformStudio.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -18,6 +19,7 @@ export class PlatformNamespace {
     enterprise;
     kbrain;
     devx;
+    studio;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -26,6 +28,7 @@ export class PlatformNamespace {
         this.enterprise = new PlatformEnterpriseDelegate(requestJson);
         this.kbrain = new PlatformKbrainDelegate(requestJson);
         this.devx = new PlatformDevxDelegate(requestJson);
+        this.studio = new PlatformStudioClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -397,6 +400,21 @@ export class PlatformNamespace {
     }
     migrateLanggraphSource(payload, options) {
         return this.devx.migrateLanggraphSource(payload, options);
+    }
+    syncKflowStudio(payload = {}, options) {
+        return this.studio.syncKflowStudio(payload, options);
+    }
+    recordBlastRadius(payload = {}, options) {
+        return this.studio.recordBlastRadius(payload, options);
+    }
+    listBlastRadiusAudits(paramsOrWorkspaceId = {}, options) {
+        return this.studio.listBlastRadiusAudits(paramsOrWorkspaceId, options);
+    }
+    evaluatePromptGate(payload, options) {
+        return this.studio.evaluatePromptGate(payload, options);
+    }
+    listPromptGateRuns(paramsOrWorkspaceId = {}, options) {
+        return this.studio.listPromptGateRuns(paramsOrWorkspaceId, options);
     }
 }
 export { PlatformNamespace as PlatformClient };
