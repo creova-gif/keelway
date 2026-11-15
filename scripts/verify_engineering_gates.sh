@@ -45,9 +45,9 @@ echo "[4/8] Verifying Multi-Tenant Governance, Cluster Scheduler, Postgres Adapt
 "${PYTEST_BIN}" tests/test_redact.py tests/test_tenant_governance.py tests/test_persistent_governance.py tests/test_unified_platform.py tests/test_platform_persistence_and_enterprise.py tests/test_cluster_and_postgres_governance.py tests/test_marketplace_settlement_and_cluster_sdk.py tests/test_phase5_runtime_vault_rbac_webhooks.py tests/test_phase7_mcp_and_golden_evals.py tests/test_phase8_kflow_crdt_and_sbom.py tests/test_phase9_enterprise_identity_siem_metrics.py tests/test_phase10_kbrain_khub_and_tar_hardening.py -v --tb=short
 echo "  ✓ Governance, GPU Cluster Scheduler, Postgres FOR UPDATE Adapter, Encrypted Vault, RBAC, Signed Webhooks, MCP Control Plane, Golden Evals, KFlow/CRDT/SBOM, Enterprise OIDC/SCIM/Quorum/SIEM/Metrics, KBrain/KHub & Unified Platform verified."
 
-echo "[5/8] Verifying OS Command Sandbox Confinement (Seatbelt & Bubblewrap) & Studio Manifest Inspector..."
-"${PYTEST_BIN}" tests/test_agent_sandbox.py tests/test_studio.py tests/test_studio_manifest_panel.py -v --tb=short
-echo "  ✓ OS Command Sandbox & Keelway Studio Manifest Inspection Panel verified."
+echo "[5/8] Verifying OS Command Sandbox Confinement (Seatbelt & Bubblewrap), AST Codebase Intelligence & Studio Manifest Inspector..."
+"${PYTEST_BIN}" tests/test_agent_sandbox.py tests/test_ast_index.py tests/test_codebase_intelligence.py tests/test_studio.py tests/test_studio_manifest_panel.py -v --tb=short
+echo "  ✓ OS Command Sandbox, AST Codebase Intelligence & Keelway Studio Manifest Inspection Panel verified."
 
 echo "[6/8] Verifying Layer 1 Python SDK v1 + Phase 5/6/7/8/9/10 Parity, Packaging, Sovereign CLI TUI & Runtime, Website Drift Gate & Full-Stack E2E..."
 "${PYTEST_BIN}" tests/test_sdk_v1.py tests/test_sdk_platform.py tests/test_sdk_phase5_parity.py tests/test_phase7_packaging_and_sdk.py tests/test_phase8_sdk_and_release.py tests/test_phase9_sdk_and_release_workflow.py tests/test_phase10_sdk_parity.py tests/test_cli_ai.py tests/test_cli_init_and_banner.py tests/test_cli_runtime_phase6.py tests/test_website_facts.py tests/test_platform_v1_e2e.py -v --tb=short
