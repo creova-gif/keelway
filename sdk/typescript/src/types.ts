@@ -491,3 +491,4 @@ export interface SwarmEvaluateResponse {
 }
 
 export type * from "./platformMcpEval.js";
+export type * from "./platformKflow.js";

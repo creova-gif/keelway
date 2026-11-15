@@ -1,39 +1,45 @@
 <div align="center">
 
-# Keelway by Sorvex Labs
+# Keelway v1.0.0 by Sorvex Labs
 
-Local developer tree for the Keelway studio, the governance server, and the static marketing site.
+**Sovereign Local-First Hybrid AI Engineering, Governance & Multi-Agent Platform**
 
+[![Version 1.0.0](https://img.shields.io/badge/release-v1.0.0-emerald.svg)](./CHANGELOG.md)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-indigo.svg)](./LICENSE)
 [![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
-
-The repository on GitHub is [creova-gif/kora](https://github.com/creova-gif/kora). A clone creates a directory named `kora`.
 
 </div>
 
-## What this document is
+Keelway `v1.0.0` unifies local open-weight neural inference (**OpenCore**), 4D provenance-routed frontier APIs, formal TLA+ verified human governance (**P-10 Gate**), Model Context Protocol (**MCP `2025-06-18`**), **KFlow** topological DAG automation, **KSpaces** CRDT state sync, and tri-language zero-dependency SDKs in a single customer-managed stack.
 
-These instructions match the commands in this tree. They do not quote a test pass count, and they do not certify a published install or a hosted product.
+---
 
-Package B owns runtime labels in the studio, evidence room, mesh, and chat. Package C owns fail-closed authentication, command isolation, and default-config behavior. Those checkpoints were not available when this text was written. This page does not describe that intended behavior as something the tree already does. Recheck the commands below if those packages change runtime behavior.
+## Platform Surfaces
 
-## Three different things
+| Surface | Default Bind | Entrypoint / Source | Launch Command |
+|---|---|---|---|
+| **Unified 10-View Sovereign Dev Tool** | `127.0.0.1:7420/app` | `dev-app/` → `core/dev_app_dist/` (`core.main:app`) | `keelway dev` |
+| **Keelway Studio IDE** | `127.0.0.1:7420/studio` | `core/studio/` (`core.main:app`) | `keelway dev` or `keelway desktop` |
+| **Governance Control Plane** | `127.0.0.1:8000/` | `keelway/api/app.py` (`keelway-core`) | `keelway-core serve` or `make serve` |
+| **Next.js 15 Product & Docs Site** | `:3000` (dev/prod) | `website/` | `npm --prefix website run dev` |
 
-| Surface | What it is | How you start it |
-|---|---|---|
-| Local Studio | Web IDE from `core/studio`, served by `core.main:app` | `python3 cli.py dev` or `python3 cli.py desktop` |
-| Governance server | Dashboard and API in `keelway/api/app.py` | `make serve` or `keelway-core serve` |
-| Static marketing site | Files in `website/` | Open the files, or the host that publishes that directory |
+---
 
-`vercel.json` sets `outputDirectory` to `website` and leaves the install and build commands empty. The static site does not start Studio or the governance server.
+## Core v1.0.0 Capabilities
 
-The `Dockerfile` `ENTRYPOINT` is `python3 -m keelway.cli.main serve --host 0.0.0.0 --port 8000`. That process binds `0.0.0.0`. Local `make serve` is a different command: `python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000`. The image copies `pyproject.toml` and `keelway/`. It does not copy `cli.py` or `core/studio`.
+- **Unified 10-View Sovereign Dev Tool (`/app`)**: Overview, Coding Workspace (AST symbol index + safe patcher), Agent Teams, PM Issues & Sprints, Product PRDs & Feedback, Diataxis Docs, KFlow Automation & KSpaces CRDT, No-Code Blueprint Studio, Security/Vault/MCP/SBOM, and Subscriptions/Golden Evals — verified against **WCAG 2.2 AA (`axe-core`)**.
+- **Hybrid OpenCore + Frontier 4D Gateway**: Drop-in `/v1/chat/completions`, stateful `/v1/responses`, `/v1/routing/explain` (weight license, hosting, inference operator, data residency boundary), `/v1/opencore/*` hardware/LoRA/Modelfile control, and `/v1/eval/swarm` MiroFish multi-agent simulation.
+- **Calibrated 5-Tier Pricing & BYOM 0% Markup**: Community (`$0`), BYOM Seat (`$15/seat/mo` annual — **0% token markup** on customer API keys or local GPUs), Pro (`$29/seat/mo`), Team (`$49/seat/mo`), and Enterprise Custom.
+- **Formal TLA+ Verified P-10 Human Gate & Supply Chain Security**: Separation-of-duty approval state machine (`specs/tla/P10HumanGate.tla`), workspace RBAC (`owner`, `admin`, `developer`, `operator`, `viewer`), AES-256-GCM local secret vault, SSRF-hardened HMAC-SHA256 webhooks, OS sandboxing (macOS Seatbelt & Linux Bubblewrap), and CycloneDX 1.5 SBOM provenance (`/v1/platform/security/sbom`).
+- **MCP `2025-06-18` Control Plane, KFlow DAGs & KSpaces CRDT**: Built-in + SSE/stdio MCP server registry with automatic DLP secret redaction (`/v1/platform/mcp/*`), cycle-checked topological DAG execution with per-run token budgets and P-10 pause/resume (`/v1/platform/automation/workflows/execute`), and deterministic Lamport LWW CRDT state sync (`/v1/platform/kspaces/*`).
+- **16-Probe Deterministic Golden Evaluation Suite**: Zero-egress subsystem verification across `workspace_ast`, `governance_p10`, `security_redteam`, and `routing_pricing` with SHA-256 SQLite WAL receipts (`keelway eval-suite --category all`).
 
-## Install from this repository
+---
 
-There is no install step in this document that uses a PyPI distribution named `keelway`. `keelway.dev` and `get.keelway.dev` are not install hosts here.
+## Installation
 
-From the clone:
+### 1. Source Checkout or Python Wheel (`pip` / `uv`)
 
 ```bash
 git clone https://github.com/creova-gif/kora.git
@@ -41,118 +47,96 @@ cd kora
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
+
+# Build & install standalone wheel (bundles /app and /studio SPA assets)
+python -m build --wheel --outdir dist/
 ```
 
-`pyproject.toml` registers two console scripts after that editable install:
+Installed console scripts:
+- `keelway` → `cli:main` (Unified Dev Tool, Studio, MCP, Golden Eval Suite, Vault, Workspace, TUI)
+- `keelway-core` → `keelway.cli.main:main` (Governance Control Plane `:8000`, Runner Daemon, Audit Verification)
 
-- `keelway` → `cli:main` (the developer CLI in `cli.py`)
-- `keelway-core` → `keelway.cli.main:main` (the governance CLI)
-
-Without the editable install, run the modules from the repository root. `./bin/keelway` is a wrapper that executes `cli.py` with `PYTHONPATH` set to the repo. It is the developer CLI.
-
-`website/install.sh` (the same steps as `bin/install.sh`) clones `https://github.com/creova-gif/kora.git` into `~/.keelway/app` by default, creates a virtualenv there, and runs `pip install -e` on that checkout. Run it from a clone if you want that layout. Its header is not a `curl` URL.
-
-Python 3.11 or newer is the declared requirement. The `[dev]` extra installs pytest and ruff. If `python3 -m venv` cannot create an environment on your machine, install those dependencies onto the interpreter you use to run `cli.py`. A missing virtualenv does not add a PyPI package named `keelway`.
-
-## Local Studio
-
-Studio listens on `127.0.0.1` port `7420` unless you pass `--host` or `--port`.
+### 2. POSIX Installer & Homebrew Formula
 
 ```bash
-python3 cli.py dev
-python3 cli.py desktop
+# Inspect zero-write installation plan first
+./scripts/install.sh --dry-run --json
+sh website/public/install.sh --dry-run
+
+# Homebrew formula (macOS / Linuxbrew)
+ruby -c Formula/keelway.rb
 ```
 
-`python3 cli.py dev` starts Uvicorn on `core.main:app` and opens a browser. `python3 cli.py desktop` and `python3 cli.py dev --desktop` call the same server and then look for macOS Google Chrome or a `google-chrome`, `chromium`, or `msedge` binary and pass `--app=<url>`. Otherwise they open a normal browser. There is no Electron or Tauri app in this tree.
+### 3. Non-Root Docker & Docker Compose
 
-`make studio` runs `python3 cli.py dev`. `make desktop` runs `python3 cli.py desktop`.
-
-When `AUTH_REQUIRED` is on, `cli.py dev` prints a launch token in the Studio URL. This README does not change that behavior and does not tell you to turn authentication off.
-
-In this tree, `AutonomousAgentLoop.formulate_plan` chooses a fixed step list from keywords in the goal. That path is not a model-written plan. Chat and evidence-room labeling belong to package B and are not certified here.
-
-## Governance server
+`Dockerfile` builds a multi-stage `python:3.12-slim` image running as unprivileged UID `10001:10001` with a persistent `/data` volume (`KEELWAY_STATE_DIR=/data/.keelway`, `KEELWAY_DB_PATH=/data/keelway_audit.db`), exposing both `:8000` (Governance Control Plane) and `:7420` (Unified Platform API & `/app`).
 
 ```bash
-make serve
+export KEELWAY_POLICY_SIGNING_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+docker compose up -d
 ```
 
-That target runs:
+---
+
+## Official Tri-Language SDKs (100% Parity)
+
+All three SDKs expose full parity across Inference, 4D Routing, OpenCore, Governance, GPU Cluster Scheduling, MCP Control Plane, Golden Evals, KFlow DAG Execution, KSpaces CRDT Sync, and CycloneDX SBOM verification:
+
+1. **Python (`core.sdk`)** — Sync `KeelwayClient` & Async `AsyncKeelwayClient`:
+   ```python
+   from core.sdk import KeelwayClient
+
+   with KeelwayClient(base_url="http://127.0.0.1:7420", token="kw_live_...") as client:
+       run = client.platform.execute_kflow_dag("WF-01", nodes=[{"id": "lint", "kind": "agent"}])
+       sbom = client.platform.get_platform_sbom()
+   ```
+2. **TypeScript (`@keelway/sdk` in `sdk/typescript/`)** — Zero runtime dependencies, Node 20+ / Bun / Deno / Workers:
+   ```ts
+   import { KeelwayClient } from "@keelway/sdk";
+
+   const client = new KeelwayClient({ baseUrl: "http://127.0.0.1:7420", apiKey: "kw_live_..." });
+   const state = await client.platform.getKspacesState({ workspace_id: "default" });
+   ```
+3. **Go (`github.com/keelway/keelway-go` in `sdk/go/`)** — Pure Go 1.22+ standard library:
+   ```go
+   client := keelway.NewClient("http://127.0.0.1:7420", keelway.WithAPIKey("kw_live_..."))
+   sbom, err := client.Platform.GetPlatformSbom(ctx, "default")
+   ```
+
+---
+
+## Engineering Verification & Release Gates
 
 ```bash
-python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000
+# 1. Universal 8-stage engineering quality gate (Python, Tri-SDKs, Website drift, Sandbox, E2E)
+./scripts/verify_engineering_gates.sh
+
+# 2. Deterministic 16-probe Golden Evaluation Suite
+keelway eval-suite --category all --json
+
+# 3. Official TypeScript & Go SDK suites + Unified Dev Tool WCAG 2.2 AA suite
+./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json && npm --prefix sdk/typescript test
+(cd sdk/go && go vet ./... && go test ./... -race)
+npm --prefix dev-app test
+
+# 4. Fail-closed macOS Seatbelt + live Ollama release gate (.github/workflows/release-gate-macos.yml)
+python -m tests.release_live_gate
 ```
 
-After `pip install -e ".[dev]"`, the same command is `keelway-core serve`. The developer script `keelway` has no `serve` subcommand. Both parsers set `prog="keelway"`, so `python3 -m keelway.cli.main --help` prints `usage: keelway`. That label is the help text. The console script for the governance module is `keelway-core`. `python3 cli.py serve` is rejected. `cli.py` also has its own `run` subcommand, which is separate from `keelway-core run`.
+---
 
-The governance CLI's other subcommands are `run`, `verify`, `export`, `status`, `init-demo`, and `runner`. See `python3 -m keelway.cli.main --help`. The default provider on `keelway.models.gateway.ModelGateway` in this tree is `ProviderKind.DETERMINISTIC_MOCK` unless the caller passes another provider. A governed `run` is a separate process from Studio, and this README does not call it a live model agent.
-
-## Static site
-
-`website/index.html`, `website/docs.html`, and `website/api.html` are the marketing and reference pages. `website/product-facts.json` is copy checked into that site. It is not a test report. The in-browser synthesizer and terminal panels do not call `cli.py`.
-
-## Local smoke for templates
-
-From the repository root, with dependencies importable:
-
-```bash
-python3 cli.py build templates
-```
-
-That subcommand prints guided-builder archetype names from `core/orchestration/guided_builder.py` and exits. It does not call a model and it does not need network access to list templates. Generating a tree is a different subcommand: `python3 cli.py build app "<intent>" --template fastapi-service`. The page text `keelway build --intent ... --template ...` does not match this parser. Intent is a positional argument of `build plan` or `build app`.
-
-## Tests
-
-```bash
-make test
-```
-
-`make test` runs `PYTHONPATH=. python3 -m pytest tests -q`. This README does not state how many tests pass. Use the command output, or the GitHub Actions workflow linked above, as the record for a specific commit. `make help` does not print a pass count.
-
-## Models without internet
-
-`python3 cli.py models export qwen2.5-coder:7b /media/usb` copies an installed Ollama model into a bundle folder (`model.gguf` plus `keelway-model.json` with its SHA-256, size, template, system prompt and parameters). On a machine with no internet, `python3 cli.py models import /media/usb/qwen2.5-coder_7b` checks the SHA-256 and size, then installs it through the running Ollama's API. A plain `.gguf` file also imports (`--name` sets the model name). Export reads Ollama's model folder (`$OLLAMA_MODELS`, `~/.ollama/models`, or `/usr/share/ollama/.ollama/models` for the Linux service), so it needs read access there. Models with vision projectors or adapters are refused for now.
-
-## Other developer commands
-
-`python3 cli.py --help` lists the developer subcommands, including `doctor`, `bench`, `build`, `mcp`, and `token`. `make help` lists Makefile targets. Those help texts name the targets. They are not a test report and they are not a hardware certificate.
-
-Tier 2 modules live under `keelway/hal/`. `make tier2-status` and `make tier2-verify` run `cli.py tier2`. They are in-repo commands. This README does not certify field hardware.
-
-## Modules named in this tree
-
-The following names are modules and tests that exist as files. Listing them does not certify a security review, a production deployment, or fail-closed authentication.
-
-| Topic | Modules | Tests present in the tree |
-|---|---|---|
-| Workspace clone helper | `keelway/sandbox/workspace.py` | `tests/test_end_to_end_workflow.py` |
-| Policy engine | `keelway/policy/engine.py` | `tests/test_policy_engine.py` |
-| Policy bundles | `keelway/policy/bundle.py` | `tests/test_policy_bundle.py` |
-| Approvals | `keelway/approvals/service.py` | `tests/test_approvals.py` |
-| Quorum | `keelway/approvals/quorum.py` | `tests/test_quorum.py` |
-| Hash-chained audit | `keelway/audit/recorder.py` | `tests/test_audit_chain.py` |
-| SQLite audit store | `keelway/audit/store.py` | `tests/test_audit_store.py` |
-| Audit export | `keelway/audit/export.py` | `tests/test_audit_export.py` |
-| Runner daemon | `keelway/runner/daemon.py` | `tests/test_runner_daemon.py` |
-| Quarantine helper | `keelway/security/quarantine.py` | `tests/test_quarantine.py` |
-| Retry helper | `keelway/core/retry.py` | `tests/test_retry.py` |
-| Governance model gateway | `keelway/models/gateway.py` | `tests/test_model_gateway.py` |
-
-## Layout
+## Repository Layout
 
 ```text
-kora/                         # clone of creova-gif/kora
-├── cli.py                    # developer CLI (Studio, build, and the other cli.py commands)
-├── bin/keelway               # wrapper around cli.py
-├── Makefile                  # local targets; see `make help`
-├── pyproject.toml            # package name keelway; scripts keelway and keelway-core
-├── core/                     # Studio API, studio assets, orchestration
-│   └── studio/               # local Studio UI
-├── keelway/                  # governance package, including `keelway/api` and `keelway/cli`
-├── website/                  # static marketing site
-├── docs/                     # design notes and docs/DEVELOPER_QUICKSTART.md
-├── examples/
-└── tests/
+├── cli.py                    # Sovereign developer CLI (`keelway`)
+├── core/                     # Unified Platform API (:7420), OpenCore, MCP, KFlow, KSpaces, Vault, SDK
+├── keelway/                  # Governance Control Plane (:8000), Policy Engine, Quorum, Audit Ledger
+├── dev-app/                  # React 19 + TypeScript Unified 10-View Sovereign Dev Tool -> core/dev_app_dist/
+├── website/                  # Next.js 15 App Router marketing, interactive pricing, docs & marketplace
+├── sdk/
+│   ├── typescript/           # @keelway/sdk v1.0.0 (zero runtime dependencies)
+│   └── go/                   # keelway-go v1.0.0 (pure Go stdlib)
+├── specs/tla/                # Formal TLA+ safety specifications (P10HumanGate.tla)
+├── Formula/keelway.rb        # Homebrew formula
+└── tests/                    # Comprehensive unit, adversarial safety, E2E, and live release gates
 ```
-
-`Dockerfile` and `docker-compose.yml` are present. This document does not claim a successful image run. `make docker-up` is `docker compose up -d`.

@@ -25,7 +25,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test test/sdk.test.mjs test/platform-runtime.test.mjs tests/platform_phase7.test.mjs"
+    "test": "node --test test/sdk.test.mjs test/platform-runtime.test.mjs tests/platform_phase7.test.mjs tests/platform_phase8.test.mjs"
   },
   "keywords": [
     "keelway",

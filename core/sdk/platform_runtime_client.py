@@ -16,6 +16,10 @@ from urllib.parse import quote
 import httpx
 
 from core.sdk.errors import ConnectionError
+from core.sdk.platform_kflow_client import (
+    AsyncPlatformKflowMixin,
+    SyncPlatformKflowMixin,
+)
 from core.sdk.platform_mcp_eval_client import (
     AsyncPlatformMcpEvalMixin,
     SyncPlatformMcpEvalMixin,
@@ -127,7 +131,7 @@ class _SseChunkDecoder:
         return decoded if isinstance(decoded, dict) else {"data": decoded}
 
 
-class AsyncPlatformRuntimeMixin(AsyncPlatformMcpEvalMixin):
+class AsyncPlatformRuntimeMixin(AsyncPlatformMcpEvalMixin, AsyncPlatformKflowMixin):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
     _client: "AsyncKeelwayClient"
@@ -248,7 +252,7 @@ class AsyncPlatformRuntimeMixin(AsyncPlatformMcpEvalMixin):
         return await self._client._req("POST", "/v1/platform/pricing/simulate", json=body)
 
 
-class SyncPlatformRuntimeMixin(SyncPlatformMcpEvalMixin):
+class SyncPlatformRuntimeMixin(SyncPlatformMcpEvalMixin, SyncPlatformKflowMixin):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
     _client: "KeelwayClient"

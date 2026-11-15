@@ -429,4 +429,5 @@ export interface SwarmEvaluateResponse {
     [key: string]: unknown;
 }
 export type * from "./platformMcpEval.js";
+export type * from "./platformKflow.js";
 //# sourceMappingURL=types.d.ts.map

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { KSpacesCrdtAndKflowPanel } from "@/components/platform/KSpacesCrdtAndKflowPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { QuotaAndPricingSimulatorPanel } from "@/components/platform/QuotaAndPricingSimulatorPanel";
 import { Button } from "@/components/ui/Button";
@@ -28,29 +29,18 @@ const SEED_MODEL_CANARIES: ModelCanaryItem[] = [
 ];
 
 const SEED_SETTLEMENT_SUMMARY: MarketplaceSettlementSummary = {
-  count: 14, grossUsd: 480.0, creatorPayoutUsd: 408.0, platformFeeUsd: 72.0,
-  verifiedSplitLabel: "85% Creator / 15% Platform",
+  count: 14, grossUsd: 480.0, creatorPayoutUsd: 408.0, platformFeeUsd: 72.0, verifiedSplitLabel: "85% Creator / 15% Platform",
 };
 
-function utcStamp(): string {
-  return `${new Date().toISOString().slice(11, 19)} UTC`;
-}
+const utcStamp = (): string => `${new Date().toISOString().slice(11, 19)} UTC`;
 
 export interface AutomationWorkspaceViewProps {
   experienceMode: ExperienceMode;
   workflows: AutomationWorkflowItem[];
-  onCreateWorkflow: (spec: {
-    name: string;
-    triggerKind: "cron" | "webhook" | "event";
-    triggerSpec: string;
-    tokenBudget: number;
-  }) => void;
+  onCreateWorkflow: (spec: { name: string; triggerKind: "cron" | "webhook" | "event"; triggerSpec: string; tokenBudget: number }) => void;
   onRunWorkflow: (workflowId: string) => void;
   onRetryFailedNode: (workflowId: string, nodeId: string) => void;
-  onAddStepToWorkflow?: (
-    workflowId: string,
-    step: { label: string; agentId: string; requiresP10: boolean },
-  ) => void;
+  onAddStepToWorkflow?: (workflowId: string, step: { label: string; agentId: string; requiresP10: boolean }) => void;
   workspaceId?: string;
   activeRbacRole?: RbacRoleId;
 }
@@ -84,6 +74,9 @@ export function AutomationWorkspaceView({
     return extras.length > 0 ? [...wf.nodes, ...extras] : wf.nodes;
   };
 
+  const baseActiveWf = workflows.find((w) => w.id === resolvedTargetWfId) ?? workflows[0];
+  const activeWorkflow = baseActiveWf ? { ...baseActiveWf, nodes: getEffectiveNodes(baseActiveWf) } : undefined;
+
   const handleAddWorkflow = (e: React.FormEvent) => {
     e.preventDefault();
     if (!wfName.trim()) return;
@@ -99,12 +92,8 @@ export function AutomationWorkspaceView({
     const existing = wf ? getEffectiveNodes(wf) : [];
     const prevNodeId = existing[existing.length - 1]?.id;
     const newNode: WorkflowNodeItem = {
-      id: `n-custom-${existing.length + 1}`,
-      label: cleanLabel,
-      agentId: stepAgentId,
-      dependsOn: prevNodeId ? [prevNodeId] : [],
-      status: "ready",
-      requiresP10: stepRequiresP10,
+      id: `n-custom-${existing.length + 1}`, label: cleanLabel, agentId: stepAgentId,
+      dependsOn: prevNodeId ? [prevNodeId] : [], status: "ready", requiresP10: stepRequiresP10,
       lastOutput: stepRequiresP10 ? "Awaiting P-10 human checkpoint on execution." : "Queued in DAG.",
     };
     setLocalStepsByWf((prev) => ({ ...prev, [resolvedTargetWfId]: [...(prev[resolvedTargetWfId] ?? []), newNode] }));
@@ -144,6 +133,8 @@ export function AutomationWorkspaceView({
         </div>
         <SemanticBadge kind="opencore" detail={`${workflows.length} KFlow DAGs`} />
       </div>
+
+      <KSpacesCrdtAndKflowPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} activeWorkflow={activeWorkflow} />
 
       <form onSubmit={handleAddWorkflow} aria-label="Create automation workflow" className="flex flex-wrap items-end gap-2.5 rounded-md border border-border-strong bg-surface p-3">
         <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-xs text-fg-muted">
@@ -194,17 +185,7 @@ export function AutomationWorkspaceView({
       </form>
 
       {liveDagSpec ? (
-        <LiveExecutionDrawer
-          kind="workflow"
-          targetId={liveDagSpec.targetId}
-          targetName={liveDagSpec.targetName}
-          objective={liveDagSpec.objective}
-          requiresP10={liveDagSpec.requiresP10}
-          workspaceId={workspaceId}
-          activeRbacRole={activeRbacRole}
-          runNonce={liveDagSpec.nonce}
-          onClose={() => setLiveDagSpec(null)}
-        />
+        <LiveExecutionDrawer kind="workflow" targetId={liveDagSpec.targetId} targetName={liveDagSpec.targetName} objective={liveDagSpec.objective} requiresP10={liveDagSpec.requiresP10} workspaceId={workspaceId} activeRbacRole={activeRbacRole} runNonce={liveDagSpec.nonce} onClose={() => setLiveDagSpec(null)} />
       ) : null}
 
       <section aria-label="Workflow DAG pipelines" className="space-y-3">
@@ -231,18 +212,7 @@ export function AutomationWorkspaceView({
                   <Button size="sm" variant="ghost" aria-expanded={isTraceOpen} onClick={() => setTraceOpenByWf((prev) => ({ ...prev, [wf.id]: !isTraceOpen }))}>
                     {`Execution Trace & Logs (${logs.length})`}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    aria-label={`Stream Live DAG ${wf.name}`}
-                    onClick={() => setLiveDagSpec((prev) => ({
-                      targetId: wf.id,
-                      targetName: wf.name,
-                      objective: `Execute KFlow DAG ${wf.name} (${nodes.length} steps)`,
-                      requiresP10: true,
-                      nonce: (prev?.nonce ?? 0) + 1,
-                    }))}
-                  >
+                  <Button size="sm" variant="primary" aria-label={`Stream Live DAG ${wf.name}`} onClick={() => setLiveDagSpec((prev) => ({ targetId: wf.id, targetName: wf.name, objective: `Execute KFlow DAG ${wf.name} (${nodes.length} steps)`, requiresP10: true, nonce: (prev?.nonce ?? 0) + 1 }))}>
                     Stream Live DAG
                   </Button>
                   <Button size="sm" variant="secondary" onClick={() => handleExecuteWorkflow(wf)}>Run workflow</Button>
@@ -342,29 +312,16 @@ export function OperationsWorkspaceView({
     const candidates = clusterNodes
       .filter((n) => n.region === schedRegion && n.status === "healthy" && n.freeVramGb >= schedVramGb)
       .sort((a, b) => (Number(b.loadedModels.includes(schedModel)) - Number(a.loadedModels.includes(schedModel))) || (b.freeVramGb - a.freeVramGb));
-
     if (candidates.length === 0) {
-      setScheduleReceipt({
-        ok: false,
-        message: `Fail-Closed: Insufficient VRAM / Drained — No healthy node in ${schedRegion} fits ${schedVramGb}GB VRAM for ${schedModel}.`,
-      });
+      setScheduleReceipt({ ok: false, message: `Fail-Closed: Insufficient VRAM / Drained — No healthy node in ${schedRegion} fits ${schedVramGb}GB VRAM for ${schedModel}.` });
     } else {
       const best = candidates[0]!;
-      setScheduleReceipt({
-        ok: true,
-        message: `Scheduled on ${best.nodeId} (${best.runtimeLabel} · ${best.region} · ${schedVramGb}GB VRAM · ${privacyTier})`,
-      });
+      setScheduleReceipt({ ok: true, message: `Scheduled on ${best.nodeId} (${best.runtimeLabel} · ${best.region} · ${schedVramGb}GB VRAM · ${privacyTier})` });
     }
-
     void postClusterSchedule({ model_id: schedModel, required_vram_gb: schedVramGb, region: schedRegion, privacy_tier: privacyTier }).then((res) => {
       const serverNodeId = typeof res?.selected_node_id === "string" ? res.selected_node_id : null;
       const matching = serverNodeId ? candidates.find((c) => c.nodeId === serverNodeId) : undefined;
-      if (matching) {
-        setScheduleReceipt({
-          ok: true,
-          message: `Scheduled on ${matching.nodeId} (${matching.runtimeLabel} · ${matching.region} · ${schedVramGb}GB VRAM · ${privacyTier})`,
-        });
-      }
+      if (matching) setScheduleReceipt({ ok: true, message: `Scheduled on ${matching.nodeId} (${matching.runtimeLabel} · ${matching.region} · ${schedVramGb}GB VRAM · ${privacyTier})` });
     });
   };
 
@@ -392,19 +349,12 @@ export function OperationsWorkspaceView({
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div className="space-y-1">
           <h1 className="text-base font-semibold text-fg">Operations · Deployments, Cost Governance &amp; SLOs</h1>
-          <p className="text-xs text-fg-muted">
-            Monitor managed deployments, P-10 human-confirmed rollbacks, OpenCore $0.00 local inference vs BYOM spend, and TTFT latency SLOs.
-          </p>
+          <p className="text-xs text-fg-muted">Monitor managed deployments, P-10 human-confirmed rollbacks, OpenCore $0.00 local inference vs BYOM spend, and TTFT latency SLOs.</p>
         </div>
         <SemanticBadge kind="live" labelOverride={`Active Tier · ${tier.badgeLabel}`} />
       </div>
 
-      <CalloutBanner
-        variant="spend-warn"
-        title="BYOM Credential & Consumer-Subscription Compliance"
-        description={BYOM_CONSUMER_COMPLIANCE_CALLOUT}
-        safeStateNote="Keelway charges $0.00 token markup on authorized BYOM API keys and local OpenCore weights."
-      />
+      <CalloutBanner variant="spend-warn" title="BYOM Credential & Consumer-Subscription Compliance" description={BYOM_CONSUMER_COMPLIANCE_CALLOUT} safeStateNote="Keelway charges $0.00 token markup on authorized BYOM API keys and local OpenCore weights." />
 
       <section aria-label="Cost quota and reliability SLOs" className="grid gap-4 md:grid-cols-3">
         <h2 className="sr-only">Spend, Quotas and Reliability SLOs</h2>
@@ -448,9 +398,7 @@ export function OperationsWorkspaceView({
             <span>Key prefix or endpoint preview</span>
             <input type="text" aria-label="Key prefix or endpoint preview" value={byomPreview} onChange={(e) => setByomPreview(e.target.value)} className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 font-mono text-xs text-fg" />
           </label>
-          <Button size="sm" variant="secondary" onClick={() => setByomCheck(validateByomCredentialClient(byomProvider, byomCredType, byomPreview))}>
-            Verify BYOM compliance
-          </Button>
+          <Button size="sm" variant="secondary" onClick={() => setByomCheck(validateByomCredentialClient(byomProvider, byomCredType, byomPreview))}>Verify BYOM compliance</Button>
         </div>
         {byomCheck ? (
           <div role={byomCheck.valid ? "status" : "alert"} className={`rounded-sm border px-3 py-2 text-xs ${byomCheck.valid ? "border-ok/40 bg-ok-subtle text-fg" : "border-danger/50 bg-danger-subtle text-fg"}`}>
@@ -470,22 +418,15 @@ export function OperationsWorkspaceView({
                   <div className="flex items-center gap-2">
                     <h3 className="text-xs font-semibold text-fg">{dep.environment}</h3>
                     <code className="font-mono text-xs text-teal-accent">{dep.version}</code>
-                    <SemanticBadge
-                      kind={dep.status === "rolled_back" ? "reconfirm" : "passed"}
-                      labelOverride={dep.status === "rolled_back" ? "Rolled back with P-10 receipt" : dep.status === "staging_ready" ? "Staging Verified" : "Healthy"}
-                    />
+                    <SemanticBadge kind={dep.status === "rolled_back" ? "reconfirm" : "passed"} labelOverride={dep.status === "rolled_back" ? "Rolled back with P-10 receipt" : dep.status === "staging_ready" ? "Staging Verified" : "Healthy"} />
                   </div>
-                  <div className="font-mono text-[11px] text-fg-dim">
-                    {`${dep.url} · Last deploy: ${dep.lastDeployedAt}${dep.rollbackReceipt ? ` · ${dep.rollbackReceipt}` : ""}`}
-                  </div>
+                  <div className="font-mono text-[11px] text-fg-dim">{`${dep.url} · Last deploy: ${dep.lastDeployedAt}${dep.rollbackReceipt ? ` · ${dep.rollbackReceipt}` : ""}`}</div>
                 </div>
                 {dep.id === "dep-prod" ? (
                   isConfirming ? (
                     <div className="flex items-center gap-2">
                       <Button size="sm" variant="ghost" onClick={() => setPendingRollbackId(null)}>Cancel</Button>
-                      <Button size="sm" variant="warning-cta" clickOnly onClick={() => { onConfirmP10Rollback(dep.id); setPendingRollbackId(null); }}>
-                        Confirm human P-10 rollback
-                      </Button>
+                      <Button size="sm" variant="warning-cta" clickOnly onClick={() => { onConfirmP10Rollback(dep.id); setPendingRollbackId(null); }}>Confirm human P-10 rollback</Button>
                     </div>
                   ) : (
                     <Button size="sm" variant="secondary" onClick={() => setPendingRollbackId(dep.id)}>Request P-10 rollback</Button>
@@ -502,7 +443,6 @@ export function OperationsWorkspaceView({
           <h2 className="text-sm font-semibold text-fg">Multi-Node GPU Cluster &amp; Model Canary Rollout</h2>
           <SemanticBadge kind="opencore" detail={`${clusterNodes.filter((n) => n.status !== "drained").length}/${clusterNodes.length} Nodes Active`} />
         </div>
-
         <div className="grid gap-2.5 md:grid-cols-2">
           {clusterNodes.map((node) => {
             const isDrained = node.status === "drained";

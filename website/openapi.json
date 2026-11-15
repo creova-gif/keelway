@@ -10428,6 +10428,269 @@
         }
       }
     },
+    "/v1/platform/automation/workflows/execute": {
+      "post": {
+        "tags": [
+          "Unified Platform KFlow, KSpaces CRDT & SBOM"
+        ],
+        "summary": "Execute Platform Kflow Dag Route",
+        "operationId": "execute_platform_kflow_dag_route_v1_platform_automation_workflows_execute_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KFlowExecuteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Execute Platform Kflow Dag Route V1 Platform Automation Workflows Execute Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/automation/runs": {
+      "get": {
+        "tags": [
+          "Unified Platform KFlow, KSpaces CRDT & SBOM"
+        ],
+        "summary": "List Platform Kflow Runs Route",
+        "operationId": "list_platform_kflow_runs_route_v1_platform_automation_runs_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "workflow_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workflow Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Kflow Runs Route V1 Platform Automation Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/kspaces/sync": {
+      "post": {
+        "tags": [
+          "Unified Platform KFlow, KSpaces CRDT & SBOM"
+        ],
+        "summary": "Sync Platform Kspaces Crdt Route",
+        "operationId": "sync_platform_kspaces_crdt_route_v1_platform_kspaces_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KSpacesSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Sync Platform Kspaces Crdt Route V1 Platform Kspaces Sync Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/kspaces/state": {
+      "get": {
+        "tags": [
+          "Unified Platform KFlow, KSpaces CRDT & SBOM"
+        ],
+        "summary": "Get Platform Kspaces Crdt State Route",
+        "operationId": "get_platform_kspaces_crdt_state_route_v1_platform_kspaces_state_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Namespace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Platform Kspaces Crdt State Route V1 Platform Kspaces State Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/security/sbom": {
+      "get": {
+        "tags": [
+          "Unified Platform KFlow, KSpaces CRDT & SBOM"
+        ],
+        "summary": "Get Platform Security Sbom Route",
+        "operationId": "get_platform_security_sbom_route_v1_platform_security_sbom_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Platform Security Sbom Route V1 Platform Security Sbom Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -12849,6 +13112,83 @@
         },
         "type": "object",
         "title": "IssuePatchRequest"
+      },
+      "KFlowExecuteRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "workflow_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workflow Id",
+            "default": ""
+          },
+          "nodes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "trigger": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Trigger",
+            "default": "manual"
+          },
+          "token_budget": {
+            "type": "integer",
+            "title": "Token Budget",
+            "default": 25000
+          },
+          "approved_node_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Node Ids"
+          }
+        },
+        "type": "object",
+        "title": "KFlowExecuteRequest"
+      },
+      "KSpacesSyncRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "peer_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Peer Id",
+            "default": ""
+          },
+          "operations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Operations"
+          }
+        },
+        "type": "object",
+        "title": "KSpacesSyncRequest"
       },
       "KeyAuthenticationResult": {
         "properties": {

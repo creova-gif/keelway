@@ -35,9 +35,15 @@
     },
     "official_python_and_typescript_sdks": {
       "status": "AVAILABLE",
-      "claim": "Official Python (core.sdk), zero-dependency TypeScript (@keelway/sdk), and zero-dependency Go (keelway-go) client SDKs with chunk-safe SSE execution streaming, full /v1/platform/* (including Vault, RBAC, Webhooks, Live Runs, MCP Control Plane, Golden Evals) and /v1/cluster/* parity, and deterministic HTTP error mapping",
-      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, core/sdk/platform_runtime_client.py, core/sdk/platform_mcp_eval_client.py, core/sdk/cluster_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts, sdk/typescript/src/platform-runtime.ts, sdk/typescript/src/platformMcpEval.ts, sdk/typescript/src/cluster.ts, sdk/go/client.go, sdk/go/platform.go, sdk/go/platform_runtime.go, sdk/go/platform_phase7.go",
-      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, tests/test_sdk_phase5_parity.py, tests/test_phase7_packaging_and_sdk.py, tests/test_marketplace_settlement_and_cluster_sdk.py, sdk/typescript/test/sdk.test.mjs, sdk/typescript/test/platform-runtime.test.mjs, sdk/typescript/tests/platform_phase7.test.mjs, sdk/go/client_test.go, sdk/go/platform_runtime_test.go, sdk/go/platform_phase7_test.go"
+      "claim": "Official Python (core.sdk), zero-dependency TypeScript (@keelway/sdk), and zero-dependency Go (keelway-go) client SDKs with chunk-safe SSE execution streaming, full /v1/platform/* (including Vault, RBAC, Webhooks, Live Runs, MCP Control Plane, Golden Evals, KFlow DAGs, KSpaces CRDT Sync, CycloneDX SBOM) and /v1/cluster/* parity, and deterministic HTTP error mapping",
+      "code_path": "core/sdk/client.py, core/sdk/platform_client.py, core/sdk/platform_runtime_client.py, core/sdk/platform_mcp_eval_client.py, core/sdk/platform_kflow_client.py, core/sdk/cluster_client.py, sdk/typescript/src/client.ts, sdk/typescript/src/platform.ts, sdk/typescript/src/platform-runtime.ts, sdk/typescript/src/platformMcpEval.ts, sdk/typescript/src/platformKflow.ts, sdk/typescript/src/cluster.ts, sdk/go/client.go, sdk/go/platform.go, sdk/go/platform_runtime.go, sdk/go/platform_phase7.go, sdk/go/platform_phase8.go",
+      "evidence_test": "tests/test_sdk_v1.py, tests/test_sdk_platform.py, tests/test_sdk_phase5_parity.py, tests/test_phase7_packaging_and_sdk.py, tests/test_phase8_sdk_and_release.py, tests/test_marketplace_settlement_and_cluster_sdk.py, sdk/typescript/test/sdk.test.mjs, sdk/typescript/test/platform-runtime.test.mjs, sdk/typescript/tests/platform_phase7.test.mjs, sdk/typescript/tests/platform_phase8.test.mjs, sdk/go/client_test.go, sdk/go/platform_runtime_test.go, sdk/go/platform_phase7_test.go, sdk/go/platform_phase8_test.go"
+    },
+    "kflow_topological_dag_kspaces_crdt_and_cyclonedx_sbom": {
+      "status": "AVAILABLE",
+      "claim": "KFlow topological wave DAG execution engine with cycle/dependency guards, token-budget enforcement, P-10 human gate checkpoints, and chained SHA-256 node receipts; commutative/idempotent KSpaces Lamport LWW-Element-Set CRDT state sync with DLP secret scrubbing and tombstones; and live CycloneDX 1.5 SBOM provenance attestation",
+      "code_path": "core/platform/kflow_crdt.py, core/api/platform_kflow_routes.py, core/cli_kflow_crdt.py, core/security/sbom.py, dev-app/src/components/platform/KSpacesCrdtAndKflowPanel.tsx, dev-app/src/components/platform/CycloneDxSbomPanel.tsx",
+      "evidence_test": "tests/test_phase8_kflow_crdt_and_sbom.py, tests/test_phase8_sdk_and_release.py, dev-app/src/__tests__/phase8-kflow-crdt-sbom.test.tsx"
     },
     "mcp_control_plane_and_golden_eval_suite": {
       "status": "AVAILABLE",

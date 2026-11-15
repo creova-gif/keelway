@@ -7,3 +7,4 @@ User-facing features of the Keelway Unified 10-View Sovereign Platform (`/app`, 
 - [Calibrated Pricing & MiroFish Market Simulator](pricing-mirofish-simulator.md) — seat/BYOM spend quota simulator, 5-persona MiroFish pricing check in Operations, and `cli.py pricing-eval` parity.
 - [Multi-Workspace Switching, RBAC & No-Code Blueprint](workspace-switching-and-nocode-blueprint.md) — creating/switching isolated workspaces, toggling Builder vs Guided Non-Coder persona, and compiling cross-view blueprints.
 - [MCP Tool Control Plane & 16-Probe Golden Evaluation Suite](mcp-and-golden-evals.md) — SSRF/shell-guarded MCP server registry, live JSON-RPC tool tester with secret redaction, and 16-probe Golden Benchmark & Red-Team scorecard.
+- [Topological KFlow DAG Runner, KSpaces CRDT Sync & CycloneDX 1.5 SBOM](kflow-crdt-and-sbom.md) — Kahn topological workflow execution with P-10 human gates, LWW/vector-clock CRDT multi-peer sync, and signed CycloneDX 1.5 SBOM verification.

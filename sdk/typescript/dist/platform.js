@@ -6,14 +6,17 @@
  */
 import { PlatformRuntimeDelegate } from "./platform-runtime.js";
 import { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
+import { PlatformKflowDelegate } from "./platformKflow.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
     mcpEval;
+    kflow;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
         this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
+        this.kflow = new PlatformKflowDelegate(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -310,6 +313,21 @@ export class PlatformNamespace {
     }
     getLatestGoldenEvals(params = {}, options) {
         return this.mcpEval.getLatestGoldenEvals(params, options);
+    }
+    executeKflowDag(req, options) {
+        return this.kflow.executeKflowDag(req, options);
+    }
+    listKflowRuns(params = {}, options) {
+        return this.kflow.listKflowRuns(params, options);
+    }
+    syncKspacesCrdt(req, options) {
+        return this.kflow.syncKspacesCrdt(req, options);
+    }
+    getKspacesState(params = {}, options) {
+        return this.kflow.getKspacesState(params, options);
+    }
+    getPlatformSbom(params = {}, options) {
+        return this.kflow.getPlatformSbom(params, options);
     }
 }
 //# sourceMappingURL=platform.js.map

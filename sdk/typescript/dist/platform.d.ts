@@ -8,6 +8,7 @@ import type { CheckModelLicenseRequest, CheckModelLicenseResponse, CompileBluepr
 import type * as PT from "./platform-types.js";
 import { type PlatformSseRequester } from "./platform-runtime.js";
 import { type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
+import { type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -18,6 +19,7 @@ export declare class PlatformNamespace {
     private readonly requestJson;
     private readonly runtime;
     private readonly mcpEval;
+    private readonly kflow;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -80,5 +82,10 @@ export declare class PlatformNamespace {
     callMcpTool(toolName: string, args?: Record<string, unknown>, workspaceId?: string, options?: RequestOptions): Promise<CallMcpToolResponse>;
     runGoldenEvals(req?: RunGoldenEvalsRequest | string, options?: RequestOptions): Promise<GoldenEvalReport>;
     getLatestGoldenEvals(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<LatestGoldenEvalsResponse>;
+    executeKflowDag(req: ExecuteKflowDagRequest, options?: RequestOptions): Promise<KflowRunReceipt>;
+    listKflowRuns(params?: ListKflowRunsParams | string, options?: RequestOptions): Promise<KflowRunListResponse>;
+    syncKspacesCrdt(req: SyncKspacesCrdtRequest, options?: RequestOptions): Promise<KspacesSyncResponse>;
+    getKspacesState(params?: GetKspacesStateParams | string, options?: RequestOptions): Promise<KspacesStateResponse>;
+    getPlatformSbom(params?: GetPlatformSbomParams | string, options?: RequestOptions): Promise<PlatformSbomResponse>;
 }
 //# sourceMappingURL=platform.d.ts.map

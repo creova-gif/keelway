@@ -34,56 +34,62 @@ jobs:
           pytest tests/test_agent_sandbox.py -v
       - name: Lint check
         run: ruff check .
-      # Profile A only. A green result here is not live verification.
-      # python -m tests.release_live_gate is the fail-closed release boundary.
+      # Profile A + Linux LIVE_OS_ISOLATION_PROOFS. macOS Seatbelt + live Ollama gate runs in release-gate-macos.yml.
       - name: Run Engineering Quality Gates
         env:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
           PYTHONPATH: .
         run: ./scripts/verify_engineering_gates.sh
-
       - name: Run Full Test Suites
         env:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
           PYTHONPATH: .
         run: pytest -v
 
-  website-and-typescript-sdk:
+  website-devapp-and-sdks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: website/package-lock.json
-      - name: Install Next.js website dependencies
-        run: npm --prefix website ci
-      - name: Typecheck & build Next.js 15 website
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Build & typecheck Next.js 15 website
         run: |
+          npm --prefix website ci
           npm --prefix website run typecheck
           npm --prefix website run build
       - name: Compile & test official @keelway/sdk TypeScript package
         run: |
           ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
-          cd sdk/typescript && node --test test/sdk.test.mjs
+          npm --prefix sdk/typescript test
+      - name: Vet & test official keelway-go SDK with race detector
+        run: |
+          cd sdk/go && go vet ./... && go test ./... -race
+      - name: Build & test Unified 10-View Sovereign Dev Tool (Vitest + axe-core WCAG 2.2 AA)
+        run: |
+          npm --prefix dev-app ci
+          npm --prefix dev-app run build
+          npm --prefix dev-app test
 
-  release-live-verification:
+  wheel-and-sbom-verification:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install bubblewrap (Linux command sandbox)
+      - name: Build wheel & verify isolated install, SPA assets, Golden Suite, and CycloneDX SBOM
         run: |
-          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
-          # Ubuntu 24.04 blocks unprivileged user namespaces, which bubblewrap needs.
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
-      - name: Fail closed unless every required live proof passed
-        env:
-          DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-release.db
-          PYTHONPATH: .
-        run: python -m tests.release_live_gate
+          python -m pip install --upgrade pip build
+          python -m build --wheel --outdir dist/
+          python -m venv /tmp/wheel-venv
+          /tmp/wheel-venv/bin/pip install "$GITHUB_WORKSPACE"/dist/keelway-1.0.0-py3-none-any.whl
+          cd /tmp
+          /tmp/wheel-venv/bin/python -c "import pathlib, core; root = pathlib.Path(core.__file__).resolve().parent; assert (root / 'dev_app_dist' / 'index.html').is_file(); assert (root / 'studio' / 'index.html').is_file()"
+          /tmp/wheel-venv/bin/keelway eval-suite --category all --json
+          /tmp/wheel-venv/bin/python -c "import pathlib; from core.security.sbom import SBOMGenerator, SBOMVerifier; manifest = SBOMGenerator.generate(pathlib.Path('$GITHUB_WORKSPACE')).to_dict(); ok, status, meta = SBOMVerifier.verify(manifest); assert ok and status == 'VERIFIED', (ok, status, meta)"

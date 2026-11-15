@@ -24,6 +24,7 @@
 | **KEEL-RUNTIME-012** | Phase 5: Live SSE Agent/DAG Execution, AES-256-GCM Secret Vault, Multi-Workspace RBAC, Signed Webhooks & Tri-SDK Parity | `PLATFORM / SECURITY / SDK` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 | **KEEL-PRICING-013** | Phase 6: Calibrated 5-Tier Pricing Ladder, MiroFish 5-Persona Market & Unit-Economics Swarm Simulator, Sovereign CLI Runtime & Operations Quota UI | `PRICING / EVAL / CLI / UI` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-14 | `main` |
 | **KEEL-SHIP-014** | Phase 7: Commercial Ship Readiness — MCP Control Plane, 16-Probe Golden & Red-Team Suite, Wheel/Homebrew Packaging & Tri-SDK Parity | `MCP / EVAL / PACKAGING / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
+| **KEEL-GA-015** | Phase 8: v1.0.0 General Availability — KFlow Topological DAG Engine, KSpaces CRDT Sync, CycloneDX 1.5 SBOM, Container/CI Release Hardening & Tri-SDK Parity | `DAG / CRDT / SBOM / CI / GA` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` (`v1.0.0`) |
 
 ---
 

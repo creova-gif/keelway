@@ -9,6 +9,7 @@ export type { PlatformJsonRequester } from "./platform.js";
 export { parseSseFrames, PlatformRuntimeDelegate } from "./platform-runtime.js";
 export type { ParsedSseFrame, PlatformSseRequester } from "./platform-runtime.js";
 export { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
+export { PlatformKflowDelegate } from "./platformKflow.js";
 export { AirGapEgressError, AuthenticationError, BudgetExceededError, ConnectionError, FlightRecorderError, KeelwayError, mapHttpError, PermissionDeniedError, PolicyViolationError, QuorumRequiredError, RateLimitExceededError, TaskNotFoundError, } from "./errors.js";
 export type { ErrorDetails } from "./errors.js";
 export type * from "./types.js";

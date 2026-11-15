@@ -1,26 +1,55 @@
 #!/bin/sh
-# Keelway Local-First AI Platform Installer (POSIX sh)
-# Usage:
-#   curl -fsSL https://kora-sable.vercel.app/install.sh | sh
-
+# Keelway v1.0.0 Local-First AI Platform Installer (POSIX sh)
+# Usage: curl -fsSL https://kora-sable.vercel.app/install.sh | sh
 set -eu
 
 say() { printf '%s\n' "$*"; }
 die() { printf '[x] %s\n' "$*" >&2; exit 1; }
 
-say ""
-say "================================================================="
-say "  Installing Keelway - Unified Local-First AI Agent Platform"
-say "================================================================="
-say ""
+DRY_RUN=0
+INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/runtime}"
+BIN_DIR="${KEELWAY_BIN_DIR:-${HOME}/.local/bin}"
 
+show_help() {
+    cat <<'EOF'
+Usage: install.sh [OPTIONS]
+
+Install the Keelway v1.0.0 CLI & OpenCore local-first runtime into an isolated virtualenv.
+
+Options:
+  -n, --dry-run       Print resolved installation plan without modifying disk
+  --install-dir DIR   Override runtime directory (default: ~/.keelway/runtime)
+  --bin-dir DIR       Override binary symlink directory (default: ~/.local/bin)
+  -h, --help          Show this help message and exit
+
+Environment: KEELWAY_PYTHON, KEELWAY_INSTALL_DIR, KEELWAY_BIN_DIR, KEELWAY_SOURCE_DIR, KEELWAY_PACKAGE
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help) show_help; exit 0 ;;
+        -n|--dry-run) DRY_RUN=1; shift ;;
+        --install-dir)
+            [ "$#" -ge 2 ] || die "--install-dir requires a directory argument."
+            INSTALL_DIR="$2"; shift 2 ;;
+        --bin-dir)
+            [ "$#" -ge 2 ] || die "--bin-dir requires a directory argument."
+            BIN_DIR="$2"; shift 2 ;;
+        *) die "Unknown option: $1 (pass --help for usage)." ;;
+    esac
+done
+
+say "================================================================="
+say "  Keelway v1.0.0 - Unified Local-First AI Agent Platform"
+say "================================================================="
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 say "[+] System detected: ${OS} (${ARCH})"
 
 PYTHON="${KEELWAY_PYTHON:-}"
 if [ -z "$PYTHON" ]; then
-    for candidate in python3.13 python3.12 python3.11 python3; do
+    for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
         if command -v "$candidate" >/dev/null 2>&1 && \
            "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
             PYTHON="$candidate"
@@ -31,10 +60,16 @@ fi
 [ -n "$PYTHON" ] || die "Python 3.11+ is required. Install Python 3.11+ or set KEELWAY_PYTHON=/path/to/python3."
 say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/runtime}"
-BIN_DIR="${HOME}/.local/bin"
-mkdir -p "$INSTALL_DIR" "$BIN_DIR"
+KEELWAY_PACKAGE="${KEELWAY_PACKAGE:-keelway}"
+if [ "$DRY_RUN" -eq 1 ]; then
+    say "[dry-run] Would create isolated venv: ${INSTALL_DIR}/.venv"
+    say "[dry-run] Would install package:      ${KEELWAY_SOURCE_DIR:-${KEELWAY_PACKAGE}}"
+    say "[dry-run] Would link CLI binary:      ${BIN_DIR}/keelway"
+    say "[dry-run] Zero filesystem writes performed."
+    exit 0
+fi
 
+mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 say "[+] Creating isolated Keelway virtual environment..."
 "$PYTHON" -m venv "${INSTALL_DIR}/.venv"
 "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet --upgrade pip
@@ -43,21 +78,9 @@ if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.tom
     say "[+] Installing Keelway from local checkout (${KEELWAY_SOURCE_DIR})..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${KEELWAY_SOURCE_DIR}"
 else
-    KEELWAY_PACKAGE="${KEELWAY_PACKAGE:-keelway}"
     say "[+] Installing ${KEELWAY_PACKAGE} CLI & OpenCore runtime..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet "${KEELWAY_PACKAGE}"
 fi
 
 ln -sf "${INSTALL_DIR}/.venv/bin/keelway" "${BIN_DIR}/keelway"
-
-case ":${PATH}:" in
-    *":${BIN_DIR}:"*) ;;
-    *)
-        say ""
-        say "[!] Add ${BIN_DIR} to your PATH in ~/.zshrc or ~/.bashrc:"
-        say "    export PATH=\"${BIN_DIR}:\$PATH\""
-        ;;
-esac
-
-say ""
-say "[+] Keelway installed. Run 'keelway init && keelway dev' to launch your workspace."
+say "[+] Keelway v1.0.0 installed. Run 'keelway init && keelway dev' to launch your workspace."

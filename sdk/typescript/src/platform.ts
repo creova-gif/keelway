@@ -49,6 +49,7 @@ import type {
 import type * as PT from "./platform-types.js";
 import { PlatformRuntimeDelegate, type PlatformSseRequester } from "./platform-runtime.js";
 import { PlatformMcpEvalDelegate, type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
+import { PlatformKflowDelegate, type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -61,11 +62,13 @@ export class PlatformNamespace {
   private readonly requestJson: PlatformJsonRequester;
   private readonly runtime: PlatformRuntimeDelegate;
   private readonly mcpEval: PlatformMcpEvalDelegate;
+  private readonly kflow: PlatformKflowDelegate;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
     this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
     this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
+    this.kflow = new PlatformKflowDelegate(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -481,5 +484,21 @@ export class PlatformNamespace {
   }
   public getLatestGoldenEvals(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<LatestGoldenEvalsResponse> {
     return this.mcpEval.getLatestGoldenEvals(params, options);
+  }
+
+  public executeKflowDag(req: ExecuteKflowDagRequest, options?: RequestOptions): Promise<KflowRunReceipt> {
+    return this.kflow.executeKflowDag(req, options);
+  }
+  public listKflowRuns(params: ListKflowRunsParams | string = {}, options?: RequestOptions): Promise<KflowRunListResponse> {
+    return this.kflow.listKflowRuns(params, options);
+  }
+  public syncKspacesCrdt(req: SyncKspacesCrdtRequest, options?: RequestOptions): Promise<KspacesSyncResponse> {
+    return this.kflow.syncKspacesCrdt(req, options);
+  }
+  public getKspacesState(params: GetKspacesStateParams | string = {}, options?: RequestOptions): Promise<KspacesStateResponse> {
+    return this.kflow.getKspacesState(params, options);
+  }
+  public getPlatformSbom(params: GetPlatformSbomParams | string = {}, options?: RequestOptions): Promise<PlatformSbomResponse> {
+    return this.kflow.getPlatformSbom(params, options);
   }
 }

@@ -24,6 +24,7 @@ from core.api.governance_routes import router as governance_router
 from core.api.platform_routes import router as platform_router
 from core.api.platform_runtime_routes import router as platform_runtime_router
 from core.api.platform_mcp_routes import router as platform_mcp_router
+from core.api.platform_kflow_routes import router as platform_kflow_router
 from .api.cluster_routes import router as cluster_router
 import asyncio
 from core.security.auth import launch_token
@@ -119,6 +120,7 @@ app.include_router(governance_router)
 app.include_router(platform_router)
 app.include_router(platform_runtime_router)
 app.include_router(platform_mcp_router)
+app.include_router(platform_kflow_router)
 app.include_router(cluster_router)
 
 # Mount Keelway Studio Web UI & Unified Sovereign Dev App
