@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { KSpacesCrdtAndKflowPanel } from "@/components/platform/KSpacesCrdtAndKflowPanel";
+import { LangGraphMigratorPanel } from "@/components/platform/LangGraphMigratorPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { QuotaAndPricingSimulatorPanel } from "@/components/platform/QuotaAndPricingSimulatorPanel";
 import { SiemAndObservabilityPanel } from "@/components/platform/SiemAndObservabilityPanel";
@@ -136,6 +137,8 @@ export function AutomationWorkspaceView({
       </div>
 
       <KSpacesCrdtAndKflowPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} activeWorkflow={activeWorkflow} />
+
+      <LangGraphMigratorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <form onSubmit={handleAddWorkflow} aria-label="Create automation workflow" className="flex flex-wrap items-end gap-2.5 rounded-md border border-border-strong bg-surface p-3">
         <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-xs text-fg-muted">

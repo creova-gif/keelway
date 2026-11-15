@@ -62,10 +62,7 @@ function CodePanel({
         >
           {copied ? (
             <>
-              <Check
-                className="h-3.5 w-3.5 text-teal-accent"
-                aria-hidden="true"
-              />
+              <Check className="h-3.5 w-3.5 text-teal-accent" aria-hidden="true" />
               <span>Copied</span>
             </>
           ) : (
@@ -429,6 +426,12 @@ turn2 = client.responses.create(
                   • 4-K Sovereign Architecture with KBrain scope-governed hybrid
                   BM25 / n-gram memory &amp; KHub SHA-256 air-gapped skill
                   mirrors (<code className="text-fg">.skill.tar.gz</code>)
+                </li>
+                <li>
+                  • OpenTelemetry GenAI Flight-Tape Time-Travel Debugging,
+                  1-Click Trace-to-Eval Promotion &amp;{" "}
+                  <code className="text-fg">migrate-langgraph</code> Static AST
+                  Importer across the CLI and Python/TypeScript/Go SDKs
                 </li>
               </ul>
             </div>

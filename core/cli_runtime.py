@@ -195,6 +195,7 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     pe.add_argument("--api-spend", dest="api_spend", type=float, default=1200.0, help="Monthly BYOM API spend in USD")
     pe.add_argument("--json", action="store_true", help="Emit JSON pricing report")
 
+    from core.cli_devx import register_devx_cli_subparsers
     from core.cli_enterprise import register_enterprise_cli_subparsers
     from core.cli_kbrain_khub import register_kbrain_khub_cli_subparsers
     from core.cli_kflow_crdt import register_kflow_crdt_cli_subparsers
@@ -204,14 +205,20 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_kflow_crdt_cli_subparsers(subparsers)
     register_enterprise_cli_subparsers(subparsers)
     register_kbrain_khub_cli_subparsers(subparsers)
+    register_devx_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, and KBrain/KHub sovereign CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, and DevX sovereign CLI subcommands."""
+    from core.cli_devx import dispatch_devx_cli
     from core.cli_enterprise import dispatch_enterprise_cli
     from core.cli_kbrain_khub import dispatch_kbrain_khub_cli
     from core.cli_kflow_crdt import dispatch_kflow_crdt_cli
     from core.cli_mcp_eval import dispatch_mcp_eval_cli
+
+    devx_rc = dispatch_devx_cli(args)
+    if devx_rc is not None:
+        return devx_rc
 
     kbrain_khub_rc = dispatch_kbrain_khub_cli(args)
     if kbrain_khub_rc is not None:

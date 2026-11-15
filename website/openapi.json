@@ -11481,6 +11481,289 @@
         }
       }
     },
+    "/v1/platform/traces/ingest": {
+      "post": {
+        "tags": [
+          "Unified Platform OTel Flight-Tape, Eval Promotion & LangGraph Migrator"
+        ],
+        "summary": "Ingest Platform Traces Route",
+        "operationId": "ingest_platform_traces_route_v1_platform_traces_ingest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraceIngestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ingest Platform Traces Route V1 Platform Traces Ingest Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/traces": {
+      "get": {
+        "tags": [
+          "Unified Platform OTel Flight-Tape, Eval Promotion & LangGraph Migrator"
+        ],
+        "summary": "List Platform Traces Route",
+        "operationId": "list_platform_traces_route_v1_platform_traces_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Traces Route V1 Platform Traces Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/traces/{trace_id}/replay": {
+      "post": {
+        "tags": [
+          "Unified Platform OTel Flight-Tape, Eval Promotion & LangGraph Migrator"
+        ],
+        "summary": "Replay Platform Trace Route",
+        "operationId": "replay_platform_trace_route_v1_platform_traces__trace_id__replay_post",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraceReplayRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Replay Platform Trace Route V1 Platform Traces  Trace Id  Replay Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/eval/dataset/promote": {
+      "post": {
+        "tags": [
+          "Unified Platform OTel Flight-Tape, Eval Promotion & LangGraph Migrator"
+        ],
+        "summary": "Promote Platform Trace To Eval Route",
+        "operationId": "promote_platform_trace_to_eval_route_v1_platform_eval_dataset_promote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraceEvalPromoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Promote Platform Trace To Eval Route V1 Platform Eval Dataset Promote Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/eval/dataset": {
+      "get": {
+        "tags": [
+          "Unified Platform OTel Flight-Tape, Eval Promotion & LangGraph Migrator"
+        ],
+        "summary": "List Platform Eval Dataset Route",
+        "operationId": "list_platform_eval_dataset_route_v1_platform_eval_dataset_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Eval Dataset Route V1 Platform Eval Dataset Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/migrate/langgraph": {
+      "post": {
+        "tags": [
+          "Unified Platform OTel Flight-Tape, Eval Promotion & LangGraph Migrator"
+        ],
+        "summary": "Migrate Platform Langgraph Route",
+        "operationId": "migrate_platform_langgraph_route_v1_platform_migrate_langgraph_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LangGraphMigrateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Migrate Platform Langgraph Route V1 Platform Migrate Langgraph Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -14147,6 +14430,41 @@
           "reason"
         ],
         "title": "KeyAuthenticationResult"
+      },
+      "LangGraphMigrateRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "source_code": {
+            "type": "string",
+            "title": "Source Code",
+            "default": ""
+          },
+          "source_language": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Source Language",
+            "default": "python"
+          },
+          "workflow_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Name"
+          }
+        },
+        "type": "object",
+        "title": "LangGraphMigrateRequest"
       },
       "LicenseCheckRequest": {
         "properties": {
@@ -17513,6 +17831,209 @@
           "parameters"
         ],
         "title": "ToolDefinitionSchema"
+      },
+      "TraceEvalPromoteRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Trace Id",
+            "default": ""
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "expected_substrings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Substrings"
+          },
+          "forbidden_substrings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forbidden Substrings"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          }
+        },
+        "type": "object",
+        "title": "TraceEvalPromoteRequest"
+      },
+      "TraceIngestRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "workflow_name": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Workflow Name",
+            "default": "agent-trace"
+          },
+          "source_framework": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Source Framework",
+            "default": "opentelemetry_genai"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "spans": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spans"
+          },
+          "resource_spans": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Spans"
+          },
+          "resourceSpans": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resourcespans"
+          }
+        },
+        "type": "object",
+        "title": "TraceIngestRequest"
+      },
+      "TraceReplayRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "from_step_index": {
+            "type": "integer",
+            "title": "From Step Index",
+            "default": 0
+          },
+          "override_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Prompt"
+          },
+          "override_model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Model"
+          },
+          "override_state": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override State"
+          }
+        },
+        "type": "object",
+        "title": "TraceReplayRequest"
       },
       "UnloadModelRequest": {
         "properties": {

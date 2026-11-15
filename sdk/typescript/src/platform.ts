@@ -52,6 +52,7 @@ import { PlatformMcpEvalDelegate, type CallMcpToolRequest, type CallMcpToolRespo
 import { PlatformKflowDelegate, type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
 import { PlatformEnterpriseDelegate, type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
 import { PlatformKbrainDelegate, type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
+import { PlatformDevxDelegate, type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -67,6 +68,7 @@ export class PlatformNamespace {
   private readonly kflow: PlatformKflowDelegate;
   private readonly enterprise: PlatformEnterpriseDelegate;
   private readonly kbrain: PlatformKbrainDelegate;
+  private readonly devx: PlatformDevxDelegate;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -75,6 +77,7 @@ export class PlatformNamespace {
     this.kflow = new PlatformKflowDelegate(requestJson);
     this.enterprise = new PlatformEnterpriseDelegate(requestJson);
     this.kbrain = new PlatformKbrainDelegate(requestJson);
+    this.devx = new PlatformDevxDelegate(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -542,4 +545,45 @@ export class PlatformNamespace {
   public verifyKhubMirror(req: VerifyKhubMirrorRequest | string[] = {}, options?: RequestOptions): Promise<VerifyKhubMirrorResponse> {
     return this.kbrain.verifyKhubMirror(req, options);
   }
+
+  public ingestOtelTraces(payload: IngestOtelTracesRequest, options?: RequestOptions): Promise<FlightTapeRecord> {
+    return this.devx.ingestOtelTraces(payload, options);
+  }
+  public listFlightTapes(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<FlightTapeListResponse>;
+  public listFlightTapes(params?: ListFlightTapesParams, options?: RequestOptions): Promise<FlightTapeListResponse>;
+  public listFlightTapes(
+    workspaceIdOrParams: string | ListFlightTapesParams = "default",
+    limitOrOptions?: number | RequestOptions,
+    options?: RequestOptions,
+  ): Promise<FlightTapeListResponse> {
+    if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+      return this.devx.listFlightTapes(workspaceIdOrParams, limitOrOptions as RequestOptions | undefined);
+    }
+    if (typeof limitOrOptions === "object") {
+      return this.devx.listFlightTapes(workspaceIdOrParams, 20, limitOrOptions);
+    }
+    return this.devx.listFlightTapes(workspaceIdOrParams, limitOrOptions, options);
+  }
+  public replayFlightTape(traceId: string, payload?: ReplayFlightTapeRequest, options?: RequestOptions): Promise<FlightTapeRecord> {
+    return this.devx.replayFlightTape(traceId, payload, options);
+  }
+  public promoteTraceToEval(payload: PromoteTraceToEvalRequest, options?: RequestOptions): Promise<EvalDatasetCase> {
+    return this.devx.promoteTraceToEval(payload, options);
+  }
+  public listEvalDatasetCases(workspaceId?: string, options?: RequestOptions): Promise<EvalDatasetListResponse>;
+  public listEvalDatasetCases(params?: ListEvalDatasetCasesParams, options?: RequestOptions): Promise<EvalDatasetListResponse>;
+  public listEvalDatasetCases(
+    workspaceIdOrParams: string | ListEvalDatasetCasesParams = "default",
+    options?: RequestOptions,
+  ): Promise<EvalDatasetListResponse> {
+    if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+      return this.devx.listEvalDatasetCases(workspaceIdOrParams, options);
+    }
+    return this.devx.listEvalDatasetCases(workspaceIdOrParams, options);
+  }
+  public migrateLanggraphSource(payload: MigrateLanggraphRequest, options?: RequestOptions): Promise<LanggraphMigrationResult> {
+    return this.devx.migrateLanggraphSource(payload, options);
+  }
 }
+
+export { PlatformNamespace as PlatformClient };

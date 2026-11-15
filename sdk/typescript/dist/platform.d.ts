@@ -11,6 +11,7 @@ import { type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServer
 import { type ExecuteKflowDagRequest, type GetKspacesStateParams, type GetPlatformSbomParams, type KflowRunListResponse, type KflowRunReceipt, type KspacesStateResponse, type KspacesSyncResponse, type ListKflowRunsParams, type PlatformSbomResponse, type SyncKspacesCrdtRequest } from "./platformKflow.js";
 import { type ApproveP10QuorumRequest, type ConfigureOidcProviderRequest, type ExportSiemAuditParams, type GetObservabilityMetricsParams, type ListScimUsersParams, type ObservabilityMetricsResponse, type OidcProviderConfigResponse, type P10QuorumStatusResponse, type ProvisionScimUserRequest, type ScimUserListResponse, type ScimUserResource, type SiemAuditExportResponse } from "./platformEnterprise.js";
 import { type KbrainFactRecord, type KbrainFactResolution, type KhubSkillListResponse, type ListKhubSkillsParams, type RecordKbrainFactRequest, type ResolveKbrainFactRequest, type SearchKbrainFactsParams, type SearchKbrainFactsResponse, type VerifyKhubMirrorRequest, type VerifyKhubMirrorResponse } from "./platformKbrain.js";
+import { type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeListResponse, type FlightTapeRecord, type IngestOtelTracesRequest, type LanggraphMigrationResult, type ListEvalDatasetCasesParams, type ListFlightTapesParams, type MigrateLanggraphRequest, type PromoteTraceToEvalRequest, type ReplayFlightTapeRequest } from "./platformDevx.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -24,6 +25,7 @@ export declare class PlatformNamespace {
     private readonly kflow;
     private readonly enterprise;
     private readonly kbrain;
+    private readonly devx;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -102,5 +104,14 @@ export declare class PlatformNamespace {
     resolveKbrainFact(factId: string, req: ResolveKbrainFactRequest | KbrainFactResolution, options?: RequestOptions): Promise<KbrainFactRecord>;
     listKhubSkills(params?: ListKhubSkillsParams | string, options?: RequestOptions): Promise<KhubSkillListResponse>;
     verifyKhubMirror(req?: VerifyKhubMirrorRequest | string[], options?: RequestOptions): Promise<VerifyKhubMirrorResponse>;
+    ingestOtelTraces(payload: IngestOtelTracesRequest, options?: RequestOptions): Promise<FlightTapeRecord>;
+    listFlightTapes(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<FlightTapeListResponse>;
+    listFlightTapes(params?: ListFlightTapesParams, options?: RequestOptions): Promise<FlightTapeListResponse>;
+    replayFlightTape(traceId: string, payload?: ReplayFlightTapeRequest, options?: RequestOptions): Promise<FlightTapeRecord>;
+    promoteTraceToEval(payload: PromoteTraceToEvalRequest, options?: RequestOptions): Promise<EvalDatasetCase>;
+    listEvalDatasetCases(workspaceId?: string, options?: RequestOptions): Promise<EvalDatasetListResponse>;
+    listEvalDatasetCases(params?: ListEvalDatasetCasesParams, options?: RequestOptions): Promise<EvalDatasetListResponse>;
+    migrateLanggraphSource(payload: MigrateLanggraphRequest, options?: RequestOptions): Promise<LanggraphMigrationResult>;
 }
+export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

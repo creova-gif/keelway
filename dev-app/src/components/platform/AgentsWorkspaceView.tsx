@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { FlightTapeDebuggerPanel } from "@/components/platform/FlightTapeDebuggerPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { McpInspectorPanel } from "@/components/platform/McpInspectorPanel";
 import { Button } from "@/components/ui/Button";
@@ -477,6 +478,8 @@ export function AgentsWorkspaceView({
           </div>
         </form>
       </section>
+
+      <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <McpInspectorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
     </div>

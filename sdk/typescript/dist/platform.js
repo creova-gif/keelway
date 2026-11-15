@@ -9,6 +9,7 @@ import { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
 import { PlatformKflowDelegate } from "./platformKflow.js";
 import { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
 import { PlatformKbrainDelegate } from "./platformKbrain.js";
+import { PlatformDevxDelegate } from "./platformDevx.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -16,6 +17,7 @@ export class PlatformNamespace {
     kflow;
     enterprise;
     kbrain;
+    devx;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -23,6 +25,7 @@ export class PlatformNamespace {
         this.kflow = new PlatformKflowDelegate(requestJson);
         this.enterprise = new PlatformEnterpriseDelegate(requestJson);
         this.kbrain = new PlatformKbrainDelegate(requestJson);
+        this.devx = new PlatformDevxDelegate(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -368,5 +371,33 @@ export class PlatformNamespace {
     verifyKhubMirror(req = {}, options) {
         return this.kbrain.verifyKhubMirror(req, options);
     }
+    ingestOtelTraces(payload, options) {
+        return this.devx.ingestOtelTraces(payload, options);
+    }
+    listFlightTapes(workspaceIdOrParams = "default", limitOrOptions, options) {
+        if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+            return this.devx.listFlightTapes(workspaceIdOrParams, limitOrOptions);
+        }
+        if (typeof limitOrOptions === "object") {
+            return this.devx.listFlightTapes(workspaceIdOrParams, 20, limitOrOptions);
+        }
+        return this.devx.listFlightTapes(workspaceIdOrParams, limitOrOptions, options);
+    }
+    replayFlightTape(traceId, payload, options) {
+        return this.devx.replayFlightTape(traceId, payload, options);
+    }
+    promoteTraceToEval(payload, options) {
+        return this.devx.promoteTraceToEval(payload, options);
+    }
+    listEvalDatasetCases(workspaceIdOrParams = "default", options) {
+        if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+            return this.devx.listEvalDatasetCases(workspaceIdOrParams, options);
+        }
+        return this.devx.listEvalDatasetCases(workspaceIdOrParams, options);
+    }
+    migrateLanggraphSource(payload, options) {
+        return this.devx.migrateLanggraphSource(payload, options);
+    }
 }
+export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.js.map

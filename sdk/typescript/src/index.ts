@@ -19,7 +19,7 @@ export type {
   ReserveClusterBudgetResponse,
   RollbackClusterModelRequest,
 } from "./cluster.js";
-export { PlatformNamespace } from "./platform.js";
+export { PlatformNamespace, PlatformClient } from "./platform.js";
 export type { PlatformJsonRequester } from "./platform.js";
 export { parseSseFrames, PlatformRuntimeDelegate } from "./platform-runtime.js";
 export type { ParsedSseFrame, PlatformSseRequester } from "./platform-runtime.js";
@@ -27,6 +27,7 @@ export { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
 export { PlatformKflowDelegate } from "./platformKflow.js";
 export { PlatformEnterpriseDelegate } from "./platformEnterprise.js";
 export { PlatformKbrainDelegate } from "./platformKbrain.js";
+export { PlatformDevxDelegate } from "./platformDevx.js";
 
 export {
   AirGapEgressError,
