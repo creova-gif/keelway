@@ -7,6 +7,7 @@
 import type { CheckModelLicenseRequest, CheckModelLicenseResponse, CompileBlueprintRequest, CompiledBlueprintResponse, CreateIssueRequest, CreatePrdRequest, CreateWorkflowRequest, DispatchTeamRequest, ExtensionSpecInput, InstallMarketplacePackageRequest, InstallMarketplacePackageResponse, LifecycleAgentsResponse, ListExtensionsParams, ListIssuesParams, ListMarketplacePackagesParams, ListMarketplaceSettlementsParams, MarketplacePackageInput, MarketplacePackageListResponse, MarketplacePackageRecord, MarketplaceScanReport, MarketplaceSettlementRecord, MarketplaceSettlementSummaryResponse, PlatformExtensionListResponse, PlatformExtensionRecord, PlatformIssueListResponse, PlatformIssueRecord, PlatformOverviewParams, PlatformOverviewResponse, PlatformPrdListResponse, PlatformPrdRecord, PlatformWorkflowListResponse, PlatformWorkflowRecord, PurchaseMarketplacePackageRequest, QuotaCheckRequest, QuotaCheckResponse, SubscriptionTiersResponse, TeamRunResponse, ValidateByomRequest, ValidateByomResponse } from "./platform-types.js";
 import type * as PT from "./platform-types.js";
 import { type PlatformSseRequester } from "./platform-runtime.js";
+import { type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -16,6 +17,7 @@ export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
 export declare class PlatformNamespace {
     private readonly requestJson;
     private readonly runtime;
+    private readonly mcpEval;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -70,5 +72,13 @@ export declare class PlatformNamespace {
     resolveExecutionP10(runId: string, req: PT.ResolveExecutionP10Request, options?: RequestOptions): Promise<PT.ExecutionRunSnapshot>;
     streamExecutionEvents(runId: string, options?: PT.StreamExecutionEventsOptions): AsyncGenerator<Record<string, unknown>, void, unknown>;
     simulatePricing(req?: PT.PricingSimulationRequest, options?: RequestOptions): Promise<Record<string, unknown>>;
+    listMcpServers(params?: ListMcpServersParams | string, options?: RequestOptions): Promise<McpServerListResponse>;
+    registerMcpServer(req: RegisterMcpServerRequest, options?: RequestOptions): Promise<McpServerRecord>;
+    deleteMcpServer(serverId: string, params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<DeleteMcpServerResponse>;
+    listMcpTools(params?: ListMcpToolsParams | string, options?: RequestOptions): Promise<McpToolListResponse>;
+    callMcpTool(req: CallMcpToolRequest, options?: RequestOptions): Promise<CallMcpToolResponse>;
+    callMcpTool(toolName: string, args?: Record<string, unknown>, workspaceId?: string, options?: RequestOptions): Promise<CallMcpToolResponse>;
+    runGoldenEvals(req?: RunGoldenEvalsRequest | string, options?: RequestOptions): Promise<GoldenEvalReport>;
+    getLatestGoldenEvals(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<LatestGoldenEvalsResponse>;
 }
 //# sourceMappingURL=platform.d.ts.map

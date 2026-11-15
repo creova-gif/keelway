@@ -10105,6 +10105,329 @@
         }
       }
     },
+    "/v1/platform/mcp/servers": {
+      "get": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "List Platform Mcp Servers Route",
+        "operationId": "list_platform_mcp_servers_route_v1_platform_mcp_servers_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Mcp Servers Route V1 Platform Mcp Servers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "Register Platform Mcp Server Route",
+        "operationId": "register_platform_mcp_server_route_v1_platform_mcp_servers_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpServerRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Register Platform Mcp Server Route V1 Platform Mcp Servers Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/mcp/servers/{server_id}": {
+      "delete": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "Delete Platform Mcp Server Route",
+        "operationId": "delete_platform_mcp_server_route_v1_platform_mcp_servers__server_id__delete",
+        "parameters": [
+          {
+            "name": "server_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Server Id"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Platform Mcp Server Route V1 Platform Mcp Servers  Server Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/mcp/tools": {
+      "get": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "List Platform Mcp Tools Route",
+        "operationId": "list_platform_mcp_tools_route_v1_platform_mcp_tools_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Mcp Tools Route V1 Platform Mcp Tools Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/mcp/call": {
+      "post": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "Call Platform Mcp Tool Route",
+        "operationId": "call_platform_mcp_tool_route_v1_platform_mcp_call_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpToolCallRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Call Platform Mcp Tool Route V1 Platform Mcp Call Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/evals/golden": {
+      "post": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "Run Platform Golden Evals Route",
+        "operationId": "run_platform_golden_evals_route_v1_platform_evals_golden_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GoldenEvalRunRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Platform Golden Evals Route V1 Platform Evals Golden Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/evals/latest": {
+      "get": {
+        "tags": [
+          "Unified Platform MCP & Golden Evals"
+        ],
+        "summary": "Get Latest Platform Golden Eval Route",
+        "operationId": "get_latest_platform_golden_eval_route_v1_platform_evals_latest_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Latest Platform Golden Eval Route V1 Platform Evals Latest Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -11994,6 +12317,24 @@
         ],
         "title": "FeedbackCreateRequest"
       },
+      "GoldenEvalRunRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Category",
+            "default": "all"
+          }
+        },
+        "type": "object",
+        "title": "GoldenEvalRunRequest"
+      },
       "GovernanceAuditEntry": {
         "properties": {
           "seq": {
@@ -12889,6 +13230,134 @@
           "package_id"
         ],
         "title": "MarketplacePurchaseRequest"
+      },
+      "McpServerRegisterRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "server_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Server Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name",
+            "default": ""
+          },
+          "transport": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Transport",
+            "default": "sse"
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "title": "Endpoint",
+            "default": ""
+          },
+          "allowed_tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Tools"
+          }
+        },
+        "type": "object",
+        "title": "McpServerRegisterRequest"
+      },
+      "McpToolCallRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "tool_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Name"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "arguments": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arguments"
+          },
+          "args": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Args"
+          }
+        },
+        "type": "object",
+        "title": "McpToolCallRequest"
       },
       "MemoryCreateRequest": {
         "properties": {

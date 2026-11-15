@@ -48,106 +48,64 @@ import type {
 } from "./platform-types.js";
 import type * as PT from "./platform-types.js";
 import { PlatformRuntimeDelegate, type PlatformSseRequester } from "./platform-runtime.js";
+import { PlatformMcpEvalDelegate, type CallMcpToolRequest, type CallMcpToolResponse, type DeleteMcpServerResponse, type GoldenEvalReport, type LatestGoldenEvalsResponse, type ListMcpServersParams, type ListMcpToolsParams, type McpServerListResponse, type McpServerRecord, type McpToolListResponse, type RegisterMcpServerRequest, type RunGoldenEvalsRequest } from "./platformMcpEval.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
   method: string,
   path: string,
-  params?: {
-    query?: Record<string, string>;
-    body?: Record<string, unknown>;
-    options?: RequestOptions;
-  },
+  params?: { query?: Record<string, string>; body?: Record<string, unknown>; options?: RequestOptions },
 ) => Promise<T>;
 
 export class PlatformNamespace {
   private readonly requestJson: PlatformJsonRequester;
   private readonly runtime: PlatformRuntimeDelegate;
+  private readonly mcpEval: PlatformMcpEvalDelegate;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
     this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
+    this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
   }
 
-  public overview(
-    params: PlatformOverviewParams | string = {},
-    options?: RequestOptions,
-  ): Promise<PlatformOverviewResponse> {
+  public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
     const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
-    return this.requestJson<PlatformOverviewResponse>("GET", "/v1/platform/overview", {
-      query: { workspace_id: workspaceId },
+    return this.requestJson<PlatformOverviewResponse>("GET", "/v1/platform/overview", { query: { workspace_id: workspaceId }, options });
+  }
+
+  public listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse> {
+    return this.requestJson<SubscriptionTiersResponse>("GET", "/v1/platform/subscriptions/tiers", { options });
+  }
+
+  public checkQuota(req: QuotaCheckRequest, options?: RequestOptions): Promise<QuotaCheckResponse> {
+    return this.requestJson<QuotaCheckResponse>("POST", "/v1/platform/subscriptions/quota-check", {
+      body: {
+        org_id: req.org_id, tier: req.tier, tokens_requested: req.tokens_requested,
+        current_rpm: req.current_rpm ?? 1, local_hardware: req.local_hardware ?? false,
+      },
       options,
     });
   }
 
-  public listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse> {
-    return this.requestJson<SubscriptionTiersResponse>(
-      "GET",
-      "/v1/platform/subscriptions/tiers",
-      { options },
-    );
-  }
-
-  public checkQuota(
-    req: QuotaCheckRequest,
-    options?: RequestOptions,
-  ): Promise<QuotaCheckResponse> {
-    return this.requestJson<QuotaCheckResponse>(
-      "POST",
-      "/v1/platform/subscriptions/quota-check",
-      {
-        body: {
-          org_id: req.org_id,
-          tier: req.tier,
-          tokens_requested: req.tokens_requested,
-          current_rpm: req.current_rpm ?? 1,
-          local_hardware: req.local_hardware ?? false,
-        },
-        options,
-      },
-    );
-  }
-
-  public validateByom(
-    req: ValidateByomRequest,
-    options?: RequestOptions,
-  ): Promise<ValidateByomResponse> {
+  public validateByom(req: ValidateByomRequest, options?: RequestOptions): Promise<ValidateByomResponse> {
     const body: Record<string, unknown> = {
-      provider: req.provider,
-      credential_kind: req.credential_kind,
-      api_key_preview: req.api_key_preview ?? "",
-      model_id: req.model_id ?? "",
+      provider: req.provider, credential_kind: req.credential_kind,
+      api_key_preview: req.api_key_preview ?? "", model_id: req.model_id ?? "",
       commercial_use: req.commercial_use ?? true,
     };
-    if (req.license_id !== undefined) {
-      body.license_id = req.license_id;
-    }
-    return this.requestJson<ValidateByomResponse>(
-      "POST",
-      "/v1/platform/subscriptions/byom/validate",
-      { body, options },
-    );
+    if (req.license_id !== undefined) body.license_id = req.license_id;
+    return this.requestJson<ValidateByomResponse>("POST", "/v1/platform/subscriptions/byom/validate", { body, options });
   }
 
-  public checkModelLicense(
-    req: CheckModelLicenseRequest,
-    options?: RequestOptions,
-  ): Promise<CheckModelLicenseResponse> {
-    return this.requestJson<CheckModelLicenseResponse>(
-      "POST",
-      "/v1/platform/subscriptions/license-check",
-      {
-        body: {
-          model_id: req.model_id,
-          license_id: req.license_id,
-          commercial_use: req.commercial_use ?? true,
-          has_authorized_api_credential:
-            req.has_authorized_api_credential ?? req.has_authorized_api_key ?? false,
-          exceeds_700m_mau: req.exceeds_700m_mau ?? false,
-        },
-        options,
+  public checkModelLicense(req: CheckModelLicenseRequest, options?: RequestOptions): Promise<CheckModelLicenseResponse> {
+    return this.requestJson<CheckModelLicenseResponse>("POST", "/v1/platform/subscriptions/license-check", {
+      body: {
+        model_id: req.model_id, license_id: req.license_id, commercial_use: req.commercial_use ?? true,
+        has_authorized_api_credential: req.has_authorized_api_credential ?? req.has_authorized_api_key ?? false,
+        exceeds_700m_mau: req.exceeds_700m_mau ?? false,
       },
-    );
+      options,
+    });
   }
 
   public listMarketplacePackages(
@@ -492,10 +450,36 @@ export class PlatformNamespace {
   ): AsyncGenerator<Record<string, unknown>, void, unknown> {
     return this.runtime.streamExecutionEvents(runId, options);
   }
-  public simulatePricing(
-    req?: PT.PricingSimulationRequest,
-    options?: RequestOptions,
-  ): Promise<Record<string, unknown>> {
+  public simulatePricing(req?: PT.PricingSimulationRequest, options?: RequestOptions): Promise<Record<string, unknown>> {
     return this.runtime.simulatePricing(req, options);
+  }
+
+  public listMcpServers(params: ListMcpServersParams | string = {}, options?: RequestOptions): Promise<McpServerListResponse> {
+    return this.mcpEval.listMcpServers(params, options);
+  }
+  public registerMcpServer(req: RegisterMcpServerRequest, options?: RequestOptions): Promise<McpServerRecord> {
+    return this.mcpEval.registerMcpServer(req, options);
+  }
+  public deleteMcpServer(serverId: string, params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<DeleteMcpServerResponse> {
+    return this.mcpEval.deleteMcpServer(serverId, params, options);
+  }
+  public listMcpTools(params: ListMcpToolsParams | string = {}, options?: RequestOptions): Promise<McpToolListResponse> {
+    return this.mcpEval.listMcpTools(params, options);
+  }
+  public callMcpTool(req: CallMcpToolRequest, options?: RequestOptions): Promise<CallMcpToolResponse>;
+  public callMcpTool(toolName: string, args?: Record<string, unknown>, workspaceId?: string, options?: RequestOptions): Promise<CallMcpToolResponse>;
+  public callMcpTool(
+    reqOrToolName: CallMcpToolRequest | string,
+    argumentsOrOptions?: Record<string, unknown> | RequestOptions,
+    workspaceId?: string,
+    options?: RequestOptions,
+  ): Promise<CallMcpToolResponse> {
+    return this.mcpEval.callMcpTool(reqOrToolName, argumentsOrOptions, workspaceId, options);
+  }
+  public runGoldenEvals(req: RunGoldenEvalsRequest | string = {}, options?: RequestOptions): Promise<GoldenEvalReport> {
+    return this.mcpEval.runGoldenEvals(req, options);
+  }
+  public getLatestGoldenEvals(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<LatestGoldenEvalsResponse> {
+    return this.mcpEval.getLatestGoldenEvals(params, options);
   }
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
+import { McpInspectorPanel } from "@/components/platform/McpInspectorPanel";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type {
@@ -476,6 +477,8 @@ export function AgentsWorkspaceView({
           </div>
         </form>
       </section>
+
+      <McpInspectorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
     </div>
   );
 }

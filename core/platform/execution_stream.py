@@ -111,6 +111,7 @@ class LiveExecutionStreamer:
         objective: str,
         requires_p10: bool = True,
         initiator: str = "local-operator",
+        workspace_root: Optional[Union[str, Path]] = None,
     ) -> Dict[str, Any]:
         ws = str(workspace_id or "").strip()
         clean_kind = str(kind or "").strip().lower()
@@ -131,6 +132,23 @@ class LiveExecutionStreamer:
 
         run_id = f"run-{uuid.uuid4().hex[:10]}"
         now = _utc_now()
+        inspect_evt: Dict[str, Any] = {
+            "seq": 2,
+            "type": "step.tool_call",
+            "run_id": run_id,
+            "step": "inspect_context",
+            "detail": f"Inspecting {clean_kind} '{clean_target}' workspace state in '{ws}'.",
+            "digest_sha256": _sha256(f"{run_id}:2:inspect_context:{ws}:{clean_target}"),
+            "timestamp": now,
+        }
+        if workspace_root is not None:
+            ws_root_path = Path(workspace_root).expanduser()
+            if ws_root_path.exists() and ws_root_path.is_dir():
+                from core.storage.workspace_fs import WorkspaceFilesystem
+
+                files = WorkspaceFilesystem(str(ws_root_path)).list_files()[:10_000]
+                inspect_evt["workspace_file_count"] = len(files)
+
         events: List[Dict[str, Any]] = [
             {
                 "seq": 1,
@@ -142,15 +160,7 @@ class LiveExecutionStreamer:
                 "objective": clean_objective,
                 "timestamp": now,
             },
-            {
-                "seq": 2,
-                "type": "step.tool_call",
-                "run_id": run_id,
-                "step": "inspect_context",
-                "detail": f"Inspecting {clean_kind} '{clean_target}' workspace state in '{ws}'.",
-                "digest_sha256": _sha256(f"{run_id}:2:inspect_context:{ws}:{clean_target}"),
-                "timestamp": now,
-            },
+            inspect_evt,
             {
                 "seq": 3,
                 "type": "step.completed",

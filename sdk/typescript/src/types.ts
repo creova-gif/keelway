@@ -224,19 +224,9 @@ export interface ResponseObject {
 }
 
 export interface ResponseStreamEvent {
-  type:
-    | "response.created"
-    | "response.output_text.delta"
-    | "response.completed"
-    | "error"
-    | (string & {});
-  event?: string;
-  response_id?: string;
-  item_id?: string;
-  output_index?: number;
-  content_index?: number;
-  delta?: string;
-  response?: ResponseObject;
+  type: "response.created" | "response.output_text.delta" | "response.completed" | "error" | (string & {});
+  event?: string; response_id?: string; item_id?: string; output_index?: number;
+  content_index?: number; delta?: string; response?: ResponseObject;
   error?: { message: string; [key: string]: unknown };
   [key: string]: unknown;
 }
@@ -493,14 +483,11 @@ export interface SwarmEvaluateResponse {
   open_weight_calls?: number;
   closed_cloud_calls?: number;
   telemetry?: {
-    total_calls: number;
-    open_weight_calls: number;
-    closed_cloud_calls: number;
-    total_cost_usd: number;
-    estimated_all_cloud_cost_usd: number;
-    savings_pct: number;
-    elapsed_ms: number;
+    total_calls: number; open_weight_calls: number; closed_cloud_calls: number;
+    total_cost_usd: number; estimated_all_cloud_cost_usd: number; savings_pct: number; elapsed_ms: number;
     [key: string]: unknown;
   };
   [key: string]: unknown;
 }
+
+export type * from "./platformMcpEval.js";

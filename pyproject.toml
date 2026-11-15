@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "keelway"
-version = "0.71.0"
+version = "1.0.0"
 description = "Customer-managed governance and audit platform for AI-powered software change (Sorvex Labs)"
 requires-python = ">=3.11"
 dependencies = [
@@ -35,7 +35,14 @@ py-modules = ["cli"]
 include = ["core*", "keelway*", "research*", "evaluations*"]
 
 [tool.setuptools.package-data]
-core = ["studio/*.html", "studio/assets/*", "studio/assets/**/*"]
+core = [
+    "studio/*.html",
+    "studio/assets/*",
+    "studio/assets/**/*",
+    "dev_app_dist/*.html",
+    "dev_app_dist/assets/*",
+    "dev_app_dist/assets/**/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

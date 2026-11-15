@@ -195,9 +195,18 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     pe.add_argument("--api-spend", dest="api_spend", type=float, default=1200.0, help="Monthly BYOM API spend in USD")
     pe.add_argument("--json", action="store_true", help="Emit JSON pricing report")
 
+    from core.cli_mcp_eval import register_mcp_eval_cli_subparsers
+
+    register_mcp_eval_cli_subparsers(subparsers)
+
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch `vault`, `workspace`, `run`, and `pricing-eval` commands. Returns exit code or None."""
+    """Dispatch `vault`, `workspace`, `run`, `pricing-eval`, `mcp`, and `eval-suite` commands."""
+    from core.cli_mcp_eval import dispatch_mcp_eval_cli
+
+    mcp_eval_rc = dispatch_mcp_eval_cli(args)
+    if mcp_eval_rc is not None:
+        return mcp_eval_rc
     cmd = getattr(args, "command", None)
 
     if cmd == "vault":

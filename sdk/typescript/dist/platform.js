@@ -5,19 +5,19 @@
  * Web Fetch, `AbortSignal` timeout, and `mapHttpError` infrastructure.
  */
 import { PlatformRuntimeDelegate } from "./platform-runtime.js";
+import { PlatformMcpEvalDelegate } from "./platformMcpEval.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
+    mcpEval;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
+        this.mcpEval = new PlatformMcpEvalDelegate(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
-        return this.requestJson("GET", "/v1/platform/overview", {
-            query: { workspace_id: workspaceId },
-            options,
-        });
+        return this.requestJson("GET", "/v1/platform/overview", { query: { workspace_id: workspaceId }, options });
     }
     listTiers(options) {
         return this.requestJson("GET", "/v1/platform/subscriptions/tiers", { options });
@@ -25,34 +25,26 @@ export class PlatformNamespace {
     checkQuota(req, options) {
         return this.requestJson("POST", "/v1/platform/subscriptions/quota-check", {
             body: {
-                org_id: req.org_id,
-                tier: req.tier,
-                tokens_requested: req.tokens_requested,
-                current_rpm: req.current_rpm ?? 1,
-                local_hardware: req.local_hardware ?? false,
+                org_id: req.org_id, tier: req.tier, tokens_requested: req.tokens_requested,
+                current_rpm: req.current_rpm ?? 1, local_hardware: req.local_hardware ?? false,
             },
             options,
         });
     }
     validateByom(req, options) {
         const body = {
-            provider: req.provider,
-            credential_kind: req.credential_kind,
-            api_key_preview: req.api_key_preview ?? "",
-            model_id: req.model_id ?? "",
+            provider: req.provider, credential_kind: req.credential_kind,
+            api_key_preview: req.api_key_preview ?? "", model_id: req.model_id ?? "",
             commercial_use: req.commercial_use ?? true,
         };
-        if (req.license_id !== undefined) {
+        if (req.license_id !== undefined)
             body.license_id = req.license_id;
-        }
         return this.requestJson("POST", "/v1/platform/subscriptions/byom/validate", { body, options });
     }
     checkModelLicense(req, options) {
         return this.requestJson("POST", "/v1/platform/subscriptions/license-check", {
             body: {
-                model_id: req.model_id,
-                license_id: req.license_id,
-                commercial_use: req.commercial_use ?? true,
+                model_id: req.model_id, license_id: req.license_id, commercial_use: req.commercial_use ?? true,
                 has_authorized_api_credential: req.has_authorized_api_credential ?? req.has_authorized_api_key ?? false,
                 exceeds_700m_mau: req.exceeds_700m_mau ?? false,
             },
@@ -297,6 +289,27 @@ export class PlatformNamespace {
     }
     simulatePricing(req, options) {
         return this.runtime.simulatePricing(req, options);
+    }
+    listMcpServers(params = {}, options) {
+        return this.mcpEval.listMcpServers(params, options);
+    }
+    registerMcpServer(req, options) {
+        return this.mcpEval.registerMcpServer(req, options);
+    }
+    deleteMcpServer(serverId, params = {}, options) {
+        return this.mcpEval.deleteMcpServer(serverId, params, options);
+    }
+    listMcpTools(params = {}, options) {
+        return this.mcpEval.listMcpTools(params, options);
+    }
+    callMcpTool(reqOrToolName, argumentsOrOptions, workspaceId, options) {
+        return this.mcpEval.callMcpTool(reqOrToolName, argumentsOrOptions, workspaceId, options);
+    }
+    runGoldenEvals(req = {}, options) {
+        return this.mcpEval.runGoldenEvals(req, options);
+    }
+    getLatestGoldenEvals(params = {}, options) {
+        return this.mcpEval.getLatestGoldenEvals(params, options);
     }
 }
 //# sourceMappingURL=platform.js.map

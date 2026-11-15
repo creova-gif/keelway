@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { GoldenEvalScorecardPanel } from "@/components/platform/GoldenEvalScorecardPanel";
 import { VaultAndWebhooksPanel } from "@/components/platform/VaultAndWebhooksPanel";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import { Button } from "@/components/ui/Button";
@@ -346,6 +347,8 @@ export function SecurityWorkspaceView({
         </div>
 
         <VaultAndWebhooksPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
+        <GoldenEvalScorecardPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
       </div>
 
       <div className="border-t border-border">
