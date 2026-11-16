@@ -115,6 +115,9 @@ async def test_serving_engine_lifecycle():
     assert res.cost_usd == 0.0
     assert "Keelway OpenCore Coder 7B" in res.content
     assert res.usage["total_tokens"] > 0
+    assert res.simulated is True
+    assert "simulated" in res.to_openai_dict()["keelway_metadata"]
+    assert res.to_openai_dict()["keelway_metadata"]["simulated"] is True
 
     # Verify telemetry updated
     telem = engine.get_cluster_telemetry()

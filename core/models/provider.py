@@ -87,6 +87,7 @@ class StreamChunk(BaseModel):
     delta_content: str = ""
     finish_reason: Optional[str] = None
     usage: Optional[Dict[str, int]] = None
+    simulated: bool = False
 
     def to_sse(self) -> str:
         """Format as standard Server-Sent Event string."""
@@ -106,6 +107,8 @@ class StreamChunk(BaseModel):
         }
         if self.usage:
             payload["usage"] = self.usage
+        if self.simulated:
+            payload["simulated"] = True
         return f"data: {json.dumps(payload)}\n\n"
 
 
@@ -124,6 +127,7 @@ class ChatCompletionResponse(BaseModel):
     cost_usd: float = 0.0
     routing_reason: str = ""
     tool_calls: Optional[List[Dict[str, Any]]] = None
+    simulated: bool = False
 
     def to_openai_dict(self) -> Dict[str, Any]:
         """Convert to standard OpenAI Chat Completions API response format."""
@@ -150,6 +154,7 @@ class ChatCompletionResponse(BaseModel):
                 "latency_ms": self.latency_ms,
                 "cost_usd": self.cost_usd,
                 "routing_reason": self.routing_reason,
+                "simulated": self.simulated,
             },
         }
 
