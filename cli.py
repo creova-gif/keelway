@@ -1229,6 +1229,47 @@ def cmd_flight(action: str, target: str, show_events: bool = False) -> int:
     return 0
 
 
+def cmd_tape(action: str, workspace: str = "default", trace_id: str = "",
+             db_path: Optional[str] = None, limit: int = 20, as_json: bool = False) -> int:
+    """List platform flight tapes or verify their SHA-256 seals offline."""
+    import json as _json
+    from core.platform.flight_tape import SQLiteFlightTapeEngine
+    engine = SQLiteFlightTapeEngine(db_path=db_path)
+    try:
+        if action == "list":
+            res = engine.list_tapes(workspace_id=workspace, limit=limit)
+            if as_json:
+                print(_json.dumps(res, indent=2))
+            else:
+                print(f"\n[+] Flight Tapes — workspace '{res['workspace_id']}' ({res['total_tapes']} shown)\n")
+                for t in res["tapes"]:
+                    print(f"  {t['trace_id'][:24]:<26} steps={t['total_steps']:<4} "
+                          f"cost=${t['total_cost_usd']:.4f}  {t['tape_sha256'][:20]}...  {t['created_at'][:19]}")
+                print()
+            return 0
+        report = engine.verify_tape(workspace_id=workspace, trace_id=trace_id)
+        if as_json:
+            print(_json.dumps(report, indent=2))
+        else:
+            print(f"\n[+] Flight Tape Verification: {report['trace_id']}")
+            print(f"    Workspace:  {report['workspace_id']}")
+            print(f"    Steps:      {report['total_steps']} (all valid: {report['steps_valid']})")
+            print(f"    Claimed:    {report['tape_sha256_claimed']}")
+            print(f"    Calculated: {report['tape_sha256_calculated']}")
+            print(f"    Scope:      {report['verification_scope']} (unkeyed recompute — detects tampering, not forgery by DB writer)")
+            for s in report["steps"]:
+                if not s["valid"]:
+                    print(f"    [!] step {s['step_index']} ({s['node_name']}): hash mismatch")
+            print(f"    Status:     {'[✓] SEAL VERIFIED' if report['valid'] else '[✗] TAMPER DETECTED'}\n")
+        return 0 if report["valid"] else 1
+    except KeyError as e:
+        msg = f"Flight tape not found: {e}"
+        print(_json.dumps({"error": msg, "code": "tape_not_found"}, indent=2) if as_json else f"[-] {msg}")
+        return 1
+    finally:
+        engine.close()
+
+
 def cmd_sbom(action: str = "generate", out: Optional[Path] = None, target: Optional[str] = None) -> int:
     """Generate or verify CycloneDX-compatible Software Bill of Materials (SBOM)."""
     import json
@@ -3645,6 +3686,20 @@ def build_parser() -> argparse.ArgumentParser:
     _fl_rep.add_argument("target", help="Path to .flight.json tape")
     _fl_rep.add_argument("--events", action="store_true", help="Display verbose event payloads")
 
+    # tape (Platform SQLite Flight-Tape Store — list & hash verification)
+    tape_parser = subparsers.add_parser("tape", help="List and cryptographically verify platform flight tapes")
+    tape_sub = tape_parser.add_subparsers(dest="tape_command", required=True)
+    _tp_list = tape_sub.add_parser("list", help="List recorded platform flight tapes")
+    _tp_list.add_argument("--db-path", default=None, help="SQLite DB path (default: resolved Keelway store)")
+    _tp_list.add_argument("--workspace", default="default", help="Workspace ID (default: default)")
+    _tp_list.add_argument("--limit", type=int, default=20, help="Max tapes to list (default: 20)")
+    _tp_list.add_argument("--json", action="store_true", help="Output JSON")
+    _tp_ver = tape_sub.add_parser("verify", help="Recompute step/tape SHA-256 seals and verify integrity")
+    _tp_ver.add_argument("--trace-id", required=True, help="Flight tape trace ID to verify")
+    _tp_ver.add_argument("--db-path", default=None, help="SQLite DB path (default: resolved Keelway store)")
+    _tp_ver.add_argument("--workspace", default="default", help="Workspace ID (default: default)")
+    _tp_ver.add_argument("--json", action="store_true", help="Output JSON")
+
     mcp_parser = subparsers.add_parser("mcp", help="Serve read-only workspace tools to MCP clients over stdio (Cursor, Claude Code, Zed)")
     mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
 
@@ -4107,6 +4162,17 @@ def main(argv=None):
                 action=getattr(args, "flight_command", "verify"),
                 target=getattr(args, "target", ""),
                 show_events=getattr(args, "events", False),
+            )
+        )
+    elif args.command == "tape":
+        sys.exit(
+            cmd_tape(
+                action=getattr(args, "tape_command", "list"),
+                workspace=getattr(args, "workspace", "default"),
+                trace_id=getattr(args, "trace_id", ""),
+                db_path=getattr(args, "db_path", None),
+                limit=getattr(args, "limit", 20),
+                as_json=getattr(args, "json", False),
             )
         )
     elif args.command in ("dev", "desktop"):

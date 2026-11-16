@@ -468,6 +468,54 @@ class SQLiteFlightTapeEngine:
             tapes = [self._assemble_tape(conn, r) for r in rows]
         return {"workspace_id": ws, "total_tapes": len(tapes), "tapes": tapes}
 
+    def verify_tape(self, workspace_id: str = "default", trace_id: str = "") -> Dict[str, Any]:
+        """Recompute step_sha256 and tape_sha256 from stored canonical fields.
+
+        Returns a verification report; ``valid`` is True only when every stored
+        hash matches its recomputed value (tamper-evidence check, not a
+        signature — the hashes are unkeyed SHA-256).
+        """
+        tape = self.get_tape(workspace_id=workspace_id, trace_id=trace_id)
+        step_results: List[Dict[str, Any]] = []
+        all_steps_valid = True
+        recomputed_step_hashes: List[str] = []
+        for s in tape["steps"]:
+            expected = _sha256_json(
+                {
+                    "model_id": s["model_id"], "node_name": s["node_name"],
+                    "output_text": s["output_text"], "prompt_text": s["prompt_text"],
+                    "span_kind": s["span_kind"], "state_json": s["state_json"],
+                    "step_index": s["step_index"],
+                }
+            )
+            ok = expected == s["step_sha256"]
+            all_steps_valid = all_steps_valid and ok
+            recomputed_step_hashes.append(expected)
+            step_results.append({
+                "step_index": s["step_index"], "node_name": s["node_name"],
+                "claimed": s["step_sha256"], "calculated": expected, "valid": ok,
+            })
+        expected_tape = _sha256_json(
+            {
+                "forked_from_step": tape["forked_from_step"],
+                "parent_trace_id": tape["parent_trace_id"],
+                "step_hashes": recomputed_step_hashes,
+                "trace_id": tape["trace_id"],
+                "workflow_name": tape["workflow_name"],
+                "workspace_id": tape["workspace_id"],
+            }
+        )
+        tape_ok = expected_tape == tape["tape_sha256"]
+        return {
+            "trace_id": tape["trace_id"], "workspace_id": tape["workspace_id"],
+            "total_steps": tape["total_steps"], "steps": step_results,
+            "tape_sha256_claimed": tape["tape_sha256"],
+            "tape_sha256_calculated": expected_tape,
+            "steps_valid": all_steps_valid, "tape_valid": tape_ok,
+            "valid": all_steps_valid and tape_ok,
+            "verification_scope": "unkeyed_sha256_recompute",
+        }
+
     def replay_tape(
         self, workspace_id: str = "default", trace_id: str = "", from_step_index: int = 0,
         override_prompt: Optional[str] = None, override_model: Optional[str] = None, override_state: Optional[Dict[str, Any]] = None,
