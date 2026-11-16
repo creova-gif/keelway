@@ -122,6 +122,7 @@ async def list_opencore_weights() -> List[Dict[str, Any]]:
             **m.model_dump(),
             "is_cached": cached,
             "local_path": str(local_path),
+            "simulated": True,
         })
     return results
 

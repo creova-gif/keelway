@@ -264,6 +264,7 @@ const INITIAL_OPENCORE_WEIGHTS: OpenCoreWeightItem[] = [
     sha256: "sha256:3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b",
     license: "Apache-2.0",
     localLoopback: true,
+    simulated: true,
   },
   {
     id: "keelway-reasoner:14b",
@@ -276,6 +277,7 @@ const INITIAL_OPENCORE_WEIGHTS: OpenCoreWeightItem[] = [
     sha256: "sha256:6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
     license: "Apache-2.0",
     localLoopback: true,
+    simulated: true,
   },
 ];
 

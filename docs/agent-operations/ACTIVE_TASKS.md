@@ -62,6 +62,7 @@
 | **KEEL-REL-050** | `agents setup <host>` one-command detect+render+install | `RELEASE / AGENTS / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-050-agents-setup` |
 | **KEEL-REL-051** | `keelway tape list|verify` user-facing seal verification | `RELEASE / VERIFICATION / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-051-tape-verify` |
 | **KEEL-REL-052** | Onboarding runbook + early-access fulfillment process | `RELEASE / OPS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `docs/KEEL-REL-052-onboarding-runbook` |
+| **KEEL-REL-053** | Simulated-model disclosure badges (API + Studio + website) | `RELEASE / UI / HONEST-CLAIMS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-053-simulated-badges` |
 
 ---
 

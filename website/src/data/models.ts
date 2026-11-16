@@ -30,6 +30,7 @@ export interface CatalogModel {
   pricingOutputPerMtok: number;
   license: string;
   licensePermissive: boolean;
+  simulated?: boolean;
   baseParamsBillions?: number;
   recommendedVramGb: number | null;
   manifestSha256?: string;
@@ -101,6 +102,7 @@ export const CATALOG_MODELS: CatalogModel[] = [
     providerLabel: "Keelway OpenCore · Local",
     category: "open_weight",
     isOpenCoreSuite: true,
+    simulated: true,
     family: "keelway_core",
     deployment: "local_daemon",
     contextWindow: 65536,
@@ -139,6 +141,7 @@ export const CATALOG_MODELS: CatalogModel[] = [
     providerLabel: "Keelway OpenCore · Local",
     category: "open_weight",
     isOpenCoreSuite: true,
+    simulated: true,
     family: "keelway_core",
     deployment: "local_daemon",
     contextWindow: 65536,
@@ -169,6 +172,7 @@ export const CATALOG_MODELS: CatalogModel[] = [
     providerLabel: "Keelway OpenCore · GPU / Metal",
     category: "open_weight",
     isOpenCoreSuite: true,
+    simulated: true,
     family: "keelway_core",
     deployment: "self_hosted_gpu",
     contextWindow: 131072,
@@ -206,6 +210,7 @@ export const CATALOG_MODELS: CatalogModel[] = [
     providerLabel: "Keelway OpenCore · Edge Draft",
     category: "open_weight",
     isOpenCoreSuite: true,
+    simulated: true,
     family: "keelway_core",
     deployment: "local_daemon",
     contextWindow: 32768,

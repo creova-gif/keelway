@@ -504,19 +504,26 @@ export function ModelExplorer() {
                 <div>
                   {/* Top Category & License Badges */}
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    {model.isOpenCoreSuite ? (
-                      <span className="chip-teal rounded-sm px-2 py-0.5">
-                        KEELWAY OPENCORE
-                      </span>
-                    ) : model.category === "open_weight" ? (
-                      <span className="chip-neutral rounded-sm px-2 py-0.5 text-teal-accent">
-                        OPEN-WEIGHT
-                      </span>
-                    ) : (
-                      <span className="chip-neutral rounded-sm px-2 py-0.5">
-                        FRONTIER CLOUD
-                      </span>
-                    )}
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      {model.isOpenCoreSuite ? (
+                        <span className="chip-teal rounded-sm px-2 py-0.5">
+                          KEELWAY OPENCORE
+                        </span>
+                      ) : model.category === "open_weight" ? (
+                        <span className="chip-neutral rounded-sm px-2 py-0.5 text-teal-accent">
+                          OPEN-WEIGHT
+                        </span>
+                      ) : (
+                        <span className="chip-neutral rounded-sm px-2 py-0.5">
+                          FRONTIER CLOUD
+                        </span>
+                      )}
+                      {model.simulated ? (
+                        <span className="chip-neutral rounded-sm border border-amber-500/50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-amber-400">
+                          SIMULATED
+                        </span>
+                      ) : null}
+                    </span>
 
                     <span className="font-mono text-[11px] text-fg-muted">
                       {model.licensePermissive ? model.license : model.providerLabel}
