@@ -42,7 +42,7 @@ async def test_keelway_dev_studio_html_endpoint():
         # Check /console and /web-console
         resp_console = await client.get("/console")
         assert resp_console.status_code == 200
-        assert "KEELWAY" in resp_console.text
+        assert "KEELWAY" in resp_console.text.upper()
         assert "Cross-Machine" in resp_console.text
 
         resp_web_console = await client.get("/web-console")

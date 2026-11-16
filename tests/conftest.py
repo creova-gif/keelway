@@ -1,3 +1,4 @@
+import asyncio
 import os
 import tempfile
 import pytest
@@ -85,6 +86,14 @@ def pytest_sessionfinish(session, exitstatus):
         reporter.write_sep("!", "safety_negative checks were skipped, xfailed, deselected, or not collected")
         for line in violations:
             reporter.write_line(line)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _ensure_test_db_schema():
+    """Ensure SQLAlchemy tables (including kora_audit_events) exist on fresh CI SQLite files."""
+    from core.storage.database import init_db
+
+    asyncio.run(init_db())
 
 
 @pytest.fixture(autouse=True)

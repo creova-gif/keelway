@@ -87,6 +87,127 @@ async def create_completion(request: CompletionRequestSchema) -> CompletionRespo
         )
 
 
+@router.get("/v1/models", dependencies=[Depends(current_principal)], tags=["Inference"])
+async def list_models(
+    category: Optional[str] = None,
+    provider: Optional[str] = None,
+    capability: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Discover all supported AI models across Open-Weight and Closed/Proprietary providers."""
+    from core.models.registry import model_registry, ModelCategory
+    from core.api.schemas import Provider
+
+    cat_enum = None
+    if category:
+        try:
+            cat_enum = ModelCategory(category.lower())
+        except ValueError:
+            pass
+
+    prov_enum = None
+    if provider:
+        try:
+            prov_enum = Provider(provider.lower())
+        except ValueError:
+            pass
+
+    models = model_registry.list_models(category=cat_enum, provider=prov_enum, capability=capability)
+    return {
+        "object": "list",
+        "data": [
+            {
+                "id": m.id,
+                "object": "model",
+                "name": m.name,
+                "created": 1730000000,
+                "owned_by": m.provider.value,
+                "category": m.category.value,
+                "family": m.family.value,
+                "deployment": m.deployment.value,
+                "deployment_type": m.deployment.value,
+                "context_window": m.context_window,
+                "max_output_tokens": m.max_output_tokens,
+                "capabilities": m.capabilities,
+                "supports_streaming": m.supports_streaming,
+                "supports_tools": m.supports_tools,
+                "supports_structured_output": m.supports_structured_output,
+                "modalities": m.modalities,
+                "pricing": {
+                    "input_usd_per_mtok": m.pricing_input_usd_per_mtok,
+                    "output_usd_per_mtok": m.pricing_output_usd_per_mtok,
+                },
+                "license": m.license,
+                "recommended_vram_gb": m.recommended_vram_gb,
+                "description": m.description,
+            }
+            for m in models
+        ],
+        "categories": {
+            "open_weight": len(model_registry.list_models(category=ModelCategory.OPEN_WEIGHT)),
+            "closed_proprietary": len(model_registry.list_models(category=ModelCategory.CLOSED_PROPRIETARY)),
+        },
+    }
+
+
+@router.post("/v1/chat/completions", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Inference"])
+async def chat_completions(request_raw: Request):
+    """OpenAI-compatible chat completions endpoint supporting non-streaming and Server-Sent Events (SSE) streaming."""
+    from core.models.provider import ChatCompletionRequest
+    from core.security.error_disclosure import public_inference_detail
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        body = await request_raw.json()
+        request = ChatCompletionRequest(**body)
+    except Exception as parse_err:
+        raise HTTPException(status_code=400, detail=f"Invalid chat completion payload: {parse_err}")
+
+    if request.stream:
+        async def event_generator():
+            try:
+                async for chunk in gateway.stream_chat(request):
+                    yield chunk.to_sse()
+                yield "data: [DONE]\n\n"
+            except Exception as e:
+                logger.warning("Streaming inference error", exc_info=e)
+                err_payload = json.dumps({"error": {"message": public_inference_detail(e), "type": "inference_error"}})
+                yield f"data: {err_payload}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+    else:
+        try:
+            response = await gateway.chat_complete(request)
+            return response.to_openai_dict()
+        except Exception as e:
+            logger.warning("Inference failure", exc_info=e)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=public_inference_detail(e),
+            )
+
+
+@router.get("/v1/usage", dependencies=[Depends(current_principal)], tags=["Inference"])
+async def get_model_usage() -> Dict[str, Any]:
+    """Retrieve aggregate usage statistics and cost accounting across all models."""
+    from core.models.cost_ledger import cost_ledger
+    report = cost_ledger.get_economics_report()
+    summary = cost_ledger.get_summary()
+    report["total_cost_usd"] = report.get("billed_cloud_expenditure_usd", summary.get("total_external_cost_usd", 0.0))
+    report["currency"] = "USD"
+    report["entries_recorded"] = summary.get("total_inferences", 0)
+    return report
+
+
 @router.get("/v1/chat/modes", dependencies=[Depends(current_principal)], tags=["AI Assistant"])
 async def list_chat_modes():
     """List available conversation modes and their governance constraints (Section 6.1)."""

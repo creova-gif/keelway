@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "project_name": "Keelway",
+  "instructions_file": "AGENTS.md",
+  "setup_commands": [
+    "python3 -m venv .venv || true",
+    "source .venv/bin/activate && pip install -e '.[dev]'"
+  ],
+  "test_commands": [
+    "pytest tests/test_hybrid_model_registry.py tests/test_hybrid_adapters.py tests/test_hybrid_routing_and_api.py -v"
+  ],
+  "handoff_directory": "docs/agent-operations/tasks",
+  "active_tasks_file": "docs/agent-operations/ACTIVE_TASKS.md"
+}
