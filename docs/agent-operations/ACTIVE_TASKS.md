@@ -59,6 +59,7 @@
 | **KEEL-ENG-047** | Agent process runner (`agents run`, spawn+event stream+tape) — conformance c2 verified | `ENGINEERING / EXTENSIBILITY / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-047-agent-runner` |
 | **KEEL-ENG-048** | Lifecycle events (PostToolUse/SessionStart/End→tape) + Cursor adapter | `ENGINEERING / EXTENSIBILITY / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-048-events-cursor` |
 | **KEEL-REL-049** | Clean-env install verification + install.sh fail-closed fix | `RELEASE / INSTALL / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-049-install-verify` |
+| **KEEL-REL-050** | `agents setup <host>` one-command detect+render+install | `RELEASE / AGENTS / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-050-agents-setup` |
 
 ---
 
