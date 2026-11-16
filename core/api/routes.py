@@ -112,6 +112,24 @@ async def list_models(
             pass
 
     models = model_registry.list_models(category=cat_enum, provider=prov_enum, capability=capability)
+
+    # Live local-runtime truth: which advertised open-weight models are actually installed.
+    installed_local: List[str] = []
+    try:
+        local_adapter = gateway.adapters.get(Provider.LOCAL)
+        rt = local_adapter.local_runtime() if hasattr(local_adapter, "local_runtime") else None
+        installed_local = list(rt.models) if rt is not None and rt.up else []
+    except Exception:
+        installed_local = []
+
+    def _installed(model_id: str) -> bool:
+        for name in installed_local:
+            if name == model_id or name == f"{model_id}:latest" or model_id == f"{name}:latest":
+                return True
+            if name.split(":latest")[0] == model_id.split(":latest")[0]:
+                return True
+        return False
+
     return {
         "object": "list",
         "data": [
@@ -139,6 +157,8 @@ async def list_models(
                 "license": m.license,
                 "recommended_vram_gb": m.recommended_vram_gb,
                 "description": m.description,
+                "installed": _installed(m.id) if m.category == ModelCategory.OPEN_WEIGHT else None,
+                "simulated": bool(m.id.startswith("keelway-") and m.id not in installed_local),
             }
             for m in models
         ],
