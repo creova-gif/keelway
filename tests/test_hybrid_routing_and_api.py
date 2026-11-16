@@ -142,6 +142,15 @@ async def test_api_get_v1_models():
         assert qwen["deployment"] == "local_daemon"
         assert "code" in qwen["capabilities"]
 
+        # KEEL-ENG-039: registry-vs-reality disclosure fields
+        for m in data["data"]:
+            assert "installed" in m and "simulated" in m
+            assert isinstance(m["simulated"], bool)
+        keelway_model = next(m for m in data["data"] if m["id"] == "keelway-core:7b")
+        assert keelway_model["simulated"] is True
+        gpt = next(m for m in data["data"] if m["id"] == "gpt-4o")
+        assert gpt["installed"] is None and gpt["simulated"] is False
+
 
 @pytest.mark.asyncio
 async def test_api_post_v1_chat_completions_non_streaming(monkeypatch):

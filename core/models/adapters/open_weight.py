@@ -54,6 +54,10 @@ class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
     def is_available(self) -> bool:
         return self._local_adapter.is_available()
 
+    def local_runtime(self):
+        """Expose the underlying local runtime probe (installed models, API kind)."""
+        return self._local_adapter.runtime()
+
     def resolve_model(self, requested_model: Optional[str] = None) -> str:
         if requested_model:
             # Check if requested model or tag is in runtime
