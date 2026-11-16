@@ -131,6 +131,8 @@ class LocalAdapter(ModelAdapter):
                 "model": model,
                 "messages": messages,
                 "stream": False,
+                "think": "reasoning" in (getattr(request, "model", "") or "").lower()
+                or "complex_reasoning" in (getattr(request, "required_capabilities", None) or []),
                 "options": {"temperature": request.temperature, "num_predict": request.max_tokens},
             }
         else:
@@ -156,7 +158,7 @@ class LocalAdapter(ModelAdapter):
         data = resp.json()
 
         if rt.api == "ollama":
-            content = data.get("message", {}).get("content", "")
+            content = data.get("message", {}).get("content") or data.get("message", {}).get("thinking") or ""
             prompt_tokens = data.get("prompt_eval_count", 0)
             completion_tokens = data.get("eval_count", 0)
         else:

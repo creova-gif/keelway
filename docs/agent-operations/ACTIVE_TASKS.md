@@ -48,6 +48,8 @@
 | **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
 | **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
 | **KEEL-ENG-038** | Simulated OpenCore Response Disclosure (`simulated` flag, mock-backend routing_reason) | `ENGINEERING / PRODUCT-TRUTH / INFERENCE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-038-simulated-disclosure` |
+| **KEEL-ENG-039** | `/v1/models` Installed + Simulated Flags (registry-vs-reality disclosure) | `ENGINEERING / PRODUCT-TRUTH / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-039-model-flags` |
+| **KEEL-ENG-040** | Ollama Thinking-Model Handling (`think` flag + `message.thinking` fallback) | `ENGINEERING / INFERENCE / LOCAL-MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-040-thinking-models` |
 
 ---
 
