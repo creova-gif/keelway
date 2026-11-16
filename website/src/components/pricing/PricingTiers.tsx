@@ -351,7 +351,7 @@ export function PricingTiers() {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
-                <span>SAML/SSO, multi-org RBAC, retention &amp; SIEM audit</span>
+                <span>Enterprise SSO (OIDC), multi-org RBAC, retention &amp; SIEM audit</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />

@@ -121,6 +121,7 @@ def test_oidc_ssrf_encryption_jwt_hardening_and_state_dir_isolation(
         "groups": ["unmapped-team", "keelway-operators", "keelway-admins"],
         "mapped_role": "admin",
         "issuer": "https://idp.enterprise.example",
+        "federation_profile": "self_issued_hs256",
     }
 
     unmapped_tok = build_hs256_id_token(

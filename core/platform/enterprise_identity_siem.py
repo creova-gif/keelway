@@ -1,6 +1,14 @@
 """
-Enterprise OIDC/SAML Federation, SCIM 2.0 Directory Sync, Dual-Human P-10 Quorum,
+Enterprise Identity, SCIM 2.0 Directory Sync, Dual-Human P-10 Quorum,
 Tamper-Evident SIEM Audit Exporter & Prometheus/OTLP Observability (`core.platform.enterprise_identity_siem`).
+
+Scope note (KEEL-SEC-037): the OIDC surface implements a self-issued HS256
+shared-secret token profile — suitable for sovereign/air-gapped deployments
+where the customer operates the issuing side. Full external IdP federation
+(OIDC discovery document + JWKS + asymmetric RS256/ES256/EdDSA verification)
+and SAML are NOT implemented. Every response discloses
+`federation_profile: "self_issued_hs256"` so callers cannot mistake this for
+standards-federated SSO.
 """
 
 from __future__ import annotations
@@ -341,6 +349,7 @@ class EnterpriseIdentitySiemManager:
         return {
             "workspace_id": ws, "enabled": bool(enabled), "issuer_url": clean_issuer, "client_id": clean_client,
             "group_role_mapping": clean_map, "signing_secret_configured": True, "signing_secret_fingerprint": fp, "updated_at": now,
+            "federation_profile": "self_issued_hs256",
         }
 
     def get_oidc(self, workspace_id: str = "default") -> Dict[str, Any]:
@@ -354,10 +363,12 @@ class EnterpriseIdentitySiemManager:
             return {
                 "workspace_id": ws, "enabled": False, "issuer_url": "", "client_id": "",
                 "group_role_mapping": {}, "signing_secret_configured": False, "signing_secret_fingerprint": None, "updated_at": None,
+                "federation_profile": "self_issued_hs256",
             }
         has_secret = bool(bytes(row["secret_ciphertext"]))
         return {
             "workspace_id": ws, "enabled": bool(int(row["enabled"])), "issuer_url": str(row["issuer_url"]),
+            "federation_profile": "self_issued_hs256",
             "client_id": str(row["client_id"]), "group_role_mapping": json.loads(str(row["group_role_mapping_json"])),
             "signing_secret_configured": has_secret, "signing_secret_fingerprint": str(row["secret_fingerprint"]) if has_secret else None,
             "updated_at": str(row["updated_at"]),
@@ -436,6 +447,7 @@ class EnterpriseIdentitySiemManager:
         return {
             "workspace_id": ws, "authenticated": True, "subject": sub, "email": str(claims.get("email") or "").strip(),
             "groups": groups, "mapped_role": mapped_role, "issuer": expected_iss,
+            "federation_profile": "self_issued_hs256",
         }
 
     @staticmethod

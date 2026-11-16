@@ -43,10 +43,10 @@ const CAPABILITY_MATRIX = [
   },
   {
     domain: "Enterprise Identity & SIEM",
-    title: "OIDC/SAML, SCIM 2.0 & Dual-Human P-10 Quorum",
+    title: "Enterprise SSO, SCIM 2.0 & Dual-Human P-10 Quorum",
     summary:
-      "Directory-synced RBAC, two-person approval receipts for high-impact actions, and streaming OCSF, CEF, and JSONL audit exports.",
-    cliOrSpec: "OIDC/SAML · SCIM 2.0 · OCSF / CEF / JSONL",
+      "Directory-synced RBAC, two-person approval receipts for high-impact actions, and streaming OCSF, CEF, and JSONL audit exports. OIDC uses a self-issued HS256 token profile (`federation_profile: self_issued_hs256`) for sovereign deployments; external IdP discovery/JWKS federation and SAML are not yet implemented.",
+    cliOrSpec: "OIDC HS256 · SCIM 2.0 · OCSF / CEF / JSONL",
   },
 ] as const;
 
