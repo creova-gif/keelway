@@ -7,6 +7,7 @@ evaluation through the real `SQLiteAgentCoharnessEngine` verdict authority.
 
 from __future__ import annotations
 
+import io
 import os
 import stat
 from pathlib import Path
@@ -163,3 +164,67 @@ def test_get_adapter() -> None:
     assert isinstance(get_adapter("codex_cli"), CodexCliAdapter)
     with pytest.raises(KeyError):
         get_adapter("cursor")
+
+
+# --- CLI surface (KEEL-ENG-044) ---
+
+def test_cli_agents_detect(capsys) -> None:
+    from cli import main as cli_main
+    rc = cli_main(["harness", "agents", "detect", "--json"])
+    assert rc == 0
+    import json as _json
+    out = _json.loads(capsys.readouterr().out)
+    ids = {a["agent_id"] for a in out["agents"]}
+    assert ids == {"claude_code", "codex_cli"}
+    assert "capabilities" in out
+
+
+def test_cli_agents_intercept_enforce_deny(tmp_path, capsys) -> None:
+    from cli import main as cli_main
+    db = str(tmp_path / "h.db")
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "claude_code",
+                   "--payload", '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}',
+                   "--mode", "enforce", "--db-path", db, "--json"])
+    assert rc == 1
+    import json as _json
+    out = _json.loads(capsys.readouterr().out)
+    assert out["decision"] == "deny"
+    assert out["record"]["reason_code"] == "destructive_system_command"
+
+
+def test_cli_agents_intercept_audit_only_allows(tmp_path, capsys) -> None:
+    from cli import main as cli_main
+    db = str(tmp_path / "h.db")
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "codex_cli",
+                   "--payload", '{"tool":"shell","input":{"command":"rm -rf /"}}',
+                   "--mode", "audit_only", "--db-path", db, "--json"])
+    assert rc == 0
+    import json as _json
+    out = _json.loads(capsys.readouterr().out)
+    assert out["decision"] == "allow"
+    assert out["record"]["verdict"] == "DENY"
+
+
+def test_cli_agents_intercept_payload_file_and_stdin(tmp_path, capsys, monkeypatch) -> None:
+    from cli import main as cli_main
+    db = str(tmp_path / "h.db")
+    pf = tmp_path / "hook.json"
+    pf.write_text('{"tool_name":"Bash","tool_input":{"command":"git status"}}')
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "claude_code",
+                   "--payload", f"@{pf}", "--mode", "enforce", "--db-path", db, "--json"])
+    assert rc == 0
+    capsys.readouterr()
+    monkeypatch.setattr("sys.stdin", io.StringIO(
+        '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}'))
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "claude_code",
+                   "--payload", "-", "--mode", "enforce", "--db-path", db, "--json"])
+    assert rc == 0
+
+
+def test_cli_agents_intercept_hold_exit_code(tmp_path, capsys) -> None:
+    from cli import main as cli_main
+    db = str(tmp_path / "h.db")
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "claude_code",
+                   "--payload", '{"tool_name":"Bash","tool_input":{"command":"git push origin main"}}',
+                   "--mode", "enforce", "--db-path", db, "--json"])
+    assert rc == 2
