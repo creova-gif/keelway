@@ -29,9 +29,10 @@ else
     PYTHON_BIN="python3"
 fi
 
-echo "[1/8] Checking Python syntax and compilation..."
+echo "[1/8] Checking Python syntax, compilation & dependency lock freshness..."
 find core tests -name "*.py" -exec "${PYTHON_BIN}" -m py_compile {} +
-echo "  ✓ Syntax check passed across all Python files."
+"${SCRIPT_DIR}/check_python_lock.sh"
+echo "  ✓ Syntax check passed across all Python files; requirements.lock is fresh."
 
 echo "[2/8] Running Hybrid AI Model Registry, Provider Adapter & OpenCore Runtime Tests..."
 "${PYTEST_BIN}" tests/test_hybrid_model_registry.py tests/test_hybrid_adapters.py tests/test_anthropic_adapter.py tests/test_gemini_adapter.py tests/test_speculative_decoding.py tests/test_opencore.py tests/test_opencore_runtime.py -v --tb=short
