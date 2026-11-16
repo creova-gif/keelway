@@ -2,6 +2,12 @@
 # Keelway Local-First AI Platform Installer (POSIX sh)
 # Usage:
 #   curl -fsSL https://kora-sable.vercel.app/install.sh | sh
+#
+# Install sources (first match wins):
+#   KEELWAY_SOURCE_DIR=/path/to/checkout  local source tree
+#   KEELWAY_PACKAGE=<pip spec>            published package (once on PyPI)
+#   KEELWAY_GIT_URL=<git url>             clone + editable install
+#                                        (default: https://github.com/creova-gif/kora.git)
 
 set -eu
 
@@ -46,7 +52,13 @@ elif [ -n "${KEELWAY_PACKAGE:-}" ]; then
     say "[+] Installing ${KEELWAY_PACKAGE} CLI & OpenCore runtime..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet "${KEELWAY_PACKAGE}"
 else
-    die "No install source configured. Set KEELWAY_SOURCE_DIR=/path/to/keelway for a source checkout, or KEELWAY_PACKAGE=<dist> once the package is published. The 'keelway' name is not yet on PyPI."
+    GIT_URL="${KEELWAY_GIT_URL:-https://github.com/creova-gif/kora.git}"
+    command -v git >/dev/null 2>&1 || die "git is required to install from ${GIT_URL}. Install git or set KEELWAY_SOURCE_DIR/KEELWAY_PACKAGE."
+    SRC_DIR="${INSTALL_DIR}/src"
+    say "[+] Cloning Keelway source from ${GIT_URL}..."
+    git clone --depth 1 --quiet "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL}"
+    say "[+] Installing Keelway from cloned source..."
+    "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${SRC_DIR}"
 fi
 
 ln -sf "${INSTALL_DIR}/.venv/bin/keelway" "${BIN_DIR}/keelway"
