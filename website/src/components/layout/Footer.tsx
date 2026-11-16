@@ -1,35 +1,20 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
+import { BrandMark } from "@/components/ui/BrandMark";
 
-/**
- * Global Multi-Column Footer linking all core customer journeys:
- * Local Dev Tool Quickstart, Signed Marketplace, Models, Governance,
- * Pricing, Developer Docs, OpenAPI spec, and Enterprise Onboarding.
- */
 export function Footer() {
   return (
-    <footer className="border-t border-border-subtle bg-surface/60">
+    <footer className="border-t border-border-subtle bg-canvas">
       <div className="mx-auto max-w-container px-4 py-14 sm:px-6">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
-          {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link
               href="/"
               aria-label="Keelway home"
               className="inline-flex min-h-[44px] items-center gap-2.5 text-lg font-bold tracking-tight text-fg"
             >
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 48 48"
-                aria-hidden="true"
-              >
-                <rect width="48" height="48" rx="11" fill="#2DD4BF" />
-                <path d="M15 9h7v30H15z" fill="#0B0F14" />
-                <path d="M22 24 32 9h7L30 24l9 15h-7z" fill="#0B0F14" />
-              </svg>
-              <span>Keelway</span>
+              <BrandMark size={28} showWordmark />
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-fg-muted">
               The unified local-first AI agent platform for developers,
@@ -37,7 +22,7 @@ export function Footer() {
               automate, and govern software and business workflows in one
               workspace.
             </p>
-            <div className="mt-5 inline-flex items-center gap-2 rounded-sm border border-border-strong bg-canvas px-3 py-2 font-mono text-xs text-fg-muted">
+            <div className="mt-5 inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface px-3 py-2 font-mono text-xs text-fg-muted">
               <ShieldCheck
                 className="h-4 w-4 shrink-0 text-teal-accent"
                 aria-hidden="true"
@@ -46,7 +31,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Product & Journeys */}
           <div>
             <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-fg">
               Platform
@@ -55,7 +39,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/#quickstart"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Local Dev Tool (10 Views)
                 </Link>
@@ -63,7 +47,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/marketplace"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Signed Marketplace
                 </Link>
@@ -71,7 +55,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/models"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Models &amp; OpenCore
                 </Link>
@@ -79,7 +63,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/pricing"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Pricing &amp; BYOM
                 </Link>
@@ -87,7 +71,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Developers */}
           <div>
             <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-fg">
               Developers
@@ -96,7 +79,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/docs"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Documentation &amp; SDKs
                 </Link>
@@ -104,7 +87,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/api-reference"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   API Reference
                 </Link>
@@ -114,7 +97,7 @@ export function Footer() {
                   href="/openapi.json"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-[44px] items-center gap-1 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center gap-1 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   <span>openapi.json (v3.1)</span>
                   <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -122,19 +105,18 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="/install.sh"
+                  href="/feed.xml"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-[44px] items-center gap-1 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center gap-1 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
-                  <span>install.sh</span>
+                  <span>RSS Feed</span>
                   <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Security & Enterprise */}
           <div>
             <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-fg">
               Enterprise &amp; Trust
@@ -143,7 +125,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/governance"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Security &amp; Governance
                 </Link>
@@ -151,7 +133,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/docs#surfaces"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Guided No-Code &amp; Surfaces
                 </Link>
@@ -159,7 +141,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/brand"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Brand Kit
                 </Link>
@@ -167,7 +149,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/#early-access"
-                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-teal-accent"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Team &amp; VPC Onboarding
                 </Link>
@@ -176,7 +158,6 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom Legal & Sovereignty Strip */}
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border-subtle pt-6 text-xs text-fg-muted sm:flex-row sm:items-center">
           <p>
             &copy; 2026 Keelway. Open-core platform licensed under{" "}

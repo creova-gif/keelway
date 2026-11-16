@@ -50,10 +50,12 @@ export default function DocsPage() {
       >
         <div className="mx-auto max-w-container px-4 sm:px-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
-              <span className="chip-teal rounded-sm px-2 py-0.5">
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border-strong bg-surface/90 px-3.5 py-1.5 font-mono text-xs">
+              <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+              <span className="font-semibold text-fg">
                 DEVELOPER GUIDE
               </span>
+              <span className="text-fg-dim">·</span>
               <span className="text-fg-muted">
                 v1 Architecture · Runnable Examples · Apache-2.0
               </span>

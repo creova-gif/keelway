@@ -243,7 +243,7 @@ export function MarketplaceCatalogExplorer() {
                   className={cn(
                     "min-h-[40px] rounded-sm border px-3 font-mono text-xs transition-colors duration-150",
                     active
-                      ? "border-teal-accent bg-surface-elevated font-semibold text-teal-accent"
+                      ? "border-border-strong bg-surface-elevated font-semibold text-fg"
                       : "border-border-subtle bg-canvas text-fg-muted hover:border-border-strong hover:text-fg"
                   )}
                 >
@@ -264,8 +264,8 @@ export function MarketplaceCatalogExplorer() {
                 aria-pressed={active}
                 onClick={() => setCategory(cat.id)}
                 className={cn(
-                  "min-h-[40px] rounded-sm px-3 text-xs font-medium transition-colors duration-150",
-                  active ? "chip-teal" : "border border-border-subtle bg-canvas text-fg-muted hover:border-teal-accent hover:text-fg"
+                  "min-h-[40px] rounded-sm border px-3 text-xs font-medium transition-colors duration-150",
+                  active ? "border-fg bg-fg text-canvas" : "border-border-subtle bg-canvas text-fg-muted hover:border-border-strong hover:text-fg"
                 )}
               >
                 {cat.label}
@@ -312,7 +312,7 @@ export function MarketplaceCatalogExplorer() {
                     <div>
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="chip-neutral rounded-sm px-2 py-0.5">{pkg.categoryLabel}</span>
-                        <span className={cn("rounded-sm px-2 py-0.5 font-mono text-[11px] font-semibold", pkg.pricingModel === "free" ? "chip-teal" : "chip-amber")}>
+                        <span className="chip-neutral rounded-sm px-2 py-0.5 font-mono text-[11px] font-semibold">
                           {formatPriceBadge(pkg)}
                         </span>
                       </div>
@@ -367,7 +367,7 @@ export function MarketplaceCatalogExplorer() {
                 <span className="chip-neutral rounded-sm px-2 py-0.5">read: {selected.permissions.readPaths.join(", ") || "none"}</span>
                 <span className="chip-neutral rounded-sm px-2 py-0.5">write: {selected.permissions.writePaths.join(", ") || "read-only"}</span>
                 <span className="chip-neutral rounded-sm px-2 py-0.5">net: {selected.permissions.network}</span>
-                <span className={cn("rounded-sm px-2 py-0.5", selected.permissions.requiresP10Approval ? "chip-amber" : "chip-neutral")}>
+                <span className="chip-neutral rounded-sm px-2 py-0.5">
                   {selected.permissions.requiresP10Approval ? "P-10 Human Gate Required" : "Zero-Mutation Safe"}
                 </span>
               </div>

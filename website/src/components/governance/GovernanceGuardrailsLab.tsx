@@ -187,7 +187,7 @@ export function GovernanceGuardrailsLab() {
           ==================================================================== */}
       <article className="rounded-lg border border-border-strong bg-surface p-6">
         <div className="flex items-center justify-between gap-2">
-          <span className="chip-amber inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
+          <span className="chip-neutral inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
             <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
             SCOPED TENANT CREDENTIALS
           </span>

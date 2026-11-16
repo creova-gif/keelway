@@ -157,6 +157,16 @@ def test_nextjs_app_router_structure_and_legacy_redirects() -> None:
     robots_text = robots_file.read_text(encoding="utf-8")
     assert "SITE_URL" in robots_text and "sitemap.xml" in robots_text
 
+    manifest_file = WEBSITE_DIR / "src" / "app" / "manifest.ts"
+    assert manifest_file.exists(), "website/src/app/manifest.ts must exist"
+    manifest_text = manifest_file.read_text(encoding="utf-8")
+    assert "#09090B" in manifest_text and "/favicon.svg" in manifest_text
+
+    feed_route_file = WEBSITE_DIR / "src" / "app" / "feed.xml" / "route.ts"
+    assert feed_route_file.exists(), "website/src/app/feed.xml/route.ts must exist"
+    feed_text = feed_route_file.read_text(encoding="utf-8")
+    assert "application/rss+xml" in feed_text and "SITE_URL" in feed_text
+
     openapi_file = WEBSITE_DIR / "public" / "openapi.json"
     assert openapi_file.exists(), "website/public/openapi.json must exist"
     openapi_doc = json.loads(openapi_file.read_text(encoding="utf-8"))

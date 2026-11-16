@@ -150,8 +150,10 @@ export function GoldenThreadStudioShowcase() {
       <div className="mx-auto max-w-container px-4 sm:px-6">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
-            <div className="inline-flex flex-wrap items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
-              <span className="chip-teal rounded-sm px-2 py-0.5">ZERO-INSTALL INTERACTIVE STUDIO · v1.1.0</span>
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border-strong bg-surface/90 px-3.5 py-1.5 font-mono text-xs">
+              <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+              <span className="font-semibold text-fg">ZERO-INSTALL INTERACTIVE STUDIO · v1.1.0</span>
+              <span className="text-fg-dim">·</span>
               <span className="text-fg-muted">Spatial KFlow + Flight-Tape + Seatbelt Radar</span>
             </div>
             <h2 id="golden-thread-studio-heading" className="mt-4 text-2xl font-extrabold tracking-tight text-fg sm:text-3xl">
@@ -209,7 +211,7 @@ export function GoldenThreadStudioShowcase() {
                   <svg viewBox="0 0 620 260" className="h-auto w-full" role="img" aria-label="Spatial KFlow cyclic graph canvas">
                     <defs>
                       <marker id="kw-arrow-fwd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--teal-accent)" /></marker>
-                      <marker id="kw-arrow-cyc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--amber-alert)" /></marker>
+                      <marker id="kw-arrow-cyc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--fg-primary)" /></marker>
                     </defs>
 
                     {edges.map((edge, idx) => {
@@ -222,9 +224,9 @@ export function GoldenThreadStudioShowcase() {
                         const midX = (sx + dx) / 2;
                         return (
                           <g key={`cyc-${idx}`}>
-                            <path d={`M ${sx} ${src.y} C ${sx} 22, ${dx} 22, ${dx} ${dst.y - 4}`} fill="none" stroke="var(--amber-alert)" strokeWidth="2" strokeDasharray="6 4" markerEnd="url(#kw-arrow-cyc)" />
-                            <rect x={midX - 66} y={14} width={132} height={18} rx={4} fill="var(--bg-surface-elevated)" stroke="var(--amber-alert)" />
-                            <text x={midX} y={26} textAnchor="middle" fill="var(--amber-alert)" fontSize="9.5" fontFamily="monospace">{`cycle_back_edge · max_iter=${edge.maxIterations ?? 4}`}</text>
+                            <path d={`M ${sx} ${src.y} C ${sx} 22, ${dx} 22, ${dx} ${dst.y - 4}`} fill="none" stroke="var(--fg-primary)" strokeWidth="2" strokeDasharray="6 4" markerEnd="url(#kw-arrow-cyc)" />
+                            <rect x={midX - 66} y={14} width={132} height={18} rx={4} fill="var(--bg-surface-elevated)" stroke="var(--border-strong)" />
+                            <text x={midX} y={26} textAnchor="middle" fill="var(--fg-primary)" fontSize="9.5" fontFamily="monospace">{`cycle_back_edge · max_iter=${edge.maxIterations ?? 4}`}</text>
                           </g>
                         );
                       }
@@ -237,11 +239,11 @@ export function GoldenThreadStudioShowcase() {
                       return (
                         <g key={node.id} role="button" tabIndex={0} aria-label={`Select node ${node.label} lines ${node.lineStart} to ${node.lineEnd}`} onClick={() => setSelectedNodeId(node.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedNodeId(node.id); } }} className="cursor-pointer">
                           {isSel && <rect x={node.x - 4} y={node.y - 4} width={nodeWidth + 8} height={76} rx={8} fill="none" stroke="var(--teal-accent)" strokeWidth="2" />}
-                          <rect x={node.x} y={node.y} width={nodeWidth} height={68} rx={6} fill="var(--bg-surface)" stroke={node.requiresP10 ? "var(--amber-alert)" : isSel ? "var(--teal-accent)" : "var(--border-strong)"} strokeWidth="1.5" />
+                          <rect x={node.x} y={node.y} width={nodeWidth} height={68} rx={6} fill="var(--bg-surface)" stroke={node.requiresP10 ? "var(--fg-primary)" : isSel ? "var(--teal-accent)" : "var(--border-strong)"} strokeWidth="1.5" />
                           {node.requiresP10 && (
                             <g>
-                              <rect x={node.x + 6} y={node.y - 9} width={64} height={15} rx={3} fill="var(--amber-alert)" />
-                              <text x={node.x + 38} y={node.y + 1.5} textAnchor="middle" fill="var(--amber-ink)" fontSize="8.5" fontWeight="700" fontFamily="monospace">P-10 GATE</text>
+                              <rect x={node.x + 6} y={node.y - 9} width={64} height={15} rx={3} fill="var(--fg-primary)" />
+                              <text x={node.x + 38} y={node.y + 1.5} textAnchor="middle" fill="var(--bg-canvas)" fontSize="8.5" fontWeight="700" fontFamily="monospace">P-10 GATE</text>
                             </g>
                           )}
                           <text x={node.x + 8} y={node.y + 23} fill="var(--fg-primary)" fontSize="10.5" fontWeight="700" fontFamily="sans-serif">{node.label.slice(0, 16)}</text>
@@ -260,7 +262,7 @@ export function GoldenThreadStudioShowcase() {
                       <span className="text-teal-accent">{`L${selectedNode.lineStart}–L${selectedNode.lineEnd}`}</span>
                       <span className="rounded-sm border border-border-strong bg-surface px-2 py-0.5 text-[10px] text-fg-muted">{`sha256:${blueprintDigest}`}</span>
                     </div>
-                    <button type="button" onClick={handleToggleP10Gate} className={cn("min-h-[36px] rounded-sm border px-2.5 py-1 text-[11px] font-semibold transition-colors", selectedNode.requiresP10 ? "border-amber-alert bg-amber-surface text-amber-alert" : "border-teal-accent/60 bg-teal-surface text-teal-accent hover:bg-teal-accent hover:text-teal-ink")}>
+                    <button type="button" onClick={handleToggleP10Gate} className={cn("min-h-[36px] rounded-sm border px-2.5 py-1 text-[11px] font-semibold transition-colors", selectedNode.requiresP10 ? "border-border-strong bg-surface-elevated text-fg" : "border-teal-accent/60 bg-teal-surface text-teal-accent hover:bg-teal-accent hover:text-teal-ink")}>
                       Toggle P-10 Human Gate
                     </button>
                   </div>
@@ -353,7 +355,7 @@ export function GoldenThreadStudioShowcase() {
                             </span>
                           </div>
                           <div className="mt-1.5 h-2 w-full rounded-full bg-surface">
-                            <div style={{ width: `${widthPct}%` }} className={cn("h-2 rounded-full", isForked && span.cachedUpstream ? "bg-amber-alert" : "bg-teal-accent")} />
+                            <div style={{ width: `${widthPct}%` }} className={cn("h-2 rounded-full", isForked && span.cachedUpstream ? "bg-fg" : "bg-teal-accent")} />
                           </div>
                         </button>
                       );

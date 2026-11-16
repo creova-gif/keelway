@@ -90,13 +90,13 @@ export function LiveRoutingSandbox() {
     <section
       id="live-sandbox"
       aria-labelledby="live-sandbox-heading"
-      className="frame-crosshair mb-14 rounded-lg border border-teal-accent/50 bg-surface p-5 sm:p-6 shadow-xl"
+      className="frame-crosshair mb-14 rounded-lg border border-border-strong bg-surface p-5 sm:p-6 shadow-xl"
     >
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="chip-teal inline-flex items-center gap-1.5 rounded-sm px-2.5 py-0.5">
-              <Radio className="h-3 w-3" aria-hidden="true" />
+            <span className="chip-neutral inline-flex items-center gap-1.5 rounded-sm px-2.5 py-0.5">
+              <Radio className="h-3 w-3 text-teal-accent" aria-hidden="true" />
               LIVE CONNECTED SANDBOX
             </span>
             <span className="font-mono text-xs text-fg-muted">
@@ -160,7 +160,7 @@ export function LiveRoutingSandbox() {
                       privacyLevel === lvl
                         ? lvl === "private"
                           ? "bg-teal-accent text-teal-ink"
-                          : "bg-amber-alert text-amber-ink"
+                          : "bg-fg text-canvas"
                         : "text-fg-muted hover:text-fg"
                     )}
                   >

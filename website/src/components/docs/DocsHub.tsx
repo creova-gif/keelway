@@ -161,17 +161,15 @@ export function DocsHub() {
             <div className="flex items-center justify-between px-1 pt-1 text-[11px] text-fg-muted">
               <Link href="/pricing" className="hover:text-teal-accent">Pricing &amp; BYOM</Link>
               <span>·</span>
-              <Link href="/changelog" className="hover:text-teal-accent">Changelog</Link>
+              <a href="/feed.xml" className="hover:text-teal-accent">RSS Feed</a>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Documentation Body */}
       <article className="space-y-12 lg:col-span-9">
-        {/* 01 Quickstart */}
         <section id="quickstart" aria-labelledby="doc-qs-h" className="scroll-mt-28">
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
             01 QUICKSTART
           </span>
           <h2 id="doc-qs-h" className="mt-2 text-2xl font-bold text-fg">
@@ -188,10 +186,9 @@ keelway init && keelway dev`}
           />
         </section>
 
-        {/* 02 Routing & Governance */}
         <section id="routing" aria-labelledby="doc-routing-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
           <span id="approval-loop" className="sr-only" />
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
             02 ROUTING &amp; GOVERNANCE
           </span>
           <h2 id="doc-routing-h" className="mt-2 text-2xl font-bold text-fg">
@@ -212,12 +209,11 @@ resp = client.responses.create(model=plan["selected_model"], input="Generate pat
           />
         </section>
 
-        {/* 03 Enterprise & Ecosystem */}
         <section id="enterprise" aria-labelledby="doc-ent-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
           <span id="status" className="sr-only" />
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+              <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
                 03 ENTERPRISE &amp; ECOSYSTEM
               </span>
               <h2 id="doc-ent-h" className="mt-2 text-2xl font-bold text-fg">
@@ -251,7 +247,7 @@ resp = client.responses.create(model=plan["selected_model"], input="Generate pat
               <tbody className="divide-y divide-border-subtle">
                 {filteredCapabilities.map((row) => (
                   <tr key={row.domain} className="align-top hover:bg-surface-elevated/40">
-                    <td className="px-4 py-3 font-mono font-semibold text-teal-accent">{row.domain}</td>
+                    <td className="px-4 py-3 font-mono font-semibold text-fg">{row.domain}</td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-fg">{row.title}</div>
                       <p className="mt-1 leading-relaxed text-fg-muted">{row.summary}</p>
@@ -264,9 +260,8 @@ resp = client.responses.create(model=plan["selected_model"], input="Generate pat
           </div>
         </section>
 
-        {/* 04 SDKs & CLI */}
         <section id="surfaces" aria-labelledby="doc-sdks-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
             04 SDKS &amp; CLI
           </span>
           <h2 id="doc-sdks-h" className="mt-2 text-2xl font-bold text-fg">
@@ -292,7 +287,7 @@ keelway migrate-langgraph --source graph.py`}
             <div className="flex flex-wrap items-center gap-4">
               <Link href="/api-reference" className="text-teal-accent hover:underline">OpenAPI Reference →</Link>
               <Link href="/pricing" className="hover:text-fg">Pricing</Link>
-              <Link href="/changelog" className="hover:text-fg">Release Changelog</Link>
+              <a href="/feed.xml" className="hover:text-fg">RSS Feed</a>
             </div>
           </div>
         </section>

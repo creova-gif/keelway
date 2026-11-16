@@ -27,71 +27,58 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* Typography families */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Surfaces & Canvas */
-  --bg-canvas: #0b0f14;
-  --bg-chrome: #0e141b;
-  --bg-code: #090d12;
-  --bg-surface: #111821;
-  --bg-surface-elevated: #17202b;
+  --bg-canvas: #09090b;
+  --bg-chrome: #0c0c0e;
+  --bg-code: #09090b;
+  --bg-surface: #121215;
+  --bg-surface-elevated: #18181b;
 
-  /* Borders (--border-control >= 3:1 non-text contrast per WCAG 1.4.11) */
-  --border-subtle: #1c2633;
-  --border-strong: #243040;
-  --border-control: #5a6b7f;
+  --border-subtle: #27272a;
+  --border-strong: #3f3f46;
+  --border-control: #71717a;
   --border-focus: #2dd4bf;
 
-  /* Foreground hierarchy */
-  --fg-primary: #e6edf3;
-  --fg-muted: #9aa7b4;
-  --fg-dim: #7d8b99;
-  --fg-disabled: #546170;
+  --fg-primary: #fafafa;
+  --fg-muted: #a1a1aa;
+  --fg-dim: #8e8e96;
+  --fg-disabled: #52525b;
 
-  /* Sovereign Teal (Active navigation, focus ring, local OpenCore provenance) */
   --teal-accent: #2dd4bf;
-  --teal-ink: #06201c;
+  --teal-ink: #042f2e;
   --teal-surface: rgba(45, 212, 191, 0.12);
 
-  /* Verified OK (Strictly verified test/chain pass — NEVER for unverified "Ready") */
-  --status-ok: #4ade80;
-  --status-ok-subtle: rgba(74, 222, 128, 0.12);
-  --status-ok-ink: #052e16;
+  --status-ok: #2dd4bf;
+  --status-ok-subtle: rgba(45, 212, 191, 0.12);
+  --status-ok-ink: #042f2e;
 
-  /* Attention Ochre (RESERVED STRICTLY for P-10 Human "Needs approval") */
-  --attn-ochre: #e5a93c;
-  --attn-ochre-subtle: rgba(229, 169, 60, 0.14);
-  --attn-ochre-ink: #261702;
+  --attn-ochre: #e4e4e7;
+  --attn-ochre-subtle: rgba(228, 228, 231, 0.12);
+  --attn-ochre-ink: #09090b;
 
-  /* Operational Warning (Re-confirm, Not saved, Spend warn, Cloud egress notice) */
-  --status-warning: #fb923c;
-  --status-warning-subtle: rgba(251, 146, 60, 0.14);
-  --status-warning-ink: #2b1103;
+  --status-warning: #d4d4d8;
+  --status-warning-subtle: rgba(212, 212, 216, 0.10);
+  --status-warning-ink: #09090b;
 
-  /* Active Agent Execution */
-  --status-running: #38bdf8;
-  --status-running-subtle: rgba(56, 189, 248, 0.12);
+  --status-running: #d4d4d8;
+  --status-running-subtle: rgba(212, 212, 216, 0.10);
 
-  /* Danger / Fault / Chain Broken / Hard Cap */
   --red-danger: #f87171;
-  --red-surface: rgba(248, 113, 113, 0.14);
+  --red-surface: rgba(248, 113, 113, 0.12);
   --red-ink: #2a0606;
 
-  /* Dual-cue Diff Line Surfaces */
-  --diff-add-bg: rgba(74, 222, 128, 0.12);
-  --diff-del-bg: rgba(248, 113, 113, 0.14);
+  --diff-add-bg: rgba(45, 212, 191, 0.12);
+  --diff-del-bg: rgba(248, 113, 113, 0.12);
 
-  /* Canonical Shell Geometry */
   --shell-rail-w: 48px;
   --shell-sidebar-w: 240px;
   --shell-review-w: 520px;
   --shell-inspector-w: 360px;
   --shell-statusbar-h: 24px;
 
-  /* Radii & Elevation */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -102,50 +89,50 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  --bg-canvas: #f7f9fb;
-  --bg-chrome: #f1f5f9;
-  --bg-code: #f8fafc;
+  --bg-canvas: #fafafa;
+  --bg-chrome: #f4f4f5;
+  --bg-code: #fafafa;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-elevated: #f4f4f5;
 
-  --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-control: #64748b;
+  --border-subtle: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --border-control: #71717a;
   --border-focus: #0f766e;
 
-  --fg-primary: #0b0f14;
-  --fg-muted: #475569;
-  --fg-dim: #64748b;
-  --fg-disabled: #94a3b8;
+  --fg-primary: #09090b;
+  --fg-muted: #52525b;
+  --fg-dim: #71717a;
+  --fg-disabled: #a1a1aa;
 
   --teal-accent: #0f766e;
   --teal-ink: #ffffff;
-  --teal-surface: rgba(15, 118, 110, 0.1);
+  --teal-surface: rgba(15, 118, 110, 0.08);
 
-  --status-ok: #15803d;
-  --status-ok-subtle: rgba(21, 128, 61, 0.1);
+  --status-ok: #0f766e;
+  --status-ok-subtle: rgba(15, 118, 110, 0.08);
   --status-ok-ink: #ffffff;
 
-  --attn-ochre: #9a5b04;
-  --attn-ochre-subtle: rgba(154, 91, 4, 0.1);
+  --attn-ochre: #18181b;
+  --attn-ochre-subtle: rgba(24, 24, 27, 0.08);
   --attn-ochre-ink: #ffffff;
 
-  --status-warning: #c2410c;
-  --status-warning-subtle: rgba(194, 65, 12, 0.1);
+  --status-warning: #3f3f46;
+  --status-warning-subtle: rgba(63, 63, 70, 0.08);
   --status-warning-ink: #ffffff;
 
-  --status-running: #0369a1;
-  --status-running-subtle: rgba(3, 105, 161, 0.1);
+  --status-running: #52525b;
+  --status-running-subtle: rgba(82, 82, 91, 0.08);
 
   --red-danger: #b91c1c;
-  --red-surface: rgba(185, 28, 28, 0.1);
+  --red-surface: rgba(185, 28, 28, 0.08);
   --red-ink: #ffffff;
 
-  --diff-add-bg: rgba(21, 128, 61, 0.1);
-  --diff-del-bg: rgba(185, 28, 28, 0.1);
+  --diff-add-bg: rgba(15, 118, 110, 0.08);
+  --diff-del-bg: rgba(185, 28, 28, 0.08);
 
-  --shadow-popover: 0 8px 24px rgba(15, 23, 42, 0.12);
-  --shadow-modal: 0 20px 48px rgba(15, 23, 42, 0.18);
+  --shadow-popover: 0 8px 24px rgba(9, 9, 11, 0.12);
+  --shadow-modal: 0 20px 48px rgba(9, 9, 11, 0.18);
 }
 
 /* ==========================================================================

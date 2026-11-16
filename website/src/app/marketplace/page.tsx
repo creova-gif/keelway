@@ -48,10 +48,12 @@ export default function MarketplacePage() {
         <div className="mx-auto max-w-container px-4 sm:px-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
-                <span className="chip-teal rounded-sm px-2 py-0.5">
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border-strong bg-surface/90 px-3.5 py-1.5 font-mono text-xs">
+                <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+                <span className="font-semibold text-fg">
                   VERIFIED MARKETPLACE
                 </span>
+                <span className="text-fg-dim">·</span>
                 <span className="text-fg-muted">
                   7 Categories · Ed25519 Signed · 85/15 Creator Split
                 </span>

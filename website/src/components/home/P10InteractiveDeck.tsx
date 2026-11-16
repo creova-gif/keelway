@@ -34,12 +34,6 @@ function detectExternalNetworkRisk(cmd: string): boolean {
   );
 }
 
-/**
- * Treatment Arm (`interactive-p10-deck`) for `exp-home-gate-v1`.
- * Cursor-inspired "Suspense & Human Verdict" micro-sandbox showcasing Keelway's
- * inline P-10 approval card, Unified Diff inspection, and automatic Risk B -> Risk C
- * click-only escalation when an edited command introduces external network egress.
- */
 export function P10InteractiveDeck() {
   const [deckState, setDeckState] = useState<DeckState>("pending_review");
   const [commandDraft, setCommandDraft] = useState<string>(
@@ -171,7 +165,7 @@ export function P10InteractiveDeck() {
               className="kw-btn kw-btn-secondary font-mono text-xs"
             >
               <ShieldAlert
-                className="h-3.5 w-3.5 text-amber-alert"
+                className="h-3.5 w-3.5 text-fg"
                 aria-hidden="true"
               />
               <span>Try injecting outbound curl</span>
@@ -189,9 +183,7 @@ export function P10InteractiveDeck() {
           </div>
         </div>
 
-        {/* Sovereign Workbench Micro-Frame */}
         <div className="frame-crosshair mt-8 overflow-hidden rounded-lg border border-border-strong bg-surface shadow-2xl">
-          {/* Top Workbench Chrome Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle bg-surface-elevated/90 px-4 py-2.5 font-mono text-xs">
             <div className="flex items-center gap-2.5">
               <span className="inline-block h-2 w-2 rounded-full bg-teal-accent" />
@@ -213,7 +205,7 @@ export function P10InteractiveDeck() {
                       ? "border-border-strong bg-canvas text-fg-muted"
                       : isNetworkEscalated
                         ? "border-red-500/60 bg-red-500/10 text-red-400"
-                        : "border-amber-alert/60 bg-amber-alert/10 text-amber-alert"
+                        : "border-border-strong bg-surface-elevated text-fg"
                 )}
               >
                 {deckState === "approved_sealed"
@@ -298,7 +290,7 @@ export function P10InteractiveDeck() {
                   </li>
                   <li className="flex items-center justify-between text-fg-muted">
                     <span>2. edit_file(&quot;src/billing/pricing.py&quot;)</span>
-                    <span className="rounded-sm border border-amber-alert/50 px-1.5 py-0.5 text-[11px] text-amber-alert">
+                    <span className="rounded-sm border border-border-strong bg-surface-elevated px-1.5 py-0.5 text-[11px] text-fg">
                       {deckState === "approved_sealed"
                         ? "Applied (#1282)"
                         : "Paused at P-10"}
@@ -376,16 +368,15 @@ export function P10InteractiveDeck() {
               </div>
             </div>
 
-            {/* Right: Inline P-10 Human-Only Gate Decision Card */}
             <div className="flex flex-col justify-between bg-surface p-5 lg:col-span-5">
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-fg">
-                    <Lock className="h-3.5 w-3.5 text-amber-alert" aria-hidden="true" />
+                    <Lock className="h-3.5 w-3.5 text-fg" aria-hidden="true" />
                     Only you can approve (P-10)
                   </span>
                   {wasEdited && (
-                    <span className="rounded-sm border border-amber-alert/50 bg-amber-alert/10 px-2 py-0.5 font-mono text-[10px] text-amber-alert">
+                    <span className="rounded-sm border border-border-strong bg-surface-elevated px-2 py-0.5 font-mono text-[10px] text-fg">
                       MODIFIED BY YOU
                     </span>
                   )}

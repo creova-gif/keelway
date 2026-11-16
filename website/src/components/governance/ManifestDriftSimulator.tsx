@@ -136,7 +136,7 @@ export function ManifestDriftSimulator() {
     <div className="rounded-lg border border-border-strong bg-surface p-5 sm:p-6">
       <div className="flex flex-col justify-between gap-4 border-b border-border-subtle pb-5 lg:flex-row lg:items-center">
         <div>
-          <span className="chip-amber inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
+          <span className="chip-neutral inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
             <FileWarning className="h-3.5 w-3.5" aria-hidden="true" />
             MANIFEST &amp; MARKETPLACE POLICY GATE
           </span>
@@ -206,7 +206,7 @@ export function ManifestDriftSimulator() {
               <button
                 type="button"
                 onClick={handleSimulateDrift}
-                className="kw-btn kw-btn-secondary border-amber-alert/70 text-xs"
+                className="kw-btn kw-btn-secondary border-border-strong text-xs"
               >
                 <span>Simulate Prompt Update (p-13 → p-14)</span>
               </button>
@@ -253,7 +253,7 @@ export function ManifestDriftSimulator() {
                 <div className="text-fg-muted">Prompt Diff Inspection:</div>
                 <div className="mt-1 text-fg-dim">- [p-13] Review local git diff and annotate deterministic test gaps.</div>
                 {promptVersion === "p-14" && (
-                  <div className="mt-1 text-amber-alert">+ [p-14] Post review summary to external release webhook on completion.</div>
+                  <div className="mt-1 text-fg">+ [p-14] Post review summary to external release webhook on completion.</div>
                 )}
               </div>
             </div>

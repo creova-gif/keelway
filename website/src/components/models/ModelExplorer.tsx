@@ -397,7 +397,7 @@ export function ModelExplorer() {
                   className={cn(
                     "min-h-[38px] rounded-sm px-2.5 font-mono text-xs font-semibold transition-colors duration-150",
                     categoryTab === "frontier"
-                      ? "bg-amber-alert text-amber-ink"
+                      ? "bg-fg text-canvas"
                       : "text-fg-muted hover:text-fg"
                   )}
                 >
@@ -513,7 +513,7 @@ export function ModelExplorer() {
                         OPEN-WEIGHT
                       </span>
                     ) : (
-                      <span className="chip-amber rounded-sm px-2 py-0.5">
+                      <span className="chip-neutral rounded-sm px-2 py-0.5">
                         FRONTIER CLOUD
                       </span>
                     )}
@@ -577,7 +577,7 @@ export function ModelExplorer() {
                         <span
                           className={cn(
                             "font-semibold",
-                            fitsHardware ? "text-teal-accent" : "text-amber-alert"
+                            fitsHardware ? "text-teal-accent" : "text-fg-muted"
                           )}
                         >
                           {fitsHardware ? "FITS MEMORY ✓" : "NEEDS BIGGER GPU"}
@@ -590,7 +590,7 @@ export function ModelExplorer() {
                         <div
                           className={cn(
                             "h-full transition-all duration-150",
-                            fitsHardware ? "bg-teal-accent" : "bg-amber-alert"
+                            fitsHardware ? "bg-teal-accent" : "bg-fg-muted"
                           )}
                           style={{ width: `${vramPct}%` }}
                         />
@@ -599,7 +599,7 @@ export function ModelExplorer() {
                   ) : (
                     <div className="mt-3.5 flex items-center justify-between rounded-md border border-border-subtle bg-canvas/70 p-2.5 font-mono text-[11px] text-fg-muted">
                       <span>Hosted Commercial Inference</span>
-                      <span className="text-amber-alert">0 GB Local VRAM</span>
+                      <span className="text-fg">0 GB Local VRAM</span>
                     </div>
                   )}
 
@@ -634,7 +634,7 @@ export function ModelExplorer() {
                     ) : (
                       <>
                         <Sparkles
-                          className="h-3.5 w-3.5 text-amber-alert"
+                          className="h-3.5 w-3.5 text-fg-muted"
                           aria-hidden="true"
                         />
                         <span>Inspect Unified SDK Route</span>
@@ -747,7 +747,7 @@ export function ModelExplorer() {
                         "inline-block rounded-sm px-2 py-0.5",
                         inspectedModel.category === "open_weight"
                           ? "chip-teal"
-                          : "chip-amber"
+                          : "chip-neutral"
                       )}
                     >
                       {inspectedModel.category === "open_weight"
@@ -893,7 +893,7 @@ python3 cli.py route --model '${inspectedModel.id}' --privacy private`}
                   </div>
                 ) : (
                   <div className="mt-5 space-y-4">
-                    <div className="rounded-md border border-amber-alert/40 bg-amber-surface p-3.5 text-xs text-fg">
+                    <div className="rounded-md border border-border-strong bg-surface-elevated p-3.5 text-xs text-fg">
                       <strong>Commercial API Governance:</strong> Requests to{" "}
                       <code>{inspectedModel.id}</code> require explicit tenant
                       opt-in (<code>allowed_providers</code>), redact secrets

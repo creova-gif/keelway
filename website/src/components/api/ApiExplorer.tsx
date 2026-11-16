@@ -324,8 +324,6 @@ function methodBadgeClass(method: string): string {
   switch (method.toUpperCase()) {
     case "GET":
       return "chip-teal";
-    case "POST":
-      return "chip-amber";
     case "DELETE":
       return "chip-fault";
     default:

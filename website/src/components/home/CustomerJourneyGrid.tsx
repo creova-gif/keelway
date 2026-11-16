@@ -82,11 +82,6 @@ const JOURNEYS: JourneyCard[] = [
   },
 ];
 
-/**
- * Customer Journey Router on Home (/):
- * Routes Non-Technical Builders, Engineers, Startups, and Enterprise Buyers
- * directly to their tailored interactive experience without jargon overload.
- */
 export function CustomerJourneyGrid() {
   return (
     <section
@@ -97,7 +92,7 @@ export function CustomerJourneyGrid() {
       <div className="mx-auto max-w-container px-4 sm:px-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-fg-muted">
               CHOOSE YOUR PATH
             </p>
             <h2
@@ -122,14 +117,14 @@ export function CustomerJourneyGrid() {
             return (
               <article
                 key={item.title}
-                className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-6 transition-colors duration-150 hover:border-teal-accent/60"
+                className="frame-crosshair flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-6 transition-colors duration-150 hover:border-fg-dim"
               >
                 <div>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-canvas text-teal-accent">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-canvas text-fg">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <span className="chip-teal rounded-sm px-2.5 py-1 font-mono text-[11px]">
+                    <span className="chip-neutral rounded-sm px-2.5 py-1 font-mono text-[11px]">
                       {item.badge}
                     </span>
                   </div>
@@ -137,7 +132,7 @@ export function CustomerJourneyGrid() {
                   <h3 className="mt-4 text-xl font-bold text-fg">
                     {item.title}
                   </h3>
-                  <p className="mt-1 font-mono text-xs text-teal-accent">
+                  <p className="mt-1 font-mono text-xs text-fg-muted">
                     {item.audience}
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-fg-muted">
@@ -160,10 +155,10 @@ export function CustomerJourneyGrid() {
                 <div className="mt-6 border-t border-border-subtle pt-4">
                   <Link
                     href={item.href}
-                    className="inline-flex min-h-[40px] items-center gap-1.5 font-mono text-xs font-semibold text-teal-accent hover:underline"
+                    className="inline-flex min-h-[40px] items-center gap-1.5 font-mono text-xs font-semibold text-fg transition-colors hover:text-teal-accent"
                   >
                     <span>{item.ctaLabel}</span>
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <ArrowRight className="h-3.5 w-3.5 text-teal-accent" aria-hidden="true" />
                   </Link>
                 </div>
               </article>

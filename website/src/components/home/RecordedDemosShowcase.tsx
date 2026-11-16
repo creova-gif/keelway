@@ -225,7 +225,7 @@ export function RecordedDemosShowcase() {
                   playsInline
                   preload="metadata"
                   aria-label={activeClip.title}
-                  className="aspect-video w-full bg-[#0B0F14] object-cover"
+                  className="aspect-video w-full bg-[#09090B] object-cover"
                 >
                   <source src={activeClip.webmSrc} type="video/webm" />
                   <source src={activeClip.mp4Src} type="video/mp4" />

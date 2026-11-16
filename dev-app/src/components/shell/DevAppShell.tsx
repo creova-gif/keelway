@@ -5,6 +5,7 @@ import {
   resolveEgressDisplay,
   StatusBarEgress,
 } from "@/components/shell/StatusBarEgress";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import type { EgressTelemetryState, RailSection, SidebarTaskItem, TaskStatus } from "@/lib/types";
@@ -383,6 +384,9 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
             className="flex w-rail shrink-0 flex-col items-center justify-between border-e border-border bg-chrome py-2"
           >
             <div className="flex w-full flex-col items-center gap-1.5">
+              <div className="mb-0.5 flex h-9 w-9 items-center justify-center rounded-sm text-fg">
+                <BrandMark size={20} showWordmark={false} />
+              </div>
               {RAIL_ITEMS.map((item) => {
                 const isActive = activeSection === item.section;
                 const showBadge = item.section === "tasks" && effectivePendingCount > 0;

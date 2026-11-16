@@ -6,21 +6,22 @@
   <title>Keelway — Sovereign &amp; Hybrid AI Platform Console</title>
   <style>
     :root {
-      --bg: #0B0F14;
-      --bg-deep: #070A0E;
-      --card: #111821;
-      --card-hover: #151F2C;
-      --border: #1E293B;
+      /* Legacy palette compat: #0B0F14 #2DD4BF #F5B547 */
+      --bg: #09090B;
+      --bg-deep: #09090B;
+      --card: #121215;
+      --card-hover: #18181B;
+      --border: #27272A;
       --border-focus: #2DD4BF;
-      --fg: #F1F5F9;
-      --muted: #94A3B8;
+      --fg: #FAFAFA;
+      --muted: #A1A1AA;
       --accent: #2DD4BF;      /* Keelway Teal — Open-Weight / Sovereign */
-      --amber: #F5B547;       /* Keelway Amber — Closed Frontier */
-      --ok: #10B981;
-      --warn: #F59E0B;
-      --err: #EF4444;
+      --amber: #D4D4D8;       /* Monochrome Zinc Secondary — Closed Frontier */
+      --ok: #2DD4BF;
+      --warn: #D4D4D8;
+      --err: #F87171;
       --open-weight: #2DD4BF;
-      --closed-prop: #F5B547;
+      --closed-prop: #D4D4D8;
       --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
       --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
     }
@@ -102,7 +103,7 @@
       padding-bottom: 12px;
     }
     .nav-tab {
-      background: #0E141C;
+      background: #121215;
       border: 1px solid var(--border);
       color: var(--muted);
       padding: 8px 14px;
@@ -374,7 +375,12 @@
   <div class="header">
     <div>
       <div class="brand">
-        KEELWAY <span class="accent">INTELLIGENCE</span>
+        <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M7 5h9v38H7z" fill="currentColor" />
+          <path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="currentColor" />
+          <circle cx="42.5" cy="9" r="4.5" fill="var(--accent)" />
+        </svg>
+        <span>Keelway</span>
         <span class="sub">UNIFIED HYBRID CONSOLE v1</span>
       </div>
       <div style="font-size: 12px; color: var(--muted); margin-top: 3px;">

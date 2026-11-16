@@ -175,16 +175,14 @@ export function PricingTiers() {
         </div>
       </div>
 
-      {/* 2. Platform Tiers in Natural Left-to-Right Price Progression */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {/* Card 1: Free / Community Tier ($0) */}
         <article className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-5">
           <div>
             <div className="flex items-center justify-between gap-2">
               <span className="chip-neutral whitespace-nowrap rounded-sm px-2 py-1">
                 OPEN-CORE · APACHE-2.0
               </span>
-              <Cpu className="h-5 w-5 shrink-0 text-teal-accent" aria-hidden="true" />
+              <Cpu className="h-5 w-5 shrink-0 text-fg-muted" aria-hidden="true" />
             </div>
             <h2 className="mt-4 text-lg font-bold text-fg">Free / Community Tier</h2>
             <p className="mt-1 text-xs text-fg-muted">
@@ -199,19 +197,19 @@ export function PricingTiers() {
             </p>
             <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg-muted">
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Unlimited local OpenCore weights ($0.00/tok)</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Community open-weight pool (150K tok/day · 20 RPM)</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Selected agents (2 concurrent), IDE &amp; basic DAGs</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>P-10 Human Approval Gate &amp; local SQLite ledger</span>
               </li>
             </ul>
@@ -224,14 +222,13 @@ export function PricingTiers() {
           </div>
         </article>
 
-        {/* Card 2: Bring Your Own Model (BYOM) ($15 / $19) */}
         <article className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-5">
           <div>
             <div className="flex items-center justify-between gap-2">
-              <span className="chip-teal whitespace-nowrap rounded-sm px-2 py-1">
+              <span className="chip-neutral whitespace-nowrap rounded-sm px-2 py-1">
                 BYOM · 0% TOKEN MARKUP
               </span>
-              <KeyRound className="h-5 w-5 shrink-0 text-teal-accent" aria-hidden="true" />
+              <KeyRound className="h-5 w-5 shrink-0 text-fg-muted" aria-hidden="true" />
             </div>
             <h2 className="mt-4 text-lg font-bold text-fg">Bring Your Own Model (BYOM)</h2>
             <p className="mt-1 text-xs text-fg-muted">
@@ -243,25 +240,25 @@ export function PricingTiers() {
               </span>
               <span className="text-xs text-fg-muted">/ seat / mo</span>
             </div>
-            <p className="mt-1 font-mono text-[11px] text-teal-accent">
+            <p className="mt-1 font-mono text-[11px] text-fg-muted">
               {seats} {seats === 1 ? "seat" : "seats"} = $
               {estimatedByomMonthly.toLocaleString("en-US")}/mo · 0% token markup
             </p>
             <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg-muted">
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Authorized OpenAI, Anthropic, Gemini &amp; vLLM APIs</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>500K tok/day open-weight fallback pool (60 RPM)</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>USD spend caps with automatic OpenCore local fallback</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>SPDX &amp; commercial model license pre-dispatch check</span>
               </li>
             </ul>
@@ -328,14 +325,13 @@ export function PricingTiers() {
           </div>
         </article>
 
-        {/* Card 4: Keelway Enterprise (Custom) */}
         <article className="flex flex-col justify-between rounded-lg border border-border-strong bg-surface p-5">
           <div>
             <div className="flex items-center justify-between gap-2">
-              <span className="chip-amber whitespace-nowrap rounded-sm px-2 py-1">
+              <span className="chip-neutral whitespace-nowrap rounded-sm px-2 py-1">
                 SOVEREIGN VPC &amp; SLA
               </span>
-              <Building2 className="h-5 w-5 shrink-0 text-amber-alert" aria-hidden="true" />
+              <Building2 className="h-5 w-5 shrink-0 text-fg" aria-hidden="true" />
             </div>
             <h2 className="mt-4 text-lg font-bold text-fg">Keelway Enterprise</h2>
             <p className="mt-1 text-xs text-fg-muted">
@@ -345,24 +341,24 @@ export function PricingTiers() {
               <span className="text-3xl font-extrabold text-fg">Custom</span>
               <span className="text-xs text-fg-muted">annual contract</span>
             </div>
-            <p className="mt-1 whitespace-nowrap font-mono text-[11px] text-amber-alert">
+            <p className="mt-1 whitespace-nowrap font-mono text-[11px] text-fg-muted">
               Dedicated VPC · Air-Gap · SLA
             </p>
             <ul className="mt-5 space-y-2 border-t border-border-subtle pt-4 text-xs text-fg-muted">
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Dedicated regional GPU VPCs or air-gapped on-prem racks</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>SAML/SSO, multi-org RBAC, retention &amp; SIEM audit</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Dual-human P-10 quorum &amp; CycloneDX 1.5 SBOMs</span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
                 <span>Custom multi-agent engineering &amp; 99.95% SLA</span>
               </li>
             </ul>
@@ -376,16 +372,15 @@ export function PricingTiers() {
         </article>
       </div>
 
-      {/* 3. Mandatory BYOM Consumer-Subscription Compliance Notice Banner */}
       <section
         id="byom-compliance"
         aria-labelledby="byom-compliance-heading"
-        className="rounded-lg border border-amber-alert/70 bg-amber-surface p-5 sm:p-6"
+        className="rounded-lg border border-border-strong bg-surface-elevated p-5 sm:p-6"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-alert" aria-hidden="true" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-fg" aria-hidden="true" />
           <div>
-            <div className="font-mono text-xs font-bold uppercase text-amber-alert">
+            <div className="font-mono text-xs font-bold uppercase text-fg-muted">
               BYOM Provider Credential &amp; Subscription Compliance Notice
             </div>
             <h3 id="byom-compliance-heading" className="mt-1 text-base font-bold text-fg">
