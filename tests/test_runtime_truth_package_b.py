@@ -316,4 +316,5 @@ def test_evidence_room_leaves_unrun_checks_unverified():
     assert pkg.summary["all_verified"] is False
     claim_blob = "\n".join(metric["claim"] for metric in pkg.metrics)
     assert "745" not in claim_blob
-    assert "745" not in json.dumps(pkg.summary)
+    # The commit SHA is random hex and can contain "745" by chance.
+    assert "745" not in json.dumps({k: v for k, v in pkg.summary.items() if k != "commit_sha"})

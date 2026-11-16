@@ -74,7 +74,7 @@ def test_assemble_evidence_package():
         assert metric["observed_value"]["count"] is None
         assert metric["claim"].startswith("Not run.")
 
-    serialized = "\n".join(metric["claim"] for metric in pkg.metrics) + "\n" + json.dumps(pkg.summary)
+    serialized = "\n".join(metric["claim"] for metric in pkg.metrics) + "\n" + json.dumps({k: v for k, v in pkg.summary.items() if k != "commit_sha"})
     for banned in ("745", "40/40", "10/10 stages", "7/7", "worm_verified", "100% Pass@1", "HEALTHY"):
         assert banned not in serialized
 
