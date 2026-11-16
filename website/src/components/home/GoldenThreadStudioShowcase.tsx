@@ -208,7 +208,7 @@ export function GoldenThreadStudioShowcase() {
                 </div>
 
                 <div className="mt-3 rounded-md border border-border-strong bg-canvas p-2">
-                  <svg viewBox="0 0 620 260" className="h-auto w-full" role="img" aria-label="Spatial KFlow cyclic graph canvas">
+                  <svg viewBox="0 0 620 260" className="h-auto w-full" role="group" aria-label="Spatial KFlow cyclic graph canvas">
                     <defs>
                       <marker id="kw-arrow-fwd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--teal-accent)" /></marker>
                       <marker id="kw-arrow-cyc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--fg-primary)" /></marker>
@@ -237,18 +237,18 @@ export function GoldenThreadStudioShowcase() {
                     {nodes.map((node) => {
                       const isSel = selectedNode?.id === node.id;
                       return (
-                        <g key={node.id} role="button" tabIndex={0} aria-label={`Select node ${node.label} lines ${node.lineStart} to ${node.lineEnd}`} onClick={() => setSelectedNodeId(node.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedNodeId(node.id); } }} className="cursor-pointer">
+                        <g key={node.id} role="button" tabIndex={0} aria-label={`${node.requiresP10 ? "P-10 GATE " : ""}${node.label.slice(0, 16)} ${node.model.slice(0, 17)} AST L${node.lineStart}–L${node.lineEnd} — activate to inspect node`} onClick={() => setSelectedNodeId(node.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedNodeId(node.id); } }} className="cursor-pointer">
                           {isSel && <rect x={node.x - 4} y={node.y - 4} width={nodeWidth + 8} height={76} rx={8} fill="none" stroke="var(--teal-accent)" strokeWidth="2" />}
                           <rect x={node.x} y={node.y} width={nodeWidth} height={68} rx={6} fill="var(--bg-surface)" stroke={node.requiresP10 ? "var(--fg-primary)" : isSel ? "var(--teal-accent)" : "var(--border-strong)"} strokeWidth="1.5" />
                           {node.requiresP10 && (
                             <g>
                               <rect x={node.x + 6} y={node.y - 9} width={64} height={15} rx={3} fill="var(--fg-primary)" />
-                              <text x={node.x + 38} y={node.y + 1.5} textAnchor="middle" fill="var(--bg-canvas)" fontSize="8.5" fontWeight="700" fontFamily="monospace">P-10 GATE</text>
+                              <text x={node.x + 38} y={node.y + 1.5} textAnchor="middle" fill="var(--bg-canvas)" fontSize="8.5" fontWeight="700" fontFamily="monospace">{"P-10 GATE "}</text>
                             </g>
                           )}
-                          <text x={node.x + 8} y={node.y + 23} fill="var(--fg-primary)" fontSize="10.5" fontWeight="700" fontFamily="sans-serif">{node.label.slice(0, 16)}</text>
-                          <text x={node.x + 8} y={node.y + 40} fill="var(--fg-muted)" fontSize="9" fontFamily="monospace">{node.model.slice(0, 17)}</text>
-                          <text x={node.x + 8} y={node.y + 56} fill="var(--teal-accent)" fontSize="9" fontFamily="monospace">{`AST L${node.lineStart}–L${node.lineEnd}`}</text>
+                          <text x={node.x + 8} y={node.y + 23} fill="var(--fg-primary)" fontSize="10.5" fontWeight="700" fontFamily="sans-serif">{`${node.label.slice(0, 16)} `}</text>
+                          <text x={node.x + 8} y={node.y + 40} fill="var(--fg-muted)" fontSize="9" fontFamily="monospace">{`${node.model.slice(0, 17)} `}</text>
+                          <text x={node.x + 8} y={node.y + 56} fill="var(--teal-accent)" fontSize="9" fontFamily="monospace">{`AST L${node.lineStart}–L${node.lineEnd} `}</text>
                         </g>
                       );
                     })}
@@ -296,7 +296,7 @@ export function GoldenThreadStudioShowcase() {
                     <span>Live AST Line-Span Map</span>
                     {selectedNode && <span className="text-teal-accent">{`Active: ${selectedNode.id} (L${selectedNode.lineStart}–L${selectedNode.lineEnd})`}</span>}
                   </div>
-                  <div ref={astMapRef} className="max-h-36 overflow-y-auto">
+                  <div ref={astMapRef} role="region" aria-label="AST line-span map" tabIndex={0} className="max-h-36 overflow-y-auto">
                     {codeLines.map((line, idx) => {
                       const ln = idx + 1;
                       const owner = nodes.find((n) => ln >= n.lineStart && ln <= n.lineEnd);

@@ -167,7 +167,7 @@ export function LatencyCostFrontierChart({
         <div className="overflow-x-auto rounded-md border border-border-subtle bg-canvas p-3 lg:col-span-8">
           <svg
             viewBox={`0 0 ${W} ${H}`}
-            role="img"
+            role="group"
             aria-label={
               mode === "latency_cost"
                 ? "Scatter plot comparing measured Time To First Token in milliseconds against blended USD cost per million tokens across 12 OpenCore and Frontier models."

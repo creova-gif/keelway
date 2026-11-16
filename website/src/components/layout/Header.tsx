@@ -44,7 +44,7 @@ export function Header() {
             <button
               type="button"
               onClick={openCommandPalette}
-              aria-label="Search models, API endpoints, and docs (Command+K)"
+              aria-label="Search ⌘K — models, API endpoints, and docs"
               title="Instant Search (⌘K / Ctrl+K)"
               className="inline-flex min-h-[44px] items-center gap-1.5 rounded-sm border border-border-strong bg-surface px-2.5 font-mono text-xs text-fg-muted transition-colors duration-150 hover:border-fg-dim hover:text-fg"
             >

@@ -64,6 +64,7 @@
 | **KEEL-REL-052** | Onboarding runbook + early-access fulfillment process | `RELEASE / OPS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `docs/KEEL-REL-052-onboarding-runbook` |
 | **KEEL-REL-053** | Simulated-model disclosure badges (API + Studio + website) | `RELEASE / UI / HONEST-CLAIMS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-053-simulated-badges` |
 | **KEEL-REL-054** | Studio state audit + offline-data provenance badge | `RELEASE / UI / HONEST-CLAIMS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-054-data-provenance` |
+| **KEEL-REL-055** | Website axe-core WCAG 2.2 AA + perf CI gate | `RELEASE / WEBSITE / A11Y / CI` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-055-website-a11y-ci` |
 
 ---
 

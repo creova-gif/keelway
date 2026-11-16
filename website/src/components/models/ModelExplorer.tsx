@@ -3,7 +3,6 @@
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import * as Tabs from "@radix-ui/react-tabs";
 import {
   Check,
   Copy,
@@ -351,60 +350,37 @@ export function ModelExplorer() {
 
           {/* Category Filter Tabs */}
           <div className="lg:col-span-7">
-            <Tabs.Root
-              value={categoryTab}
-              onValueChange={(v) => setCategoryTab(v as CategoryFilter)}
+            <div
+              role="group"
+              aria-label="Model categories"
+              className="grid grid-cols-2 gap-1.5 rounded-md border border-border-strong bg-surface p-1 sm:grid-cols-4"
             >
-              <Tabs.List
-                aria-label="Model categories"
-                className="grid grid-cols-2 gap-1.5 rounded-md border border-border-strong bg-surface p-1 sm:grid-cols-4"
-              >
-                <Tabs.Trigger
-                  value="all"
+              {(
+                [
+                  ["all", `All (${CATALOG_MODELS.length})`],
+                  ["opencore", "OpenCore (4)"],
+                  ["ecosystem_open", "Open Ecosystem (5)"],
+                  ["frontier", "Frontier APIs (6)"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={categoryTab === value}
+                  onClick={() => setCategoryTab(value)}
                   className={cn(
                     "min-h-[38px] rounded-sm px-2.5 font-mono text-xs font-semibold transition-colors duration-150",
-                    categoryTab === "all"
-                      ? "bg-teal-accent text-teal-ink"
+                    categoryTab === value
+                      ? value === "frontier"
+                        ? "bg-fg text-canvas"
+                        : "bg-teal-accent text-teal-ink"
                       : "text-fg-muted hover:text-fg"
                   )}
                 >
-                  All (15)
-                </Tabs.Trigger>
-                <Tabs.Trigger
-                  value="opencore"
-                  className={cn(
-                    "min-h-[38px] rounded-sm px-2.5 font-mono text-xs font-semibold transition-colors duration-150",
-                    categoryTab === "opencore"
-                      ? "bg-teal-accent text-teal-ink"
-                      : "text-fg-muted hover:text-fg"
-                  )}
-                >
-                  OpenCore (4)
-                </Tabs.Trigger>
-                <Tabs.Trigger
-                  value="ecosystem_open"
-                  className={cn(
-                    "min-h-[38px] rounded-sm px-2.5 font-mono text-xs font-semibold transition-colors duration-150",
-                    categoryTab === "ecosystem_open"
-                      ? "bg-teal-accent text-teal-ink"
-                      : "text-fg-muted hover:text-fg"
-                  )}
-                >
-                  Open Ecosystem (5)
-                </Tabs.Trigger>
-                <Tabs.Trigger
-                  value="frontier"
-                  className={cn(
-                    "min-h-[38px] rounded-sm px-2.5 font-mono text-xs font-semibold transition-colors duration-150",
-                    categoryTab === "frontier"
-                      ? "bg-fg text-canvas"
-                      : "text-fg-muted hover:text-fg"
-                  )}
-                >
-                  Frontier APIs (6)
-                </Tabs.Trigger>
-              </Tabs.List>
-            </Tabs.Root>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
