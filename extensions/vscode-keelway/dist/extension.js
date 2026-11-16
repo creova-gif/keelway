@@ -20,6 +20,20 @@ function formatPromotionHeadline(verdict) {
         }
     }
 }
+function formatLockVerificationHeadline(verdict) {
+    switch (verdict) {
+        case "LOCK_VERIFIED":
+            return "Merkle Lockfile Verified";
+        case "DRIFT_RUG_PULL_BLOCKED":
+            return "Silent Schema/Description Rug-Pull Blocked";
+        case "POISONING_BLOCKED":
+            return "Tool-Poisoning / Unicode Smuggling Blocked";
+        default: {
+            const _exhaustive = verdict;
+            throw new Error(`Unexpected MCP lockfile verdict '${String(_exhaustive)}'.`);
+        }
+    }
+}
 function isSessionPaused(session) {
     return Boolean(session && session.status.toUpperCase() === "PAUSED");
 }
@@ -175,6 +189,16 @@ export async function activate(context, options = {}) {
         const headline = formatPromotionHeadline(evaluation.verdict);
         await vscode.window.showInformationMessage(`Keelway Distillation Readiness [${evaluation.verdict} — ${headline}]: avg_parity_score=${evaluation.avg_parity_score.toFixed(2)}, projected_monthly_savings_usd=$${evaluation.projected_monthly_savings_usd.toFixed(2)}`);
         return evaluation;
+    }), vscode.commands.registerCommand("keelway.verifyMcpLockfile", async (arg) => {
+        const opts = typeof arg === "string"
+            ? { lockfileId: arg }
+            : typeof arg === "object" && arg !== null
+                ? arg
+                : {};
+        const verification = await bridgeClient.verifyMcpLockfile(opts);
+        const headline = formatLockVerificationHeadline(verification.verdict);
+        await vscode.window.showInformationMessage(`Keelway MCP Lockfile [${verification.verdict} — ${headline}]: lockfile_id=${verification.lockfile_id}, drifted=${verification.drifted_tools.length}`);
+        return verification;
     }));
     return { bridgeClient, codeLensProvider, getActiveSession: () => activeSession };
 }

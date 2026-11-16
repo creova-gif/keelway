@@ -19,6 +19,7 @@ import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySel
 import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
 import { PlatformHarnessClient, type ApprovalTicketListResponse, type ApprovalTicketRecord, type DecideHarnessTicketRequest, type EvaluateWorktreeCiGateRequest, type HarnessInterceptionRecord, type HookManifestResponse, type InterceptAgentToolCallRequest, type ListHarnessTicketsOptions, type ListWorktreeCiGateRunsParams, type RenderAgentHookConfigRequest, type WorktreeCiGateRunListResponse, type WorktreeCiGateRunRecord } from "./platformHarness.js";
 import { type CompileDistillationDatasetRequest, type DistillationDatasetListResponse, type DistillationDatasetRecord, type DistillationPromotionEvaluation, type EvaluateDistillationPromotionRequest, type EvaluateShadowPromptRequest, type GetSemanticCacheStatsParams, type ListDistillationDatasetsParams, type ListShadowPairsOptions, type SemanticCacheStatsResponse, type ShadowEvaluationRecord, type ShadowPairListResponse } from "./platformDistill.js";
+import { type ConformanceBenchmarkListResponse, type ConformanceBenchmarkRecord, type ListConformanceBenchmarksParams, type ListMcpLockVerificationsParams, type ListMcpLockfilesParams, type McpLockVerificationListResponse, type McpLockVerificationRecord, type McpLockfileListResponse, type McpLockfileRecord, type PinMcpLockfileRequest, type RunConformanceBenchmarkRequest, type VerifyMcpLockfileRequest } from "./platformSupplyChain.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -40,6 +41,7 @@ export declare class PlatformNamespace {
     readonly safetyMesh: PlatformSafetyMeshClient;
     readonly harness: PlatformHarnessClient;
     private readonly distill;
+    private readonly supplyChain;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -174,6 +176,12 @@ export declare class PlatformNamespace {
     compileDistillationDataset(req?: CompileDistillationDatasetRequest, options?: RequestOptions): Promise<DistillationDatasetRecord>;
     listDistillationDatasets(wsOrParams?: string | ListDistillationDatasetsParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<DistillationDatasetListResponse>;
     evaluateDistillationPromotion(req?: EvaluateDistillationPromotionRequest, options?: RequestOptions): Promise<DistillationPromotionEvaluation>;
+    pinMcpLockfile(req?: PinMcpLockfileRequest, options?: RequestOptions): Promise<McpLockfileRecord>;
+    listMcpLockfiles(wsOrParams?: string | ListMcpLockfilesParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<McpLockfileListResponse>;
+    verifyMcpLockfile(req?: VerifyMcpLockfileRequest, options?: RequestOptions): Promise<McpLockVerificationRecord>;
+    listMcpLockVerifications(wsOrParams?: string | ListMcpLockVerificationsParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<McpLockVerificationListResponse>;
+    runConformanceBenchmark(req?: RunConformanceBenchmarkRequest, options?: RequestOptions): Promise<ConformanceBenchmarkRecord>;
+    listConformanceBenchmarks(wsOrParams?: string | ListConformanceBenchmarksParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<ConformanceBenchmarkListResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

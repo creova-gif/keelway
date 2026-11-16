@@ -64,6 +64,10 @@ from core.sdk.platform_studio_client import (
     AsyncPlatformStudioMixin,
     SyncPlatformStudioMixin,
 )
+from core.sdk.platform_supply_chain_client import (
+    AsyncPlatformSupplyChainMixin,
+    SyncPlatformSupplyChainMixin,
+)
 
 if TYPE_CHECKING:
     from core.sdk.client import AsyncKeelwayClient, KeelwayClient
@@ -184,6 +188,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformSafetyMeshMixin,
     AsyncPlatformHarnessMixin,
     AsyncPlatformDistillMixin,
+    AsyncPlatformSupplyChainMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -318,6 +323,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformSafetyMeshMixin,
     SyncPlatformHarnessMixin,
     SyncPlatformDistillMixin,
+    SyncPlatformSupplyChainMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 

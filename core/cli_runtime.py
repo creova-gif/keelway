@@ -28,6 +28,7 @@ from core.cli_kflow_crdt import dispatch_kflow_crdt_cli, register_kflow_crdt_cli
 from core.cli_mcp_eval import dispatch_mcp_eval_cli, register_mcp_eval_cli_subparsers
 from core.cli_safety_mesh import dispatch_safety_mesh_cli, register_safety_mesh_cli_subparsers
 from core.cli_studio import dispatch_studio_cli, register_studio_cli_subparsers
+from core.cli_supply_chain import dispatch_supply_chain_cli, register_supply_chain_cli_subparsers
 from core.platform.execution_stream import LiveExecutionStreamer
 from core.platform.rbac_webhooks import WorkspaceRbacController
 from core.platform.vault import LocalSecretVault
@@ -223,10 +224,15 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_safety_mesh_cli_subparsers(subparsers)
     register_harness_cli_subparsers(subparsers)
     register_distill_cli_subparsers(subparsers)
+    register_supply_chain_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, Healing, Safety/Mesh, Harness/CI-Gate, and Shadow/Distill CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, Healing, Safety/Mesh, Harness/CI-Gate, Shadow/Distill, and Supply-Chain CLI subcommands."""
+    supply_chain_rc = dispatch_supply_chain_cli(args)
+    if supply_chain_rc is not None:
+        return supply_chain_rc
+
     distill_rc = dispatch_distill_cli(args)
     if distill_rc is not None:
         return distill_rc

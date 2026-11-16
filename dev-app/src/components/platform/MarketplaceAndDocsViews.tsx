@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { KHubAirgapMirrorPanel } from "@/components/platform/KHubAirgapMirrorPanel";
+import { McpLockfileAndBenchPanel } from "@/components/platform/McpLockfileAndBenchPanel";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type { MarketplacePublishPayload } from "@/lib/platformApi";
@@ -431,6 +432,8 @@ export function MarketplaceWorkspaceView({
           )
         ) : null}
       </section>
+
+      <McpLockfileAndBenchPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
     </div>
   );
 }

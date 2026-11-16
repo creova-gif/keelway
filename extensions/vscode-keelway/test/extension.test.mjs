@@ -174,6 +174,17 @@ function createMockFetch() {
         evaluated_at: "2026-11-16T03:05:00Z",
       });
     }
+    if (url.pathname === "/v1/platform/supply-chain/lock/verify" && init.method === "POST") {
+      const [ws, lockfileId, mode] = [body.workspace_id ?? "default", body.lockfile_id ?? "lock-ext-20", body.simulate_mode ?? "clean"];
+      const verdict = mode === "poisoning" ? "POISONING_BLOCKED" : mode === "rug_pull" ? "DRIFT_RUG_PULL_BLOCKED" : "LOCK_VERIFIED";
+      return jsonRes(200, {
+        verification_id: `lver-ext-${mode}`, lockfile_id: lockfileId, workspace_id: ws, verdict,
+        expected_merkle_root_sha256: "f".repeat(64), observed_merkle_root_sha256: verdict === "LOCK_VERIFIED" ? "f".repeat(64) : "0".repeat(64),
+        drifted_tools: verdict === "LOCK_VERIFIED" ? [] : ["mcp-git-local:git_diff_stat"],
+        poisoning_findings: verdict === "POISONING_BLOCKED" ? ["Zero-width Unicode smuggling detected"] : [],
+        dlp_redactions: verdict === "POISONING_BLOCKED" ? 1 : 0, verification_sha256: "1".repeat(64), verified_at: "2026-11-16T04:10:00Z",
+      });
+    }
     return jsonRes(404, { detail: "Not found" });
   };
 
@@ -418,6 +429,42 @@ describe("vscode-keelway official VS Code & Cursor extension", () => {
     const holdEval = await registeredCommands.get("keelway.inspectDistillationReadiness")("low-parity");
     assert.equal(holdEval.verdict, "HOLD_ON_FRONTIER");
     assert.equal(holdEval.projected_monthly_savings_usd, 0);
+    deactivate();
+  });
+
+  it("verifies MCP & Skill Merkle lockfiles end-to-end via keelway.verifyMcpLockfile", async () => {
+    const { calls, fetchImpl } = createMockFetch();
+    const [registeredCommands, infoMessages] = [new Map(), []];
+    const mockHost = {
+      commands: { registerCommand: (id, cb) => (registeredCommands.set(id, cb), { dispose() {} }), executeCommand: async () => undefined },
+      languages: { registerCodeLensProvider: () => ({ dispose() {} }) },
+      window: {
+        registerUriHandler: () => ({ dispose() {} }),
+        createWebviewPanel: () => ({ webview: { html: "", onDidReceiveMessage: () => ({ dispose() {} }), postMessage: async () => true }, reveal() {}, onDidDispose: () => ({ dispose() {} }), dispose() {} }),
+        showInformationMessage: async (msg) => (infoMessages.push(msg), undefined),
+        showErrorMessage: async () => undefined,
+        showInputBox: async () => undefined,
+      },
+      workspace: { getConfiguration: () => ({ get: (_k, defVal) => defVal }) },
+    };
+    const extCtx = { subscriptions: [], secrets: { get: async (k) => (k === "keelway.apiToken" ? "kw_secret_vault_20" : undefined), store: async () => {}, delete: async () => {} } };
+
+    await activate(extCtx, { hostApi: mockHost, fetchImpl });
+    assert.ok(registeredCommands.has("keelway.verifyMcpLockfile"));
+
+    for (const [mode, expectedVerdict] of [["clean", "LOCK_VERIFIED"], ["rug_pull", "DRIFT_RUG_PULL_BLOCKED"], ["poisoning", "POISONING_BLOCKED"]]) {
+      const ver = await registeredCommands.get("keelway.verifyMcpLockfile")({ workspaceId: "ws-ide-20", lockfileId: "lock-ide-01", simulateMode: mode });
+      assert.equal(ver.verdict, expectedVerdict);
+      assert.equal(ver.lockfile_id, "lock-ide-01");
+      assert.ok(infoMessages.some((m) => m.includes(expectedVerdict) && m.includes("lock-ide-01")));
+    }
+
+    const verifyCall = calls.find((c) => c.pathname === "/v1/platform/supply-chain/lock/verify");
+    assert.ok(verifyCall);
+    assert.equal(verifyCall.headers.Authorization, "Bearer kw_secret_vault_20");
+    assert.equal("Origin" in verifyCall.headers, false);
+    assert.equal(verifyCall.body.workspace_id, "ws-ide-20");
+    assert.equal(verifyCall.body.lockfile_id, "lock-ide-01");
     deactivate();
   });
 });

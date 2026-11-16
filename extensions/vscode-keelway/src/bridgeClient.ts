@@ -7,6 +7,29 @@ export type AttachScheme = "vscode" | "cursor";
 export type DebugStepAction = "step_over" | "step_into" | "continue" | "mutate_state";
 export type HarnessTicketDecision = "APPROVED" | "DENIED";
 export type BridgeDistillationPromotionVerdict = "PROMOTE_TO_OPENCORE" | "NEEDS_MORE_PAIRS" | "HOLD_ON_FRONTIER";
+export type BridgeMcpLockSimulateMode = "clean" | "rug_pull" | "poisoning";
+export type BridgeMcpLockVerificationVerdict = "LOCK_VERIFIED" | "DRIFT_RUG_PULL_BLOCKED" | "POISONING_BLOCKED";
+
+export interface BridgeVerifyMcpLockfileOptions {
+  workspaceId?: string;
+  lockfileId?: string;
+  simulateMode?: BridgeMcpLockSimulateMode;
+}
+
+export interface BridgeMcpLockVerificationRecord {
+  verification_id: string;
+  lockfile_id: string;
+  workspace_id: string;
+  verdict: BridgeMcpLockVerificationVerdict;
+  expected_merkle_root_sha256: string;
+  observed_merkle_root_sha256: string;
+  drifted_tools: string[];
+  poisoning_findings: string[];
+  dlp_redactions: number;
+  verification_sha256: string;
+  verified_at: string;
+  [key: string]: unknown;
+}
 
 export interface BridgeDistillationPromotionOptions {
   workspaceId?: string;
@@ -312,5 +335,27 @@ export class KeelwayBridgeClient {
         },
       },
     );
+  }
+
+  public verifyMcpLockfile(opts: BridgeVerifyMcpLockfileOptions = {}): Promise<BridgeMcpLockVerificationRecord> {
+    const rawMode = opts.simulateMode ?? "clean";
+    let simulateMode: BridgeMcpLockSimulateMode;
+    switch (rawMode) {
+      case "clean":
+      case "rug_pull":
+      case "poisoning":
+        simulateMode = rawMode;
+        break;
+      default: {
+        const _exhaustive: never = rawMode;
+        throw new Error(`Invalid simulateMode '${String(_exhaustive)}'.`);
+      }
+    }
+    const wsId = (opts.workspaceId ?? this.workspaceId).trim() || "default";
+    const body: Record<string, unknown> = { workspace_id: wsId, simulate_mode: simulateMode };
+    if (opts.lockfileId && opts.lockfileId.trim()) {
+      body.lockfile_id = opts.lockfileId.trim();
+    }
+    return this.request<BridgeMcpLockVerificationRecord>("POST", "/v1/platform/supply-chain/lock/verify", { body });
   }
 }

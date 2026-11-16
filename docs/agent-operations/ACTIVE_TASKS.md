@@ -36,6 +36,7 @@
 | **KEEL-SAFETY-024** | Phase 17: Tier 3 `:7420/app` Dev-Tool Moats (Formal Safety Verifier + Federated Edge Mesh) & Minimalist YC Website Curation | `SAFETY / MESH / SDK / UI / WEBSITE` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-15 | `main` |
 | **KEEL-HARNESS-025** | Phase 18: Universal Coding-Agent Co-Harness (`Claude Code`/`Cursor`/`Codex` PreToolUse Gate + Single-Use P-10 Tickets) & Parallel Worktree CI Gate | `HARNESS / CIGATE / SDK / VSCODE / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
 | **KEEL-DISTILL-026** | Phase 19: Semantic Prompt Cache, Shadow Dual-Run Router & Frontier-to-OpenCore QLoRA Distillation Flywheel | `CACHE / DISTILL / SDK / VSCODE / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
+| **KEEL-LOCK-027** | Phase 20: Cryptographic MCP & Skill Lockfile (`keelway.lock`), Tool-Poisoning / Rug-Pull Firewall & Conformance Benchmark | `SUPPLY-CHAIN / LOCK / BENCH / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
 
 ---
 

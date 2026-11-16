@@ -187,5 +187,26 @@ export class KeelwayBridgeClient {
             },
         });
     }
+    verifyMcpLockfile(opts = {}) {
+        const rawMode = opts.simulateMode ?? "clean";
+        let simulateMode;
+        switch (rawMode) {
+            case "clean":
+            case "rug_pull":
+            case "poisoning":
+                simulateMode = rawMode;
+                break;
+            default: {
+                const _exhaustive = rawMode;
+                throw new Error(`Invalid simulateMode '${String(_exhaustive)}'.`);
+            }
+        }
+        const wsId = (opts.workspaceId ?? this.workspaceId).trim() || "default";
+        const body = { workspace_id: wsId, simulate_mode: simulateMode };
+        if (opts.lockfileId && opts.lockfileId.trim()) {
+            body.lockfile_id = opts.lockfileId.trim();
+        }
+        return this.request("POST", "/v1/platform/supply-chain/lock/verify", { body });
+    }
 }
 //# sourceMappingURL=bridgeClient.js.map

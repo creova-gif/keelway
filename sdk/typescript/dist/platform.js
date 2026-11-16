@@ -17,6 +17,7 @@ import { PlatformHealingClient } from "./platformHealing.js";
 import { PlatformSafetyMeshClient } from "./platformSafetyMesh.js";
 import { PlatformHarnessClient } from "./platformHarness.js";
 import { PlatformDistillClient } from "./platformDistill.js";
+import { PlatformSupplyChainClient } from "./platformSupplyChain.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -32,6 +33,7 @@ export class PlatformNamespace {
     safetyMesh;
     harness;
     distill;
+    supplyChain;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -47,6 +49,7 @@ export class PlatformNamespace {
         this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
         this.harness = new PlatformHarnessClient(requestJson);
         this.distill = new PlatformDistillClient(requestJson);
+        this.supplyChain = new PlatformSupplyChainClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -502,6 +505,24 @@ export class PlatformNamespace {
     }
     evaluateDistillationPromotion(req, options) {
         return this.distill.evaluateDistillationPromotion(req, options);
+    }
+    pinMcpLockfile(req, options) {
+        return this.supplyChain.pinMcpLockfile(req, options);
+    }
+    listMcpLockfiles(wsOrParams, limitOrOpts, options) {
+        return this.supplyChain.listMcpLockfiles(wsOrParams, limitOrOpts, options);
+    }
+    verifyMcpLockfile(req, options) {
+        return this.supplyChain.verifyMcpLockfile(req, options);
+    }
+    listMcpLockVerifications(wsOrParams, limitOrOpts, options) {
+        return this.supplyChain.listMcpLockVerifications(wsOrParams, limitOrOpts, options);
+    }
+    runConformanceBenchmark(req, options) {
+        return this.supplyChain.runConformanceBenchmark(req, options);
+    }
+    listConformanceBenchmarks(wsOrParams, limitOrOpts, options) {
+        return this.supplyChain.listConformanceBenchmarks(wsOrParams, limitOrOpts, options);
     }
 }
 export { PlatformNamespace as PlatformClient };

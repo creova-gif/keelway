@@ -23,7 +23,8 @@
     "onCommand:keelway.attachBridge",
     "onCommand:keelway.openStudioPanel",
     "onCommand:keelway.approvePendingHarnessTicket",
-    "onCommand:keelway.inspectDistillationReadiness"
+    "onCommand:keelway.inspectDistillationReadiness",
+    "onCommand:keelway.verifyMcpLockfile"
   ],
   "contributes": {
     "commands": [
@@ -58,6 +59,10 @@
       {
         "command": "keelway.inspectDistillationReadiness",
         "title": "Keelway: Inspect OpenCore Distillation Readiness"
+      },
+      {
+        "command": "keelway.verifyMcpLockfile",
+        "title": "Keelway: Verify MCP & Skill Lockfile Integrity"
       }
     ],
     "keybindings": [

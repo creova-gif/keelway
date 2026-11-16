@@ -37,6 +37,7 @@ export * from "./platformHealing.js";
 export * from "./platformSafetyMesh.js";
 export * from "./platformHarness.js";
 export * from "./platformDistill.js";
+export * from "./platformSupplyChain.js";
 
 export {
   AirGapEgressError,

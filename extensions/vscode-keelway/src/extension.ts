@@ -9,11 +9,20 @@ import {
   type BridgeDistillationPromotionOptions,
   type BridgeDistillationPromotionVerdict,
   type BridgeHarnessTicketRecord,
+  type BridgeMcpLockVerificationRecord,
+  type BridgeMcpLockVerificationVerdict,
+  type BridgeVerifyMcpLockfileOptions,
   type DebugStepAction,
   KeelwayBridgeClient,
   parseAttachUri,
 } from "./bridgeClient.js";
-export type { BridgeDistillationPromotionEvaluation, BridgeDistillationPromotionOptions, BridgeHarnessTicketRecord };
+export type {
+  BridgeDistillationPromotionEvaluation,
+  BridgeDistillationPromotionOptions,
+  BridgeHarnessTicketRecord,
+  BridgeMcpLockVerificationRecord,
+  BridgeVerifyMcpLockfileOptions,
+};
 import { KeelwayCodeLensProvider, scanWorkflowSymbols } from "./codeLensProvider.js";
 import { handleWebviewMessage, renderStudioWebviewHtml, type StudioWebviewMessage } from "./studioWebview.js";
 import type { VsCodeExtensionContext, VsCodeHostApi, VsCodeUri, VsCodeWebviewPanel } from "./vscodeTypes.js";
@@ -42,6 +51,21 @@ function formatPromotionHeadline(verdict: BridgeDistillationPromotionVerdict): s
     default: {
       const _exhaustive: never = verdict;
       throw new Error(`Unexpected distillation promotion verdict '${String(_exhaustive)}'.`);
+    }
+  }
+}
+
+function formatLockVerificationHeadline(verdict: BridgeMcpLockVerificationVerdict): string {
+  switch (verdict) {
+    case "LOCK_VERIFIED":
+      return "Merkle Lockfile Verified";
+    case "DRIFT_RUG_PULL_BLOCKED":
+      return "Silent Schema/Description Rug-Pull Blocked";
+    case "POISONING_BLOCKED":
+      return "Tool-Poisoning / Unicode Smuggling Blocked";
+    default: {
+      const _exhaustive: never = verdict;
+      throw new Error(`Unexpected MCP lockfile verdict '${String(_exhaustive)}'.`);
     }
   }
 }
@@ -225,6 +249,20 @@ export async function activate(
         `Keelway Distillation Readiness [${evaluation.verdict} — ${headline}]: avg_parity_score=${evaluation.avg_parity_score.toFixed(2)}, projected_monthly_savings_usd=$${evaluation.projected_monthly_savings_usd.toFixed(2)}`,
       );
       return evaluation;
+    }),
+    vscode.commands.registerCommand("keelway.verifyMcpLockfile", async (arg?: unknown) => {
+      const opts: BridgeVerifyMcpLockfileOptions =
+        typeof arg === "string"
+          ? { lockfileId: arg }
+          : typeof arg === "object" && arg !== null
+            ? (arg as BridgeVerifyMcpLockfileOptions)
+            : {};
+      const verification = await bridgeClient.verifyMcpLockfile(opts);
+      const headline = formatLockVerificationHeadline(verification.verdict);
+      await vscode.window.showInformationMessage(
+        `Keelway MCP Lockfile [${verification.verdict} — ${headline}]: lockfile_id=${verification.lockfile_id}, drifted=${verification.drifted_tools.length}`,
+      );
+      return verification;
     }),
   );
 

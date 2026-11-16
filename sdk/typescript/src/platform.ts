@@ -31,6 +31,7 @@ import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySel
 import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
 import { PlatformHarnessClient, type ApprovalTicketListResponse, type ApprovalTicketRecord, type DecideHarnessTicketRequest, type EvaluateWorktreeCiGateRequest, type HarnessInterceptionRecord, type HookManifestResponse, type InterceptAgentToolCallRequest, type ListHarnessTicketsOptions, type ListWorktreeCiGateRunsParams, type RenderAgentHookConfigRequest, type WorktreeCiGateRunListResponse, type WorktreeCiGateRunRecord } from "./platformHarness.js";
 import { PlatformDistillClient, type CompileDistillationDatasetRequest, type DistillationDatasetListResponse, type DistillationDatasetRecord, type DistillationPromotionEvaluation, type EvaluateDistillationPromotionRequest, type EvaluateShadowPromptRequest, type GetSemanticCacheStatsParams, type ListDistillationDatasetsParams, type ListShadowPairsOptions, type SemanticCacheStatsResponse, type ShadowEvaluationRecord, type ShadowPairListResponse } from "./platformDistill.js";
+import { PlatformSupplyChainClient, type ConformanceBenchmarkListResponse, type ConformanceBenchmarkRecord, type ListConformanceBenchmarksParams, type ListMcpLockVerificationsParams, type ListMcpLockfilesParams, type McpLockVerificationListResponse, type McpLockVerificationRecord, type McpLockfileListResponse, type McpLockfileRecord, type PinMcpLockfileRequest, type RunConformanceBenchmarkRequest, type VerifyMcpLockfileRequest } from "./platformSupplyChain.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -54,6 +55,7 @@ export class PlatformNamespace {
   public readonly safetyMesh: PlatformSafetyMeshClient;
   public readonly harness: PlatformHarnessClient;
   private readonly distill: PlatformDistillClient;
+  private readonly supplyChain: PlatformSupplyChainClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -70,6 +72,7 @@ export class PlatformNamespace {
     this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
     this.harness = new PlatformHarnessClient(requestJson);
     this.distill = new PlatformDistillClient(requestJson);
+    this.supplyChain = new PlatformSupplyChainClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -589,6 +592,25 @@ export class PlatformNamespace {
   }
   public evaluateDistillationPromotion(req?: EvaluateDistillationPromotionRequest, options?: RequestOptions): Promise<DistillationPromotionEvaluation> {
     return this.distill.evaluateDistillationPromotion(req, options);
+  }
+
+  public pinMcpLockfile(req?: PinMcpLockfileRequest, options?: RequestOptions): Promise<McpLockfileRecord> {
+    return this.supplyChain.pinMcpLockfile(req, options);
+  }
+  public listMcpLockfiles(wsOrParams?: string | ListMcpLockfilesParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<McpLockfileListResponse> {
+    return this.supplyChain.listMcpLockfiles(wsOrParams, limitOrOpts, options);
+  }
+  public verifyMcpLockfile(req?: VerifyMcpLockfileRequest, options?: RequestOptions): Promise<McpLockVerificationRecord> {
+    return this.supplyChain.verifyMcpLockfile(req, options);
+  }
+  public listMcpLockVerifications(wsOrParams?: string | ListMcpLockVerificationsParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<McpLockVerificationListResponse> {
+    return this.supplyChain.listMcpLockVerifications(wsOrParams, limitOrOpts, options);
+  }
+  public runConformanceBenchmark(req?: RunConformanceBenchmarkRequest, options?: RequestOptions): Promise<ConformanceBenchmarkRecord> {
+    return this.supplyChain.runConformanceBenchmark(req, options);
+  }
+  public listConformanceBenchmarks(wsOrParams?: string | ListConformanceBenchmarksParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<ConformanceBenchmarkListResponse> {
+    return this.supplyChain.listConformanceBenchmarks(wsOrParams, limitOrOpts, options);
   }
 }
 

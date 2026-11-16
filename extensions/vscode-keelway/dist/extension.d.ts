@@ -2,8 +2,8 @@
  * Keelway Dev — Official VS Code & Cursor Extension Entrypoint (`activate` / `deactivate`).
  * Wires loopback Debugger Bridge, URI handler, 4D CodeLens, SecretStorage auth, and Studio Webview.
  */
-import { type BridgeDebugSession, type BridgeDistillationPromotionEvaluation, type BridgeDistillationPromotionOptions, type BridgeHarnessTicketRecord, KeelwayBridgeClient } from "./bridgeClient.js";
-export type { BridgeDistillationPromotionEvaluation, BridgeDistillationPromotionOptions, BridgeHarnessTicketRecord };
+import { type BridgeDebugSession, type BridgeDistillationPromotionEvaluation, type BridgeDistillationPromotionOptions, type BridgeHarnessTicketRecord, type BridgeMcpLockVerificationRecord, type BridgeVerifyMcpLockfileOptions, KeelwayBridgeClient } from "./bridgeClient.js";
+export type { BridgeDistillationPromotionEvaluation, BridgeDistillationPromotionOptions, BridgeHarnessTicketRecord, BridgeMcpLockVerificationRecord, BridgeVerifyMcpLockfileOptions, };
 import { KeelwayCodeLensProvider } from "./codeLensProvider.js";
 import type { VsCodeExtensionContext, VsCodeHostApi } from "./vscodeTypes.js";
 export interface ActivateExtensionOptions {
