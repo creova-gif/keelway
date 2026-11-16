@@ -9,6 +9,7 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import type { EgressTelemetryState, RailSection, SidebarTaskItem, TaskStatus } from "@/lib/types";
+import { subscribeDataFallbacks } from "@/lib/api";
 
 export { formatEgressBytes, resolveEgressDisplay };
 
@@ -166,6 +167,9 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
   const isLogsOpen = controlledLogsOpen ?? uncontrolledLogsOpen;
   const currentLogsTab = controlledLogsTab ?? uncontrolledLogsTab;
   const effectiveMobileCompanion = isMobileCompanion ?? isNarrowViewport;
+  const [fallbackResponseCount, setFallbackResponseCount] = useState(0);
+
+  useEffect(() => subscribeDataFallbacks(setFallbackResponseCount), []);
 
   useEffect(() => {
     if (
@@ -603,6 +607,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
             egress={egress}
             offlineSetting={offlineSetting}
             deployPending={deployPending}
+            fallbackResponseCount={fallbackResponseCount}
             onSwitchToLocalModel={onSwitchToLocalModel}
             onGoOffline={onGoOffline}
           />

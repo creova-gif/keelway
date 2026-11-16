@@ -86,6 +86,7 @@ export interface StatusBarEgressProps {
   egress: EgressTelemetryState;
   offlineSetting: boolean;
   deployPending: boolean;
+  fallbackResponseCount?: number;
   onSwitchToLocalModel?: () => void;
   onGoOffline?: () => void;
 }
@@ -94,6 +95,7 @@ export function StatusBarEgress({
   egress,
   offlineSetting,
   deployPending,
+  fallbackResponseCount = 0,
   onSwitchToLocalModel,
   onGoOffline,
 }: StatusBarEgressProps): React.JSX.Element {
@@ -113,6 +115,17 @@ export function StatusBarEgress({
       <span className={`font-mono tabular-nums ${display.showCloudDetails ? "text-fg" : "text-fg-muted"}`}>
         {display.bytesLabel}
       </span>
+      {fallbackResponseCount > 0 ? (
+        <>
+          <span aria-hidden="true" className="text-fg-dim">·</span>
+          <span
+            className="font-mono text-[11px] text-warning"
+            title="One or more panels are showing bundled fallback data because the local API did not respond."
+          >
+            {`Offline data ×${fallbackResponseCount}`}
+          </span>
+        </>
+      ) : null}
       <SemanticBadge kind={display.badgeKind} />
       {display.showCloudDetails ? (
         <Popover.Root>

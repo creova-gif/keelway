@@ -74,6 +74,22 @@ function shouldUseOfflineFallbackInTest(): boolean {
   return !hasMockProp && !wasReplaced;
 }
 
+let fallbackResponseCount = 0;
+const fallbackListeners = new Set<(count: number) => void>();
+
+export function subscribeDataFallbacks(listener: (count: number) => void): () => void {
+  fallbackListeners.add(listener);
+  listener(fallbackResponseCount);
+  return () => {
+    fallbackListeners.delete(listener);
+  };
+}
+
+function noteDataFallback(): void {
+  fallbackResponseCount += 1;
+  fallbackListeners.forEach((listener) => listener(fallbackResponseCount));
+}
+
 async function requestSameOriginDecoded<T>(
   path: string,
   init: RequestInit,
@@ -86,6 +102,7 @@ async function requestSameOriginDecoded<T>(
     );
   }
   if (shouldUseOfflineFallbackInTest()) {
+    noteDataFallback();
     return fallbackFactory();
   }
 
@@ -100,12 +117,18 @@ async function requestSameOriginDecoded<T>(
       headers,
     });
     if (!response.ok) {
+      noteDataFallback();
       return fallbackFactory();
     }
     const raw: unknown = await response.json();
     const decoded = decode(raw);
-    return decoded !== null ? decoded : fallbackFactory();
+    if (decoded !== null) {
+      return decoded;
+    }
+    noteDataFallback();
+    return fallbackFactory();
   } catch {
+    noteDataFallback();
     return fallbackFactory();
   }
 }
