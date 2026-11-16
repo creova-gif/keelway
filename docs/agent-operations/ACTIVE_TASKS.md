@@ -47,6 +47,7 @@
 | **KEEL-WEB-035** | VS Code Extension Webview Palette Migration (slate/blue → zinc + teal CTA) | `WEBSITE / UX / EXTENSION / BRAND` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-WEB-035-vscode-palette` |
 | **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
 | **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
+| **KEEL-ENG-038** | Simulated OpenCore Response Disclosure (`simulated` flag, mock-backend routing_reason) | `ENGINEERING / PRODUCT-TRUTH / INFERENCE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-038-simulated-disclosure` |
 
 ---
 

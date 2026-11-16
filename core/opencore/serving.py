@@ -350,7 +350,8 @@ class OpenCoreServingEngine:
             usage={"prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens, "total_tokens": prompt_tokens + completion_tokens},
             latency_ms=12.5,
             cost_usd=0.0,
-            routing_reason=self._format_routing_reason("Keelway OpenCore Serving Engine ($0.00 local sovereign weights)", attached),
+            routing_reason=self._format_routing_reason("SIMULATED: Keelway OpenCore mock backend (no model weights loaded)", attached),
+            simulated=True,
         )
 
     async def stream_inference(
@@ -396,6 +397,7 @@ class OpenCoreServingEngine:
                 delta_content=word if idx == 0 else f" {word}",
                 finish_reason="stop" if is_last else None,
                 usage={"prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens, "total_tokens": prompt_tokens + completion_tokens} if is_last else None,
+                simulated=True,
             )
         self._record_telemetry(model_info, completion_tokens)
 
