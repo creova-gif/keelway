@@ -8,10 +8,6 @@ import { Footer } from "@/components/layout/Footer";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { SITE_URL } from "@/lib/utils";
 
-/**
- * Sovereign Local Variable Fonts (zero external Google Font requests,
- * 100% offline-deterministic, matching Keelway Studio).
- */
 const inter = localFont({
   src: "../fonts/inter-latin-wght.woff2",
   variable: "--font-inter",
@@ -28,8 +24,8 @@ const jetbrainsMono = localFont({
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0B0F14" },
-    { media: "(prefers-color-scheme: light)", color: "#F7F9FB" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090B" },
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -45,7 +41,11 @@ export const metadata: Metadata = {
     "Run open-weight OpenCore models locally alongside governed commercial Frontier APIs under one unified API. Deterministic 4D routing, human approval gates, and hash-chained execution proofs.",
   alternates: {
     canonical: "/",
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
   },
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.svg",
   },

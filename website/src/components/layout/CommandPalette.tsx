@@ -295,7 +295,7 @@ export function CommandPalette() {
       case "docs":
         return <BookOpen className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />;
       case "api":
-        return <Webhook className="h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />;
+        return <Webhook className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />;
       case "page":
         return <LayoutGrid className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />;
       default: {
@@ -424,9 +424,7 @@ export function CommandPalette() {
                           "rounded-sm px-2 py-0.5 text-[10px]",
                           item.group === "action"
                             ? "chip-teal"
-                            : item.group === "api" && item.badge === "POST"
-                              ? "chip-amber"
-                              : "chip-neutral"
+                            : "chip-neutral"
                         )}
                       >
                         {item.badge}

@@ -11,7 +11,7 @@ interface WorkflowStage {
   id: string;
   label: string;
   badge: string;
-  badgeVariant: "teal" | "amber";
+  badgeVariant: "teal" | "neutral";
   actor: string;
   blockHash: string;
   prevHash: string;
@@ -39,7 +39,7 @@ const STAGES: WorkflowStage[] = [
     id: "approve",
     label: "2. Approve",
     badge: "STEP 2 · HUMAN APPROVAL GATE",
-    badgeVariant: "amber",
+    badgeVariant: "neutral",
     actor: "Policy: confirm_mutation",
     prevHash: "3f9a1c82e7b405d1",
     blockHash: "7c2d90e41a6b8f33",
@@ -167,7 +167,7 @@ export function ApprovalGateStepper() {
               >
                 {isPlaying ? (
                   <>
-                    <Pause className="h-3.5 w-3.5 text-amber-alert" aria-hidden="true" />
+                    <Pause className="h-3.5 w-3.5 text-fg" aria-hidden="true" />
                     <span>Pause walkthrough</span>
                   </>
                 ) : (
@@ -249,8 +249,8 @@ export function ApprovalGateStepper() {
                     <span
                       className={cn(
                         "rounded-sm px-2.5 py-1",
-                        stage.badgeVariant === "amber"
-                          ? "chip-amber"
+                        stage.badgeVariant === "neutral"
+                          ? "chip-neutral"
                           : "chip-teal"
                       )}
                     >

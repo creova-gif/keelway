@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { GoldenThreadJourneyBar } from "@/components/platform/GoldenThreadJourneyBar";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { SUBSCRIPTION_TIERS } from "@/lib/platformData";
 import {
@@ -103,6 +104,8 @@ export function PlatformWorkspaceBar({
     <section aria-label="Unified workspace bar" className="flex shrink-0 flex-col gap-1.5 border-b border-border bg-chrome px-3 py-2 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5 rounded-sm border border-border-strong bg-surface px-2.5 py-1 font-mono text-[11px] text-fg-muted">
+          <BrandMark size={18} showWordmark />
+          <span aria-hidden="true">·</span>
           <code dir="ltr" className="unicode-bidi-isolate text-fg">{workspacePath}</code>
           <span aria-hidden="true">·</span>
           <span>

@@ -8,23 +8,27 @@ import { trackEvent } from "@/lib/analytics";
 
 type ChartMode = "latency_cost" | "quality_speed";
 
-/**
- * Maps blended cost ($0.00 -> $6.00+) onto a readable pseudo-log X axis [0..1]
- * so $0.00 local OpenCore checkpoints and $0.16-$6.00 Frontier endpoints
- * separate cleanly without overlapping.
- */
+const LOG_SCALE_MULTIPLIER = 22;
+const LOG_SCALE_MAX = 155;
+const MIN_X_RATIO = 0.04;
+const BASE_X_RATIO = 0.14;
+const TTFT_MIN_MS = 80;
+const TTFT_MAX_MS = 1050;
+const THROUGHPUT_MIN = 20;
+const THROUGHPUT_MAX = 160;
+const QUALITY_MIN = 64;
+const QUALITY_MAX = 100;
+
 function costToRatio(usd: number): number {
-  if (usd <= 0) return 0.04;
-  // log10(1 + usd * 20) / log10(1 + 7 * 20)
-  return Math.min(0.96, 0.14 + (Math.log10(1 + usd * 22) / Math.log10(155)) * 0.82);
+  if (usd <= 0) return MIN_X_RATIO;
+  return Math.min(
+    0.96,
+    BASE_X_RATIO +
+      (Math.log10(1 + usd * LOG_SCALE_MULTIPLIER) / Math.log10(LOG_SCALE_MAX)) *
+        0.82
+  );
 }
 
-/**
- * Together AI / Artificial Analysis style Empirical Scatter Plot.
- * Visualizes measured Warm TTFT (ms) vs. Blended Cost ($/1M) and
- * Quality Index vs. Throughput (tok/s) with keyboard-accessible SVG points
- * and a toggleable WCAG data table.
- */
 export function LatencyCostFrontierChart({
   compact = false,
 }: {
@@ -38,7 +42,6 @@ export function LatencyCostFrontierChart({
     EMPIRICAL_BENCHMARKS.find((b) => b.id === selectedId) ??
     EMPIRICAL_BENCHMARKS[1];
 
-  // SVG Coordinate System: 760 x 380
   const W = 760;
   const H = 380;
   const PAD = { top: 28, right: 34, bottom: 48, left: 66 };
@@ -49,26 +52,22 @@ export function LatencyCostFrontierChart({
     return EMPIRICAL_BENCHMARKS.map((pt) => {
       if (mode === "latency_cost") {
         const rx = costToRatio(pt.blendedUsdPerMtok);
-        // Y: TTFT 50ms (bottom=fast) -> 1050ms (top=slower) or invert so lower latency is higher/better?
-        // Standard engineering convention (Artificial Analysis): X = Cost ($/1M, cheaper left), Y = TTFT (ms, lower = faster at bottom) OR Quality (higher = top).
-        // Let's plot X = TTFT Latency (100ms -> 1050ms, faster on left) and Y = Quality Index (65 -> 100, higher on top) OR X = Cost ($/1M) and Y = TTFT (ms, 100ms top = fastest -> 1050ms bottom)!
-        // Putting 100ms (Fastest) at TOP and $0.00 (Free) at LEFT makes TOP-LEFT the unmistakable Pareto Sweet Spot!
-        const ry = (pt.ttftMs - 80) / (1050 - 80); // 0 near top (80ms), 1 near bottom (1050ms)
+        const ry = (pt.ttftMs - TTFT_MIN_MS) / (TTFT_MAX_MS - TTFT_MIN_MS);
         return {
           pt,
           cx: PAD.left + rx * plotW,
           cy: PAD.top + Math.max(0.04, Math.min(0.95, ry)) * plotH,
         };
-      } else {
-        // Mode 2: X = Throughput (20 -> 160 tok/s, faster right), Y = Quality Index (65 -> 100, higher top)
-        const rx = (pt.throughputTokPerSec - 20) / (160 - 20);
-        const ry = 1 - (pt.qualityIndex - 64) / (100 - 64);
-        return {
-          pt,
-          cx: PAD.left + Math.max(0.05, Math.min(0.95, rx)) * plotW,
-          cy: PAD.top + Math.max(0.05, Math.min(0.95, ry)) * plotH,
-        };
       }
+      const rx =
+        (pt.throughputTokPerSec - THROUGHPUT_MIN) /
+        (THROUGHPUT_MAX - THROUGHPUT_MIN);
+      const ry = 1 - (pt.qualityIndex - QUALITY_MIN) / (QUALITY_MAX - QUALITY_MIN);
+      return {
+        pt,
+        cx: PAD.left + Math.max(0.05, Math.min(0.95, rx)) * plotW,
+        cy: PAD.top + Math.max(0.05, Math.min(0.95, ry)) * plotH,
+      };
     });
   }, [mode, plotW, plotH, PAD.left, PAD.top]);
 
@@ -342,7 +341,7 @@ export function LatencyCostFrontierChart({
                       cy={cy}
                       r={12}
                       fill="none"
-                      stroke={isOpen ? "var(--teal-accent)" : "var(--amber-alert)"}
+                      stroke={isOpen ? "var(--teal-accent)" : "var(--fg-primary)"}
                       strokeWidth="2"
                       opacity="0.85"
                     />
@@ -351,8 +350,8 @@ export function LatencyCostFrontierChart({
                     cx={cx}
                     cy={cy}
                     r={isActive ? 6.5 : 5}
-                    fill={isOpen ? "var(--teal-accent)" : "var(--amber-alert)"}
-                    stroke="#0B0F14"
+                    fill={isOpen ? "var(--teal-accent)" : "var(--fg-primary)"}
+                    stroke="var(--bg-canvas)"
                     strokeWidth="1.5"
                   />
                   <text
@@ -380,7 +379,7 @@ export function LatencyCostFrontierChart({
                 Category A: Open-Weight ($0 Local / VPC)
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-alert" />
+                <span className="h-2.5 w-2.5 rounded-full bg-fg" />
                 Category B: Commercial Frontier Cloud
               </span>
             </div>
@@ -391,7 +390,6 @@ export function LatencyCostFrontierChart({
           </div>
         </div>
 
-        {/* Right Selected Point Telemetry Panel */}
         <div
           aria-live="polite"
           className="flex flex-col justify-between rounded-md border border-border-strong bg-canvas p-5 lg:col-span-4"
@@ -403,7 +401,7 @@ export function LatencyCostFrontierChart({
                   "rounded-sm px-2.5 py-0.5 text-[10px]",
                   selected.category === "open_weight"
                     ? "chip-teal"
-                    : "chip-amber"
+                    : "chip-neutral"
                 )}
               >
                 {selected.category === "open_weight"

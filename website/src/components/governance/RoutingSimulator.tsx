@@ -194,9 +194,10 @@ export function RoutingSimulator() {
     >
       <div className="flex flex-col justify-between gap-4 border-b border-border-subtle pb-6 lg:flex-row lg:items-end">
         <div>
-          <span className="chip-teal inline-block rounded-sm px-2.5 py-1">
-            INTERACTIVE 4D ROUTER &amp; ARBITRAGE SIMULATOR
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-canvas px-3.5 py-1 font-mono text-xs text-fg">
+            <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+            <span className="font-semibold">INTERACTIVE 4D ROUTER &amp; ARBITRAGE SIMULATOR</span>
+          </div>
           <h2
             id="sim-heading"
             className="mt-3 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
@@ -412,7 +413,7 @@ export function RoutingSimulator() {
                 onCheckedChange={setFallbackToOpenCore}
                 className={cn(
                   "relative h-7 w-12 shrink-0 rounded-full border border-border-strong transition-colors duration-150",
-                  fallbackToOpenCore ? "bg-teal-accent" : "bg-amber-alert"
+                  fallbackToOpenCore ? "bg-teal-accent" : "bg-surface-elevated"
                 )}
               >
                 <Switch.Thumb
@@ -420,7 +421,7 @@ export function RoutingSimulator() {
                     "block h-5 w-5 translate-x-0.5 rounded-full transition-transform duration-150",
                     fallbackToOpenCore
                       ? "translate-x-6 bg-teal-ink"
-                      : "bg-amber-ink"
+                      : "bg-fg"
                   )}
                 />
               </Switch.Root>
@@ -443,7 +444,7 @@ export function RoutingSimulator() {
                 step={50}
                 value={monthlyCapUsd}
                 onChange={(e) => setMonthlyCapUsd(Number(e.target.value))}
-                className="mt-1.5 h-2 w-full cursor-pointer accent-[#F5B547]"
+                className="mt-1.5 h-2 w-full cursor-pointer accent-zinc-400"
               />
             </div>
           </div>

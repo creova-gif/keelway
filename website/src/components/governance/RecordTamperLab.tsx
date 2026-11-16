@@ -160,9 +160,9 @@ export function RecordTamperLab() {
           <button
             type="button"
             onClick={handleSimulateTamper}
-            className="kw-btn kw-btn-secondary border-amber-alert/70 text-xs"
+            className="kw-btn kw-btn-secondary border-border-strong text-xs"
           >
-            <Zap className="h-3.5 w-3.5 text-amber-alert" aria-hidden="true" />
+            <Zap className="h-3.5 w-3.5 text-fg" aria-hidden="true" />
             <span>⚡ Simulate Tamper on #1279</span>
           </button>
           <button
@@ -193,7 +193,7 @@ export function RecordTamperLab() {
           tampered && verified
             ? "border-fault bg-fault-surface text-fg"
             : tampered
-              ? "border-amber-alert bg-amber-surface text-fg"
+              ? "border-border-strong bg-surface-elevated text-fg"
               : "border-teal-accent/50 bg-teal-surface text-fg"
         )}
       >
@@ -201,7 +201,7 @@ export function RecordTamperLab() {
           {tampered && verified ? (
             <ShieldAlert className="h-4 w-4 shrink-0 text-fault" aria-hidden="true" />
           ) : tampered ? (
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-alert" aria-hidden="true" />
+            <AlertTriangle className="h-4 w-4 shrink-0 text-fg" aria-hidden="true" />
           ) : (
             <CheckCircle2 className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
           )}
@@ -218,7 +218,7 @@ export function RecordTamperLab() {
         <span
           className={cn(
             "rounded-sm px-2 py-0.5",
-            tampered && verified ? "chip-fault" : tampered ? "chip-amber" : "chip-teal"
+            tampered && verified ? "chip-fault" : tampered ? "chip-neutral" : "chip-teal"
           )}
         >
           {tampered && verified ? "TAMPER DETECTED" : tampered ? "UNVERIFIED MUTATION" : "INTEGRITY OK"}
@@ -263,7 +263,7 @@ export function RecordTamperLab() {
                       <span
                         className={cn(
                           "rounded-sm px-1.5 py-0.5 text-[10px]",
-                          row.risk === "Risk C" ? "chip-amber" : row.risk === "Risk B" ? "chip-neutral" : "chip-teal"
+                          row.risk === "Risk C" || row.risk === "Risk B" ? "chip-neutral" : "chip-teal"
                         )}
                       >
                         {row.risk}
@@ -272,7 +272,7 @@ export function RecordTamperLab() {
                     <td className={cn("px-3 py-3", verified && row.isPrevHashBroken ? "font-bold text-fault" : "text-fg-muted")}>
                       {shortHex(row.prevHash)}
                     </td>
-                    <td className={cn("px-3 py-3", row.isTamperedPayload ? "font-bold text-amber-alert" : "text-fg")}>
+                    <td className={cn("px-3 py-3", row.isTamperedPayload ? "font-bold text-fg" : "text-fg")}>
                       {shortHex(row.storedEntryHash)}
                     </td>
                   </tr>

@@ -201,7 +201,7 @@ export function HeroControlCockpit() {
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               {decision === "pending" && (
-                <span className="chip-amber inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
+                <span className="chip-neutral inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1">
                   <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
                   AWAITING HUMAN QUORUM
                 </span>
@@ -358,7 +358,7 @@ export function HeroControlCockpit() {
                   className={cn(
                     "min-h-[38px] rounded-sm px-3 font-mono text-[11px] font-semibold transition-colors duration-150",
                     boundary === "hybrid_arbitrage"
-                      ? "bg-amber-alert text-amber-ink"
+                      ? "bg-fg text-canvas"
                       : "text-fg-muted hover:text-fg"
                   )}
                 >
@@ -405,7 +405,7 @@ export function HeroControlCockpit() {
                   ) : (
                     <>
                       <Network
-                        className="h-3.5 w-3.5 text-amber-alert"
+                        className="h-3.5 w-3.5 text-fg-muted"
                         aria-hidden="true"
                       />
                       <span>Redacted TLS · Tenant Opt-In</span>
@@ -493,14 +493,14 @@ export function HeroControlCockpit() {
                     className={cn(
                       "rounded-sm border p-2 text-center font-mono text-[10px]",
                       isFrontier
-                        ? "border-amber-alert/60 bg-amber-surface text-fg"
+                        ? "border-border-strong bg-surface-elevated text-fg"
                         : "border-teal-accent/50 bg-teal-surface text-fg"
                     )}
                   >
                     <div className="flex items-center justify-center">
                       {isFrontier ? (
                         <Sparkles
-                          className="h-3.5 w-3.5 text-amber-alert"
+                          className="h-3.5 w-3.5 text-fg-muted"
                           aria-hidden="true"
                         />
                       ) : (

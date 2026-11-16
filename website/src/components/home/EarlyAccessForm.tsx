@@ -71,9 +71,10 @@ export function EarlyAccessForm() {
         <div className="mx-auto max-w-2xl">
           <div className="frame-crosshair rounded-lg border border-border-strong bg-surface p-6 shadow-xl sm:p-8">
             <div className="text-center">
-              <span className="chip-teal inline-block rounded-sm px-2.5 py-1">
-                TEAM, STARTUP &amp; ENTERPRISE ONBOARDING
-              </span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-canvas px-3.5 py-1 font-mono text-xs text-fg">
+                <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+                <span className="font-semibold">TEAM, STARTUP &amp; ENTERPRISE ONBOARDING</span>
+              </div>
               <h2
                 id="ea-heading"
                 className="mt-3 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
@@ -252,10 +253,10 @@ export function EarlyAccessForm() {
                 <div
                   role="alert"
                   aria-live="polite"
-                  className="flex items-start gap-2.5 rounded-md border border-amber-alert/60 bg-amber-surface p-3.5 text-xs text-fg"
+                  className="flex items-start gap-2.5 rounded-md border border-border-strong bg-surface-elevated p-3.5 text-xs text-fg"
                 >
                   <AlertTriangle
-                    className="mt-0.5 h-4 w-4 shrink-0 text-amber-alert"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-fg"
                     aria-hidden="true"
                   />
                   <span>{message}</span>
