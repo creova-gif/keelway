@@ -8,6 +8,7 @@ evaluation through the real `SQLiteAgentCoharnessEngine` verdict authority.
 from __future__ import annotations
 
 import io
+import json
 import os
 import stat
 from pathlib import Path
@@ -249,3 +250,90 @@ def test_cli_agents_intercept_claude_code_format(tmp_path, capsys) -> None:
     assert rc == 0
     out = _json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["permissionDecision"] == "allow"
+
+
+# --- process runner (KEEL-ENG-047) ---
+
+def _runner_fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, name: str = "claude",
+                    body: str = "echo 'agent-output-line'\n") -> Path:
+    bindir = tmp_path / "runbin"
+    bindir.mkdir(exist_ok=True)
+    script = bindir / name
+    script.write_text(f"#!/bin/sh\n{body}", encoding="utf-8")
+    script.chmod(script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv("PATH", f"{bindir}:{os.environ.get('PATH', '')}")
+    return bindir
+
+
+def test_runner_captures_events_and_exit(tmp_path, monkeypatch) -> None:
+    from core.agents.external.runner import run_agent_process
+    _runner_fixture(tmp_path, monkeypatch,
+                    body="echo 'hello-from-agent'\necho 'err-line' >&2\nexit 0\n")
+    result = run_agent_process(ClaudeCodeAdapter(), timeout_s=10)
+    assert result.exit_code == 0
+    assert result.timed_out is False
+    assert "hello-from-agent" in result.preview("stdout")
+    assert "err-line" in result.preview("stderr")
+    assert result.stdout_lines == 1 and result.stderr_lines == 1
+
+
+def test_runner_env_is_scrubbed(tmp_path, monkeypatch) -> None:
+    from core.agents.external.runner import run_agent_process
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-secret-value")
+    _runner_fixture(tmp_path, monkeypatch,
+                    body="if [ -n \"$ANTHROPIC_API_KEY\" ]; then echo 'KEY-PRESENT'; else echo 'KEY-ABSENT'; fi\n")
+    result = run_agent_process(ClaudeCodeAdapter(), timeout_s=10)
+    assert "KEY-ABSENT" in result.preview("stdout")
+
+
+def test_runner_timeout_kills_process(tmp_path, monkeypatch) -> None:
+    from core.agents.external.runner import run_agent_process
+    _runner_fixture(tmp_path, monkeypatch, body="sleep 30\n")
+    result = run_agent_process(ClaudeCodeAdapter(), timeout_s=1)
+    assert result.timed_out is True
+    assert result.exit_code is not None
+
+
+def test_runner_summary_scrubs_secrets(tmp_path, monkeypatch) -> None:
+    from core.agents.external.runner import run_agent_process
+    _runner_fixture(tmp_path, monkeypatch,
+                    body="echo 'token sk-ant-api03-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'\n")
+    result = run_agent_process(ClaudeCodeAdapter(), timeout_s=10)
+    summary = result.scrubbed_summary()
+    blob = json.dumps(summary)
+    assert "sk-ant-api03-aaaaaaaa" not in blob
+
+
+def test_runner_missing_binary_raises(tmp_path, monkeypatch) -> None:
+    from core.agents.external.runner import AgentRunError, run_agent_process
+    monkeypatch.setenv("PATH", str(tmp_path))
+    with pytest.raises(AgentRunError):
+        run_agent_process(ClaudeCodeAdapter(), timeout_s=5)
+
+
+def test_cli_agents_run_fixture(tmp_path, monkeypatch, capsys) -> None:
+    from cli import main as cli_main
+    _runner_fixture(tmp_path, monkeypatch, name="claude",
+                    body="echo 'cli-run-ok'\nexit 0\n")
+    db = str(tmp_path / "h.db")
+    rc = cli_main(["harness", "agents", "run", "--agent", "claude_code",
+                   "--db-path", db, "--json"])
+    assert rc == 0
+    import json as _json
+    out = _json.loads(capsys.readouterr().out)
+    assert out["exit_code"] == 0
+    assert "cli-run-ok" in out["output_preview"]
+
+
+def test_cli_agents_run_tape(tmp_path, monkeypatch, capsys) -> None:
+    from cli import main as cli_main
+    _runner_fixture(tmp_path, monkeypatch, name="claude", body="echo 'taped'\n")
+    rc = cli_main(["harness", "agents", "run", "--agent", "claude_code",
+                   "--tape", "--trace-id", "run-1",
+                   "--db-path", str(tmp_path / "h.db"),
+                   "--tape-db-path", str(tmp_path / "t.db"), "--json"])
+    assert rc == 0
+    import json as _json
+    out = _json.loads(capsys.readouterr().out)
+    assert out["flight_tape"]["trace_id"] == "run-1"
+    assert out["flight_tape"]["tape_sha256"]

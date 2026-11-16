@@ -3,9 +3,9 @@
 Implements the six acceptance criteria from
 `docs/architecture/THIRD_PARTY_AGENT_INTEGRATION.md` §6 for each registered
 adapter, using fixture binaries and the real policy/flight-tape engines —
-no mocks of Keelway internals. Criteria that require a live vendor CLI
-(process spawn, real hook delivery) are marked PARTIAL and documented; they
-must not be claimed as verified until run against pinned real binaries.
+no mocks of Keelway internals. Criterion 2 (spawn + event stream) is verified against fixture binaries;
+real vendor CLI hook delivery remains unverified and must not be claimed
+until run against pinned real binaries.
 """
 
 from __future__ import annotations
@@ -71,7 +71,7 @@ def test_c1_detect_install(fake_bin_dir: Path, agent_id: str) -> None:
     assert det.version == "fixture-agent 9.9.9"
 
 
-# --- Criterion 2: launch spec + normalized event stream (PARTIAL: no spawn yet) ---
+# --- Criterion 2: launch produces a normalized event stream ---
 
 @pytest.mark.parametrize("agent_id", ADAPTER_IDS)
 def test_c2_launch_spec_and_normalized_events(agent_id: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -80,11 +80,28 @@ def test_c2_launch_spec_and_normalized_events(agent_id: str, tmp_path: Path, mon
     assert spec.agent_id == agent_id
     assert spec.argv and spec.argv[0] == adapter.binary_name
     assert spec.cwd == str(tmp_path)
-    # normalized event stream: hook payload -> NormalizedToolCall
     call = adapter.parse_hook_payload(_payload_for(agent_id, "git status"))
     assert call.agent_id == agent_id
     assert call.command == "git status"
-    # PARTIAL: actual subprocess spawn + stdout event streaming not implemented (Phase D remainder)
+
+
+@pytest.mark.parametrize("agent_id", ADAPTER_IDS)
+def test_c2b_process_spawn_event_stream(agent_id: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Real subprocess spawn via fixture binary -> normalized AgentRunEvent stream."""
+    from core.agents.external.runner import run_agent_process
+    bindir = tmp_path / "spawnbin"
+    bindir.mkdir()
+    script = bindir / get_adapter(agent_id).binary_name
+    script.write_text("#!/bin/sh\necho 'spawn-event-1'\necho '{\"type\":\"tool_call\"}'\nexit 0\n",
+                      encoding="utf-8")
+    script.chmod(script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv("PATH", f"{bindir}:{os.environ.get('PATH', '')}")
+    result = run_agent_process(get_adapter(agent_id), timeout_s=10)
+    assert result.exit_code == 0 and not result.timed_out
+    assert result.stdout_lines == 2
+    assert result.events[0].stream == "stdout"
+    assert result.events[0].line == "spawn-event-1"
+    assert result.events[1].line == '{"type":"tool_call"}'
 
 
 # --- Criterion 3: destructive command denied ---

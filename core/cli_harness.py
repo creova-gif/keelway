@@ -17,6 +17,7 @@ from core.agents.external import (
     evaluate_hook_payload,
     get_adapter,
 )
+from core.agents.external.runner import run_agent_process, run_result_to_tape_span
 from core.agents.external.tape import record_hook_evaluation
 from core.platform.flight_tape import SQLiteFlightTapeEngine
 from core.platform.agent_coharness import (
@@ -97,6 +98,18 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
                                help="Record the evaluation as a flight-tape span (hash-chained evidence)")
     hr_agents_int.add_argument("--trace-id", default=None, help="Optional flight-tape trace ID (default: generated)")
     hr_agents_int.add_argument("--tape-db-path", default=None, help="Optional SQLite path for the flight-tape engine")
+
+    hr_agents_run = hr_agents_sub.add_parser("run", help="Launch an external agent CLI (env-scrubbed) and stream normalized events")
+    hr_agents_run.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
+                               choices=["claude_code", "codex_cli"], help="External agent adapter ID")
+    hr_agents_run.add_argument("--cwd", default=None, help="Working directory for the agent process")
+    hr_agents_run.add_argument("--timeout", type=float, default=120.0, help="Max run seconds (default: 120)")
+    hr_agents_run.add_argument("--tape", action="store_true", help="Record run summary as a flight-tape span")
+    hr_agents_run.add_argument("--trace-id", default=None, help="Optional flight-tape trace ID")
+    hr_agents_run.add_argument("--tape-db-path", default=None, help="Optional SQLite path for the flight-tape engine")
+    hr_agents_run.add_argument("agent_args", nargs=argparse.REMAINDER,
+                               help="Arguments passed to the agent CLI after '--'")
+    _add_common_flags(hr_agents_run)
     _add_common_flags(hr_agents_int)
 
     cg = subparsers.add_parser("ci-gate", help="Parallel worktree candidate arena & hybrid unit-economics CI gate")
@@ -240,6 +253,37 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                     if res["decision"] == "hold":
                         return 2
                     return 0
+
+                if agents_act == "run":
+                    extra = [a for a in (getattr(args, "agent_args", None) or []) if a != "--"]
+                    adapter = get_adapter(str(args.agent_id))
+                    result = run_agent_process(
+                        adapter,
+                        workspace_root=getattr(args, "cwd", None),
+                        extra_args=extra or None,
+                        timeout_s=float(getattr(args, "timeout", 120.0)),
+                    )
+                    res = result.scrubbed_summary()
+                    res["argv"] = result.argv
+                    if getattr(args, "tape", False):
+                        tape_engine = SQLiteFlightTapeEngine(db_path=getattr(args, "tape_db_path", None))
+                        try:
+                            meta = tape_engine.ingest_traces(
+                                workspace_id=ws_id,
+                                workflow_name=f"external-run:{result.agent_id}",
+                                source_framework="keelway-agent-adapter",
+                                spans=[run_result_to_tape_span(result)],
+                                trace_id=str(getattr(args, "trace_id", "") or "") or None,
+                            )
+                            res["flight_tape"] = {"trace_id": meta.get("trace_id"),
+                                                  "tape_sha256": meta.get("tape_sha256")}
+                        finally:
+                            tape_engine.close()
+                    print(json.dumps(res, indent=2) if as_json else
+                          f"[{result.agent_id}] exit={result.exit_code} timed_out={result.timed_out} "
+                          f"stdout={result.stdout_lines} stderr={result.stderr_lines} "
+                          f"duration_ms={result.duration_ms:.0f}")
+                    return 0 if (result.exit_code == 0 and not result.timed_out) else 1
 
         if cmd == "ci-gate":
             act = getattr(args, "cigate_action", None)
