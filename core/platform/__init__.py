@@ -39,6 +39,7 @@ from core.platform.settlement import (
 from core.platform.signing import (
     SORVEX_FIRST_PARTY_KEY_ID,
     Ed25519ManifestSigner,
+    FirstPartySigningKeyUnavailable,
     canonical_manifest_bytes,
     generate_publisher_keypair,
     get_sorvex_first_party_keypair,
@@ -67,6 +68,7 @@ __all__ = [
     "AUTHORIZED_BYOM_KINDS",
     "CURATED_SEED_PACKAGES",
     "Ed25519ManifestSigner",
+    "FirstPartySigningKeyUnavailable",
     "EnterpriseGovernanceManager",
     "EnterprisePolicyValidationError",
     "ExtensionRegistry",

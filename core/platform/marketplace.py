@@ -22,6 +22,7 @@ from core.platform.persistence import SQLitePlatformStore
 from core.platform.signing import (
     SORVEX_FIRST_PARTY_KEY_ID,
     Ed25519ManifestSigner,
+    FirstPartySigningKeyUnavailable,
     get_sorvex_first_party_keypair,
 )
 from core.platform.subscription import MARKETPLACE_SPLITS, subscription_policy_engine
@@ -414,8 +415,12 @@ class MarketplaceRegistry:
             record["signer_key_id"] = str(payload["signer_key_id"])
             record["ed25519_signature"] = str(payload["ed25519_signature"])
         elif publisher_tier == "first_party":
-            sorvex_pem, _ = get_sorvex_first_party_keypair()
-            record = self.signer.sign_manifest(record, sorvex_pem, SORVEX_FIRST_PARTY_KEY_ID)
+            try:
+                sorvex_pem, _ = get_sorvex_first_party_keypair()
+            except FirstPartySigningKeyUnavailable:
+                pass
+            else:
+                record = self.signer.sign_manifest(record, sorvex_pem, SORVEX_FIRST_PARTY_KEY_ID)
 
         self._packages[pkg_id] = record
         if self.store is not None:
