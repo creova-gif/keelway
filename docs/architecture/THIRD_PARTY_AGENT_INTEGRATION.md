@@ -55,7 +55,7 @@ AgentAdapter (protocol)
 
 - **Phase A (this scope)**: doc + verification of existing harness (done).
 - **Phase B (done, KEEL-ENG-042)**: MCP client for registered stdio/sse servers — `call_tool` now invokes them with DLP scrub + SHA-256 receipts identical to builtins.
-- **Phase C**: `AgentAdapter` interface + `claude_code`/`codex_cli` adapters (detection, env-scrubbed launch, hook injection, event normalization) behind `audit_only` first.
+- **Phase C (done, KEEL-ENG-043)**: `core/agents/external/` adapters + policy bridge, audit_only-first, 14 tests.
 - **Phase D**: enforce mode for hook-capable agents; PostToolUse/SessionStart events; flight-tape wiring.
 - **Phase E**: OpenCode/Cline/ACP; per-agent conformance suite in CI (`tests/test_external_agents.py` with fixture CLIs).
 
