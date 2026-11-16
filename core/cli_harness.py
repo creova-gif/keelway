@@ -17,6 +17,8 @@ from core.agents.external import (
     evaluate_hook_payload,
     get_adapter,
 )
+from core.agents.external.tape import record_hook_evaluation
+from core.platform.flight_tape import SQLiteFlightTapeEngine
 from core.platform.agent_coharness import (
     AgentCoharnessValidationError,
     ApprovalTicketConflictError,
@@ -91,6 +93,10 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
                                help="Policy mode (default: audit_only)")
     hr_agents_int.add_argument("--format", dest="output_format", choices=["json", "claude-code"], default="json",
                                help="Output format: 'json' (default) or 'claude-code' PreToolUse permissionDecision JSON")
+    hr_agents_int.add_argument("--tape", action="store_true",
+                               help="Record the evaluation as a flight-tape span (hash-chained evidence)")
+    hr_agents_int.add_argument("--trace-id", default=None, help="Optional flight-tape trace ID (default: generated)")
+    hr_agents_int.add_argument("--tape-db-path", default=None, help="Optional SQLite path for the flight-tape engine")
     _add_common_flags(hr_agents_int)
 
     cg = subparsers.add_parser("ci-gate", help="Parallel worktree candidate arena & hybrid unit-economics CI gate")
@@ -204,6 +210,20 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                         mode=str(getattr(args, "mode", "audit_only")),
                         adapter=adapter,
                     )
+                    if getattr(args, "tape", False):
+                        tape_engine = SQLiteFlightTapeEngine(db_path=getattr(args, "tape_db_path", None))
+                        try:
+                            tape_meta = record_hook_evaluation(
+                                tape_engine, ws_id, str(args.agent_id), res,
+                                trace_id=str(getattr(args, "trace_id", "") or "") or None,
+                            )
+                            res["flight_tape"] = {
+                                "trace_id": tape_meta.get("trace_id"),
+                                "tape_sha256": tape_meta.get("tape_sha256"),
+                                "total_steps": tape_meta.get("total_steps"),
+                            }
+                        finally:
+                            tape_engine.close()
                     out_format = str(getattr(args, "output_format", "json"))
                     if out_format == "claude-code":
                         decision_map = {"allow": "allow", "deny": "deny", "hold": "ask"}
