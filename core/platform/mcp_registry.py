@@ -23,6 +23,7 @@ import time
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from core.orchestration.mcp import MCPProtocolServer, PROTOCOL_VERSION
+from core.platform.mcp_client import McpClientError, call_remote_tool
 from core.platform.rbac_webhooks import validate_webhook_url
 from core.platform.vault import LocalSecretVault, _resolve_sqlite_target
 from core.security.redact import redact_payload, redact_text
@@ -415,6 +416,38 @@ class PlatformMcpRegistry:
             })
         return {"workspace_id": ws, "count": len(tools), "total": len(tools), "protocol_version": PROTOCOL_VERSION, "tools": tools}
 
+    def _resolve_remote_server(self, ws: str, tool_name: str) -> Optional[Dict[str, Any]]:
+        """Find the registered external server allowed to serve `tool_name`.
+
+        Matches exact tool names in `allowed_tools_json`, or the `*` wildcard.
+        Returns the server row dict, or None when no server claims the tool.
+        Raises ValueError when multiple servers claim the same tool name.
+        """
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, workspace_id, name, transport, endpoint, allowed_tools_json, status, created_at "
+                "FROM platform_mcp_servers WHERE workspace_id=? ORDER BY rowid ASC",
+                (ws,),
+            ).fetchall()
+        matches: List[Dict[str, Any]] = []
+        for r in rows:
+            try:
+                allowed = json.loads(str(r["allowed_tools_json"]))
+            except ValueError:
+                continue
+            if isinstance(allowed, list) and (tool_name in allowed or "*" in allowed):
+                matches.append({
+                    "id": str(r["id"]), "workspace_id": str(r["workspace_id"]),
+                    "name": str(r["name"]), "transport": str(r["transport"]),
+                    "endpoint": str(r["endpoint"]), "status": str(r["status"]),
+                })
+        if not matches:
+            return None
+        if len(matches) > 1:
+            ids = ", ".join(sorted(m["id"] for m in matches))
+            raise ValueError(f"MCP tool '{tool_name}' is claimed by multiple servers ({ids}); qualify or narrow allowed_tools.")
+        return matches[0]
+
     def call_tool(
         self,
         workspace_id: str,
@@ -425,28 +458,43 @@ class PlatformMcpRegistry:
         clean_tool = str(tool_name or "").strip()
         if not ws:
             raise ValueError("MCP 'workspace_id' must be non-empty.")
-        if clean_tool not in self.mcp_server.tools:
-            raise KeyError(f"MCP tool '{clean_tool}' is not registered.")
         if arguments is not None and not isinstance(arguments, dict):
             raise ValueError("MCP tool 'arguments' must be a JSON object.")
         call_args = dict(arguments or {})
+        remote_server: Optional[Dict[str, Any]] = None
+        if clean_tool not in self.mcp_server.tools:
+            remote_server = self._resolve_remote_server(ws, clean_tool)
+        if clean_tool not in self.mcp_server.tools and remote_server is None:
+            raise KeyError(f"MCP tool '{clean_tool}' is not registered.")
         if clean_tool == "vault.list_metadata" and "workspace_id" not in call_args:
             call_args["workspace_id"] = ws
 
         t0 = time.perf_counter()
 
-        async def _invoke() -> Dict[str, Any]:
-            rpc = await self.mcp_server.handle_jsonrpc_request(
-                {"jsonrpc": "2.0", "id": "call-1", "method": "tools/call", "params": {"name": clean_tool, "arguments": call_args}}
-            )
-            res_obj = (rpc or {}).get("result", {})
-            content = res_obj.get("content", [])
-            text = str(content[0]["text"]) if content else "{}"
-            if res_obj.get("isError"):
-                raise McpToolArgumentError(text.removeprefix("Tool execution failed: "))
-            return json.loads(text)
+        if remote_server is not None:
+            try:
+                raw_res = call_remote_tool(
+                    str(remote_server["transport"]),
+                    str(remote_server["endpoint"]),
+                    clean_tool,
+                    call_args,
+                )
+            except McpClientError as exc:
+                raise McpToolArgumentError(f"Remote MCP tool '{clean_tool}' failed: {exc}") from exc
+        else:
 
-        raw_res = _run_coro_sync(_invoke)
+            async def _invoke() -> Dict[str, Any]:
+                rpc = await self.mcp_server.handle_jsonrpc_request(
+                    {"jsonrpc": "2.0", "id": "call-1", "method": "tools/call", "params": {"name": clean_tool, "arguments": call_args}}
+                )
+                res_obj = (rpc or {}).get("result", {})
+                content = res_obj.get("content", [])
+                text = str(content[0]["text"]) if content else "{}"
+                if res_obj.get("isError"):
+                    raise McpToolArgumentError(text.removeprefix("Tool execution failed: "))
+                return json.loads(text)
+
+            raw_res = _run_coro_sync(_invoke)
 
         duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
         scrubbed_result, was_redacted, scrubbed_json = _scrub_mcp_result(raw_res)

@@ -51,6 +51,7 @@
 | **KEEL-ENG-039** | `/v1/models` Installed + Simulated Flags (registry-vs-reality disclosure) | `ENGINEERING / PRODUCT-TRUTH / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-039-model-flags` |
 | **KEEL-ENG-040** | Ollama Thinking-Model Handling (`think` flag + `message.thinking` fallback) | `ENGINEERING / INFERENCE / LOCAL-MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-040-thinking-models` |
 | **KEEL-ENG-041** | Third-Party Agent Integration Scoping (co-harness verified; adapter/MCP-client gaps documented) | `ENGINEERING / EXTENSIBILITY / AGENTS` | `SCOPED` | Devin | 2026-11-16 | `docs/KEEL-ENG-041-agent-integration-scope` |
+| **KEEL-ENG-042** | MCP Client: Remote stdio/sse Tool Dispatch (registered servers now invocable) | `ENGINEERING / EXTENSIBILITY / MCP` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-042-mcp-client` |
 
 ---
 

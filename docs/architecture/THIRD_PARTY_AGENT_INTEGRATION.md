@@ -16,7 +16,7 @@
 ## 2. Verified gaps
 
 1. **No agent-process adapters.** Nothing spawns or wraps third-party agent CLIs (`claude`, `codex`, `cursor-agent`, `opencode`, `cline`). The co-harness governs *tool calls reported to it* via hooks; it cannot launch an agent, stream its events, or enforce policy on agents without hook support.
-2. **External MCP servers are catalog-only.** `register_server` persists sse/stdio endpoints with strong validation, but `call_tool` only dispatches `self.mcp_server.tools` (builtins). There is **no MCP client** that spawns stdio servers or connects to SSE endpoints — registered servers cannot actually be invoked.
+2. ~~**External MCP servers are catalog-only.**~~ **Resolved (KEEL-ENG-042):** `PlatformMcpRegistry.call_tool` now dispatches non-builtin tools to registered `stdio`/`sse` servers via `core/platform/mcp_client.py`. stdio reuses `core.orchestration.mcp_client.MCPClient` (env-scrubbed subprocess, fresh bounded session per call); sse uses streamable-HTTP JSON-RPC POST (JSON or `data:` SSE frames). `allowed_tools`/`*` enforced; ambiguous claims raise. Verified by `tests/test_mcp_remote_dispatch.py` (11 tests).
 3. **No ACP support.** Agent Client Protocol (Zed/ACP) is absent; JSON-RPC MCP only.
 4. **No per-agent contract tests.** Phase18 tests exercise the interception engine with synthetic payloads, not real agent CLIs.
 5. **Hook coverage is partial.** Only `PreToolUse` on 3 hosts; no PostToolUse/SessionStart events, no `opencode`/`cline`/`devin`/`windsurf` hosts.
@@ -54,7 +54,7 @@ AgentAdapter (protocol)
 ## 5. Phased plan
 
 - **Phase A (this scope)**: doc + verification of existing harness (done).
-- **Phase B**: MCP client for registered stdio/sse servers — makes the existing registry real; contract tests with a fixture stdio server (no external deps).
+- **Phase B (done, KEEL-ENG-042)**: MCP client for registered stdio/sse servers — `call_tool` now invokes them with DLP scrub + SHA-256 receipts identical to builtins.
 - **Phase C**: `AgentAdapter` interface + `claude_code`/`codex_cli` adapters (detection, env-scrubbed launch, hook injection, event normalization) behind `audit_only` first.
 - **Phase D**: enforce mode for hook-capable agents; PostToolUse/SessionStart events; flight-tape wiring.
 - **Phase E**: OpenCode/Cline/ACP; per-agent conformance suite in CI (`tests/test_external_agents.py` with fixture CLIs).
