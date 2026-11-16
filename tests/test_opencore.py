@@ -195,6 +195,7 @@ async def test_opencore_api_routes():
         model_ids = {m["model_id"] for m in manifests}
         assert "keelway-core:7b" in model_ids
         assert "keelway-nano:1.5b" in model_ids
+        assert all(m.get("simulated") is True for m in manifests)
 
         # 3. POST /v1/opencore/models/load
         resp_load = await client.post(

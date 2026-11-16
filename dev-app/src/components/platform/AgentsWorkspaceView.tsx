@@ -395,10 +395,13 @@ export function AgentsWorkspaceView({
                     onChange={(e) => handleModelChange(agent.id, e.target.value)}
                     className="rounded-xs border border-border-control bg-canvas px-1.5 py-0.5 font-mono text-[11px] text-fg"
                   >
-                    <option value="keelway-core:7b">keelway-core:7b (Local)</option>
-                    <option value="keelway-reasoner:14b">keelway-reasoner:14b (Local)</option>
+                    <option value="keelway-core:7b">keelway-core:7b (Simulated)</option>
+                    <option value="keelway-reasoner:14b">keelway-reasoner:14b (Simulated)</option>
                     <option value="byom:authorized-api">byom:authorized-api (0% Markup)</option>
                   </select>
+                  {agent.defaultModel.startsWith("keelway-") ? (
+                    <SemanticBadge kind="simulated" labelOverride="Simulated" />
+                  ) : null}
                   <span className="font-mono text-[10px] text-fg-dim">
                     {agent.requiresP10 ? "P-10 Human Gate" : "Read/Plan Scope"}
                   </span>
@@ -473,9 +476,12 @@ export function AgentsWorkspaceView({
                 onChange={(e) => setCustomModel(e.target.value)}
                 className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2 py-1 font-mono text-xs text-fg"
               >
-                <option value="keelway-core:7b">keelway-core:7b</option>
-                <option value="keelway-reasoner:14b">keelway-reasoner:14b</option>
+                <option value="keelway-core:7b">keelway-core:7b (Simulated)</option>
+                <option value="keelway-reasoner:14b">keelway-reasoner:14b (Simulated)</option>
               </select>
+              {customModel.startsWith("keelway-") ? (
+                <SemanticBadge kind="simulated" labelOverride="Simulated weights" />
+              ) : null}
             </label>
             <label className="inline-flex items-center gap-1.5 text-xs text-fg">
               <input type="checkbox" checked={customP10} onChange={(e) => setCustomP10(e.target.checked)} />

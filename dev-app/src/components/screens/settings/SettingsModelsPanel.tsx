@@ -217,6 +217,9 @@ export function SettingsModelsPanel({
                           <code dir="ltr" className="unicode-bidi-isolate">{weight.id}</code>
                           {` · ${weight.license}`}
                         </div>
+                        {weight.simulated ? (
+                          <SemanticBadge kind="simulated" labelOverride="Simulated weights — not real model" />
+                        ) : null}
                       </td>
                       <td className="px-3 py-2 font-mono text-fg-muted">
                         <code dir="ltr" className="unicode-bidi-isolate">{weight.quantization}</code>

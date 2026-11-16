@@ -363,6 +363,7 @@ export interface OpenCoreWeightItem {
   sha256: string;
   license: string;
   localLoopback: boolean;
+  simulated?: boolean;
 }
 
 export interface RoutingExplainRequest {
