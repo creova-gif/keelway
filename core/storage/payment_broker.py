@@ -7,6 +7,7 @@ M-Pesa (East Africa), PIX (Brazil), UPI (India), L402 Lightning (Global), and Of
 import hashlib
 import hmac
 import json
+import os
 import time
 import uuid
 from dataclasses import dataclass
@@ -50,7 +51,13 @@ class GlobalPaymentBroker:
         "SATS": 0.00065,  # Bitcoin Satoshis (L402)
     }
 
-    def __init__(self, broker_secret: str = "KORA_SOVEREIGN_PAYMENT_SECRET_2026"):
+    _SOURCE_DEFAULT_SECRET = "KORA_SOVEREIGN_PAYMENT_SECRET_2026"
+    _SECRET_ENV = "KEELWAY_PAYMENT_BROKER_SECRET"
+
+    def __init__(self, broker_secret: Optional[str] = None):
+        if broker_secret is None:
+            raw = os.environ.get(self._SECRET_ENV, "").strip()
+            broker_secret = raw if raw and not is_source_default(raw) else self._SOURCE_DEFAULT_SECRET
         self.broker_secret = broker_secret
         self.intents: Dict[str, PaymentIntent] = {}
 

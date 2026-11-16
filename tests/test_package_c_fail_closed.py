@@ -125,6 +125,29 @@ def test_explicit_fixture_payment_secret_can_create_an_intent():
     assert intent.intent_id in broker.intents
 
 
+def test_env_payment_secret_enables_intent(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("KEELWAY_PAYMENT_BROKER_SECRET", _PAYMENT_FIXTURE)
+    broker = GlobalPaymentBroker()
+    intent = broker.create_intent(GlobalRail.OFFLINE_VOUCHER, 10, "USD", "safety-recipient")
+    assert intent.status == "pending"
+
+
+def test_env_payment_secret_set_to_source_default_still_refused(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("KEELWAY_PAYMENT_BROKER_SECRET", "KORA_SOVEREIGN_PAYMENT_SECRET_2026")
+    broker = GlobalPaymentBroker()
+    with pytest.raises(InsecureDefaultConfiguration):
+        broker.create_intent(GlobalRail.OFFLINE_VOUCHER, 10, "USD", "safety-recipient")
+    assert broker.intents == {}
+
+
+def test_unset_env_payment_secret_still_refused(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("KEELWAY_PAYMENT_BROKER_SECRET", raising=False)
+    broker = GlobalPaymentBroker()
+    with pytest.raises(InsecureDefaultConfiguration):
+        broker.create_intent(GlobalRail.OFFLINE_VOUCHER, 10, "USD", "safety-recipient")
+    assert broker.intents == {}
+
+
 def test_explicit_source_default_billing_secret_rejects_its_own_signature():
     handler = BillingWebhookHandler(secret="KEELWAY_BILLING_WEBHOOK_SECRET_2026")
     payload = {"org_id": "org_safety", "seat_delta": 1}

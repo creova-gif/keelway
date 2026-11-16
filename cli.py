@@ -349,9 +349,14 @@ async def cmd_spec():
 async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, description: str):
     """Create and display a sovereign multi-rail payment intent."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
+    from keelway.security.source_defaults import InsecureDefaultConfiguration
     broker = GlobalPaymentBroker()
     r = GlobalRail(rail)
-    intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
+    try:
+        intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
+    except InsecureDefaultConfiguration:
+        print("\n[!] Payment configuration unavailable: set KEELWAY_PAYMENT_BROKER_SECRET to a non-default secret.\n")
+        return
     print("\n" + "=" * 65)
     print("  SIMULATED PAYMENT INTENT: no provider is connected and no money moves")
     print(f"  Rail:        {intent.rail.value.upper()}")
