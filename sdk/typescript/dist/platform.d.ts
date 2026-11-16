@@ -16,6 +16,7 @@ import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadi
 import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
 import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
 import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
+import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -34,6 +35,7 @@ export declare class PlatformNamespace {
     readonly debugger: PlatformDebuggerClient;
     readonly cyclic: PlatformCyclicClient;
     readonly healing: PlatformHealingClient;
+    readonly safetyMesh: PlatformSafetyMeshClient;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -144,6 +146,15 @@ export declare class PlatformNamespace {
     diagnoseFailureRootCause(req?: DiagnoseFailureRootCauseRequest, options?: RequestOptions): Promise<SelfHealingDiagnosisRecord>;
     applySelfHealingPatch(diagnosisId: string, req?: ApplySelfHealingPatchRequest, options?: RequestOptions): Promise<ApplySelfHealingResponse>;
     listSelfHealingDiagnoses(params?: ListSelfHealingDiagnosesParams | string, options?: RequestOptions): Promise<SelfHealingDiagnosisListResponse>;
+    verifyWorkflowSafety(req?: VerifyWorkflowSafetyRequest, options?: RequestOptions): Promise<SafetyVerificationRecord>;
+    listSafetyVerifications(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<SafetyVerificationListResponse>;
+    listSafetyVerifications(params?: ListSafetyVerificationsParams, options?: RequestOptions): Promise<SafetyVerificationListResponse>;
+    registerMeshNode(req: RegisterMeshNodeRequest, options?: RequestOptions): Promise<MeshNodeRecord>;
+    listMeshNodes(workspaceId?: string, options?: RequestOptions): Promise<MeshNodeListResponse>;
+    listMeshNodes(params?: ListMeshNodesParams, options?: RequestOptions): Promise<MeshNodeListResponse>;
+    dispatchMeshHandoff(req?: DispatchMeshHandoffRequest, options?: RequestOptions): Promise<MeshHandoffRecord>;
+    listMeshHandoffs(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<MeshHandoffListResponse>;
+    listMeshHandoffs(params?: ListMeshHandoffsParams, options?: RequestOptions): Promise<MeshHandoffListResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

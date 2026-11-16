@@ -48,6 +48,10 @@ from core.sdk.platform_mcp_eval_client import (
     AsyncPlatformMcpEvalMixin,
     SyncPlatformMcpEvalMixin,
 )
+from core.sdk.platform_safety_mesh_client import (
+    AsyncPlatformSafetyMeshMixin,
+    SyncPlatformSafetyMeshMixin,
+)
 from core.sdk.platform_studio_client import (
     AsyncPlatformStudioMixin,
     SyncPlatformStudioMixin,
@@ -169,6 +173,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformDebuggerMixin,
     AsyncPlatformCyclicMixin,
     AsyncPlatformHealingMixin,
+    AsyncPlatformSafetyMeshMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -300,6 +305,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformDebuggerMixin,
     SyncPlatformCyclicMixin,
     SyncPlatformHealingMixin,
+    SyncPlatformSafetyMeshMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 

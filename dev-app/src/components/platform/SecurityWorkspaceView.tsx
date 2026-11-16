@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CycloneDxSbomPanel } from "@/components/platform/CycloneDxSbomPanel";
 import { EnterpriseIdentityAndQuorumPanel } from "@/components/platform/EnterpriseIdentityAndQuorumPanel";
+import { FormalSafetyAndEdgeMeshPanel } from "@/components/platform/FormalSafetyAndEdgeMeshPanel";
 import { GoldenEvalScorecardPanel } from "@/components/platform/GoldenEvalScorecardPanel";
 import { VaultAndWebhooksPanel } from "@/components/platform/VaultAndWebhooksPanel";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
@@ -355,6 +356,8 @@ export function SecurityWorkspaceView({
         <CycloneDxSbomPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
         <GoldenEvalScorecardPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
+        <FormalSafetyAndEdgeMeshPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
       </div>
 
       <div className="border-t border-border">

@@ -28,6 +28,7 @@ import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadi
 import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
 import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
 import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
+import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -48,6 +49,7 @@ export class PlatformNamespace {
   public readonly debugger: PlatformDebuggerClient;
   public readonly cyclic: PlatformCyclicClient;
   public readonly healing: PlatformHealingClient;
+  public readonly safetyMesh: PlatformSafetyMeshClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -61,6 +63,7 @@ export class PlatformNamespace {
     this.debugger = new PlatformDebuggerClient(requestJson);
     this.cyclic = new PlatformCyclicClient(requestJson);
     this.healing = new PlatformHealingClient(requestJson);
+    this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -486,6 +489,57 @@ export class PlatformNamespace {
   }
   public listSelfHealingDiagnoses(params?: ListSelfHealingDiagnosesParams | string, options?: RequestOptions): Promise<SelfHealingDiagnosisListResponse> {
     return this.healing.listSelfHealingDiagnoses(params, options);
+  }
+
+  public verifyWorkflowSafety(req?: VerifyWorkflowSafetyRequest, options?: RequestOptions): Promise<SafetyVerificationRecord> {
+    return this.safetyMesh.verifyWorkflowSafety(req, options);
+  }
+  public listSafetyVerifications(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<SafetyVerificationListResponse>;
+  public listSafetyVerifications(params?: ListSafetyVerificationsParams, options?: RequestOptions): Promise<SafetyVerificationListResponse>;
+  public listSafetyVerifications(
+    workspaceIdOrParams?: string | ListSafetyVerificationsParams,
+    limitOrOptions?: number | RequestOptions,
+    options?: RequestOptions,
+  ): Promise<SafetyVerificationListResponse> {
+    if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+      return this.safetyMesh.listSafetyVerifications(workspaceIdOrParams, limitOrOptions as RequestOptions | undefined);
+    }
+    if (typeof limitOrOptions === "object" && limitOrOptions !== null) {
+      return this.safetyMesh.listSafetyVerifications(workspaceIdOrParams, 25, limitOrOptions);
+    }
+    return this.safetyMesh.listSafetyVerifications(workspaceIdOrParams, limitOrOptions, options);
+  }
+  public registerMeshNode(req: RegisterMeshNodeRequest, options?: RequestOptions): Promise<MeshNodeRecord> {
+    return this.safetyMesh.registerMeshNode(req, options);
+  }
+  public listMeshNodes(workspaceId?: string, options?: RequestOptions): Promise<MeshNodeListResponse>;
+  public listMeshNodes(params?: ListMeshNodesParams, options?: RequestOptions): Promise<MeshNodeListResponse>;
+  public listMeshNodes(
+    workspaceIdOrParams?: string | ListMeshNodesParams,
+    options?: RequestOptions,
+  ): Promise<MeshNodeListResponse> {
+    if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+      return this.safetyMesh.listMeshNodes(workspaceIdOrParams, options);
+    }
+    return this.safetyMesh.listMeshNodes(workspaceIdOrParams, options);
+  }
+  public dispatchMeshHandoff(req?: DispatchMeshHandoffRequest, options?: RequestOptions): Promise<MeshHandoffRecord> {
+    return this.safetyMesh.dispatchMeshHandoff(req, options);
+  }
+  public listMeshHandoffs(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<MeshHandoffListResponse>;
+  public listMeshHandoffs(params?: ListMeshHandoffsParams, options?: RequestOptions): Promise<MeshHandoffListResponse>;
+  public listMeshHandoffs(
+    workspaceIdOrParams?: string | ListMeshHandoffsParams,
+    limitOrOptions?: number | RequestOptions,
+    options?: RequestOptions,
+  ): Promise<MeshHandoffListResponse> {
+    if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+      return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, limitOrOptions as RequestOptions | undefined);
+    }
+    if (typeof limitOrOptions === "object" && limitOrOptions !== null) {
+      return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, 25, limitOrOptions);
+    }
+    return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, limitOrOptions, options);
   }
 }
 

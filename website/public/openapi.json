@@ -13074,6 +13074,316 @@
         }
       }
     },
+    "/v1/platform/safety/verify": {
+      "post": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "Verify Workflow Safety Route",
+        "operationId": "verify_workflow_safety_route_v1_platform_safety_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SafetyVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/safety/verifications": {
+      "get": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "List Safety Verifications Route",
+        "operationId": "list_safety_verifications_route_v1_platform_safety_verifications_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/safety/verifications/{verification_id}": {
+      "get": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "Get Safety Verification Route",
+        "operationId": "get_safety_verification_route_v1_platform_safety_verifications__verification_id__get",
+        "parameters": [
+          {
+            "name": "verification_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Verification Id"
+            }
+          },
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/mesh/nodes": {
+      "post": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "Register Mesh Node Route",
+        "operationId": "register_mesh_node_route_v1_platform_mesh_nodes_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterMeshNodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "List Mesh Nodes Route",
+        "operationId": "list_mesh_nodes_route_v1_platform_mesh_nodes_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/mesh/dispatch": {
+      "post": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "Dispatch Mesh Handoff Route",
+        "operationId": "dispatch_mesh_handoff_route_v1_platform_mesh_dispatch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchMeshHandoffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/mesh/handoffs": {
+      "get": {
+        "tags": [
+          "Platform Formal Safety Verifier & Federated Edge Mesh"
+        ],
+        "summary": "List Mesh Handoffs Route",
+        "operationId": "list_mesh_handoffs_route_v1_platform_mesh_handoffs_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cluster/nodes": {
       "get": {
         "tags": [
@@ -15216,6 +15526,46 @@
         },
         "type": "object",
         "title": "DiagnoseFailureRequest"
+      },
+      "DispatchMeshHandoffRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "workflow_name": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workflow Name",
+            "default": "clinical-synthesis-pipeline"
+          },
+          "task_summary": {
+            "type": "string",
+            "maxLength": 1024,
+            "title": "Task Summary",
+            "default": "Ingest patient intake & synthesize anonymized cohort summary"
+          },
+          "data_classification": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Data Classification",
+            "default": "restricted_pii"
+          },
+          "allow_sanitized_burst": {
+            "type": "boolean",
+            "title": "Allow Sanitized Burst",
+            "default": true
+          },
+          "force_raw_cloud_burst": {
+            "type": "boolean",
+            "title": "Force Raw Cloud Burst",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "DispatchMeshHandoffRequest"
       },
       "DocUpsertRequest": {
         "properties": {
@@ -18077,6 +18427,68 @@
         ],
         "title": "RegisterAdapterRequest"
       },
+      "RegisterMeshNodeRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "node_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Node Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "tier": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Tier"
+          },
+          "hardware_hal": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Hardware Hal"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Region",
+            "default": "local-loopback"
+          },
+          "vram_gb": {
+            "type": "integer",
+            "title": "Vram Gb",
+            "default": 32
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Status",
+            "default": "ONLINE"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "tier",
+          "hardware_hal"
+        ],
+        "title": "RegisterMeshNodeRequest"
+      },
       "ResearchSummaryRequest": {
         "properties": {
           "document_title": {
@@ -18520,6 +18932,145 @@
         },
         "type": "object",
         "title": "RoutingExplainRequest"
+      },
+      "SafetyEdgeSpec": {
+        "properties": {
+          "from_node": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "From Node"
+          },
+          "to_node": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "To Node"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_node",
+          "to_node"
+        ],
+        "title": "SafetyEdgeSpec"
+      },
+      "SafetyNodeSpec": {
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Node Id"
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Role",
+            "default": "agent"
+          },
+          "tool_kind": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Tool Kind",
+            "default": "read_only"
+          },
+          "requires_p10": {
+            "type": "boolean",
+            "title": "Requires P10",
+            "default": false
+          },
+          "max_iterations": {
+            "type": "integer",
+            "title": "Max Iterations",
+            "default": 1
+          },
+          "data_classification": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Data Classification",
+            "default": "internal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "node_id"
+        ],
+        "title": "SafetyNodeSpec"
+      },
+      "SafetyVerifyRequest": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workspace Id",
+            "default": "default"
+          },
+          "workflow_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workflow Id",
+            "default": "WF-TREASURY-01"
+          },
+          "workflow_name": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Workflow Name",
+            "default": "treasury-wire-approver"
+          },
+          "nodes": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SafetyNodeSpec"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nodes"
+          },
+          "edges": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SafetyEdgeSpec"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edges"
+          },
+          "airgap_mode": {
+            "type": "boolean",
+            "title": "Airgap Mode",
+            "default": false
+          },
+          "inject_p10_guards": {
+            "type": "boolean",
+            "title": "Inject P10 Guards",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "SafetyVerifyRequest"
       },
       "SandboxTestRequest": {
         "properties": {

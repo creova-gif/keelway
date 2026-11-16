@@ -14,6 +14,7 @@ import { PlatformStudioClient } from "./platformStudio.js";
 import { PlatformDebuggerClient } from "./platformDebugger.js";
 import { PlatformCyclicClient } from "./platformCyclic.js";
 import { PlatformHealingClient } from "./platformHealing.js";
+import { PlatformSafetyMeshClient } from "./platformSafetyMesh.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -26,6 +27,7 @@ export class PlatformNamespace {
     debugger;
     cyclic;
     healing;
+    safetyMesh;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -38,6 +40,7 @@ export class PlatformNamespace {
         this.debugger = new PlatformDebuggerClient(requestJson);
         this.cyclic = new PlatformCyclicClient(requestJson);
         this.healing = new PlatformHealingClient(requestJson);
+        this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -424,6 +427,39 @@ export class PlatformNamespace {
     }
     listSelfHealingDiagnoses(params, options) {
         return this.healing.listSelfHealingDiagnoses(params, options);
+    }
+    verifyWorkflowSafety(req, options) {
+        return this.safetyMesh.verifyWorkflowSafety(req, options);
+    }
+    listSafetyVerifications(workspaceIdOrParams, limitOrOptions, options) {
+        if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+            return this.safetyMesh.listSafetyVerifications(workspaceIdOrParams, limitOrOptions);
+        }
+        if (typeof limitOrOptions === "object" && limitOrOptions !== null) {
+            return this.safetyMesh.listSafetyVerifications(workspaceIdOrParams, 25, limitOrOptions);
+        }
+        return this.safetyMesh.listSafetyVerifications(workspaceIdOrParams, limitOrOptions, options);
+    }
+    registerMeshNode(req, options) {
+        return this.safetyMesh.registerMeshNode(req, options);
+    }
+    listMeshNodes(workspaceIdOrParams, options) {
+        if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+            return this.safetyMesh.listMeshNodes(workspaceIdOrParams, options);
+        }
+        return this.safetyMesh.listMeshNodes(workspaceIdOrParams, options);
+    }
+    dispatchMeshHandoff(req, options) {
+        return this.safetyMesh.dispatchMeshHandoff(req, options);
+    }
+    listMeshHandoffs(workspaceIdOrParams, limitOrOptions, options) {
+        if (typeof workspaceIdOrParams === "object" && workspaceIdOrParams !== null) {
+            return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, limitOrOptions);
+        }
+        if (typeof limitOrOptions === "object" && limitOrOptions !== null) {
+            return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, 25, limitOrOptions);
+        }
+        return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, limitOrOptions, options);
     }
 }
 export { PlatformNamespace as PlatformClient };

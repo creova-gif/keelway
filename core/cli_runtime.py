@@ -24,6 +24,7 @@ from core.cli_healing import dispatch_healing_cli, register_healing_cli_subparse
 from core.cli_kbrain_khub import dispatch_kbrain_khub_cli, register_kbrain_khub_cli_subparsers
 from core.cli_kflow_crdt import dispatch_kflow_crdt_cli, register_kflow_crdt_cli_subparsers
 from core.cli_mcp_eval import dispatch_mcp_eval_cli, register_mcp_eval_cli_subparsers
+from core.cli_safety_mesh import dispatch_safety_mesh_cli, register_safety_mesh_cli_subparsers
 from core.cli_studio import dispatch_studio_cli, register_studio_cli_subparsers
 from core.platform.execution_stream import LiveExecutionStreamer
 from core.platform.rbac_webhooks import WorkspaceRbacController
@@ -217,10 +218,15 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_debugger_cli_subparsers(subparsers)
     register_cyclic_cli_subparsers(subparsers)
     register_healing_cli_subparsers(subparsers)
+    register_safety_mesh_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, and Healing CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, Healing, and Safety/Mesh CLI subcommands."""
+    safety_mesh_rc = dispatch_safety_mesh_cli(args)
+    if safety_mesh_rc is not None:
+        return safety_mesh_rc
+
     healing_rc = dispatch_healing_cli(args)
     if healing_rc is not None:
         return healing_rc

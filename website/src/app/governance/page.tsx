@@ -6,10 +6,9 @@ import {
   FileCheck2,
   Gauge,
   LockKeyhole,
-  ServerCrash,
+  ShieldAlert,
 } from "lucide-react";
 import { RoutingSimulator } from "@/components/governance/RoutingSimulator";
-import { GovernanceGuardrailsLab } from "@/components/governance/GovernanceGuardrailsLab";
 import { RecordTamperLab } from "@/components/governance/RecordTamperLab";
 import { ManifestDriftSimulator } from "@/components/governance/ManifestDriftSimulator";
 import { LatencyCostFrontierChart } from "@/components/charts/LatencyCostFrontierChart";
@@ -18,47 +17,47 @@ import { SITE_URL } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Hybrid Routing & Enterprise Governance",
   description:
-    "Deterministic 4D AI routing, zero-egress privacy boundaries, scoped kw_live_* tenant keys, hard USD spend caps, and tamper-evident SHA-256 audit chains.",
+    "Deterministic 4D AI routing, zero-egress privacy boundaries, hard USD spend ceilings, Dual-Human P-10 Quorum, and tamper-evident HMAC-SHA256 audit chains.",
   alternates: {
     canonical: "/governance",
   },
   openGraph: {
     title: "Hybrid Routing & Enterprise Governance · Keelway",
     description:
-      "Simulate 4-dimension routing provenance and monthly OpenCore vs. Frontier cost savings under fail-closed tenant governance.",
+      "Simulate 4-dimension routing economics and cryptographic execution proofs under fail-closed enterprise governance.",
     url: `${SITE_URL}/governance`,
   },
 };
 
 const GOVERNANCE_INVARIANTS = [
   {
-    title: "Fail-Closed Tenant Isolation",
-    code: "allowed_providers=['local']",
-    desc: "New regulated tenants default to sovereign local execution. External commercial APIs cannot be invoked unless explicitly allowlisted in TenantPolicy.",
+    title: "Fail-Closed Data Sovereignty",
+    code: "Zero Cloud Egress",
+    desc: "Regulated workloads execute exclusively on local or customer-VPC hardware unless external providers are explicitly authorized.",
     icon: LockKeyhole,
   },
   {
-    title: "Dual-Axis Rate & Token Quotas",
-    code: "RPM + TPM Sliding Window",
-    desc: "Per-tenant requests-per-minute and tokens-per-minute ceilings prevent noisy-neighbor saturation and runaway agent loops before upstream dispatch.",
+    title: "Predictable Unit Economics",
+    code: "Hard USD Spend Ceilings",
+    desc: "Per-workspace budgets enforce strict caps or automatic zero-downtime fallback to local OpenCore inference before upstream dispatch.",
     icon: Gauge,
   },
   {
-    title: "Graceful Budget Saturation",
-    code: "HTTP 402 | OpenCore Fallback",
-    desc: "Choose hard HTTP 402 enforcement for strict cost centers, or automatic zero-downtime downgrade to local keelway-core:7b when monthly cloud budgets hit 100%.",
-    icon: ServerCrash,
+    title: "Tamper-Evident Execution Ledger",
+    code: "HMAC-SHA256 Hash Chain",
+    desc: "Every allow, deny, and model routing decision links cryptographically to the genesis digest so any log mutation is immediately detected.",
+    icon: FileCheck2,
   },
   {
-    title: "Genesis-Anchored Hash Ledger",
-    code: "GET /v1/governance/audit/verify",
-    desc: "Every allow, deny, and budget downgrade links cryptographically to the previous event digest from 0000...0000, making silent log deletion mathematically detectable.",
-    icon: FileCheck2,
+    title: "Separation of Duties for High-Risk Actions",
+    code: "Dual-Human P-10 Quorum",
+    desc: "Production deployments and external mutations pause for independent human sign-off — initiators can never self-approve.",
+    icon: ShieldAlert,
   },
 ];
 
 /**
- * Page 3 (Stage 3): Hybrid Routing & Security/Governance (/governance)
+ * Hybrid Routing & Enterprise Governance (/governance)
  */
 export default function GovernancePage() {
   return (
@@ -71,12 +70,14 @@ export default function GovernancePage() {
         <div className="mx-auto max-w-container px-4 sm:px-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
-                <span className="chip-teal rounded-sm px-2 py-0.5">
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border-strong bg-surface/90 px-3.5 py-1.5 font-mono text-xs">
+                <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+                <span className="font-semibold text-fg">
                   SECURITY &amp; GOVERNANCE
                 </span>
+                <span className="text-fg-dim">·</span>
                 <span className="text-fg-muted">
-                  Deterministic 4D Router · Spend Caps · SOC2 / HIPAA / GDPR Ready
+                  4D Router · Spend Caps · SOC2 / HIPAA / GDPR Ready
                 </span>
               </div>
 
@@ -89,9 +90,9 @@ export default function GovernancePage() {
               </h1>
 
               <p className="mt-4 text-base leading-relaxed text-fg-muted sm:text-lg">
-                Keelway replaces opaque black-box routers with deterministic
-                policy evaluation, pre-egress credential scrubbing, per-tenant
-                USD spend ceilings, and hash-chained execution proofs.
+                Deterministic policy routing, hard USD spend ceilings, and
+                cryptographic execution proofs built for regulated engineering
+                teams.
               </p>
             </div>
 
@@ -101,7 +102,7 @@ export default function GovernancePage() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link href="/#early-access" className="kw-btn kw-btn-secondary">
-                <span>Request VPC Architecture Review</span>
+                <span>Request VPC Review</span>
               </Link>
             </div>
           </div>
@@ -116,28 +117,6 @@ export default function GovernancePage() {
         </div>
       </section>
 
-      {/* Interactive Security & Redaction Sandbox */}
-      <section
-        aria-labelledby="guardrails-heading"
-        className="border-t border-border-subtle bg-surface/35 py-16"
-      >
-        <div className="mx-auto max-w-container px-4 sm:px-6">
-          <div className="mb-8 max-w-2xl">
-            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
-              LIVE SECURITY &amp; CREDENTIAL HYGIENE LAB
-            </p>
-            <h2
-              id="guardrails-heading"
-              className="mt-2 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
-            >
-              Test Pre-Egress Secret Redaction &amp; Scoped Tenant Keys
-            </h2>
-          </div>
-
-          <GovernanceGuardrailsLab />
-        </div>
-      </section>
-
       {/* Interactive Hash-Chained Record Tamper Lab & Manifest Drift / Marketplace Scanner */}
       <section
         id="tamper-lab"
@@ -147,18 +126,17 @@ export default function GovernancePage() {
         <div className="mx-auto max-w-container space-y-10 px-4 sm:px-6">
           <div className="max-w-3xl">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
-              CRYPTOGRAPHIC AUDIT &amp; EXTENSION GOVERNANCE LABS
+              CRYPTOGRAPHIC AUDIT &amp; EXTENSION GOVERNANCE
             </p>
             <h2
               id="tamper-lab-heading"
               className="mt-2 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
             >
-              Prove Ledger Tamper-Evidence, Prompt Drift Freeze &amp; Marketplace Safety
+              Verify Hash-Chain Integrity &amp; Standing-Scope Drift Live
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-              Mutate row <code>#1279</code> in-place to inspect real-time SHA-256 chain
-              breaks, trigger standing-scope drift pauses on <code>p-13 → p-14</code>, and
-              test pre-publication Marketplace extension validation.
+              Simulate an in-place ledger edit or prompt version drift to see
+              fail-closed cryptographic verification in real time.
             </p>
           </div>
 
@@ -177,7 +155,7 @@ export default function GovernancePage() {
         <div className="mx-auto max-w-container px-4 sm:px-6">
           <div className="max-w-2xl">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-teal-accent">
-              PRODUCTION SECURITY POSTURE
+              CISO &amp; ENTERPRISE GUARANTEES
             </p>
             <h2
               id="invariants-heading"

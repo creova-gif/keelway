@@ -8,21 +8,21 @@ import { CATALOG_MODELS } from "@/data/models";
 import { SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Models & OpenCore Catalog",
+  title: "Models & Hybrid Economics",
   description:
-    "Explore Keelway's 15 registered OpenCore open-weight and commercial Frontier AI models. Calculate live VRAM fit, inspect Apache-2.0 licenses, and compile deterministic Ollama Modelfiles.",
+    "Hybrid AI unit economics: $0 local OpenCore inference on developer or VPC hardware (0% token COGS) plus zero-markup BYOM bursting to Frontier APIs.",
   alternates: {
     canonical: "/models",
   },
   openGraph: {
-    title: "Models & OpenCore Catalog · Keelway",
+    title: "Models & Hybrid Economics · Keelway",
     description:
-      "First-class Open-Weight OpenCore models ($0.00 local inference) + Google Gemini, OpenAI, and Anthropic under one unified registry.",
+      "$0 local OpenCore inference + Google Gemini, OpenAI, and Anthropic at 0% BYOM markup under one governed router.",
     url: `${SITE_URL}/models`,
   },
 };
 
-const catalogJsonLd = {
+const modelsDatasetSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   name: "Keelway Hybrid AI Model Registry",
@@ -36,14 +36,14 @@ const catalogJsonLd = {
 };
 
 /**
- * Page 2 (Stage 2): Models & OpenCore Catalog (/models)
+ * Models & Hybrid Economics (/models)
  */
 export default function ModelsCatalogPage() {
   return (
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(modelsDatasetSchema) }}
       />
 
       {/* Page Hero */}
@@ -54,12 +54,14 @@ export default function ModelsCatalogPage() {
         <div className="mx-auto max-w-container px-4 sm:px-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-surface/90 px-3 py-1 font-mono text-xs">
-                <span className="chip-teal rounded-sm px-2 py-0.5">
-                  LAYER 4 REGISTRY
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border-strong bg-surface/90 px-3.5 py-1.5 font-mono text-xs">
+                <span className="h-2 w-2 rounded-full bg-teal-accent" aria-hidden="true" />
+                <span className="font-semibold text-fg">
+                  HYBRID UNIT ECONOMICS
                 </span>
+                <span className="text-fg-dim">·</span>
                 <span className="text-fg-muted">
-                  9 Open-Weight Models · 6 Frontier Cloud APIs · 3 Verified QLoRAs
+                  $0 Local Inference · 0% Token COGS · 0% BYOM Markup
                 </span>
               </div>
 
@@ -67,17 +69,15 @@ export default function ModelsCatalogPage() {
                 id="models-hero-heading"
                 className="mt-4 text-3xl font-extrabold tracking-tight text-fg sm:text-5xl"
               >
-                OpenCore Sovereignty &amp;{" "}
-                <span className="text-teal-accent">Frontier Scale</span> in One
-                Registry
+                Hybrid Gross-Margin &amp;{" "}
+                <span className="text-teal-accent">Data Sovereignty</span>
               </h1>
 
               <p className="mt-4 text-base leading-relaxed text-fg-muted sm:text-lg">
-                Every model in Keelway carries verified context limits,
-                capability flags, quantization memory specs, and explicit
-                licensing — so your router never confuses an{" "}
-                <code className="font-mono text-sm text-fg">Apache-2.0</code>{" "}
-                local checkpoint with a metered commercial endpoint.
+                $0 local OpenCore inference handles routine agent loops on
+                developer or on-prem hardware at 0% token COGS, while complex
+                multi-step synthesis bursts to Frontier models with 0% BYOM
+                markup.
               </p>
             </div>
 
@@ -87,14 +87,14 @@ export default function ModelsCatalogPage() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link href="/api-reference" className="kw-btn kw-btn-secondary">
-                <span>GET /v1/models Spec</span>
+                <span>Core API Spec</span>
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Interactive Explorer + Empirical Scatter Plot */}
+      {/* Empirical Cost-Latency Frontier + Model Explorer */}
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-container space-y-12 px-4 sm:px-6">
           <LatencyCostFrontierChart />

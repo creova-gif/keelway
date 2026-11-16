@@ -1,20 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Check, CheckCircle2, Clock, Copy, ShieldCheck, Terminal } from "lucide-react";
+import { ArrowRight, BookOpen, Check, Copy, Search, ShieldCheck } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
-interface DocSectionLink { id: string; label: string; }
+const DOC_SECTIONS = [
+  { id: "quickstart", label: "01 Quickstart" },
+  { id: "routing", label: "02 Routing & Governance" },
+  { id: "enterprise", label: "03 Enterprise & Ecosystem" },
+  { id: "surfaces", label: "04 SDKs & CLI" },
+] as const;
 
-const DOC_SECTIONS: DocSectionLink[] = [
-  { id: "quickstart", label: "1. 5-Minute Quickstart" },
-  { id: "surfaces", label: "2. Operational Surfaces" },
-  { id: "opencore", label: "3. OpenCore & QLoRA Weights" },
-  { id: "routing", label: "4. Unified API & 4D Routing" },
-  { id: "approval-loop", label: "5. Approval Gate & Audit Ledger" },
-  { id: "status", label: "6. Verified v1 vs. Roadmap" },
-];
+const CAPABILITY_MATRIX = [
+  {
+    domain: "4-K Sovereign Architecture",
+    title: "KFlow, KSpaces, KBrain & KHub Core",
+    summary:
+      "Topological KFlow DAGs, KSpaces CRDT sync, KBrain hybrid BM25 + n-gram memory, and KHub air-gapped skill mirrors (.skill.tar.gz).",
+    cliOrSpec: "keelway hub · .skill.tar.gz",
+  },
+  {
+    domain: "Visual & Code Sync",
+    title: "Golden-Thread Bidirectional KFlow Studio",
+    summary:
+      "Round-trip Python/TypeScript workflows with Seatbelt Blast-Radius Radar and inline Prompt Regression Gate checks.",
+    cliOrSpec: "kflow-sync · blast-radius · prompt-gate",
+  },
+  {
+    domain: "Observability & Evals",
+    title: "OpenTelemetry GenAI Flight-Tape Time-Travel Debugging",
+    summary:
+      "Deterministic step replay, 1-click Trace-to-Eval Promotion into the 16-probe Golden Benchmark, and Static AST LangGraph import.",
+    cliOrSpec: "migrate-langgraph · OpenTelemetry OTLP",
+  },
+  {
+    domain: "MCP & Supply Chain",
+    title: "Model Context Protocol (2025-06-18) & Signed Artifacts",
+    summary:
+      "Zero-trust tool discovery, Ed25519 Marketplace verification, and reproducible CycloneDX 1.5 SBOM release attestations.",
+    cliOrSpec: "MCP 2025-06-18 · CycloneDX 1.5 SBOM",
+  },
+  {
+    domain: "Enterprise Identity & SIEM",
+    title: "OIDC/SAML, SCIM 2.0 & Dual-Human P-10 Quorum",
+    summary:
+      "Directory-synced RBAC, two-person approval receipts for high-impact actions, and streaming OCSF, CEF, and JSONL audit exports.",
+    cliOrSpec: "OIDC/SAML · SCIM 2.0 · OCSF / CEF / JSONL",
+  },
+] as const;
 
 function CodePanel({ id, title, code }: { id: string; title: string; code: string }) {
   const [copied, setCopied] = useState(false);
@@ -26,7 +60,7 @@ function CodePanel({ id, title, code }: { id: string; title: string; code: strin
       trackEvent("code_snippet_copied", { tab: id });
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      // Ignore clipboard failures
+      // Clipboard unavailable
     }
   };
 
@@ -61,11 +95,23 @@ function CodePanel({ id, title, code }: { id: string; title: string; code: strin
 }
 
 /**
- * Interactive Developer Documentation Hub (/docs)
- * Sticky sidebar on desktop + horizontal section jump bar on mobile/tablet,
- * runnable examples, and an honest v1 Verified Capabilities vs. Roadmap table.
+ * Minimalist Developer Documentation Hub (/docs)
  */
 export function DocsHub() {
+  const [filterQuery, setFilterQuery] = useState("");
+
+  const filteredCapabilities = useMemo(() => {
+    const q = filterQuery.trim().toLowerCase();
+    if (!q) return CAPABILITY_MATRIX;
+    return CAPABILITY_MATRIX.filter(
+      (row) =>
+        row.domain.toLowerCase().includes(q) ||
+        row.title.toLowerCase().includes(q) ||
+        row.summary.toLowerCase().includes(q) ||
+        row.cliOrSpec.toLowerCase().includes(q)
+    );
+  }, [filterQuery]);
+
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
       {/* Mobile / Tablet Quick-Jump Bar */}
@@ -77,9 +123,7 @@ export function DocsHub() {
           <a
             key={sec.id}
             href={`#${sec.id}`}
-            onClick={() =>
-              trackEvent("docs_section_jumped", { section: sec.id })
-            }
+            onClick={() => trackEvent("docs_section_jumped", { section: sec.id })}
             className="inline-flex min-h-[40px] shrink-0 items-center rounded-sm px-3 font-mono text-xs text-fg-muted hover:bg-surface-elevated hover:text-teal-accent"
           >
             {sec.label}
@@ -89,7 +133,7 @@ export function DocsHub() {
 
       {/* Desktop Sticky Sidebar */}
       <aside className="hidden lg:col-span-3 lg:block">
-        <div className="sticky top-28 space-y-6 rounded-lg border border-border-strong bg-surface p-5">
+        <div className="sticky top-28 space-y-5 rounded-lg border border-border-strong bg-surface p-5">
           <div>
             <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-teal-accent">
               <BookOpen className="h-4 w-4" aria-hidden="true" />
@@ -100,10 +144,8 @@ export function DocsHub() {
                 <a
                   key={sec.id}
                   href={`#${sec.id}`}
-                  onClick={() =>
-                    trackEvent("docs_section_jumped", { section: sec.id })
-                  }
-                  className="flex min-h-[40px] items-center rounded-sm px-2.5 text-xs font-medium text-fg-muted transition-colors duration-150 hover:bg-surface-elevated hover:text-teal-accent"
+                  onClick={() => trackEvent("docs_section_jumped", { section: sec.id })}
+                  className="flex min-h-[38px] items-center rounded-sm px-2.5 font-mono text-xs text-fg-muted transition-colors duration-150 hover:bg-surface-elevated hover:text-teal-accent"
                 >
                   {sec.label}
                 </a>
@@ -111,373 +153,147 @@ export function DocsHub() {
             </nav>
           </div>
 
-          <div className="border-t border-border-subtle pt-4">
-            <p className="font-mono text-[11px] text-fg-muted">
-              Looking for endpoint schemas &amp; status codes?
-            </p>
-            <Link
-              href="/api-reference"
-              className="kw-btn kw-btn-secondary mt-2.5 w-full font-mono text-xs"
-            >
-              <span>Open API Reference</span>
+          <div className="space-y-2 border-t border-border-subtle pt-4 font-mono text-xs">
+            <Link href="/api-reference" className="kw-btn kw-btn-secondary w-full justify-between">
+              <span>API Reference</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
+            <div className="flex items-center justify-between px-1 pt-1 text-[11px] text-fg-muted">
+              <Link href="/pricing" className="hover:text-teal-accent">Pricing &amp; BYOM</Link>
+              <span>·</span>
+              <Link href="/changelog" className="hover:text-teal-accent">Changelog</Link>
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Technical Documentation Prose */}
-      <article className="space-y-14 lg:col-span-9">
-        {/* 1. 5-Minute Quickstart */}
+      {/* Main Documentation Body */}
+      <article className="space-y-12 lg:col-span-9">
+        {/* 01 Quickstart */}
         <section id="quickstart" aria-labelledby="doc-qs-h" className="scroll-mt-28">
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5">
-            SECTION 01
+          <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+            01 QUICKSTART
           </span>
           <h2 id="doc-qs-h" className="mt-2 text-2xl font-bold text-fg">
-            Getting Started in 5 Minutes
+            Boot Local Runtime in 60 Seconds
           </h2>
-          <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Install the open-core CLI and launch your workspace locally — no
-            mandatory cloud account, no lock-in, and zero hidden telemetry.
+          <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
+            Run locally with zero mandatory cloud account, zero token markup, and crash-safe SQLite WAL state.
           </p>
-
           <CodePanel
             id="docs-quickstart-bash"
-            title="bash — local setup & workspace launch"
-            code={`# 1. Install Keelway CLI & OpenCore runtime (macOS / Linux)
-curl -fsSL https://kora-sable.vercel.app/install.sh | sh
-
-# 2. Initialize your project & open the 10-View Workspace (http://127.0.0.1:7420/app)
-keelway init
-keelway dev
-
-# 3. Inspect local OpenCore models or browse verified Marketplace extensions
-keelway opencore --status
-keelway marketplace list`}
+            title="bash — install & launch local runtime"
+            code={`curl -fsSL https://kora-sable.vercel.app/install.sh | sh
+keelway init && keelway dev`}
           />
         </section>
 
-        {/* 2. The Operational Surfaces */}
-        <section
-          id="surfaces"
-          aria-labelledby="doc-surfaces-h"
-          className="scroll-mt-28 border-t border-border-subtle pt-12"
-        >
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5">
-            SECTION 02
-          </span>
-          <h2 id="doc-surfaces-h" className="mt-2 text-2xl font-bold text-fg">
-            The Four Operational Surfaces
-          </h2>
-          <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Keelway separates day-to-day local developer velocity from shared
-            team governance while sharing a single underlying model registry and
-            audit format:
-          </p>
-
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-md border border-border-strong bg-surface p-4">
-              <div className="font-mono text-xs font-bold text-teal-accent">
-                1. 10-View Unified Workspace (:7420/app)
-              </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Switch seamlessly between{" "}
-                <code className="text-fg">Builder Mode</code> and{" "}
-                <code className="text-fg">Guided Non-Coder Mode</code> across
-                IDE, Agents, Project Manager, PRDs, Automation, and Marketplace.
-              </p>
-            </div>
-
-            <div className="rounded-md border border-border-strong bg-surface p-4">
-              <div className="font-mono text-xs font-bold text-teal-accent">
-                2. Hybrid Model &amp; Governance Gateway (:8000)
-              </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Serves <code className="text-fg">/v1/responses</code>,{" "}
-                <code className="text-fg">/v1/chat/completions</code>,{" "}
-                <code className="text-fg">/v1/platform/*</code>, 4D routing,
-                and tenant spend policies.
-              </p>
-            </div>
-
-            <div className="rounded-md border border-border-strong bg-surface p-4">
-              <div className="font-mono text-xs font-bold text-teal-accent">
-                3. Signed Marketplace &amp; Extension SDK
-              </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Discover, verify, and publish Ed25519-signed agents, skills,
-                plugins, and workflow templates with pre-publish security scans.
-              </p>
-            </div>
-
-            <div className="rounded-md border border-border-strong bg-surface p-4">
-              <div className="font-mono text-xs font-bold text-teal-accent">
-                4. Official Python, TypeScript, Go SDKs &amp; VS Code / Cursor Bridge
-              </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">
-                Sync/async <code className="text-fg">core.sdk</code>,{" "}
-                <code className="text-fg">@keelway/sdk</code>,{" "}
-                <code className="text-fg">keelway-go</code>, and{" "}
-                <code className="text-fg">vscode-keelway</code> IDE bridge with
-                conditional <code className="text-fg">F10/F11</code> breakpoints,
-                DLP-guarded state mutation, and 4D Routing CodeLens.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. OpenCore Runtime & Legitimate Weight Acquisition */}
-        <section
-          id="opencore"
-          aria-labelledby="doc-opencore-h"
-          className="scroll-mt-28 border-t border-border-subtle pt-12"
-        >
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5">
-            SECTION 03
-          </span>
-          <h2 id="doc-opencore-h" className="mt-2 text-2xl font-bold text-fg">
-            OpenCore Weights, Modelfile Compiler &amp; QLoRA Verification
-          </h2>
-          <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Model weights and binary GGUF/safetensors checkpoints are{" "}
-            <strong className="text-fg">never committed to Git</strong>. Obtain
-            permitted weights directly from official registries (Ollama or
-            HuggingFace), compile a deterministic Keelway Modelfile, and verify
-            any QLoRA adapter&apos;s SHA-256 checksum on disk prior to hot-attach:
-          </p>
-
-          <CodePanel
-            id="docs-opencore-cli"
-            title="bash — local OpenCore model & QLoRA registration"
-            code={`# Pull an Apache-2.0 base checkpoint locally via Ollama
-ollama pull qwen2.5-coder:7b
-
-# Inspect local runtime discovery & registered OpenCore manifests
-keelway opencore --status
-
-# Compile a deterministic OpenCore Modelfile and register keelway-coder:7b
-keelway opencore --modelfile keelway-coder:7b > Modelfile.coder
-ollama create 'keelway-coder:7b' -f './Modelfile.coder'`}
-          />
-        </section>
-
-        {/* 4. Unified Responses & 4D Routing */}
-        <section
-          id="routing"
-          aria-labelledby="doc-routing-h"
-          className="scroll-mt-28 border-t border-border-subtle pt-12"
-        >
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5">
-            SECTION 04
+        {/* 02 Routing & Governance */}
+        <section id="routing" aria-labelledby="doc-routing-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
+          <span id="approval-loop" className="sr-only" />
+          <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+            02 ROUTING &amp; GOVERNANCE
           </span>
           <h2 id="doc-routing-h" className="mt-2 text-2xl font-bold text-fg">
-            Unified Responses API &amp; Deterministic 4D Routing
+            Drop-In Hybrid API &amp; Deterministic Policy Gates
           </h2>
-          <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Use <code className="font-mono text-fg">KeelwayClient</code> (sync or{" "}
-            <code className="font-mono text-fg">AsyncKeelwayClient</code>) to
-            chain multi-turn stateful responses, enforce zero-egress privacy, or
-            inspect a 4-dimension routing decision before executing inference:
+          <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
+            Point any OpenAI-compatible client or official SDK at{" "}
+            <code className="font-mono text-fg">/v1/responses</code>. Every call evaluates privacy boundaries, USD spend caps, human P-10 approval gates, and appends a SHA-256 hash-chained receipt.
           </p>
-
           <CodePanel
             id="docs-python-sdk"
-            title="python — stateful responses & 4D routing provenance"
-            code={`from core.sdk import KeelwayClient, BudgetExceededError
+            title="python — zero-egress routing & stateful responses"
+            code={`from core.sdk import KeelwayClient
 
-client = KeelwayClient(
-    base_url="http://127.0.0.1:8000",
-    api_key="kw_live_7f3a1c_0123456789abcdef0123456789abcdef",
-)
-
-# 1. Inspect 4D routing provenance without spending tokens
-plan = client.routing.explain(
-    prompt="Audit authentication middleware for timing side-channels",
-    privacy_level="private",
-)
-print(plan["selected_model"], plan["provenance"])
-
-# 2. Stateful multi-turn generation with speculative draft acceleration
-turn1 = client.responses.create(
-    model="keelway-coder:7b",
-    input="Write a constant-time HMAC verifier in Python.",
-    privacy_level="private",
-)
-turn2 = client.responses.create(
-    previous_response_id=turn1["id"],
-    input="Now generate pytest unit tests covering truncated signatures.",
-    privacy_level="private",
-)`}
+client = KeelwayClient(base_url="http://127.0.0.1:8000", api_key="kw_live_dev")
+plan = client.routing.explain(prompt="Audit billing webhook", privacy_level="private")
+resp = client.responses.create(model=plan["selected_model"], input="Generate patch diff.")`}
           />
         </section>
 
-        {/* 5. The Approval Loop & Hash-Chained Audit */}
-        <section
-          id="approval-loop"
-          aria-labelledby="doc-approval-h"
-          className="scroll-mt-28 border-t border-border-subtle pt-12"
-        >
-          <span className="chip-teal inline-block rounded-sm px-2 py-0.5">
-            SECTION 05
-          </span>
-          <h2 id="doc-approval-h" className="mt-2 text-2xl font-bold text-fg">
-            The Approval Loop &amp; Hash-Chained Flight Ledger
-          </h2>
-          <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Under <code className="font-mono text-fg">AutonomyPolicy.CONFIRM_MUTATION</code>,
-            an autonomous agent plans its change, computes a unified diff, and
-            pauses before touching any file or shell command. You can approve
-            once, grant a scoped standing rule for a specific tool and path
-            glob, or deny. Every decision — approved, denied, or budget-downgraded —
-            is appended to a genesis-anchored SHA-256 chain verifiable via{" "}
-            <code className="font-mono text-fg">GET /v1/audit/verify</code> or{" "}
-            <code className="font-mono text-fg">FlightPlayer.verify_integrity()</code>.
-          </p>
-        </section>
-
-        {/* 6. Available Today vs. Cloud & Enterprise Rollout */}
-        <section
-          id="status"
-          aria-labelledby="doc-status-h"
-          className="scroll-mt-28 border-t border-border-subtle pt-12"
-        >
-          <span className="chip-amber inline-block rounded-sm px-2 py-0.5">
-            SECTION 06 · PLATFORM AVAILABILITY
-          </span>
-          <h2 id="doc-status-h" className="mt-2 text-2xl font-bold text-fg">
-            Available Today vs. Managed Cloud Rollout
-          </h2>
-          <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-fg-muted">
-            Clear visibility into what ships today in the local-first platform
-            and what is rolling out for managed cloud &amp; enterprise fleets:
-          </p>
-
-          <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="rounded-lg border border-teal-accent/50 bg-surface p-5">
-              <div className="flex items-center gap-2 font-mono text-xs font-bold text-teal-accent">
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                <span>AVAILABLE TODAY (LOCAL &amp; SELF-HOSTED)</span>
-              </div>
-              <ul className="mt-3 space-y-2 text-xs leading-relaxed text-fg-muted">
-                <li>
-                  • 10-View Unified Workspace (<code className="text-fg">Builder</code>{" "}
-                  &amp; <code className="text-fg">Guided Non-Coder</code> modes)
-                  with crash-safe SQLite WAL persistence
-                </li>
-                <li>
-                  • OpenCore local runtime (Ollama Metal &amp; vLLM) + authorized
-                  BYOM adapters for OpenAI, Anthropic, and Google Gemini
-                </li>
-                <li>
-                  • Signed Marketplace with Ed25519 manifest verification,
-                  pre-publish security scanner, and 85/15 creator splits
-                </li>
-                <li>
-                  • Official Python (<code className="text-fg">core.sdk</code>),
-                  zero-dependency TypeScript (<code className="text-fg">@keelway/sdk</code>),
-                  and Official Go SDK (<code className="text-fg">keelway-go</code>)
-                </li>
-                <li>
-                  • Multi-Node GPU Cluster Scheduler (<code className="text-fg">vLLM</code>{" "}
-                  / <code className="text-fg">Ray</code> /{" "}
-                  <code className="text-fg">Ollama Metal</code>) with node
-                  drain/restore &amp; canary traffic weights
-                </li>
-                <li>
-                  • Scoped <code className="text-fg">kw_live_*</code> keys, USD
-                  spend caps, human-only approval gates &amp; SHA-256 audit trails
-                </li>
-                <li>
-                  • Model Context Protocol (<code className="text-fg">2025-06-18</code>)
-                  server/tool control plane &amp; 16-probe Golden Benchmark /
-                  Red-Team Suite
-                </li>
-                <li>
-                  • Topological KFlow multi-wave DAGs, KSpaces LWW-Element-Set
-                  CRDT sync &amp; CycloneDX 1.5 SBOM provenance
-                </li>
-                <li>
-                  • Enterprise OIDC/SAML federation, SCIM 2.0 user provisioning,
-                  Dual-Human P-10 Quorum, SIEM (<code className="text-fg">OCSF</code>{" "}
-                  / <code className="text-fg">CEF</code> /{" "}
-                  <code className="text-fg">JSONL</code>) export &amp; Prometheus /
-                  OpenTelemetry OTLP metrics
-                </li>
-                <li>
-                  • 4-K Sovereign Architecture with KBrain scope-governed hybrid
-                  BM25 / n-gram memory &amp; KHub SHA-256 air-gapped skill
-                  mirrors (<code className="text-fg">.skill.tar.gz</code>)
-                </li>
-                <li>
-                  • OpenTelemetry GenAI Flight-Tape Time-Travel Debugging,
-                  1-Click Trace-to-Eval Promotion &amp;{" "}
-                  <code className="text-fg">migrate-langgraph</code> Static AST
-                  Importer across the CLI and Python/TypeScript/Go SDKs
-                </li>
-                <li>
-                  • Golden-Thread Bidirectional KFlow Studio (
-                  <code className="text-fg">kflow-sync</code>), Seatbelt Sandbox
-                  Blast-Radius Radar (<code className="text-fg">blast-radius</code>)
-                  &amp; Inline Prompt Regression Gate (
-                  <code className="text-fg">prompt-gate</code>)
-                </li>
-                <li>
-                  • Bounded Cyclic &amp; Conditional KFlow Sub-Graphs (
-                  <code className="text-fg">kflow-cyclic</code>), Saga
-                  Compensation &amp; Pre-Run Hybrid Cost/Privacy Autopilot (
-                  <code className="text-fg">autopilot</code>)
-                </li>
-                <li>
-                  • Typed Structured-Output &amp; Content-Block Normalizer (
-                  <code className="text-fg">structured</code>) + Autonomous
-                  Self-Healing Root-Causer (<code className="text-fg">heal</code>)
-                </li>
-              </ul>
+        {/* 03 Enterprise & Ecosystem */}
+        <section id="enterprise" aria-labelledby="doc-ent-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
+          <span id="status" className="sr-only" />
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+                03 ENTERPRISE &amp; ECOSYSTEM
+              </span>
+              <h2 id="doc-ent-h" className="mt-2 text-2xl font-bold text-fg">
+                Production Architecture &amp; Security Capabilities
+              </h2>
             </div>
 
-            <div className="rounded-lg border border-border-strong bg-surface p-5">
-              <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-alert">
-                <Clock className="h-4 w-4" aria-hidden="true" />
-                <span>MANAGED CLOUD &amp; ENTERPRISE ONBOARDING</span>
-              </div>
-              <ul className="mt-3 space-y-2 text-xs leading-relaxed text-fg-muted">
-                <li>
-                  • Hosted multi-seat cloud sync &amp; real-time team workspace
-                  relays
-                </li>
-                <li>
-                  • Turnkey customer-owned VPC deployments across AWS, GCP, EU,
-                  US &amp; regional edge data centers
-                </li>
-                <li>
-                  • Hosted Enterprise Billing Portal &amp; Managed Regional Edge
-                  Relays
-                </li>
-                <li>
-                  • Dedicated enterprise SLA, SSO/SAML directory sync &amp;
-                  custom agent engineering
-                </li>
-              </ul>
-              <Link
-                href="/#early-access"
-                className="mt-4 inline-flex min-h-[40px] items-center gap-1.5 font-mono text-xs font-semibold text-teal-accent hover:underline"
-              >
-                <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Request Team or Enterprise VPC Onboarding →</span>
-              </Link>
+            <div className="relative w-full sm:w-64">
+              <label htmlFor="docs-cap-filter" className="sr-only">Filter architecture capabilities</label>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fg-dim" aria-hidden="true" />
+              <input
+                id="docs-cap-filter"
+                type="search"
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                placeholder="Filter OIDC, KBrain, MCP…"
+                className="min-h-[38px] w-full rounded-md border border-border-strong bg-surface pl-8 pr-3 font-mono text-xs text-fg placeholder:text-fg-dim focus:border-teal-accent"
+              />
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-2 rounded-md border border-border-subtle bg-surface/60 px-4 py-3 font-mono text-xs text-fg-muted">
-            <ShieldCheck
-              className="h-4 w-4 shrink-0 text-teal-accent"
-              aria-hidden="true"
-            />
-            <span>
-              Source code licensed under <strong>Apache-2.0</strong>. Third-party
-              model weights remain subject to their respective upstream model
-              licenses.
+          <div className="mt-5 overflow-x-auto rounded-lg border border-border-strong bg-surface">
+            <table className="w-full min-w-[600px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-border-strong bg-surface-elevated font-mono uppercase text-fg">
+                  <th scope="col" className="px-4 py-3">Layer</th>
+                  <th scope="col" className="px-4 py-3">Capability</th>
+                  <th scope="col" className="px-4 py-3">CLI / Standard</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {filteredCapabilities.map((row) => (
+                  <tr key={row.domain} className="align-top hover:bg-surface-elevated/40">
+                    <td className="px-4 py-3 font-mono font-semibold text-teal-accent">{row.domain}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-fg">{row.title}</div>
+                      <p className="mt-1 leading-relaxed text-fg-muted">{row.summary}</p>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-fg-muted">{row.cliOrSpec}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* 04 SDKs & CLI */}
+        <section id="surfaces" aria-labelledby="doc-sdks-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
+          <span className="chip-teal inline-block rounded-sm px-2 py-0.5 font-mono text-xs">
+            04 SDKS &amp; CLI
+          </span>
+          <h2 id="doc-sdks-h" className="mt-2 text-2xl font-bold text-fg">
+            Tri-Language SDKs &amp; Developer CLI
+          </h2>
+          <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
+            Zero-dependency TypeScript (<code className="font-mono text-fg">@keelway/sdk</code>), Python (
+            <code className="font-mono text-fg">keelway</code>), Go (<code className="font-mono text-fg">keelway-go</code>), and the VS Code / Cursor extension share identical REST &amp; SSE contracts.
+          </p>
+          <CodePanel
+            id="docs-cli-workflows"
+            title="bash — studio sync, sandbox audit & migration CLI"
+            code={`keelway kflow-sync --file workflow.py --direction code_to_graph
+keelway blast-radius --workflow wf-prod && keelway prompt-gate --min-pass-rate 0.95
+keelway migrate-langgraph --source graph.py`}
+          />
+
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border-subtle bg-surface/60 px-4 py-3 font-mono text-xs text-fg-muted">
+            <span className="inline-flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-teal-accent" aria-hidden="true" />
+              <span>Licensed under <strong>Apache-2.0</strong>.</span>
             </span>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link href="/api-reference" className="text-teal-accent hover:underline">OpenAPI Reference →</Link>
+              <Link href="/pricing" className="hover:text-fg">Pricing</Link>
+              <Link href="/changelog" className="hover:text-fg">Release Changelog</Link>
+            </div>
           </div>
         </section>
       </article>

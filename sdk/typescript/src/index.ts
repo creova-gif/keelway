@@ -34,6 +34,7 @@ export type * from "./platformDebugger.js";
 export { PlatformCyclicClient, PlatformCyclicDelegate } from "./platformCyclic.js";
 export type * from "./platformCyclic.js";
 export * from "./platformHealing.js";
+export * from "./platformSafetyMesh.js";
 
 export {
   AirGapEgressError,
