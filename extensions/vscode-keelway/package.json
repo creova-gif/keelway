@@ -21,7 +21,8 @@
     "onLanguage:typescript",
     "onUri",
     "onCommand:keelway.attachBridge",
-    "onCommand:keelway.openStudioPanel"
+    "onCommand:keelway.openStudioPanel",
+    "onCommand:keelway.approvePendingHarnessTicket"
   ],
   "contributes": {
     "commands": [
@@ -48,6 +49,10 @@
       {
         "command": "keelway.openStudioPanel",
         "title": "Keelway: Open 4D Studio Debugger Panel"
+      },
+      {
+        "command": "keelway.approvePendingHarnessTicket",
+        "title": "Keelway: Approve Pending Co-Harness Ticket"
       }
     ],
     "keybindings": [

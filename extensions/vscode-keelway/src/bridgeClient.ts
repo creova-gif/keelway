@@ -5,6 +5,24 @@
 
 export type AttachScheme = "vscode" | "cursor";
 export type DebugStepAction = "step_over" | "step_into" | "continue" | "mutate_state";
+export type HarnessTicketDecision = "APPROVED" | "DENIED";
+
+export interface BridgeHarnessTicketRecord {
+  ticket_id: string;
+  workspace_id: string;
+  agent_host: string;
+  tool_name: string;
+  scrubbed_command: string;
+  command_sha256: string;
+  status: "PENDING" | "APPROVED" | "DENIED" | "CONSUMED";
+  reviewer?: string | null;
+  decision_reason?: string | null;
+  created_at?: string;
+  decided_at?: string | null;
+  consumed_at?: string | null;
+  ticket_sha256?: string;
+  [key: string]: unknown;
+}
 
 export interface AttachTarget {
   readonly scheme: AttachScheme;
@@ -207,5 +225,43 @@ export class KeelwayBridgeClient {
 
   public getCodelens(params: { workspace_id?: string; workflow_id?: string; file_path?: string } = {}): Promise<{ workspace_id: string; workflow_id?: string; vscode_attach_uri?: string; cursor_attach_uri?: string; lenses?: BridgeCodelensItem[]; items?: BridgeCodelensItem[] }> {
     return this.request("GET", "/v1/platform/debugger/codelens", { query: { workspace_id: params.workspace_id ?? this.workspaceId, workflow_id: params.workflow_id, file_path: params.file_path } });
+  }
+
+  public async listPendingHarnessTickets(workspaceId?: string): Promise<{ workspace_id: string; count: number; tickets: BridgeHarnessTicketRecord[] }> {
+    const wsId = (workspaceId ?? this.workspaceId).trim() || "default";
+    const res = await this.request<{ workspace_id: string; count: number; tickets: BridgeHarnessTicketRecord[] }>(
+      "GET",
+      "/v1/platform/harness/tickets",
+      { query: { workspace_id: wsId, status: "PENDING" } },
+    );
+    const pending = Array.isArray(res.tickets) ? res.tickets.filter((t) => t.status === "PENDING") : [];
+    return { ...res, workspace_id: res.workspace_id ?? wsId, count: pending.length, tickets: pending };
+  }
+
+  public decideHarnessTicket(ticketId: string, decision: "APPROVED" | "DENIED", workspaceId?: string): Promise<BridgeHarnessTicketRecord> {
+    let validatedDecision: HarnessTicketDecision;
+    switch (decision) {
+      case "APPROVED":
+      case "DENIED":
+        validatedDecision = decision;
+        break;
+      default: {
+        const _exhaustive: never = decision;
+        throw new Error(`Invalid harness ticket decision '${String(_exhaustive)}'.`);
+      }
+    }
+    const wsId = (workspaceId ?? this.workspaceId).trim() || "default";
+    return this.request<BridgeHarnessTicketRecord>(
+      "POST",
+      `/v1/platform/harness/tickets/${encodeSeg(ticketId, "ticket_id")}/decide`,
+      {
+        body: {
+          workspace_id: wsId,
+          decision: validatedDecision,
+          reviewer: "vscode-bridge",
+          reason: "Approved via Keelway IDE Bridge",
+        },
+      },
+    );
   }
 }

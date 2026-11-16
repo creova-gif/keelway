@@ -20,6 +20,23 @@ function createMockDocument(uriPath, languageId, sourceText) {
 function createMockFetch() {
   const calls = [];
   const breakpoints = [];
+  const harnessTickets = [
+    {
+      ticket_id: "tkt-ext-01",
+      workspace_id: "default",
+      agent_host: "cursor",
+      tool_name: "Bash",
+      scrubbed_command: "git push origin main",
+      command_sha256: "c".repeat(64),
+      status: "PENDING",
+      reviewer: null,
+      decision_reason: null,
+      created_at: "2026-11-16T02:00:00Z",
+      decided_at: null,
+      consumed_at: null,
+      ticket_sha256: "d".repeat(64),
+    },
+  ];
   const sessions = [
     {
       session_id: "dbg-sess-01",
@@ -110,6 +127,24 @@ function createMockFetch() {
           { symbol: "plan", line_start: 2, model_checkpoint: "keelway-core:7b", p50_ms: 142, avg_cost_usd: 0, provenance_4d: "Apache-2.0 · Local Metal · Self-Operated · Zero-Egress", attached_breakpoints: 1 },
         ],
       });
+    }
+    if (url.pathname === "/v1/platform/harness/tickets" && init.method === "GET") {
+      const ws = url.searchParams.get("workspace_id") ?? "default";
+      const st = url.searchParams.get("status");
+      const matched = harnessTickets.filter((t) => t.workspace_id === ws && (!st || t.status === st));
+      return jsonRes(200, { workspace_id: ws, count: matched.length, tickets: matched });
+    }
+    const decideMatch = url.pathname.match(/^\/v1\/platform\/harness\/tickets\/([^/]+)\/decide$/);
+    if (decideMatch && init.method === "POST") {
+      const ticketId = decodeURIComponent(decideMatch[1]);
+      const tkt = harnessTickets.find((t) => t.ticket_id === ticketId);
+      if (!tkt) return jsonRes(404, { detail: "Ticket not found" });
+      if (tkt.status === "CONSUMED") return jsonRes(409, { detail: "Ticket already consumed" });
+      tkt.status = body.decision;
+      tkt.reviewer = body.reviewer ?? "vscode-bridge";
+      tkt.decision_reason = body.reason ?? "Approved via Keelway IDE Bridge";
+      tkt.decided_at = "2026-11-16T02:01:00Z";
+      return jsonRes(200, { ...tkt });
     }
     return jsonRes(404, { detail: "Not found" });
   };
@@ -249,6 +284,55 @@ describe("vscode-keelway official VS Code & Cursor extension", () => {
 
     const refreshRes = await handleWebviewMessage({ type: "refresh_sessions", workspaceId: "default" }, handle.bridgeClient);
     assert.equal(refreshRes.kind, "sessions");
+    deactivate();
+  });
+
+  it("approves pending Co-Harness tickets end-to-end via keelway.approvePendingHarnessTicket", async () => {
+    const { calls, fetchImpl } = createMockFetch();
+    const registeredCommands = new Map();
+    const infoMessages = [];
+    const mockHost = {
+      commands: {
+        registerCommand: (id, cb) => (registeredCommands.set(id, cb), { dispose() {} }),
+        executeCommand: async () => undefined,
+      },
+      languages: { registerCodeLensProvider: () => ({ dispose() {} }) },
+      window: {
+        registerUriHandler: () => ({ dispose() {} }),
+        createWebviewPanel: () => ({ webview: { html: "", onDidReceiveMessage: () => ({ dispose() {} }), postMessage: async () => true }, reveal() {}, onDidDispose: () => ({ dispose() {} }), dispose() {} }),
+        showInformationMessage: async (msg) => (infoMessages.push(msg), undefined),
+        showErrorMessage: async () => undefined,
+        showInputBox: async () => undefined,
+      },
+      workspace: { getConfiguration: () => ({ get: (_k, defVal) => defVal }) },
+    };
+    const extCtx = {
+      subscriptions: [],
+      secrets: { get: async (k) => (k === "keelway.apiToken" ? "kw_secret_vault_18" : undefined), store: async () => {}, delete: async () => {} },
+    };
+
+    const handle = await activate(extCtx, { hostApi: mockHost, fetchImpl });
+    assert.ok(registeredCommands.has("keelway.approvePendingHarnessTicket"));
+
+    const pendingBefore = await handle.bridgeClient.listPendingHarnessTickets("default");
+    assert.equal(pendingBefore.count, 1);
+    assert.equal(pendingBefore.tickets[0].ticket_id, "tkt-ext-01");
+
+    const decided = await registeredCommands.get("keelway.approvePendingHarnessTicket")();
+    assert.equal(decided.ticket_id, "tkt-ext-01");
+    assert.equal(decided.status, "APPROVED");
+    assert.equal(decided.reviewer, "vscode-bridge");
+    assert.ok(infoMessages.some((m) => m.includes("Approved Keelway Co-Harness ticket tkt-ext-01")));
+
+    const decideCall = calls.find((c) => c.pathname === "/v1/platform/harness/tickets/tkt-ext-01/decide");
+    assert.ok(decideCall);
+    assert.equal(decideCall.headers.Authorization, "Bearer kw_secret_vault_18");
+    assert.equal("Origin" in decideCall.headers, false);
+    assert.equal(decideCall.body.decision, "APPROVED");
+
+    const noneRemaining = await registeredCommands.get("keelway.approvePendingHarnessTicket")();
+    assert.equal(noneRemaining, null);
+    assert.ok(infoMessages.some((m) => m.includes("No pending Keelway Co-Harness tickets")));
     deactivate();
   });
 });

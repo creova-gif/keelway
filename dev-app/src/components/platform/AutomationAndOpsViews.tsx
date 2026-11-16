@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { AgentCoharnessAndCiGatePanel } from "@/components/platform/AgentCoharnessAndCiGatePanel";
 import { BidirectionalKflowStudioPanel } from "@/components/platform/BidirectionalKflowStudioPanel";
 import { CyclicKflowAndAutopilotPanel } from "@/components/platform/CyclicKflowAndAutopilotPanel";
 import { KSpacesCrdtAndKflowPanel } from "@/components/platform/KSpacesCrdtAndKflowPanel";
@@ -394,6 +395,8 @@ export function OperationsWorkspaceView({
           <div className="font-mono text-xs text-ok">Runner Availability: 99.96% (SLO Met)</div>
         </article>
       </section>
+
+      <AgentCoharnessAndCiGatePanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <QuotaAndPricingSimulatorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 

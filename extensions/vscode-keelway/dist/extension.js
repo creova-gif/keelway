@@ -134,7 +134,24 @@ export async function activate(context, options = {}) {
             return bridgeClient.deleteBreakpoint(hit.breakpoint_id);
         }
         return bridgeClient.setBreakpoint({ node_id: nodeId, workflow_id: opts.workflowId, condition_type: opts.conditionType ?? "always", threshold: opts.threshold, line_number: lineNumber });
-    }), vscode.commands.registerCommand("keelway.stepOverNode", () => runStepCommand("step_over")), vscode.commands.registerCommand("keelway.stepIntoAgent", () => runStepCommand("step_into")), vscode.commands.registerCommand("keelway.continueExecution", () => runStepCommand("continue")), vscode.commands.registerCommand("keelway.openStudioPanel", () => openOrRevealStudio()));
+    }), vscode.commands.registerCommand("keelway.stepOverNode", () => runStepCommand("step_over")), vscode.commands.registerCommand("keelway.stepIntoAgent", () => runStepCommand("step_into")), vscode.commands.registerCommand("keelway.continueExecution", () => runStepCommand("continue")), vscode.commands.registerCommand("keelway.openStudioPanel", () => openOrRevealStudio()), vscode.commands.registerCommand("keelway.approvePendingHarnessTicket", async (arg) => {
+        const opts = typeof arg === "string"
+            ? { ticketId: arg }
+            : typeof arg === "object" && arg !== null
+                ? arg
+                : {};
+        const pendingRes = await bridgeClient.listPendingHarnessTickets(opts.workspaceId);
+        const selectedId = (opts.ticketId && opts.ticketId.trim()
+            ? (pendingRes.tickets.find((t) => t.ticket_id === opts.ticketId?.trim())?.ticket_id ?? opts.ticketId.trim())
+            : undefined) ?? pendingRes.tickets[0]?.ticket_id;
+        if (!selectedId) {
+            await vscode.window.showInformationMessage("No pending Keelway Co-Harness tickets.");
+            return null;
+        }
+        const decided = await bridgeClient.decideHarnessTicket(selectedId, "APPROVED", opts.workspaceId);
+        await vscode.window.showInformationMessage(`Approved Keelway Co-Harness ticket ${decided.ticket_id} (${decided.scrubbed_command})`);
+        return decided;
+    }));
     return { bridgeClient, codeLensProvider, getActiveSession: () => activeSession };
 }
 export function deactivate() {

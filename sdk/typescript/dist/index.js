@@ -15,5 +15,6 @@ export { PlatformDebuggerClient, PlatformDebuggerDelegate } from "./platformDebu
 export { PlatformCyclicClient, PlatformCyclicDelegate } from "./platformCyclic.js";
 export * from "./platformHealing.js";
 export * from "./platformSafetyMesh.js";
+export * from "./platformHarness.js";
 export { AirGapEgressError, AuthenticationError, BudgetExceededError, ConnectionError, FlightRecorderError, KeelwayError, mapHttpError, PermissionDeniedError, PolicyViolationError, QuorumRequiredError, RateLimitExceededError, TaskNotFoundError, } from "./errors.js";
 //# sourceMappingURL=index.js.map

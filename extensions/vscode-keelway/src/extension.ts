@@ -3,7 +3,8 @@
  * Wires loopback Debugger Bridge, URI handler, 4D CodeLens, SecretStorage auth, and Studio Webview.
  */
 
-import { type BridgeDebugSession, type DebugStepAction, KeelwayBridgeClient, parseAttachUri } from "./bridgeClient.js";
+import { type BridgeDebugSession, type BridgeHarnessTicketRecord, type DebugStepAction, KeelwayBridgeClient, parseAttachUri } from "./bridgeClient.js";
+export type { BridgeHarnessTicketRecord };
 import { KeelwayCodeLensProvider, scanWorkflowSymbols } from "./codeLensProvider.js";
 import { handleWebviewMessage, renderStudioWebviewHtml, type StudioWebviewMessage } from "./studioWebview.js";
 import type { VsCodeExtensionContext, VsCodeHostApi, VsCodeUri, VsCodeWebviewPanel } from "./vscodeTypes.js";
@@ -165,6 +166,28 @@ export async function activate(
     vscode.commands.registerCommand("keelway.stepIntoAgent", () => runStepCommand("step_into")),
     vscode.commands.registerCommand("keelway.continueExecution", () => runStepCommand("continue")),
     vscode.commands.registerCommand("keelway.openStudioPanel", () => openOrRevealStudio()),
+    vscode.commands.registerCommand("keelway.approvePendingHarnessTicket", async (arg?: unknown) => {
+      const opts =
+        typeof arg === "string"
+          ? { ticketId: arg }
+          : typeof arg === "object" && arg !== null
+            ? (arg as { ticketId?: string; workspaceId?: string })
+            : {};
+      const pendingRes = await bridgeClient.listPendingHarnessTickets(opts.workspaceId);
+      const selectedId =
+        (opts.ticketId && opts.ticketId.trim()
+          ? (pendingRes.tickets.find((t) => t.ticket_id === opts.ticketId?.trim())?.ticket_id ?? opts.ticketId.trim())
+          : undefined) ?? pendingRes.tickets[0]?.ticket_id;
+      if (!selectedId) {
+        await vscode.window.showInformationMessage("No pending Keelway Co-Harness tickets.");
+        return null;
+      }
+      const decided = await bridgeClient.decideHarnessTicket(selectedId, "APPROVED", opts.workspaceId);
+      await vscode.window.showInformationMessage(
+        `Approved Keelway Co-Harness ticket ${decided.ticket_id} (${decided.scrubbed_command})`,
+      );
+      return decided;
+    }),
   );
 
   return { bridgeClient, codeLensProvider, getActiveSession: () => activeSession };

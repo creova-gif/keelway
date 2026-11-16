@@ -144,5 +144,33 @@ export class KeelwayBridgeClient {
     getCodelens(params = {}) {
         return this.request("GET", "/v1/platform/debugger/codelens", { query: { workspace_id: params.workspace_id ?? this.workspaceId, workflow_id: params.workflow_id, file_path: params.file_path } });
     }
+    async listPendingHarnessTickets(workspaceId) {
+        const wsId = (workspaceId ?? this.workspaceId).trim() || "default";
+        const res = await this.request("GET", "/v1/platform/harness/tickets", { query: { workspace_id: wsId, status: "PENDING" } });
+        const pending = Array.isArray(res.tickets) ? res.tickets.filter((t) => t.status === "PENDING") : [];
+        return { ...res, workspace_id: res.workspace_id ?? wsId, count: pending.length, tickets: pending };
+    }
+    decideHarnessTicket(ticketId, decision, workspaceId) {
+        let validatedDecision;
+        switch (decision) {
+            case "APPROVED":
+            case "DENIED":
+                validatedDecision = decision;
+                break;
+            default: {
+                const _exhaustive = decision;
+                throw new Error(`Invalid harness ticket decision '${String(_exhaustive)}'.`);
+            }
+        }
+        const wsId = (workspaceId ?? this.workspaceId).trim() || "default";
+        return this.request("POST", `/v1/platform/harness/tickets/${encodeSeg(ticketId, "ticket_id")}/decide`, {
+            body: {
+                workspace_id: wsId,
+                decision: validatedDecision,
+                reviewer: "vscode-bridge",
+                reason: "Approved via Keelway IDE Bridge",
+            },
+        });
+    }
 }
 //# sourceMappingURL=bridgeClient.js.map

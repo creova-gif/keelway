@@ -17,6 +17,7 @@ import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type Debug
 import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
 import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
 import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
+import { PlatformHarnessClient, type ApprovalTicketListResponse, type ApprovalTicketRecord, type DecideHarnessTicketRequest, type EvaluateWorktreeCiGateRequest, type HarnessInterceptionRecord, type HookManifestResponse, type InterceptAgentToolCallRequest, type ListHarnessTicketsOptions, type ListWorktreeCiGateRunsParams, type RenderAgentHookConfigRequest, type WorktreeCiGateRunListResponse, type WorktreeCiGateRunRecord } from "./platformHarness.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -36,6 +37,7 @@ export declare class PlatformNamespace {
     readonly cyclic: PlatformCyclicClient;
     readonly healing: PlatformHealingClient;
     readonly safetyMesh: PlatformSafetyMeshClient;
+    readonly harness: PlatformHarnessClient;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -155,6 +157,15 @@ export declare class PlatformNamespace {
     dispatchMeshHandoff(req?: DispatchMeshHandoffRequest, options?: RequestOptions): Promise<MeshHandoffRecord>;
     listMeshHandoffs(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<MeshHandoffListResponse>;
     listMeshHandoffs(params?: ListMeshHandoffsParams, options?: RequestOptions): Promise<MeshHandoffListResponse>;
+    renderAgentHookConfig(req?: RenderAgentHookConfigRequest, options?: RequestOptions): Promise<HookManifestResponse>;
+    interceptAgentToolCall(req?: InterceptAgentToolCallRequest, options?: RequestOptions): Promise<HarnessInterceptionRecord>;
+    listHarnessTickets(workspaceId?: string | ListHarnessTicketsOptions, limit?: number): Promise<ApprovalTicketListResponse>;
+    listHarnessTickets(params?: ListHarnessTicketsOptions, options?: RequestOptions): Promise<ApprovalTicketListResponse>;
+    listHarnessTickets(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<ApprovalTicketListResponse>;
+    decideHarnessTicket(ticketId: string, req: DecideHarnessTicketRequest, options?: RequestOptions): Promise<ApprovalTicketRecord>;
+    evaluateWorktreeCiGate(req?: EvaluateWorktreeCiGateRequest, options?: RequestOptions): Promise<WorktreeCiGateRunRecord>;
+    listWorktreeCiGateRuns(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse>;
+    listWorktreeCiGateRuns(params?: ListWorktreeCiGateRunsParams, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

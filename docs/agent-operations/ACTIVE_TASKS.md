@@ -34,6 +34,7 @@
 | **KEEL-KFLOW-022** | Phase 15: Bounded Cyclic & Conditional KFlow Sub-Graphs + Pre-Run Cost/Privacy Autopilot | `KFLOW / CYCLIC / AUTOPILOT / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 | **KEEL-HEAL-023** | Phase 16: Typed Structured-Output & Content-Block Normalizer + Autonomous Self-Healing Failure Root-Causer | `SCHEMA / HEALING / EVAL / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-15 | `main` |
 | **KEEL-SAFETY-024** | Phase 17: Tier 3 `:7420/app` Dev-Tool Moats (Formal Safety Verifier + Federated Edge Mesh) & Minimalist YC Website Curation | `SAFETY / MESH / SDK / UI / WEBSITE` | `VERIFIED_COMPLETE` | Google Antigravity (4-Agent Parallel Wave) | 2026-11-15 | `main` |
+| **KEEL-HARNESS-025** | Phase 18: Universal Coding-Agent Co-Harness (`Claude Code`/`Cursor`/`Codex` PreToolUse Gate + Single-Use P-10 Tickets) & Parallel Worktree CI Gate | `HARNESS / CIGATE / SDK / VSCODE / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
 
 ---
 

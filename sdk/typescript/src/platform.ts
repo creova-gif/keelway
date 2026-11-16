@@ -29,6 +29,7 @@ import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type Debug
 import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
 import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
 import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
+import { PlatformHarnessClient, type ApprovalTicketListResponse, type ApprovalTicketRecord, type DecideHarnessTicketRequest, type EvaluateWorktreeCiGateRequest, type HarnessInterceptionRecord, type HookManifestResponse, type InterceptAgentToolCallRequest, type ListHarnessTicketsOptions, type ListWorktreeCiGateRunsParams, type RenderAgentHookConfigRequest, type WorktreeCiGateRunListResponse, type WorktreeCiGateRunRecord } from "./platformHarness.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -50,6 +51,7 @@ export class PlatformNamespace {
   public readonly cyclic: PlatformCyclicClient;
   public readonly healing: PlatformHealingClient;
   public readonly safetyMesh: PlatformSafetyMeshClient;
+  public readonly harness: PlatformHarnessClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -64,6 +66,7 @@ export class PlatformNamespace {
     this.cyclic = new PlatformCyclicClient(requestJson);
     this.healing = new PlatformHealingClient(requestJson);
     this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
+    this.harness = new PlatformHarnessClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -540,6 +543,30 @@ export class PlatformNamespace {
       return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, 25, limitOrOptions);
     }
     return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, limitOrOptions, options);
+  }
+
+  public renderAgentHookConfig(req?: RenderAgentHookConfigRequest, options?: RequestOptions): Promise<HookManifestResponse> {
+    return this.harness.renderAgentHookConfig(req, options);
+  }
+  public interceptAgentToolCall(req?: InterceptAgentToolCallRequest, options?: RequestOptions): Promise<HarnessInterceptionRecord> {
+    return this.harness.interceptAgentToolCall(req, options);
+  }
+  public listHarnessTickets(workspaceId?: string | ListHarnessTicketsOptions, limit?: number): Promise<ApprovalTicketListResponse>;
+  public listHarnessTickets(params?: ListHarnessTicketsOptions, options?: RequestOptions): Promise<ApprovalTicketListResponse>;
+  public listHarnessTickets(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<ApprovalTicketListResponse>;
+  public listHarnessTickets(wsOrOpts?: string | ListHarnessTicketsOptions, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<ApprovalTicketListResponse> {
+    return this.harness.listHarnessTickets(wsOrOpts as string, limitOrOpts as number, options);
+  }
+  public decideHarnessTicket(ticketId: string, req: DecideHarnessTicketRequest, options?: RequestOptions): Promise<ApprovalTicketRecord> {
+    return this.harness.decideHarnessTicket(ticketId, req, options);
+  }
+  public evaluateWorktreeCiGate(req?: EvaluateWorktreeCiGateRequest, options?: RequestOptions): Promise<WorktreeCiGateRunRecord> {
+    return this.harness.evaluateWorktreeCiGate(req, options);
+  }
+  public listWorktreeCiGateRuns(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse>;
+  public listWorktreeCiGateRuns(params?: ListWorktreeCiGateRunsParams, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse>;
+  public listWorktreeCiGateRuns(wsOrParams?: string | ListWorktreeCiGateRunsParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse> {
+    return this.harness.listWorktreeCiGateRuns(wsOrParams as string, limitOrOpts as number, options);
   }
 }
 

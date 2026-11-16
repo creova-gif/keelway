@@ -32,6 +32,10 @@ from core.sdk.platform_enterprise_client import (
     AsyncPlatformEnterpriseMixin,
     SyncPlatformEnterpriseMixin,
 )
+from core.sdk.platform_harness_client import (
+    AsyncPlatformHarnessMixin,
+    SyncPlatformHarnessMixin,
+)
 from core.sdk.platform_healing_client import (
     AsyncPlatformHealingMixin,
     SyncPlatformHealingMixin,
@@ -174,6 +178,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformCyclicMixin,
     AsyncPlatformHealingMixin,
     AsyncPlatformSafetyMeshMixin,
+    AsyncPlatformHarnessMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -306,6 +311,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformCyclicMixin,
     SyncPlatformHealingMixin,
     SyncPlatformSafetyMeshMixin,
+    SyncPlatformHarnessMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 

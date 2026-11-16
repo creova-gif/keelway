@@ -4,6 +4,23 @@
  */
 export type AttachScheme = "vscode" | "cursor";
 export type DebugStepAction = "step_over" | "step_into" | "continue" | "mutate_state";
+export type HarnessTicketDecision = "APPROVED" | "DENIED";
+export interface BridgeHarnessTicketRecord {
+    ticket_id: string;
+    workspace_id: string;
+    agent_host: string;
+    tool_name: string;
+    scrubbed_command: string;
+    command_sha256: string;
+    status: "PENDING" | "APPROVED" | "DENIED" | "CONSUMED";
+    reviewer?: string | null;
+    decision_reason?: string | null;
+    created_at?: string;
+    decided_at?: string | null;
+    consumed_at?: string | null;
+    ticket_sha256?: string;
+    [key: string]: unknown;
+}
 export interface AttachTarget {
     readonly scheme: AttachScheme;
     readonly port: number;
@@ -162,5 +179,11 @@ export declare class KeelwayBridgeClient {
         lenses?: BridgeCodelensItem[];
         items?: BridgeCodelensItem[];
     }>;
+    listPendingHarnessTickets(workspaceId?: string): Promise<{
+        workspace_id: string;
+        count: number;
+        tickets: BridgeHarnessTicketRecord[];
+    }>;
+    decideHarnessTicket(ticketId: string, decision: "APPROVED" | "DENIED", workspaceId?: string): Promise<BridgeHarnessTicketRecord>;
 }
 //# sourceMappingURL=bridgeClient.d.ts.map

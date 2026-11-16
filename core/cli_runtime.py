@@ -20,6 +20,7 @@ from core.cli_cyclic import dispatch_cyclic_cli, register_cyclic_cli_subparsers
 from core.cli_debugger import dispatch_debugger_cli, register_debugger_cli_subparsers
 from core.cli_devx import dispatch_devx_cli, register_devx_cli_subparsers
 from core.cli_enterprise import dispatch_enterprise_cli, register_enterprise_cli_subparsers
+from core.cli_harness import dispatch_harness_cli, register_harness_cli_subparsers
 from core.cli_healing import dispatch_healing_cli, register_healing_cli_subparsers
 from core.cli_kbrain_khub import dispatch_kbrain_khub_cli, register_kbrain_khub_cli_subparsers
 from core.cli_kflow_crdt import dispatch_kflow_crdt_cli, register_kflow_crdt_cli_subparsers
@@ -219,10 +220,15 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_cyclic_cli_subparsers(subparsers)
     register_healing_cli_subparsers(subparsers)
     register_safety_mesh_cli_subparsers(subparsers)
+    register_harness_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, Healing, and Safety/Mesh CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, Healing, Safety/Mesh, and Harness/CI-Gate CLI subcommands."""
+    harness_rc = dispatch_harness_cli(args)
+    if harness_rc is not None:
+        return harness_rc
+
     safety_mesh_rc = dispatch_safety_mesh_cli(args)
     if safety_mesh_rc is not None:
         return safety_mesh_rc

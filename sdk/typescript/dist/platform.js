@@ -15,6 +15,7 @@ import { PlatformDebuggerClient } from "./platformDebugger.js";
 import { PlatformCyclicClient } from "./platformCyclic.js";
 import { PlatformHealingClient } from "./platformHealing.js";
 import { PlatformSafetyMeshClient } from "./platformSafetyMesh.js";
+import { PlatformHarnessClient } from "./platformHarness.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -28,6 +29,7 @@ export class PlatformNamespace {
     cyclic;
     healing;
     safetyMesh;
+    harness;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -41,6 +43,7 @@ export class PlatformNamespace {
         this.cyclic = new PlatformCyclicClient(requestJson);
         this.healing = new PlatformHealingClient(requestJson);
         this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
+        this.harness = new PlatformHarnessClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -460,6 +463,24 @@ export class PlatformNamespace {
             return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, 25, limitOrOptions);
         }
         return this.safetyMesh.listMeshHandoffs(workspaceIdOrParams, limitOrOptions, options);
+    }
+    renderAgentHookConfig(req, options) {
+        return this.harness.renderAgentHookConfig(req, options);
+    }
+    interceptAgentToolCall(req, options) {
+        return this.harness.interceptAgentToolCall(req, options);
+    }
+    listHarnessTickets(wsOrOpts, limitOrOpts, options) {
+        return this.harness.listHarnessTickets(wsOrOpts, limitOrOpts, options);
+    }
+    decideHarnessTicket(ticketId, req, options) {
+        return this.harness.decideHarnessTicket(ticketId, req, options);
+    }
+    evaluateWorktreeCiGate(req, options) {
+        return this.harness.evaluateWorktreeCiGate(req, options);
+    }
+    listWorktreeCiGateRuns(wsOrParams, limitOrOpts, options) {
+        return this.harness.listWorktreeCiGateRuns(wsOrParams, limitOrOpts, options);
     }
 }
 export { PlatformNamespace as PlatformClient };
