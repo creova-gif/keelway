@@ -13,7 +13,9 @@ try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
 except ImportError:
     # Minimal fallback dataclass when pydantic is not installed
-    def Field(default=None, description=""):
+    def Field(default=None, default_factory=None, description="", **kwargs):
+        if default_factory is not None:
+            return default_factory()
         return default
     class BaseSettings:
         pass
