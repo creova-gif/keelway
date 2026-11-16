@@ -41,7 +41,10 @@ def test_hook_manifest_rendering_across_claude_cursor_and_codex(tmp_path: Path) 
             m2 = eng.render_hook_manifest(workspace_id="ws-hooks", agent_host=host, mode="enforce")
             assert m1["target_config_path"] == rel_path
             assert m1["hook_event"] == "PreToolUse"
-            assert f"keelway harness intercept --agent {host}" in m1["config_content"]
+            if host in ("claude_code", "codex_cli"):
+                assert f"keelway harness agents intercept --agent {host} --payload -" in m1["config_content"]
+            else:
+                assert f"keelway harness intercept --agent {host}" in m1["config_content"]
             assert m1["config_sha256"].startswith("sha256:") and m1["config_sha256"] == m2["config_sha256"]
 
         audit_manifest = eng.render_hook_manifest(workspace_id="ws-hooks", agent_host="cursor", mode="audit_only")
@@ -313,7 +316,7 @@ def test_sovereign_cli_harness_and_cigate_commands(capsys: pytest.CaptureFixture
     assert cli_main(["harness", "hooks", "--agent", "claude_code", "--install-dir", str(install_root), "--workspace", "ws-cli18", "--db-path", db_file, "--json"]) == 0
     hook_out = json.loads(capsys.readouterr().out)
     assert (install_root / ".claude" / "settings.local.json").exists()
-    assert "keelway harness intercept --agent claude_code" in hook_out["config_content"]
+    assert "keelway harness agents intercept --agent claude_code --payload -" in hook_out["config_content"]
 
     assert cli_main(["harness", "intercept", "--command", "ruff check core/", "--workspace", "ws-cli18", "--db-path", db_file, "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["verdict"] == "ALLOW"

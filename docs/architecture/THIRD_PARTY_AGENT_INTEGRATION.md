@@ -56,7 +56,7 @@ AgentAdapter (protocol)
 - **Phase A (this scope)**: doc + verification of existing harness (done).
 - **Phase B (done, KEEL-ENG-042)**: MCP client for registered stdio/sse servers — `call_tool` now invokes them with DLP scrub + SHA-256 receipts identical to builtins.
 - **Phase C (done, KEEL-ENG-043)**: `core/agents/external/` adapters + policy bridge, audit_only-first, 14 tests.
-- **Phase D (partial, KEEL-ENG-044)**: `keelway harness agents detect|intercept` CLI live — detection of real `claude`/`codex` binaries verified on-host, native hook payloads (inline/`@file`/stdin) evaluated through `evaluate_hook_payload` with enforce/audit_only exit codes (0/1/2). Remaining: PostToolUse/SessionStart events, OTLP flight-tape span bridge, agent process spawn/event streaming.
+- **Phase D (partial, KEEL-ENG-044/045)**: `keelway harness agents detect|intercept` CLI live; generated hook manifests for `claude_code`/`codex_cli` now emit `agents intercept --payload -` commands consuming real stdin hook JSON; `--format claude-code` emits spec-shaped `permissionDecision` JSON (verified end-to-end: `git push` → `ask`). Remaining: PostToolUse/SessionStart events, OTLP flight-tape span bridge, agent process spawn/event streaming, Cursor adapter.
 - **Phase E**: OpenCode/Cline/ACP; per-agent conformance suite in CI (`tests/test_external_agents.py` with fixture CLIs).
 
 ## 6. Acceptance criteria for "compatible" claims
