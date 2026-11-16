@@ -53,6 +53,7 @@
 | **KEEL-ENG-041** | Third-Party Agent Integration Scoping (co-harness verified; adapter/MCP-client gaps documented) | `ENGINEERING / EXTENSIBILITY / AGENTS` | `SCOPED` | Devin | 2026-11-16 | `docs/KEEL-ENG-041-agent-integration-scope` |
 | **KEEL-ENG-042** | MCP Client: Remote stdio/sse Tool Dispatch (registered servers now invocable) | `ENGINEERING / EXTENSIBILITY / MCP` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-042-mcp-client` |
 | **KEEL-ENG-043** | External Agent Adapters Phase C (`core/agents/external/`, claude_code+codex_cli, audit_only policy bridge) | `ENGINEERING / EXTENSIBILITY / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-043-agent-adapters` |
+| **KEEL-ENG-044** | Harness CLI `agents detect|intercept` (Phase D partial; real claude/codex detection verified) | `ENGINEERING / EXTENSIBILITY / AGENTS / CLI` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-044-harness-agents` |
 
 ---
 
