@@ -15,7 +15,7 @@
 
 ## 2. Verified gaps
 
-1. **No agent-process adapters.** Nothing spawns or wraps third-party agent CLIs (`claude`, `codex`, `cursor-agent`, `opencode`, `cline`). The co-harness governs *tool calls reported to it* via hooks; it cannot launch an agent, stream its events, or enforce policy on agents without hook support.
+1. **No agent-process launch/event streaming.** ~~Nothing spawns or wraps~~ Phase C (KEEL-ENG-043) added `core/agents/external/` — `AgentHostAdapter` contract, `ClaudeCodeAdapter`/`CodexCliAdapter` (PATH+`--version` detection, `scrub_env` launch specs, hook-payload normalization), and `evaluate_hook_payload` → `intercept_tool_call` with enforce/audit_only. Launch is spec-only; actual spawn, event streaming, and CLI/API wiring remain Phase D. The co-harness still governs only tool calls reported via hooks.
 2. ~~**External MCP servers are catalog-only.**~~ **Resolved (KEEL-ENG-042):** `PlatformMcpRegistry.call_tool` now dispatches non-builtin tools to registered `stdio`/`sse` servers via `core/platform/mcp_client.py`. stdio reuses `core.orchestration.mcp_client.MCPClient` (env-scrubbed subprocess, fresh bounded session per call); sse uses streamable-HTTP JSON-RPC POST (JSON or `data:` SSE frames). `allowed_tools`/`*` enforced; ambiguous claims raise. Verified by `tests/test_mcp_remote_dispatch.py` (11 tests).
 3. **No ACP support.** Agent Client Protocol (Zed/ACP) is absent; JSON-RPC MCP only.
 4. **No per-agent contract tests.** Phase18 tests exercise the interception engine with synthetic payloads, not real agent CLIs.
