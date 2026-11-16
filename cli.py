@@ -1304,6 +1304,22 @@ def cmd_licence_tools(args) -> int:
         print(f'    "{args.key_id}": "{public}",')
         return 0
 
+    if args.entitlements_command == "serve-issuer":
+        from core.billing.checkout import WEBHOOK_SECRET_ENV, LicenceIssuer, SignedWebhookAdapter, create_issuer_app
+        from keelway.security.source_defaults import InsecureDefaultConfiguration
+        try:
+            key = load_signing_key(Path(args.key).read_bytes())
+            adapter = SignedWebhookAdapter(os.environ.get(WEBHOOK_SECRET_ENV, ""))
+        except (OSError, ValueError, InsecureDefaultConfiguration) as e:
+            print(f"[-] Issuer not started: {e}")
+            return 1
+        import uvicorn
+        data = Path(args.data)
+        issuer = LicenceIssuer(key, args.key_id, data / "ledger.json", data / "licences")
+        print(f"[✓] Licence issuer on http://{args.host}:{args.port}/v1/checkout/webhook/{adapter.name}")
+        uvicorn.run(create_issuer_app(issuer, [adapter]), host=args.host, port=args.port, log_level="warning")
+        return 0
+
     if args.entitlements_command == "issue":
         try:
             key = load_signing_key(Path(args.key).read_bytes())
@@ -3791,6 +3807,14 @@ def build_parser() -> argparse.ArgumentParser:
     _ent_is.add_argument("--days", type=int, default=365)
     _ent_is.add_argument("--feature", action="append", help="Extra feature to grant (repeatable)")
     _ent_is.add_argument("--out", required=True, help="Licence file to write")
+    _ent_sv = ent_sub.add_parser(
+        "serve-issuer", help="Issuer only: turn signed payment webhooks into licences (secret: KEELWAY_CHECKOUT_WEBHOOK_SECRET)"
+    )
+    _ent_sv.add_argument("--key", required=True, help="Private key from `entitlements keygen`")
+    _ent_sv.add_argument("--key-id", default="sorvex-1", help="Key id matching TRUSTED_LICENCE_KEYS")
+    _ent_sv.add_argument("--data", default="issuer-data", help="Folder for the ledger and issued licences")
+    _ent_sv.add_argument("--host", default="127.0.0.1")
+    _ent_sv.add_argument("--port", type=int, default=7430)
     _ent_in = ent_sub.add_parser("install", help="Install a licence file; it is checked against the trusted public keys")
     _ent_in.add_argument("file", help="Licence JSON file")
 
@@ -4303,7 +4327,7 @@ def main(argv=None):
                 target=getattr(args, "target", None),
             )
         )
-    elif args.command == "entitlements" and args.entitlements_command in ("keygen", "issue", "install"):
+    elif args.command == "entitlements" and args.entitlements_command in ("keygen", "issue", "install", "serve-issuer"):
         sys.exit(cmd_licence_tools(args))
     elif args.command == "entitlements":
         sys.exit(
