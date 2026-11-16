@@ -266,7 +266,7 @@ export function RoutingSimulator() {
                   control: "monthly_mtok",
                 });
               }}
-              className="mt-2 h-2 w-full cursor-pointer accent-[#2DD4BF]"
+              className="mt-2 h-2 w-full cursor-pointer accent-teal-accent"
             />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[25, 100, 250, 500, 1000, 2000].map((preset) => (
@@ -349,7 +349,7 @@ export function RoutingSimulator() {
               disabled={forceZeroEgress}
               value={effectiveLocalPct}
               onChange={(e) => setLocalOffloadPct(Number(e.target.value))}
-              className="mt-2 h-2 w-full cursor-pointer accent-[#2DD4BF] disabled:opacity-50"
+              className="mt-2 h-2 w-full cursor-pointer accent-teal-accent disabled:opacity-50"
             />
             {forceZeroEgress && (
               <p className="mt-1 font-mono text-[11px] text-teal-accent">

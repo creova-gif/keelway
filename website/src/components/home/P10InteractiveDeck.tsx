@@ -204,7 +204,7 @@ export function P10InteractiveDeck() {
                     : deckState === "denied_rolled_back"
                       ? "border-border-strong bg-canvas text-fg-muted"
                       : isNetworkEscalated
-                        ? "border-red-500/60 bg-red-500/10 text-red-400"
+                        ? "border-fault bg-fault-surface text-fault"
                         : "border-border-strong bg-surface-elevated text-fg"
                 )}
               >
@@ -273,7 +273,7 @@ export function P10InteractiveDeck() {
                     {"  "}if percent &lt;= 0:
                   </div>
                   <div className="text-fg-muted">{"      "}return price_cents</div>
-                  <div className="rounded-sm bg-red-500/10 px-1.5 text-red-300">
+                  <div className="rounded-sm bg-fault-surface px-1.5 text-fault">
                     - return price_cents - percent
                   </div>
                   <div className="mt-0.5 rounded-sm bg-teal-accent/10 px-1.5 text-teal-accent">
@@ -317,7 +317,7 @@ export function P10InteractiveDeck() {
                   <span
                     className={cn(
                       "font-semibold",
-                      isNetworkEscalated ? "text-red-400" : "text-teal-accent"
+                      isNetworkEscalated ? "text-fault" : "text-teal-accent"
                     )}
                   >
                     {riskTier}
@@ -385,13 +385,13 @@ export function P10InteractiveDeck() {
                 {isNetworkEscalated && (
                   <div
                     role="status"
-                    className="mt-3 rounded-md border border-red-500/50 bg-red-500/10 p-3 font-mono text-xs text-red-200"
+                    className="mt-3 rounded-md border border-fault bg-fault-surface p-3 font-mono text-xs text-fault"
                   >
-                    <div className="flex items-center gap-1.5 font-bold text-red-300">
+                    <div className="flex items-center gap-1.5 font-bold text-fault">
                       <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
                       <span>Auto-Escalated: Risk B → Risk C (Network Egress)</span>
                     </div>
-                    <p className="mt-1 text-[11px] leading-relaxed text-red-200/90">
+                    <p className="mt-1 text-[11px] leading-relaxed text-fault">
                       Outbound network tool detected. Standing{" "}
                       <code>Allow always</code> rules and global hotkeys are
                       disabled — explicit 2-step human confirmation required.
@@ -436,7 +436,7 @@ export function P10InteractiveDeck() {
                   <div
                     role="group"
                     aria-label="Confirm external network send"
-                    className="mt-4 rounded-md border border-red-500/60 bg-canvas p-4 font-mono text-xs"
+                    className="mt-4 rounded-md border border-fault bg-canvas p-4 font-mono text-xs"
                   >
                     <p className="font-bold text-fg">
                       Step 2 of 2: Confirm outbound network execution?
@@ -457,7 +457,7 @@ export function P10InteractiveDeck() {
                       <button
                         type="button"
                         onClick={handleConfirmExternalSend}
-                        className="rounded-md border border-red-500 bg-red-500/20 px-3 py-2 font-mono text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/30"
+                        className="rounded-md border border-fault bg-fault-surface px-3 py-2 font-mono text-xs font-semibold text-fault transition-opacity hover:opacity-90"
                       >
                         Confirm external send
                       </button>
@@ -496,7 +496,7 @@ export function P10InteractiveDeck() {
                     className={cn(
                       "inline-flex min-h-[40px] items-center gap-1.5 rounded-md px-4 font-mono text-xs font-semibold transition-colors",
                       isNetworkEscalated
-                        ? "border border-red-500 bg-red-500/20 text-red-100 hover:bg-red-500/30"
+                        ? "border border-fault bg-fault-surface text-fault hover:opacity-90"
                         : "bg-teal-accent text-canvas hover:opacity-90"
                     )}
                   >

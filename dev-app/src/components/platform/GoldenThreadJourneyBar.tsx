@@ -122,7 +122,7 @@ export function GoldenThreadJourneyBar({
 
           const pillTone = isActive
             ? isGovernanceStage
-              ? "border-ochre/65 bg-ochre-subtle text-ochre shadow-[0_0_12px_rgba(229,169,60,0.18)]"
+              ? "border-ochre/65 bg-ochre-subtle text-ochre shadow-[0_0_12px_rgba(212,212,216,0.18)]"
               : "border-teal-accent/65 bg-teal-surface text-teal-accent shadow-[0_0_12px_rgba(45,212,191,0.18)]"
             : isCompleted
               ? "border-teal-accent/30 bg-surface text-fg hover:border-teal-accent/55"

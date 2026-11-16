@@ -210,7 +210,7 @@ export function EarlyAccessForm() {
                   required
                   checked={consent}
                   onChange={(e) => setConsent(e.target.checked)}
-                  className="mt-1 h-5 w-5 shrink-0 accent-[#2DD4BF]"
+                  className="mt-1 h-5 w-5 shrink-0 accent-teal-accent"
                 />
                 <label
                   htmlFor="consent-checkbox"

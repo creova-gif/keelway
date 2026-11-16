@@ -6,7 +6,7 @@
   <title>Keelway — Sovereign &amp; Hybrid AI Platform Console</title>
   <style>
     :root {
-      /* Legacy palette compat: #0B0F14 #2DD4BF #F5B547 */
+      /* Monochrome zinc palette: zinc scale + teal accent */
       --bg: #09090B;
       --bg-deep: #09090B;
       --card: #121215;
@@ -143,7 +143,7 @@
     .pill.ok { border-color: var(--ok); color: var(--ok); background: rgba(16, 185, 129, 0.08); }
     .pill.err { border-color: var(--err); color: var(--err); background: rgba(239, 68, 68, 0.08); }
     .pill.accent { border-color: var(--accent); color: var(--accent); background: rgba(45, 212, 191, 0.08); }
-    .pill.amber { border-color: var(--amber); color: var(--amber); background: rgba(245, 181, 71, 0.08); }
+    .pill.amber { border-color: var(--amber); color: var(--amber); background: rgba(212, 212, 216, 0.08); }
     .pill.open-weight {
       background: rgba(45, 212, 191, 0.14);
       border-color: var(--open-weight);
@@ -151,7 +151,7 @@
       font-weight: 700;
     }
     .pill.closed-prop {
-      background: rgba(245, 181, 71, 0.14);
+      background: rgba(212, 212, 216, 0.14);
       border-color: var(--closed-prop);
       color: var(--closed-prop);
       font-weight: 700;
@@ -244,11 +244,11 @@
     }
     button.primary:hover { background: #22b8a5; color: #041311; }
     button.amber-btn {
-      background: rgba(245, 181, 71, 0.14);
+      background: rgba(212, 212, 216, 0.14);
       color: var(--amber);
       border-color: var(--amber);
     }
-    button.amber-btn:hover { background: rgba(245, 181, 71, 0.24); }
+    button.amber-btn:hover { background: rgba(212, 212, 216, 0.24); }
     button.sm { padding: 4px 10px; font-size: 11px; }
 
     pre {
@@ -259,7 +259,7 @@
       overflow-x: auto;
       font-family: var(--mono);
       font-size: 11.5px;
-      color: #CBD5E1;
+      color: var(--muted);
       max-height: 300px;
       white-space: pre-wrap;
       word-break: break-word;
@@ -552,7 +552,7 @@
           <select id="catalog-filter" style="width: 200px; padding: 4px 8px; font-size: 11px;">
             <option value="">All Categories</option>
             <option value="open_weight">Open-Weight Sovereign (#2DD4BF)</option>
-            <option value="closed_proprietary">Closed Frontier (#F5B547)</option>
+            <option value="closed_proprietary">Closed Frontier (#D4D4D8)</option>
           </select>
         </div>
       </h3>

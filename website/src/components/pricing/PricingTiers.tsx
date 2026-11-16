@@ -109,7 +109,7 @@ export function PricingTiers() {
               step={1}
               value={seats}
               onChange={(e) => setSeats(Number(e.target.value))}
-              className="mt-3 h-2 w-full cursor-pointer accent-[#2DD4BF]"
+              className="mt-3 h-2 w-full cursor-pointer accent-teal-accent"
             />
           </div>
 

@@ -148,16 +148,6 @@
   letter-spacing: 0.04em;
 }
 
-.chip-amber {
-  background-color: var(--bg-surface-elevated);
-  color: var(--fg-primary);
-  border: 1px solid var(--border-strong);
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
 .chip-fault {
   background-color: var(--red-danger);
   color: var(--red-ink);
