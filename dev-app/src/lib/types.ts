@@ -364,6 +364,7 @@ export interface OpenCoreWeightItem {
   license: string;
   localLoopback: boolean;
   simulated?: boolean;
+  runtimeAlias?: boolean;
 }
 
 export interface RoutingExplainRequest {

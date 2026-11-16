@@ -265,6 +265,7 @@ const INITIAL_OPENCORE_WEIGHTS: OpenCoreWeightItem[] = [
     license: "Apache-2.0",
     localLoopback: true,
     simulated: true,
+    runtimeAlias: true,
   },
   {
     id: "keelway-reasoner:14b",
@@ -278,6 +279,21 @@ const INITIAL_OPENCORE_WEIGHTS: OpenCoreWeightItem[] = [
     license: "Apache-2.0",
     localLoopback: true,
     simulated: true,
+    runtimeAlias: true,
+  },
+  {
+    id: "keelway-nano:1.5b",
+    name: "nano-1.5b",
+    version: "0.9.0",
+    quantization: "Q4_K_M",
+    sizeGb: 1.1,
+    vramGb: 1.6,
+    status: "available",
+    sha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    license: "Apache-2.0",
+    localLoopback: true,
+    simulated: true,
+    runtimeAlias: false,
   },
 ];
 

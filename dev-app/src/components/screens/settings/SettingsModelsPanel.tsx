@@ -217,7 +217,9 @@ export function SettingsModelsPanel({
                           <code dir="ltr" className="unicode-bidi-isolate">{weight.id}</code>
                           {` · ${weight.license}`}
                         </div>
-                        {weight.simulated ? (
+                        {weight.runtimeAlias ? (
+                          <SemanticBadge kind="live" labelOverride="Runtime alias — served via installed local model" />
+                        ) : weight.simulated ? (
                           <SemanticBadge kind="simulated" labelOverride="Simulated weights — not real model" />
                         ) : null}
                       </td>

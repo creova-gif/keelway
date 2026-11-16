@@ -42,6 +42,14 @@ class WeightManifest(BaseModel):
     minimum_vram_gb: float = Field(..., description="Minimum VRAM / Unified memory required to serve this quantization")
     context_length: int = Field(default=32768, description="Verified context length for this weight profile")
     source_uri: str = Field(..., description="Approved repository or S3 URI")
+    runtime_alias: bool = Field(
+        default=True,
+        description=(
+            "When true, requests for this model may be served by a compatible installed "
+            "local runtime model (Ollama/vLLM) via LocalRuntimeDiscovery bindings instead "
+            "of the simulated mock backend. When false the model is always mock-served."
+        ),
+    )
 
 
 # Canonical OpenCore Weight Catalog
@@ -104,6 +112,7 @@ CANONICAL_OPENCORE_MANIFESTS: List[WeightManifest] = [
         minimum_vram_gb=1.6,
         context_length=32768,
         source_uri="https://weights.keelway.ai/opencore/v1/keelway-nano-1.5b-q4_k_m.gguf",
+        runtime_alias=False,
     ),
 ]
 

@@ -27,6 +27,11 @@ from core.opencore.serving import (
     OpenCoreWorkerStatus,
     opencore_serving_engine,
 )
+from core.opencore.runtime import (
+    LocalRuntimeDiscovery,
+    OllamaRuntimeBridge,
+    VLLMRuntimeBridge,
+)
 from core.opencore.adaptation import (
     AdaptationConfig,
     AdaptationTask,
@@ -94,7 +99,12 @@ def test_weight_manager_manifests_and_checksum(tmp_path):
 @pytest.mark.asyncio
 async def test_serving_engine_lifecycle():
     """Verify loading, inference forwarding, telemetry tracking, and unloading."""
-    engine = OpenCoreServingEngine()
+    dead = httpx.MockTransport(lambda r: httpx.Response(503))
+    engine = OpenCoreServingEngine(
+        ollama_bridge=OllamaRuntimeBridge(transport=dead),
+        vllm_bridge=VLLMRuntimeBridge(transport=dead),
+        discovery=LocalRuntimeDiscovery(transport=dead),
+    )
 
     # Initial state
     assert len(engine.get_loaded_models()) == 0
@@ -195,7 +205,17 @@ async def test_opencore_api_routes():
         model_ids = {m["model_id"] for m in manifests}
         assert "keelway-core:7b" in model_ids
         assert "keelway-nano:1.5b" in model_ids
-        assert all(m.get("simulated") is True for m in manifests)
+        # KEEL-PROD-041: flagship manifests are runtime-alias served (not
+        # simulated); nano remains mock-only.
+        by_model = {}
+        for m in manifests:
+            by_model.setdefault(m["model_id"], m)
+        assert by_model["keelway-nano:1.5b"]["simulated"] is True
+        assert by_model["keelway-nano:1.5b"]["runtime_alias"] is False
+        assert by_model["keelway-core:7b"]["simulated"] is False
+        assert by_model["keelway-core:7b"]["runtime_alias"] is True
+        assert by_model["keelway-core:7b"]["artifact_verified"] is False
+        assert all(m.get("artifact_verified") is False for m in manifests)
 
         # 3. POST /v1/opencore/models/load
         resp_load = await client.post(
@@ -232,8 +252,12 @@ async def test_opencore_api_routes():
 
 
 @pytest.mark.asyncio
-async def test_gateway_routing_to_opencore():
+async def test_gateway_routing_to_opencore(monkeypatch):
     """Verify ModelGateway seamlessly routes requests to OpenCore models at $0.00 cost."""
+    dead = httpx.MockTransport(lambda r: httpx.Response(503))
+    monkeypatch.setattr(opencore_serving_engine.ollama_bridge, "transport", dead)
+    monkeypatch.setattr(opencore_serving_engine.vllm_bridge, "transport", dead)
+    monkeypatch.setattr(opencore_serving_engine, "_loaded_models", {})
     gw = ModelGateway()
     req = CompletionRequestSchema(
         model="keelway-core:7b",

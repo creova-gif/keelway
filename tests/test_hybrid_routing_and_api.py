@@ -118,8 +118,17 @@ async def test_gateway_air_gap_fail_closed_invariant():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_api_get_v1_models():
+async def test_api_get_v1_models(monkeypatch):
     """Verify GET /v1/models returns the registered catalog with category metadata."""
+    # Deterministic runtime state: no local model server reachable.
+    from types import SimpleNamespace
+    from core.models.adapters.open_weight import OpenWeightProviderAdapter
+
+    monkeypatch.setattr(
+        OpenWeightProviderAdapter,
+        "local_runtime",
+        lambda self: SimpleNamespace(up=False, models=[], api="ollama"),
+    )
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/v1/models")
@@ -147,7 +156,13 @@ async def test_api_get_v1_models():
             assert "installed" in m and "simulated" in m
             assert isinstance(m["simulated"], bool)
         keelway_model = next(m for m in data["data"] if m["id"] == "keelway-core:7b")
+        # KEEL-PROD-041: flagship alias exists but no runtime is installed here.
         assert keelway_model["simulated"] is True
+        assert keelway_model["runtime_alias"] is True
+        assert keelway_model["resolved_model"] is None
+        nano_model = next(m for m in data["data"] if m["id"] == "keelway-nano:1.5b")
+        assert nano_model["simulated"] is True
+        assert nano_model["runtime_alias"] is False
         gpt = next(m for m in data["data"] if m["id"] == "gpt-4o")
         assert gpt["installed"] is None and gpt["simulated"] is False
 

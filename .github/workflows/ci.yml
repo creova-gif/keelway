@@ -3,7 +3,15 @@ name: Keelway CI & Governance Gates
 on:
   push:
     branches: [main]
+    paths-ignore: ["docs/**", "**.md"]
   pull_request:
+    paths-ignore: ["docs/**", "**.md"]
+
+# Cancel superseded runs on the same ref — protects the monthly Actions
+# minute budget on the current plan.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -11,6 +19,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +60,7 @@ jobs:
 
   website-devapp-and-sdks:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -66,6 +76,11 @@ jobs:
           npm --prefix website ci
           npm --prefix website run typecheck
           npm --prefix website run build
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('website/package-lock.json') }}
       - name: Website a11y (axe-core WCAG 2.2 AA) & perf smoke (Playwright)
         run: |
           npx --prefix website playwright install --with-deps chromium
@@ -87,6 +102,7 @@ jobs:
 
   wheel-and-sbom-verification:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

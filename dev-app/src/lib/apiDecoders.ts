@@ -543,6 +543,7 @@ export function decodeOpenCoreWeights(raw: unknown): OpenCoreWeightItem[] | null
         license: asString(w.license, "Apache-2.0"),
         localLoopback: typeof w.localLoopback === "boolean" ? w.localLoopback : true,
         simulated: w.simulated === true,
+        runtimeAlias: w.runtime_alias === true || w.runtimeAlias === true,
       };
     })
     .filter((item): item is OpenCoreWeightItem => item !== null);

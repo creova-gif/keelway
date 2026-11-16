@@ -135,7 +135,14 @@ async def test_lora_hot_swap_lifecycle_and_serving_attribution(tmp_path: Path):
     """Verify attach/detach lifecycle, base model mismatch guard, and routing_reason injection."""
     wm = WeightManager(cache_dir=tmp_path / "weights")
     reg = LoRAAdapterRegistry(cache_dir=tmp_path / "adapters")
-    engine = OpenCoreServingEngine(manager=wm, adapter_registry=reg)
+    dead = httpx.MockTransport(lambda r: httpx.Response(503))
+    engine = OpenCoreServingEngine(
+        manager=wm,
+        adapter_registry=reg,
+        ollama_bridge=OllamaRuntimeBridge(transport=dead),
+        vllm_bridge=VLLMRuntimeBridge(transport=dead),
+        discovery=LocalRuntimeDiscovery(transport=dead),
+    )
     adapter = reg.create_mock_adapter_for_testing(
         adapter_id="lora-hausa-v1", base_model_id="keelway-core:7b", task=AdaptationTask.MULTILINGUAL_LOCALIZATION
     )

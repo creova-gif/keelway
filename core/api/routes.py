@@ -130,6 +130,24 @@ async def list_models(
                 return True
         return False
 
+    # KEEL-PROD-041: flagship keelway-* models alias to a compatible installed
+    # local runtime model; only alias-incapable or unbound entries are simulated.
+    from core.opencore.runtime import LocalRuntimeDiscovery
+    from core.opencore.weights import weight_manager as _opencore_weights
+
+    def _runtime_alias_supported(model_id: str) -> bool:
+        return any(mf.runtime_alias for mf in _opencore_weights.list_manifests(model_id))
+
+    def _resolved_runtime_model(model_id: str) -> Optional[str]:
+        if not model_id.startswith("keelway-") or not _runtime_alias_supported(model_id):
+            return None
+        return LocalRuntimeDiscovery.resolve_compatible_model(model_id, installed_local)
+
+    def _simulated(model_id: str) -> bool:
+        if not model_id.startswith("keelway-"):
+            return False
+        return _resolved_runtime_model(model_id) is None
+
     return {
         "object": "list",
         "data": [
@@ -158,7 +176,9 @@ async def list_models(
                 "recommended_vram_gb": m.recommended_vram_gb,
                 "description": m.description,
                 "installed": _installed(m.id) if m.category == ModelCategory.OPEN_WEIGHT else None,
-                "simulated": bool(m.id.startswith("keelway-") and m.id not in installed_local),
+                "simulated": _simulated(m.id),
+                "runtime_alias": _runtime_alias_supported(m.id) if m.id.startswith("keelway-") else False,
+                "resolved_model": _resolved_runtime_model(m.id),
             }
             for m in models
         ],

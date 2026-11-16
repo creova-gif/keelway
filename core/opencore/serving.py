@@ -138,15 +138,43 @@ class OpenCoreServingEngine:
             return model_id
         return None
 
+    def _model_supports_runtime_alias(self, model_id: str) -> bool:
+        """True when the catalog marks this model as servable via a local runtime alias (KEEL-PROD-041)."""
+        return any(m.runtime_alias for m in self.weight_manager.list_manifests(model_id))
+
+    async def _select_backend(self, model_id: str) -> OpenCoreWorkerBackend:
+        """Pick the serving backend for an unspecified request.
+
+        Flagship OpenCore models (``runtime_alias=True`` manifests) prefer a real
+        local runtime — Ollama first, then vLLM — resolved through
+        ``LocalRuntimeDiscovery`` bindings. Non-alias models and unreachable
+        runtimes fall back to the honest simulated mock backend.
+        """
+        if not self._model_supports_runtime_alias(model_id):
+            return OpenCoreWorkerBackend.MOCK
+        probe = await self.discovery.discover_ollama(
+            base_url=self.ollama_bridge.base_url, transport=self.ollama_bridge.transport
+        )
+        if probe.reachable and probe.recommended_bindings.get(model_id):
+            return OpenCoreWorkerBackend.OLLAMA
+        probe = await self.discovery.discover_vllm(
+            base_url=self.vllm_bridge.base_url, transport=self.vllm_bridge.transport
+        )
+        if probe.reachable and probe.recommended_bindings.get(model_id):
+            return OpenCoreWorkerBackend.VLLM
+        return OpenCoreWorkerBackend.MOCK
+
     async def load_model(
         self,
         model_id: str,
         quantization: Optional[QuantizationLevel] = None,
-        backend: OpenCoreWorkerBackend = OpenCoreWorkerBackend.MOCK,
+        backend: Optional[OpenCoreWorkerBackend] = None,
         base_model_override: Optional[str] = None,
     ) -> LoadedModelInfo:
         """Load an OpenCore model into memory using the requested or detected optimal quantization."""
         async with self._lock:
+            if backend is None:
+                backend = await self._select_backend(model_id)
             existing = self._loaded_models.get(model_id)
             if (
                 existing is not None
@@ -231,14 +259,25 @@ class OpenCoreServingEngine:
         self, model_id: str, backend: Optional[OpenCoreWorkerBackend], base_model_override: Optional[str]
     ) -> LoadedModelInfo:
         info = self._loaded_models.get(model_id)
+        # Self-heal: a mock-served alias model re-probes the local runtime at most
+        # once per minute so a runtime that comes up later is picked up without
+        # paying probe latency on every request.
+        stale_mock = (
+            backend is None
+            and info is not None
+            and info.backend == OpenCoreWorkerBackend.MOCK
+            and self._model_supports_runtime_alias(model_id)
+            and (time.time() - info.loaded_at) > 60.0
+        )
         if (
             not info
             or info.status != OpenCoreWorkerStatus.READY
+            or stale_mock
             or (backend is not None and info.backend != backend)
             or (base_model_override is not None and info.resolved_runtime_model != base_model_override)
         ):
             info = await self.load_model(
-                model_id, backend=backend or OpenCoreWorkerBackend.MOCK, base_model_override=base_model_override
+                model_id, backend=backend, base_model_override=base_model_override
             )
         attached = self.adapter_registry.get_attached_adapter(model_id)
         info.attached_adapter_id = attached.adapter_id if attached else None
