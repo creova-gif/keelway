@@ -33,3 +33,13 @@ Phase D remainder: real subprocess spawn + normalized event streaming for extern
 
 ## Next Recommended Action
 Live-vendor validation run (gated, read-only prompt) OR PostToolUse/SessionStart hook events OR Cursor adapter.
+
+## Live-Vendor Probe (2026-11-16, post-merge)
+
+Ran `agents run` against the real installed CLIs (read-only prompts, no tool use):
+
+- **claude_code** (`claude -p "Reply with exactly the single word: OK"`): launch + event streaming verified — exit 0, 6 stdout events captured in 6.2s. Vendor-side blocked: user's own `UserPromptSubmit` hook reports daily token quota exceeded (1,039,872/1,000,000). No Keelway policy involvement; infrastructure path proven up to vendor quota gate.
+- **codex_cli** (`codex exec "..."`): launch + stderr streaming verified — exit 1, 69 stderr events in 11.8s. Vendor-side blocked: ChatGPT/Codex usage limit until Nov 20, 2026. `hook: UserPromptSubmit Completed` lines confirm the host's own hook pipeline fired.
+
+**Verified live:** detection, env-scrubbed launch, subprocess spawn, stdout/stderr normalized event capture, exit-code propagation, scrubbed previews.
+**Not verified:** real model inference through vendors (quota), real PreToolUse hook delivery end-to-end (requires an active vendor session).
