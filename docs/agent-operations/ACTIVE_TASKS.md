@@ -55,6 +55,7 @@
 | **KEEL-ENG-043** | External Agent Adapters Phase C (`core/agents/external/`, claude_code+codex_cli, audit_only policy bridge) | `ENGINEERING / EXTENSIBILITY / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-043-agent-adapters` |
 | **KEEL-ENG-044** | Harness CLI `agents detect|intercept` (Phase D partial; real claude/codex detection verified) | `ENGINEERING / EXTENSIBILITY / AGENTS / CLI` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-044-harness-agents` |
 | **KEEL-ENG-045** | Hook manifests emit `agents intercept` stdin path + claude-code permissionDecision format | `ENGINEERING / EXTENSIBILITY / AGENTS / CLI` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-045-hook-wiring` |
+| **KEEL-ENG-046** | Agent conformance suite (6 criteria/adapter) + flight-tape evidence bridge | `ENGINEERING / EXTENSIBILITY / AGENTS / TESTING` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `test/KEEL-ENG-046-agent-conformance` |
 
 ---
 
