@@ -18,6 +18,7 @@ import { PlatformCyclicClient, type AutopilotSimulationListResponse, type Autopi
 import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
 import { PlatformSafetyMeshClient, type DispatchMeshHandoffRequest, type ListMeshHandoffsParams, type ListMeshNodesParams, type ListSafetyVerificationsParams, type MeshHandoffListResponse, type MeshHandoffRecord, type MeshNodeListResponse, type MeshNodeRecord, type RegisterMeshNodeRequest, type SafetyVerificationListResponse, type SafetyVerificationRecord, type VerifyWorkflowSafetyRequest } from "./platformSafetyMesh.js";
 import { PlatformHarnessClient, type ApprovalTicketListResponse, type ApprovalTicketRecord, type DecideHarnessTicketRequest, type EvaluateWorktreeCiGateRequest, type HarnessInterceptionRecord, type HookManifestResponse, type InterceptAgentToolCallRequest, type ListHarnessTicketsOptions, type ListWorktreeCiGateRunsParams, type RenderAgentHookConfigRequest, type WorktreeCiGateRunListResponse, type WorktreeCiGateRunRecord } from "./platformHarness.js";
+import { type CompileDistillationDatasetRequest, type DistillationDatasetListResponse, type DistillationDatasetRecord, type DistillationPromotionEvaluation, type EvaluateDistillationPromotionRequest, type EvaluateShadowPromptRequest, type GetSemanticCacheStatsParams, type ListDistillationDatasetsParams, type ListShadowPairsOptions, type SemanticCacheStatsResponse, type ShadowEvaluationRecord, type ShadowPairListResponse } from "./platformDistill.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -38,6 +39,7 @@ export declare class PlatformNamespace {
     readonly healing: PlatformHealingClient;
     readonly safetyMesh: PlatformSafetyMeshClient;
     readonly harness: PlatformHarnessClient;
+    private readonly distill;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -166,6 +168,12 @@ export declare class PlatformNamespace {
     evaluateWorktreeCiGate(req?: EvaluateWorktreeCiGateRequest, options?: RequestOptions): Promise<WorktreeCiGateRunRecord>;
     listWorktreeCiGateRuns(workspaceId?: string, limit?: number, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse>;
     listWorktreeCiGateRuns(params?: ListWorktreeCiGateRunsParams, options?: RequestOptions): Promise<WorktreeCiGateRunListResponse>;
+    evaluateShadowPrompt(req?: EvaluateShadowPromptRequest, options?: RequestOptions): Promise<ShadowEvaluationRecord>;
+    listShadowPairs(wsOrOpts?: string | ListShadowPairsOptions, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<ShadowPairListResponse>;
+    getSemanticCacheStats(wsOrParams?: string | GetSemanticCacheStatsParams, options?: RequestOptions): Promise<SemanticCacheStatsResponse>;
+    compileDistillationDataset(req?: CompileDistillationDatasetRequest, options?: RequestOptions): Promise<DistillationDatasetRecord>;
+    listDistillationDatasets(wsOrParams?: string | ListDistillationDatasetsParams, limitOrOpts?: number | RequestOptions, options?: RequestOptions): Promise<DistillationDatasetListResponse>;
+    evaluateDistillationPromotion(req?: EvaluateDistillationPromotionRequest, options?: RequestOptions): Promise<DistillationPromotionEvaluation>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

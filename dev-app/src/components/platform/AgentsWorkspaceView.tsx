@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FlightTapeDebuggerPanel } from "@/components/platform/FlightTapeDebuggerPanel";
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { McpInspectorPanel } from "@/components/platform/McpInspectorPanel";
+import { ShadowCacheAndDistillationPanel } from "@/components/platform/ShadowCacheAndDistillationPanel";
 import { StepDebuggerAndBridgePanel } from "@/components/platform/StepDebuggerAndBridgePanel";
 import { StructuredOutputAndSelfHealingPanel } from "@/components/platform/StructuredOutputAndSelfHealingPanel";
 import { Button } from "@/components/ui/Button";
@@ -484,6 +485,8 @@ export function AgentsWorkspaceView({
           </div>
         </form>
       </section>
+
+      <ShadowCacheAndDistillationPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <StepDebuggerAndBridgePanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 

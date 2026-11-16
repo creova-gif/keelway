@@ -34,6 +34,7 @@ from core.api.platform_cyclic_routes import platform_cyclic_router
 from core.api.platform_healing_routes import platform_healing_router
 from core.api.platform_safety_mesh_routes import platform_safety_mesh_router
 from core.api.platform_harness_routes import platform_harness_router
+from core.api.platform_distill_routes import platform_distill_router
 from .api.cluster_routes import router as cluster_router
 import asyncio
 from core.security.auth import launch_token
@@ -139,6 +140,7 @@ app.include_router(platform_cyclic_router)
 app.include_router(platform_healing_router)
 app.include_router(platform_safety_mesh_router)
 app.include_router(platform_harness_router)
+app.include_router(platform_distill_router)
 app.include_router(cluster_router)
 
 # Mount Keelway Studio Web UI & Unified Sovereign Dev App

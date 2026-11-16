@@ -2,10 +2,24 @@
  * Keelway Dev — Official VS Code & Cursor Extension Entrypoint (`activate` / `deactivate`).
  * Wires loopback Debugger Bridge, URI handler, 4D CodeLens, SecretStorage auth, and Studio Webview.
  */
-import { KeelwayBridgeClient, parseAttachUri } from "./bridgeClient.js";
+import { KeelwayBridgeClient, parseAttachUri, } from "./bridgeClient.js";
 import { KeelwayCodeLensProvider, scanWorkflowSymbols } from "./codeLensProvider.js";
 import { handleWebviewMessage, renderStudioWebviewHtml } from "./studioWebview.js";
 let activePanel = null;
+function formatPromotionHeadline(verdict) {
+    switch (verdict) {
+        case "PROMOTE_TO_OPENCORE":
+            return "Ready to Promote to $0 OpenCore";
+        case "NEEDS_MORE_PAIRS":
+            return "Collect More Shadow Pairs";
+        case "HOLD_ON_FRONTIER":
+            return "Hold Workload on Frontier BYOM";
+        default: {
+            const _exhaustive = verdict;
+            throw new Error(`Unexpected distillation promotion verdict '${String(_exhaustive)}'.`);
+        }
+    }
+}
 function isSessionPaused(session) {
     return Boolean(session && session.status.toUpperCase() === "PAUSED");
 }
@@ -151,6 +165,16 @@ export async function activate(context, options = {}) {
         const decided = await bridgeClient.decideHarnessTicket(selectedId, "APPROVED", opts.workspaceId);
         await vscode.window.showInformationMessage(`Approved Keelway Co-Harness ticket ${decided.ticket_id} (${decided.scrubbed_command})`);
         return decided;
+    }), vscode.commands.registerCommand("keelway.inspectDistillationReadiness", async (arg) => {
+        const opts = typeof arg === "string"
+            ? { taskTag: arg }
+            : typeof arg === "object" && arg !== null
+                ? arg
+                : {};
+        const evaluation = await bridgeClient.evaluateDistillationPromotion(opts);
+        const headline = formatPromotionHeadline(evaluation.verdict);
+        await vscode.window.showInformationMessage(`Keelway Distillation Readiness [${evaluation.verdict} — ${headline}]: avg_parity_score=${evaluation.avg_parity_score.toFixed(2)}, projected_monthly_savings_usd=$${evaluation.projected_monthly_savings_usd.toFixed(2)}`);
+        return evaluation;
     }));
     return { bridgeClient, codeLensProvider, getActiveSession: () => activeSession };
 }

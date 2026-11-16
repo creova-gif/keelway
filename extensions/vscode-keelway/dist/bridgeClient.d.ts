@@ -5,6 +5,33 @@
 export type AttachScheme = "vscode" | "cursor";
 export type DebugStepAction = "step_over" | "step_into" | "continue" | "mutate_state";
 export type HarnessTicketDecision = "APPROVED" | "DENIED";
+export type BridgeDistillationPromotionVerdict = "PROMOTE_TO_OPENCORE" | "NEEDS_MORE_PAIRS" | "HOLD_ON_FRONTIER";
+export interface BridgeDistillationPromotionOptions {
+    workspaceId?: string;
+    taskTag?: string;
+    targetLocalModel?: string;
+    minPairs?: number;
+    minAvgParity?: number;
+    monthlyRequestVolume?: number;
+}
+export interface BridgeDistillationPromotionEvaluation {
+    evaluation_id: string;
+    workspace_id: string;
+    task_tag: string;
+    target_local_model: string;
+    verdict: BridgeDistillationPromotionVerdict;
+    pair_count: number;
+    min_pairs: number;
+    avg_parity_score: number;
+    min_avg_parity: number;
+    avg_frontier_cost_usd: number;
+    monthly_request_volume: number;
+    projected_monthly_savings_usd: number;
+    recommendation: string;
+    gate_sha256: string;
+    evaluated_at: string;
+    [key: string]: unknown;
+}
 export interface BridgeHarnessTicketRecord {
     ticket_id: string;
     workspace_id: string;
@@ -185,5 +212,6 @@ export declare class KeelwayBridgeClient {
         tickets: BridgeHarnessTicketRecord[];
     }>;
     decideHarnessTicket(ticketId: string, decision: "APPROVED" | "DENIED", workspaceId?: string): Promise<BridgeHarnessTicketRecord>;
+    evaluateDistillationPromotion(opts?: BridgeDistillationPromotionOptions): Promise<BridgeDistillationPromotionEvaluation>;
 }
 //# sourceMappingURL=bridgeClient.d.ts.map

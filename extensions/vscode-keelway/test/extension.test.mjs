@@ -146,6 +146,34 @@ function createMockFetch() {
       tkt.decided_at = "2026-11-16T02:01:00Z";
       return jsonRes(200, { ...tkt });
     }
+    if (url.pathname === "/v1/platform/distill/promotion/evaluate" && init.method === "POST") {
+      const ws = body.workspace_id ?? "default";
+      const tag = body.task_tag ?? "code-patch";
+      const minPairs = body.min_pairs ?? 3;
+      const minAvg = body.min_avg_parity ?? 0.85;
+      const vol = body.monthly_request_volume ?? 50000;
+      const pairCount = tag === "low-sample" ? 1 : 6;
+      const avgParity = tag === "low-parity" ? 0.68 : 0.94;
+      const verdict = pairCount < minPairs ? "NEEDS_MORE_PAIRS" : avgParity < minAvg ? "HOLD_ON_FRONTIER" : "PROMOTE_TO_OPENCORE";
+      const savings = verdict === "PROMOTE_TO_OPENCORE" ? Number((0.018 * vol).toFixed(2)) : 0;
+      return jsonRes(200, {
+        evaluation_id: "pgate-ext-19",
+        workspace_id: ws,
+        task_tag: tag,
+        target_local_model: body.target_local_model ?? "keelway-core:7b",
+        verdict,
+        pair_count: pairCount,
+        min_pairs: minPairs,
+        avg_parity_score: avgParity,
+        min_avg_parity: minAvg,
+        avg_frontier_cost_usd: 0.018,
+        monthly_request_volume: vol,
+        projected_monthly_savings_usd: savings,
+        recommendation: `Canary gate evaluated ${verdict}`,
+        gate_sha256: "e".repeat(64),
+        evaluated_at: "2026-11-16T03:05:00Z",
+      });
+    }
     return jsonRes(404, { detail: "Not found" });
   };
 
@@ -333,6 +361,63 @@ describe("vscode-keelway official VS Code & Cursor extension", () => {
     const noneRemaining = await registeredCommands.get("keelway.approvePendingHarnessTicket")();
     assert.equal(noneRemaining, null);
     assert.ok(infoMessages.some((m) => m.includes("No pending Keelway Co-Harness tickets")));
+    deactivate();
+  });
+
+  it("inspects OpenCore distillation readiness end-to-end via keelway.inspectDistillationReadiness", async () => {
+    const { calls, fetchImpl } = createMockFetch();
+    const registeredCommands = new Map();
+    const infoMessages = [];
+    const mockHost = {
+      commands: {
+        registerCommand: (id, cb) => (registeredCommands.set(id, cb), { dispose() {} }),
+        executeCommand: async () => undefined,
+      },
+      languages: { registerCodeLensProvider: () => ({ dispose() {} }) },
+      window: {
+        registerUriHandler: () => ({ dispose() {} }),
+        createWebviewPanel: () => ({ webview: { html: "", onDidReceiveMessage: () => ({ dispose() {} }), postMessage: async () => true }, reveal() {}, onDidDispose: () => ({ dispose() {} }), dispose() {} }),
+        showInformationMessage: async (msg) => (infoMessages.push(msg), undefined),
+        showErrorMessage: async () => undefined,
+        showInputBox: async () => undefined,
+      },
+      workspace: { getConfiguration: () => ({ get: (_k, defVal) => defVal }) },
+    };
+    const extCtx = {
+      subscriptions: [],
+      secrets: { get: async (k) => (k === "keelway.apiToken" ? "kw_secret_vault_19" : undefined), store: async () => {}, delete: async () => {} },
+    };
+
+    await activate(extCtx, { hostApi: mockHost, fetchImpl });
+    assert.ok(registeredCommands.has("keelway.inspectDistillationReadiness"));
+
+    const promoteEval = await registeredCommands.get("keelway.inspectDistillationReadiness")({
+      workspaceId: "ws-ide-19",
+      taskTag: "code-patch",
+      targetLocalModel: "keelway-core:7b",
+      minPairs: 3,
+      minAvgParity: 0.85,
+      monthlyRequestVolume: 50000,
+    });
+    assert.equal(promoteEval.verdict, "PROMOTE_TO_OPENCORE");
+    assert.equal(promoteEval.avg_parity_score, 0.94);
+    assert.equal(promoteEval.projected_monthly_savings_usd, 900);
+    assert.ok(
+      infoMessages.some(
+        (m) => m.includes("PROMOTE_TO_OPENCORE") && m.includes("0.94") && m.includes("900.00"),
+      ),
+    );
+
+    const promoCall = calls.find((c) => c.pathname === "/v1/platform/distill/promotion/evaluate");
+    assert.ok(promoCall);
+    assert.equal(promoCall.headers.Authorization, "Bearer kw_secret_vault_19");
+    assert.equal("Origin" in promoCall.headers, false);
+    assert.equal(promoCall.body.workspace_id, "ws-ide-19");
+    assert.equal(promoCall.body.monthly_request_volume, 50000);
+
+    const holdEval = await registeredCommands.get("keelway.inspectDistillationReadiness")("low-parity");
+    assert.equal(holdEval.verdict, "HOLD_ON_FRONTIER");
+    assert.equal(holdEval.projected_monthly_savings_usd, 0);
     deactivate();
   });
 });

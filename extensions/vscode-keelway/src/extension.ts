@@ -3,8 +3,17 @@
  * Wires loopback Debugger Bridge, URI handler, 4D CodeLens, SecretStorage auth, and Studio Webview.
  */
 
-import { type BridgeDebugSession, type BridgeHarnessTicketRecord, type DebugStepAction, KeelwayBridgeClient, parseAttachUri } from "./bridgeClient.js";
-export type { BridgeHarnessTicketRecord };
+import {
+  type BridgeDebugSession,
+  type BridgeDistillationPromotionEvaluation,
+  type BridgeDistillationPromotionOptions,
+  type BridgeDistillationPromotionVerdict,
+  type BridgeHarnessTicketRecord,
+  type DebugStepAction,
+  KeelwayBridgeClient,
+  parseAttachUri,
+} from "./bridgeClient.js";
+export type { BridgeDistillationPromotionEvaluation, BridgeDistillationPromotionOptions, BridgeHarnessTicketRecord };
 import { KeelwayCodeLensProvider, scanWorkflowSymbols } from "./codeLensProvider.js";
 import { handleWebviewMessage, renderStudioWebviewHtml, type StudioWebviewMessage } from "./studioWebview.js";
 import type { VsCodeExtensionContext, VsCodeHostApi, VsCodeUri, VsCodeWebviewPanel } from "./vscodeTypes.js";
@@ -21,6 +30,21 @@ export interface ActivatedKeelwayExtension {
 }
 
 let activePanel: VsCodeWebviewPanel | null = null;
+
+function formatPromotionHeadline(verdict: BridgeDistillationPromotionVerdict): string {
+  switch (verdict) {
+    case "PROMOTE_TO_OPENCORE":
+      return "Ready to Promote to $0 OpenCore";
+    case "NEEDS_MORE_PAIRS":
+      return "Collect More Shadow Pairs";
+    case "HOLD_ON_FRONTIER":
+      return "Hold Workload on Frontier BYOM";
+    default: {
+      const _exhaustive: never = verdict;
+      throw new Error(`Unexpected distillation promotion verdict '${String(_exhaustive)}'.`);
+    }
+  }
+}
 
 function isSessionPaused(session: BridgeDebugSession | null | undefined): boolean {
   return Boolean(session && session.status.toUpperCase() === "PAUSED");
@@ -187,6 +211,20 @@ export async function activate(
         `Approved Keelway Co-Harness ticket ${decided.ticket_id} (${decided.scrubbed_command})`,
       );
       return decided;
+    }),
+    vscode.commands.registerCommand("keelway.inspectDistillationReadiness", async (arg?: unknown) => {
+      const opts: BridgeDistillationPromotionOptions =
+        typeof arg === "string"
+          ? { taskTag: arg }
+          : typeof arg === "object" && arg !== null
+            ? (arg as BridgeDistillationPromotionOptions)
+            : {};
+      const evaluation = await bridgeClient.evaluateDistillationPromotion(opts);
+      const headline = formatPromotionHeadline(evaluation.verdict);
+      await vscode.window.showInformationMessage(
+        `Keelway Distillation Readiness [${evaluation.verdict} — ${headline}]: avg_parity_score=${evaluation.avg_parity_score.toFixed(2)}, projected_monthly_savings_usd=$${evaluation.projected_monthly_savings_usd.toFixed(2)}`,
+      );
+      return evaluation;
     }),
   );
 

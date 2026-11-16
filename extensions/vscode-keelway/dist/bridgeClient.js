@@ -172,5 +172,20 @@ export class KeelwayBridgeClient {
             },
         });
     }
+    evaluateDistillationPromotion(opts = {}) {
+        const wsId = (opts.workspaceId ?? this.workspaceId).trim() || "default";
+        const taskTag = (opts.taskTag ?? "code-patch").trim() || "code-patch";
+        const targetLocalModel = (opts.targetLocalModel ?? "keelway-core:7b").trim() || "keelway-core:7b";
+        return this.request("POST", "/v1/platform/distill/promotion/evaluate", {
+            body: {
+                workspace_id: wsId,
+                task_tag: taskTag,
+                target_local_model: targetLocalModel,
+                min_pairs: opts.minPairs ?? 3,
+                min_avg_parity: opts.minAvgParity ?? 0.85,
+                monthly_request_volume: opts.monthlyRequestVolume ?? 50000,
+            },
+        });
+    }
 }
 //# sourceMappingURL=bridgeClient.js.map

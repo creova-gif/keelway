@@ -16,6 +16,7 @@ import { PlatformCyclicClient } from "./platformCyclic.js";
 import { PlatformHealingClient } from "./platformHealing.js";
 import { PlatformSafetyMeshClient } from "./platformSafetyMesh.js";
 import { PlatformHarnessClient } from "./platformHarness.js";
+import { PlatformDistillClient } from "./platformDistill.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -30,6 +31,7 @@ export class PlatformNamespace {
     healing;
     safetyMesh;
     harness;
+    distill;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -44,6 +46,7 @@ export class PlatformNamespace {
         this.healing = new PlatformHealingClient(requestJson);
         this.safetyMesh = new PlatformSafetyMeshClient(requestJson);
         this.harness = new PlatformHarnessClient(requestJson);
+        this.distill = new PlatformDistillClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -481,6 +484,24 @@ export class PlatformNamespace {
     }
     listWorktreeCiGateRuns(wsOrParams, limitOrOpts, options) {
         return this.harness.listWorktreeCiGateRuns(wsOrParams, limitOrOpts, options);
+    }
+    evaluateShadowPrompt(req, options) {
+        return this.distill.evaluateShadowPrompt(req, options);
+    }
+    listShadowPairs(wsOrOpts, limitOrOpts, options) {
+        return this.distill.listShadowPairs(wsOrOpts, limitOrOpts, options);
+    }
+    getSemanticCacheStats(wsOrParams, options) {
+        return this.distill.getSemanticCacheStats(wsOrParams, options);
+    }
+    compileDistillationDataset(req, options) {
+        return this.distill.compileDistillationDataset(req, options);
+    }
+    listDistillationDatasets(wsOrParams, limitOrOpts, options) {
+        return this.distill.listDistillationDatasets(wsOrParams, limitOrOpts, options);
+    }
+    evaluateDistillationPromotion(req, options) {
+        return this.distill.evaluateDistillationPromotion(req, options);
     }
 }
 export { PlatformNamespace as PlatformClient };

@@ -22,7 +22,8 @@
     "onUri",
     "onCommand:keelway.attachBridge",
     "onCommand:keelway.openStudioPanel",
-    "onCommand:keelway.approvePendingHarnessTicket"
+    "onCommand:keelway.approvePendingHarnessTicket",
+    "onCommand:keelway.inspectDistillationReadiness"
   ],
   "contributes": {
     "commands": [
@@ -53,6 +54,10 @@
       {
         "command": "keelway.approvePendingHarnessTicket",
         "title": "Keelway: Approve Pending Co-Harness Ticket"
+      },
+      {
+        "command": "keelway.inspectDistillationReadiness",
+        "title": "Keelway: Inspect OpenCore Distillation Readiness"
       }
     ],
     "keybindings": [
