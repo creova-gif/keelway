@@ -33,9 +33,9 @@ export function BrandMark({
             width={size}
             height={size}
             viewBox="0 0 48 48"
-            role={ariaLabel ? "img" : undefined}
-            aria-label={ariaLabel}
-            aria-hidden={ariaLabel ? undefined : "true"}
+            role={ariaLabel && !effectiveShowWordmark ? "img" : undefined}
+            aria-label={ariaLabel && !effectiveShowWordmark ? ariaLabel : undefined}
+            aria-hidden={ariaLabel && !effectiveShowWordmark ? undefined : "true"}
             className="shrink-0"
           >
             <rect width="48" height="48" rx="11" fill="#09090b" />
@@ -51,9 +51,9 @@ export function BrandMark({
             width={size}
             height={size}
             viewBox="0 0 48 48"
-            role={ariaLabel ? "img" : undefined}
-            aria-label={ariaLabel}
-            aria-hidden={ariaLabel ? undefined : "true"}
+            role={ariaLabel && !effectiveShowWordmark ? "img" : undefined}
+            aria-label={ariaLabel && !effectiveShowWordmark ? ariaLabel : undefined}
+            aria-hidden={ariaLabel && !effectiveShowWordmark ? undefined : "true"}
             className="shrink-0"
           >
             <path d={KEELWAY_K_STEM_PATH} fill="currentColor" />
@@ -73,7 +73,11 @@ export function BrandMark({
   }
 
   return (
-    <span className={`inline-flex items-center gap-1.5 ${className}`.trim()}>
+    <span
+      role={ariaLabel ? "img" : undefined}
+      aria-label={ariaLabel}
+      className={`inline-flex items-center gap-1.5 ${className}`.trim()}
+    >
       {renderSvg()}
       <span className={`font-sans font-bold tracking-tight text-fg ${wordmarkClassName}`.trim()}>
         Keelway

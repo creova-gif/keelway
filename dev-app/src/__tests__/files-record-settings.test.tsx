@@ -244,7 +244,7 @@ describe("FilesWorkspace (Screen 05)", () => {
     (window as unknown as Record<string, unknown>).require = amdRequire;
     try {
       const mounted = render(<FilesWorkspace initialActiveLine={5} fetchTreeFn={async () => SAMPLE_TREE} fetchContentFn={async (path) => ({ path, language: "python", content: "app = FastAPI()\n" })} />);
-      await waitFor(() => expect(defineThemeSpy).toHaveBeenCalledWith("keelway-dark", expect.objectContaining({ colors: { "editor.background": "#090d12" } })));
+      await waitFor(() => expect(defineThemeSpy).toHaveBeenCalledWith("keelway-dark", expect.objectContaining({ colors: { "editor.background": "#09090b" } })));
       expect(defineThemeSpy).toHaveBeenCalledWith("keelway-light", expect.objectContaining({ colors: { "editor.background": "#f8fafc" } }));
       expect(requireConfigSpy).toHaveBeenCalledWith({ paths: { vs: "/studio/assets/monaco/vs" } });
       expect(document.head.querySelector('link[href="/studio/assets/monaco/vs/editor/editor.main.css"]')).not.toBeNull();

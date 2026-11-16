@@ -417,7 +417,7 @@ export function FilesWorkspace({
         base: "vs-dark",
         inherit: true,
         rules: [],
-        colors: { "editor.background": "#090d12" },
+        colors: { "editor.background": "#09090b" },
       });
       monaco.editor.defineTheme("keelway-light", {
         base: "vs",

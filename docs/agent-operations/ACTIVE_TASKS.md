@@ -38,6 +38,7 @@
 | **KEEL-DISTILL-026** | Phase 19: Semantic Prompt Cache, Shadow Dual-Run Router & Frontier-to-OpenCore QLoRA Distillation Flywheel | `CACHE / DISTILL / SDK / VSCODE / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
 | **KEEL-LOCK-027** | Phase 20: Cryptographic MCP & Skill Lockfile (`keelway.lock`), Tool-Poisoning / Rug-Pull Firewall & Conformance Benchmark | `SUPPLY-CHAIN / LOCK / BENCH / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
 | **KEEL-WEB-028** | Brand/UI Refresh: Monochrome Zinc Palette, Shared BrandMark & PWA/SEO Surfaces | `WEBSITE / UX / DEV-APP` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `feature/KEEL-WEB-028-brand-refresh` |
+| **KEEL-WEB-029** | Post-Merge Brand Polish: BrandMark ARIA, web-console Token Drift, fault-Token Migration & Dead-Code Sweep | `WEBSITE / UX / DEV-APP / A11Y` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-WEB-029-brand-polish` |
 
 ---
 

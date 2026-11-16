@@ -286,6 +286,7 @@ export function BrandMark({
 
   return (
     <span
+      role={ariaLabel ? "img" : undefined}
       aria-label={ariaLabel}
       className={cn("inline-flex items-center gap-2", className)}
     >
