@@ -79,14 +79,14 @@ export function renderStudioWebviewHtml(state: StudioWebviewState, nonce?: strin
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${safeNonce}'; script-src 'nonce-${safeNonce}';">
   <title>Keelway 4D Studio Debugger</title>
   <style nonce="${safeNonce}">
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0b0f17; color: #e2e8f0; margin: 0; padding: 16px; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
-    .badge { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #09090b; color: #f4f4f5; margin: 0; padding: 16px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 12px; }
+    .badge { background: #18181b; border: 1px solid #3f3f46; border-radius: 6px; padding: 4px 8px; font-size: 12px; }
     .toolbar { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
-    button { background: #2563eb; color: #ffffff; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
-    button.secondary { background: #334155; }
-    textarea { width: 100%; min-height: 120px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; padding: 8px; font-family: monospace; box-sizing: border-box; }
-    .panel { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    button { background: #2dd4bf; color: #09090b; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
+    button.secondary { background: #3f3f46; color: #f4f4f5; }
+    textarea { width: 100%; min-height: 120px; background: #18181b; color: #f4f4f5; border: 1px solid #3f3f46; border-radius: 6px; padding: 8px; font-family: monospace; box-sizing: border-box; }
+    .panel { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
   </style>
 </head>
 <body data-session-id="${sessionId}" data-workspace-id="${escapeHtml(state.workspaceId)}">
