@@ -12,7 +12,9 @@ import base64
 import copy
 import hashlib
 import json
+import os
 import secrets
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 try:
@@ -173,9 +175,102 @@ def generate_publisher_keypair() -> Tuple[bytes, str]:
     return _seed_to_keypair(secrets.token_bytes(32))
 
 
+class FirstPartySigningKeyUnavailable(RuntimeError):
+    """Raised when no managed first-party manifest signing key is configured."""
+
+
+_LEGACY_DEV_SEED_DOMAIN = b"keelway.manifest.sorvex-labs.first-party.ed25519.v1"
+_MANIFEST_KEY_ENVS = (
+    "KEELWAY_MANIFEST_SIGNING_KEY",
+    "KEELWAY_MANIFEST_SIGNING_SEED",
+    "KEELWAY_MANIFEST_KEY_FILE",
+    "KEELWAY_STATE_DIR",
+    "KEELWAY_DEV_INSECURE_KEY",
+)
+
+
+def _decode_seed_material(text: str) -> bytes:
+    """Decode a 32-byte Ed25519 seed from hex, base64, or PKCS#8 PEM text."""
+    candidate = text.strip()
+    if not candidate:
+        raise ValueError("Empty signing seed material.")
+    if "-----BEGIN" in candidate:
+        return _seed_from_pem(candidate.encode("utf-8"))
+    compact = "".join(candidate.split())
+    try:
+        raw = bytes.fromhex(compact)
+    except ValueError:
+        raw = base64.b64decode(compact, validate=True)
+    if len(raw) != 32:
+        raise ValueError("Ed25519 signing seed must decode to exactly 32 bytes.")
+    return raw
+
+
+def _first_party_key_file_path() -> Optional[Path]:
+    explicit = os.environ.get("KEELWAY_MANIFEST_KEY_FILE", "").strip()
+    if explicit:
+        return Path(explicit).expanduser()
+    state_dir = os.environ.get("KEELWAY_STATE_DIR", "").strip()
+    if state_dir:
+        return Path(state_dir).expanduser() / "manifest-signing.seed"
+    return None
+
+
+def _load_or_create_key_file_seed(path: Path) -> bytes:
+    if path.exists():
+        return _decode_seed_material(path.read_text(encoding="utf-8"))
+    seed = secrets.token_bytes(32)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        os.write(fd, (seed.hex() + "\n").encode("ascii"))
+    finally:
+        os.close(fd)
+    return seed
+
+
+def _resolve_first_party_seed() -> Optional[bytes]:
+    """Resolve the first-party Ed25519 seed from managed configuration.
+
+    Resolution order:
+    1. ``KEELWAY_MANIFEST_SIGNING_KEY`` (PKCS#8 PEM) or
+       ``KEELWAY_MANIFEST_SIGNING_SEED`` (hex/base64 32-byte seed).
+    2. ``KEELWAY_MANIFEST_KEY_FILE`` or ``$KEELWAY_STATE_DIR/manifest-signing.seed``
+       (loaded if present, otherwise generated once with mode 0600).
+    3. ``KEELWAY_DEV_INSECURE_KEY=1`` — deterministic legacy seed for local
+       development and tests only. Never set this in production.
+    4. Otherwise ``None`` (fail closed).
+    """
+    pem = os.environ.get("KEELWAY_MANIFEST_SIGNING_KEY", "").strip()
+    if pem:
+        return _seed_from_pem(pem.encode("utf-8"))
+    seed_text = os.environ.get("KEELWAY_MANIFEST_SIGNING_SEED", "").strip()
+    if seed_text:
+        return _decode_seed_material(seed_text)
+    key_file = _first_party_key_file_path()
+    if key_file is not None:
+        return _load_or_create_key_file_seed(key_file)
+    if os.environ.get("KEELWAY_DEV_INSECURE_KEY", "").strip().lower() in {"1", "true", "yes"}:
+        return hashlib.sha256(_LEGACY_DEV_SEED_DOMAIN).digest()
+    return None
+
+
 def get_sorvex_first_party_keypair() -> Tuple[bytes, str]:
-    """Return deterministic Sorvex Labs first-party manifest signing keypair for curated seed packages."""
-    seed = hashlib.sha256(b"keelway.manifest.sorvex-labs.first-party.ed25519.v1").digest()
+    """Return the Sorvex Labs first-party manifest signing keypair.
+
+    The private key is sourced from managed configuration (env seed/PEM or a
+    persisted key file); the legacy deterministic key is available only behind
+    ``KEELWAY_DEV_INSECURE_KEY=1``. Raises
+    :class:`FirstPartySigningKeyUnavailable` when unconfigured.
+    """
+    seed = _resolve_first_party_seed()
+    if seed is None:
+        raise FirstPartySigningKeyUnavailable(
+            "No first-party manifest signing key configured. Set "
+            "KEELWAY_MANIFEST_SIGNING_KEY, KEELWAY_MANIFEST_SIGNING_SEED, or "
+            "KEELWAY_MANIFEST_KEY_FILE (or KEELWAY_STATE_DIR); for local "
+            "development only, set KEELWAY_DEV_INSECURE_KEY=1."
+        )
     return _seed_to_keypair(seed)
 
 
@@ -191,8 +286,11 @@ class Ed25519ManifestSigner:
 
     def __init__(self, trusted_keys: Optional[Dict[str, str]] = None) -> None:
         if trusted_keys is None:
-            _, first_party_pub = get_sorvex_first_party_keypair()
-            self._trusted_keys: Dict[str, str] = {SORVEX_FIRST_PARTY_KEY_ID: first_party_pub}
+            try:
+                _, first_party_pub = get_sorvex_first_party_keypair()
+                self._trusted_keys: Dict[str, str] = {SORVEX_FIRST_PARTY_KEY_ID: first_party_pub}
+            except FirstPartySigningKeyUnavailable:
+                self._trusted_keys = {}
         else:
             self._trusted_keys = {}
             for k_id, pub_b64 in trusted_keys.items():

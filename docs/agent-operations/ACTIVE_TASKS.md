@@ -39,6 +39,7 @@
 | **KEEL-LOCK-027** | Phase 20: Cryptographic MCP & Skill Lockfile (`keelway.lock`), Tool-Poisoning / Rug-Pull Firewall & Conformance Benchmark | `SUPPLY-CHAIN / LOCK / BENCH / SDK / UI` | `VERIFIED_COMPLETE` | Google Antigravity (3-Agent Parallel Wave) | 2026-11-16 | `main` |
 | **KEEL-WEB-028** | Brand/UI Refresh: Monochrome Zinc Palette, Shared BrandMark & PWA/SEO Surfaces | `WEBSITE / UX / DEV-APP` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `feature/KEEL-WEB-028-brand-refresh` |
 | **KEEL-WEB-029** | Post-Merge Brand Polish: BrandMark ARIA, web-console Token Drift, fault-Token Migration & Dead-Code Sweep | `WEBSITE / UX / DEV-APP / A11Y` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-WEB-029-brand-polish` |
+| **KEEL-SEC-030** | Managed First-Party Manifest Signing Key (env/key-file resolution, fail-closed, dev gate) | `SECURITY / SUPPLY-CHAIN / MARKETPLACE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-030-managed-signing-key` |
 
 ---
 
