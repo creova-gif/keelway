@@ -89,6 +89,8 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
                                help="Native hook payload JSON, '@path' to read a file, or '-' for stdin")
     hr_agents_int.add_argument("--mode", choices=["enforce", "audit_only"], default="audit_only",
                                help="Policy mode (default: audit_only)")
+    hr_agents_int.add_argument("--format", dest="output_format", choices=["json", "claude-code"], default="json",
+                               help="Output format: 'json' (default) or 'claude-code' PreToolUse permissionDecision JSON")
     _add_common_flags(hr_agents_int)
 
     cg = subparsers.add_parser("ci-gate", help="Parallel worktree candidate arena & hybrid unit-economics CI gate")
@@ -202,6 +204,15 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                         mode=str(getattr(args, "mode", "audit_only")),
                         adapter=adapter,
                     )
+                    out_format = str(getattr(args, "output_format", "json"))
+                    if out_format == "claude-code":
+                        decision_map = {"allow": "allow", "deny": "deny", "hold": "ask"}
+                        permission = decision_map.get(res["decision"], "ask")
+                        print(json.dumps({"hookSpecificOutput": {
+                            "hookEventName": "PreToolUse",
+                            "permissionDecision": permission,
+                        }}))
+                        return 0
                     print(json.dumps(res, indent=2) if as_json else
                           f"[{res['decision'].upper()}] agent={res['agent_id']} verdict={res['record']['verdict']} reason={res['record']['reason_code']}")
                     if res["decision"] == "deny":

@@ -228,3 +228,24 @@ def test_cli_agents_intercept_hold_exit_code(tmp_path, capsys) -> None:
                    "--payload", '{"tool_name":"Bash","tool_input":{"command":"git push origin main"}}',
                    "--mode", "enforce", "--db-path", db, "--json"])
     assert rc == 2
+
+
+def test_cli_agents_intercept_claude_code_format(tmp_path, capsys) -> None:
+    from cli import main as cli_main
+    db = str(tmp_path / "h.db")
+    payload = '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}'
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "claude_code",
+                   "--payload", payload, "--mode", "enforce",
+                   "--format", "claude-code", "--db-path", db])
+    assert rc == 0  # Claude Code consumes the JSON decision, not the exit code
+    import json as _json
+    out = _json.loads(capsys.readouterr().out)
+    assert out["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
+    assert out["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+    rc = cli_main(["harness", "agents", "intercept", "--agent", "claude_code",
+                   "--payload", '{"tool_name":"Bash","tool_input":{"command":"git status"}}',
+                   "--mode", "enforce", "--format", "claude-code", "--db-path", db])
+    assert rc == 0
+    out = _json.loads(capsys.readouterr().out)
+    assert out["hookSpecificOutput"]["permissionDecision"] == "allow"

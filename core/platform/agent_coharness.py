@@ -122,7 +122,13 @@ def _scrub_coharness_text(text: str) -> Tuple[str, int]:
 
 
 def _build_hook_config_content(ws: str, host: str, mode: str) -> str:
-    hook_cmd = f"keelway harness intercept --agent {host} --workspace {ws}"
+    if host in ("claude_code", "codex_cli"):
+        # Adapter hosts consume native hook JSON on stdin via `harness agents intercept`.
+        out_format = "claude-code" if host == "claude_code" else "json"
+        hook_cmd = (f"keelway harness agents intercept --agent {host} --payload - "
+                    f"--mode {mode} --workspace {ws} --format {out_format}")
+    else:
+        hook_cmd = f"keelway harness intercept --agent {host} --workspace {ws}"
     if host == "claude_code":
         return json.dumps({"hooks": {"PreToolUse": [{"matcher": "Bash|Edit|Write|MultiEdit", "mode": mode, "hooks": [{"type": "command", "command": hook_cmd}]}]}}, indent=2)
     if host == "cursor":
