@@ -330,6 +330,9 @@ def test_public_install_sh_dry_run_and_v1_docs_integrity(tmp_path: Path) -> None
 
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     changelog = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    for token in ("v1.0.0", "127.0.0.1:7420/app", "@keelway/sdk", "keelway-go", "P10HumanGate.tla", "eval-suite"):
+    # KEEL-DOC-034 errata: README tracks v1.1.0; the P-10 gate is implemented
+    # in code (specs/tla/P10HumanGate.tla was never committed — do not re-assert it).
+    for token in ("v1.1.0", "127.0.0.1:7420/app", "@keelway/sdk", "keelway-go", "P-10", "eval-suite"):
         assert token in readme
-    assert "## [1.0.0]" in changelog and "CycloneDX" in changelog and "KFlow" in changelog
+    assert "P10HumanGate.tla" not in readme
+    assert "## [1.1.0]" in changelog and "## [1.0.0]" in changelog and "CycloneDX" in changelog and "KFlow" in changelog

@@ -22,7 +22,7 @@ Options:
   --bin-dir DIR       Override binary symlink directory (default: ~/.local/bin)
   -h, --help          Show this help message and exit
 
-Environment: KEELWAY_PYTHON, KEELWAY_INSTALL_DIR, KEELWAY_BIN_DIR, KEELWAY_SOURCE_DIR, KEELWAY_PACKAGE
+Environment: KEELWAY_PYTHON, KEELWAY_INSTALL_DIR, KEELWAY_BIN_DIR, KEELWAY_SOURCE_DIR, KEELWAY_PACKAGE, KEELWAY_GIT_URL
 EOF
 }
 
@@ -60,10 +60,17 @@ fi
 [ -n "$PYTHON" ] || die "Python 3.11+ is required. Install Python 3.11+ or set KEELWAY_PYTHON=/path/to/python3."
 say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-KEELWAY_PACKAGE="${KEELWAY_PACKAGE:-keelway}"
+GIT_URL="${KEELWAY_GIT_URL:-https://github.com/creova-gif/kora.git}"
+if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
+    RESOLVED_SOURCE="${KEELWAY_SOURCE_DIR} (local checkout)"
+elif [ -n "${KEELWAY_PACKAGE:-}" ]; then
+    RESOLVED_SOURCE="${KEELWAY_PACKAGE} (package)"
+else
+    RESOLVED_SOURCE="${GIT_URL} (git clone)"
+fi
 if [ "$DRY_RUN" -eq 1 ]; then
     say "[dry-run] Would create isolated venv: ${INSTALL_DIR}/.venv"
-    say "[dry-run] Would install package:      ${KEELWAY_SOURCE_DIR:-${KEELWAY_PACKAGE}}"
+    say "[dry-run] Would install package:      ${RESOLVED_SOURCE}"
     say "[dry-run] Would link CLI binary:      ${BIN_DIR}/keelway"
     say "[dry-run] Zero filesystem writes performed."
     exit 0
@@ -77,9 +84,16 @@ say "[+] Creating isolated Keelway virtual environment..."
 if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
     say "[+] Installing Keelway from local checkout (${KEELWAY_SOURCE_DIR})..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${KEELWAY_SOURCE_DIR}"
-else
+elif [ -n "${KEELWAY_PACKAGE:-}" ]; then
     say "[+] Installing ${KEELWAY_PACKAGE} CLI & OpenCore runtime..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet "${KEELWAY_PACKAGE}"
+else
+    command -v git >/dev/null 2>&1 || die "git is required to install from ${GIT_URL}. Install git or set KEELWAY_SOURCE_DIR/KEELWAY_PACKAGE."
+    SRC_DIR="${INSTALL_DIR}/src"
+    say "[+] Cloning Keelway source from ${GIT_URL}..."
+    git clone --depth 1 --quiet "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL}"
+    say "[+] Installing Keelway from cloned source..."
+    "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${SRC_DIR}"
 fi
 
 ln -sf "${INSTALL_DIR}/.venv/bin/keelway" "${BIN_DIR}/keelway"
