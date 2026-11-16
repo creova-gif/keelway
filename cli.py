@@ -1893,6 +1893,24 @@ async def cmd_doctor(json_output: bool = False):
     return 0
 
 
+def cmd_migration_check(path: str = ".", json_output: bool = False) -> int:
+    """ADR-0042 Phase 1: census core.*/keelway_core imports for consolidation planning."""
+    import json as _json
+    from pathlib import Path as _Path
+    from core.system.migration_check import format_migration_report, scan_migration_imports
+
+    root = _Path(path).expanduser().resolve()
+    if not root.is_dir():
+        print(f"[!] migration-check path does not exist: {root}")
+        return 2
+    report = scan_migration_imports(root)
+    if json_output:
+        print(_json.dumps(report.to_dict(), indent=2))
+    else:
+        print(format_migration_report(report))
+    return 0
+
+
 async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, target: str = "", action_name: str = "", task_id: str = "") -> int:
     """Manage Keelway Mobile phone pairings, status, and notifications."""
     from urllib.parse import quote
@@ -3342,6 +3360,8 @@ def build_parser() -> argparse.ArgumentParser:
     # doctor
     doctor_parser = subparsers.add_parser("doctor", help="Run sovereign enterprise system diagnostics across 7 dimensions")
     doctor_parser.add_argument("--json", action="store_true", help="Output diagnostics report in JSON format")
+    doctor_parser.add_argument("--migration-check", action="store_true", help="Run ADR-0042 package-consolidation import census instead of diagnostics")
+    doctor_parser.add_argument("--path", default=".", help="Repository root to scan for --migration-check (default: cwd)")
 
     # mobile (Mission Control & Phone Pairing)
     mobile_parser = subparsers.add_parser("mobile", help="Keelway Mobile Phone Mission Control pairing & management")
@@ -4111,6 +4131,8 @@ def main(argv=None):
             token_id=getattr(args, "token_id", ""),
         ))
     elif args.command == "doctor":
+        if getattr(args, "migration_check", False):
+            sys.exit(cmd_migration_check(path=getattr(args, "path", "."), json_output=getattr(args, "json", False)))
         asyncio.run(cmd_doctor(json_output=getattr(args, "json", False)))
     elif args.command == "mobile":
         sys.exit(asyncio.run(cmd_mobile(
