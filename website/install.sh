@@ -42,10 +42,11 @@ say "[+] Creating isolated Keelway virtual environment..."
 if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
     say "[+] Installing Keelway from local checkout (${KEELWAY_SOURCE_DIR})..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${KEELWAY_SOURCE_DIR}"
-else
-    KEELWAY_PACKAGE="${KEELWAY_PACKAGE:-keelway}"
+elif [ -n "${KEELWAY_PACKAGE:-}" ]; then
     say "[+] Installing ${KEELWAY_PACKAGE} CLI & OpenCore runtime..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet "${KEELWAY_PACKAGE}"
+else
+    die "No install source configured. Set KEELWAY_SOURCE_DIR=/path/to/keelway for a source checkout, or KEELWAY_PACKAGE=<dist> once the package is published. The 'keelway' name is not yet on PyPI."
 fi
 
 ln -sf "${INSTALL_DIR}/.venv/bin/keelway" "${BIN_DIR}/keelway"
