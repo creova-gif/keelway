@@ -19,6 +19,7 @@ import pytest
 from core.agents.external import (
     ClaudeCodeAdapter,
     CodexCliAdapter,
+    CursorAgentAdapter,
     detect_external_agents,
     evaluate_hook_payload,
     get_adapter,
@@ -163,8 +164,9 @@ def test_bad_mode_raises(engine: SQLiteAgentCoharnessEngine) -> None:
 def test_get_adapter() -> None:
     assert isinstance(get_adapter("claude_code"), ClaudeCodeAdapter)
     assert isinstance(get_adapter("codex_cli"), CodexCliAdapter)
+    assert isinstance(get_adapter("cursor"), CursorAgentAdapter)
     with pytest.raises(KeyError):
-        get_adapter("cursor")
+        get_adapter("not_an_agent")
 
 
 # --- CLI surface (KEEL-ENG-044) ---
@@ -176,7 +178,7 @@ def test_cli_agents_detect(capsys) -> None:
     import json as _json
     out = _json.loads(capsys.readouterr().out)
     ids = {a["agent_id"] for a in out["agents"]}
-    assert ids == {"claude_code", "codex_cli"}
+    assert ids == {"claude_code", "codex_cli", "cursor"}
     assert "capabilities" in out
 
 
@@ -337,3 +339,69 @@ def test_cli_agents_run_tape(tmp_path, monkeypatch, capsys) -> None:
     out = _json.loads(capsys.readouterr().out)
     assert out["flight_tape"]["trace_id"] == "run-1"
     assert out["flight_tape"]["tape_sha256"]
+
+
+# --- cursor adapter + lifecycle events (KEEL-ENG-048) ---
+
+def test_cursor_adapter_registered_and_parses() -> None:
+    from core.agents.external import CursorAgentAdapter, get_adapter
+    ad = get_adapter("cursor")
+    assert isinstance(ad, CursorAgentAdapter)
+    call = ad.parse_hook_payload({"tool_name": "Bash", "tool_input": {"command": "ls"}})
+    assert call.agent_id == "cursor" and call.command == "ls"
+
+
+def test_record_agent_event_to_tape(tmp_path) -> None:
+    from core.agents.external import record_agent_event
+    from core.platform.flight_tape import SQLiteFlightTapeEngine
+    tape = SQLiteFlightTapeEngine(db_path=str(tmp_path / "t.db"))
+    try:
+        meta = record_agent_event(tape, "claude_code", "posttooluse",
+                                  {"tool_name": "Bash", "tool_input": {"command": "git status"},
+                                   "tool_response": {"ok": True}},
+                                  workspace_id="default", trace_id="evt-1")
+        assert meta["tape_sha256"]
+        stored = tape.get_tape("default", "evt-1")
+        assert stored["steps"][0]["span_kind"] == "tool"
+        meta2 = record_agent_event(tape, "codex_cli", "sessionstart",
+                                   {"session_id": "s1", "cwd": "/repo"}, trace_id="evt-2")
+        assert meta2["tape_sha256"]
+    finally:
+        tape.close()
+
+
+def test_record_agent_event_bad_name(tmp_path) -> None:
+    from core.agents.external import record_agent_event
+    from core.platform.flight_tape import SQLiteFlightTapeEngine
+    tape = SQLiteFlightTapeEngine(db_path=str(tmp_path / "t.db"))
+    try:
+        with pytest.raises(ValueError):
+            record_agent_event(tape, "claude_code", "bogus", {}, trace_id="x")
+    finally:
+        tape.close()
+
+
+def test_cli_agents_event(tmp_path, capsys) -> None:
+    from cli import main as cli_main
+    rc = cli_main(["harness", "agents", "event", "--agent", "claude_code",
+                   "--event", "sessionstart",
+                   "--payload", '{"session_id":"s9"}',
+                   "--trace-id", "cli-evt-1",
+                   "--tape-db-path", str(tmp_path / "t.db"), "--json"])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["recorded"] is True and out["trace_id"] == "cli-evt-1"
+    assert out["tape_sha256"]
+
+
+def test_hook_manifest_has_lifecycle_events() -> None:
+    from core.platform.agent_coharness import SQLiteAgentCoharnessEngine
+    eng = SQLiteAgentCoharnessEngine()
+    try:
+        for host in ("claude_code", "codex_cli", "cursor"):
+            m = eng.render_hook_manifest(workspace_id="ws", agent_host=host, mode="audit_only")
+            assert "agents event --agent" in m["config_content"]
+            assert "posttooluse" in m["config_content"]
+            assert "sessionstart" in m["config_content"]
+    finally:
+        eng.close()
