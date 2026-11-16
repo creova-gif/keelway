@@ -30,6 +30,15 @@ const BUILTIN_ACTIONS: CommandItem[] = [
     keywords: "action studio golden thread langgraph kflow ast scrubber blast radius prompt gate",
   },
   {
+    id: "act-structured-self-healing",
+    group: "action",
+    title: "Enforce Structured Output & Self-Heal Flight-Tapes",
+    subtitle: "Cross-provider .content_blocks normalizer, strict JSON Schema repair & autonomous root-causer",
+    badge: "HEALING",
+    href: "/docs#surfaces",
+    keywords: "action structured output json schema content blocks normalizer self healing root cause eval",
+  },
+  {
     id: "act-cyclic-kflow-autopilot",
     group: "action",
     title: "Simulate Cyclic KFlow & Cost/Privacy Autopilot",

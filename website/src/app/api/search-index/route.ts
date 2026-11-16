@@ -50,6 +50,15 @@ export async function GET() {
       keywords: "studio golden thread bidirectional langgraph stategraph kflow ast flight tape blast radius prompt gate",
     },
     {
+      id: "page-structured-self-healing",
+      group: "page",
+      title: "Typed Structured-Output Normalizer & Self-Healing Root-Causer",
+      subtitle: "Cross-provider .content_blocks, deterministic JSON Schema repair & automated Golden Eval promotion",
+      badge: "HEALING",
+      href: "/docs#surfaces",
+      keywords: "structured output content_blocks json schema repair self-healing root-cause diagnose flight-tape eval",
+    },
+    {
       id: "page-cyclic-kflow-autopilot",
       group: "page",
       title: "Bounded Cyclic KFlow & Cost/Privacy Autopilot",

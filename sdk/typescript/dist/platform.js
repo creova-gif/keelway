@@ -1,7 +1,7 @@
 /**
  * Keelway Official TypeScript SDK — Unified Platform Namespace (`client.platform`).
  *
- * Exposes all 20 `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
+ * Exposes all `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
  * Web Fetch, `AbortSignal` timeout, and `mapHttpError` infrastructure.
  */
 import { PlatformRuntimeDelegate } from "./platform-runtime.js";
@@ -13,6 +13,7 @@ import { PlatformDevxDelegate } from "./platformDevx.js";
 import { PlatformStudioClient } from "./platformStudio.js";
 import { PlatformDebuggerClient } from "./platformDebugger.js";
 import { PlatformCyclicClient } from "./platformCyclic.js";
+import { PlatformHealingClient } from "./platformHealing.js";
 export class PlatformNamespace {
     requestJson;
     runtime;
@@ -24,6 +25,7 @@ export class PlatformNamespace {
     studio;
     debugger;
     cyclic;
+    healing;
     constructor(requestJson, requestSse) {
         this.requestJson = requestJson;
         this.runtime = new PlatformRuntimeDelegate(requestJson, requestSse);
@@ -35,6 +37,7 @@ export class PlatformNamespace {
         this.studio = new PlatformStudioClient(requestJson);
         this.debugger = new PlatformDebuggerClient(requestJson);
         this.cyclic = new PlatformCyclicClient(requestJson);
+        this.healing = new PlatformHealingClient(requestJson);
     }
     overview(params = {}, options) {
         const workspaceId = typeof params === "string" ? params : (params.workspace_id ?? "default");
@@ -73,9 +76,7 @@ export class PlatformNamespace {
         });
     }
     listMarketplacePackages(params = {}, options) {
-        const query = {
-            workspace_id: params.workspace_id ?? "default",
-        };
+        const query = { workspace_id: params.workspace_id ?? "default" };
         if (params.kind !== undefined)
             query.kind = params.kind;
         if (params.query !== undefined)
@@ -85,38 +86,26 @@ export class PlatformNamespace {
         return this.requestJson("GET", "/v1/platform/marketplace/packages", { query, options });
     }
     scanMarketplacePackage(pkg, options) {
-        return this.requestJson("POST", "/v1/platform/marketplace/scan", {
-            body: { ...pkg },
-            options,
-        });
+        return this.requestJson("POST", "/v1/platform/marketplace/scan", { body: { ...pkg }, options });
     }
     publishMarketplacePackage(pkg, options) {
         return this.requestJson("POST", "/v1/platform/marketplace/publish", { body: { ...pkg }, options });
     }
     installMarketplacePackage(req, options) {
-        const body = {
-            package_id: req.package_id,
-            workspace_id: req.workspace_id ?? "default",
-        };
-        if (req.config !== undefined) {
+        const body = { package_id: req.package_id, workspace_id: req.workspace_id ?? "default" };
+        if (req.config !== undefined)
             body.config = req.config;
-        }
         return this.requestJson("POST", "/v1/platform/marketplace/install", { body, options });
     }
     purchaseMarketplacePackage(req, options) {
         const body = typeof req === "string"
             ? { package_id: req, buyer_tenant_id: "default" }
-            : {
-                package_id: req.package_id,
-                buyer_tenant_id: req.buyer_tenant_id ?? "default",
-            };
+            : { package_id: req.package_id, buyer_tenant_id: req.buyer_tenant_id ?? "default" };
         if (typeof req !== "string") {
-            if (req.workspace_id !== undefined) {
+            if (req.workspace_id !== undefined)
                 body.workspace_id = req.workspace_id;
-            }
-            if (req.config !== undefined) {
+            if (req.config !== undefined)
                 body.config = req.config;
-            }
         }
         return this.requestJson("POST", "/v1/platform/marketplace/purchase", { body, options });
     }
@@ -126,29 +115,21 @@ export class PlatformNamespace {
         return this.requestJson("GET", "/v1/platform/marketplace/settlements", { query, options });
     }
     listAgents(params = {}, options) {
-        return this.requestJson("GET", "/v1/platform/agents", {
-            query: { workspace_id: params.workspace_id ?? "default" },
-            options,
-        });
+        return this.requestJson("GET", "/v1/platform/agents", { query: { workspace_id: params.workspace_id ?? "default" }, options });
     }
     dispatchTeam(req, options) {
         return this.requestJson("POST", "/v1/platform/agents/teams/dispatch", {
             body: {
-                team_id: req.team_id,
-                objective: req.objective ?? req.goal ?? "",
-                workspace_id: req.workspace_id ?? "default",
-                sensitive_mutation: req.sensitive_mutation ?? false,
+                team_id: req.team_id, objective: req.objective ?? req.goal ?? "",
+                workspace_id: req.workspace_id ?? "default", sensitive_mutation: req.sensitive_mutation ?? false,
             },
             options,
         });
     }
     async listIssues(params = {}, options) {
-        const query = {
-            workspace_id: params.workspace_id ?? "default",
-        };
-        if (params.status !== undefined) {
+        const query = { workspace_id: params.workspace_id ?? "default" };
+        if (params.status !== undefined)
             query.status = params.status;
-        }
         const res = await this.requestJson("GET", "/v1/platform/pm/issues", { query, options });
         if (params.status !== undefined && Array.isArray(res.issues)) {
             const filtered = res.issues.filter((i) => i.status === params.status);
@@ -158,80 +139,45 @@ export class PlatformNamespace {
     }
     createIssue(req, options) {
         const body = {
-            title: req.title,
-            workspace_id: req.workspace_id ?? "default",
-            priority: req.priority ?? "medium",
-            status: req.status ?? "todo",
-            assignee_agent: req.assignee_agent ?? "feature-coder",
-            sprint_id: req.sprint_id ?? "SPR-01",
+            title: req.title, workspace_id: req.workspace_id ?? "default", priority: req.priority ?? "medium",
+            status: req.status ?? "todo", assignee_agent: req.assignee_agent ?? "feature-coder", sprint_id: req.sprint_id ?? "SPR-01",
         };
-        if (req.prd_id !== undefined) {
+        if (req.prd_id !== undefined)
             body.prd_id = req.prd_id;
-        }
-        return this.requestJson("POST", "/v1/platform/pm/issues", {
-            body,
-            options,
-        });
+        return this.requestJson("POST", "/v1/platform/pm/issues", { body, options });
     }
     listPrds(params = {}, options) {
-        return this.requestJson("GET", "/v1/platform/product/prds", {
-            query: { workspace_id: params.workspace_id ?? "default" },
-            options,
-        });
+        return this.requestJson("GET", "/v1/platform/product/prds", { query: { workspace_id: params.workspace_id ?? "default" }, options });
     }
     createPrd(req, options) {
-        const body = {
-            title: req.title,
-            summary: req.summary,
-            workspace_id: req.workspace_id ?? "default",
-        };
-        if (req.acceptance_criteria !== undefined) {
+        const body = { title: req.title, summary: req.summary, workspace_id: req.workspace_id ?? "default" };
+        if (req.acceptance_criteria !== undefined)
             body.acceptance_criteria = req.acceptance_criteria;
-        }
-        return this.requestJson("POST", "/v1/platform/product/prds", {
-            body,
-            options,
-        });
+        return this.requestJson("POST", "/v1/platform/product/prds", { body, options });
     }
     listWorkflows(params = {}, options) {
-        return this.requestJson("GET", "/v1/platform/automation/workflows", {
-            query: { workspace_id: params.workspace_id ?? "default" },
-            options,
-        });
+        return this.requestJson("GET", "/v1/platform/automation/workflows", { query: { workspace_id: params.workspace_id ?? "default" }, options });
     }
     createWorkflow(req, options) {
-        const body = {
-            name: req.name,
-            trigger: req.trigger ?? "manual",
-            workspace_id: req.workspace_id ?? "default",
-        };
-        if (req.nodes !== undefined) {
+        const body = { name: req.name, trigger: req.trigger ?? "manual", workspace_id: req.workspace_id ?? "default" };
+        if (req.nodes !== undefined)
             body.nodes = req.nodes;
-        }
         return this.requestJson("POST", "/v1/platform/automation/workflows", { body, options });
     }
     compileBlueprint(req, options) {
         return this.requestJson("POST", "/v1/platform/nocode/blueprint", {
             body: {
-                idea: req.idea,
-                workspace_id: req.workspace_id ?? "default",
-                experience_mode: req.experience_mode ?? "non_coder",
-                target_stack: req.target_stack ?? "react-fastapi-sqlite",
+                idea: req.idea, workspace_id: req.workspace_id ?? "default",
+                experience_mode: req.experience_mode ?? "non_coder", target_stack: req.target_stack ?? "react-fastapi-sqlite",
             },
             options,
         });
     }
     listExtensions(params = {}, options) {
-        const query = {
-            workspace_id: params.workspace_id ?? "default",
-        };
-        if (params.extension_type !== undefined) {
+        const query = { workspace_id: params.workspace_id ?? "default" };
+        if (params.extension_type !== undefined)
             query.extension_type = params.extension_type;
-        }
-        return this.requestJson("GET", "/v1/platform/extensions", {
-            query,
-            options,
-        });
+        return this.requestJson("GET", "/v1/platform/extensions", { query, options });
     }
     registerExtension(extension, options) {
         return this.requestJson("POST", "/v1/platform/extensions/register", { body: { ...extension }, options });
@@ -460,6 +406,24 @@ export class PlatformNamespace {
     }
     listKflowAutopilotSimulations(params, options) {
         return this.cyclic.listKflowAutopilotSimulations(params, options);
+    }
+    normalizeContentBlocks(req, options) {
+        return this.healing.normalizeContentBlocks(req, options);
+    }
+    enforceStructuredOutput(req, options) {
+        return this.healing.enforceStructuredOutput(req, options);
+    }
+    listStructuredOutputRuns(params, options) {
+        return this.healing.listStructuredOutputRuns(params, options);
+    }
+    diagnoseFailureRootCause(req, options) {
+        return this.healing.diagnoseFailureRootCause(req, options);
+    }
+    applySelfHealingPatch(diagnosisId, req, options) {
+        return this.healing.applySelfHealingPatch(diagnosisId, req, options);
+    }
+    listSelfHealingDiagnoses(params, options) {
+        return this.healing.listSelfHealingDiagnoses(params, options);
     }
 }
 export { PlatformNamespace as PlatformClient };

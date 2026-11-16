@@ -1,50 +1,21 @@
 /**
  * Keelway Official TypeScript SDK — Unified Platform Namespace (`client.platform`).
  *
- * Exposes all 20 `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
+ * Exposes all `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
  * Web Fetch, `AbortSignal` timeout, and `mapHttpError` infrastructure.
  */
 
 import type {
-  CheckModelLicenseRequest,
-  CheckModelLicenseResponse,
-  CompileBlueprintRequest,
-  CompiledBlueprintResponse,
-  CreateIssueRequest,
-  CreatePrdRequest,
-  CreateWorkflowRequest,
-  DispatchTeamRequest,
-  ExtensionSpecInput,
-  InstallMarketplacePackageRequest,
-  InstallMarketplacePackageResponse,
-  LifecycleAgentsResponse,
-  ListExtensionsParams,
-  ListIssuesParams,
-  ListMarketplacePackagesParams,
-  ListMarketplaceSettlementsParams,
-  MarketplacePackageInput,
-  MarketplacePackageListResponse,
-  MarketplacePackageRecord,
-  MarketplaceScanReport,
-  MarketplaceSettlementRecord,
-  MarketplaceSettlementSummaryResponse,
-  PlatformExtensionListResponse,
-  PlatformExtensionRecord,
-  PlatformIssueListResponse,
-  PlatformIssueRecord,
-  PlatformOverviewParams,
-  PlatformOverviewResponse,
-  PlatformPrdListResponse,
-  PlatformPrdRecord,
-  PlatformWorkflowListResponse,
-  PlatformWorkflowRecord,
-  PurchaseMarketplacePackageRequest,
-  QuotaCheckRequest,
-  QuotaCheckResponse,
-  SubscriptionTiersResponse,
-  TeamRunResponse,
-  ValidateByomRequest,
-  ValidateByomResponse,
+  CheckModelLicenseRequest, CheckModelLicenseResponse, CompileBlueprintRequest, CompiledBlueprintResponse,
+  CreateIssueRequest, CreatePrdRequest, CreateWorkflowRequest, DispatchTeamRequest, ExtensionSpecInput,
+  InstallMarketplacePackageRequest, InstallMarketplacePackageResponse, LifecycleAgentsResponse,
+  ListExtensionsParams, ListIssuesParams, ListMarketplacePackagesParams, ListMarketplaceSettlementsParams,
+  MarketplacePackageInput, MarketplacePackageListResponse, MarketplacePackageRecord, MarketplaceScanReport,
+  MarketplaceSettlementRecord, MarketplaceSettlementSummaryResponse, PlatformExtensionListResponse,
+  PlatformExtensionRecord, PlatformIssueListResponse, PlatformIssueRecord, PlatformOverviewParams,
+  PlatformOverviewResponse, PlatformPrdListResponse, PlatformPrdRecord, PlatformWorkflowListResponse,
+  PlatformWorkflowRecord, PurchaseMarketplacePackageRequest, QuotaCheckRequest, QuotaCheckResponse,
+  SubscriptionTiersResponse, TeamRunResponse, ValidateByomRequest, ValidateByomResponse,
 } from "./platform-types.js";
 import type * as PT from "./platform-types.js";
 import { PlatformRuntimeDelegate, type PlatformSseRequester } from "./platform-runtime.js";
@@ -56,6 +27,7 @@ import { PlatformDevxDelegate, type EvalDatasetCase, type EvalDatasetListRespons
 import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
 import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
 import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
+import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
 import type { RequestOptions } from "./types.js";
 
 export type PlatformJsonRequester = <T>(
@@ -75,6 +47,7 @@ export class PlatformNamespace {
   public readonly studio: PlatformStudioClient;
   public readonly debugger: PlatformDebuggerClient;
   public readonly cyclic: PlatformCyclicClient;
+  public readonly healing: PlatformHealingClient;
 
   constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester) {
     this.requestJson = requestJson;
@@ -87,6 +60,7 @@ export class PlatformNamespace {
     this.studio = new PlatformStudioClient(requestJson);
     this.debugger = new PlatformDebuggerClient(requestJson);
     this.cyclic = new PlatformCyclicClient(requestJson);
+    this.healing = new PlatformHealingClient(requestJson);
   }
 
   public overview(params: PlatformOverviewParams | string = {}, options?: RequestOptions): Promise<PlatformOverviewResponse> {
@@ -129,142 +103,64 @@ export class PlatformNamespace {
     });
   }
 
-  public listMarketplacePackages(
-    params: ListMarketplacePackagesParams = {},
-    options?: RequestOptions,
-  ): Promise<MarketplacePackageListResponse> {
-    const query: Record<string, string> = {
-      workspace_id: params.workspace_id ?? "default",
-    };
+  public listMarketplacePackages(params: ListMarketplacePackagesParams = {}, options?: RequestOptions): Promise<MarketplacePackageListResponse> {
+    const query: Record<string, string> = { workspace_id: params.workspace_id ?? "default" };
     if (params.kind !== undefined) query.kind = params.kind;
     if (params.query !== undefined) query.query = params.query;
     if (params.publisher_tier !== undefined) query.publisher_tier = params.publisher_tier;
-    return this.requestJson<MarketplacePackageListResponse>(
-      "GET",
-      "/v1/platform/marketplace/packages",
-      { query, options },
-    );
+    return this.requestJson<MarketplacePackageListResponse>("GET", "/v1/platform/marketplace/packages", { query, options });
   }
 
-  public scanMarketplacePackage(
-    pkg: MarketplacePackageInput,
-    options?: RequestOptions,
-  ): Promise<MarketplaceScanReport> {
-    return this.requestJson<MarketplaceScanReport>("POST", "/v1/platform/marketplace/scan", {
-      body: { ...pkg },
-      options,
-    });
+  public scanMarketplacePackage(pkg: MarketplacePackageInput, options?: RequestOptions): Promise<MarketplaceScanReport> {
+    return this.requestJson<MarketplaceScanReport>("POST", "/v1/platform/marketplace/scan", { body: { ...pkg }, options });
   }
 
-  public publishMarketplacePackage(
-    pkg: MarketplacePackageInput,
-    options?: RequestOptions,
-  ): Promise<MarketplacePackageRecord> {
-    return this.requestJson<MarketplacePackageRecord>(
-      "POST",
-      "/v1/platform/marketplace/publish",
-      { body: { ...pkg }, options },
-    );
+  public publishMarketplacePackage(pkg: MarketplacePackageInput, options?: RequestOptions): Promise<MarketplacePackageRecord> {
+    return this.requestJson<MarketplacePackageRecord>("POST", "/v1/platform/marketplace/publish", { body: { ...pkg }, options });
   }
 
-  public installMarketplacePackage(
-    req: InstallMarketplacePackageRequest,
-    options?: RequestOptions,
-  ): Promise<InstallMarketplacePackageResponse> {
-    const body: Record<string, unknown> = {
-      package_id: req.package_id,
-      workspace_id: req.workspace_id ?? "default",
-    };
-    if (req.config !== undefined) {
-      body.config = req.config;
-    }
-    return this.requestJson<InstallMarketplacePackageResponse>(
-      "POST",
-      "/v1/platform/marketplace/install",
-      { body, options },
-    );
+  public installMarketplacePackage(req: InstallMarketplacePackageRequest, options?: RequestOptions): Promise<InstallMarketplacePackageResponse> {
+    const body: Record<string, unknown> = { package_id: req.package_id, workspace_id: req.workspace_id ?? "default" };
+    if (req.config !== undefined) body.config = req.config;
+    return this.requestJson<InstallMarketplacePackageResponse>("POST", "/v1/platform/marketplace/install", { body, options });
   }
 
-  public purchaseMarketplacePackage(
-    req: PurchaseMarketplacePackageRequest | string,
-    options?: RequestOptions,
-  ): Promise<MarketplaceSettlementRecord> {
+  public purchaseMarketplacePackage(req: PurchaseMarketplacePackageRequest | string, options?: RequestOptions): Promise<MarketplaceSettlementRecord> {
     const body: Record<string, unknown> =
       typeof req === "string"
         ? { package_id: req, buyer_tenant_id: "default" }
-        : {
-            package_id: req.package_id,
-            buyer_tenant_id: req.buyer_tenant_id ?? "default",
-          };
+        : { package_id: req.package_id, buyer_tenant_id: req.buyer_tenant_id ?? "default" };
     if (typeof req !== "string") {
-      if (req.workspace_id !== undefined) {
-        body.workspace_id = req.workspace_id;
-      }
-      if (req.config !== undefined) {
-        body.config = req.config;
-      }
+      if (req.workspace_id !== undefined) body.workspace_id = req.workspace_id;
+      if (req.config !== undefined) body.config = req.config;
     }
-    return this.requestJson<MarketplaceSettlementRecord>(
-      "POST",
-      "/v1/platform/marketplace/purchase",
-      { body, options },
-    );
+    return this.requestJson<MarketplaceSettlementRecord>("POST", "/v1/platform/marketplace/purchase", { body, options });
   }
 
-  public listMarketplaceSettlements(
-    params: ListMarketplaceSettlementsParams | string = {},
-    options?: RequestOptions,
-  ): Promise<MarketplaceSettlementSummaryResponse> {
+  public listMarketplaceSettlements(params: ListMarketplaceSettlementsParams | string = {}, options?: RequestOptions): Promise<MarketplaceSettlementSummaryResponse> {
     const tenantId = typeof params === "string" ? params : params.tenant_id;
-    const query: Record<string, string> | undefined =
-      tenantId !== undefined ? { tenant_id: tenantId } : undefined;
-    return this.requestJson<MarketplaceSettlementSummaryResponse>(
-      "GET",
-      "/v1/platform/marketplace/settlements",
-      { query, options },
-    );
+    const query: Record<string, string> | undefined = tenantId !== undefined ? { tenant_id: tenantId } : undefined;
+    return this.requestJson<MarketplaceSettlementSummaryResponse>("GET", "/v1/platform/marketplace/settlements", { query, options });
   }
 
-  public listAgents(
-    params: { workspace_id?: string } = {},
-    options?: RequestOptions,
-  ): Promise<LifecycleAgentsResponse> {
-    return this.requestJson<LifecycleAgentsResponse>("GET", "/v1/platform/agents", {
-      query: { workspace_id: params.workspace_id ?? "default" },
-      options,
-    });
+  public listAgents(params: { workspace_id?: string } = {}, options?: RequestOptions): Promise<LifecycleAgentsResponse> {
+    return this.requestJson<LifecycleAgentsResponse>("GET", "/v1/platform/agents", { query: { workspace_id: params.workspace_id ?? "default" }, options });
   }
 
-  public dispatchTeam(
-    req: DispatchTeamRequest,
-    options?: RequestOptions,
-  ): Promise<TeamRunResponse> {
+  public dispatchTeam(req: DispatchTeamRequest, options?: RequestOptions): Promise<TeamRunResponse> {
     return this.requestJson<TeamRunResponse>("POST", "/v1/platform/agents/teams/dispatch", {
       body: {
-        team_id: req.team_id,
-        objective: req.objective ?? req.goal ?? "",
-        workspace_id: req.workspace_id ?? "default",
-        sensitive_mutation: req.sensitive_mutation ?? false,
+        team_id: req.team_id, objective: req.objective ?? req.goal ?? "",
+        workspace_id: req.workspace_id ?? "default", sensitive_mutation: req.sensitive_mutation ?? false,
       },
       options,
     });
   }
 
-  public async listIssues(
-    params: ListIssuesParams = {},
-    options?: RequestOptions,
-  ): Promise<PlatformIssueListResponse> {
-    const query: Record<string, string> = {
-      workspace_id: params.workspace_id ?? "default",
-    };
-    if (params.status !== undefined) {
-      query.status = params.status;
-    }
-    const res = await this.requestJson<PlatformIssueListResponse>(
-      "GET",
-      "/v1/platform/pm/issues",
-      { query, options },
-    );
+  public async listIssues(params: ListIssuesParams = {}, options?: RequestOptions): Promise<PlatformIssueListResponse> {
+    const query: Record<string, string> = { workspace_id: params.workspace_id ?? "default" };
+    if (params.status !== undefined) query.status = params.status;
+    const res = await this.requestJson<PlatformIssueListResponse>("GET", "/v1/platform/pm/issues", { query, options });
     if (params.status !== undefined && Array.isArray(res.issues)) {
       const filtered = res.issues.filter((i) => i.status === params.status);
       return { ...res, issues: filtered, total: filtered.length };
@@ -272,128 +168,53 @@ export class PlatformNamespace {
     return res;
   }
 
-  public createIssue(
-    req: CreateIssueRequest,
-    options?: RequestOptions,
-  ): Promise<PlatformIssueRecord> {
+  public createIssue(req: CreateIssueRequest, options?: RequestOptions): Promise<PlatformIssueRecord> {
     const body: Record<string, unknown> = {
-      title: req.title,
-      workspace_id: req.workspace_id ?? "default",
-      priority: req.priority ?? "medium",
-      status: req.status ?? "todo",
-      assignee_agent: req.assignee_agent ?? "feature-coder",
-      sprint_id: req.sprint_id ?? "SPR-01",
+      title: req.title, workspace_id: req.workspace_id ?? "default", priority: req.priority ?? "medium",
+      status: req.status ?? "todo", assignee_agent: req.assignee_agent ?? "feature-coder", sprint_id: req.sprint_id ?? "SPR-01",
     };
-    if (req.prd_id !== undefined) {
-      body.prd_id = req.prd_id;
-    }
-    return this.requestJson<PlatformIssueRecord>("POST", "/v1/platform/pm/issues", {
-      body,
-      options,
-    });
+    if (req.prd_id !== undefined) body.prd_id = req.prd_id;
+    return this.requestJson<PlatformIssueRecord>("POST", "/v1/platform/pm/issues", { body, options });
   }
 
-  public listPrds(
-    params: { workspace_id?: string } = {},
-    options?: RequestOptions,
-  ): Promise<PlatformPrdListResponse> {
-    return this.requestJson<PlatformPrdListResponse>("GET", "/v1/platform/product/prds", {
-      query: { workspace_id: params.workspace_id ?? "default" },
-      options,
-    });
+  public listPrds(params: { workspace_id?: string } = {}, options?: RequestOptions): Promise<PlatformPrdListResponse> {
+    return this.requestJson<PlatformPrdListResponse>("GET", "/v1/platform/product/prds", { query: { workspace_id: params.workspace_id ?? "default" }, options });
   }
 
-  public createPrd(
-    req: CreatePrdRequest,
-    options?: RequestOptions,
-  ): Promise<PlatformPrdRecord> {
-    const body: Record<string, unknown> = {
-      title: req.title,
-      summary: req.summary,
-      workspace_id: req.workspace_id ?? "default",
-    };
-    if (req.acceptance_criteria !== undefined) {
-      body.acceptance_criteria = req.acceptance_criteria;
-    }
-    return this.requestJson<PlatformPrdRecord>("POST", "/v1/platform/product/prds", {
-      body,
-      options,
-    });
+  public createPrd(req: CreatePrdRequest, options?: RequestOptions): Promise<PlatformPrdRecord> {
+    const body: Record<string, unknown> = { title: req.title, summary: req.summary, workspace_id: req.workspace_id ?? "default" };
+    if (req.acceptance_criteria !== undefined) body.acceptance_criteria = req.acceptance_criteria;
+    return this.requestJson<PlatformPrdRecord>("POST", "/v1/platform/product/prds", { body, options });
   }
 
-  public listWorkflows(
-    params: { workspace_id?: string } = {},
-    options?: RequestOptions,
-  ): Promise<PlatformWorkflowListResponse> {
-    return this.requestJson<PlatformWorkflowListResponse>(
-      "GET",
-      "/v1/platform/automation/workflows",
-      {
-        query: { workspace_id: params.workspace_id ?? "default" },
-        options,
-      },
-    );
+  public listWorkflows(params: { workspace_id?: string } = {}, options?: RequestOptions): Promise<PlatformWorkflowListResponse> {
+    return this.requestJson<PlatformWorkflowListResponse>("GET", "/v1/platform/automation/workflows", { query: { workspace_id: params.workspace_id ?? "default" }, options });
   }
 
-  public createWorkflow(
-    req: CreateWorkflowRequest,
-    options?: RequestOptions,
-  ): Promise<PlatformWorkflowRecord> {
-    const body: Record<string, unknown> = {
-      name: req.name,
-      trigger: req.trigger ?? "manual",
-      workspace_id: req.workspace_id ?? "default",
-    };
-    if (req.nodes !== undefined) {
-      body.nodes = req.nodes;
-    }
-    return this.requestJson<PlatformWorkflowRecord>(
-      "POST",
-      "/v1/platform/automation/workflows",
-      { body, options },
-    );
+  public createWorkflow(req: CreateWorkflowRequest, options?: RequestOptions): Promise<PlatformWorkflowRecord> {
+    const body: Record<string, unknown> = { name: req.name, trigger: req.trigger ?? "manual", workspace_id: req.workspace_id ?? "default" };
+    if (req.nodes !== undefined) body.nodes = req.nodes;
+    return this.requestJson<PlatformWorkflowRecord>("POST", "/v1/platform/automation/workflows", { body, options });
   }
 
-  public compileBlueprint(
-    req: CompileBlueprintRequest,
-    options?: RequestOptions,
-  ): Promise<CompiledBlueprintResponse> {
+  public compileBlueprint(req: CompileBlueprintRequest, options?: RequestOptions): Promise<CompiledBlueprintResponse> {
     return this.requestJson<CompiledBlueprintResponse>("POST", "/v1/platform/nocode/blueprint", {
       body: {
-        idea: req.idea,
-        workspace_id: req.workspace_id ?? "default",
-        experience_mode: req.experience_mode ?? "non_coder",
-        target_stack: req.target_stack ?? "react-fastapi-sqlite",
+        idea: req.idea, workspace_id: req.workspace_id ?? "default",
+        experience_mode: req.experience_mode ?? "non_coder", target_stack: req.target_stack ?? "react-fastapi-sqlite",
       },
       options,
     });
   }
 
-  public listExtensions(
-    params: ListExtensionsParams = {},
-    options?: RequestOptions,
-  ): Promise<PlatformExtensionListResponse> {
-    const query: Record<string, string> = {
-      workspace_id: params.workspace_id ?? "default",
-    };
-    if (params.extension_type !== undefined) {
-      query.extension_type = params.extension_type;
-    }
-    return this.requestJson<PlatformExtensionListResponse>("GET", "/v1/platform/extensions", {
-      query,
-      options,
-    });
+  public listExtensions(params: ListExtensionsParams = {}, options?: RequestOptions): Promise<PlatformExtensionListResponse> {
+    const query: Record<string, string> = { workspace_id: params.workspace_id ?? "default" };
+    if (params.extension_type !== undefined) query.extension_type = params.extension_type;
+    return this.requestJson<PlatformExtensionListResponse>("GET", "/v1/platform/extensions", { query, options });
   }
 
-  public registerExtension(
-    extension: ExtensionSpecInput,
-    options?: RequestOptions,
-  ): Promise<PlatformExtensionRecord> {
-    return this.requestJson<PlatformExtensionRecord>(
-      "POST",
-      "/v1/platform/extensions/register",
-      { body: { ...extension }, options },
-    );
+  public registerExtension(extension: ExtensionSpecInput, options?: RequestOptions): Promise<PlatformExtensionRecord> {
+    return this.requestJson<PlatformExtensionRecord>("POST", "/v1/platform/extensions/register", { body: { ...extension }, options });
   }
 
   public listDocs(params: PT.ListDocsParams | string = {}, options?: RequestOptions): Promise<PT.PlatformDocListResponse> {
@@ -465,10 +286,7 @@ export class PlatformNamespace {
   public resolveExecutionP10(runId: string, req: PT.ResolveExecutionP10Request, options?: RequestOptions): Promise<PT.ExecutionRunSnapshot> {
     return this.runtime.resolveExecutionP10(runId, req, options);
   }
-  public streamExecutionEvents(
-    runId: string,
-    options?: PT.StreamExecutionEventsOptions,
-  ): AsyncGenerator<Record<string, unknown>, void, unknown> {
+  public streamExecutionEvents(runId: string, options?: PT.StreamExecutionEventsOptions): AsyncGenerator<Record<string, unknown>, void, unknown> {
     return this.runtime.streamExecutionEvents(runId, options);
   }
   public simulatePricing(req?: PT.PricingSimulationRequest, options?: RequestOptions): Promise<Record<string, unknown>> {
@@ -649,6 +467,25 @@ export class PlatformNamespace {
   }
   public listKflowAutopilotSimulations(params?: ListAutopilotSimulationsParams, options?: RequestOptions): Promise<AutopilotSimulationListResponse> {
     return this.cyclic.listKflowAutopilotSimulations(params, options);
+  }
+
+  public normalizeContentBlocks(req: NormalizeContentBlocksRequest, options?: RequestOptions): Promise<NormalizedContentEnvelope> {
+    return this.healing.normalizeContentBlocks(req, options);
+  }
+  public enforceStructuredOutput(req: EnforceStructuredOutputRequest, options?: RequestOptions): Promise<StructuredOutputRunRecord> {
+    return this.healing.enforceStructuredOutput(req, options);
+  }
+  public listStructuredOutputRuns(params?: ListStructuredOutputRunsParams | string, options?: RequestOptions): Promise<StructuredOutputRunListResponse> {
+    return this.healing.listStructuredOutputRuns(params, options);
+  }
+  public diagnoseFailureRootCause(req?: DiagnoseFailureRootCauseRequest, options?: RequestOptions): Promise<SelfHealingDiagnosisRecord> {
+    return this.healing.diagnoseFailureRootCause(req, options);
+  }
+  public applySelfHealingPatch(diagnosisId: string, req?: ApplySelfHealingPatchRequest, options?: RequestOptions): Promise<ApplySelfHealingResponse> {
+    return this.healing.applySelfHealingPatch(diagnosisId, req, options);
+  }
+  public listSelfHealingDiagnoses(params?: ListSelfHealingDiagnosesParams | string, options?: RequestOptions): Promise<SelfHealingDiagnosisListResponse> {
+    return this.healing.listSelfHealingDiagnoses(params, options);
   }
 }
 

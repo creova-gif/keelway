@@ -1,7 +1,7 @@
 /**
  * Keelway Official TypeScript SDK — Unified Platform Namespace (`client.platform`).
  *
- * Exposes all 20 `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
+ * Exposes all `/v1/platform/*` endpoints using `KeelwayClient`'s zero-dependency
  * Web Fetch, `AbortSignal` timeout, and `mapHttpError` infrastructure.
  */
 import type { CheckModelLicenseRequest, CheckModelLicenseResponse, CompileBlueprintRequest, CompiledBlueprintResponse, CreateIssueRequest, CreatePrdRequest, CreateWorkflowRequest, DispatchTeamRequest, ExtensionSpecInput, InstallMarketplacePackageRequest, InstallMarketplacePackageResponse, LifecycleAgentsResponse, ListExtensionsParams, ListIssuesParams, ListMarketplacePackagesParams, ListMarketplaceSettlementsParams, MarketplacePackageInput, MarketplacePackageListResponse, MarketplacePackageRecord, MarketplaceScanReport, MarketplaceSettlementRecord, MarketplaceSettlementSummaryResponse, PlatformExtensionListResponse, PlatformExtensionRecord, PlatformIssueListResponse, PlatformIssueRecord, PlatformOverviewParams, PlatformOverviewResponse, PlatformPrdListResponse, PlatformPrdRecord, PlatformWorkflowListResponse, PlatformWorkflowRecord, PurchaseMarketplacePackageRequest, QuotaCheckRequest, QuotaCheckResponse, SubscriptionTiersResponse, TeamRunResponse, ValidateByomRequest, ValidateByomResponse } from "./platform-types.js";
@@ -15,6 +15,7 @@ import { type EvalDatasetCase, type EvalDatasetListResponse, type FlightTapeList
 import { PlatformStudioClient, type BlastRadiusAuditListResponse, type BlastRadiusAuditRecord, type EvaluatePromptGateRequest, type ListBlastRadiusAuditsParams, type ListPromptGateRunsParams, type PromptGateEvaluationResult, type PromptGateRunListResponse, type RecordBlastRadiusRequest, type StudioKflowSyncResult, type SyncKflowStudioRequest } from "./platformStudio.js";
 import { PlatformDebuggerClient, type DebuggerBreakpointListResponse, type DebuggerBreakpointRecord, type DebuggerCodelensResponse, type DebuggerSessionListResponse, type DebuggerSessionRecord, type DebuggerStepAction, type DeleteBreakpointParams, type DeleteBreakpointResponse, type GetDebuggerCodelensParams, type ListBreakpointsParams, type ListDebugSessionsParams, type SetBreakpointRequest, type StartDebugSessionRequest, type StepDebugSessionRequest } from "./platformDebugger.js";
 import { PlatformCyclicClient, type AutopilotSimulationListResponse, type AutopilotSimulationRecord, type CyclicKflowRunListResponse, type CyclicKflowRunRecord, type CyclicKflowValidationResponse, type ExecuteCyclicKflowRequest, type ListAutopilotSimulationsParams, type ListCyclicKflowRunsParams, type SimulateKflowAutopilotRequest, type ValidateCyclicKflowRequest } from "./platformCyclic.js";
+import { PlatformHealingClient, type ApplySelfHealingPatchRequest, type ApplySelfHealingResponse, type DiagnoseFailureRootCauseRequest, type EnforceStructuredOutputRequest, type ListSelfHealingDiagnosesParams, type ListStructuredOutputRunsParams, type NormalizeContentBlocksRequest, type NormalizedContentEnvelope, type SelfHealingDiagnosisListResponse, type SelfHealingDiagnosisRecord, type StructuredOutputRunListResponse, type StructuredOutputRunRecord } from "./platformHealing.js";
 import type { RequestOptions } from "./types.js";
 export type PlatformJsonRequester = <T>(method: string, path: string, params?: {
     query?: Record<string, string>;
@@ -32,6 +33,7 @@ export declare class PlatformNamespace {
     readonly studio: PlatformStudioClient;
     readonly debugger: PlatformDebuggerClient;
     readonly cyclic: PlatformCyclicClient;
+    readonly healing: PlatformHealingClient;
     constructor(requestJson: PlatformJsonRequester, requestSse?: PlatformSseRequester);
     overview(params?: PlatformOverviewParams | string, options?: RequestOptions): Promise<PlatformOverviewResponse>;
     listTiers(options?: RequestOptions): Promise<SubscriptionTiersResponse>;
@@ -136,6 +138,12 @@ export declare class PlatformNamespace {
     getCyclicKflowRun(runId: string, workspaceId?: string, options?: RequestOptions): Promise<CyclicKflowRunRecord>;
     simulateKflowAutopilot(req?: SimulateKflowAutopilotRequest, options?: RequestOptions): Promise<AutopilotSimulationRecord>;
     listKflowAutopilotSimulations(params?: ListAutopilotSimulationsParams, options?: RequestOptions): Promise<AutopilotSimulationListResponse>;
+    normalizeContentBlocks(req: NormalizeContentBlocksRequest, options?: RequestOptions): Promise<NormalizedContentEnvelope>;
+    enforceStructuredOutput(req: EnforceStructuredOutputRequest, options?: RequestOptions): Promise<StructuredOutputRunRecord>;
+    listStructuredOutputRuns(params?: ListStructuredOutputRunsParams | string, options?: RequestOptions): Promise<StructuredOutputRunListResponse>;
+    diagnoseFailureRootCause(req?: DiagnoseFailureRootCauseRequest, options?: RequestOptions): Promise<SelfHealingDiagnosisRecord>;
+    applySelfHealingPatch(diagnosisId: string, req?: ApplySelfHealingPatchRequest, options?: RequestOptions): Promise<ApplySelfHealingResponse>;
+    listSelfHealingDiagnoses(params?: ListSelfHealingDiagnosesParams | string, options?: RequestOptions): Promise<SelfHealingDiagnosisListResponse>;
 }
 export { PlatformNamespace as PlatformClient };
 //# sourceMappingURL=platform.d.ts.map

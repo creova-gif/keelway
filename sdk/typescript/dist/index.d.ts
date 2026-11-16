@@ -18,6 +18,7 @@ export { PlatformDebuggerClient, PlatformDebuggerDelegate } from "./platformDebu
 export type * from "./platformDebugger.js";
 export { PlatformCyclicClient, PlatformCyclicDelegate } from "./platformCyclic.js";
 export type * from "./platformCyclic.js";
+export * from "./platformHealing.js";
 export { AirGapEgressError, AuthenticationError, BudgetExceededError, ConnectionError, FlightRecorderError, KeelwayError, mapHttpError, PermissionDeniedError, PolicyViolationError, QuorumRequiredError, RateLimitExceededError, TaskNotFoundError, } from "./errors.js";
 export type { ErrorDetails } from "./errors.js";
 export type * from "./types.js";

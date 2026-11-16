@@ -20,6 +20,7 @@ from core.cli_cyclic import dispatch_cyclic_cli, register_cyclic_cli_subparsers
 from core.cli_debugger import dispatch_debugger_cli, register_debugger_cli_subparsers
 from core.cli_devx import dispatch_devx_cli, register_devx_cli_subparsers
 from core.cli_enterprise import dispatch_enterprise_cli, register_enterprise_cli_subparsers
+from core.cli_healing import dispatch_healing_cli, register_healing_cli_subparsers
 from core.cli_kbrain_khub import dispatch_kbrain_khub_cli, register_kbrain_khub_cli_subparsers
 from core.cli_kflow_crdt import dispatch_kflow_crdt_cli, register_kflow_crdt_cli_subparsers
 from core.cli_mcp_eval import dispatch_mcp_eval_cli, register_mcp_eval_cli_subparsers
@@ -215,10 +216,15 @@ def register_runtime_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     register_studio_cli_subparsers(subparsers)
     register_debugger_cli_subparsers(subparsers)
     register_cyclic_cli_subparsers(subparsers)
+    register_healing_cli_subparsers(subparsers)
 
 
 def dispatch_runtime_cli(args: argparse.Namespace) -> Optional[int]:
-    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, and Cyclic CLI subcommands."""
+    """Dispatch runtime, MCP, KFlow/CRDT, Enterprise, KBrain/KHub, DevX, Studio, Debugger, Cyclic, and Healing CLI subcommands."""
+    healing_rc = dispatch_healing_cli(args)
+    if healing_rc is not None:
+        return healing_rc
+
     cyclic_rc = dispatch_cyclic_cli(args)
     if cyclic_rc is not None:
         return cyclic_rc

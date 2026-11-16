@@ -13,5 +13,6 @@ export { PlatformDevxDelegate } from "./platformDevx.js";
 export { PlatformStudioClient, PlatformStudioDelegate } from "./platformStudio.js";
 export { PlatformDebuggerClient, PlatformDebuggerDelegate } from "./platformDebugger.js";
 export { PlatformCyclicClient, PlatformCyclicDelegate } from "./platformCyclic.js";
+export * from "./platformHealing.js";
 export { AirGapEgressError, AuthenticationError, BudgetExceededError, ConnectionError, FlightRecorderError, KeelwayError, mapHttpError, PermissionDeniedError, PolicyViolationError, QuorumRequiredError, RateLimitExceededError, TaskNotFoundError, } from "./errors.js";
 //# sourceMappingURL=index.js.map

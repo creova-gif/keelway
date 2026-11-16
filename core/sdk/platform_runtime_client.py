@@ -32,6 +32,10 @@ from core.sdk.platform_enterprise_client import (
     AsyncPlatformEnterpriseMixin,
     SyncPlatformEnterpriseMixin,
 )
+from core.sdk.platform_healing_client import (
+    AsyncPlatformHealingMixin,
+    SyncPlatformHealingMixin,
+)
 from core.sdk.platform_kbrain_client import (
     AsyncPlatformKbrainMixin,
     SyncPlatformKbrainMixin,
@@ -164,6 +168,7 @@ class AsyncPlatformRuntimeMixin(
     AsyncPlatformStudioMixin,
     AsyncPlatformDebuggerMixin,
     AsyncPlatformCyclicMixin,
+    AsyncPlatformHealingMixin,
 ):
     """Asynchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 
@@ -294,6 +299,7 @@ class SyncPlatformRuntimeMixin(
     SyncPlatformStudioMixin,
     SyncPlatformDebuggerMixin,
     SyncPlatformCyclicMixin,
+    SyncPlatformHealingMixin,
 ):
     """Synchronous Phase 4 & Phase 5 `/v1/platform/*` runtime methods."""
 

@@ -3,6 +3,7 @@ import { FlightTapeDebuggerPanel } from "@/components/platform/FlightTapeDebugge
 import { LiveExecutionDrawer } from "@/components/platform/LiveExecutionDrawer";
 import { McpInspectorPanel } from "@/components/platform/McpInspectorPanel";
 import { StepDebuggerAndBridgePanel } from "@/components/platform/StepDebuggerAndBridgePanel";
+import { StructuredOutputAndSelfHealingPanel } from "@/components/platform/StructuredOutputAndSelfHealingPanel";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type {
@@ -205,6 +206,8 @@ export function AgentsWorkspaceView({
       </div>
 
       <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
+      <StructuredOutputAndSelfHealingPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <section aria-label="Coordinated multi-agent teams" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">

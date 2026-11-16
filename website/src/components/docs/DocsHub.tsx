@@ -427,6 +427,11 @@ turn2 = client.responses.create(
                   Compensation &amp; Pre-Run Hybrid Cost/Privacy Autopilot (
                   <code className="text-fg">autopilot</code>)
                 </li>
+                <li>
+                  • Typed Structured-Output &amp; Content-Block Normalizer (
+                  <code className="text-fg">structured</code>) + Autonomous
+                  Self-Healing Root-Causer (<code className="text-fg">heal</code>)
+                </li>
               </ul>
             </div>
 
