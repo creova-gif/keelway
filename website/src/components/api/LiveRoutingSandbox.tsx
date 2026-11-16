@@ -265,7 +265,7 @@ export function LiveRoutingSandbox() {
             )}
           </div>
 
-          <pre className="max-h-[300px] flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed text-fg">
+          <pre role="region" aria-label="Live API response payload" tabIndex={0} className="max-h-[300px] flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed text-fg">
             {result
               ? JSON.stringify(result.payload, null, 2)
               : `// Click "Send Live POST Request" above to inspect a real network response:

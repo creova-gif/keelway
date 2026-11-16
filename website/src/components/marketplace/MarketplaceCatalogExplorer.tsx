@@ -398,7 +398,7 @@ export function MarketplaceCatalogExplorer() {
                   <span>{copiedKey === "cli" ? "Copied" : "Copy CLI"}</span>
                 </button>
               </div>
-              <pre className="overflow-x-auto rounded-sm border border-border-subtle bg-canvas p-3 font-mono text-[11px] text-fg"><code>{cliSnippet}</code></pre>
+              <pre role="region" aria-label="CLI install snippet" tabIndex={0} className="overflow-x-auto rounded-sm border border-border-subtle bg-canvas p-3 font-mono text-[11px] text-fg"><code>{cliSnippet}</code></pre>
             </div>
 
             <div>
@@ -416,7 +416,7 @@ export function MarketplaceCatalogExplorer() {
                   <span>{copiedKey === "sdk" ? "Copied" : "Copy SDK"}</span>
                 </button>
               </div>
-              <pre className="overflow-x-auto rounded-sm border border-border-subtle bg-canvas p-3 font-mono text-[11px] text-fg"><code>{sdkSnippet}</code></pre>
+              <pre role="region" aria-label="SDK install snippet" tabIndex={0} className="overflow-x-auto rounded-sm border border-border-subtle bg-canvas p-3 font-mono text-[11px] text-fg"><code>{sdkSnippet}</code></pre>
             </div>
           </div>
         </aside>
@@ -478,7 +478,7 @@ export function MarketplaceCatalogExplorer() {
               <span>STEP {PUBLISH_STEPS[activePublishStep].step} · {PUBLISH_STEPS[activePublishStep].title.toUpperCase()}</span>
               <span className="text-teal-accent">keelway.package/v1</span>
             </div>
-            <pre className="mt-3 overflow-x-auto rounded-sm border border-border-subtle bg-surface p-4 font-mono text-xs text-fg">
+            <pre role="region" aria-label="Package manifest preview" tabIndex={0} className="mt-3 overflow-x-auto rounded-sm border border-border-subtle bg-surface p-4 font-mono text-xs text-fg">
               <code>{PUBLISH_STEPS[activePublishStep].code}</code>
             </pre>
             <p className="mt-3 font-mono text-[11px] text-fg-dim">

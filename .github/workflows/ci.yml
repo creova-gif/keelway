@@ -66,6 +66,10 @@ jobs:
           npm --prefix website ci
           npm --prefix website run typecheck
           npm --prefix website run build
+      - name: Website a11y (axe-core WCAG 2.2 AA) & perf smoke (Playwright)
+        run: |
+          npx --prefix website playwright install --with-deps chromium
+          npm --prefix website run test:e2e
       - name: Compile & test official @keelway/sdk TypeScript package & VS Code/Cursor Bridge Extension
         run: |
           ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json

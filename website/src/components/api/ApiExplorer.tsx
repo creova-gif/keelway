@@ -2,7 +2,6 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import * as Tabs from "@radix-ui/react-tabs";
 import { Check, Copy, Download, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
@@ -524,13 +523,10 @@ export function ApiExplorer({
               </div>
 
               {/* 4-Language Tabs */}
-              <Tabs.Root
-                value={langTab}
-                onValueChange={setLangTab}
-                className="mt-4"
-              >
+              <div className="mt-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Tabs.List
+                  <div
+                    role="group"
                     aria-label="Client SDK language"
                     className="flex flex-wrap gap-1 rounded-sm border border-border-strong bg-canvas p-1"
                   >
@@ -540,9 +536,11 @@ export function ApiExplorer({
                       { id: "openai", label: "OpenAI Compat" },
                       { id: "cli", label: "Keelway CLI" },
                     ].map((t) => (
-                      <Tabs.Trigger
+                      <button
                         key={t.id}
-                        value={t.id}
+                        type="button"
+                        aria-pressed={langTab === t.id}
+                        onClick={() => setLangTab(t.id)}
                         className={cn(
                           "min-h-[36px] rounded-sm px-3 font-mono text-xs font-semibold transition-colors duration-150",
                           langTab === t.id
@@ -551,9 +549,9 @@ export function ApiExplorer({
                         )}
                       >
                         {t.label}
-                      </Tabs.Trigger>
+                      </button>
                     ))}
-                  </Tabs.List>
+                  </div>
 
                   <button
                     type="button"
@@ -580,7 +578,7 @@ export function ApiExplorer({
                 <pre className="mt-3 overflow-x-auto rounded-md border border-border-strong bg-canvas p-4 font-mono text-xs leading-relaxed text-fg">
                   <code>{activeCode}</code>
                 </pre>
-              </Tabs.Root>
+              </div>
 
               {/* Verified Response Schema Preview */}
               <div className="mt-5">
