@@ -123,6 +123,15 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     hr_agents_evt.add_argument("--trace-id", default=None, help="Optional flight-tape trace ID")
     hr_agents_evt.add_argument("--tape-db-path", default=None, help="Optional SQLite path for the flight-tape engine")
     _add_common_flags(hr_agents_evt)
+
+    hr_agents_setup = hr_agents_sub.add_parser("setup", help="One-command integration: detect agent, render hook manifest, install into workspace")
+    hr_agents_setup.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
+                                 choices=sorted(EXTERNAL_AGENT_ADAPTERS), help="External agent adapter ID")
+    hr_agents_setup.add_argument("--mode", choices=["enforce", "audit_only"], default="audit_only",
+                                 help="Hook enforcement mode (default: audit_only)")
+    hr_agents_setup.add_argument("--install-dir", default=".",
+                                 help="Workspace directory to install hook config into (default: cwd)")
+    _add_common_flags(hr_agents_setup)
     _add_common_flags(hr_agents_int)
 
     cg = subparsers.add_parser("ci-gate", help="Parallel worktree candidate arena & hybrid unit-economics CI gate")
@@ -321,6 +330,26 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                            "trace_id": meta.get("trace_id"), "tape_sha256": meta.get("tape_sha256")}
                     print(json.dumps(res, indent=2) if as_json else
                           f"[RECORDED] {res['agent_id']}:{res['event']} trace={res['trace_id']}")
+                    return 0
+
+                if agents_act == "setup":
+                    agent_id = str(args.agent_id)
+                    detection = get_adapter(agent_id).detect()
+                    if not detection.installed:
+                        msg = f"Agent '{agent_id}' not detected on PATH ({detection.detail})."
+                        print(json.dumps({"detail": msg, "error": msg, "code": "agent_not_installed",
+                                          "detection": detection.__dict__}, indent=2) if as_json else f"[-] {msg}")
+                        return 1
+                    manifest = engine.render_hook_manifest(
+                        workspace_id=ws_id, agent_host=agent_id, mode=str(getattr(args, "mode", "audit_only")))
+                    install_dir = str(getattr(args, "install_dir", ".") or ".")
+                    installed_path = _install_hook_file(install_dir, manifest["target_config_path"], manifest["config_content"])
+                    res = {"agent_id": agent_id, "detection": detection.__dict__,
+                           "mode": manifest["mode"], "installed_path": installed_path,
+                           "config_sha256": manifest["config_sha256"],
+                           "hook_events": ["PreToolUse", "PostToolUse", "SessionStart"]}
+                    print(json.dumps(res, indent=2) if as_json else
+                          f"[SETUP] {agent_id} v{detection.version or '?'} -> {installed_path} ({manifest['mode']})")
                     return 0
 
         if cmd == "ci-gate":
