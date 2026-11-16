@@ -27,7 +27,7 @@ change.
 
 After that install, `keelway` is `cli.py` and `keelway-core` is `keelway.cli.main`. `./bin/keelway` is a wrapper around `cli.py`.
 
-`website/install.sh` clones the same GitHub repository into `~/.keelway/app` by default and editable-installs that checkout. Run the script from a clone if you want that layout.
+`website/install.sh` creates `~/.keelway/runtime/.venv` and installs Keelway. Until the package is published, it requires `KEELWAY_SOURCE_DIR=/path/to/checkout` (editable install) or an explicit `KEELWAY_PACKAGE=<dist>`; it fails closed otherwise. `scripts/verify_install.sh` reproduces the clean-env check (venv → editable install → `keelway doctor` HEALTHY → `harness agents detect`).
 
 ## Local Studio
 
