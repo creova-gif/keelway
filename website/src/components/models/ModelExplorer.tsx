@@ -494,7 +494,11 @@ export function ModelExplorer() {
                           FRONTIER CLOUD
                         </span>
                       )}
-                      {model.simulated ? (
+                      {model.runtimeAlias ? (
+                        <span className="chip-neutral rounded-sm border border-teal-500/50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-teal-accent">
+                          LOCAL RUNTIME ALIAS
+                        </span>
+                      ) : model.simulated ? (
                         <span className="chip-neutral rounded-sm border border-amber-500/50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-amber-400">
                           SIMULATED
                         </span>

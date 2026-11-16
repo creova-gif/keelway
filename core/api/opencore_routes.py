@@ -122,7 +122,13 @@ async def list_opencore_weights() -> List[Dict[str, Any]]:
             **m.model_dump(),
             "is_cached": cached,
             "local_path": str(local_path),
-            "simulated": True,
+            # `simulated` now means "would be mock-served": flagship manifests
+            # (runtime_alias=True) are served by real local runtime weights when
+            # a compatible model is installed. The GGUF artifacts themselves are
+            # still placeholder manifests — artifact_verified stays False until
+            # KEEL-PROD-041 ships verified checksums (KEEL-PROD-042).
+            "simulated": not m.runtime_alias,
+            "artifact_verified": False,
         })
     return results
 
@@ -134,7 +140,7 @@ async def load_model_checkpoint(req: LoadModelRequest) -> LoadedModelInfo:
         info = await opencore_serving_engine.load_model(
             model_id=req.model_id,
             quantization=req.quantization,
-            backend=req.backend or OpenCoreWorkerBackend.MOCK,
+            backend=req.backend,
             base_model_override=req.base_model_override,
         )
         return info

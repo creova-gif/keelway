@@ -9,12 +9,14 @@ from __future__ import annotations
 import json
 from typing import Dict, List, Tuple
 
+import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from core.api.responses_routes import ResponseStore, response_store, router, routing_ledger
 from core.config import settings
+from core.opencore.serving import opencore_serving_engine
 
 
 @pytest.fixture()
@@ -22,6 +24,14 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(settings, "auth_required", False)
     response_store.clear()
     routing_ledger.clear()
+    # Deterministic backend: pin the OpenCore serving engine to unreachable
+    # runtimes so keelway-* requests stay on the simulated mock path regardless
+    # of whether a real Ollama/vLLM server is running on the test host
+    # (KEEL-PROD-041 runtime aliases are covered by test_opencore_runtime_alias.py).
+    dead = httpx.MockTransport(lambda r: httpx.Response(503))
+    monkeypatch.setattr(opencore_serving_engine.ollama_bridge, "transport", dead)
+    monkeypatch.setattr(opencore_serving_engine.vllm_bridge, "transport", dead)
+    monkeypatch.setattr(opencore_serving_engine, "_loaded_models", {})
     app = FastAPI()
     app.include_router(router)
     return TestClient(app)
