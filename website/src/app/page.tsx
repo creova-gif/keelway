@@ -149,7 +149,7 @@ export default async function HomePage() {
             ENTERPRISE VPC &amp; DESIGN-PARTNER DEPLOYMENTS
           </p>
           <p className="text-sm text-fg-muted">
-            Air-gapped AWS, GCP, and on-prem deployments with OIDC/SAML, SCIM 2.0, and SOC2/HIPAA audit exports.
+            Air-gapped AWS, GCP, and on-prem deployments with enterprise SSO (OIDC), SCIM 2.0, and SOC2/HIPAA audit exports.
           </p>
         </div>
       </div>

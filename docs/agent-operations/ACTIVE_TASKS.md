@@ -45,6 +45,8 @@
 | **KEEL-ENG-033** | ADR-0042 Phase 1: `keelway doctor --migration-check` Import Census | `ENGINEERING / CONSOLIDATION / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-033-migration-check` |
 | **KEEL-DOC-034** | Documentation Drift Sweep: v1.1.0 Version Sync, TLA+ Claim Errata, Flight-Recorder Path Corrections | `DOCUMENTATION / DRIFT / PRODUCT-TRUTH` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-DOC-034-drift-sweep` |
 | **KEEL-WEB-035** | VS Code Extension Webview Palette Migration (slate/blue → zinc + teal CTA) | `WEBSITE / UX / EXTENSION / BRAND` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-WEB-035-vscode-palette` |
+| **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
+| **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
 
 ---
 
