@@ -1,17 +1,17 @@
 <div align="center">
 
-# Keelway v1.0.0 by Sorvex Labs
+# Keelway v1.1.0 by Sorvex Labs
 
 **Sovereign Local-First Hybrid AI Engineering, Governance & Multi-Agent Platform**
 
-[![Version 1.0.0](https://img.shields.io/badge/release-v1.0.0-emerald.svg)](./CHANGELOG.md)
+[![Version 1.1.0](https://img.shields.io/badge/release-v1.1.0-emerald.svg)](./CHANGELOG.md)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-indigo.svg)](./LICENSE)
 [![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
 
 </div>
 
-Keelway `v1.0.0` unifies local open-weight neural inference (**OpenCore**), 4D provenance-routed frontier APIs, formal TLA+ verified human governance (**P-10 Gate**), Model Context Protocol (**MCP `2025-06-18`**), **KFlow** topological DAG automation, **KSpaces** CRDT state sync, and tri-language zero-dependency SDKs in a single customer-managed stack.
+Keelway `v1.1.0` unifies local open-weight neural inference (**OpenCore**), 4D provenance-routed frontier APIs, deterministic human-approval governance (**P-10 Gate**), Model Context Protocol (**MCP `2025-06-18`**), **KFlow** topological DAG automation, **KSpaces** CRDT state sync, and tri-language zero-dependency SDKs in a single customer-managed stack.
 
 ---
 
@@ -26,12 +26,12 @@ Keelway `v1.0.0` unifies local open-weight neural inference (**OpenCore**), 4D p
 
 ---
 
-## Core v1.0.0 Capabilities
+## Core v1.1.0 Capabilities
 
 - **Unified 10-View Sovereign Dev Tool (`/app`)**: Overview, Coding Workspace (AST symbol index + safe patcher), Agent Teams, PM Issues & Sprints, Product PRDs & Feedback, Diataxis Docs, KFlow Automation & KSpaces CRDT, No-Code Blueprint Studio, Security/Vault/MCP/SBOM, and Subscriptions/Golden Evals — verified against **WCAG 2.2 AA (`axe-core`)**.
 - **Hybrid OpenCore + Frontier 4D Gateway**: Drop-in `/v1/chat/completions`, stateful `/v1/responses`, `/v1/routing/explain` (weight license, hosting, inference operator, data residency boundary), `/v1/opencore/*` hardware/LoRA/Modelfile control, and `/v1/eval/swarm` MiroFish multi-agent simulation.
 - **Calibrated 5-Tier Pricing & BYOM 0% Markup**: Community (`$0`), BYOM Seat (`$15/seat/mo` annual — **0% token markup** on customer API keys or local GPUs), Pro (`$29/seat/mo`), Team (`$49/seat/mo`), and Enterprise Custom.
-- **Formal TLA+ Verified P-10 Human Gate & Supply Chain Security**: Separation-of-duty approval state machine (`specs/tla/P10HumanGate.tla`), workspace RBAC (`owner`, `admin`, `developer`, `operator`, `viewer`), AES-256-GCM local secret vault, SSRF-hardened HMAC-SHA256 webhooks, OS sandboxing (macOS Seatbelt & Linux Bubblewrap), and CycloneDX 1.5 SBOM provenance (`/v1/platform/security/sbom`).
+- **P-10 Human Approval Gate & Supply Chain Security**: Separation-of-duty P-10 human approval gate (`core/security/approval_rules.py`, `keelway/approvals/quorum.py`), workspace RBAC (`owner`, `admin`, `developer`, `operator`, `viewer`), AES-256-GCM local secret vault, SSRF-hardened HMAC-SHA256 webhooks, OS sandboxing (macOS Seatbelt & Linux Bubblewrap), and CycloneDX 1.5 SBOM provenance (`/v1/platform/security/sbom`).
 - **MCP `2025-06-18` Control Plane, KFlow DAGs & KSpaces CRDT**: Built-in + SSE/stdio MCP server registry with automatic DLP secret redaction (`/v1/platform/mcp/*`), cycle-checked topological DAG execution with per-run token budgets and P-10 pause/resume (`/v1/platform/automation/workflows/execute`), and deterministic Lamport LWW CRDT state sync (`/v1/platform/kspaces/*`).
 - **16-Probe Deterministic Golden Evaluation Suite**: Zero-egress subsystem verification across `workspace_ast`, `governance_p10`, `security_redteam`, and `routing_pricing` with SHA-256 SQLite WAL receipts (`keelway eval-suite --category all`).
 
@@ -134,9 +134,8 @@ python -m tests.release_live_gate
 ├── dev-app/                  # React 19 + TypeScript Unified 10-View Sovereign Dev Tool -> core/dev_app_dist/
 ├── website/                  # Next.js 15 App Router marketing, interactive pricing, docs & marketplace
 ├── sdk/
-│   ├── typescript/           # @keelway/sdk v1.0.0 (zero runtime dependencies)
-│   └── go/                   # keelway-go v1.0.0 (pure Go stdlib)
-├── specs/tla/                # Formal TLA+ safety specifications (P10HumanGate.tla)
+│   ├── typescript/           # @keelway/sdk v1.1.0 (zero runtime dependencies)
+│   └── go/                   # keelway-go (pure Go stdlib)
 ├── Formula/keelway.rb        # Homebrew formula
 └── tests/                    # Comprehensive unit, adversarial safety, E2E, and live release gates
 ```

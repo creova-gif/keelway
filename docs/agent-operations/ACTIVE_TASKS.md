@@ -43,6 +43,7 @@
 | **KEEL-SEC-031** | Payment Broker Env Secret Wiring (`KEELWAY_PAYMENT_BROKER_SECRET`, fail-closed preserved) | `SECURITY / BILLING / FAIL-CLOSED` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-031-payment-secret` |
 | **KEEL-ENG-032** | Python Dependency Lockfile (`requirements.lock` + freshness gate in engineering gates) | `ENGINEERING / SUPPLY-CHAIN / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-032-python-lockfile` |
 | **KEEL-ENG-033** | ADR-0042 Phase 1: `keelway doctor --migration-check` Import Census | `ENGINEERING / CONSOLIDATION / DEVEX` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-033-migration-check` |
+| **KEEL-DOC-034** | Documentation Drift Sweep: v1.1.0 Version Sync, TLA+ Claim Errata, Flight-Recorder Path Corrections | `DOCUMENTATION / DRIFT / PRODUCT-TRUTH` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-DOC-034-drift-sweep` |
 
 ---
 
