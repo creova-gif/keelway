@@ -6,7 +6,7 @@
 - **Last Agent**: Devin
 - **Date**: 2026-11-16
 - **Branch**: `devin/1794817551-dependabot`
-- **Base Commit**: `aad3a7d` (`main`); delivered in the single `ci: add Dependabot version updates config` commit on this branch
+- **Base Commit**: `a7a4cc3` (`main`); delivered in the single `ci: add Dependabot version updates config` commit on this branch
 
 ## Acceptance Criteria
 - [x] `.github/dependabot.yml` covers every manifest on `main`: pip (`/`), npm (`/dev-app`, `/extensions/vscode-keelway`, `/mobile`, `/sdk/typescript`, `/website`), gomod (`/sdk/go`), docker (`/`), github-actions (`/`).
