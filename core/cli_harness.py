@@ -13,9 +13,11 @@ from typing import Any, Dict, List, Optional
 
 from core.agents.external import (
     EXTERNAL_AGENT_ADAPTERS,
+    VALID_AGENT_EVENTS,
     detect_external_agents,
     evaluate_hook_payload,
     get_adapter,
+    record_agent_event,
 )
 from core.agents.external.runner import run_agent_process, run_result_to_tape_span
 from core.agents.external.tape import record_hook_evaluation
@@ -87,7 +89,7 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
 
     hr_agents_int = hr_agents_sub.add_parser("intercept", help="Evaluate a native agent hook payload (JSON) through Keelway policy")
     hr_agents_int.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
-                               choices=["claude_code", "codex_cli"], help="External agent adapter ID")
+                               choices=sorted(EXTERNAL_AGENT_ADAPTERS), help="External agent adapter ID")
     hr_agents_int.add_argument("--payload", default=None,
                                help="Native hook payload JSON, '@path' to read a file, or '-' for stdin")
     hr_agents_int.add_argument("--mode", choices=["enforce", "audit_only"], default="audit_only",
@@ -101,7 +103,7 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
 
     hr_agents_run = hr_agents_sub.add_parser("run", help="Launch an external agent CLI (env-scrubbed) and stream normalized events")
     hr_agents_run.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
-                               choices=["claude_code", "codex_cli"], help="External agent adapter ID")
+                               choices=sorted(EXTERNAL_AGENT_ADAPTERS), help="External agent adapter ID")
     hr_agents_run.add_argument("--cwd", default=None, help="Working directory for the agent process")
     hr_agents_run.add_argument("--timeout", type=float, default=120.0, help="Max run seconds (default: 120)")
     hr_agents_run.add_argument("--tape", action="store_true", help="Record run summary as a flight-tape span")
@@ -110,6 +112,17 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     hr_agents_run.add_argument("agent_args", nargs=argparse.REMAINDER,
                                help="Arguments passed to the agent CLI after '--'")
     _add_common_flags(hr_agents_run)
+
+    hr_agents_evt = hr_agents_sub.add_parser("event", help="Record an external-agent lifecycle/tool event (PostToolUse, SessionStart, SessionEnd) to the flight tape")
+    hr_agents_evt.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
+                               choices=sorted(EXTERNAL_AGENT_ADAPTERS), help="External agent adapter ID")
+    hr_agents_evt.add_argument("--event", dest="agent_event", required=True,
+                               choices=list(VALID_AGENT_EVENTS), help="Agent event name")
+    hr_agents_evt.add_argument("--payload", default=None,
+                               help="Native event payload JSON, '@path', or '-' for stdin")
+    hr_agents_evt.add_argument("--trace-id", default=None, help="Optional flight-tape trace ID")
+    hr_agents_evt.add_argument("--tape-db-path", default=None, help="Optional SQLite path for the flight-tape engine")
+    _add_common_flags(hr_agents_evt)
     _add_common_flags(hr_agents_int)
 
     cg = subparsers.add_parser("ci-gate", help="Parallel worktree candidate arena & hybrid unit-economics CI gate")
@@ -284,6 +297,31 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                           f"stdout={result.stdout_lines} stderr={result.stderr_lines} "
                           f"duration_ms={result.duration_ms:.0f}")
                     return 0 if (result.exit_code == 0 and not result.timed_out) else 1
+
+                if agents_act == "event":
+                    raw = str(getattr(args, "payload", "") or "")
+                    if raw == "-":
+                        raw = sys.stdin.read()
+                    elif raw.startswith("@"):
+                        raw = Path(raw[1:]).expanduser().read_text(encoding="utf-8")
+                    payload = json.loads(raw) if raw.strip() else {}
+                    if not isinstance(payload, dict):
+                        raise AgentCoharnessValidationError("Event payload must be a JSON object.")
+                    tape_engine = SQLiteFlightTapeEngine(db_path=getattr(args, "tape_db_path", None))
+                    try:
+                        meta = record_agent_event(
+                            tape_engine, str(args.agent_id), str(args.agent_event), payload,
+                            workspace_id=ws_id,
+                            trace_id=str(getattr(args, "trace_id", "") or "") or None,
+                        )
+                    finally:
+                        tape_engine.close()
+                    res = {"recorded": True, "agent_id": str(args.agent_id),
+                           "event": str(args.agent_event),
+                           "trace_id": meta.get("trace_id"), "tape_sha256": meta.get("tape_sha256")}
+                    print(json.dumps(res, indent=2) if as_json else
+                          f"[RECORDED] {res['agent_id']}:{res['event']} trace={res['trace_id']}")
+                    return 0
 
         if cmd == "ci-gate":
             act = getattr(args, "cigate_action", None)

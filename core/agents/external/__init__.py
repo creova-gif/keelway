@@ -15,21 +15,26 @@ from core.agents.external.base import (
 from core.agents.external.hosts import (
     ClaudeCodeAdapter,
     CodexCliAdapter,
+    CursorAgentAdapter,
     EXTERNAL_AGENT_ADAPTERS,
     detect_external_agents,
     get_adapter,
 )
 from core.agents.external.policy import evaluate_hook_payload
+from core.agents.external.events import record_agent_event, VALID_AGENT_EVENTS
 
 __all__ = [
     "AgentDetection",
     "AgentHostAdapter",
     "ClaudeCodeAdapter",
     "CodexCliAdapter",
+    "CursorAgentAdapter",
     "EXTERNAL_AGENT_ADAPTERS",
     "LaunchSpec",
     "NormalizedToolCall",
+    "VALID_AGENT_EVENTS",
     "detect_external_agents",
     "evaluate_hook_payload",
     "get_adapter",
+    "record_agent_event",
 ]

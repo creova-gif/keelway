@@ -122,18 +122,36 @@ def _scrub_coharness_text(text: str) -> Tuple[str, int]:
 
 
 def _build_hook_config_content(ws: str, host: str, mode: str) -> str:
-    if host in ("claude_code", "codex_cli"):
-        # Adapter hosts consume native hook JSON on stdin via `harness agents intercept`.
+    adapter_hosts = ("claude_code", "codex_cli", "cursor")
+    if host in adapter_hosts:
+        # Adapter hosts consume native hook JSON on stdin via `harness agents intercept`/`event`.
         out_format = "claude-code" if host == "claude_code" else "json"
-        hook_cmd = (f"keelway harness agents intercept --agent {host} --payload - "
-                    f"--mode {mode} --workspace {ws} --format {out_format}")
+        pre_cmd = (f"keelway harness agents intercept --agent {host} --payload - "
+                   f"--mode {mode} --workspace {ws} --format {out_format}")
+        post_cmd = (f"keelway harness agents event --agent {host} --event posttooluse "
+                    f"--payload - --workspace {ws}")
+        sess_cmd = (f"keelway harness agents event --agent {host} --event sessionstart "
+                    f"--payload - --workspace {ws}")
     else:
-        hook_cmd = f"keelway harness intercept --agent {host} --workspace {ws}"
+        pre_cmd = f"keelway harness intercept --agent {host} --workspace {ws}"
+        post_cmd = sess_cmd = ""
     if host == "claude_code":
-        return json.dumps({"hooks": {"PreToolUse": [{"matcher": "Bash|Edit|Write|MultiEdit", "mode": mode, "hooks": [{"type": "command", "command": hook_cmd}]}]}}, indent=2)
+        return json.dumps({"hooks": {
+            "PreToolUse": [{"matcher": "Bash|Edit|Write|MultiEdit", "mode": mode, "hooks": [{"type": "command", "command": pre_cmd}]}],
+            "PostToolUse": [{"matcher": "Bash|Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": post_cmd}]}],
+            "SessionStart": [{"hooks": [{"type": "command", "command": sess_cmd}]}],
+        }}, indent=2)
     if host == "cursor":
-        return json.dumps({"version": 1, "event": "PreToolUse", "mode": mode, "hooks": {"PreToolUse": [{"command": hook_cmd}]}}, indent=2)
-    return f'[hooks.PreToolUse]\nevent = "PreToolUse"\nmode = "{mode}"\nworkspace_id = "{ws}"\ncommand = "{hook_cmd}"\n'
+        return json.dumps({"version": 1, "event": "PreToolUse", "mode": mode, "hooks": {
+            "PreToolUse": [{"command": pre_cmd}],
+            "PostToolUse": [{"command": post_cmd}],
+            "SessionStart": [{"command": sess_cmd}],
+        }}, indent=2)
+    if host == "codex_cli":
+        return (f'[hooks.PreToolUse]\nevent = "PreToolUse"\nmode = "{mode}"\nworkspace_id = "{ws}"\ncommand = "{pre_cmd}"\n'
+                f'[hooks.PostToolUse]\nevent = "PostToolUse"\nworkspace_id = "{ws}"\ncommand = "{post_cmd}"\n'
+                f'[hooks.SessionStart]\nevent = "SessionStart"\nworkspace_id = "{ws}"\ncommand = "{sess_cmd}"\n')
+    return f'[hooks.PreToolUse]\nevent = "PreToolUse"\nmode = "{mode}"\nworkspace_id = "{ws}"\ncommand = "{pre_cmd}"\n'
 
 
 def _normalize_candidates(raw_candidates: Optional[Sequence[Any]]) -> Tuple[List[Dict[str, Any]], int, bool]:

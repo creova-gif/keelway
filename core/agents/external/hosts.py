@@ -123,9 +123,47 @@ class CodexCliAdapter(AgentHostAdapter):
         )
 
 
+class CursorAgentAdapter(AgentHostAdapter):
+    """Cursor agent CLI (`cursor-agent`) — `.cursor/hooks.json` hooks.
+
+    Payload shape assumed Claude-compatible (`tool_name`/`tool_input`);
+    unverified against a pinned cursor-agent release — treat as audit_only
+    until contract-tested (THIRD_PARTY_AGENT_INTEGRATION.md §6).
+    """
+
+    agent_id = "cursor"
+    display_name = "Cursor Agent"
+    binary_name = "cursor-agent"
+    hook_event = "PreToolUse"
+    supported_modes = ("audit_only", "enforce")
+
+    def detect(self) -> AgentDetection:
+        return _detect_binary(self.agent_id, self.binary_name)
+
+    def build_launch(self, workspace_root: Optional[str] = None,
+                     extra_args: Optional[List[str]] = None) -> LaunchSpec:
+        argv = [self.binary_name, *(extra_args or [])]
+        return LaunchSpec(agent_id=self.agent_id, argv=argv,
+                          env=_scrubbed_env(), cwd=workspace_root)
+
+    def parse_hook_payload(self, payload: Dict[str, Any]) -> NormalizedToolCall:
+        tool_input = payload.get("tool_input") or payload.get("input") or {}
+        tool_input = tool_input if isinstance(tool_input, dict) else {}
+        tool_name = str(payload.get("tool_name") or payload.get("tool") or "Bash").strip() or "Bash"
+        ticket = payload.get("ticket_id") or payload.get("approval_ticket")
+        return NormalizedToolCall(
+            agent_id=self.agent_id,
+            tool_name=tool_name,
+            command=_extract_command(tool_input),
+            ticket_id=str(ticket).strip() if ticket else None,
+            raw=dict(payload),
+        )
+
+
 EXTERNAL_AGENT_ADAPTERS: Dict[str, AgentHostAdapter] = {
     ClaudeCodeAdapter.agent_id: ClaudeCodeAdapter(),
     CodexCliAdapter.agent_id: CodexCliAdapter(),
+    CursorAgentAdapter.agent_id: CursorAgentAdapter(),
 }
 
 
