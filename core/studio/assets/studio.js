@@ -1103,6 +1103,17 @@ async function loadEvidenceSummary() {
     const notRunCount = pkg.summary && Number.isInteger(pkg.summary.not_run_metrics)
       ? pkg.summary.not_run_metrics
       : pkg.metrics.filter((m) => evidenceMetricMark(m).mark === 'NOT RUN').length;
+    const grid = $('evidence-metrics');
+    if (grid && Array.isArray(pkg.metrics) && pkg.metrics.length) {
+      const markTone = { 'VERIFIED': 'text-ok', 'NOT RUN': 'text-ide-muted', 'ERROR': 'text-danger', 'UNVERIFIED': 'text-warn' };
+      grid.replaceChildren(...pkg.metrics.slice(0, 8).map((m) => {
+        const mark = evidenceMetricMark(m);
+        return h('div', { class: 'border border-ide-border rounded p-2.5 bg-ide-bg' },
+          h('div', { class: 'text-[10px] text-ide-muted uppercase truncate', title: m.name || '' }, m.name || 'Metric'),
+          h('div', { class: `text-base font-semibold ${markTone[mark.mark] || 'text-ide-muted'}` }, mark.mark),
+          h('div', { class: 'text-[10px] text-ide-muted truncate', title: m.reproduce_command || '' }, m.reproduce_command || m.category || ''));
+      }));
+    }
     out.textContent = `[i] EVIDENCE ROOM SUMMARY (WP21)\n` +
       `Package ID:   ${pkg.package_id}\n` +
       `Commit SHA:   ${pkg.commit_sha.slice(0, 16)} (${pkg.git_branch})\n` +

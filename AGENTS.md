@@ -31,3 +31,11 @@ python3 -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
 ruff check .
 pytest -q
 ```
+
+If you change classes in `core/studio/index.html` or `core/studio/assets/studio.js`,
+rebuild the generated stylesheet and verify freshness:
+
+```bash
+make studio-css        # regenerate core/studio/assets/studio.css (committed)
+make studio-css-check  # fails if the committed css is stale
+```

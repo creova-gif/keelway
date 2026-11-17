@@ -10,7 +10,7 @@
   --ide-bg: 11 15 20; --ide-sidebar: 17 22 29; --ide-activity: 11 15 20; --ide-editor: 13 18 24;
   --ide-panel: 17 22 29; --ide-status: 11 15 20; --ide-border: 35 43 54; --ide-tab: 22 28 36;
   --ide-surface: 22 28 36;
-  --ide-fg: 230 237 243; --ide-muted: 139 152 168; --ide-faint: 110 122 138;
+  --ide-fg: 230 237 243; --ide-muted: 139 152 168; --ide-faint: 120 133 149;
   --accent: 45 212 191; --on-accent: 11 15 20; --ok: 74 222 128; --warn: 245 181 71; --danger: 248 113 113;
   color-scheme: dark;
 }
@@ -18,7 +18,7 @@
   --ide-bg: 247 248 250; --ide-sidebar: 255 255 255; --ide-activity: 241 243 246; --ide-editor: 255 255 255;
   --ide-panel: 247 248 250; --ide-status: 241 243 246; --ide-border: 214 219 226; --ide-tab: 255 255 255;
   --ide-surface: 241 243 246;
-  --ide-fg: 11 15 20; --ide-muted: 71 85 105; --ide-faint: 100 116 139;
+  --ide-fg: 11 15 20; --ide-muted: 71 85 105; --ide-faint: 90 107 130;
   --accent: 15 118 110; --on-accent: 255 255 255; --ok: 21 128 61; --warn: 180 83 9; --danger: 220 38 38;
   color-scheme: light;
 }

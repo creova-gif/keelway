@@ -1,4 +1,4 @@
-.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify package
+.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify package studio-css studio-css-check
 
 PYTHON ?= python3
 
@@ -27,6 +27,8 @@ help:
 	@echo "  make docker-down   docker compose down"
 	@echo "  make package       Run: python3 cli.py package --out dist/"
 	@echo "  make clean         Remove caches and local keelway_audit.db files"
+	@echo "  make studio-css    Rebuild core/studio/assets/studio.css from tailwind.input.css"
+	@echo "  make studio-css-check  Fail if committed studio.css is stale vs index.html + studio.js"
 
 package:
 	PYTHONPATH=. $(PYTHON) cli.py package --out dist/
@@ -48,6 +50,15 @@ studio:
 
 desktop:
 	PYTHONPATH=. $(PYTHON) cli.py desktop
+
+TAILWIND_BUILD = npx -y tailwindcss@3.4.17 -c core/studio/tailwind.config.js -i core/studio/tailwind.input.css --minify
+
+studio-css:
+	$(TAILWIND_BUILD) -o core/studio/assets/studio.css
+
+studio-css-check:
+	@$(TAILWIND_BUILD) -o /tmp/studio-css-check.css >/dev/null 2>&1
+	@cmp -s /tmp/studio-css-check.css core/studio/assets/studio.css && echo "studio.css is fresh" || { echo "studio.css is STALE — run: make studio-css"; exit 1; }
 
 demo:
 	PYTHONPATH=. $(PYTHON) examples/run_developer_demo.py
