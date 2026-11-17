@@ -557,6 +557,21 @@ def test_website_customer_privacy_and_user_journeys() -> None:
                 f"Private/internal token '{token}' leaked in customer-facing {file_path.relative_to(KEELWAY_ROOT)}"
             )
 
+    # Secret-scanner guard (KEEL-SEC-057): `Bearer <token>` literals in
+    # customer-facing files must be obvious placeholders — GitGuardian's
+    # generic Bearer Token detector fires on high-entropy strings even
+    # when they are synthetic.
+    bearer_literal = re.compile(r"Bearer\s+([A-Za-z0-9_\-.]{16,})")
+    placeholder_markers = ("...", "EXAMPLE", "YOUR", "DEMO", "TEST", "dec0de", "deadbeef", "DLP_LEAK", "xxx")
+    for file_path in scanned_files:
+        text = file_path.read_text(encoding="utf-8")
+        for match in bearer_literal.finditer(text):
+            token_value = match.group(1)
+            assert any(marker in token_value for marker in placeholder_markers), (
+                f"Bearer literal '{token_value}' in {file_path.relative_to(KEELWAY_ROOT)} "
+                "looks like a real credential; use an obvious placeholder instead"
+            )
+
     # Verify all 4 customer user journeys are present and routed from Home
     home_src = (WEBSITE_DIR / "src" / "app" / "page.tsx").read_text(encoding="utf-8")
     journeys_file = WEBSITE_DIR / "src" / "components" / "home" / "CustomerJourneyGrid.tsx"
