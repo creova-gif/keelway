@@ -11,6 +11,7 @@ import sys
 
 def _import_without_pydantic():
     real_import = builtins.__import__
+    saved_config = sys.modules.get("core.config")
 
     def fake_import(name, *args, **kwargs):
         if name == "dotenv" or name.startswith("pydantic"):
@@ -25,11 +26,17 @@ def _import_without_pydantic():
         return importlib.import_module("core.config")
     finally:
         builtins.__import__ = real_import
-        # Restore the real module for the rest of the test session.
+        # Restore the ORIGINAL module object — re-importing would create a
+        # second `settings` instance and silently break every
+        # `from core.config import settings` reference held by conftest,
+        # routes, and governance auth for the rest of the session.
         for mod in list(sys.modules):
             if mod == "core.config":
                 del sys.modules[mod]
-        importlib.import_module("core.config")
+        if saved_config is not None:
+            sys.modules["core.config"] = saved_config
+        else:
+            importlib.import_module("core.config")
 
 
 def test_fallback_field_accepts_default_factory():
