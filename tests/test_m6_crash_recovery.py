@@ -130,6 +130,21 @@ def test_torn_page_detected_not_silent(tmp_path):
         fh.seek((rootpage - 1) * page_size)
         fh.write(b"\xde\xad\xbe\xef" * 512)
 
+    import json as _json
+    debug = {"page_size": page_size, "rootpage": rootpage,
+             "file_size": db.stat().st_size}
+    conn = sqlite3.connect(str(db))
+    try:
+        debug["quick_check_rows"] = conn.execute("PRAGMA quick_check").fetchall()[:3]
+    except sqlite3.DatabaseError as exc:
+        debug["quick_check_error"] = str(exc)
+    try:
+        debug["select_count"] = conn.execute(
+            "SELECT COUNT(*) FROM harness_interceptions").fetchone()
+    except sqlite3.DatabaseError as exc:
+        debug["select_error"] = str(exc)
+    conn.close()
+    print("\nTORN_DEBUG", _json.dumps(debug, default=str))
     conn = sqlite3.connect(str(db))
     try:
         with pytest.raises(sqlite3.DatabaseError):
