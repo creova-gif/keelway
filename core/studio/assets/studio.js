@@ -36,6 +36,27 @@ function renderLoadError(el, err, retry) {
   el.replaceChildren(loadErrorNode(err, retry));
 }
 
+// Status chip with semantic tone; color is never the only cue (text included).
+function statusChip(status) {
+  const raw = String(status || 'unknown');
+  const s = raw.toLowerCase();
+  const toneCls = ['ok', 'pass', 'passed', 'healthy', 'verified', 'active', 'stable'].includes(s)
+    ? 'text-ok border-ok/50'
+    : ['warn', 'warning', 'degraded', 'drift'].includes(s)
+      ? 'text-warn border-warn/50'
+      : ['fail', 'failed', 'error', 'critical', 'broken', 'drift_detected'].includes(s)
+        ? 'text-danger border-danger/50'
+        : 'text-ide-muted border-ide-border';
+  return h('span', { class: `chip text-[10px] shrink-0 ${toneCls}` }, raw.toUpperCase());
+}
+
+// Label/value metric tile used by eval and diagnostics summaries.
+function metricChip(label, value) {
+  return h('div', { class: 'px-2.5 py-1.5 rounded border border-ide-border bg-ide-bg min-w-[7rem]' },
+    h('div', { class: 'text-[10px] uppercase tracking-wide text-ide-faint' }, label),
+    h('div', { class: 'font-mono text-[11px] break-words' }, value));
+}
+
 function trapFocus(container, e) {
   if (e.key !== 'Tab') return;
   const focusables = Array.from(container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter((el) => {
@@ -962,12 +983,23 @@ async function runEvalRadar() {
   const btn = $('eval-run-btn'); btn.disabled = true; $('eval-out').textContent = 'Executing 10-task golden evaluation panel…';
   try {
     const r = await api('/v1/evals/run', { method: 'POST', body: { model_name: 'keelway-local-default', save_receipt: true } });
-    $('eval-out').textContent = `[✓] 10-TASK GOLDEN BENCHMARK COMPLETE (Run ID: ${r.eval_run_id})\n` +
-      `Pass@1 Rate:     ${r.pass_rate_pct}% (${r.passed_tasks}/${r.total_tasks} passed)\n` +
-      `Duration:        ${r.total_duration_ms.toFixed(2)}ms (p50: ${r.p50_latency_ms.toFixed(2)}ms, p95: ${r.p95_latency_ms.toFixed(2)}ms)\n` +
-      `Receipt SHA-256: ${r.receipt_sha256}\n\n` +
-      `Tasks Verified:\n` +
-      r.task_results.map((t) => `  ${t.passed ? '[✓]' : '[✗]'} ${t.task_id}: ${t.name} (${t.duration_ms.toFixed(2)}ms)`).join('\n');
+    const res = $('eval-results');
+    if (res) {
+      res.replaceChildren(
+        h('div', { class: 'flex flex-wrap gap-2' },
+          metricChip('Pass@1', `${r.pass_rate_pct}% (${r.passed_tasks}/${r.total_tasks})`),
+          metricChip('Duration', `${r.total_duration_ms.toFixed(0)}ms`),
+          metricChip('p50 / p95', `${r.p50_latency_ms.toFixed(0)} / ${r.p95_latency_ms.toFixed(0)}ms`),
+          metricChip('Run', String(r.eval_run_id)),
+          metricChip('Receipt', `${String(r.receipt_sha256).slice(0, 16)}…`)),
+        h('div', { class: 'rounded border border-ide-border bg-ide-bg divide-y divide-ide-border/60 overflow-hidden' },
+          ...(r.task_results || []).map((t) => h('div', { class: 'flex items-center gap-2 px-2.5 py-1.5' },
+            h('span', { class: `font-mono shrink-0 ${t.passed ? 'text-ok' : 'text-danger'}` }, t.passed ? '✓' : '✗'),
+            h('span', { class: 'font-mono text-ide-faint shrink-0' }, t.task_id),
+            h('span', { class: 'flex-1 truncate min-w-0', title: t.name }, t.name),
+            h('span', { class: 'font-mono text-ide-faint shrink-0' }, `${t.duration_ms.toFixed(0)}ms`)))));
+    }
+    $('eval-out').textContent = `[✓] 10-TASK GOLDEN BENCHMARK COMPLETE (Run ID: ${r.eval_run_id})`;
     tone(r.pass_rate_pct === 100 ? 'ok' : 'warn');
   } catch (err) { $('eval-out').textContent = `[-] Eval error: ${err.message}`; tone('err'); }
   finally { btn.disabled = false; }
@@ -979,15 +1011,28 @@ async function checkDriftRadar() {
     const cand = await api('/v1/evals/run', { method: 'POST', body: { model_name: 'keelway-local-default', save_receipt: true } });
     const drift = await api('/v1/evals/drift/compare', { method: 'POST', body: { candidate_run_id: cand.eval_run_id } });
     const tag = drift.drift_detected ? `DRIFT DETECTED [${drift.drift_severity}]` : 'NO DRIFT DETECTED [✓]';
-    $('eval-out').textContent = `====================================================\n` +
-      `  DRIFT RADAR ANALYSIS: ${tag}\n` +
-      `====================================================\n` +
-      `Candidate:          ${drift.candidate_run_id} (${drift.candidate_pass_rate}% Pass@1)\n` +
-      `Baseline:           ${drift.baseline_run_id} (${drift.baseline_pass_rate}% Pass@1)\n` +
-      `Pass@1 Delta:       ${drift.pass_rate_delta > 0 ? '+' : ''}${drift.pass_rate_delta.toFixed(1)}%\n` +
-      `p50 Latency Delta:  ${drift.latency_p50_delta_pct > 0 ? '+' : ''}${drift.latency_p50_delta_pct.toFixed(1)}%\n` +
-      (drift.regressed_tasks && drift.regressed_tasks.length ? `Regressed Tasks:    ${drift.regressed_tasks.join(', ')}\n` : '') +
-      (drift.alert_reasons && drift.alert_reasons.length ? `Alerts:\n` + drift.alert_reasons.map((a) => `  • ${a}`).join('\n') : 'All metrics within stability threshold.');
+    const res = $('eval-results');
+    if (res) {
+      res.replaceChildren(h('div', {
+        class: `p-2.5 rounded border space-y-2 ${drift.drift_detected ? 'border-warn/50 bg-warn/5' : 'border-ok/40 bg-ok/5'}`,
+      },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold' }, 'Drift radar analysis'),
+          h('span', { class: `chip text-[10px] shrink-0 ${drift.drift_detected ? 'text-warn border-warn/50' : 'text-ok border-ok/50'}` },
+            drift.drift_detected ? `DRIFT · ${String(drift.drift_severity || '').toUpperCase()}` : 'NO DRIFT')),
+        h('div', { class: 'flex flex-wrap gap-2' },
+          metricChip('Candidate', `${drift.candidate_run_id} · ${drift.candidate_pass_rate}%`),
+          metricChip('Baseline', `${drift.baseline_run_id} · ${drift.baseline_pass_rate}%`),
+          metricChip('Pass@1 delta', `${drift.pass_rate_delta > 0 ? '+' : ''}${drift.pass_rate_delta.toFixed(1)}%`),
+          metricChip('p50 delta', `${drift.latency_p50_delta_pct > 0 ? '+' : ''}${drift.latency_p50_delta_pct.toFixed(1)}%`)),
+        drift.regressed_tasks && drift.regressed_tasks.length
+          ? h('p', { class: 'text-[11px] text-danger' }, `Regressed tasks: ${drift.regressed_tasks.join(', ')}`)
+          : null,
+        drift.alert_reasons && drift.alert_reasons.length
+          ? h('ul', { class: 'list-disc pl-4 text-[11px] text-ide-muted space-y-0.5' }, drift.alert_reasons.map((a) => h('li', {}, a)))
+          : h('p', { class: 'text-[11px] text-ide-muted' }, 'All metrics within stability threshold.')));
+    }
+    $('eval-out').textContent = `[${drift.drift_detected ? '!' : '✓'}] DRIFT RADAR ANALYSIS: ${tag}`;
     tone(drift.drift_detected ? 'warn' : 'ok');
   } catch (err) { $('eval-out').textContent = `[-] Drift check error: ${err.message}`; tone('err'); }
   finally { btn.disabled = false; }
@@ -1194,20 +1239,28 @@ async function verifyEvidencePackage() {
 
 async function runDoctorDiagnostics() {
   const out = $('doctor-out');
+  const list = $('doctor-sections');
   if (!out) return;
   out.textContent = 'Running sovereign enterprise system diagnostics across 7 dimensions…';
   try {
     const report = await api('/v1/system/doctor');
-    out.textContent = `[✓] SOVEREIGN SYSTEM DIAGNOSTICS (${report.overall_status})\n` +
-      `Timestamp:   ${report.timestamp_utc}\n` +
-      `Python:      ${report.python_version} (${report.os_platform})\n` +
-      `Environment: ${report.environment}\n\n` +
-      report.sections.map((s, idx) => `[${idx + 1}] ${s.name} [${s.status}]\n` +
-        Object.entries(s.details).map(([k, v]) => `    • ${k.replace(/_/g, ' ')}: ${v}`).join('\n')
-      ).join('\n\n');
+    if (list) {
+      list.replaceChildren(...(report.sections || []).map((s, idx) => h('div', { class: 'p-2.5 rounded bg-ide-bg border border-ide-border space-y-1.5' },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold font-mono min-w-0' }, `${idx + 1}. ${s.name}`),
+          statusChip(s.status)),
+        h('dl', { class: 'grid grid-cols-[auto,1fr] gap-x-2 gap-y-0.5 font-mono text-[11px]' },
+          ...Object.entries(s.details || {}).flatMap(([k, v]) => [
+            h('dt', { class: 'text-ide-faint' }, `${k.replace(/_/g, ' ')}:`),
+            h('dd', { class: 'text-ide-muted break-words' }, String(v)),
+          ]))
+      )));
+    }
+    out.textContent = `[✓] SOVEREIGN SYSTEM DIAGNOSTICS — ${report.overall_status} · ${report.python_version} (${report.os_platform}) · ${report.environment}`;
     tone('ok');
     toast(`Diagnostics complete: ${report.overall_status}`, 'ok');
   } catch (err) {
+    if (list) renderLoadError(list, err, runDoctorDiagnostics);
     out.textContent = `[-] Diagnostics error: ${err.message}`;
     tone('err');
   }
@@ -1372,17 +1425,28 @@ async function recordKBrainFactInStudio() {
 
 async function queryKBrainFactsInStudio() {
   const out = $('kbrain-out');
+  const list = $('kbrain-list');
   const scope = $('kbrain-scope') ? $('kbrain-scope').value : 'project';
   out.textContent = `Querying KBrain facts (Scope <= ${scope})…`;
   try {
     const facts = await api(`/v1/kbrain/facts?scope=${encodeURIComponent(scope)}`);
-    const list = Array.isArray(facts) ? facts : (facts.facts || []);
-    out.textContent = `[✓] KBRAIN FACTS QUERY (Scope <= ${scope}, Total: ${list.length})\n` +
-      `─────────────────────────────────────────────────────────────────\n` +
-      (list.length ? list.map(f => `• [${f.scope}] [${f.status}] ${f.key} (rev ${f.revision}):\n    "${f.statement}"\n    Provenance: ${f.provenance_reason} | Hash: ${f.sha256.slice(0, 16)}…`).join('\n\n') : '  (no facts recorded in this scope)');
+    const items = Array.isArray(facts) ? facts : (facts.facts || []);
+    if (list) {
+      list.replaceChildren(...(items.length ? items.map((f) => h('div', { class: 'p-2.5 rounded bg-ide-bg border border-ide-border space-y-1.5' },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold font-mono truncate min-w-0', title: f.key }, f.key),
+          h('span', { class: 'flex items-center gap-1 shrink-0' },
+            h('span', { class: 'chip text-[10px] border-ide-border text-ide-faint' }, f.scope),
+            statusChip(f.status))),
+        h('p', { class: 'font-sans text-[11px] text-ide-muted' }, f.statement),
+        h('p', { class: 'font-mono text-[10px] text-ide-faint' }, `rev ${f.revision} · ${f.provenance_reason || 'n/a'} · ${(f.sha256 || '').slice(0, 16)}…`)))
+        : [h('p', { class: 'text-ide-muted font-sans text-xs' }, 'No facts recorded in this scope.')]));
+    }
+    out.textContent = `[✓] KBRAIN FACTS QUERY (Scope <= ${scope}, Total: ${items.length})`;
     tone('ok');
-    toast(`${list.length} facts retrieved`, 'ok');
+    toast(`${items.length} facts retrieved`, 'ok');
   } catch (err) {
+    if (list) renderLoadError(list, err, queryKBrainFactsInStudio);
     out.textContent = `[-] KBrain query error: ${err.message}`;
     tone('err');
   }

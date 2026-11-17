@@ -288,6 +288,7 @@
             <div class="flex flex-wrap gap-2 items-center">
               <button id="doctor-run-btn" type="button" class="btn-primary h-8 text-xs">Run System Diagnostics</button>
             </div>
+            <div id="doctor-sections" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs" aria-live="polite"></div>
             <pre id="doctor-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
@@ -1075,6 +1076,7 @@
               <button id="kbrain-record-btn" type="button" class="btn-primary h-8 text-xs">Record Fact</button>
               <button id="kbrain-query-btn" type="button" class="btn-outline h-8 text-xs">Query Facts</button>
             </div>
+            <div id="kbrain-list" class="space-y-2 text-xs" aria-live="polite"></div>
             <pre id="kbrain-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
@@ -1091,6 +1093,7 @@
               <button id="eval-run-btn" type="button" class="btn-primary h-8">Run Benchmark &amp; Seal Receipt</button>
               <button id="eval-drift-btn" type="button" class="btn-outline h-8">Check Drift vs Baseline</button>
             </div>
+            <div id="eval-results" class="space-y-2 text-xs" aria-live="polite"></div>
             <pre id="eval-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-52 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
