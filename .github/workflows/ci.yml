@@ -52,6 +52,18 @@ jobs:
           pytest tests/test_agent_sandbox.py -v
       - name: Lint check
         run: ruff check .
+      # KEEL-SEC-057 follow-on: tracked-tree secret gate. Scans committed files
+      # only; .gitleaks.toml allowlists synthetic fixture markers. Binary pinned
+      # by sha256 — bump both fields together when upgrading.
+      - name: Secret scan (gitleaks)
+        run: |
+          set -e
+          GL_VER=8.28.0
+          GL_SHA256=a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb
+          curl -sSfL -o /tmp/gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VER}/gitleaks_${GL_VER}_linux_x64.tar.gz"
+          echo "${GL_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks dir --config .gitleaks.toml --redact=90 .
       # Profile A + Linux LIVE_OS_ISOLATION_PROOFS. macOS Seatbelt + live Ollama gate runs in release-gate-macos.yml.
       - name: Run Engineering Quality Gates
         env:

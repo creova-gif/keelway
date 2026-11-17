@@ -14,6 +14,40 @@ set -eu
 say() { printf '%s\n' "$*"; }
 die() { printf '[x] %s\n' "$*" >&2; exit 1; }
 
+INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/runtime}"
+BIN_DIR="${HOME}/.local/bin"
+DATA_DIR="${KEELWAY_DATA_DIR:-${HOME}/.keelway}"
+UNINSTALL=0
+PURGE=0
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --uninstall) UNINSTALL=1; shift ;;
+        --purge) PURGE=1; shift ;;
+        -h|--help)
+            say "Usage: install.sh [--uninstall] [--purge]"
+            say "  Installs Keelway into ${INSTALL_DIR} with a CLI symlink in ${BIN_DIR}."
+            say "  --uninstall removes the runtime + symlink, preserving ${DATA_DIR}."
+            say "  --purge (with --uninstall) also removes the data directory."
+            say "  Rollback: KEELWAY_GIT_REF=<tag-or-branch> sh install.sh"
+            exit 0 ;;
+        *) die "Unknown option: $1 (pass --help for usage)." ;;
+    esac
+done
+[ "$PURGE" -eq 0 ] || [ "$UNINSTALL" -eq 1 ] || die "--purge requires --uninstall."
+
+if [ "$UNINSTALL" -eq 1 ]; then
+    rm -f "${BIN_DIR}/keelway"
+    rm -rf "${INSTALL_DIR}"
+    say "[+] Removed CLI symlink and runtime: ${INSTALL_DIR}"
+    if [ "$PURGE" -eq 1 ]; then
+        rm -rf "${DATA_DIR}"
+        say "[+] Purged data directory: ${DATA_DIR}"
+    else
+        say "[+] Preserved data directory: ${DATA_DIR} (re-run with --purge to remove)"
+    fi
+    exit 0
+fi
+
 say ""
 say "================================================================="
 say "  Installing Keelway - Unified Local-First AI Agent Platform"
@@ -54,8 +88,6 @@ else
     KEELWAY_GIT_URL=<git url>              (public source mirror)"
 fi
 
-INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/runtime}"
-BIN_DIR="${HOME}/.local/bin"
 mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 
 say "[+] Creating isolated Keelway virtual environment..."
@@ -75,8 +107,13 @@ case "$INSTALL_SOURCE" in
         GIT_URL="${KEELWAY_GIT_URL}"
         command -v git >/dev/null 2>&1 || die "git is required to install from ${GIT_URL}. Install git or set KEELWAY_SOURCE_DIR/KEELWAY_PACKAGE."
         SRC_DIR="${INSTALL_DIR}/src"
-        say "[+] Cloning Keelway source from ${GIT_URL}..."
-        git clone --depth 1 --quiet "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL}"
+        if [ -n "${KEELWAY_GIT_REF:-}" ]; then
+            say "[+] Cloning Keelway source from ${GIT_URL} at ref ${KEELWAY_GIT_REF}..."
+            git clone --depth 1 --quiet --branch "$KEELWAY_GIT_REF" "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL} at ref ${KEELWAY_GIT_REF} (tag/branch names only with --depth 1)."
+        else
+            say "[+] Cloning Keelway source from ${GIT_URL}..."
+            git clone --depth 1 --quiet "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL}"
+        fi
         say "[+] Installing Keelway from cloned source..."
         "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${SRC_DIR}"
         ;;

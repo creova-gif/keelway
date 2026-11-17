@@ -72,6 +72,7 @@
 | **KEEL-ENG-051** | ACP session bridge — JSON-RPC stdio + permission→policy mapping + `agents acp` CLI | `ENGINEERING / EXTENSIBILITY / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `fix/KEEL-ENG-051-acp-bridge` |
 | **KEEL-REL-056** | Public install source (repo opened) + ACP agent adapters + Cursor schema fix | `RELEASE / INSTALL / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `fix/KEEL-REL-056-public-install-acp-contract` |
 | **KEEL-SEC-057** | GitGuardian Bearer Token remediation — realistic demo `kw_live_*`/`sk-live-*` literals → obvious placeholders | `SECURITY / SCANNER` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` (`b7ae3fd`) |
+| **KEEL-REL-058** | CI gitleaks gate + installer `--uninstall`/`--purge`/`KEELWAY_GIT_REF` + tested model compatibility matrix | `RELEASE / SECURITY / INSTALL / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 
 ---
 

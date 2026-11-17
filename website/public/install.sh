@@ -7,8 +7,11 @@ say() { printf '%s\n' "$*"; }
 die() { printf '[x] %s\n' "$*" >&2; exit 1; }
 
 DRY_RUN=0
+UNINSTALL=0
+PURGE=0
 INSTALL_DIR="${KEELWAY_INSTALL_DIR:-${HOME}/.keelway/runtime}"
 BIN_DIR="${KEELWAY_BIN_DIR:-${HOME}/.local/bin}"
+DATA_DIR="${KEELWAY_DATA_DIR:-${HOME}/.keelway}"
 
 show_help() {
     cat <<'EOF'
@@ -20,9 +23,18 @@ Options:
   -n, --dry-run       Print resolved installation plan without modifying disk
   --install-dir DIR   Override runtime directory (default: ~/.keelway/runtime)
   --bin-dir DIR       Override binary symlink directory (default: ~/.local/bin)
+  --uninstall         Remove the runtime venv, cloned source, and CLI symlink.
+                      Preserves ~/.keelway data (projects, vault, audit DBs).
+  --purge             With --uninstall: also remove the data directory.
   -h, --help          Show this help message and exit
 
-Environment: KEELWAY_PYTHON, KEELWAY_INSTALL_DIR, KEELWAY_BIN_DIR, KEELWAY_SOURCE_DIR, KEELWAY_PACKAGE, KEELWAY_GIT_URL
+Environment: KEELWAY_PYTHON, KEELWAY_INSTALL_DIR, KEELWAY_BIN_DIR,
+             KEELWAY_DATA_DIR, KEELWAY_SOURCE_DIR, KEELWAY_PACKAGE,
+             KEELWAY_GIT_URL, KEELWAY_GIT_REF
+
+Upgrade & rollback:
+  Upgrade:  re-run this script (idempotent).
+  Rollback: KEELWAY_GIT_REF=<previous-tag-or-branch> sh install.sh
 EOF
 }
 
@@ -30,6 +42,8 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         -h|--help) show_help; exit 0 ;;
         -n|--dry-run) DRY_RUN=1; shift ;;
+        --uninstall) UNINSTALL=1; shift ;;
+        --purge) PURGE=1; shift ;;
         --install-dir)
             [ "$#" -ge 2 ] || die "--install-dir requires a directory argument."
             INSTALL_DIR="$2"; shift 2 ;;
@@ -39,6 +53,36 @@ while [ "$#" -gt 0 ]; do
         *) die "Unknown option: $1 (pass --help for usage)." ;;
     esac
 done
+
+[ "$PURGE" -eq 0 ] || [ "$UNINSTALL" -eq 1 ] || die "--purge requires --uninstall."
+
+if [ "$UNINSTALL" -eq 1 ]; then
+    say "================================================================="
+    say "  Keelway v1.0.0 - Uninstall"
+    say "================================================================="
+    TARGETS="${BIN_DIR}/keelway ${INSTALL_DIR}"
+    if [ "$PURGE" -eq 1 ] && [ "$DATA_DIR" != "$INSTALL_DIR" ]; then
+        TARGETS="${TARGETS} ${DATA_DIR}"
+    fi
+    if [ "$DRY_RUN" -eq 1 ]; then
+        say "[dry-run] Would remove: ${TARGETS}"
+        if [ "$PURGE" -eq 0 ]; then
+            say "[dry-run] Would preserve data directory: ${DATA_DIR} (use --purge to include)"
+        fi
+        exit 0
+    fi
+    rm -f "${BIN_DIR}/keelway"
+    rm -rf "${INSTALL_DIR}"
+    say "[+] Removed CLI symlink and runtime: ${INSTALL_DIR}"
+    if [ "$PURGE" -eq 1 ]; then
+        rm -rf "${DATA_DIR}"
+        say "[+] Purged data directory: ${DATA_DIR}"
+    else
+        say "[+] Preserved data directory: ${DATA_DIR} (re-run with --purge to remove)"
+    fi
+    say "[+] Uninstall complete."
+    exit 0
+fi
 
 say "================================================================="
 say "  Keelway v1.0.0 - Unified Local-First AI Agent Platform"
@@ -99,8 +143,13 @@ else
     GIT_URL="${KEELWAY_GIT_URL}"
     command -v git >/dev/null 2>&1 || die "git is required to install from ${GIT_URL}. Install git or set KEELWAY_SOURCE_DIR/KEELWAY_PACKAGE."
     SRC_DIR="${INSTALL_DIR}/src"
-    say "[+] Cloning Keelway source from ${GIT_URL}..."
-    git clone --depth 1 --quiet "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL}"
+    if [ -n "${KEELWAY_GIT_REF:-}" ]; then
+        say "[+] Cloning Keelway source from ${GIT_URL} at ref ${KEELWAY_GIT_REF}..."
+        git clone --depth 1 --quiet --branch "$KEELWAY_GIT_REF" "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL} at ref ${KEELWAY_GIT_REF} (tag/branch names only with --depth 1)."
+    else
+        say "[+] Cloning Keelway source from ${GIT_URL}..."
+        git clone --depth 1 --quiet "$GIT_URL" "$SRC_DIR" || die "Failed to clone ${GIT_URL}"
+    fi
     say "[+] Installing Keelway from cloned source..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet -e "${SRC_DIR}"
 fi

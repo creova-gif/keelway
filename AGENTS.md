@@ -167,6 +167,7 @@ A task is **DONE** only when all nine criteria are met:
   - `docs/architecture/SYSTEM_OVERVIEW.md`: System topology, components, and data flow
   - `docs/architecture/HYBRID_AI_ARCHITECTURE.md`: Open-weight vs proprietary model tiers
   - `docs/architecture/MODEL_PROVIDER_CONTRACT.md`: Provider adapter & gateway interfaces
+  - `docs/architecture/MODEL_COMPATIBILITY_MATRIX.md`: Tested provider/agent compatibility — VERIFIED vs IMPL vs GATED per cell
   - `docs/decisions/`: Architectural Decision Records (ADR-001 through ADR-0042)
 - **Engineering Standards**:
   - `docs/engineering/ENGINEERING_STANDARDS.md`: Devin-inspired engineering standards
