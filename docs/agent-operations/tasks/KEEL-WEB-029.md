@@ -1,53 +1,46 @@
-# KEEL-WEB-029 — Post-Merge Brand Polish: A11y, Token Drift & Dead-Code Sweep
+### TASK HANDOFF RECORD
+- **TASK ID**: KEEL-WEB-029
+- **TASK TITLE**: Migrate unique `kora-ai/website` content into canonical site, fix responsive/a11y defects, deprecate divergent site
+- **CURRENT STATUS**: READY_FOR_REVIEW
+- **LAST AGENT**: Devin
+- **DATE**: 2026-11-16
+- **BRANCH**: feature/website-kora-content-migration
+- **HEAD COMMIT**: <pending — set at commit>
 
-| Field | Value |
-|---|---|
-| **Status** | `VERIFIED_COMPLETE` |
-| **Category** | `WEBSITE / UX / DEV-APP / A11Y` |
-| **Agent** | Devin |
-| **Date** | 2026-11-16 |
-| **Branch** | `fix/KEEL-WEB-029-brand-polish` |
+#### OBJECTIVE & ACCEPTANCE CRITERIA
+- [x] Inventory `kora-ai/website` content/components/assets and compare against canonical `keelway/website`
+- [x] Migrate unique content adapted to the canonical design system (no duplicated pages/components)
+- [x] Integrate migrated content into existing routes/navigation (sitemap unchanged — no new routes)
+- [x] Fix discovered accessibility/responsive defects (mobile horizontal overflow on all pages)
+- [x] `npm run build` passes; site runs locally with zero JS errors
+- [x] `kora-ai/website` reduced to README + meta-refresh redirect stub pointing at https://kora-sable.vercel.app/
 
-## Objective
-Resolve the medium/low findings from the post-merge review of KEEL-WEB-028 (`4b70bf8`): ARIA labeling on `BrandMark` lockups, leftover legacy amber/slate values in `web-console`, hardcoded dark-theme teal accents, raw Tailwind red classes bypassing `fault` tokens, stale Monaco theme color, and dead `.chip-amber` CSS.
+#### WORK COMPLETED & FILES MODIFIED
+- `website/src/components/home/SettlementRails.tsx` (new): "Sovereignty Beyond US Credit Cards" multi-rail settlement explorer (M-Pesa STK Push, PIX EMVCo, UPI 2.0, L402 Lightning) with `role=radiogroup`, `aria-checked`, 44px+ touch targets; mounted in `src/app/page.tsx` (`/#settlement`) after `QuickstartTerminal`
+- `website/src/components/models/SpeculativeDecodingLab.tsx` (new): tandem 0.5B-draft/7B-target speculative-decoding velocity slider (k=1–8, aria-labeled, `aria-live` readout); mounted on `/models` after `ModelExplorer`
+- `website/src/components/governance/SelfHealingWorktreeLab.tsx` (new): closed-loop AST self-healing worktree demo with `aria-pressed` air-gap toggle; mounted on `/governance` labs section (`#self-healing-worktree`)
+- `website/src/lib/analytics.ts`: added `settlement_rail_selected`, `spec_decoding_k_changed`, `self_healing_demo_run`, `airgap_enabled`, `airgap_disabled` events
+- `website/src/app/globals.css`: wrapped `.kw-btn*` rules in `@layer components` — unlayered CSS was overriding Tailwind's `hidden` utility, so `hidden xl:inline-flex` buttons rendered at all breakpoints
+- `website/src/components/layout/Header.tsx`: `⌘K` hint hidden below `sm:` to prevent mobile header overflow
+- `website/src/components/pricing/PricingTiers.tsx`: `[overflow-wrap:anywhere]` on FAQ answers — unbreakable token `CREDENTIAL_TYPE_UNSUPPORTED_CONSUMER_SUBSCRIPTION` caused 113px overflow
+- `website/src/components/marketplace/MarketplaceCatalogExplorer.tsx`: `min-w-0` on `lg:col-span-*` grid children — grid `min-width:auto` caused 310px overflow
+- `docs/agent-operations/ACTIVE_TASKS.md`: registry row added
 
-## Acceptance Criteria
-- [x] `BrandMark` (website + dev-app): `aria-label` is exposed via `role="img"` on the lockup wrapper; inner SVG is `aria-hidden` whenever the wordmark is rendered (no double naming)
-- [x] `web-console/index.html`: no `rgba(245,181,71,*)` amber tints, no `#F5B547`/`#CBD5E1` literals; palette comment updated
-- [x] `accent-[#2DD4BF]` hardcodes replaced with `accent-teal-accent` (theme-aware)
-- [x] `P10InteractiveDeck` raw `red-*` classes migrated to `fault`/`fault-surface` semantic tokens
-- [x] Monaco `keelway-dark` theme `editor.background` aligned to `#09090b`; test updated
-- [x] Dead `.chip-amber` CSS removed
-- [x] `GoldenThreadJourneyBar` warm-ochre glow rgba replaced with zinc
-- [x] Website + dev-app typechecks pass
-- [x] Website + dev-app production builds pass
-- [x] `files-record-settings` vitest suite passes (11/11, incl. axe)
-- [x] `tests/test_website_facts.py` passes (11/11)
+#### TESTS EXECUTED & EVIDENCE
+- `npm run build`: pass — all routes prerendered, no errors
+- `.venv/bin/pytest tests/test_website_facts.py -q`: `11 passed in 0.60s`
+- `npx next start` + Playwright (headless Chromium): all 3 migrated demos interactive (rail tabs, k-slider → 83.5 tok/s, self-heal patch, air-gap toggle); zero page errors; only expected local `/_vercel/insights/script.js` 404
+- Mobile (375px) horizontal overflow measured per route: `/`, `/models`, `/governance`, `/pricing`, `/marketplace`, `/docs`, `/api-reference`, `/brand` — all `0px` (was 51/113/310px)
 
-## Files Modified
-- `website/src/components/ui/BrandMark.tsx` — `role="img"` on labeled lockup wrapper
-- `dev-app/src/components/ui/BrandMark.tsx` — mirrored aria-hidden/label logic + wrapper role
-- `web-console/index.html` — zinc rgba tints, `var(--muted)` pre color, option label, palette comment
-- `website/src/components/pricing/PricingTiers.tsx`, `home/EarlyAccessForm.tsx`, `governance/RoutingSimulator.tsx` — `accent-teal-accent`
-- `website/src/components/home/P10InteractiveDeck.tsx` — `fault` token migration
-- `website/src/app/globals.css` — removed dead `.chip-amber`
-- `dev-app/src/components/platform/GoldenThreadJourneyBar.tsx` — zinc glow
-- `dev-app/src/components/screens/FilesWorkspace.tsx`, `dev-app/src/__tests__/files-record-settings.test.tsx` — Monaco bg `#09090b`
-- `core/dev_app_dist/` — rebuilt bundle (committed build artifact convention)
+#### DECISIONS MADE AUTONOMOUSLY
+- Settlement → homepage (sovereign-economy differentiator); speculative decoding → `/models` (inference economics context); self-healing → `/governance` labs (verified-patch governance framing)
+- Sitemap/nav unchanged: no new routes added; section anchors only
+- NOT migrated (already covered better by canonical): hero/stat strip, install command (`QuickstartTerminal`), audience steps (`CustomerJourneyGrid`), FAQ (pricing FAQ + docs), features bento, footer
+- Divergent site deprecated via README + `index.html` meta-refresh stub rather than keeping a second Next.js app
 
-## Tests Executed
-- `npx tsc --noEmit` (website): pass
-- `npx tsc --noEmit` (dev-app): pass
-- `npm run build` (website): pass
-- `npm run build` (dev-app): pass (regenerates `core/dev_app_dist`)
-- `npx vitest run src/__tests__/files-record-settings.test.tsx`: 11 passed
-- `.venv/bin/pytest tests/test_website_facts.py -q`: 11 passed
+#### KNOWN RISKS & BLOCKERS
+- None functional. Settlement/demo figures are illustrative marketing values, consistent with existing site conventions.
+- `kora-ai/website` node_modules/app code deleted — content preserved in git history and now lives in canonical components.
 
-## Known Risks & Blockers
-- `dev-app` dark `--status-warning` and `--status-running` remain visually near-identical zinc values (intentional monochrome direction; differentiation rests on labels/icons). Deferred as a design-token decision, not a defect.
-- `docs/decisions/ADR-UI-001` and `docs/handoff/assets/brand-direction-v0.2.html` still reference the pre-refresh palette — documentation drift, non-blocking.
-- `extensions/vscode-keelway` webview CSS remains on the legacy slate palette — separate surface, out of scope.
-- **Security note (not fixed here):** `core/platform/signing.py::get_sorvex_first_party_keypair` derives the first-party Ed25519 seed from a public constant — anyone can reproduce the "Sorvex Labs" signing key. Acceptable only while first-party manifests are self-issued seed data; must be replaced with a managed key before any multi-publisher marketplace trust boundary ships. Tracked as backlog item.
-
-## Next Recommended Action
-Merge to `main`; schedule KEEL-SEC task for deterministic first-party signing key remediation before marketplace GA.
+#### NEXT RECOMMENDED ACTION
+Review diff, merge `feature/website-kora-content-migration` to `main`, deploy to Vercel; confirm `kora-ai` deployment (if any) resolves to the redirect stub.

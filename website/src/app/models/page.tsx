@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ModelExplorer } from "@/components/models/ModelExplorer";
+import { SpeculativeDecodingLab } from "@/components/models/SpeculativeDecodingLab";
 import { LatencyCostFrontierChart } from "@/components/charts/LatencyCostFrontierChart";
 import { CATALOG_MODELS } from "@/data/models";
 import { SITE_URL } from "@/lib/utils";
@@ -99,6 +100,7 @@ export default function ModelsCatalogPage() {
         <div className="mx-auto max-w-container space-y-12 px-4 sm:px-6">
           <LatencyCostFrontierChart />
           <ModelExplorer />
+          <SpeculativeDecodingLab />
         </div>
       </section>
     </div>

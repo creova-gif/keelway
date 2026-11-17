@@ -507,7 +507,7 @@ export function PricingTiers() {
                   />
                 </Accordion.Trigger>
               </Accordion.Header>
-              <Accordion.Content className="px-5 pb-4 text-sm leading-relaxed text-fg-muted">
+              <Accordion.Content className="px-5 pb-4 text-sm leading-relaxed text-fg-muted [overflow-wrap:anywhere]">
                 {item.a}
               </Accordion.Content>
             </Accordion.Item>
