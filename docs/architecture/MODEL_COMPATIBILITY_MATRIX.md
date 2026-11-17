@@ -39,7 +39,7 @@ provider adapters — unverified against third-party registries.
 
 | Host | Detect | Launch | Policy verdicts | Live session | Live permission request | Evidence / limit |
 |---|---|---|---|---|---|---|
-| `hermes_acp` 0.22.5 | VERIFIED (`--check` probe) | VERIFIED | VERIFIED | VERIFIED (86 events, `end_turn`) | **VERIFIED** — real `session/request_permission` on `.env` edit → ALLOW → `hint-9a33253240b2` | HOLD/DENY fixture-verified only (Hermes didn't gate `git push`) |
+| `hermes_acp` 0.22.5 | VERIFIED (`--check` probe) | VERIFIED | VERIFIED | VERIFIED (86 events, `end_turn`) | **VERIFIED** — ALLOW on `.env` edit (`hint-9a33253240b2`) **and HOLD_TICKET on live `git reset --hard`** (`hint-50968b6320c1` → `ptkt-b767068fbfab`, command not executed) | DENY fixture-verified only: Hermes doesn't gate cred reads, its model refused `~/.ssh` writes pre-tool-call; evaluator sees edit title, not body (no content DLP) |
 | `claude_code` | VERIFIED | VERIFIED | VERIFIED (hooks + intercept CLI) | GATED (daily quota 104%, resets midnight) | n/a | Hook delivery proven to vendor boundary |
 | `codex_cli` | VERIFIED | VERIFIED | VERIFIED | GATED (usage limit ~Nov 20) | n/a | Same boundary |
 | `cursor` | VERIFIED | VERIFIED | VERIFIED — official schema pinned (`preToolUse`/`sessionEnd`, lowercase) | GATED (`agent login` required) | n/a | Contract test against pinned `cursor.com/docs/hooks` schema |

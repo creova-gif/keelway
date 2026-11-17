@@ -54,9 +54,27 @@ THIRD_PARTY_AGENT_INTEGRATION.md.
   (interception `hint-9a33253240b2`, `safe_readonly_or_test`) → the
   `approve` option was returned and Hermes wrote the file (86
   `session/update` events, `stop_reason=end_turn`).
-- HOLD/DENY mapping remains fixture-verified: Hermes does not classify
-  `git push` as a dangerous command (attempted exec, 0 permission
-  requests), so the terminal-approval path was not exercisable live.
+- **Live HOLD VERIFIED (2026-11-17):** a second live session asked
+  Hermes to run `git reset --hard HEAD` — Hermes classified it
+  dangerous and emitted a real `session/request_permission`, which
+  `intercept_tool_call` verdicted `HOLD_TICKET` (`p10_ticket_required`)
+  minting single-use ticket `ptkt-b767068fbfab` (interception
+  `hint-50968b6320c1`, status `PENDING`). The ACP outcome mapped to
+  `cancelled`, the tool call failed, and the working-tree change
+  survived — the destructive command was **not executed**.
+- DENY mapping remains fixture-verified — no live route found:
+  - Hermes does not gate credential *reads* (`cat ~/.ssh/id_*` ran
+    with 0 permission requests); only writes target its sensitive-path
+    rules.
+  - The Hermes model refused `write_file` to `~/.ssh/id_*` outright
+    (ended turn without a tool call), so a cred-path DENY never
+    reached the permission bridge.
+  - Hermes gates dangerous *terminal* commands (`git reset --hard`,
+    force-push, `rm -rf`) but not `git push` — it executed ungated.
+  - Our evaluator receives the tool-call title (`Approve edit:
+    <path>`), not proposed file contents, so edit-body DLP cannot
+    trigger `dlp_secret_detected` through this bridge — a real
+    boundary documented for a future title+content policy surface.
 - `gemini --acp` dead on this host — Google EOL'd Gemini Code Assist
   OAuth for individuals ("migrate to Antigravity"); error observed at
   `session/new` (-32000).
