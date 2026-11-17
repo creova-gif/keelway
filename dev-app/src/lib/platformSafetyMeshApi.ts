@@ -190,7 +190,7 @@ export async function dispatchMeshHandoff(req: DispatchMeshHandoffRequest = {}, 
   const stages: MeshStagePlacement[] = useBurst
     ? [
         { stage_name: "edge_pii_scrub_intake", target_tier: "edge_local", node_id: edge.node_id, model_id: "keelway-core:7b", hardware_hal: edge.hardware_hal, zero_raw_pii_egress: true, cost_usd: 0 },
-        { stage_name: "tee_cohort_synthesis", target_tier: "cluster_burst", node_id: burst.node_id, model_id: "keelway-reasoner:70b-tee", hardware_hal: burst.hardware_hal, zero_raw_pii_egress: true, cost_usd: 0.04 },
+        { stage_name: "tee_cohort_synthesis", target_tier: "cluster_burst", node_id: burst.node_id, model_id: "keelway-reasoning:70b-tee", hardware_hal: burst.hardware_hal, zero_raw_pii_egress: true, cost_usd: 0.04 },
       ]
     : [{ stage_name: "edge_sovereign_synthesis", target_tier: "edge_local", node_id: edge.node_id, model_id: "keelway-core:7b", hardware_hal: edge.hardware_hal, zero_raw_pii_egress: true, cost_usd: 0 }];
   localSeq += 1; const handoffId = `mho-${computeLocalFingerprintHex(`${ws}:${wfName}:${localSeq}`).slice(0, 12)}`;

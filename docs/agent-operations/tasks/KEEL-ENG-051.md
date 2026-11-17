@@ -44,12 +44,27 @@ THIRD_PARTY_AGENT_INTEGRATION.md.
 - [x] audit_only never blocks; enforce maps verdicts to ACP outcomes
 - [x] Fail-closed on evaluator errors, timeouts, missing binaries
 
+## Real-Agent Verification (2026-11-17)
+
+- **`hermes-acp 0.22.5+2996` — real `session/request_permission`
+  VERIFIED.** A live `agents acp --agent hermes_acp --mode enforce`
+  session prompted a `write_file` edit on `.env` (Hermes' sensitive-path
+  rule forces an ask under any auto-approve policy). The request flowed
+  through real NDJSON JSON-RPC → `intercept_tool_call` → ALLOW
+  (interception `hint-9a33253240b2`, `safe_readonly_or_test`) → the
+  `approve` option was returned and Hermes wrote the file (86
+  `session/update` events, `stop_reason=end_turn`).
+- HOLD/DENY mapping remains fixture-verified: Hermes does not classify
+  `git push` as a dangerous command (attempted exec, 0 permission
+  requests), so the terminal-approval path was not exercisable live.
+- `gemini --acp` dead on this host — Google EOL'd Gemini Code Assist
+  OAuth for individuals ("migrate to Antigravity"); error observed at
+  `session/new` (-32000).
+- No specific agent is claimed broadly "ACP-compatible"; `hermes_acp`
+  is verified for the session + permission surfaces described above.
+
 ## Known Limits
-- **No specific agent registered as ACP-capable yet** — `agents acp`
-  works with any adapter whose binary speaks ACP, but real candidates
-  (`claude-code-acp`, `gemini --experimental-acp`) are unverified;
-  contract test against a pinned binary is required before any
-  compatibility claim.
+
 - ACP `protocolVersion=1` per current spec; version negotiation is
   minimal (server version echoed, no downgrade logic).
 - `fs`/`terminal` client capabilities declared false — agents needing
@@ -61,6 +76,5 @@ THIRD_PARTY_AGENT_INTEGRATION.md.
   relies on events/errors surfaced in the result.
 
 ## Next Recommended Action
-Contract-test a real ACP agent (claude-code-acp or gemini
---experimental-acp) once available; decide Cline governance path
-(MCP-only vs. CLI research).
+Contract-test further ACP agents (claude-code-acp) once available;
+decide Cline governance path (MCP-only vs. CLI research).

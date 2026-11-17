@@ -156,7 +156,7 @@ def test_dlp_scrubbing_across_sqlite_wal_pairs_and_sft_dpo_datasets(tmp_path: Pa
             workspace_id="ws-dlp",
             task_tag="sec-patch",
             export_format="sft_jsonl",
-            target_base_model="keelway-reasoner:14b",
+            target_base_model="keelway-reasoning:14b",
         )
         sft_row = json.loads(sft_ds["jsonl_preview"].splitlines()[0])
         assert set(sft_row.keys()) == {"prompt", "completion"}

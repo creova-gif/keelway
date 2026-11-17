@@ -363,7 +363,7 @@ export function SettingsModelsPanel({
                 className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2 py-1 font-mono text-xs text-fg"
               >
                 <option value="coder-7b@2.5.1">coder-7b@2.5.1 (OpenCore)</option>
-                <option value="reasoner-14b@1.4.0">reasoner-14b@1.4.0 (OpenCore)</option>
+                <option value="reasoning-14b@1.4.0">reasoning-14b@1.4.0 (OpenCore)</option>
                 <option value="llama-3.3-70b">llama-3.3-70b (Open-weight)</option>
                 <option value="frontier-sonnet-4">frontier-sonnet-4 (Frontier)</option>
               </select>

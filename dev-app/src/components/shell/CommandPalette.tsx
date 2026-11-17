@@ -56,7 +56,7 @@ const DEFAULT_COMMANDS: CommandPaletteActionItem[] = [
 
 export const DEFAULT_MODELS_AND_SETTINGS: CommandPaletteSettingItem[] = [
   { id: "model-coder-7b", label: "Local OpenCore · coder-7b v2.5.1", kind: "model", detail: "Loopback 127.0.0.1 · Q4_K_M · 0 B external egress", modelId: "keelway-core:7b", modelLabel: "coder-7b v2.5.1" },
-  { id: "model-reasoner-14b", label: "Local OpenCore · reasoner-14b v1.4.0", kind: "model", detail: "Loopback 127.0.0.1 · Q4_K_M · 9.1 GB unified memory", modelId: "keelway-reasoner:14b", modelLabel: "reasoner-14b v1.4.0" },
+  { id: "model-reasoning-14b", label: "Local OpenCore · reasoning-14b v1.4.0", kind: "model", detail: "Loopback 127.0.0.1 · Q4_K_M · 9.1 GB unified memory", modelId: "keelway-reasoning:14b", modelLabel: "reasoning-14b v1.4.0" },
   { id: "settings-permissions", label: "Settings · Permissions & Scoped Rules", kind: "settings", detail: "Review P-10 human-only gates and prompt-bound scopes", settingsSection: "permissions" },
   { id: "settings-models", label: "Settings · Models & 4D Routing", kind: "settings", detail: "Inspect OpenCore weights and dry-run routing policies", settingsSection: "models" },
   { id: "settings-governance", label: "Settings · Governance & Residency", kind: "settings", detail: "Data residency zones, budget caps, and scoped API keys", settingsSection: "governance" },

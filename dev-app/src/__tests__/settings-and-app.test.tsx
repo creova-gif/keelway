@@ -117,19 +117,19 @@ describe("Screen 09 — SettingsModelsPanel (Models & 4D Hybrid Routing)", () =>
     ).toBeInTheDocument();
     const weightsTable = await screen.findByRole("table", { name: /OpenCore local weights/i });
     expect(within(weightsTable).getByText(/coder-7b/i)).toBeInTheDocument();
-    expect(within(weightsTable).getByText(/reasoner-14b/i)).toBeInTheDocument();
+    expect(within(weightsTable).getByText(/reasoning-14b/i)).toBeInTheDocument();
 
     // Connectors card distinguishes public cloud vs self-hosted VPC
     expect(screen.getByText(/Managed Public Cloud · Leaves this machine/i)).toBeInTheDocument();
     expect(screen.getByText("Self-Hosted VPC")).toBeInTheDocument();
     expect(screen.getAllByText(/Not configured · stays local by default/i).length).toBeGreaterThan(0);
 
-    // Switch active model to reasoner-14b -> standing Allow always rules must require re-confirmation
-    await user.click(within(weightsTable).getByRole("button", { name: /Set active reasoner-14b/i }));
+    // Switch active model to reasoning-14b -> standing Allow always rules must require re-confirmation
+    await user.click(within(weightsTable).getByRole("button", { name: /Set active reasoning-14b/i }));
 
     // Dry-run 4D Routing: 1) select candidate model + local loopback -> Routed local with 4D tuple
     const modelSelect = screen.getByLabelText(/Candidate model/i);
-    await user.selectOptions(modelSelect, "reasoner-14b@1.4.0");
+    await user.selectOptions(modelSelect, "reasoning-14b@1.4.0");
     await user.click(screen.getByRole("button", { name: /Explain 4D route \(\$0\.00 · 0 tokens\)/i }));
     const routeReceipt = await screen.findByTestId("routing-explain-receipt");
     expect(within(routeReceipt).getByText("Routed local")).toBeInTheDocument();
@@ -628,17 +628,17 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
     const combo = await screen.findByRole("combobox", {
       name: /Search commands, tasks, files, symbols, and settings/i,
     });
-    await user.type(combo, "/reasoner-14b");
-    await user.click(await screen.findByRole("option", { name: /reasoner-14b v1\.4\.0/i }));
+    await user.type(combo, "/reasoning-14b");
+    await user.click(await screen.findByRole("option", { name: /reasoning-14b v1\.4\.0/i }));
 
     const statusBar = screen.getByRole("contentinfo", { name: /Workspace status bar/i });
-    expect(statusBar).toHaveTextContent("reasoner-14b v1.4.0");
+    expect(statusBar).toHaveTextContent("reasoning-14b v1.4.0");
     expect(await screen.findByText("2 Allow always rules are paused until you re-confirm them.")).toBeInTheDocument();
 
     const settingsSidebar = screen.getByRole("complementary", { name: /Settings navigation/i });
     await user.click(within(settingsSidebar).getByRole("button", { name: /Models & 4D Routing/i }));
     const weightsTable = await screen.findByRole("table", { name: /OpenCore local weights/i });
-    const reasonerRow = within(weightsTable).getByText("keelway-reasoner:14b").closest("tr");
+    const reasonerRow = within(weightsTable).getByText("keelway-reasoning:14b").closest("tr");
     expect(reasonerRow).not.toBeNull();
     expect(within(reasonerRow as HTMLElement).getByText("Active")).toBeInTheDocument();
     desktopApp.unmount();

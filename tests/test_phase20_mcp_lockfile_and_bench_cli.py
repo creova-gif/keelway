@@ -163,7 +163,7 @@ def test_conformance_benchmark_verdicts_and_validation_guards(tmp_path: Path) ->
         assert fail_conf["verdict"] == "FAIL_CONFORMANCE" and fail_conf["conformance_score"] == pytest.approx(0.3333, abs=1e-4)
 
         fail_budget = eng.run_conformance_benchmark(
-            workspace_id="ws-bench", target_id="keelway-reasoner:14b", target_kind="opencore_model", latency_budget_ms=200,
+            workspace_id="ws-bench", target_id="keelway-reasoning:14b", target_kind="opencore_model", latency_budget_ms=200,
             scenarios=[
                 {"scenario_id": "s1", "schema_valid": True, "deterministic_match": True, "latency_ms": 120},
                 {"scenario_id": "s2", "schema_valid": True, "deterministic_match": True, "latency_ms": 340},

@@ -268,8 +268,8 @@ const INITIAL_OPENCORE_WEIGHTS: OpenCoreWeightItem[] = [
     runtimeAlias: true,
   },
   {
-    id: "keelway-reasoner:14b",
-    name: "reasoner-14b",
+    id: "keelway-reasoning:14b",
+    name: "reasoning-14b",
     version: "1.4.0",
     quantization: "Q4_K_M",
     sizeGb: 8.4,

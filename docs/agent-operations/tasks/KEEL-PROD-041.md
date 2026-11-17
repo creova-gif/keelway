@@ -67,5 +67,6 @@ models; niche/experimental tiers remain explicitly simulated.
 
 - KEEL-PROD-042 (new): real verified GGUF artifacts + checksum manifests if
   proprietary weights are ever shipped.
-- Fixture drift: dev-app demo data still uses `keelway-reasoner:14b`
-  (non-registry ID) pervasively; cosmetic, tracked for a fixture sweep.
+- ~~Fixture drift~~ **DONE 2026-11-17**: `keelway-reasoner:*` →
+  `keelway-reasoning:*` swept across dev-app fixtures/tests and the
+  `reasoner-14b` display label → `reasoning-14b`; dist bundle rebuilt.

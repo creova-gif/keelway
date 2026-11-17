@@ -261,7 +261,7 @@ export async function getDebuggerCodeLens(workspaceId = "default", role: Workspa
     workspace_id: workspaceId, cursor_attach_uri: cursorUri, vscode_attach_uri: vscodeUri,
     lenses: [
       { symbol: "triage_claim", file_path: "core/claims/workflow.py", line: 18, model_checkpoint: "keelway-core:7b", p50_latency_ms: 142, avg_cost_usd: 0.04, provenance_4d: "4D[code:L18 · weight:q4_k_m · wal:seq#101 · policy:local_only]", cursor_attach_uri: `${cursorUri}&symbol=triage_claim`, vscode_attach_uri: `${vscodeUri}&symbol=triage_claim` },
-      { symbol: "verify_ledger", file_path: "core/billing/ledger.py", line: 42, model_checkpoint: "keelway-reasoner:14b", p50_latency_ms: 318, avg_cost_usd: 0.31, provenance_4d: "4D[code:L42 · weight:fp16 · wal:seq#102 · policy:seatbelt_shell]", cursor_attach_uri: `${cursorUri}&symbol=verify_ledger`, vscode_attach_uri: `${vscodeUri}&symbol=verify_ledger` },
+      { symbol: "verify_ledger", file_path: "core/billing/ledger.py", line: 42, model_checkpoint: "keelway-reasoning:14b", p50_latency_ms: 318, avg_cost_usd: 0.31, provenance_4d: "4D[code:L42 · weight:fp16 · wal:seq#102 · policy:seatbelt_shell]", cursor_attach_uri: `${cursorUri}&symbol=verify_ledger`, vscode_attach_uri: `${vscodeUri}&symbol=verify_ledger` },
       { symbol: "approve_payout", file_path: "core/security/p10_gate.py", line: 67, model_checkpoint: "keelway-core:7b", p50_latency_ms: 96, avg_cost_usd: 0.09, provenance_4d: "4D[code:L67 · weight:q4_k_m · wal:seq#103 · policy:p10_human_gate]", cursor_attach_uri: `${cursorUri}&symbol=approve_payout`, vscode_attach_uri: `${vscodeUri}&symbol=approve_payout` },
     ],
   };
