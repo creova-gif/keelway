@@ -1022,6 +1022,7 @@
               <button id="kstack-list-btn" type="button" class="btn-primary h-8 text-xs">List Active Role Skills</button>
               <button id="khub-scan-btn" type="button" class="btn-outline h-8 text-xs">Scan External Skills (KHub)</button>
             </div>
+            <div id="kstack-skills-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" aria-live="polite"></div>
             <pre id="kstack-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
@@ -1034,7 +1035,7 @@
           </div>
           <div id="lab-plugins" class="space-y-3">
             <p class="text-xs text-ide-muted">Universal Model Context Protocol client bridge and declared agent tool extensions.</p>
-            <div id="plugins-list" class="space-y-2 max-h-48 overflow-y-auto text-xs font-mono"></div>
+            <div id="plugins-list" class="space-y-2 max-h-48 overflow-y-auto text-xs font-mono" aria-live="polite"></div>
             <form id="plugin-install-form" class="flex gap-2 items-end pt-2 border-t border-ide-border">
               <input id="plugin-path-input" required class="input flex-1 font-mono text-xs" placeholder="path/to/plugin.json">
               <button class="btn-outline h-8" type="submit">Install Plugin</button>

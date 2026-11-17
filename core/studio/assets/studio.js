@@ -21,6 +21,21 @@ function esc(v) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Standard list-loader error block: message + optional retry action.
+function retryBtn(retry) {
+  return h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[11px] shrink-0', onclick: retry }, 'Retry');
+}
+function loadErrorNode(err, retry) {
+  return h('div', {
+    class: 'flex items-center justify-between gap-2 p-2.5 rounded border border-danger/40 bg-danger/5 text-danger text-xs',
+    role: 'alert',
+  }, h('span', { class: 'min-w-0 break-words' }, `Load failed: ${err.message}`), retry ? retryBtn(retry) : null);
+}
+function renderLoadError(el, err, retry) {
+  if (!el) return;
+  el.replaceChildren(loadErrorNode(err, retry));
+}
+
 function trapFocus(container, e) {
   if (e.key !== 'Tab') return;
   const focusables = Array.from(container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter((el) => {
@@ -914,20 +929,18 @@ async function loadPlugins() {
   try {
     const plugins = await api('/v1/plugins');
     if (!plugins || plugins.length === 0) {
-      listEl.innerHTML = '<p class="text-ide-muted font-sans text-xs">No active plugins found in .keelway/plugins.</p>';
+      listEl.replaceChildren(h('p', { class: 'text-ide-muted font-sans text-xs' }, 'No active plugins found in .keelway/plugins.'));
       return;
     }
-    listEl.innerHTML = plugins.map((p) => `
-      <div class="p-2 rounded bg-ide-bg border border-ide-border space-y-1">
-        <div class="flex items-center justify-between font-semibold">
-          <span>${esc(p.name)} <span class="text-ide-faint font-normal">v${esc(p.version)}</span></span>
-          <span class="chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}">${esc(p.status)}</span>
-        </div>
-        <p class="text-ide-muted font-sans text-[11px]">${esc(p.description || '')}</p>
-        ${p.active_tools && p.active_tools.length ? `<p class="text-[10px] text-accent">Tools: ${esc(p.active_tools.join(', '))}</p>` : ''}
-      </div>
-    `).join('');
-  } catch (err) { listEl.innerHTML = `<p class="text-danger">${esc(err.message)}</p>`; }
+    listEl.replaceChildren(...plugins.map((p) => h('div', { class: 'p-2 rounded bg-ide-bg border border-ide-border space-y-1' },
+      h('div', { class: 'flex items-center justify-between font-semibold' },
+        h('span', {}, p.name, ' ', h('span', { class: 'text-ide-faint font-normal' }, `v${p.version}`)),
+        h('span', { class: `chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}` }, p.status)),
+      p.description ? h('p', { class: 'text-ide-muted font-sans text-[11px]' }, p.description) : null,
+      p.active_tools && p.active_tools.length
+        ? h('p', { class: 'text-[10px] text-accent truncate', title: p.active_tools.join(', ') }, `Tools: ${p.active_tools.join(', ')}`)
+        : null)));
+  } catch (err) { renderLoadError(listEl, err, loadPlugins); }
 }
 
 async function installPluginForm(e) {
@@ -1015,7 +1028,7 @@ async function loadMeshStatus() {
       });
     }
   } catch (err) {
-    if (list) list.innerHTML = `<div class="text-danger text-xs">[-] Error loading mesh: ${esc(err.message)}</div>`;
+    if (list) renderLoadError(list, err, loadMeshStatus);
   }
 }
 
@@ -1274,17 +1287,29 @@ async function showMobilePairingInStudio() {
 
 async function loadKStackSkillsInStudio() {
   const out = $('kstack-out');
+  const list = $('kstack-skills-list');
   if (!out) return;
   out.textContent = 'Querying KStack role skills registry…';
   try {
     const data = await api('/v1/kstack/skills');
     const skills = Array.isArray(data) ? data : (data.skills || []);
-    out.textContent = `[✓] KSTACK ACTIVE ROLE SKILLS (${skills.length} Loaded)\n` +
-      `─────────────────────────────────────────────────────────────────\n` +
-      skills.map(s => `• ${s.name.padEnd(20)} [${s.role}] (v${s.version})\n    Perms: ${s.permissions.join(', ')} | Status: ${s.pinned ? 'PINNED' : 'ACTIVE'}`).join('\n\n');
+    if (list) {
+      list.replaceChildren(...skills.map((s) => h('div', { class: 'p-2.5 rounded bg-ide-bg border border-ide-border space-y-1.5' },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold font-mono truncate', title: s.name }, s.name),
+          h('span', { class: `chip text-[10px] shrink-0 ${s.pinned ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}` }, s.pinned ? 'PINNED' : 'ACTIVE')),
+        h('div', { class: 'flex items-center gap-2 text-[11px] text-ide-muted' },
+          h('span', { class: 'chip text-[10px] border-ide-border text-ide-faint' }, s.role || 'role'),
+          h('span', { class: 'font-mono' }, `v${s.version}`)),
+        s.permissions && s.permissions.length
+          ? h('div', { class: 'flex flex-wrap gap-1' }, s.permissions.map((perm) => h('span', { class: 'chip text-[10px] border-ide-border/60 text-ide-faint font-mono' }, perm)))
+          : null)));
+    }
+    out.textContent = `[✓] KSTACK ACTIVE ROLE SKILLS (${skills.length} Loaded)`;
     tone('ok');
     toast(`${skills.length} role skills loaded`, 'ok');
   } catch (err) {
+    if (list) renderLoadError(list, err, loadKStackSkillsInStudio);
     out.textContent = `[-] KStack error: ${err.message}`;
     tone('err');
   }
@@ -2771,7 +2796,7 @@ async function loadManifestRegistry() {
       );
     }));
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-danger text-center font-mono">${esc(err.message)}</td></tr>`;
+    tbody.replaceChildren(h('tr', {}, h('td', { colspan: '6', class: 'p-1' }, loadErrorNode(err, loadManifestRegistry))));
   }
 }
 
@@ -2854,8 +2879,8 @@ async function loadCostLedger() {
         h('td', { class: `px-3 py-2 text-right font-mono text-xs ${costCls}` }, costDisplay)
       );
     }));
-  } catch {
-    /* quiet fail */
+  } catch (err) {
+    tbody.replaceChildren(h('tr', {}, h('td', { colspan: '7', class: 'p-1' }, loadErrorNode(err, loadCostLedger))));
   }
 }
 
