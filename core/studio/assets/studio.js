@@ -137,7 +137,7 @@ function cycleDensity() {
   const current = document.documentElement.dataset.density || 'default';
   const next = current === 'default' ? 'compact' : current === 'compact' ? 'comfortable' : 'default';
   setDensity(next);
-  toast(`Density: ${next.charAt(0).toUpperCase() + next.slice(1)} (keelway.fig)`, 'tick');
+  toast(`Density: ${next.charAt(0).toUpperCase() + next.slice(1)}`, 'tick');
 }
 
 function toggleStatusBarPopover() {
@@ -3151,6 +3151,16 @@ async function toggleAirGap() {
 // ---------- command palette ----------
 let paletteItems = [], paletteIdx = 0, fileIndex = [], lastFocusedBeforePalette = null;
 function flatten(n, out = []) { (n.children || []).forEach((c) => (c.type === 'directory' ? flatten(c, out) : out.push(c.path))); return out; }
+// Jump straight to a feature card inside a section, not just the section.
+function goFeature(sec, id) {
+  return () => {
+    switchSection(sec);
+    requestAnimationFrame(() => {
+      const card = $(id) && $(id).closest('section.card');
+      if (card) card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  };
+}
 function commands() {
   return [
     ['Go to Home', () => switchSection('home')],
@@ -3160,6 +3170,22 @@ function commands() {
     ['Go to Skills', () => switchSection('skills')],
     ['Go to Settings', () => switchSection('settings')],
     ['Open Developer Labs', () => toggleLabsDrawer(true)],
+    ['System Doctor diagnostics', goFeature('home', 'lab-doctor')],
+    ['Repository & symbol intelligence', goFeature('home', 'lab-code-intel')],
+    ['Workspace conflict resolver', goFeature('home', 'lab-conflict-resolver')],
+    ['App builder & scaffolder', goFeature('home', 'lab-app-builder')],
+    ['KFlow task orchestration', goFeature('tasks', 'lab-kflow')],
+    ['Agent bundle builder', goFeature('tasks', 'lab-agent-bundle')],
+    ['Evidence room metrics', goFeature('runs', 'lab-evidence')],
+    ['Merkle audit trail', goFeature('runs', 'lab-merkle-audit')],
+    ['KStack role skills', goFeature('skills', 'lab-kstack')],
+    ['Plugins & MCP extensions', goFeature('skills', 'lab-plugins')],
+    ['KBrain fact memory', goFeature('skills', 'lab-kbrain')],
+    ['Evaluation & drift radar', goFeature('skills', 'lab-eval-drift')],
+    ['Mesh quorum controls', goFeature('settings', 'lab-quorum')],
+    ['P2P compute mesh', goFeature('settings', 'lab-mesh')],
+    ['Cross-machine sync', goFeature('settings', 'lab-sync')],
+    ['Runner spool', goFeature('settings', 'lab-runner-spool')],
     ['New task', newRun],
     ['Explorer', () => { switchSection('workspace'); switchView('explorer'); }],
     ['Changes', () => { switchSection('workspace'); switchView('git'); }],

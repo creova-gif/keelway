@@ -15,11 +15,10 @@
     /* Self-hosted Inter + JetBrains Mono only (vendored under /studio/assets/fonts). */
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
     code, pre, kbd, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-    /* Density Modes (keelway.fig Artboard 06) */
-    [data-density="compact"] .task-item, [data-density="compact"] .tree-item, [data-density="compact"] .card-row { padding-top: 2px !important; padding-bottom: 2px !important; min-height: 24px !important; font-size: 11px !important; }
-    [data-density="compact"] input, [data-density="compact"] select, [data-density="compact"] button.btn-compact { height: 26px !important; font-size: 11px !important; }
-    [data-density="comfortable"] .task-item, [data-density="comfortable"] .tree-item, [data-density="comfortable"] .card-row { padding-top: 8px !important; padding-bottom: 8px !important; min-height: 38px !important; font-size: 13.5px !important; }
-    [data-density="comfortable"] input, [data-density="comfortable"] select { height: 36px !important; font-size: 13px !important; }
+    /* Density Modes: root font-size scales every rem-based Tailwind utility.
+       Fixed px values (icons, borders, brackets like h-7) stay anchored. */
+    html[data-density="compact"] { font-size: 14px; }
+    html[data-density="comfortable"] { font-size: 17px; }
 
     /* Keelway Unified Proof Strip (Workstream F) */
     .proof-strip-card {
@@ -185,7 +184,7 @@
       </button>
       <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
       <select id="lang-select" class="h-7 rounded-md bg-ide-sidebar border border-ide-border text-xs text-ide-muted px-1"></select>
-      <button id="density-btn" type="button" class="btn-ghost h-7 px-2 text-[11px] font-mono text-ide-muted hover:text-ide-fg flex items-center gap-1" title="Density: Compact (24px) / Normal (30px) / Comfort (38px)">
+      <button id="density-btn" type="button" class="btn-ghost h-7 px-2 text-[11px] font-mono text-ide-muted hover:text-ide-fg flex items-center gap-1" title="Interface density: Compact / Normal / Comfort (scales text & spacing)">
         <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         <span id="density-label">Normal</span>
       </button>
