@@ -104,20 +104,27 @@ def test_torn_page_detected_not_silent(tmp_path):
     for i in range(50):
         eng.intercept_tool_call(workspace_id="w", agent_host="claude_code",
                                 tool_name="Bash", command=f"echo {i}")
-    del eng  # flush + close
+    eng.close()  # explicit: an open conn can block/partial the checkpoint
 
     # Force WAL contents into the main file, then corrupt the live root
     # page of the interceptions table — guaranteed inside the b-tree that
     # quick_check traverses. A guessed offset can land on a freelist page,
     # which quick_check never reads (silent, flaky pass).
     conn = sqlite3.connect(str(db))
-    conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    busy, _log, _ckpt = conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+    assert busy == 0, "checkpoint incomplete — WAL frames would shadow corruption"
     page_size = conn.execute("PRAGMA page_size").fetchone()[0]
     rootpage = conn.execute(
         "SELECT rootpage FROM sqlite_master "
         "WHERE type='table' AND name='harness_interceptions'"
     ).fetchone()[0]
     conn.close()
+
+    # Drop WAL sidecars so no surviving frame can shadow the torn page.
+    for sidecar in (db.with_suffix(".db-wal"), db.with_suffix(".db-shm"),
+                    Path(f"{db}-wal"), Path(f"{db}-shm")):
+        if sidecar.exists():
+            sidecar.unlink()
 
     with open(db, "r+b") as fh:
         fh.seek((rootpage - 1) * page_size)
