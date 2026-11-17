@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/pricing", priority: 0.85 },
     { path: "/docs", priority: 0.9 },
     { path: "/api-reference", priority: 0.85 },
+    { path: "/changelog", priority: 0.7 },
     { path: "/brand", priority: 0.6 },
   ];
 

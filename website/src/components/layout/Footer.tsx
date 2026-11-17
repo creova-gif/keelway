@@ -114,6 +114,15 @@ export function Footer() {
                   <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
               </li>
+              <li>
+                <Link
+                  href="/changelog"
+                  className="inline-flex min-h-[44px] items-center gap-1 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-fg"
+                >
+                  <span>Changelog</span>
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </li>
             </ul>
           </div>
 
