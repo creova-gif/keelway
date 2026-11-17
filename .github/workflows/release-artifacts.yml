@@ -13,12 +13,14 @@ on:
 
 permissions:
   contents: write
-  id-token: write # Sigstore keyless signing (cosign)
 
 jobs:
   build-and-publish-release-artifacts:
     name: Build Wheel, Source Tarball, Verified CycloneDX SBOM & SHA256SUMS
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write # Sigstore keyless signing (cosign)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -74,14 +76,6 @@ jobs:
           #     SHA256SUMS.txt
           #   sha256sum -c SHA256SUMS.txt
 
-      - name: Upload distributions for PyPI job
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: |
-            dist/*.whl
-            dist/*.tar.gz
-
       - name: Publish or update GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,28 +86,3 @@ jobs:
           else
             gh release create "$TAG_NAME" dist/*.whl dist/*.tar.gz dist/keelway-sbom.cdx.json dist/SHA256SUMS.txt dist/SHA256SUMS.txt.cosign.bundle --title "Keelway $TAG_NAME" --generate-notes
           fi
-
-  # Publish to PyPI via OIDC trusted publishing. One-time founder setup:
-  #   1. pypi.org: create the `keelway` project, add this repo + workflow +
-  #      environment `pypi` as a trusted publisher.
-  #   2. github repo: create environment `pypi` and set repo variable
-  #      PYPI_PUBLISH_ENABLED=true.
-  # Until then the job skips; it never uploads without both switches.
-  publish-pypi:
-    name: Publish wheel & sdist to PyPI (trusted publishing)
-    runs-on: ubuntu-latest
-    needs: build-and-publish-release-artifacts
-    if: github.event_name == 'push' && vars.PYPI_PUBLISH_ENABLED == 'true'
-    environment:
-      name: pypi
-      url: https://pypi.org/p/keelway
-    permissions:
-      id-token: write
-    steps:
-      - name: Download release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1

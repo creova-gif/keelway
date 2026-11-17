@@ -29,11 +29,11 @@ identity — no private key to manage or leak.
 
 ## PyPI (`pip install keelway`)
 
-The `publish-pypi` job uses OIDC trusted publishing — no long-lived token.
-One-time founder setup:
+The `build-and-publish-pypi` job in `.github/workflows/release-pypi.yml`
+uses OIDC trusted publishing — no long-lived token. One-time founder setup:
 
 1. **pypi.org** → create project `keelway` → add trusted publisher:
-   repo `creova-gif/kora`, workflow `release-artifacts.yml`, environment `pypi`.
+   repo `creova-gif/kora`, workflow `release-pypi.yml`, environment `pypi`.
 2. **GitHub** → create environment `pypi` → set repo variable
    `PYPI_PUBLISH_ENABLED=true`.
 

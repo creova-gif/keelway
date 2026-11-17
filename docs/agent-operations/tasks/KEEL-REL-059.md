@@ -19,9 +19,12 @@ Milestone 7 slice: signed release artifacts, PyPI publish path, Homebrew formula
 1. **Signing** — `release-artifacts.yml`: `id-token: write`, cosign
    `sign-blob` of `SHA256SUMS.txt` → `.cosign.bundle` uploaded to the release.
    Customer verification command documented in `docs/runbooks/DISTRIBUTION.md`.
-2. **PyPI** — `publish-pypi` job on tag pushes: OIDC trusted publishing via
+2. **PyPI** — separate `release-pypi.yml` workflow (release-published +
+   manual dispatch): OIDC trusted publishing via
    `pypa/gh-action-pypi-publish`, double-gated on `environment: pypi` AND
-   `vars.PYPI_PUBLISH_ENABLED` — skips cleanly until founder configures both.
+   `vars.PYPI_PUBLISH_ENABLED` — skips cleanly until founder configures
+   both. Split out because `release-artifacts.yml` has a <90-line contract
+   (`test_release_artifacts_workflow_and_docs_hub_v1_sync`).
 3. **Homebrew** — `scripts/gen_homebrew_formula.py` resolves the full dep
    closure (`pip --report`, cp313, macOS arm64 + Linux x86_64) into
    `packaging/homebrew/keelway.rb`: 41 URL+sha256 `resource` blocks,
