@@ -119,6 +119,53 @@ def test_acp_missing_binary_errors() -> None:
     assert result.error is not None
 
 
+def test_acp_extract_tool_call_folds_edit_body() -> None:
+    """rawInput edit bodies reach the evaluated string (KEEL-ENG-053)."""
+    from core.agents.external.acp import AcpClient
+    tool_name, evaluated = AcpClient._extract_tool_call({
+        "toolCall": {"title": "Approve edit: .env",
+                     "kind": "edit",
+                     "rawInput": {"path": ".env",
+                                  "content": "KEY=sk-live-EXAMPLE_DLP_000"}},
+    })
+    assert tool_name == "edit"
+    assert "path=.env" in evaluated
+    assert "sk-live-EXAMPLE_DLP_000" in evaluated
+    # Command tools unchanged: command wins over title, no content folding.
+    tn2, ev2 = AcpClient._extract_tool_call({
+        "toolCall": {"title": "bash: rm -rf /tmp/x", "kind": "execute",
+                     "rawInput": {"command": "rm -rf /tmp/x"}},
+    })
+    assert tn2 == "execute" and ev2 == "rm -rf /tmp/x"
+
+
+def test_acp_content_dlp_deny_e2e(fake_acp_agent: Path, tmp_path: Path,
+                                  monkeypatch: pytest.MonkeyPatch) -> None:
+    """An edit whose body contains a secret is DENYed by real co-harness
+    content-DLP — closes the titles-only gap (KEEL-ENG-053)."""
+    from core.platform.agent_coharness import SQLiteAgentCoharnessEngine
+    monkeypatch.setenv("FAKE_ACP_TOOL_CALL_JSON", json.dumps({
+        "title": "Approve edit: .env", "kind": "edit",
+        "rawInput": {"path": ".env",
+                     "content": "SERVICE_KEY=sk-live-EXAMPLE_DLP_LEAK_000"}}))
+    engine = SQLiteAgentCoharnessEngine(db_path=tmp_path / "h.db")
+
+    def _eval(tool_name: str, command: str, ticket_id):
+        return engine.intercept_tool_call(
+            workspace_id="acp-dlp", agent_host="hermes_acp",
+            tool_name=tool_name, command=command, ticket_id=ticket_id)
+
+    result = run_acp_session(
+        ["claude"], "write env", agent_id="hermes_acp",
+        permission_evaluator=_eval, rpc_timeout=15.0,
+    )
+    assert result.error is None, result.error
+    dec = result.permission_decisions[0]
+    assert dec.verdict.startswith("DENY")
+    assert dec.reason_code == "dlp_secret_detected"
+    assert result.stop_reason == "refusal"
+
+
 def test_acp_tape_span_recorded(fake_acp_agent: Path, tmp_path: Path) -> None:
     from cli import main as cli_main
     tape_db = tmp_path / "tape.db"

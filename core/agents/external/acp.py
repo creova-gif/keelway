@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 ACP_PROTOCOL_VERSION = 1
+_MAX_EVALUATED_CHARS = 262_144  # cap evaluated payload at 256 KiB
 
 
 @dataclass
@@ -158,14 +159,33 @@ class AcpClient:
         # ACP toolCall may carry rawInput with command-like fields.
         raw = tc.get("rawInput") or tc.get("raw_input") or {}
         command = ""
+        content_parts: List[str] = []
         if isinstance(raw, dict):
             for key in ("command", "cmd"):
                 val = raw.get(key)
                 if isinstance(val, str) and val.strip():
                     command = val.strip()
                     break
+            # Edit/write tool calls carry the proposed body, not a command —
+            # fold path + body into the evaluated string so content-DLP and
+            # sensitive-path checks see them (KEEL-ENG-053).
+            for key in ("path", "file_path", "filePath", "target_file", "filename"):
+                val = raw.get(key)
+                if isinstance(val, str) and val.strip():
+                    content_parts.append(f"path={val.strip()}")
+                    break
+            for key in ("content", "contents", "new_string", "newString",
+                        "text", "diff", "patch", "body", "edits"):
+                val = raw.get(key)
+                if isinstance(val, str) and val.strip():
+                    content_parts.append(val.strip()[:_MAX_EVALUATED_CHARS])
+                    break
         tool_name = kind or ("bash" if command else "tool")
-        return tool_name, command or title
+        evaluated = command or title
+        if content_parts:
+            base = evaluated or f"{tool_name} call"
+            evaluated = base + "\n" + "\n".join(content_parts)
+        return tool_name, evaluated[:_MAX_EVALUATED_CHARS]
 
     @staticmethod
     def _pick_option(options: List[Dict[str, Any]], want_kinds: tuple) -> Optional[str]:

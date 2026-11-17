@@ -71,10 +71,12 @@ THIRD_PARTY_AGENT_INTEGRATION.md.
     reached the permission bridge.
   - Hermes gates dangerous *terminal* commands (`git reset --hard`,
     force-push, `rm -rf`) but not `git push` — it executed ungated.
-  - Our evaluator receives the tool-call title (`Approve edit:
-    <path>`), not proposed file contents, so edit-body DLP cannot
-    trigger `dlp_secret_detected` through this bridge — a real
-    boundary documented for a future title+content policy surface.
+  - ~~Our evaluator receives the tool-call title, not proposed file
+    contents~~ — **RESOLVED KEEL-ENG-053**: `rawInput` path + body
+    (`path`, `content`, `new_string`, `diff`, `patch`, …) now folds
+    into the evaluated string, so edit-body secrets produce a real
+    `dlp_secret_detected` DENY (e2e test in
+    `test_external_agent_acp.py`).
 - `gemini --acp` dead on this host — Google EOL'd Gemini Code Assist
   OAuth for individuals ("migrate to Antigravity"); error observed at
   `session/new` (-32000).

@@ -8,6 +8,7 @@ returns stopReason "end_turn" (allowed) or "refusal" (rejected/cancelled).
 """
 
 import json
+import os
 import sys
 
 
@@ -48,21 +49,27 @@ def main():
             respond(rid, {"sessionId": session_id})
         elif method == "session/prompt":
             sid = params.get("sessionId", session_id)
+            # FAKE_ACP_TOOL_CALL_JSON lets tests override the tool call that
+            # is announced and asked about (e.g. an edit carrying content).
+            tool_call = {"toolCallId": "tc-1", "title": "bash: rm -rf /tmp/x",
+                         "kind": "execute",
+                         "rawInput": {"command": "rm -rf /tmp/x"}}
+            override = os.environ.get("FAKE_ACP_TOOL_CALL_JSON")
+            if override:
+                try:
+                    tool_call.update(json.loads(override))
+                except json.JSONDecodeError:
+                    pass
             notify("session/update", {"sessionId": sid, "update": {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": "working on it"}}})
             notify("session/update", {"sessionId": sid, "update": {
-                "sessionUpdate": "tool_call",
-                "toolCallId": "tc-1", "title": "bash: rm -rf /tmp/x",
-                "kind": "execute", "status": "pending",
-                "rawInput": {"command": "rm -rf /tmp/x"}}})
+                "sessionUpdate": "tool_call", "status": "pending",
+                **tool_call}})
             # Ask client permission; block until response arrives on stdin.
             send({"jsonrpc": "2.0", "id": 999, "method": "session/request_permission",
                   "params": {"sessionId": sid,
-                             "toolCall": {"toolCallId": "tc-1",
-                                          "title": "bash: rm -rf /tmp/x",
-                                          "kind": "execute",
-                                          "rawInput": {"command": "rm -rf /tmp/x"}},
+                             "toolCall": tool_call,
                              "options": [
                                  {"optionId": "allow-once", "name": "Allow once", "kind": "allow_once"},
                                  {"optionId": "allow-always", "name": "Always", "kind": "allow_always"},
