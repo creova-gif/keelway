@@ -19,6 +19,7 @@ from core.agents.external import (
     get_adapter,
     record_agent_event,
 )
+from core.agents.external.acp import run_acp_session
 from core.agents.external.runner import run_agent_process, run_result_to_tape_span
 from core.agents.external.tape import record_hook_evaluation
 from core.platform.flight_tape import SQLiteFlightTapeEngine
@@ -112,6 +113,21 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     hr_agents_run.add_argument("agent_args", nargs=argparse.REMAINDER,
                                help="Arguments passed to the agent CLI after '--'")
     _add_common_flags(hr_agents_run)
+
+    hr_agents_acp = hr_agents_sub.add_parser("acp", help="Run a governed ACP (Agent Client Protocol) prompt session against an agent CLI")
+    hr_agents_acp.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
+                               choices=sorted(EXTERNAL_AGENT_ADAPTERS), help="External agent adapter ID (ACP-capable binary)")
+    hr_agents_acp.add_argument("--prompt", required=True, help="Prompt text sent via session/prompt")
+    hr_agents_acp.add_argument("--mode", choices=["enforce", "audit_only"], default="audit_only",
+                               help="Permission-request policy mode (default: audit_only)")
+    hr_agents_acp.add_argument("--cwd", default=None, help="Working directory for the agent process")
+    hr_agents_acp.add_argument("--timeout", type=float, default=30.0, help="Per-RPC timeout seconds (default: 30)")
+    hr_agents_acp.add_argument("--tape", action="store_true", help="Record session summary as a flight-tape span")
+    hr_agents_acp.add_argument("--trace-id", default=None, help="Optional flight-tape trace ID")
+    hr_agents_acp.add_argument("--tape-db-path", default=None, help="Optional SQLite path for the flight-tape engine")
+    hr_agents_acp.add_argument("agent_args", nargs=argparse.REMAINDER,
+                               help="Extra args appended to the agent argv after '--'")
+    _add_common_flags(hr_agents_acp)
 
     hr_agents_evt = hr_agents_sub.add_parser("event", help="Record an external-agent lifecycle/tool event (PostToolUse, SessionStart, SessionEnd) to the flight tape")
     hr_agents_evt.add_argument("--agent", "--agent-id", dest="agent_id", required=True,
@@ -306,6 +322,73 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                           f"stdout={result.stdout_lines} stderr={result.stderr_lines} "
                           f"duration_ms={result.duration_ms:.0f}")
                     return 0 if (result.exit_code == 0 and not result.timed_out) else 1
+
+                if agents_act == "acp":
+                    agent_id = str(args.agent_id)
+                    adapter = get_adapter(agent_id)
+                    extra = [a for a in (getattr(args, "agent_args", None) or []) if a != "--"]
+                    spec = adapter.build_launch(workspace_root=getattr(args, "cwd", None), extra_args=extra or None)
+                    acp_mode = str(getattr(args, "mode", "audit_only"))
+
+                    def _permission_eval(tool_name: str, command: str, ticket_id: Optional[str]) -> Dict[str, Any]:
+                        rec = engine.intercept_tool_call(
+                            workspace_id=ws_id, agent_host=agent_id,
+                            tool_name=tool_name, command=command or "acp-tool-call",
+                            ticket_id=ticket_id,
+                        )
+                        if acp_mode == "audit_only":
+                            # Evidence recorded; never block the agent in audit mode.
+                            return {"verdict": "ALLOW", "reason_code": rec.get("reason_code"),
+                                    "ticket_id": rec.get("ticket_id"), "record": rec}
+                        return rec
+
+                    result = run_acp_session(
+                        spec.argv, str(getattr(args, "prompt", "")),
+                        agent_id=agent_id, workspace_id=ws_id,
+                        permission_evaluator=_permission_eval,
+                        cwd=getattr(args, "cwd", None), env=spec.env,
+                        rpc_timeout=float(getattr(args, "timeout", 30.0)),
+                    )
+                    res = {
+                        "agent_id": result.agent_id, "stop_reason": result.stop_reason,
+                        "returncode": result.returncode, "error": result.error,
+                        "events": len(result.events),
+                        "permission_decisions": [
+                            {"outcome": d.outcome, "option_id": d.option_id,
+                             "verdict": d.verdict, "reason_code": d.reason_code,
+                             "ticket_id": d.ticket_id}
+                            for d in result.permission_decisions
+                        ],
+                    }
+                    if getattr(args, "tape", False):
+                        tape_engine = SQLiteFlightTapeEngine(db_path=getattr(args, "tape_db_path", None))
+                        try:
+                            meta = tape_engine.ingest_traces(
+                                workspace_id=ws_id,
+                                workflow_name=f"external-acp:{agent_id}",
+                                source_framework="keelway-agent-adapter",
+                                spans=[{
+                                    "span_name": "acp_session",
+                                    "span_type": "agent_session",
+                                    "attributes": {
+                                        "agent_id": agent_id,
+                                        "stop_reason": result.stop_reason or "",
+                                        "returncode": result.returncode,
+                                        "error": (result.error or "")[:200],
+                                        "event_count": len(result.events),
+                                        "permission_count": len(result.permission_decisions),
+                                    },
+                                }],
+                                trace_id=str(getattr(args, "trace_id", "") or "") or None,
+                            )
+                            res["flight_tape"] = {"trace_id": meta.get("trace_id"),
+                                                  "tape_sha256": meta.get("tape_sha256")}
+                        finally:
+                            tape_engine.close()
+                    print(json.dumps(res, indent=2) if as_json else
+                          f"[{agent_id}] acp stop={result.stop_reason} events={len(result.events)} "
+                          f"permissions={len(result.permission_decisions)} error={result.error}")
+                    return 0 if result.error is None else 1
 
                 if agents_act == "event":
                     raw = str(getattr(args, "payload", "") or "")
