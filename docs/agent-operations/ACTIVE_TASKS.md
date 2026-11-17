@@ -73,6 +73,7 @@
 | **KEEL-REL-056** | Public install source (repo opened) + ACP agent adapters + Cursor schema fix | `RELEASE / INSTALL / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `fix/KEEL-REL-056-public-install-acp-contract` |
 | **KEEL-SEC-057** | GitGuardian Bearer Token remediation — realistic demo `kw_live_*`/`sk-live-*` literals → obvious placeholders | `SECURITY / SCANNER` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` (`b7ae3fd`) |
 | **KEEL-REL-058** | CI gitleaks gate + installer `--uninstall`/`--purge`/`KEELWAY_GIT_REF` + tested model compatibility matrix | `RELEASE / SECURITY / INSTALL / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
+| **KEEL-ENG-052** | M6 fault-injection + perf baselines: hostile input, ticket race, DB corruption, tape tamper, measured latencies | `ENGINEERING / RELIABILITY / TESTING` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 
 ---
 
