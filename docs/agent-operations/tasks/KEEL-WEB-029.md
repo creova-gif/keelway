@@ -44,3 +44,29 @@
 
 #### NEXT RECOMMENDED ACTION
 Review diff, merge `feature/website-kora-content-migration` to `main`, deploy to Vercel; confirm `kora-ai` deployment (if any) resolves to the redirect stub.
+
+---
+
+## POST-MERGE FOLLOW-UP — /changelog route + production perf audit (Devin)
+
+**Commit:** `9faefe4` (main, pushed)
+
+### Added
+- `website/src/app/changelog/page.tsx` — real Changelog & Release Notes page rendering `src/data/releases.ts` (mirrors `CHANGELOG.md`; Keep a Changelog + SemVer). Errata-excluded: external-IdP OIDC claim and uncommitted TLA+ spec not presented as functionality.
+- `website/src/data/releases.ts` — structured v1.1.0 / v1.0.0 highlight data.
+- `/changelog` added to `sitemap.ts` (priority 0.7) and Developer footer column.
+
+### Verification
+- `npm run build`: clean; `pytest tests/test_website_facts.py`: 11 passed (one caught and fixed — facts test rejects `creova-gif` org links in website source; replaced GitHub link with `CHANGELOG.md` code reference).
+- Playwright @375px: 0px overflow, 0 JS errors.
+
+### Production perf audit (Playwright, live, ms)
+| Route | TTFB | Load | LCP | CLS |
+|---|---|---|---|---|
+| / | 114 | 396 | 388 | 0 |
+| /models | 67 | 331 | 328 | 0 |
+| /governance | 111 | 317 | 352 | 0 |
+| /pricing | 73 | 262 | 248 | 0 |
+| /changelog | 76 | 437 | 336 | 0 |
+
+All LCP < 400ms (target <2.5s), CLS 0.0 — comfortably "good" CWV. Live `/changelog` returns 200.
