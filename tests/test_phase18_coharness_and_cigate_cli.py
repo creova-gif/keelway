@@ -47,6 +47,15 @@ def test_hook_manifest_rendering_across_claude_cursor_and_codex(tmp_path: Path) 
 
         audit_manifest = eng.render_hook_manifest(workspace_id="ws-hooks", agent_host="cursor", mode="audit_only")
         assert audit_manifest["mode"] == "audit_only" and "audit_only" in audit_manifest["config_content"]
+
+        # OpenCode: hook delivery is a generated TypeScript plugin, not JSON config.
+        oc = eng.render_hook_manifest(workspace_id="ws-hooks", agent_host="opencode", mode="enforce")
+        assert oc["target_config_path"] == ".opencode/plugins/keelway-guard.ts"
+        assert "tool.execute.before" in oc["config_content"]
+        assert "tool.execute.after" in oc["config_content"]
+        assert "agents\", \"intercept\"" in oc["config_content"] or "agents intercept" in oc["config_content"]
+        assert '"--agent", "opencode"' in oc["config_content"]
+        assert "enforce" in oc["config_content"]
     finally:
         eng.close()
 
