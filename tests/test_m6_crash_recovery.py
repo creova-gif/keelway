@@ -6,6 +6,7 @@ against the actual SQLiteAgentCoharnessEngine, not mocks.
 """
 
 import os
+import shutil
 import signal
 import sqlite3
 import subprocess
@@ -106,14 +107,13 @@ def test_torn_page_detected_not_silent(tmp_path):
                                 tool_name="Bash", command=f"echo {i}")
     eng.close()  # explicit: an open conn can block/partial the checkpoint
 
-    # Convert OUT of WAL mode first: as long as the header says WAL, any
-    # subsequent connection can recreate -wal frames that shadow the torn
-    # main-file page (observed on Linux CI — second conn saw clean data).
-    # journal_mode=DELETE makes raw file bytes the sole source of truth.
+    # Checkpoint WAL into the main file, then read geometry for the live
+    # root page of the interceptions table — guaranteed inside the b-tree
+    # that quick_check traverses. A guessed offset can land on a freelist
+    # page, which quick_check never reads (silent, flaky pass).
     conn = sqlite3.connect(str(db))
     busy, _log, _ckpt = conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
     assert busy == 0, "checkpoint incomplete — WAL frames would shadow corruption"
-    assert conn.execute("PRAGMA journal_mode=DELETE").fetchone()[0] == "delete"
     page_size = conn.execute("PRAGMA page_size").fetchone()[0]
     rootpage = conn.execute(
         "SELECT rootpage FROM sqlite_master "
@@ -121,15 +121,17 @@ def test_torn_page_detected_not_silent(tmp_path):
     ).fetchone()[0]
     conn.close()
 
-    for sidecar in (Path(f"{db}-wal"), Path(f"{db}-shm"), Path(f"{db}-journal")):
-        if sidecar.exists():
-            sidecar.unlink()
-
-    with open(db, "r+b") as fh:
+    # Corrupt a byte-level COPY, not the original: any connection that
+    # outlives eng.close() keeps writing WAL frames into torn.db and can
+    # overwrite the torn region (observed on Linux CI — a second conn saw
+    # clean data after the first conn reported malformed).
+    torn = tmp_path / "torn_corrupt.db"
+    shutil.copy2(db, torn)
+    with open(torn, "r+b") as fh:
         fh.seek((rootpage - 1) * page_size)
         fh.write(b"\xde\xad\xbe\xef" * 512)
 
-    conn = sqlite3.connect(str(db))
+    conn = sqlite3.connect(str(torn))
     try:
         with pytest.raises(sqlite3.DatabaseError):
             conn.execute("PRAGMA quick_check").fetchone()
@@ -137,7 +139,7 @@ def test_torn_page_detected_not_silent(tmp_path):
         conn.close()
     # Construction is lazy; the first write through a corrupt store must
     # surface the error — evidence can never be fabricated into it.
-    eng2 = SQLiteAgentCoharnessEngine(db_path=db)
+    eng2 = SQLiteAgentCoharnessEngine(db_path=torn)
     with pytest.raises(sqlite3.DatabaseError):
         eng2.intercept_tool_call(workspace_id="w", agent_host="claude_code",
                                  tool_name="Bash", command="echo post-tear")
