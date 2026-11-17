@@ -22,6 +22,26 @@
   --accent: 15 118 110; --on-accent: 255 255 255; --ok: 21 128 61; --warn: 180 83 9; --danger: 220 38 38;
   color-scheme: light;
 }
+/* High-contrast dark: pure-black surfaces, ≥7:1 text, ≥3:1 component borders. */
+[data-theme="hc"] {
+  --ide-bg: 0 0 0; --ide-sidebar: 0 0 0; --ide-activity: 0 0 0; --ide-editor: 0 0 0;
+  --ide-panel: 0 0 0; --ide-status: 0 0 0; --ide-border: 148 163 184; --ide-tab: 0 0 0;
+  --ide-surface: 15 18 24;
+  --ide-fg: 255 255 255; --ide-muted: 226 232 240; --ide-faint: 203 213 225;
+  --accent: 94 234 212; --on-accent: 0 0 0; --ok: 134 239 172; --warn: 253 224 71; --danger: 252 165 165;
+  color-scheme: dark;
+}
+/* Honor OS "increase contrast" unless the user explicitly chose light. */
+@media (prefers-contrast: more) {
+  :root:not([data-theme="light"]) {
+    --ide-bg: 0 0 0; --ide-sidebar: 0 0 0; --ide-activity: 0 0 0; --ide-editor: 0 0 0;
+    --ide-panel: 0 0 0; --ide-status: 0 0 0; --ide-border: 148 163 184; --ide-tab: 0 0 0;
+    --ide-surface: 15 18 24;
+    --ide-fg: 255 255 255; --ide-muted: 226 232 240; --ide-faint: 203 213 225;
+    --accent: 94 234 212; --on-accent: 0 0 0; --ok: 134 239 172; --warn: 253 224 71; --danger: 252 165 165;
+    color-scheme: dark;
+  }
+}
 
 html, body { background: rgb(var(--ide-bg)); color: rgb(var(--ide-fg)); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }

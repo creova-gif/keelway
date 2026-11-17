@@ -118,10 +118,12 @@ function applyI18n() {
 }
 
 // ---------- theme, density & sound ----------
+const THEMES = ['dark', 'light', 'hc'];
+const nextTheme = (t) => THEMES[(THEMES.indexOf(t) + 1) % THEMES.length] || 'dark';
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem('keelway.theme', theme);
-  if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : 'keelwayDark');
+  if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : theme === 'hc' ? 'hc-black' : 'keelwayDark');
 }
 
 function setDensity(density) {
@@ -342,7 +344,7 @@ function initMonaco() {
   require.config({ paths: { vs: '/studio/assets/monaco/vs' } });
   require(['vs/editor/editor.main'], () => {
     monaco.editor.defineTheme('keelwayDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0D1218', 'editor.lineHighlightBackground': '#161C24', 'editorCursor.foreground': '#2DD4BF' } });
-    editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'keelwayDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
+    editor = monaco.editor.create($('monaco-mount'), { theme: { light: 'vs', hc: 'hc-black' }[document.documentElement.dataset.theme] || 'keelwayDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
     editor.onDidChangeModelContent(() => { if (state.active && !state.syncing) { state.dirty.add(state.active); renderTabs(); } });
     if (state.active) state.buffers[state.active] = $('fallback-editor').value;
@@ -3164,7 +3166,7 @@ function commands() {
     ['Memory', () => { switchSection('workspace'); switchView('memory'); }],
     ['Show diff of working tree', () => { switchSection('workspace'); setMode('diff'); }],
     ['Toggle air-gap', toggleAirGap],
-    ['Toggle theme', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')],
+    ['Toggle theme', () => setTheme(nextTheme(document.documentElement.dataset.theme))],
     ['Verify audit chain', () => { switchSection('runs'); verifyAudit(); }],
     ['Replay product tour', startTour],
     ['Sign out', signOut],
@@ -3273,7 +3275,7 @@ function wire() {
   $('lang-select').replaceChildren(...Object.entries(LANGS).map(([k, v]) => h('option', { value: k }, v)));
   $('lang-select').value = lang;
   $('lang-select').addEventListener('change', (e) => { lang = e.target.value; localStorage.setItem('keelway.lang', lang); relabel(); });
-  $('theme-btn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
+  $('theme-btn').addEventListener('click', () => setTheme(nextTheme(document.documentElement.dataset.theme)));
   if ($('density-btn')) $('density-btn').addEventListener('click', cycleDensity);
   $('sound-btn').setAttribute('aria-pressed', String(sound));
   $('sound-btn').addEventListener('click', () => { sound = !sound; localStorage.setItem('keelway.sound', sound ? 'on' : 'off'); $('sound-btn').setAttribute('aria-pressed', String(sound)); tone('tick'); });
@@ -3578,7 +3580,7 @@ function wire() {
 }
 
 async function boot() {
-  setTheme(localStorage.getItem('keelway.theme') || 'dark');
+  setTheme(localStorage.getItem('keelway.theme') || (window.matchMedia && matchMedia('(prefers-contrast: more)').matches ? 'hc' : 'dark'));
   setDensity(localStorage.getItem('keelway.density') || 'default');
   wire(); relabel(); switchPanel('console'); initMonaco();
   log('Keelway Studio · type help', 'text-ide-muted');
