@@ -47,7 +47,12 @@ export type KeelwayAnalyticsEvent =
   | "golden_thread_stage_switched"
   | "golden_thread_code_synced"
   | "golden_thread_tape_scrubbed"
-  | "golden_thread_prompt_gated";
+  | "golden_thread_prompt_gated"
+  | "settlement_rail_selected"
+  | "spec_decoding_k_changed"
+  | "self_healing_demo_run"
+  | "airgap_enabled"
+  | "airgap_disabled";
 
 export type EvaluatedExperimentMap = Record<string, string | boolean | number>;
 

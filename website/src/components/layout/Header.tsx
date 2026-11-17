@@ -50,7 +50,7 @@ export function Header() {
             >
               <Search className="h-3.5 w-3.5 text-fg-muted" aria-hidden="true" />
               <span className="hidden 2xl:inline">Search</span>
-              <kbd className="rounded-sm border border-border-subtle bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-fg">
+              <kbd className="hidden rounded-sm border border-border-subtle bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-fg sm:inline">
                 ⌘K
               </kbd>
             </button>

@@ -9,6 +9,7 @@ import { GoldenThreadStudioShowcase } from "@/components/home/GoldenThreadStudio
 import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
 import { P10InteractiveDeck } from "@/components/home/P10InteractiveDeck";
 import { QuickstartTerminal } from "@/components/home/QuickstartTerminal";
+import { SettlementRails } from "@/components/home/SettlementRails";
 import { EarlyAccessForm } from "@/components/home/EarlyAccessForm";
 import { SITE_URL } from "@/lib/utils";
 
@@ -142,6 +143,8 @@ export default async function HomePage() {
       )}
 
       <QuickstartTerminal variant={quickstartVariant} />
+
+      <SettlementRails />
 
       <div className="border-t border-border-subtle bg-canvas py-8">
         <div className="mx-auto flex max-w-container flex-col items-start justify-between gap-3 px-4 sm:flex-row sm:items-center sm:px-6">

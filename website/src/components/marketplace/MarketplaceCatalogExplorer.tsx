@@ -277,7 +277,7 @@ export function MarketplaceCatalogExplorer() {
 
       {/* Catalog Grid + Sticky Security & Install Inspector */}
       <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
-        <div className="space-y-3 lg:col-span-7">
+        <div className="min-w-0 space-y-3 lg:col-span-7">
           <div className="flex items-center justify-between font-mono text-xs text-fg-muted">
             <span>SHOWING {filtered.length} OF {MARKETPLACE_PACKAGES.length} VERIFIED PACKAGES (keelway.package/v1)</span>
             <span>RISK GRADE A ENFORCED</span>
@@ -337,7 +337,7 @@ export function MarketplaceCatalogExplorer() {
         {/* Interactive Package Security & Install Drawer / Inspector */}
         <aside
           aria-label="Package Security and Install Inspector"
-          className="rounded-md border border-border-strong bg-surface p-5 sm:p-6 lg:sticky lg:top-24 lg:col-span-5"
+          className="rounded-md border border-border-strong bg-surface p-5 sm:p-6 lg:sticky lg:top-24 lg:col-span-5 min-w-0"
         >
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-4">
             <div>
@@ -448,7 +448,7 @@ export function MarketplaceCatalogExplorer() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-12">
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:col-span-6">
+          <div className="grid min-w-0 gap-2.5 sm:grid-cols-2 lg:col-span-6">
             {PUBLISH_STEPS.map((item, idx) => {
               const active = activePublishStep === idx;
               return (
@@ -473,7 +473,7 @@ export function MarketplaceCatalogExplorer() {
             })}
           </div>
 
-          <div className="flex flex-col justify-between rounded-sm border border-border-subtle bg-canvas p-4 lg:col-span-6">
+          <div className="flex min-w-0 flex-col justify-between rounded-sm border border-border-subtle bg-canvas p-4 lg:col-span-6">
             <div className="flex items-center justify-between font-mono text-xs text-fg-muted">
               <span>STEP {PUBLISH_STEPS[activePublishStep].step} · {PUBLISH_STEPS[activePublishStep].title.toUpperCase()}</span>
               <span className="text-teal-accent">keelway.package/v1</span>

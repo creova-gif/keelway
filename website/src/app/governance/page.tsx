@@ -11,6 +11,7 @@ import {
 import { RoutingSimulator } from "@/components/governance/RoutingSimulator";
 import { RecordTamperLab } from "@/components/governance/RecordTamperLab";
 import { ManifestDriftSimulator } from "@/components/governance/ManifestDriftSimulator";
+import { SelfHealingWorktreeLab } from "@/components/governance/SelfHealingWorktreeLab";
 import { LatencyCostFrontierChart } from "@/components/charts/LatencyCostFrontierChart";
 import { SITE_URL } from "@/lib/utils";
 
@@ -143,6 +144,9 @@ export default function GovernancePage() {
           <RecordTamperLab />
           <div id="manifest-drift">
             <ManifestDriftSimulator />
+          </div>
+          <div id="self-healing-worktree">
+            <SelfHealingWorktreeLab />
           </div>
         </div>
       </section>
