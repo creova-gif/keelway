@@ -106,13 +106,14 @@ def test_torn_page_detected_not_silent(tmp_path):
                                 tool_name="Bash", command=f"echo {i}")
     eng.close()  # explicit: an open conn can block/partial the checkpoint
 
-    # Force WAL contents into the main file, then corrupt the live root
-    # page of the interceptions table — guaranteed inside the b-tree that
-    # quick_check traverses. A guessed offset can land on a freelist page,
-    # which quick_check never reads (silent, flaky pass).
+    # Convert OUT of WAL mode first: as long as the header says WAL, any
+    # subsequent connection can recreate -wal frames that shadow the torn
+    # main-file page (observed on Linux CI — second conn saw clean data).
+    # journal_mode=DELETE makes raw file bytes the sole source of truth.
     conn = sqlite3.connect(str(db))
     busy, _log, _ckpt = conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
     assert busy == 0, "checkpoint incomplete — WAL frames would shadow corruption"
+    assert conn.execute("PRAGMA journal_mode=DELETE").fetchone()[0] == "delete"
     page_size = conn.execute("PRAGMA page_size").fetchone()[0]
     rootpage = conn.execute(
         "SELECT rootpage FROM sqlite_master "
@@ -120,9 +121,7 @@ def test_torn_page_detected_not_silent(tmp_path):
     ).fetchone()[0]
     conn.close()
 
-    # Drop WAL sidecars so no surviving frame can shadow the torn page.
-    for sidecar in (db.with_suffix(".db-wal"), db.with_suffix(".db-shm"),
-                    Path(f"{db}-wal"), Path(f"{db}-shm")):
+    for sidecar in (Path(f"{db}-wal"), Path(f"{db}-shm"), Path(f"{db}-journal")):
         if sidecar.exists():
             sidecar.unlink()
 
@@ -130,21 +129,6 @@ def test_torn_page_detected_not_silent(tmp_path):
         fh.seek((rootpage - 1) * page_size)
         fh.write(b"\xde\xad\xbe\xef" * 512)
 
-    import json as _json
-    debug = {"page_size": page_size, "rootpage": rootpage,
-             "file_size": db.stat().st_size}
-    conn = sqlite3.connect(str(db))
-    try:
-        debug["quick_check_rows"] = conn.execute("PRAGMA quick_check").fetchall()[:3]
-    except sqlite3.DatabaseError as exc:
-        debug["quick_check_error"] = str(exc)
-    try:
-        debug["select_count"] = conn.execute(
-            "SELECT COUNT(*) FROM harness_interceptions").fetchone()
-    except sqlite3.DatabaseError as exc:
-        debug["select_error"] = str(exc)
-    conn.close()
-    print("\nTORN_DEBUG", _json.dumps(debug, default=str))
     conn = sqlite3.connect(str(db))
     try:
         with pytest.raises(sqlite3.DatabaseError):
