@@ -1,7 +1,7 @@
 ### TASK HANDOFF RECORD
 - **TASK ID**: KEEL-WEB-029
 - **TASK TITLE**: Migrate unique `kora-ai/website` content into canonical site, fix responsive/a11y defects, deprecate divergent site
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: COMPLETED (merged to main)
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-16
 - **BRANCH**: feature/website-kora-content-migration
