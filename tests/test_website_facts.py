@@ -543,9 +543,16 @@ def test_website_customer_privacy_and_user_journeys() -> None:
     scanned_files.append(WEBSITE_DIR / "public" / "install.sh")
     scanned_files.append(WEBSITE_DIR / "public" / "product-facts.json")
 
+    # install.sh legitimately references the now-public canonical repo
+    # (github.com/creova-gif/kora went public 2026-11-17); all other
+    # customer-facing files must still not leak internal tokens.
+    repo_url_tokens = {"creova-gif", "kora.git"}
     for file_path in scanned_files:
         text = file_path.read_text(encoding="utf-8")
+        is_installer = file_path.name == "install.sh"
         for token in forbidden_private_tokens:
+            if is_installer and token in repo_url_tokens:
+                continue
             assert token not in text, (
                 f"Private/internal token '{token}' leaked in customer-facing {file_path.relative_to(KEELWAY_ROOT)}"
             )

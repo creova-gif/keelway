@@ -42,7 +42,16 @@ def test_hook_manifest_rendering_across_claude_cursor_and_codex(tmp_path: Path) 
             assert m1["target_config_path"] == rel_path
             assert m1["hook_event"] == "PreToolUse"
             assert f"keelway harness agents intercept --agent {host} --payload -" in m1["config_content"]
-            assert "PostToolUse" in m1["config_content"] and "SessionStart" in m1["config_content"]
+            if host == "cursor":
+                # Real Cursor schema: lowercase events under "hooks", sessionEnd included.
+                assert '"preToolUse"' in m1["config_content"]
+                assert '"postToolUse"' in m1["config_content"]
+                assert '"sessionStart"' in m1["config_content"]
+                assert '"sessionEnd"' in m1["config_content"]
+                assert "--format claude-code" in m1["config_content"]
+                assert '"matcher"' in m1["config_content"]
+            else:
+                assert "PostToolUse" in m1["config_content"] and "SessionStart" in m1["config_content"]
             assert m1["config_sha256"].startswith("sha256:") and m1["config_sha256"] == m2["config_sha256"]
 
         audit_manifest = eng.render_hook_manifest(workspace_id="ws-hooks", agent_host="cursor", mode="audit_only")

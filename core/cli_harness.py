@@ -328,6 +328,11 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                     adapter = get_adapter(agent_id)
                     extra = [a for a in (getattr(args, "agent_args", None) or []) if a != "--"]
                     spec = adapter.build_launch(workspace_root=getattr(args, "cwd", None), extra_args=extra or None)
+                    acp_args = list(getattr(adapter, "acp_args", ()) or ())
+                    if acp_args:
+                        spec = type(spec)(agent_id=spec.agent_id,
+                                          argv=[spec.argv[0], *acp_args, *spec.argv[1:]],
+                                          env=spec.env, cwd=spec.cwd)
                     acp_mode = str(getattr(args, "mode", "audit_only"))
 
                     def _permission_eval(tool_name: str, command: str, ticket_id: Optional[str]) -> Dict[str, Any]:
@@ -431,6 +436,7 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                            "mode": manifest["mode"], "installed_path": installed_path,
                            "config_sha256": manifest["config_sha256"],
                            "hook_events": (["tool.execute.before", "tool.execute.after"] if agent_id == "opencode"
+                                           else ["preToolUse", "postToolUse", "sessionStart", "sessionEnd"] if agent_id == "cursor"
                                            else ["PreToolUse", "PostToolUse", "SessionStart"])}
                     print(json.dumps(res, indent=2) if as_json else
                           f"[SETUP] {agent_id} v{detection.version or '?'} -> {installed_path} ({manifest['mode']})")
