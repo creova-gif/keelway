@@ -67,6 +67,7 @@
 | **KEEL-REL-055** | Website axe-core WCAG 2.2 AA + perf CI gate | `RELEASE / WEBSITE / A11Y / CI` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-REL-055-website-a11y-ci` |
 | **KEEL-PROD-041** | OpenCore weights decision: flagship runtime aliases, nano simulated | `PRODUCT / MODELS / HONEST-CLAIMS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-PROD-041-runtime-aliases` |
 | **KEEL-ENG-049** | Full-suite green (module-identity 401 root cause) + Actions minute optimization | `ENGINEERING / TESTING / CI` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/test-isolation-ci-budget` |
+| **KEEL-ENG-050** | OpenCode adapter — TS plugin hook delivery (`tool.execute.*`) + P-10 policy path | `ENGINEERING / EXTENSIBILITY / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `fix/KEEL-ENG-050-opencode-adapter` |
 
 ---
 

@@ -57,7 +57,7 @@ def register_harness_cli_subparsers(subparsers: argparse._SubParsersAction) -> N
     hr_sub = hr.add_subparsers(dest="harness_action", required=True)
 
     hr_hooks = hr_sub.add_parser("hooks", help="Render or install PreToolUse hook configuration for Claude Code, Cursor, or Codex CLI")
-    hr_hooks.add_argument("--agent", "--agent-host", dest="agent_host", choices=["claude_code", "cursor", "codex_cli"], default="claude_code", help="Coding agent host")
+    hr_hooks.add_argument("--agent", "--agent-host", dest="agent_host", choices=["claude_code", "cursor", "codex_cli", "opencode"], default="claude_code", help="Coding agent host")
     hr_hooks.add_argument("--mode", choices=["enforce", "audit_only"], default="enforce", help="Interception enforcement mode")
     hr_hooks.add_argument("--install-dir", default=None, help="Optional directory to write the rendered hook config into")
     _add_common_flags(hr_hooks)
@@ -347,7 +347,8 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                     res = {"agent_id": agent_id, "detection": detection.__dict__,
                            "mode": manifest["mode"], "installed_path": installed_path,
                            "config_sha256": manifest["config_sha256"],
-                           "hook_events": ["PreToolUse", "PostToolUse", "SessionStart"]}
+                           "hook_events": (["tool.execute.before", "tool.execute.after"] if agent_id == "opencode"
+                                           else ["PreToolUse", "PostToolUse", "SessionStart"])}
                     print(json.dumps(res, indent=2) if as_json else
                           f"[SETUP] {agent_id} v{detection.version or '?'} -> {installed_path} ({manifest['mode']})")
                     return 0

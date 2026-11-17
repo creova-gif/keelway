@@ -178,7 +178,7 @@ def test_cli_agents_detect(capsys) -> None:
     import json as _json
     out = _json.loads(capsys.readouterr().out)
     ids = {a["agent_id"] for a in out["agents"]}
-    assert ids == {"claude_code", "codex_cli", "cursor"}
+    assert ids == {"claude_code", "codex_cli", "cursor", "opencode"}
     assert "capabilities" in out
 
 
@@ -426,6 +426,29 @@ def test_cli_agents_setup_installed(tmp_path, monkeypatch, capsys) -> None:
     assert (install_dir / ".claude" / "settings.local.json").exists()
     content = json.loads((install_dir / ".claude" / "settings.local.json").read_text())
     assert set(content["hooks"].keys()) == {"PreToolUse", "PostToolUse", "SessionStart"}
+
+
+def test_cli_agents_setup_opencode_plugin(tmp_path, monkeypatch, capsys) -> None:
+    from cli import main as cli_main
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    script = bindir / "opencode"
+    script.write_text("#!/bin/sh\necho 'opencode 1.0.0'\n", encoding="utf-8")
+    script.chmod(script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv("PATH", f"{bindir}:{os.environ.get('PATH', '')}")
+    install_dir = tmp_path / "ws"
+    rc = cli_main(["harness", "agents", "setup", "--agent", "opencode",
+                   "--mode", "enforce", "--install-dir", str(install_dir),
+                   "--db-path", str(tmp_path / "h.db"), "--json"])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["detection"]["installed"] is True
+    assert out["installed_path"].endswith(".opencode/plugins/keelway-guard.ts")
+    assert out["hook_events"] == ["tool.execute.before", "tool.execute.after"]
+    content = (install_dir / ".opencode" / "plugins" / "keelway-guard.ts").read_text()
+    assert "tool.execute.before" in content
+    assert '"--agent", "opencode"' in content
+    assert 'const KEELWAY_MODE = "enforce";' in content
 
 
 def test_cli_agents_setup_missing_agent(tmp_path, monkeypatch, capsys) -> None:

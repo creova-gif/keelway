@@ -160,10 +160,52 @@ class CursorAgentAdapter(AgentHostAdapter):
         )
 
 
+class OpenCodeAdapter(AgentHostAdapter):
+    """OpenCode (`opencode`) — `.opencode/plugins/*.ts` `tool.execute.before` hooks.
+
+    OpenCode has no stdin-JSON shell-hook protocol; enforcement is delivered
+    as a generated TypeScript plugin (`render_hook_manifest` emits the plugin
+    source) that calls `keelway harness agents intercept` per tool call and
+    throws to block DENY/HOLD verdicts. Payload shape below is the canonical
+    form the generated plugin sends.
+    """
+
+    agent_id = "opencode"
+    display_name = "OpenCode"
+    binary_name = "opencode"
+    hook_event = "tool.execute.before"
+
+    def detect(self) -> AgentDetection:
+        return _detect_binary(self.agent_id, self.binary_name)
+
+    def build_launch(self, workspace_root: Optional[str] = None,
+                     extra_args: Optional[List[str]] = None) -> LaunchSpec:
+        argv = [self.binary_name, *(extra_args or [])]
+        return LaunchSpec(agent_id=self.agent_id, argv=argv,
+                          env=_scrubbed_env(), cwd=workspace_root)
+
+    def parse_hook_payload(self, payload: Dict[str, Any]) -> NormalizedToolCall:
+        # Canonical payload emitted by the generated keelway-guard plugin:
+        # {"tool", "tool_input"|"input"|"args", "session_id", "call_id"}.
+        tool_input = (payload.get("tool_input") or payload.get("input")
+                      or payload.get("args") or {})
+        tool_input = tool_input if isinstance(tool_input, dict) else {}
+        tool_name = str(payload.get("tool") or payload.get("tool_name") or "bash").strip() or "bash"
+        ticket = payload.get("ticket_id") or payload.get("approval_ticket")
+        return NormalizedToolCall(
+            agent_id=self.agent_id,
+            tool_name=tool_name,
+            command=_extract_command(tool_input),
+            ticket_id=str(ticket).strip() if ticket else None,
+            raw=dict(payload),
+        )
+
+
 EXTERNAL_AGENT_ADAPTERS: Dict[str, AgentHostAdapter] = {
     ClaudeCodeAdapter.agent_id: ClaudeCodeAdapter(),
     CodexCliAdapter.agent_id: CodexCliAdapter(),
     CursorAgentAdapter.agent_id: CursorAgentAdapter(),
+    OpenCodeAdapter.agent_id: OpenCodeAdapter(),
 }
 
 
