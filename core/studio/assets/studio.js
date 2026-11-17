@@ -80,7 +80,7 @@ function trapFocus(container, e) {
 
 // ---------- i18n ----------
 const STRINGS = {
-  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', home: 'Home', workspace: 'Workspace', openWorkspace: 'Open workspace', skills: 'Skills', settings: 'Settings', developerLabs: 'Developer Labs', evidence: 'Evidence', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Offline (setting)', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
+  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', home: 'Home', workspace: 'Workspace', openWorkspace: 'Open workspace', skills: 'Skills', settings: 'Settings', models: 'Models', security: 'Security', ops: 'Ops', developerLabs: 'Developer Labs', evidence: 'Evidence', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Offline (setting)', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
     tour: [['Welcome to Keelway', 'A local-first, deterministic agent workspace. Your code, models and data stay on this machine.'], ['Agents you can trust', 'Agents propose a plan, ask before changing files, and every step lands in a replayable flight tape.'], ['Audit everything', 'Tokens, roles and a tamper-evident audit log make Keelway safe to share with your team.']] },
   es: { search: 'Buscar archivos, símbolos y comandos', signOut: 'Cerrar sesión', explorer: 'Explorador', changes: 'Cambios', tasks: 'Tareas', memory: 'Memoria', save: 'Guardar', tagline: 'Local · Determinista · Tuyo', welcomeTitle: 'Construye con agentes que nunca salen de tu equipo.', welcomeBody: 'Cada paso queda registrado, reproducible y auditable.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Inicia sesión en Keelway', next: 'Siguiente', done: 'Empezar', skipTour: 'Omitir', airOn: 'Aislado', airOff: 'Nube permitida', plan: 'Plan', activity: 'Actividad', allow: 'Permitir', deny: 'Denegar', openFile: 'Abrir un archivo', giveGoal: 'Dar un objetivo', reviewChanges: 'Revisar cambios' },
   fr: { search: 'Rechercher fichiers, symboles et commandes', signOut: 'Déconnexion', explorer: 'Explorateur', changes: 'Modifications', tasks: 'Tâches', memory: 'Mémoire', save: 'Enregistrer', tagline: 'Local · Déterministe · À vous', welcomeTitle: 'Des agents qui ne quittent jamais votre machine.', welcomeBody: 'Chaque étape est enregistrée, rejouable et auditable.', start: 'Démarrer', signIn: 'Se connecter', signInTitle: 'Connexion à Keelway', next: 'Suivant', done: 'Commencer', skipTour: 'Passer', airOn: 'Isolé', airOff: 'Cloud autorisé', activity: 'Activité', allow: 'Autoriser', deny: 'Refuser', openFile: 'Ouvrir un fichier', giveGoal: 'Donner un objectif', reviewChanges: 'Voir les modifications' },
@@ -462,7 +462,7 @@ async function loadTasks() {
 }
 
 // ---------- sections + agent runs ----------
-const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'settings'];
+const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'models', 'security', 'ops', 'settings'];
 const SECTION_ALIASES = {
   files: 'workspace',
   evidence: 'runs',
@@ -522,9 +522,11 @@ function switchSection(sec) {
   if (sec === 'home') { welcomeFacts(); }
   if (sec === 'workspace') { refreshView(); if (editor) editor.layout(); }
   if (sec === 'tasks') { loadRuns(); loadTasks(); loadManifestRegistry(); }
-  if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadCostLedger(); loadEvidenceSummary(); }
+  if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadEvidenceSummary(); }
   if (sec === 'skills') { loadPlugins(); loadKStackSkillsInStudio(); }
-  if (sec === 'settings') { loadTier2Status(); loadMeshStatus(); loadSyncStatusInStudio(); }
+  if (sec === 'models') { loadModelRuntime(); loadCostLedger(); }
+  if (sec === 'security') { loadTier2Status(); loadEntitlements(); loadRules(); }
+  if (sec === 'ops') { loadMeshStatus(); loadSyncStatusInStudio(); loadWorkspaces(); }
 }
 async function loadRules() {
   try {
@@ -536,6 +538,102 @@ async function loadRules() {
       h('button', { type: 'button', class: 'btn-outline py-0.5 text-danger', onclick: async () => { try { await api(`/v1/approval-rules/${encodeURIComponent(r.id)}`, { method: 'DELETE' }); tone('tick'); loadRules(); } catch (err) { toast(err.message, 'err'); } } }, t('revoke'))))
       : [h('li', { class: 'px-3 py-2 text-ide-muted' }, t('noRules'))]));
   } catch { /* noop */ }
+}
+// ---------- models & runtime ----------
+async function loadModelRuntime() {
+  const grid = $('runtime-grid');
+  try {
+    const data = await api('/v1/models/local');
+    const rt = data.runtime || {};
+    const hw = rt.hardware || {};
+    const hwDesc = [hw.arch, hw.is_apple_silicon ? 'Apple Silicon' : '', hw.estimated_ram_gb ? `${hw.estimated_ram_gb} GB RAM` : ''].filter(Boolean).join(' · ');
+    grid.replaceChildren(...[
+      metricChip('Runtime', rt.runtime || '—'),
+      metricChip('Active model', rt.model || '—'),
+      metricChip('Endpoint', rt.endpoint || '—'),
+      metricChip('Hardware', hwDesc || '—'),
+    ]);
+    $('runtime-out').textContent = `[✓] RUNTIME ${String(data.status || 'unknown').toUpperCase()}${rt.zero_daemon ? ' · ZERO-DAEMON' : ''}${hw.recommended_model ? ` · RECOMMENDED ${hw.recommended_model}${hw.quantization ? ` (${hw.quantization})` : ''}` : ''}`;
+  } catch (err) {
+    renderLoadError(grid, err, loadModelRuntime);
+    $('runtime-out').textContent = '[✗] RUNTIME STATUS UNAVAILABLE';
+  }
+  const list = $('chat-modes-list');
+  try {
+    const { modes } = await api('/v1/chat/modes');
+    list.replaceChildren(...(modes && modes.length ? modes.map((m) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-semibold text-xs' }, m.name || m.id),
+        h('span', { class: 'flex gap-1' },
+          m.mutates_files ? h('span', { class: 'step-chip text-warn border-warn/50 text-[10px]' }, 'MUTATES FILES') : null,
+          m.requires_approval ? h('span', { class: 'step-chip text-accent border-accent/50 text-[10px]' }, 'REQUIRES APPROVAL') : null)),
+      m.description ? h('p', { class: 'text-ide-muted text-[11px]' }, m.description) : null))
+      : [h('p', { class: 'text-ide-muted' }, 'No chat modes reported.')]));
+  } catch (err) {
+    renderLoadError(list, err, loadModelRuntime);
+  }
+}
+// ---------- security & policies ----------
+async function loadAirgapAudit() {
+  const out = $('airgap-audit-out');
+  const checks = $('airgap-checks');
+  out.textContent = '[…] RUNNING AIR-GAP COMPLIANCE AUDIT…';
+  try {
+    const rep = await api('/v1/airgap/audit');
+    checks.replaceChildren(...(rep.checks || []).map((c) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-mono text-[11px] font-semibold' }, `${c.check_id} — ${c.title}`),
+        h('span', { class: 'flex gap-1' },
+          statusChip(c.passed ? 'passed' : 'failed'),
+          h('span', { class: 'step-chip text-[10px]' }, c.severity))),
+      c.details ? h('p', { class: 'text-ide-muted text-[11px] break-words' }, c.details) : null)));
+    out.textContent = `[${rep.overall_compliant ? '✓' : '✗'}] AUDIT ${rep.audit_id} · ${rep.overall_compliant ? 'COMPLIANT' : 'NON-COMPLIANT'} · ${rep.timestamp_utc}${rep.attestation_sha256 ? ` · attestation ${rep.attestation_sha256.slice(0, 12)}…` : ''}`;
+  } catch (err) {
+    renderLoadError(checks, err, loadAirgapAudit);
+    out.textContent = '[✗] AIR-GAP AUDIT FAILED — NO COMPLIANCE IS CLAIMED';
+  }
+}
+async function loadEntitlements() {
+  const grid = $('entitlements-grid');
+  try {
+    const e = await api('/v1/entitlements/status');
+    grid.replaceChildren(...[
+      metricChip('Tier', e.tier || '—'),
+      metricChip('Seats', e.seats ?? '—'),
+      metricChip('License', `${e.status || '—'}${e.is_valid ? ' · valid' : ''}`),
+      metricChip('Offline grace', e.offline_grace_days_remaining != null ? `${e.offline_grace_days_remaining} days` : '—'),
+    ]);
+    const feats = Object.entries(e.features || {});
+    if (feats.length) {
+      grid.append(h('div', { class: 'sm:col-span-2 lg:col-span-4 flex flex-wrap gap-1.5 pt-1' },
+        ...feats.map(([k, v]) => h('span', { class: `step-chip text-[10px] ${v ? 'text-ok border-ok/50' : 'text-ide-faint border-ide-border'}` }, `${v ? '✓' : '✗'} ${k.replace(/_/g, ' ')}`))));
+    }
+    $('entitlements-out').textContent = `[✓] ENTITLEMENTS ${String(e.status || 'unknown')}${e.days_offline ? ` · ${e.days_offline}d offline` : ''}`;
+  } catch (err) {
+    renderLoadError(grid, err, loadEntitlements);
+    $('entitlements-out').textContent = '[✗] ENTITLEMENT STATUS UNAVAILABLE';
+  }
+}
+// ---------- ops / team & admin ----------
+async function loadWorkspaces() {
+  const list = $('workspaces-list');
+  try {
+    const data = await api('/v1/workspaces');
+    const items = data.workspaces || [];
+    list.replaceChildren(...(items.length ? items.map((w) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-semibold text-xs' }, w.name || w.id),
+        h('span', { class: 'flex gap-1' },
+          w.is_active ? h('span', { class: 'step-chip text-accent border-accent/50 text-[10px]' }, 'ACTIVE') : null,
+          w.git_branch ? h('span', { class: 'step-chip text-[10px] font-mono' }, `⎇ ${w.git_branch}`) : null,
+          w.detected_framework ? h('span', { class: 'step-chip text-[10px]' }, w.detected_framework) : null)),
+      h('p', { class: 'font-mono text-[11px] text-ide-muted break-all', dir: 'ltr' }, w.path || '')))
+      : [h('p', { class: 'text-ide-muted' }, 'No workspaces registered.')]));
+    $('workspaces-out').textContent = `[✓] ${items.length} WORKSPACE${items.length === 1 ? '' : 'S'} REGISTERED · ACTIVE ${data.active_workspace_id || 'none'}`;
+  } catch (err) {
+    renderLoadError(list, err, loadWorkspaces);
+    $('workspaces-out').textContent = '[✗] WORKSPACE REGISTRY UNAVAILABLE';
+  }
 }
 async function loadRuns() {
   try { state.runs = (await api('/v1/agent/runs')).runs; } catch { return; }
@@ -3168,6 +3266,9 @@ function commands() {
     ['Go to Tasks', () => switchSection('tasks')],
     ['Go to Evidence', () => switchSection('runs')],
     ['Go to Skills', () => switchSection('skills')],
+    ['Go to Models', () => switchSection('models')],
+    ['Go to Security', () => switchSection('security')],
+    ['Go to Ops', () => switchSection('ops')],
     ['Go to Settings', () => switchSection('settings')],
     ['Open Developer Labs', () => toggleLabsDrawer(true)],
     ['System Doctor diagnostics', goFeature('home', 'lab-doctor')],
@@ -3182,10 +3283,18 @@ function commands() {
     ['Plugins & MCP extensions', goFeature('skills', 'lab-plugins')],
     ['KBrain fact memory', goFeature('skills', 'lab-kbrain')],
     ['Evaluation & drift radar', goFeature('skills', 'lab-eval-drift')],
-    ['Mesh quorum controls', goFeature('settings', 'lab-quorum')],
-    ['P2P compute mesh', goFeature('settings', 'lab-mesh')],
-    ['Cross-machine sync', goFeature('settings', 'lab-sync')],
-    ['Runner spool', goFeature('settings', 'lab-runner-spool')],
+    ['Local model runtime & chat modes', goFeature('models', 'runtime-grid')],
+    ['Speculative decoding benchmark', goFeature('models', 'spec-metrics-grid')],
+    ['Model economics & cost ledger', goFeature('models', 'econ-inferences-badge')],
+    ['Air-gap compliance audit', goFeature('security', 'airgap-checks')],
+    ['Enterprise entitlements', goFeature('security', 'entitlements-grid')],
+    ['Hardware root of trust', goFeature('security', 'tier2-status-grid')],
+    ['Mesh quorum controls', goFeature('security', 'lab-quorum')],
+    ['Standing approval rules', goFeature('security', 'rule-list')],
+    ['Workspace registry', goFeature('ops', 'workspaces-list')],
+    ['P2P compute mesh', goFeature('ops', 'lab-mesh')],
+    ['Cross-machine sync', goFeature('ops', 'lab-sync')],
+    ['Runner spool', goFeature('ops', 'lab-runner-spool')],
     ['New task', newRun],
     ['Explorer', () => { switchSection('workspace'); switchView('explorer'); }],
     ['Changes', () => { switchSection('workspace'); switchView('git'); }],
@@ -3505,6 +3614,10 @@ function wire() {
   if ($('spool-status-btn')) $('spool-status-btn').addEventListener('click', checkSpoolStatusInStudio);
   if ($('spool-flush-btn')) $('spool-flush-btn').addEventListener('click', flushSpoolInStudio);
   if ($('btn-run-spec-benchmark')) $('btn-run-spec-benchmark').addEventListener('click', runSpeculativeBenchmarkInStudio);
+  if ($('runtime-refresh-btn')) $('runtime-refresh-btn').addEventListener('click', loadModelRuntime);
+  if ($('airgap-audit-btn')) $('airgap-audit-btn').addEventListener('click', loadAirgapAudit);
+  if ($('entitlements-refresh-btn')) $('entitlements-refresh-btn').addEventListener('click', loadEntitlements);
+  if ($('workspaces-refresh-btn')) $('workspaces-refresh-btn').addEventListener('click', loadWorkspaces);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));
@@ -3577,7 +3690,7 @@ function wire() {
       else closePalette();
     }
     else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); }
-    else if (e.altKey && /^[1-6]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
+    else if (e.altKey && /^[1-9]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
     else if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); toggleAirGap(); }
     else if (mod && e.key === 'j') { e.preventDefault(); $('panel').classList.toggle('hidden'); }
     else if (e.key === 'Escape') {
