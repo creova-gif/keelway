@@ -18,5 +18,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
+    // Multi-view integration tests (Agents→Operations→axe) exceed the 5s
+    // default on slower CI runners; 20s keeps them honest without flakes.
+    testTimeout: 20000,
   },
 });
