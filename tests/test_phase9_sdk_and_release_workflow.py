@@ -438,7 +438,10 @@ def test_release_artifacts_workflow_and_docs_hub_v1_sync() -> None:
         "KFlow",
         "KSpaces",
         "CycloneDX 1.5 SBOM",
-        "OIDC/SAML",
+        # KEEL-SEC-037: OIDC and SAML are disclosed separately — SAML is
+        # explicitly documented as not yet implemented, so no "OIDC/SAML" token.
+        "OIDC",
+        "SAML",
         "SCIM 2.0",
         "Dual-Human P-10 Quorum",
         "OCSF",

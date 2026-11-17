@@ -637,10 +637,12 @@ def test_web_console_six_tabs_airgap_csp_and_js_syntax():
     ]
 
     # 3. Keelway visual tokens & required API routes wired
+    # Palette tokens track the KEEL-WEB-028 monochrome zinc refresh:
+    # surface #09090B (was #0B0F14), amber remapped to zinc secondary #D4D4D8.
     for required_token in (
-        "#0B0F14",
+        "#09090B",
         "#2DD4BF",
-        "#F5B547",
+        "#D4D4D8",
         "/v1/models",
         "/v1/chat/completions",
         "/v1/responses",

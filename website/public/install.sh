@@ -60,13 +60,19 @@ fi
 [ -n "$PYTHON" ] || die "Python 3.11+ is required. Install Python 3.11+ or set KEELWAY_PYTHON=/path/to/python3."
 say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-GIT_URL="${KEELWAY_GIT_URL:-https://github.com/creova-gif/kora.git}"
+# Resolve install source before touching disk — no default git URL: the
+# public source mirror is not yet published, so fail closed with guidance.
 if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
     RESOLVED_SOURCE="${KEELWAY_SOURCE_DIR} (local checkout)"
 elif [ -n "${KEELWAY_PACKAGE:-}" ]; then
     RESOLVED_SOURCE="${KEELWAY_PACKAGE} (package)"
+elif [ -n "${KEELWAY_GIT_URL:-}" ]; then
+    RESOLVED_SOURCE="${KEELWAY_GIT_URL} (git clone)"
 else
-    RESOLVED_SOURCE="${GIT_URL} (git clone)"
+    die "No install source configured. Set one of:
+    KEELWAY_SOURCE_DIR=/path/to/checkout   (local source tree)
+    KEELWAY_PACKAGE=<pip spec>             (published package)
+    KEELWAY_GIT_URL=<git url>              (public source mirror)"
 fi
 if [ "$DRY_RUN" -eq 1 ]; then
     say "[dry-run] Would create isolated venv: ${INSTALL_DIR}/.venv"
@@ -88,6 +94,7 @@ elif [ -n "${KEELWAY_PACKAGE:-}" ]; then
     say "[+] Installing ${KEELWAY_PACKAGE} CLI & OpenCore runtime..."
     "${INSTALL_DIR}/.venv/bin/python" -m pip install --quiet "${KEELWAY_PACKAGE}"
 else
+    GIT_URL="${KEELWAY_GIT_URL}"
     command -v git >/dev/null 2>&1 || die "git is required to install from ${GIT_URL}. Install git or set KEELWAY_SOURCE_DIR/KEELWAY_PACKAGE."
     SRC_DIR="${INSTALL_DIR}/src"
     say "[+] Cloning Keelway source from ${GIT_URL}..."

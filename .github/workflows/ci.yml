@@ -23,12 +23,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.14"]
+        # Min + max supported versions — the mid-range leg roughly doubled
+        # the largest job's minute cost without adding distinct signal.
+        python-version: ["3.11", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements.txt
       - name: Install bubblewrap (Linux command sandbox)
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
@@ -51,6 +57,10 @@ jobs:
         env:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
           PYTHONPATH: .
+          # Subset pytest re-runs inside the gates script duplicate the full
+          # `pytest -v` step below — skip them here to protect the minute
+          # budget. Syntax/lock/SDK checks still run.
+          KEELWAY_GATES_CI_FAST: "1"
         run: ./scripts/verify_engineering_gates.sh
       - name: Run Full Test Suites
         env:
@@ -67,7 +77,9 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: |
+            website/package-lock.json
+            dev-app/package-lock.json
       - uses: actions/setup-go@v5
         with:
           go-version: "1.23"
@@ -108,6 +120,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements.txt
       - name: Build wheel & verify isolated install, SPA assets, Golden Suite, and CycloneDX SBOM
         run: |
           rm -rf dist/

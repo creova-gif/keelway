@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -318,11 +319,13 @@ def test_public_install_sh_dry_run_and_v1_docs_integrity(tmp_path: Path) -> None
     assert help_res.returncode == 0 and "--dry-run" in help_res.stdout and "--help" in help_res.stdout
 
     target_runtime, target_bin = tmp_path / "keelway-runtime", tmp_path / "keelway-bin"
+    # Installer fails closed without a source — dry-run must declare one.
     dry_res = subprocess.run(
         ["sh", str(pub_install), "--dry-run", "--install-dir", str(target_runtime), "--bin-dir", str(target_bin)],
         capture_output=True,
         text=True,
         check=False,
+        env={**os.environ, "KEELWAY_SOURCE_DIR": str(REPO_ROOT)},
     )
     assert dry_res.returncode == 0, dry_res.stderr
     assert "[dry-run]" in dry_res.stdout
