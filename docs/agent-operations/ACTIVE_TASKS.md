@@ -75,6 +75,7 @@
 | **KEEL-REL-058** | CI gitleaks gate + installer `--uninstall`/`--purge`/`KEELWAY_GIT_REF` + tested model compatibility matrix | `RELEASE / SECURITY / INSTALL / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 | **KEEL-ENG-052** | M6 fault-injection + perf baselines: hostile input, ticket race, DB corruption, tape tamper, measured latencies | `ENGINEERING / RELIABILITY / TESTING` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 | **KEEL-REL-059** | M7: cosign keyless signing, PyPI OIDC publish job, generated Homebrew formula (41 pinned resources) | `RELEASE / DISTRIBUTION / SIGNING` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
+| **KEEL-REL-060** | M8: SECURITY.md disclosure policy, SUPPORT runbook, PILOT_READINESS runbook | `RELEASE / OPS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 
 ---
 
