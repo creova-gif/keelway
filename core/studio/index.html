@@ -513,6 +513,13 @@
               <p class="text-xs text-ide-muted leading-relaxed">Select a task from the backlog, click an existing agent run, or describe a goal in the composer below. Keelway plans every step, requests human sign-off on mutations, and logs deterministic flight tapes.</p>
             </div>
 
+            <!-- Multi-Agent Orchestration -->
+            <div class="pt-3 border-t border-ide-border/60">
+              <h3 class="section-title">Multi-Agent Orchestration</h3>
+              <p class="text-[11px] text-ide-faint mt-0.5">DAG workflows, manifest registry, and bundle deployment. Fleet status reflects live agent runs.</p>
+              <div id="fleet-strip" class="flex flex-wrap gap-1.5 pt-2" aria-live="polite"></div>
+            </div>
+
             <!-- KFlow Durable Task DAG Orchestration & Proof Packet -->
             <section class="card p-4 space-y-2" aria-labelledby="kflow-title">
               <div class="flex items-center justify-between gap-2">
@@ -1239,7 +1246,22 @@
         </section>
         <section class="card" aria-labelledby="rules-title">
           <div class="px-3 py-2 border-b border-ide-border flex items-center justify-between"><h3 id="rules-title" class="section-title" data-i18n="rulesTitle">Standing approvals</h3><span class="text-[11px] text-ide-faint" data-i18n="rulesHint">Only for "Ask before changes" runs. Keelway and git internals always ask.</span></div>
-          <ul id="rule-list" class="divide-y divide-ide-border text-xs"></ul>
+          <ul id="rule-list" class="divide-y divide-ide-border text-xs" aria-live="polite"></ul>
+        </section>
+
+        <!-- Software Bill of Materials -->
+        <section class="card p-4 space-y-3" aria-labelledby="sbom-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="sbom-title" class="font-semibold">Software Bill of Materials</h3>
+            <a href="/v1/sbom" download class="btn-outline h-7 text-[11px] px-2 flex items-center gap-1" title="Download CycloneDX SBOM">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span>Export CycloneDX</span>
+            </a>
+          </div>
+          <p class="text-xs text-ide-muted">Supply-chain provenance for this install, generated at request time.</p>
+          <div id="sbom-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs" aria-live="polite"></div>
+          <div id="sbom-components" class="max-h-56 overflow-y-auto space-y-1 text-[11px] font-mono" aria-live="polite"></div>
+          <pre id="sbom-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </section>
       </div>
     </section>
@@ -1261,6 +1283,23 @@
           </div>
           <div id="workspaces-list" class="space-y-2 text-xs" aria-live="polite"></div>
           <pre id="workspaces-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+
+        <section class="card p-4 space-y-3" aria-labelledby="runner-jobs-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="runner-jobs-title" class="font-semibold">Customer Runner Job Queue</h3>
+            <button id="runner-jobs-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">Jobs enqueued for outbound customer VPC runner daemons. Polling and completion acks happen on the runner side.</p>
+          <div id="runner-jobs-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <form id="runner-job-form" class="flex flex-wrap gap-2 pt-2 border-t border-ide-border/60" autocomplete="off">
+            <label for="runner-job-prompt" class="sr-only">Runner task prompt</label>
+            <input id="runner-job-prompt" required minlength="3" class="input flex-1 min-w-[14rem]" placeholder="Task prompt for runner job…">
+            <label for="runner-job-repo" class="sr-only">Repo path</label>
+            <input id="runner-job-repo" class="input w-56" placeholder="Repo path (default: .)" dir="ltr">
+            <button class="btn-outline h-8 text-xs" type="submit">Enqueue Job</button>
+          </form>
+          <pre id="runner-jobs-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </section>
 
         <section class="card p-4 space-y-2" aria-labelledby="mesh-title">

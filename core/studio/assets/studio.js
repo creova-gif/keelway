@@ -525,8 +525,8 @@ function switchSection(sec) {
   if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadEvidenceSummary(); }
   if (sec === 'skills') { loadPlugins(); loadKStackSkillsInStudio(); }
   if (sec === 'models') { loadModelRuntime(); loadCostLedger(); }
-  if (sec === 'security') { loadTier2Status(); loadEntitlements(); loadRules(); }
-  if (sec === 'ops') { loadMeshStatus(); loadSyncStatusInStudio(); loadWorkspaces(); }
+  if (sec === 'security') { loadTier2Status(); loadEntitlements(); loadRules(); loadSbom(); }
+  if (sec === 'ops') { loadMeshStatus(); loadSyncStatusInStudio(); loadWorkspaces(); loadRunnerJobs(); }
 }
 async function loadRules() {
   try {
@@ -614,7 +614,36 @@ async function loadEntitlements() {
     $('entitlements-out').textContent = '[✗] ENTITLEMENT STATUS UNAVAILABLE';
   }
 }
+async function loadSbom() {
+  const grid = $('sbom-grid');
+  const comps = $('sbom-components');
+  try {
+    const bom = await api('/v1/sbom');
+    const components = bom.components || [];
+    grid.replaceChildren(...[
+      metricChip('Format', `${bom.bom_format || '—'} ${bom.spec_version || ''}`.trim()),
+      metricChip('Components', String(components.length)),
+      metricChip('Generated', (bom.timestamp_utc || '—').replace('T', ' ').replace('Z', ' UTC')),
+      metricChip('License', (bom.metadata && bom.metadata.license) || '—'),
+    ]);
+    comps.replaceChildren(...(components.length ? components.map((c) => h('div', { class: 'px-2 py-1 rounded border border-ide-border/60 bg-ide-bg/60 flex items-center justify-between gap-2' },
+      h('span', { class: 'min-w-0 truncate' }, `${c.name || '—'}${c.version && c.version !== 'latest' ? `@${c.version}` : ''}`),
+      h('span', { class: 'text-ide-faint shrink-0' }, c.component_type || 'library')))
+      : [h('p', { class: 'text-ide-muted font-sans' }, 'No components reported.')]));
+    $('sbom-out').textContent = `[✓] SBOM ${bom.serial_number || 'generated'} · v${bom.version ?? '?'}`;
+  } catch (err) {
+    renderLoadError(grid, err, loadSbom);
+    $('sbom-out').textContent = '[✗] SBOM UNAVAILABLE';
+  }
+}
 // ---------- ops / team & admin ----------
+async function activateWorkspace(id) {
+  try {
+    await api(`/v1/workspaces/${encodeURIComponent(id)}/activate`, { method: 'POST' });
+    tone('tick');
+    loadWorkspaces();
+  } catch (err) { toast(err.message, 'err'); }
+}
 async function loadWorkspaces() {
   const list = $('workspaces-list');
   try {
@@ -623,8 +652,9 @@ async function loadWorkspaces() {
     list.replaceChildren(...(items.length ? items.map((w) => h('div', { class: 'card p-3 space-y-1' },
       h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
         h('span', { class: 'font-semibold text-xs' }, w.name || w.id),
-        h('span', { class: 'flex gap-1' },
-          w.is_active ? h('span', { class: 'step-chip text-accent border-accent/50 text-[10px]' }, 'ACTIVE') : null,
+        h('span', { class: 'flex gap-1 items-center' },
+          w.is_active ? h('span', { class: 'step-chip text-accent border-accent/50 text-[10px]' }, 'ACTIVE')
+            : h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[10px]', onclick: () => activateWorkspace(w.id) }, 'Activate'),
           w.git_branch ? h('span', { class: 'step-chip text-[10px] font-mono' }, `⎇ ${w.git_branch}`) : null,
           w.detected_framework ? h('span', { class: 'step-chip text-[10px]' }, w.detected_framework) : null)),
       h('p', { class: 'font-mono text-[11px] text-ide-muted break-all', dir: 'ltr' }, w.path || '')))
@@ -635,6 +665,43 @@ async function loadWorkspaces() {
     $('workspaces-out').textContent = '[✗] WORKSPACE REGISTRY UNAVAILABLE';
   }
 }
+async function loadRunnerJobs() {
+  const list = $('runner-jobs-list');
+  try {
+    const { pending_jobs: jobs, count } = await api('/v1/runner/jobs/pending');
+    list.replaceChildren(...(jobs && jobs.length ? jobs.map((j) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-mono text-[11px] font-semibold' }, j.job_id),
+        h('span', { class: 'flex gap-1' },
+          h('span', { class: 'step-chip text-[10px]' }, j.org_id || 'default_org'),
+          h('span', { class: 'step-chip text-[10px]' }, j.project_id || 'default_project'))),
+      h('p', { class: 'text-ide-muted text-[11px] break-words' }, j.task_prompt || '—'),
+      h('p', { class: 'text-ide-faint text-[10px] font-mono' }, `${j.actor_id || '—'} · ${j.policy_version || '—'} · ≤${j.token_ceiling ?? '—'} tok · ≤${j.cost_ceiling_cents ?? '—'}¢ · ${j.created_at || ''}`)))
+      : [h('p', { class: 'text-ide-muted' }, 'Queue empty — no jobs awaiting runner pickup.')]));
+    $('runner-jobs-out').textContent = `[✓] ${count ?? (jobs ? jobs.length : 0)} JOB${(count ?? 0) === 1 ? '' : 'S'} PENDING`;
+  } catch (err) {
+    renderLoadError(list, err, loadRunnerJobs);
+    $('runner-jobs-out').textContent = '[✗] RUNNER QUEUE UNAVAILABLE';
+  }
+}
+async function enqueueRunnerJob(e) {
+  e.preventDefault();
+  const prompt = $('runner-job-prompt').value.trim();
+  const repo = $('runner-job-repo').value.trim();
+  try {
+    const res = await api('/v1/runner/jobs/enqueue', {
+      method: 'POST',
+      body: { task_prompt: prompt, repo_path: repo || '.' },
+    });
+    tone('tick');
+    $('runner-job-prompt').value = '';
+    $('runner-jobs-out').textContent = `[✓] ENQUEUED ${res.job_id} · depth ${res.queue_depth}`;
+    loadRunnerJobs();
+  } catch (err) {
+    toast(err.message, 'err');
+    $('runner-jobs-out').textContent = `[✗] ENQUEUE FAILED — ${err.message}`;
+  }
+}
 async function loadRuns() {
   try { state.runs = (await api('/v1/agent/runs')).runs; } catch { return; }
   renderRuns();
@@ -642,6 +709,18 @@ async function loadRuns() {
 function renderRuns() {
   const runs = state.runs;
   const waiting = runs.filter((r) => r.pending_approval).length;
+  const fleet = $('fleet-strip');
+  if (fleet) {
+    const counts = { running: 0, completed: 0, failed: 0, other: 0 };
+    runs.forEach((r) => { counts[r.status in counts ? r.status : 'other'] += 1; });
+    fleet.replaceChildren(...[
+      metricChip('Runs', String(runs.length)),
+      metricChip('Running', String(counts.running)),
+      metricChip('Awaiting approval', String(waiting)),
+      metricChip('Completed', String(counts.completed)),
+      metricChip('Failed', String(counts.failed)),
+    ]);
+  }
   const dot = $('rail-approval-dot'); dot.textContent = String(waiting); dot.classList.toggle('hidden', !waiting);
   const sb = $('sb-approval'); sb.textContent = fmt('approvalsWaiting', { n: waiting }); sb.classList.toggle('hidden', !waiting);
   $('run-list').replaceChildren(...(runs.length ? runs.map((r) => {
@@ -3291,7 +3370,9 @@ function commands() {
     ['Hardware root of trust', goFeature('security', 'tier2-status-grid')],
     ['Mesh quorum controls', goFeature('security', 'lab-quorum')],
     ['Standing approval rules', goFeature('security', 'rule-list')],
+    ['SBOM supply chain', goFeature('security', 'sbom-grid')],
     ['Workspace registry', goFeature('ops', 'workspaces-list')],
+    ['Runner job queue', goFeature('ops', 'runner-jobs-list')],
     ['P2P compute mesh', goFeature('ops', 'lab-mesh')],
     ['Cross-machine sync', goFeature('ops', 'lab-sync')],
     ['Runner spool', goFeature('ops', 'lab-runner-spool')],
@@ -3618,6 +3699,8 @@ function wire() {
   if ($('airgap-audit-btn')) $('airgap-audit-btn').addEventListener('click', loadAirgapAudit);
   if ($('entitlements-refresh-btn')) $('entitlements-refresh-btn').addEventListener('click', loadEntitlements);
   if ($('workspaces-refresh-btn')) $('workspaces-refresh-btn').addEventListener('click', loadWorkspaces);
+  if ($('runner-jobs-refresh-btn')) $('runner-jobs-refresh-btn').addEventListener('click', loadRunnerJobs);
+  if ($('runner-job-form')) $('runner-job-form').addEventListener('submit', enqueueRunnerJob);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));
