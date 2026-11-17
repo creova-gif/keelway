@@ -7,8 +7,7 @@
 #   KEELWAY_SOURCE_DIR=/path/to/checkout  local source tree
 #   KEELWAY_PACKAGE=<pip spec>            published package (once on PyPI)
 #   KEELWAY_GIT_URL=<git url>             clone + editable install
-#                                        (required for git installs — no default;
-#                                         a public source mirror is not yet published)
+#                                        (default: public canonical repo)
 
 set -eu
 
@@ -38,9 +37,10 @@ fi
 [ -n "$PYTHON" ] || die "Python 3.11+ is required. Install Python 3.11+ or set KEELWAY_PYTHON=/path/to/python3."
 say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-# Resolve install source before touching disk — fail closed with clear
-# instructions when no source checkout, package spec, or explicit git URL
-# is provided. No default git URL: the source mirror is not yet public.
+# Resolve install source before touching disk. Default: clone the public
+# canonical repo (github.com/creova-gif/kora — public since 2026-11-17).
+# KEELWAY_SOURCE_DIR / KEELWAY_PACKAGE still take precedence when set.
+KEELWAY_GIT_URL="${KEELWAY_GIT_URL:-https://github.com/creova-gif/kora.git}"
 if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
     INSTALL_SOURCE="source:${KEELWAY_SOURCE_DIR}"
 elif [ -n "${KEELWAY_PACKAGE:-}" ]; then

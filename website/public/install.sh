@@ -60,8 +60,10 @@ fi
 [ -n "$PYTHON" ] || die "Python 3.11+ is required. Install Python 3.11+ or set KEELWAY_PYTHON=/path/to/python3."
 say "[+] Python runtime:  $("$PYTHON" -c 'import sys; print(sys.version.split()[0])') ($PYTHON)"
 
-# Resolve install source before touching disk — no default git URL: the
-# public source mirror is not yet published, so fail closed with guidance.
+# Resolve install source before touching disk. Default: clone the public
+# canonical repo (github.com/creova-gif/kora — public since 2026-11-17).
+# KEELWAY_SOURCE_DIR / KEELWAY_PACKAGE still take precedence when set.
+KEELWAY_GIT_URL="${KEELWAY_GIT_URL:-https://github.com/creova-gif/kora.git}"
 if [ -n "${KEELWAY_SOURCE_DIR:-}" ] && [ -f "${KEELWAY_SOURCE_DIR}/pyproject.toml" ]; then
     RESOLVED_SOURCE="${KEELWAY_SOURCE_DIR} (local checkout)"
 elif [ -n "${KEELWAY_PACKAGE:-}" ]; then

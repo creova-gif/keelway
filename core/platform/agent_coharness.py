@@ -15,7 +15,7 @@ import uuid
 from core.platform.flight_tape import _canonical_json, _clean_workspace_id, _sha256_json, _utc_now, scrub_flight_text
 from core.platform.kbrain_khub import resolve_kbrain_db_target
 
-VALID_AGENT_HOSTS: Tuple[str, ...] = ("claude_code", "cursor", "codex_cli", "opencode")
+VALID_AGENT_HOSTS: Tuple[str, ...] = ("claude_code", "cursor", "codex_cli", "opencode", "gemini_cli", "hermes_acp")
 VALID_HOOK_MODES: Tuple[str, ...] = ("enforce", "audit_only")
 VALID_TICKET_STATUSES: Tuple[str, ...] = ("PENDING", "APPROVED", "DENIED", "CONSUMED")
 VALID_TICKET_DECISIONS: Tuple[str, ...] = ("APPROVED", "DENIED")
@@ -208,13 +208,16 @@ def _build_hook_config_content(ws: str, host: str, mode: str) -> str:
     adapter_hosts = ("claude_code", "codex_cli", "cursor")
     if host in adapter_hosts:
         # Adapter hosts consume native hook JSON on stdin via `harness agents intercept`/`event`.
-        out_format = "claude-code" if host == "claude_code" else "json"
+        # Cursor accepts the nested Claude-style permissionDecision response.
+        out_format = "json" if host == "codex_cli" else "claude-code"
         pre_cmd = (f"keelway harness agents intercept --agent {host} --payload - "
                    f"--mode {mode} --workspace {ws} --format {out_format}")
         post_cmd = (f"keelway harness agents event --agent {host} --event posttooluse "
                     f"--payload - --workspace {ws}")
         sess_cmd = (f"keelway harness agents event --agent {host} --event sessionstart "
                     f"--payload - --workspace {ws}")
+        end_cmd = (f"keelway harness agents event --agent {host} --event sessionend "
+                   f"--payload - --workspace {ws}")
     else:
         pre_cmd = f"keelway harness intercept --agent {host} --workspace {ws}"
         post_cmd = sess_cmd = ""
@@ -225,10 +228,16 @@ def _build_hook_config_content(ws: str, host: str, mode: str) -> str:
             "SessionStart": [{"hooks": [{"type": "command", "command": sess_cmd}]}],
         }}, indent=2)
     if host == "cursor":
-        return json.dumps({"version": 1, "event": "PreToolUse", "mode": mode, "hooks": {
-            "PreToolUse": [{"command": pre_cmd}],
-            "PostToolUse": [{"command": post_cmd}],
-            "SessionStart": [{"command": sess_cmd}],
+        # Real Cursor hooks.json schema (cursor.com/docs/hooks): lowercase event
+        # names under "hooks", command strings, optional tool_name matcher.
+        # Payload carries Cursor tool names (Shell/Read/Write/Grep/...); the
+        # co-harness classifies on the command string, so matcher is advisory.
+        return json.dumps({"version": 1, "hooks": {
+            "preToolUse": [{"command": pre_cmd,
+                            "matcher": "Shell|Write|Edit|MultiEdit|Delete|Move|NotebookEdit"}],
+            "postToolUse": [{"command": post_cmd}],
+            "sessionStart": [{"command": sess_cmd}],
+            "sessionEnd": [{"command": end_cmd}],
         }}, indent=2)
     if host == "codex_cli":
         return (f'[hooks.PreToolUse]\nevent = "PreToolUse"\nmode = "{mode}"\nworkspace_id = "{ws}"\ncommand = "{pre_cmd}"\n'
@@ -311,6 +320,10 @@ class SQLiteAgentCoharnessEngine:
         ws, _ = _validate_ws_and_limit(workspace_id)
         host = _validate_enum(agent_host, VALID_AGENT_HOSTS, "agent_host")
         clean_mode = _validate_enum(mode, VALID_HOOK_MODES, "mode")
+        if host not in _HOOK_TARGET_PATHS:
+            raise AgentCoharnessValidationError(
+                f"agent_host '{host}' has no hook manifest — ACP-governed agents "
+                "are intercepted via `keelway harness agents acp` permission bridge.")
         target_path = _HOOK_TARGET_PATHS[host]
         content = _build_hook_config_content(ws, host, clean_mode)
         config_sha = "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()

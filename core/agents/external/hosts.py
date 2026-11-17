@@ -126,9 +126,12 @@ class CodexCliAdapter(AgentHostAdapter):
 class CursorAgentAdapter(AgentHostAdapter):
     """Cursor agent CLI (`cursor-agent`) — `.cursor/hooks.json` hooks.
 
-    Payload shape assumed Claude-compatible (`tool_name`/`tool_input`);
-    unverified against a pinned cursor-agent release — treat as audit_only
-    until contract-tested (THIRD_PARTY_AGENT_INTEGRATION.md §6).
+    Contract pinned from cursor.com/docs/hooks + observed payloads: events
+    are lowercase (`preToolUse`/`postToolUse`/`sessionStart`/`sessionEnd`),
+    payload carries Cursor tool names (`Shell`, `Grep`, ...) under
+    `tool_name`/`tool_input`, and the nested Claude-style
+    `permissionDecision` response is accepted. `cwd` may be empty —
+    `workspace_roots` is authoritative.
     """
 
     agent_id = "cursor"
@@ -201,11 +204,117 @@ class OpenCodeAdapter(AgentHostAdapter):
         )
 
 
+class GeminiCliAdapter(AgentHostAdapter):
+    """Gemini CLI (`gemini --acp`) — ACP-capable agent, no hook manifest.
+
+    Governed via `agents acp` (session/request_permission → policy), not
+    via host hooks. `acp_args` are injected by the `agents acp` command.
+    """
+
+    agent_id = "gemini_cli"
+    display_name = "Gemini CLI (ACP)"
+    binary_name = "gemini"
+    hook_event = "session/request_permission"
+    acp_args: tuple = ("--acp",)
+
+    def detect(self) -> AgentDetection:
+        return _detect_binary(self.agent_id, self.binary_name)
+
+    def build_launch(self, workspace_root: Optional[str] = None,
+                     extra_args: Optional[List[str]] = None) -> LaunchSpec:
+        argv = [self.binary_name, *(extra_args or [])]
+        return LaunchSpec(agent_id=self.agent_id, argv=argv,
+                          env=_scrubbed_env(), cwd=workspace_root)
+
+    def parse_hook_payload(self, payload: Dict[str, Any]) -> NormalizedToolCall:
+        # ACP permission-request shape: {toolCall: {title, kind, rawInput}}
+        tc = payload.get("toolCall") or payload.get("tool_call") or {}
+        tc = tc if isinstance(tc, dict) else {}
+        raw = tc.get("rawInput") or tc.get("raw_input") or {}
+        raw = raw if isinstance(raw, dict) else {}
+        # Tolerate hook-style aliases so the same canonical payload works
+        # across delivery mechanisms.
+        alt = payload.get("tool_input") or payload.get("input") or payload.get("args") or {}
+        if isinstance(alt, dict):
+            raw = {**alt, **raw}
+        command = ""
+        for key in ("command", "cmd"):
+            val = raw.get(key)
+            if isinstance(val, str) and val.strip():
+                command = val.strip()
+                break
+        tool_name = str(tc.get("kind") or payload.get("tool") or payload.get("tool_name") or "execute").strip() or "execute"
+        ticket = payload.get("ticket_id") or payload.get("ticketId") or payload.get("approval_ticket")
+        return NormalizedToolCall(
+            agent_id=self.agent_id,
+            tool_name=tool_name,
+            command=command or str(tc.get("title") or "")[:2000],
+            ticket_id=str(ticket).strip() if ticket else None,
+            raw=dict(payload),
+        )
+
+
+class HermesAcpAdapter(AgentHostAdapter):
+    """Hermes Agent (`hermes-acp`) — dedicated ACP stdio server binary."""
+
+    agent_id = "hermes_acp"
+    display_name = "Hermes Agent (ACP)"
+    binary_name = "hermes-acp"
+    hook_event = "session/request_permission"
+    acp_args: tuple = ()
+
+    def detect(self) -> AgentDetection:
+        det = _detect_binary(self.agent_id, self.binary_name)
+        if det.installed:
+            try:
+                proc = subprocess.run([det.binary_path or self.binary_name, "--check"],
+                                      capture_output=True, text=True, timeout=_DETECT_TIMEOUT_S)
+                if proc.returncode != 0:
+                    det = AgentDetection(agent_id=self.agent_id, installed=False,
+                                         binary_path=det.binary_path,
+                                         detail=f"hermes-acp --check failed: {(proc.stderr or proc.stdout).strip()[:200]}")
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        return det
+
+    def build_launch(self, workspace_root: Optional[str] = None,
+                     extra_args: Optional[List[str]] = None) -> LaunchSpec:
+        argv = [self.binary_name, *(extra_args or [])]
+        return LaunchSpec(agent_id=self.agent_id, argv=argv,
+                          env=_scrubbed_env(), cwd=workspace_root)
+
+    def parse_hook_payload(self, payload: Dict[str, Any]) -> NormalizedToolCall:
+        tc = payload.get("toolCall") or payload.get("tool_call") or {}
+        tc = tc if isinstance(tc, dict) else {}
+        raw = tc.get("rawInput") or tc.get("raw_input") or {}
+        raw = raw if isinstance(raw, dict) else {}
+        alt = payload.get("tool_input") or payload.get("input") or payload.get("args") or {}
+        if isinstance(alt, dict):
+            raw = {**alt, **raw}
+        command = ""
+        for key in ("command", "cmd"):
+            val = raw.get(key)
+            if isinstance(val, str) and val.strip():
+                command = val.strip()
+                break
+        tool_name = str(tc.get("kind") or payload.get("tool") or payload.get("tool_name") or "execute").strip() or "execute"
+        ticket = payload.get("ticket_id") or payload.get("ticketId") or payload.get("approval_ticket")
+        return NormalizedToolCall(
+            agent_id=self.agent_id,
+            tool_name=tool_name,
+            command=command or str(tc.get("title") or "")[:2000],
+            ticket_id=str(ticket).strip() if ticket else None,
+            raw=dict(payload),
+        )
+
+
 EXTERNAL_AGENT_ADAPTERS: Dict[str, AgentHostAdapter] = {
     ClaudeCodeAdapter.agent_id: ClaudeCodeAdapter(),
     CodexCliAdapter.agent_id: CodexCliAdapter(),
     CursorAgentAdapter.agent_id: CursorAgentAdapter(),
     OpenCodeAdapter.agent_id: OpenCodeAdapter(),
+    GeminiCliAdapter.agent_id: GeminiCliAdapter(),
+    HermesAcpAdapter.agent_id: HermesAcpAdapter(),
 }
 
 

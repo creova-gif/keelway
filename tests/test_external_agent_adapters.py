@@ -178,7 +178,7 @@ def test_cli_agents_detect(capsys) -> None:
     import json as _json
     out = _json.loads(capsys.readouterr().out)
     ids = {a["agent_id"] for a in out["agents"]}
-    assert ids == {"claude_code", "codex_cli", "cursor", "opencode"}
+    assert ids == {"claude_code", "codex_cli", "cursor", "opencode", "gemini_cli", "hermes_acp"}
     assert "capabilities" in out
 
 
