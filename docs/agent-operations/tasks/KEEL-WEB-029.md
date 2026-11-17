@@ -5,7 +5,7 @@
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-16
 - **BRANCH**: feature/website-kora-content-migration
-- **HEAD COMMIT**: <pending — set at commit>
+- **HEAD COMMIT**: 9041958
 
 #### OBJECTIVE & ACCEPTANCE CRITERIA
 - [x] Inventory `kora-ai/website` content/components/assets and compare against canonical `keelway/website`
