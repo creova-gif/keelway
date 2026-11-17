@@ -65,13 +65,13 @@ describe("Phase 19C — Semantic Prompt Cache, Shadow Dual-Run & QLoRA Distillat
 
     const dlpEval = await evaluateShadowPrompt({
       workspace_id: "default", task_tag: "secret-audit",
-      prompt: "Rotate token sk-live-9876543210secretkey now",
+      prompt: "Rotate token sk-live-EXAMPLE_DLP_LEAK_000 now",
       frontier_response: "Rotated ghp_abcdef1234567890 cleanly",
       local_response: "Stub draft",
     }, "owner");
     expect(dlpEval.verdict).toBe("SHADOW_CAPTURED");
     expect(dlpEval.scrubbed_prompt).toContain("[REDACTED_SECRET]");
-    expect(dlpEval.scrubbed_prompt).not.toContain("sk-live-9876543210secretkey");
+    expect(dlpEval.scrubbed_prompt).not.toContain("sk-live-EXAMPLE_DLP_LEAK_000");
 
     // 4. Switch to Tab 2: QLoRA Distillation & Promotion Gate
     const distillTab = within(panel).getByRole("tab", { name: "QLoRA Distillation & Promotion Gate" });
@@ -87,7 +87,7 @@ describe("Phase 19C — Semantic Prompt Cache, Shadow Dual-Run & QLoRA Distillat
     expect(within(panel).getByTestId("distill-dataset-sha256").textContent).toMatch(/^sha256:[0-9a-f]+/);
     const preview = within(panel).getByLabelText("Compiled QLoRA JSONL preview");
     expect(preview.textContent).toContain('"chosen"');
-    expect(preview.textContent).not.toContain("sk-live-9876543210secretkey");
+    expect(preview.textContent).not.toContain("sk-live-EXAMPLE_DLP_LEAK_000");
 
     await user.selectOptions(within(panel).getByLabelText("Export Format"), "sft_jsonl");
     await user.click(within(panel).getByRole("button", { name: "Compile QLoRA dataset" }));

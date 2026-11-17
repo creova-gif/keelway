@@ -36,7 +36,7 @@ const FLAGSHIP_ENDPOINTS: FlagshipEndpoint[] = [
     description:
       "Unified stateful generation supporting previous_response_id chaining, zero-egress privacy, SSE streaming, and speculative Nano draft acceleration.",
     curl: `curl -X POST http://127.0.0.1:8000/v1/responses \\
-  -H "Authorization: Bearer kw_live_7f3a1c_0123456789abcdef0123456789abcdef" \\
+  -H "Authorization: Bearer kw_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "keelway-core:7b",

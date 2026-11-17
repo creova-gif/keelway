@@ -12,7 +12,7 @@ const SAMPLE_PROMPTS = [
   },
   {
     label: "Tenant Token + Bearer",
-    text: `Replay curl -H "Authorization: Bearer kw_live_9a2f0c_8172635490abcdef1234567890abcdef" against /v1/responses.`,
+    text: `Replay curl -H "Authorization: Bearer kw_live_dec0de_deadbeefdeadbeefdeadbeef00" against /v1/responses.`,
   },
   {
     label: "Database DSN + Email",

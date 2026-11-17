@@ -265,7 +265,7 @@ async def test_python_async_sdk_live_asgi_shadow_cache_and_distillation() -> Non
 
     async with AsyncKeelwayClient(base_url="http://127.0.0.1:7420", token=token, transport=ASGITransport(app=app)) as client:
         ev1 = await client.platform.evaluate_shadow_prompt(
-            "Explain SQLite WAL concurrency with bearer token sk-live-9876543210secret",
+            "Explain SQLite WAL concurrency with bearer token sk-live-EXAMPLE_DLP_LEAK_000secret",
             workspace_id=ws_id,
             task_tag="db-ops",
             frontier_response="Use PRAGMA journal_mode=WAL for concurrent readers.",
@@ -275,7 +275,7 @@ async def test_python_async_sdk_live_asgi_shadow_cache_and_distillation() -> Non
         assert "sk-live-" not in ev1["scrubbed_prompt"]
 
         ev_hit = await client.platform.evaluate_shadow_prompt(
-            "Explain SQLite WAL concurrency with bearer token sk-live-9876543210secret!",
+            "Explain SQLite WAL concurrency with bearer token sk-live-EXAMPLE_DLP_LEAK_000secret!",
             workspace_id=ws_id,
             task_tag="db-ops",
         )

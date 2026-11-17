@@ -195,7 +195,7 @@ export function buildSampleOtelTracePayload(workspaceId = "default"): IngestOtel
       {
         span_id: "span-triage-0", step_index: 0, name: "triage_router", node_name: "triage_router",
         span_kind: "agent", model_id: "gpt-4o",
-        prompt: "Classify enterprise billing discrepancy for acme-prod (Authorization: Bearer sk-live-9876543210secretkey).",
+        prompt: "Classify enterprise billing discrepancy for acme-prod (Authorization: Bearer sk-live-EXAMPLE_DLP_LEAK_000).",
         output: "Routed anomaly to mcp_billing_lookup for ledger reconciliation.",
         input_tokens: 380, output_tokens: 90, cost_usd: 0.0048, duration_ms: 164,
         attributes: { "gen_ai.system": "openai", "gen_ai.operation.name": "agent", "gen_ai.agent.name": "triage_router", "gen_ai.request.model": "gpt-4o", "gen_ai.usage.input_tokens": 380, "gen_ai.usage.output_tokens": 90, "gen_ai.usage.cost_usd": 0.0048 },
