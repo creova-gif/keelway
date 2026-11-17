@@ -511,6 +511,12 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = Fal
                 if self.path.split("?", 1)[0] in ("/", "/studio", "/index.html"):
                     self.send_response(200)
                     self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Security-Policy",
+                        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+                        "font-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; "
+                        "worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
+                    self.send_header("X-Content-Type-Options", "nosniff")
+                    self.send_header("Referrer-Policy", "no-referrer")
                     self.end_headers()
                     self.wfile.write(studio_html.read_bytes())
                 elif self.path == "/health":

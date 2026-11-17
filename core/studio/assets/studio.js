@@ -14,6 +14,13 @@ function h(tag, attrs = {}, ...kids) {
   return el;
 }
 
+// Escape a string for safe interpolation into innerHTML templates.
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function trapFocus(container, e) {
   if (e.key !== 'Tab') return;
   const focusables = Array.from(container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter((el) => {
@@ -913,14 +920,14 @@ async function loadPlugins() {
     listEl.innerHTML = plugins.map((p) => `
       <div class="p-2 rounded bg-ide-bg border border-ide-border space-y-1">
         <div class="flex items-center justify-between font-semibold">
-          <span>${p.name} <span class="text-ide-faint font-normal">v${p.version}</span></span>
-          <span class="chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}">${p.status}</span>
+          <span>${esc(p.name)} <span class="text-ide-faint font-normal">v${esc(p.version)}</span></span>
+          <span class="chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}">${esc(p.status)}</span>
         </div>
-        <p class="text-ide-muted font-sans text-[11px]">${p.description || ''}</p>
-        ${p.active_tools && p.active_tools.length ? `<p class="text-[10px] text-ide-accent">Tools: ${p.active_tools.join(', ')}</p>` : ''}
+        <p class="text-ide-muted font-sans text-[11px]">${esc(p.description || '')}</p>
+        ${p.active_tools && p.active_tools.length ? `<p class="text-[10px] text-accent">Tools: ${esc(p.active_tools.join(', '))}</p>` : ''}
       </div>
     `).join('');
-  } catch (err) { listEl.innerHTML = `<p class="text-danger">${err.message}</p>`; }
+  } catch (err) { listEl.innerHTML = `<p class="text-danger">${esc(err.message)}</p>`; }
 }
 
 async function installPluginForm(e) {
@@ -1008,7 +1015,7 @@ async function loadMeshStatus() {
       });
     }
   } catch (err) {
-    if (list) list.innerHTML = `<div class="text-danger text-xs">[-] Error loading mesh: ${err.message}</div>`;
+    if (list) list.innerHTML = `<div class="text-danger text-xs">[-] Error loading mesh: ${esc(err.message)}</div>`;
   }
 }
 
@@ -1834,9 +1841,9 @@ function renderUnifiedProofStrip(container, data, options = {}) {
   header.className = 'proof-strip-header';
   header.innerHTML = `
     <div class="flex items-center gap-2 flex-wrap">
-      <span class="font-semibold text-xs tracking-wider uppercase text-ide-fg">${modeLabel} Proof Strip</span>
-      <span class="step-chip text-accent border-accent/40 font-mono text-[10px]">${modelBadge}</span>
-      <span class="step-chip text-ide-muted border-ide-border font-mono text-[10px]">${egressChip}</span>
+      <span class="font-semibold text-xs tracking-wider uppercase text-ide-fg">${esc(modeLabel)} Proof Strip</span>
+      <span class="step-chip text-accent border-accent/40 font-mono text-[10px]">${esc(modelBadge)}</span>
+      <span class="step-chip text-ide-muted border-ide-border font-mono text-[10px]">${esc(egressChip)}</span>
     </div>
     <div class="flex items-center gap-2 text-[11px] font-mono">
       <span class="w-2 h-2 rounded-full shrink-0 ${statusBg} ${isActive || isWaiting ? 'pulse' : ''}" aria-hidden="true"></span>
@@ -1873,8 +1880,8 @@ function renderUnifiedProofStrip(container, data, options = {}) {
         .filter(([k]) => k !== 'summary')
         .map(([k, v]) => `
           <div class="flex items-start justify-between gap-4 py-1 border-b border-ide-border/40">
-            <span class="text-ide-muted font-mono uppercase text-[10px]">${k.replace(/([A-Z])/g, '_$1').toLowerCase()}:</span>
-            <span class="text-ide-fg font-mono text-[11px] text-right break-all">${v == null ? 'Not reported' : (typeof v === 'boolean' ? (v ? 'YES' : 'NO') : (Array.isArray(v) ? v.join(', ') : v))}</span>
+            <span class="text-ide-muted font-mono uppercase text-[10px]">${esc(k.replace(/([A-Z])/g, '_$1').toLowerCase())}:</span>
+            <span class="text-ide-fg font-mono text-[11px] text-right break-all">${v == null ? 'Not reported' : (typeof v === 'boolean' ? (v ? 'YES' : 'NO') : esc(Array.isArray(v) ? v.join(', ') : v))}</span>
           </div>
         `).join('');
     }
@@ -1884,15 +1891,15 @@ function renderUnifiedProofStrip(container, data, options = {}) {
         <div class="space-y-1">
           <div class="flex items-center gap-2">
             <span class="w-5 h-5 rounded-full border flex items-center justify-center font-mono text-xs ${badgeClass}">${badgeIcon}</span>
-            <h4 class="font-semibold text-xs text-ide-fg uppercase tracking-wide">Stage ${stage.index}: ${stage.title}</h4>
-            <span class="step-chip ${badgeClass} text-[10px] uppercase font-mono">${stage.status}</span>
+            <h4 class="font-semibold text-xs text-ide-fg uppercase tracking-wide">Stage ${esc(stage.index)}: ${esc(stage.title)}</h4>
+            <span class="step-chip ${badgeClass} text-[10px] uppercase font-mono">${esc(stage.status)}</span>
           </div>
-          <p class="text-xs text-ide-muted">${stage.desc}</p>
+          <p class="text-xs text-ide-muted">${esc(stage.desc)}</p>
         </div>
         <button type="button" class="btn-ghost h-6 w-6 p-0 text-ide-muted hover:text-ide-fg text-xs" aria-label="Close proof drawer" id="${mode}-drawer-close">✕</button>
       </div>
       <div class="mt-3 p-3 bg-ide-sidebar/80 rounded border border-ide-border space-y-1 text-xs">
-        <div class="text-ide-fg font-mono text-[11px] mb-2">${stage.details ? stage.details.summary : ''}</div>
+        <div class="text-ide-fg font-mono text-[11px] mb-2">${stage.details ? esc(stage.details.summary) : ''}</div>
         <div class="space-y-0.5">${detailsHtml}</div>
       </div>
     `;
@@ -1950,9 +1957,9 @@ function renderUnifiedProofStrip(container, data, options = {}) {
     btn.innerHTML = `
       <div class="flex items-center gap-1.5 w-full">
         <span class="proof-strip-badge ${iconClass}" aria-hidden="true">${icon}</span>
-        <span class="proof-strip-label truncate">${stg.label}</span>
+        <span class="proof-strip-label truncate">${esc(stg.label)}</span>
       </div>
-      <div class="proof-strip-sublabel truncate">${stg.status.toUpperCase()}</div>
+      <div class="proof-strip-sublabel truncate">${esc(stg.status).toUpperCase()}</div>
     `;
 
     btn.onclick = () => {
@@ -2753,7 +2760,7 @@ async function loadManifestRegistry() {
       );
     }));
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-danger text-center font-mono">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-danger text-center font-mono">${esc(err.message)}</td></tr>`;
   }
 }
 
@@ -3174,6 +3181,7 @@ function wire() {
   $('signout-btn').addEventListener('click', signOut);
   $('signin-form').addEventListener('submit', signIn);
   $('palette-btn').addEventListener('click', openPalette);
+  $('palette-btn-mobile')?.addEventListener('click', openPalette);
   $('palette-input').addEventListener('input', () => { paletteIdx = 0; renderPalette(); });
   $('palette-input').addEventListener('keydown', paletteKey);
   $('palette').addEventListener('click', (e) => { if (e.target === $('palette')) closePalette(); });
@@ -3189,6 +3197,7 @@ function wire() {
     if (e.key === 'Tab') trapFocus($('onboard'), e);
     else if (e.key === 'Escape') { e.stopPropagation(); endTour(); }
   });
+  $('onboard')?.addEventListener('click', (e) => { if (e.target === $('onboard')) endTour(); });
   $('signin')?.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') trapFocus($('signin'), e);
   });
