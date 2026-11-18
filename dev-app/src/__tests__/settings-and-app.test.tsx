@@ -50,9 +50,19 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
     expect(screen.queryByText(/Prompt version changed:/i)).toBeNull();
     expect(within(rulesTable).getAllByText("Active")).toHaveLength(2);
 
-    // Revoke all is a destructive change: first click arms, second click confirms
-    const revokeAllBtn = screen.getByRole("button", { name: /Revoke all/i });
-    await user.click(revokeAllBtn);
+    // Armed revoke state and progressive-disclosure details stay WCAG-clean
+    const armedRevokeBtn = screen.getByRole("button", { name: /Revoke all/i });
+    await user.click(armedRevokeBtn);
+    expect(screen.getByRole("button", { name: /Confirm revoke all/i })).toBeInTheDocument();
+    expect(await runAxe(document.body)).toHaveNoViolations();
+
+    // Grant provenance lives behind a per-row disclosure
+    const disclosure = rulesTable.querySelector("details");
+    disclosure?.setAttribute("open", "");
+    expect(within(rulesTable).getAllByText(/Bound to model & prompt|No model binding/).length).toBeGreaterThan(0);
+    expect(await runAxe(rulesTable)).toHaveNoViolations();
+
+    // Second click confirms the destructive change -> honest empty state
     await user.click(screen.getByRole("button", { name: /Confirm revoke all/i }));
     expect(screen.getByText("No standing Allow always rules — Keelway asks every time.")).toBeInTheDocument();
   });
