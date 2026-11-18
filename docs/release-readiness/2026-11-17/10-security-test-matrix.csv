@@ -1,0 +1,18 @@
+TEST,THREAT,STATUS,EVIDENCE
+XSS in dynamic rendering,web-console/studio innerHTML,PASS,injected payloads rendered inert (live)
+Default-deny auth,API,PASS,401 no token + 401 bogus token on /v1/workspaces (:7422 auth-required instance)
+RBAC role escalation (mint owner token as auditor),authz,PASS,403 POST /v1/tokens as auditor
+IDOR / workspace substitution (auditor activate+delete),tenancy,PASS,403 lacks execute_agent / approve_tier3
+Path traversal read (../../etc/passwd, abs, %2f),fs routes,PASS,403 resolves outside workspace root, all 3 variants
+Path traversal write (files/save ../evil.txt),fs routes,PASS,403
+Command execution without isolation,terminal/exec,PASS,503 fail-closed: no verified isolation boundary configured
+Webhook forgery (whatsapp no sig),webhooks,PASS,403 Verification failed
+Approval replay/TOCTOU,governance,PARTIAL,explicit boolean required; 400 consistent both calls; no pending-task replay constructed
+Secret leakage in responses,observability,PASS,models/local + entitlements + sync/status clean
+Prompt injection via repo content,agents,UNVERIFIED,needs controlled-agent run
+MCP tool spoofing,tools,UNVERIFIED,
+SSRF / DNS rebinding,net,UNVERIFIED,no fetch-endpoint abuse test built yet
+Sandbox escape,runner,N/A-FAILCLOSED,no isolated runner impl; exec refuses (verified)
+Budget/race,limits,UNVERIFIED,
+Secret leakage in logs/traces,observability,UNVERIFIED,tape inspection pending
+GitHub webhook route,-,MISSING,KEELWAY_GITHUB_WEBHOOK_SECRET env exists; no /github webhook route in OpenAPI

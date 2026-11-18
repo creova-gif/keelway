@@ -1,0 +1,171 @@
+METHOD,PATH,OPERATION_ID,TAGS,TRUTH_STATE
+GET,/,serve_studio__get,Studio,UNVERIFIED
+GET,/console,serve_web_console_console_get,Web Console,UNVERIFIED
+GET,/health,health_check_health_get,System,UNVERIFIED
+GET,/studio,serve_studio_studio_get,Studio,UNVERIFIED
+POST,/v1/agent/approve/{task_id},approve_agent_action_v1_agent_approve__task_id__post,Autonomous Agent Loop,UNVERIFIED
+POST,/v1/agent/builder/pack,pack_agent_bundle_v1_agent_builder_pack_post,Agent Builder,UNVERIFIED
+POST,/v1/agent/builder/scaffold,scaffold_agent_v1_agent_builder_scaffold_post,Agent Builder,UNVERIFIED
+GET,/v1/agent/builder/templates,list_agent_templates_v1_agent_builder_templates_get,Agent Builder,UNVERIFIED
+POST,/v1/agent/builder/unpack,unpack_agent_bundle_v1_agent_builder_unpack_post,Agent Builder,UNVERIFIED
+POST,/v1/agent/cancel/{task_id},cancel_agent_task_v1_agent_cancel__task_id__post,Autonomous Agent Loop,UNVERIFIED
+POST,/v1/agent/quorum-approve/{task_id},quorum_approve_agent_action_v1_agent_quorum_approve__task_id__post,Autonomous Agent Loop,UNVERIFIED
+POST,/v1/agent/run,run_agent_task_v1_agent_run_post,Autonomous Agent Loop,UNVERIFIED
+GET,/v1/agent/runs,list_agent_runs_v1_agent_runs_get,Autonomous Agent Loop,UNVERIFIED
+GET,/v1/agent/status/{task_id},get_agent_status_v1_agent_status__task_id__get,Autonomous Agent Loop,UNVERIFIED
+POST,/v1/agent/step/{task_id},step_agent_tool_v1_agent_step__task_id__post,Autonomous Agent Loop,UNVERIFIED
+GET,/v1/agents/registry,list_registry_manifests_v1_agents_registry_get,Agent Manifest Registry,UNVERIFIED
+POST,/v1/agents/registry,register_agent_manifest_v1_agents_registry_post,Agent Manifest Registry,UNVERIFIED
+GET,/v1/agents/registry/{name}/{version},get_registry_manifest_v1_agents_registry__name___version__get,Agent Manifest Registry,UNVERIFIED
+POST,/v1/agents/registry/{name}/{version}/toggle,toggle_registry_manifest_v1_agents_registry__name___version__toggle_post,Agent Manifest Registry,UNVERIFIED
+POST,/v1/agents/validate,validate_agent_manifest_v1_agents_validate_post,Agent Manifests,UNVERIFIED
+GET,/v1/airgap/audit,run_airgap_audit_v1_airgap_audit_get,Air-Gap & Sovereign Deployment,UNVERIFIED
+POST,/v1/airgap/bundle/export,export_airgap_bundle_v1_airgap_bundle_export_post,Air-Gap & Sovereign Deployment,UNVERIFIED
+POST,/v1/airgap/bundle/verify,verify_airgap_bundle_v1_airgap_bundle_verify_post,Air-Gap & Sovereign Deployment,UNVERIFIED
+GET,/v1/approval-rules,list_approval_rules_v1_approval_rules_get,Autonomous Agent Loop,UNVERIFIED
+DELETE,/v1/approval-rules/{rule_id},revoke_approval_rule_v1_approval_rules__rule_id__delete,Autonomous Agent Loop,UNVERIFIED
+GET,/v1/audit,list_audit_events_v1_audit_get,Auth & Audit,UNVERIFIED
+GET,/v1/audit/anchor,get_audit_head_anchor_v1_audit_anchor_get,Auth & Audit,UNVERIFIED
+POST,/v1/audit/anchor,anchor_audit_head_v1_audit_anchor_post,Auth & Audit,UNVERIFIED
+GET,/v1/audit/export,export_audit_v1_audit_export_get,Auth & Audit,UNVERIFIED
+POST,/v1/audit/export/bundle,export_audit_bundle_v1_audit_export_bundle_post,Enterprise Audit,UNVERIFIED
+GET,/v1/audit/merkle/proof/{seq},get_audit_merkle_proof_v1_audit_merkle_proof__seq__get,Enterprise Audit,UNVERIFIED
+GET,/v1/audit/merkle/root,get_audit_merkle_root_v1_audit_merkle_root_get,Enterprise Audit,UNVERIFIED
+POST,/v1/audit/merkle/verify,verify_audit_merkle_proof_v1_audit_merkle_verify_post,Enterprise Audit,UNVERIFIED
+GET,/v1/audit/verify,verify_audit_v1_audit_verify_get,Auth & Audit,UNVERIFIED
+POST,/v1/auth/pair,pair_phone_v1_auth_pair_post,Auth & Audit,UNVERIFIED
+POST,/v1/auth/pairing-codes,create_phone_pairing_code_v1_auth_pairing_codes_post,Auth & Audit,UNVERIFIED
+GET,/v1/auth/tokens,list_tokens_v1_auth_tokens_get,Auth & Audit,UNVERIFIED
+POST,/v1/auth/tokens,create_token_v1_auth_tokens_post,Auth & Audit,UNVERIFIED
+DELETE,/v1/auth/tokens/{token_id},revoke_token_v1_auth_tokens__token_id__delete,Auth & Audit,UNVERIFIED
+GET,/v1/auth/whoami,whoami_v1_auth_whoami_get,Auth & Audit,UNVERIFIED
+POST,/v1/builder/app/generate,generate_app_v1_builder_app_generate_post,Guided App Builder,UNVERIFIED
+POST,/v1/builder/app/plan,synthesize_app_plan_v1_builder_app_plan_post,Guided App Builder,UNVERIFIED
+GET,/v1/builder/app/templates,list_app_templates_v1_builder_app_templates_get,Guided App Builder,UNVERIFIED
+POST,/v1/chat/message,send_chat_message_v1_chat_message_post,AI Assistant,UNVERIFIED
+GET,/v1/chat/modes,list_chat_modes_v1_chat_modes_get,AI Assistant,UNVERIFIED
+GET,/v1/codebase/definition,codebase_definition_v1_codebase_definition_get,Codebase Intelligence,UNVERIFIED
+GET,/v1/codebase/graph,codebase_dependency_graph_v1_codebase_graph_get,Codebase Intelligence,UNVERIFIED
+GET,/v1/codebase/hierarchy,codebase_call_hierarchy_v1_codebase_hierarchy_get,Codebase Intelligence,UNVERIFIED
+GET,/v1/codebase/references,codebase_references_v1_codebase_references_get,Codebase Intelligence,UNVERIFIED
+GET,/v1/codebase/repomap,codebase_repomap_v1_codebase_repomap_get,Codebase Intelligence,UNVERIFIED
+GET,/v1/codebase/symbols,codebase_symbols_v1_codebase_symbols_get,Codebase Intelligence,UNVERIFIED
+POST,/v1/completions,create_completion_v1_completions_post,Inference,UNVERIFIED
+GET,/v1/doctor,get_system_doctor_report_v1_doctor_get,System Diagnostics,UNVERIFIED
+POST,/v1/editor-sync/open-in-editor,open_in_external_editor_v1_editor_sync_open_in_editor_post,"External Editor Sync,External Editor Sync",UNVERIFIED
+POST,/v1/editor-sync/resolve-conflict,resolve_concurrent_conflict_v1_editor_sync_resolve_conflict_post,"External Editor Sync,External Editor Sync",UNVERIFIED
+GET,/v1/editor-sync/status,get_sync_status_v1_editor_sync_status_get,"External Editor Sync,External Editor Sync",UNVERIFIED
+GET,/v1/entitlements/status,get_entitlements_status_v1_entitlements_status_get,Enterprise Governance,UNVERIFIED
+POST,/v1/evals/drift/compare,compare_evaluation_drift_v1_evals_drift_compare_post,Evaluation & Drift Detection,UNVERIFIED
+GET,/v1/evals/history,list_evaluation_history_v1_evals_history_get,Evaluation & Drift Detection,UNVERIFIED
+POST,/v1/evals/run,run_evaluation_benchmark_v1_evals_run_post,Evaluation & Drift Detection,UNVERIFIED
+GET,/v1/events/stream,stream_events_v1_events_stream_get,Realtime Events,UNVERIFIED
+POST,/v1/evidence/generate,generate_evidence_package_v1_evidence_generate_post,Evidence Room & Audit,UNVERIFIED
+GET,/v1/evidence/summary,get_evidence_summary_v1_evidence_summary_get,Evidence Room & Audit,UNVERIFIED
+POST,/v1/evidence/verify,verify_evidence_package_v1_evidence_verify_post,Evidence Room & Audit,UNVERIFIED
+GET,/v1/files/content,read_workspace_file_v1_files_content_get,Workspace Filesystem,UNVERIFIED
+POST,/v1/files/save,save_workspace_file_v1_files_save_post,Workspace Filesystem,UNVERIFIED
+GET,/v1/files/tree,get_workspace_file_tree_v1_files_tree_get,Workspace Filesystem,UNVERIFIED
+POST,/v1/files/upload,upload_workspace_file_v1_files_upload_post,Workspace Filesystem,UNVERIFIED
+POST,/v1/flight/fork,fork_flight_tape_v1_flight_fork_post,Deterministic Flight Recorder,UNVERIFIED
+GET,/v1/flight/stream,stream_flight_events_v1_flight_stream_get,Deterministic Flight Recorder,UNVERIFIED
+GET,/v1/flight/tape/{task_id},get_flight_tape_v1_flight_tape__task_id__get,Deterministic Flight Recorder,UNVERIFIED
+POST,/v1/flight/tape/{task_id}/fork,fork_flight_tape_endpoint_v1_flight_tape__task_id__fork_post,Flight Recorder,UNVERIFIED
+GET,/v1/flight/tapes,list_flight_tapes_v1_flight_tapes_get,Deterministic Flight Recorder,UNVERIFIED
+POST,/v1/git/commit,create_local_git_commit_v1_git_commit_post,Workspace Git,UNVERIFIED
+GET,/v1/git/diff,get_workspace_git_diff_v1_git_diff_get,Workspace Git,UNVERIFIED
+GET,/v1/git/pr/proposal,get_git_pr_proposal_v1_git_pr_proposal_get,Workspace Git,UNVERIFIED
+GET,/v1/git/proposal,get_git_commit_proposal_v1_git_proposal_get,Workspace Git,UNVERIFIED
+GET,/v1/git/status,get_workspace_git_status_v1_git_status_get,Workspace Git,UNVERIFIED
+POST,/v1/healing/repair,trigger_self_healing_v1_healing_repair_post,Autonomous Self-Healing,UNVERIFIED
+POST,/v1/index/refresh,refresh_codebase_index_v1_index_refresh_post,Codebase Index,UNVERIFIED
+GET,/v1/index/repomap,get_repository_map_v1_index_repomap_get,Codebase Index,UNVERIFIED
+GET,/v1/index/search,search_codebase_symbols_v1_index_search_get,Codebase Index,UNVERIFIED
+POST,/v1/kbrain/fact,record_kbrain_fact_v1_kbrain_fact_post,KBrain,UNVERIFIED
+GET,/v1/kbrain/facts,query_kbrain_facts_v1_kbrain_facts_get,KBrain,UNVERIFIED
+POST,/v1/kflow/dag,create_kflow_dag_v1_kflow_dag_post,KFlow,UNVERIFIED
+GET,/v1/kflow/dag/{flow_id},get_kflow_dag_v1_kflow_dag__flow_id__get,KFlow,UNVERIFIED
+POST,/v1/kflow/dag/{flow_id}/cancel,cancel_kflow_dag_v1_kflow_dag__flow_id__cancel_post,KFlow,UNVERIFIED
+POST,/v1/kflow/dag/{flow_id}/run,run_kflow_dag_v1_kflow_dag__flow_id__run_post,KFlow,UNVERIFIED
+GET,/v1/kflow/dags,list_kflow_dags_v1_kflow_dags_get,KFlow,UNVERIFIED
+POST,/v1/khub/approve,approve_khub_skill_v1_khub_approve_post,KHub,UNVERIFIED
+POST,/v1/khub/bundle/export,export_khub_skill_bundle_v1_khub_bundle_export_post,KHub Universal Skills,UNVERIFIED
+POST,/v1/khub/bundle/import,import_khub_skill_bundle_v1_khub_bundle_import_post,KHub Universal Skills,UNVERIFIED
+POST,/v1/khub/scan,scan_khub_directory_v1_khub_scan_post,KHub,UNVERIFIED
+GET,/v1/khub/skills,list_khub_imported_skills_v1_khub_skills_get,KHub,UNVERIFIED
+GET,/v1/kspaces,list_kspaces_v1_kspaces_get,KSpaces,UNVERIFIED
+POST,/v1/kspaces,create_kspace_v1_kspaces_post,KSpaces,UNVERIFIED
+POST,/v1/kspaces/{space_id}/conflicts/check,check_kspace_conflicts_v1_kspaces__space_id__conflicts_check_post,KSpaces Multi-Tenant,UNVERIFIED
+POST,/v1/kspaces/{space_id}/conflicts/resolve,resolve_kspace_conflicts_v1_kspaces__space_id__conflicts_resolve_post,KSpaces Multi-Tenant,UNVERIFIED
+GET,/v1/kspaces/{space_id}/timeline,get_kspace_timeline_v1_kspaces__space_id__timeline_get,KSpaces Multi-Tenant,UNVERIFIED
+GET,/v1/kstack/skill/{name},inspect_kstack_skill_v1_kstack_skill__name__get,KStack,UNVERIFIED
+GET,/v1/kstack/skills,list_kstack_skills_v1_kstack_skills_get,KStack,UNVERIFIED
+GET,/v1/memories,search_memories_v1_memories_get,Memory,UNVERIFIED
+POST,/v1/memories,create_or_update_memory_v1_memories_post,Memory,UNVERIFIED
+DELETE,/v1/memories/{key},delete_memory_v1_memories__key__delete,Memory,UNVERIFIED
+GET,/v1/memories/{key},get_memory_v1_memories__key__get,Memory,UNVERIFIED
+POST,/v1/mesh/delegate,mesh_delegate_v1_mesh_delegate_post,Local Team Mesh,UNVERIFIED
+POST,/v1/mesh/heartbeat,mesh_heartbeat_v1_mesh_heartbeat_post,Local Team Mesh,UNVERIFIED
+GET,/v1/mesh/peers,list_mesh_peers_v1_mesh_peers_get,Local Team Mesh,UNVERIFIED
+POST,/v1/mesh/prune,mesh_prune_v1_mesh_prune_post,Local Team Mesh,UNVERIFIED
+GET,/v1/mesh/status,mesh_status_v1_mesh_status_get,Local Team Mesh,UNVERIFIED
+GET,/v1/messaging/status,messaging_status_v1_messaging_status_get,Messaging,UNVERIFIED
+POST,/v1/messaging/test,messaging_test_v1_messaging_test_post,Messaging,UNVERIFIED
+GET,/v1/messaging/whatsapp/webhook,whatsapp_verify_v1_messaging_whatsapp_webhook_get,Messaging,UNVERIFIED
+POST,/v1/messaging/whatsapp/webhook,whatsapp_webhook_v1_messaging_whatsapp_webhook_post,Messaging,UNVERIFIED
+GET,/v1/models/economics,get_model_economics_v1_models_economics_get,Models,UNVERIFIED
+GET,/v1/models/ledger,get_model_cost_ledger_v1_models_ledger_get,Models,UNVERIFIED
+GET,/v1/models/ledger/export,export_model_cost_ledger_v1_models_ledger_export_get,Models,UNVERIFIED
+POST,/v1/models/ledger/reset,reset_model_cost_ledger_v1_models_ledger_reset_post,Models,UNVERIFIED
+GET,/v1/models/local,get_local_model_config_v1_models_local_get,Models,UNVERIFIED
+POST,/v1/models/speculative/benchmark,benchmark_speculative_decoding_v1_models_speculative_benchmark_post,Models & Economics,UNVERIFIED
+POST,/v1/orchestration/team/execute,execute_team_workflow_v1_orchestration_team_execute_post,Multi-Agent Orchestration,UNVERIFIED
+POST,/v1/orchestration/team/plan,plan_team_workflow_v1_orchestration_team_plan_post,Multi-Agent Orchestration,UNVERIFIED
+POST,/v1/payments/intent,create_payment_intent_v1_payments_intent_post,Global Sovereign Settlement,UNVERIFIED
+GET,/v1/plugins,list_plugins_v1_plugins_get,Plugins & MCP Extensions,UNVERIFIED
+POST,/v1/plugins/install,install_plugin_v1_plugins_install_post,Plugins & MCP Extensions,UNVERIFIED
+POST,/v1/plugins/mcp/call,call_mcp_tool_v1_plugins_mcp_call_post,Plugins & MCP Extensions,UNVERIFIED
+DELETE,/v1/plugins/{plugin_name},uninstall_plugin_v1_plugins__plugin_name__delete,Plugins & MCP Extensions,UNVERIFIED
+POST,/v1/plugins/{plugin_name}/activate,activate_plugin_v1_plugins__plugin_name__activate_post,Plugins & MCP Extensions,UNVERIFIED
+POST,/v1/plugins/{plugin_name}/deactivate,deactivate_plugin_v1_plugins__plugin_name__deactivate_post,Plugins & MCP Extensions,UNVERIFIED
+GET,/v1/project/info,get_project_info_v1_project_info_get,Workspace Filesystem,UNVERIFIED
+GET,/v1/rbac/matrix,get_rbac_matrix_v1_rbac_matrix_get,Access Control,UNVERIFIED
+POST,/v1/runner/jobs/ack,acknowledge_customer_runner_job_v1_runner_jobs_ack_post,Customer Runner,UNVERIFIED
+POST,/v1/runner/jobs/enqueue,enqueue_customer_runner_job_v1_runner_jobs_enqueue_post,Customer Runner,UNVERIFIED
+GET,/v1/runner/jobs/pending,get_pending_runner_jobs_v1_runner_jobs_pending_get,Customer Runner,UNVERIFIED
+POST,/v1/runner/jobs/poll,poll_customer_runner_jobs_v1_runner_jobs_poll_post,Customer Runner,UNVERIFIED
+GET,/v1/runner/spool/status/{runner_id},get_customer_runner_spool_status_v1_runner_spool_status__runner_id__get,Customer Runner,UNVERIFIED
+POST,/v1/runner/spool/sync,sync_customer_runner_spool_v1_runner_spool_sync_post,Customer Runner,UNVERIFIED
+GET,/v1/sbom,get_cyclonedx_sbom_v1_sbom_get,Enterprise Governance,UNVERIFIED
+GET,/v1/schedules,list_schedules_v1_schedules_get,Scheduling,UNVERIFIED
+POST,/v1/schedules,create_schedule_v1_schedules_post,Scheduling,UNVERIFIED
+DELETE,/v1/schedules/{schedule_id},delete_schedule_v1_schedules__schedule_id__delete,Scheduling,UNVERIFIED
+POST,/v1/studio/airgap,set_air_gap_v1_studio_airgap_post,Studio,UNVERIFIED
+GET,/v1/studio/diff,studio_diff_v1_studio_diff_get,Studio,UNVERIFIED
+GET,/v1/studio/status,studio_status_v1_studio_status_get,Studio,UNVERIFIED
+POST,/v1/sync/export,export_sync_envelope_v1_sync_export_post,Cross-Machine Sync,UNVERIFIED
+POST,/v1/sync/import,import_sync_envelope_v1_sync_import_post,Cross-Machine Sync,UNVERIFIED
+POST,/v1/sync/mutate,record_sync_mutation_v1_sync_mutate_post,Cross-Machine Sync,UNVERIFIED
+GET,/v1/sync/records,list_sync_records_v1_sync_records_get,Cross-Machine Sync,UNVERIFIED
+GET,/v1/sync/status,get_sync_status_v1_sync_status_get,Cross-Machine Sync,UNVERIFIED
+GET,/v1/system/doctor,get_system_doctor_report_v1_system_doctor_get,System Diagnostics,UNVERIFIED
+GET,/v1/tasks,list_tasks_v1_tasks_get,Tasks,UNVERIFIED
+POST,/v1/tasks,create_task_v1_tasks_post,Tasks,UNVERIFIED
+GET,/v1/tasks/{task_id},get_task_v1_tasks__task_id__get,Tasks,UNVERIFIED
+POST,/v1/tasks/{task_id}/transition,transition_task_v1_tasks__task_id__transition_post,Tasks,UNVERIFIED
+POST,/v1/terminal/exec,execute_terminal_command_v1_terminal_exec_post,Workspace Filesystem,UNVERIFIED
+GET,/v1/tier2/status,get_tier2_status_v1_tier2_status_get,Tier 2 Hardware Verification,UNVERIFIED
+POST,/v1/tier2/verify,verify_tier2_subsystem_v1_tier2_verify_post,Tier 2 Hardware Verification,UNVERIFIED
+GET,/v1/tokens,list_api_tokens_v1_tokens_get,Access Control,UNVERIFIED
+POST,/v1/tokens,create_token_endpoint_v1_tokens_post,Access Control,UNVERIFIED
+POST,/v1/tokens/{token_id}/revoke,revoke_token_endpoint_v1_tokens__token_id__revoke_post,Access Control,UNVERIFIED
+POST,/v1/workflows/engineering-brief,generate_engineering_brief_v1_workflows_engineering_brief_post,Workflows,UNVERIFIED
+POST,/v1/workflows/research-summary,generate_research_summary_v1_workflows_research_summary_post,Workflows,UNVERIFIED
+POST,/v1/workflows/sandbox-test,execute_sandboxed_tests_v1_workflows_sandbox_test_post,Workflows,UNVERIFIED
+GET,/v1/workspace,get_workspace_info_v1_workspace_get,Workspace Filesystem,UNVERIFIED
+POST,/v1/workspace/open,open_workspace_v1_workspace_open_post,Workspace Filesystem,UNVERIFIED
+GET,/v1/workspaces,list_workspaces_v1_workspaces_get,Workspace Filesystem,UNVERIFIED
+POST,/v1/workspaces,register_workspace_v1_workspaces_post,Workspace Filesystem,UNVERIFIED
+DELETE,/v1/workspaces/{workspace_id},unregister_workspace_v1_workspaces__workspace_id__delete,Workspace Filesystem,UNVERIFIED
+POST,/v1/workspaces/{workspace_id}/activate,activate_workspace_v1_workspaces__workspace_id__activate_post,Workspace Filesystem,UNVERIFIED
+GET,/web-console,serve_web_console_web_console_get,Web Console,UNVERIFIED
