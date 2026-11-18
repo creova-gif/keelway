@@ -14,7 +14,7 @@ Keelway is a governance and audit platform — security reports get priority han
 
 **Do not open a public issue for a vulnerability.**
 
-Use [GitHub private vulnerability reporting](https://github.com/creova-gif/kora/security/advisories/new)
+Use [GitHub private vulnerability reporting](https://github.com/creova-gif/keelway/security/advisories/new)
 for this repository. That creates a private advisory visible only to
 maintainers — we can coordinate disclosure and credit there.
 

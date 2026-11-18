@@ -21,6 +21,9 @@ echo "================================================================="
 if [ -f ".venv/bin/pytest" ]; then
     PYTEST_BIN=".venv/bin/pytest"
     PYTHON_BIN=".venv/bin/python"
+elif [ -f "../keelway-ai.nosync/.venv/bin/pytest" ]; then
+    PYTEST_BIN="../keelway-ai.nosync/.venv/bin/pytest"
+    PYTHON_BIN="../keelway-ai.nosync/.venv/bin/python"
 elif [ -f "../kora-ai.nosync/.venv/bin/pytest" ]; then
     PYTEST_BIN="../kora-ai.nosync/.venv/bin/pytest"
     PYTHON_BIN="../kora-ai.nosync/.venv/bin/python"

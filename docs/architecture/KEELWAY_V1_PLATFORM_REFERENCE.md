@@ -2,7 +2,7 @@
 
 ## 1. Platform Overview
 
-**Keelway** (`creova-gif/kora`) is a model-agnostic Hybrid AI Platform engineered to treat **Open-Weight models** (including the sovereign **Keelway OpenCore** suite, Qwen, Llama, Mistral, DeepSeek, and Gemma) and **Closed/Proprietary commercial models** (Google Gemini, OpenAI, Anthropic) as equal, first-class citizens behind a single governed control plane.
+**Keelway** (`creova-gif/keelway`) is a model-agnostic Hybrid AI Platform engineered to treat **Open-Weight models** (including the sovereign **Keelway OpenCore** suite, Qwen, Llama, Mistral, DeepSeek, and Gemma) and **Closed/Proprietary commercial models** (Google Gemini, OpenAI, Anthropic) as equal, first-class citizens behind a single governed control plane.
 
 Every inference request passes through deterministic security, privacy, residency, and cost controls before reaching any local or remote runtime.
 

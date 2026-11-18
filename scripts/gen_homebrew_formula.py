@@ -10,7 +10,7 @@ install-time network resolution beyond the pinned artifacts.
 Usage:
     python scripts/gen_homebrew_formula.py \
         --version 1.1.0 \
-        --sdist-url https://github.com/creova-gif/kora/releases/download/v1.1.0/keelway-1.1.0.tar.gz \
+        --sdist-url https://github.com/creova-gif/keelway/releases/download/v1.1.0/keelway-1.1.0.tar.gz \
         --sdist-sha256 87f2ff... \
         --out packaging/homebrew/keelway.rb
 

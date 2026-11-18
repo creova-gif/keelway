@@ -1,7 +1,7 @@
 # Keelway — Product Strategy & Strategic Platform Direction
 
 > **Brand**: Keelway  
-> **Repository**: `https://github.com/creova-gif/kora.git`  
+> **Repository**: `https://github.com/creova-gif/keelway.git`  
 > **Deployment**: `https://kora-sable.vercel.app/`  
 > **Figma Design System**: `https://www.figma.com/design/Q5w3YHx59r2e1bdsVRpGzy/keelway`
 

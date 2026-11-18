@@ -2,7 +2,7 @@
 
 **Review Pipeline:** CEO Review (Step 2) ➔ Design Review (Step 3) ➔ Developer Experience & Eng Review (Step 1)  
 **Status:** **LOCKED FOR IMPLEMENTATION**  
-**Repository:** [`creova-gif/kora`](https://github.com/creova-gif/kora)  
+**Repository:** [`creova-gif/keelway`](https://github.com/creova-gif/keelway)  
 **Primary Target:** Global Developer Ecosystem (Americas, EMEA, APAC, Sovereign Grids)  
 
 ---

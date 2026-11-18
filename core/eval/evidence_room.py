@@ -422,7 +422,7 @@ class EvidenceRoomPipeline:
         )
         summary = {
             "product": "Keelway by Sorvex Labs",
-            "open_core_runtime": "Kora AI Core by Kora Technologies",
+            "open_core_runtime": "Keelway AI Core by Keelway Technologies",
             "commit_sha": commit_sha,
             "git_branch": branch,
             "total_metrics": len(metrics),

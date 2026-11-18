@@ -197,7 +197,7 @@ In strict accordance with Sorvex Labs Product Truth guidelines, Keelway v0.9.0-b
 Clone the repository and install the development environment using Python 3.11+:
 
 ```bash
-git clone https://github.com/creova-gif/kora.git
+git clone https://github.com/creova-gif/keelway.git
 cd kora
 python3 -m venv .venv
 source .venv/bin/activate

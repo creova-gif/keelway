@@ -7,8 +7,8 @@
 
 | Channel | Use for | Visibility |
 |---|---|---|
-| [GitHub issues](https://github.com/creova-gif/kora/issues) | Bugs, feature requests, install problems | Public — tell users to redact logs |
-| [GitHub private advisory](https://github.com/creova-gif/kora/security/advisories/new) | Vulnerabilities, credential leaks | Private — see `SECURITY.md` |
+| [GitHub issues](https://github.com/creova-gif/keelway/issues) | Bugs, feature requests, install problems | Public — tell users to redact logs |
+| [GitHub private advisory](https://github.com/creova-gif/keelway/security/advisories/new) | Vulnerabilities, credential leaks | Private — see `SECURITY.md` |
 | Early-access thread (`KW-…` reference) | Onboarding follow-ups | Issue-tracked |
 
 No email/phone support exists yet — do not promise one in collateral.

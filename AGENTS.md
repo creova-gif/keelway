@@ -2,7 +2,7 @@
 
 > **Authoritative Specification & Operating Contract for All AI Agents**  
 > Applicable to: Google Antigravity, Claude Code, Devin, Cursor, Codex, and gstack.  
-> Target Repository: `https://github.com/creova-gif/kora.git` | Deployment: `https://kora-sable.vercel.app/`
+> Target Repository: `https://github.com/creova-gif/keelway.git` | Deployment: `https://kora-sable.vercel.app/`
 
 ---
 

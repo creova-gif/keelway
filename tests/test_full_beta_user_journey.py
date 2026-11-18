@@ -54,7 +54,7 @@ async def test_full_beta_20_stage_user_journey(tmp_path):
     install_script = Path("website/install.sh")
     assert install_script.exists(), "install.sh must exist in release distribution"
     script_text = install_script.read_text(encoding="utf-8")
-    assert "https://github.com/creova-gif/kora" in script_text or "keelway" in script_text
+    assert "https://github.com/creova-gif/keelway" in script_text or "keelway" in script_text
 
     # -------------------------------------------------------------
     # STAGE 2: Install on Supported Computer (Package Integrity)

@@ -128,7 +128,7 @@ Rationale: No destructive rollbacks; developers explore parallel counterfactual 
 ```
 +─────────────────────────────────────────────────────────────────────────────────────────────────────────+
 | 1. GLOBAL MISSION HEADER (Height: 52px, Sticky)                                                         |
-| [⚡ KEELWAY STUDIO] [Repo: creova-gif/kora] [Engine: Qwen 2.5 7B Edge] [🔒 Air-Gapped] [Egress: 0.0 KB]|
+| [⚡ KEELWAY STUDIO] [Repo: creova-gif/keelway] [Engine: Qwen 2.5 7B Edge] [🔒 Air-Gapped] [Egress: 0.0 KB]|
 +─────────────────────────────────────────────────────────────────────────────────────────────────────────+
 | 2. FLIGHT RECORDER TIME-TRAVEL SCRUBBER (Height: 36px, Sticky Subheader)                                |
 | Tape: task_7420.flight │ [◂ Step] [ ═════════●══ ] Frame 3 of 4 [Step ▸] │ [⑂ Fork Alternate Timeline]  |

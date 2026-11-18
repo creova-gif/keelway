@@ -1,7 +1,7 @@
 # Keelway — `/autoplan` Executive Review & Approval Gate
 
 **Pipeline:** `CEO Review` ➔ `Design Review` ➔ `DX Review` ➔ `Eng Review` (Mandatory Sequence)  
-**Host Platform:** GitHub (`https://github.com/creova-gif/kora.git`) | **Base Branch:** `main`  
+**Host Platform:** GitHub (`https://github.com/creova-gif/keelway.git`) | **Base Branch:** `main`  
 **Decision Principles:** P1 (Completeness) • P2 (Boil Lakes) • P3 (Pragmatic) • P4 (DRY) • P5 (Explicit) • P6 (Action)  
 **Review Status:** **ALL 4 PHASES COMPLETE — FINAL APPROVAL GATE READY**  
 

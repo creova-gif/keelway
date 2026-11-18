@@ -18,7 +18,7 @@
 ```bash
 cosign verify-blob \
   --bundle SHA256SUMS.txt.cosign.bundle \
-  --certificate-identity-regexp 'https://github.com/creova-gif/kora/' \
+  --certificate-identity-regexp 'https://github.com/creova-gif/keelway/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   SHA256SUMS.txt
 sha256sum -c SHA256SUMS.txt
@@ -33,7 +33,7 @@ The `build-and-publish-pypi` job in `.github/workflows/release-pypi.yml`
 uses OIDC trusted publishing — no long-lived token. One-time founder setup:
 
 1. **pypi.org** → create project `keelway` → add trusted publisher:
-   repo `creova-gif/kora`, workflow `release-pypi.yml`, environment `pypi`.
+   repo `creova-gif/keelway`, workflow `release-pypi.yml`, environment `pypi`.
 2. **GitHub** → create environment `pypi` → set repo variable
    `PYPI_PUBLISH_ENABLED=true`.
 

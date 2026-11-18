@@ -526,7 +526,7 @@ def test_website_customer_privacy_and_user_journeys() -> None:
     forbidden_private_tokens = (
         "creova-gif",
         "creovas-projects",
-        "kora.git",
+        "keelway.git",
         "KEEL-MANIFEST-",
         "KEEL-PLATFORM-",
         "KEEL-SEC-",
@@ -544,9 +544,9 @@ def test_website_customer_privacy_and_user_journeys() -> None:
     scanned_files.append(WEBSITE_DIR / "public" / "product-facts.json")
 
     # install.sh legitimately references the now-public canonical repo
-    # (github.com/creova-gif/kora went public 2026-11-17); all other
+    # (github.com/creova-gif/keelway went public 2026-11-17); all other
     # customer-facing files must still not leak internal tokens.
-    repo_url_tokens = {"creova-gif", "kora.git"}
+    repo_url_tokens = {"creova-gif", "keelway.git"}
     for file_path in scanned_files:
         text = file_path.read_text(encoding="utf-8")
         is_installer = file_path.name == "install.sh"
