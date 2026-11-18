@@ -1,0 +1,21 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "Keelway — Hybrid AI & Agent Control Plane",
+    short_name: "Keelway",
+    description:
+      "Run open-weight OpenCore models locally alongside governed commercial Frontier APIs under one unified API.",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#09090B",
+    theme_color: "#09090B",
+    icons: [
+      {
+        src: "/favicon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+      },
+    ],
+  };
+}

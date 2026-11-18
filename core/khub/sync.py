@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import sys
 import tarfile
 import tempfile
 import time
@@ -163,22 +164,21 @@ class KHubBundlePacker:
             raise FileNotFoundError(f"Skill bundle archive '{archive_path}' does not exist.")
 
         destination_dir.mkdir(parents=True, exist_ok=True)
+        dest_resolved = destination_dir.resolve()
+        filter_err = getattr(tarfile, "FilterError", None)
 
         with tarfile.open(archive_path, "r:*") as tar:
-            # 1. Directory traversal detection across all members
-            dest_str = str(destination_dir)
+            # 1. Symlink/hardlink & directory traversal detection across all members
             for member in tar.getmembers():
+                if member.issym() or member.islnk():
+                    raise PermissionError(f"Symlink or hardlink rejected in tar member: {member.name}")
+
                 norm_name = member.name.replace("\\", "/")
                 if norm_name.startswith("/") or norm_name.startswith("../") or "/../" in norm_name or norm_name == "..":
                     raise PermissionError(f"Directory traversal attack detected in tar member: {member.name}")
 
-                target_p = (destination_dir / member.name).resolve()
-                try:
-                    target_p.relative_to(destination_dir)
-                except ValueError:
-                    raise PermissionError(f"Directory traversal attack detected in tar member: {member.name}")
-
-                if not (str(target_p) == dest_str or str(target_p).startswith(dest_str + os.sep)):
+                target_p = (dest_resolved / member.name).resolve()
+                if not target_p.is_relative_to(dest_resolved):
                     raise PermissionError(f"Directory traversal attack detected in tar member: {member.name}")
 
             # 2. Extract manifest
@@ -192,9 +192,17 @@ class KHubBundlePacker:
             except Exception as e:
                 raise ValueError(f"Corrupted or invalid skill_manifest.json: {e}")
 
-            # 3. Extract all files
+            # 3. Extract all files safely
             for member in tar.getmembers():
-                tar.extract(member, path=destination_dir)
+                try:
+                    if sys.version_info >= (3, 12):
+                        tar.extract(member, path=dest_resolved, filter="data")
+                    else:
+                        tar.extract(member, path=dest_resolved)
+                except Exception as exc:
+                    if filter_err is not None and isinstance(exc, filter_err):
+                        raise PermissionError(f"Directory traversal attack detected in tar member: {exc}") from exc
+                    raise
 
         # 4. Digest and tamper verification
         if verify:
@@ -356,26 +364,37 @@ class KHubMirror:
 
         is_archive = mirror_source.is_file() and (str(mirror_source).endswith(".tar.gz") or str(mirror_source).endswith(".tgz"))
         cleanup_temp = False
-
-        if is_archive:
-            temp_extract = Path(tempfile.mkdtemp(prefix="khub_mirror_import_")).resolve()
-            cleanup_temp = True
-            with tarfile.open(mirror_source, "r:*") as tar:
-                # Path traversal check
-                dest_str = str(temp_extract)
-                for member in tar.getmembers():
-                    norm = member.name.replace("\\", "/")
-                    if norm.startswith("/") or norm.startswith("../") or "/../" in norm or norm == "..":
-                        raise PermissionError(f"Directory traversal detected in mirror member: {member.name}")
-                    tp = (temp_extract / member.name).resolve()
-                    if not (str(tp) == dest_str or str(tp).startswith(dest_str + os.sep)):
-                        raise PermissionError(f"Directory traversal detected in mirror member: {member.name}")
-                    tar.extract(member, path=temp_extract)
-            source_root = temp_extract
-        else:
-            source_root = mirror_source
+        temp_extract: Optional[Path] = None
+        filter_err = getattr(tarfile, "FilterError", None)
 
         try:
+            if is_archive:
+                temp_extract = Path(tempfile.mkdtemp(prefix="khub_mirror_import_")).resolve()
+                cleanup_temp = True
+                dest_resolved = temp_extract.resolve()
+                with tarfile.open(mirror_source, "r:*") as tar:
+                    for member in tar.getmembers():
+                        if member.issym() or member.islnk():
+                            raise PermissionError(f"Symlink or hardlink rejected in mirror member: {member.name}")
+                        norm = member.name.replace("\\", "/")
+                        if norm.startswith("/") or norm.startswith("../") or "/../" in norm or norm == "..":
+                            raise PermissionError(f"Directory traversal detected in mirror member: {member.name}")
+                        target_p = (dest_resolved / member.name).resolve()
+                        if not target_p.is_relative_to(dest_resolved):
+                            raise PermissionError(f"Directory traversal detected in mirror member: {member.name}")
+                        try:
+                            if sys.version_info >= (3, 12):
+                                tar.extract(member, path=dest_resolved, filter="data")
+                            else:
+                                tar.extract(member, path=dest_resolved)
+                        except Exception as exc:
+                            if filter_err is not None and isinstance(exc, filter_err):
+                                raise PermissionError(f"Directory traversal detected in mirror member: {exc}") from exc
+                            raise
+                source_root = dest_resolved
+            else:
+                source_root = mirror_source
+
             manifest_file = source_root / "khub-mirror-manifest.json"
             if not manifest_file.is_file():
                 raise FileNotFoundError("khub-mirror-manifest.json not found in mirror source.")
@@ -420,6 +439,6 @@ class KHubMirror:
                 "catalog_digest_sha256": manifest_data.get("catalog_digest_sha256", ""),
             }
         finally:
-            if cleanup_temp:
+            if cleanup_temp and temp_extract is not None:
                 shutil.rmtree(temp_extract, ignore_errors=True)
 

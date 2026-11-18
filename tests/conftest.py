@@ -1,3 +1,4 @@
+import asyncio
 import os
 import tempfile
 import pytest
@@ -6,6 +7,11 @@ import pytest
 if "DATABASE_URL" not in os.environ:
     _test_db = os.path.join(tempfile.gettempdir(), "keelway_test.db")
     os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_test_db}"
+
+# Tests opt into the deterministic dev-only first-party signing key so seeded
+# marketplace manifests remain verifiable. Production must configure a managed
+# key via KEELWAY_MANIFEST_SIGNING_KEY / _SEED / _KEY_FILE instead.
+os.environ.setdefault("KEELWAY_DEV_INSECURE_KEY", "1")
 
 from core.config import settings
 
@@ -85,6 +91,14 @@ def pytest_sessionfinish(session, exitstatus):
         reporter.write_sep("!", "safety_negative checks were skipped, xfailed, deselected, or not collected")
         for line in violations:
             reporter.write_line(line)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _ensure_test_db_schema():
+    """Ensure SQLAlchemy tables (including kora_audit_events) exist on fresh CI SQLite files."""
+    from core.storage.database import init_db
+
+    asyncio.run(init_db())
 
 
 @pytest.fixture(autouse=True)

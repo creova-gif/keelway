@@ -1,4 +1,4 @@
-# Vercel serves only the static landing page in website/. Keelway itself runs locally.
+# Vercel serves the Next.js 15 application in website/ (Root Directory: website).
+# Keelway runtime and Python services run on dedicated OpenCore / cloud hosts.
 /*
 !/website
-!/vercel.json

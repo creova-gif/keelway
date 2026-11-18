@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Keelway Sovereign Dev App — Tokens Rev 4 (Zero-CDN Self-Hosted Spec)
+   Fonts served strictly from loopback /studio/assets/fonts/* under 'self' CSP
+   ========================================================================== */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/studio/assets/fonts/inter-latin-wght.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/studio/assets/fonts/jetbrains-mono-latin-wght.woff2") format("woff2");
+}
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --bg-canvas: #09090b;
+  --bg-chrome: #0c0c0e;
+  --bg-code: #09090b;
+  --bg-surface: #121215;
+  --bg-surface-elevated: #18181b;
+
+  --border-subtle: #27272a;
+  --border-strong: #3f3f46;
+  --border-control: #71717a;
+  --border-focus: #2dd4bf;
+
+  --fg-primary: #fafafa;
+  --fg-muted: #a1a1aa;
+  --fg-dim: #8e8e96;
+  --fg-disabled: #52525b;
+
+  --teal-accent: #2dd4bf;
+  --teal-ink: #042f2e;
+  --teal-surface: rgba(45, 212, 191, 0.12);
+
+  --status-ok: #2dd4bf;
+  --status-ok-subtle: rgba(45, 212, 191, 0.12);
+  --status-ok-ink: #042f2e;
+
+  --attn-ochre: #e4e4e7;
+  --attn-ochre-subtle: rgba(228, 228, 231, 0.12);
+  --attn-ochre-ink: #09090b;
+
+  --status-warning: #d4d4d8;
+  --status-warning-subtle: rgba(212, 212, 216, 0.10);
+  --status-warning-ink: #09090b;
+
+  --status-running: #d4d4d8;
+  --status-running-subtle: rgba(212, 212, 216, 0.10);
+
+  --red-danger: #f87171;
+  --red-surface: rgba(248, 113, 113, 0.12);
+  --red-ink: #2a0606;
+
+  --diff-add-bg: rgba(45, 212, 191, 0.12);
+  --diff-del-bg: rgba(248, 113, 113, 0.12);
+
+  --shell-rail-w: 48px;
+  --shell-sidebar-w: 240px;
+  --shell-review-w: 520px;
+  --shell-inspector-w: 360px;
+  --shell-statusbar-h: 24px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.62);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-canvas: #fafafa;
+  --bg-chrome: #f4f4f5;
+  --bg-code: #fafafa;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f4f4f5;
+
+  --border-subtle: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --border-control: #71717a;
+  --border-focus: #0f766e;
+
+  --fg-primary: #09090b;
+  --fg-muted: #52525b;
+  --fg-dim: #71717a;
+  --fg-disabled: #a1a1aa;
+
+  --teal-accent: #0f766e;
+  --teal-ink: #ffffff;
+  --teal-surface: rgba(15, 118, 110, 0.08);
+
+  --status-ok: #0f766e;
+  --status-ok-subtle: rgba(15, 118, 110, 0.08);
+  --status-ok-ink: #ffffff;
+
+  --attn-ochre: #18181b;
+  --attn-ochre-subtle: rgba(24, 24, 27, 0.08);
+  --attn-ochre-ink: #ffffff;
+
+  --status-warning: #3f3f46;
+  --status-warning-subtle: rgba(63, 63, 70, 0.08);
+  --status-warning-ink: #ffffff;
+
+  --status-running: #52525b;
+  --status-running-subtle: rgba(82, 82, 91, 0.08);
+
+  --red-danger: #b91c1c;
+  --red-surface: rgba(185, 28, 28, 0.08);
+  --red-ink: #ffffff;
+
+  --diff-add-bg: rgba(15, 118, 110, 0.08);
+  --diff-del-bg: rgba(185, 28, 28, 0.08);
+
+  --shadow-popover: 0 8px 24px rgba(9, 9, 11, 0.12);
+  --shadow-modal: 0 20px 48px rgba(9, 9, 11, 0.18);
+}
+
+/* ==========================================================================
+   3-Mode Density System (Default, Compact, Comfortable) + Coarse Pointer
+   ========================================================================== */
+
+:root,
+[data-density="default"] {
+  --row-h: 28px;
+  --task-row-h: 36px;
+  --table-row-h: 32px;
+  --control-h-sm: 26px;
+  --control-h-md: 32px;
+  --font-size-ui: 0.8125rem;
+  --line-height-ui: 1.25rem;
+  --font-size-code: 0.8125rem;
+}
+
+[data-density="compact"] {
+  --row-h: 24px;
+  --task-row-h: 30px;
+  --table-row-h: 28px;
+  --control-h-sm: 24px;
+  --control-h-md: 28px;
+  --font-size-ui: 0.75rem;
+  --line-height-ui: 1.125rem;
+  --font-size-code: 0.75rem;
+}
+
+[data-density="comfortable"] {
+  --row-h: 34px;
+  --task-row-h: 44px;
+  --table-row-h: 40px;
+  --control-h-sm: 32px;
+  --control-h-md: 38px;
+  --font-size-ui: 0.875rem;
+  --line-height-ui: 1.375rem;
+  --font-size-code: 0.8125rem;
+}
+
+@media (pointer: coarse) {
+  :root,
+  [data-density="default"],
+  [data-density="compact"],
+  [data-density="comfortable"] {
+    --control-h-sm: 44px;
+    --control-h-md: 44px;
+    --task-row-h: 44px;
+  }
+}
+
+/* ==========================================================================
+   Base Typography, Focus Indicators, Epistemic Hatching & Bidi Isolation
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  html,
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-ui);
+    line-height: var(--line-height-ui);
+  }
+
+  code,
+  pre,
+  kbd,
+  .font-mono,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+[data-programmatic-focus="true"]:focus {
+  outline: 2px dashed var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Diagonal hatch pattern for [Simulated] epistemic honesty badges */
+.kw-badge-simulated {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    rgba(148, 163, 184, 0.18) 3px,
+    rgba(148, 163, 184, 0.18) 6px
+  );
+  border-style: dashed;
+}
+
+.unicode-bidi-isolate {
+  unicode-bidi: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

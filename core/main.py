@@ -18,6 +18,25 @@ from core.api.studio import router as studio_router
 from core.api.auth_routes import router as auth_router
 from core.api.messaging_routes import relay, router as messaging_router
 from core.api.sync_routes import router as sync_router
+from core.api.opencore_routes import router as opencore_router
+from core.api.responses_routes import router as responses_router
+from core.api.governance_routes import router as governance_router
+from core.api.platform_routes import router as platform_router
+from core.api.platform_runtime_routes import router as platform_runtime_router
+from core.api.platform_mcp_routes import router as platform_mcp_router
+from core.api.platform_kflow_routes import router as platform_kflow_router
+from core.api.platform_enterprise_routes import router as platform_enterprise_router
+from core.api.platform_kbrain_routes import router as platform_kbrain_router
+from core.api.platform_devx_routes import router as platform_devx_routes_router
+from core.api.platform_studio_routes import platform_studio_router
+from core.api.platform_debugger_routes import platform_debugger_router
+from core.api.platform_cyclic_routes import platform_cyclic_router
+from core.api.platform_healing_routes import platform_healing_router
+from core.api.platform_safety_mesh_routes import platform_safety_mesh_router
+from core.api.platform_harness_routes import platform_harness_router
+from core.api.platform_distill_routes import platform_distill_router
+from core.api.platform_supply_chain_routes import platform_supply_chain_router
+from .api.cluster_routes import router as cluster_router
 import asyncio
 from core.security.auth import launch_token
 import os
@@ -28,6 +47,8 @@ logging.basicConfig(
     level=settings.log_level.upper(),
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 logger = logging.getLogger("keelway.core")
 
 
@@ -65,7 +86,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="Keelway Core",
-    version="0.1.0",
+    version="1.1.0",
     description="Shared Intelligence Infrastructure & Multi-Provider Model Gateway.",
     lifespan=lifespan,
 )
@@ -108,12 +129,35 @@ app.include_router(studio_router)
 app.include_router(auth_router)
 app.include_router(messaging_router)
 app.include_router(sync_router)
+app.include_router(opencore_router)
+app.include_router(responses_router)
+app.include_router(governance_router)
+app.include_router(platform_router)
+app.include_router(platform_runtime_router)
+app.include_router(platform_mcp_router)
+app.include_router(platform_kflow_router)
+app.include_router(platform_enterprise_router)
+app.include_router(platform_kbrain_router)
+app.include_router(platform_devx_routes_router)
+app.include_router(platform_studio_router)
+app.include_router(platform_debugger_router)
+app.include_router(platform_cyclic_router)
+app.include_router(platform_healing_router)
+app.include_router(platform_safety_mesh_router)
+app.include_router(platform_harness_router)
+app.include_router(platform_distill_router)
+app.include_router(platform_supply_chain_router)
+app.include_router(cluster_router)
 
-# Mount Keelway Studio Web UI
+# Mount Keelway Studio Web UI & Unified Sovereign Dev App
 studio_dir = Path(__file__).resolve().parent / "studio"
 index_file = studio_dir / "index.html"
 web_console_file = Path(__file__).resolve().parent.parent / "web-console" / "index.html"
+dev_app_dir = Path(__file__).resolve().parent / "dev_app_dist"
+dev_app_index = dev_app_dir / "index.html"
 app.mount("/studio/assets", StaticFiles(directory=studio_dir / "assets"), name="studio-assets")
+if (dev_app_dir / "assets").exists():
+    app.mount("/app/assets", StaticFiles(directory=dev_app_dir / "assets"), name="dev-app-assets")
 
 # Studio is local-first: allow self only (scripts/styles/fonts/workers/connect).
 _STUDIO_CSP = (
@@ -128,6 +172,27 @@ _STUDIO_CSP = (
     "base-uri 'self'; "
     "frame-ancestors 'none'"
 )
+
+
+@app.get("/app", response_class=HTMLResponse, tags=["Studio"], include_in_schema=False)
+@app.get("/app/{subpath:path}", response_class=HTMLResponse, tags=["Studio"], include_in_schema=False)
+async def serve_unified_dev_app(subpath: str = ""):
+    headers = {
+        "Content-Security-Policy": _STUDIO_CSP,
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
+        "Cache-Control": "no-cache",
+    }
+    norm = subpath.lstrip("/")
+    if norm and (norm == "assets" or norm.startswith("assets/")):
+        return HTMLResponse(content="Not Found", status_code=404, headers=headers)
+    if dev_app_index.exists():
+        return HTMLResponse(content=dev_app_index.read_text(encoding="utf-8"), headers=headers)
+    return HTMLResponse(
+        content="<h1>Keelway Unified Dev App</h1><p>Compiled dev-app bundle not found.</p>",
+        status_code=404,
+        headers=headers,
+    )
 
 
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])

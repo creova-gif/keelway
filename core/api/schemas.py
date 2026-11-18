@@ -12,6 +12,7 @@ class Provider(str, Enum):
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
     GOOGLE = "google"
+    GEMINI = "gemini"
     NVIDIA = "nvidia"
     LOCAL = "local"
     OPEN_WEIGHT = "open_weight"
@@ -46,10 +47,12 @@ class ToolDefinitionSchema(BaseModel):
 
 class CompletionRequestSchema(BaseModel):
     messages: List[MessageSchema] = Field(..., min_length=1, description="Conversation messages")
+    model: Optional[str] = Field(default=None, description="Explicit model ID (e.g. 'keelway-core:7b', 'gpt-4o')")
     tools: Optional[List[ToolDefinitionSchema]] = None
     temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     max_tokens: int = Field(default=4096, ge=1, le=128000)
     preferred_provider: Optional[Provider] = None
+    category_preference: Optional[str] = None
     required_capabilities: List[str] = Field(default_factory=list)
     max_cost_usd: Optional[float] = None
     max_latency_ms: Optional[int] = None

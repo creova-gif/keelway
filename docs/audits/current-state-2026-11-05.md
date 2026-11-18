@@ -87,7 +87,7 @@ Each subsystem is strictly evaluated and classified into one of the canonical st
   - Covered by `tests/test_agent_builder.py`.
 
 ### F. Audit Trail & Cryptographic Evidence
-- **`core/flight/recorder.py` (`VERIFIED_TEST`):**
+- **`core/flight/recorder.py` (`VERIFIED_TEST`; erratum KEEL-DOC-034: flight recorder now lives at `core/orchestration/flight_recorder.py` + `core/platform/flight_tape.py`):**
   - Captures fine-grained execution events (`plan_initialized`, `tool_invoked`, `approval_granted`, `verification_passed`).
   - Computes append-only SHA-256 hash chains.
   - Tested in `tests/test_flight_recorder.py`.

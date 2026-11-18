@@ -450,10 +450,11 @@ class AgentBundlePacker:
             raise FileNotFoundError(f"Archive file '{archive_path}' does not exist.")
 
         with tarfile.open(archive_path, "r:gz") as tar:
-            # Prevent zip-slip
+            resolved_dest = destination_dir.resolve()
+            # Prevent zip-slip (including sibling-prefix bypasses such as /tmp/dest_evil vs /tmp/dest)
             for member in tar.getmembers():
-                target_p = (destination_dir / member.name).resolve()
-                if not str(target_p).startswith(str(destination_dir)):
+                target_p = (resolved_dest / member.name).resolve()
+                if not target_p.is_relative_to(resolved_dest):
                     raise PermissionError(f"Directory traversal attack detected in tar member: {member.name}")
 
             try:
@@ -464,7 +465,13 @@ class AgentBundlePacker:
             except Exception as e:
                 raise ValueError(f"Corrupted or missing bundle_manifest.json: {e}")
 
-            tar.extractall(path=destination_dir)
+            try:
+                if sys.version_info >= (3, 12):
+                    tar.extractall(path=destination_dir, filter="data")
+                else:
+                    tar.extractall(path=destination_dir)
+            except tarfile.FilterError as exc:
+                raise PermissionError(f"Directory traversal attack or unsafe tar member detected: {exc}") from exc
 
         if verify:
             for rel, expected_hash in bundle_manifest.get("files", {}).items():
@@ -476,3 +483,9 @@ class AgentBundlePacker:
                     raise ValueError(f"Tampered file detected: {rel} (expected {expected_hash}, got {actual_hash})")
 
         return bundle_manifest
+
+    unpack_bundle = unpack
+
+
+AgentBuilder.pack_bundle = staticmethod(AgentBundlePacker.pack)  # type: ignore[attr-defined]
+AgentBuilder.unpack_bundle = staticmethod(AgentBundlePacker.unpack)  # type: ignore[attr-defined]

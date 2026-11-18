@@ -295,14 +295,18 @@ class CodebaseSemanticIndex:
         self.file_calls[relative_path] = calls
         return symbols
 
-    def index_workspace(self, max_files: int = 200) -> Dict[str, Any]:
+    def index_workspace(self, max_files: int = 500) -> Dict[str, Any]:
         """Indexes all supported code files in the workspace."""
-        tree_res = self.fs.get_file_tree(max_depth=4, max_files=max_files)
+        requested_budget = max(1, int(max_files))
+        code_budget = max(requested_budget, 350) if requested_budget >= 100 else requested_budget
+        tree_res = self.fs.get_file_tree(max_depth=4, max_files=max(code_budget * 5, 1500))
         total_files = 0
         indexed_symbols_count = 0
 
         def _walk(node: Dict[str, Any]):
             nonlocal total_files, indexed_symbols_count
+            if total_files >= code_budget:
+                return
             if node.get("type") == "file":
                 p = node.get("path", "")
                 if p.endswith((".py", ".ts", ".tsx", ".js", ".jsx")):
@@ -311,6 +315,8 @@ class CodebaseSemanticIndex:
                     indexed_symbols_count += len(syms)
             elif node.get("type") == "directory":
                 for child in node.get("children", []):
+                    if total_files >= code_budget:
+                        break
                     _walk(child)
 
         _walk(tree_res.get("tree", {}))

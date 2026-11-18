@@ -1,34 +1,52 @@
-## gstack (REQUIRED — global install)
+# Keelway — Claude Code Operating Guide
 
-**Before doing ANY work, verify gstack is installed:**
+> **Entry Point for Claude Code**  
+> Canonical Engineering Contract: [AGENTS.md](AGENTS.md)  
+> All architecture, security, and testing rules are defined in [AGENTS.md](AGENTS.md).
+
+---
+
+## 1. Fast Orientation
+
+1. **Read Canonical Rules**: Always inspect [AGENTS.md](AGENTS.md) before starting any task.
+2. **Check Active Tasks**: Review [docs/agent-operations/ACTIVE_TASKS.md](docs/agent-operations/ACTIVE_TASKS.md) to locate your assigned work.
+3. **Verify Git State**: Run `git status` and `git branch` to ensure you are on the correct task branch.
+
+---
+
+## 2. Environment & Validation Commands
+
+Keelway runs Python 3.11+ with Pydantic v2 and FastAPI.
 
 ```bash
-_GS=""
-for _D in "${GSTACK_ROOT:-}" "$HOME/.claude/skills/gstack" "$HOME/.codex/skills/gstack" "$HOME/.factory/skills/gstack" "$HOME/.kiro/skills/gstack" "$HOME/.config/opencode/skills/gstack" "$HOME/.slate/skills/gstack" "$HOME/.cursor/skills/gstack" "$HOME/.openclaw/skills/gstack" "$HOME/.hermes/skills/gstack" "$HOME/.gbrain/skills/gstack" "$HOME/.copilot/skills/gstack" "$HOME/.gemini/antigravity-cli/skills/gstack" "$HOME/.gemini/skills/gstack" "$HOME/.gstack/repos/gstack"; do
-  [ -z "$_GS" ] && [ -n "$_D" ] && [ -d "$_D/bin" ] && _GS="$_D"
-done
-[ -n "$_GS" ] && echo "GSTACK_OK: $_GS" || echo "GSTACK_MISSING"
+# Run pytest with virtualenv
+pytest tests/test_<feature>.py -v
+
+# Run entire hybrid AI test suite
+pytest tests/test_hybrid_model_registry.py tests/test_hybrid_adapters.py tests/test_hybrid_routing_and_api.py -v
+
+# Validate syntax
+python3 -m py_compile core/api/routes.py core/models/*.py
 ```
 
-If GSTACK_MISSING: STOP. Do not proceed. Tell the user:
+---
 
-> gstack is required for all AI-assisted work in this repo.
-> Install it:
-> ```bash
-> git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
-> cd ~/.claude/skills/gstack && ./setup --team
-> ```
-> Then restart your AI coding tool.
+## 3. gstack Integration (When Available)
 
-Do not skip skills, ignore gstack errors, or work around missing gstack.
+If gstack is installed on your host machine, utilize structured review commands:
+- `/office-hours`: Product framing and edge-case alignment
+- `/plan-eng-review`: Architecture and fail-closed validation
+- `/review`: Pre-commit engineering review
+- `/qa`: End-to-end functional and regression testing
+- `/ship`: Release preparation and PR verification
 
-Using gstack skills: After install, skills like /qa, /ship, /review
-and /browse are available. Use /browse for all web browsing (Aside first, the bundled gstack browser as fallback).
-Use the resolved install path above for gstack file paths
-(default: ~/.claude/skills/gstack).
+*Note*: If gstack is not installed, follow repository-native review gates in [docs/engineering/QUALITY_GATES.md](docs/engineering/QUALITY_GATES.md). Do not block work if gstack is absent.
 
-The Skill gate in .claude/settings.json runs .claude/hooks/check-gstack.cjs with
-Node.js and blocks when it cannot run. If a skill is blocked with "node: not
-found", tell the user to install Node.js (https://nodejs.org); if it is blocked
-with "Cannot find module ... check-gstack.cjs", the hook file is missing from
-this checkout. Do not work around either block.
+---
+
+## 4. Handoff Requirement
+
+Before completing your session, you **must**:
+1. Commit your verified changes to your task branch.
+2. Update the task handoff in `docs/agent-operations/tasks/<TASK_ID>.md`.
+3. Update [docs/agent-operations/ACTIVE_TASKS.md](docs/agent-operations/ACTIVE_TASKS.md).

@@ -19,6 +19,8 @@ DEFAULT_IGNORED_DIRS = {
     ".venv",
     "venv",
     "dist",
+    "dev_app_dist",
+    ".next",
     "build",
     ".idea",
     ".vscode",

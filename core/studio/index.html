@@ -248,6 +248,11 @@
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span data-i18n="settings">Settings</span>
       </button>
+      <!-- 7. Agent Manifests Inspector -->
+      <button id="rail-manifests-btn" type="button" class="rail-btn" data-section="manifests" aria-current="false" aria-keyshortcuts="Alt+7" title="Agent Manifest Inspector (Alt+7)">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+        <span data-i18n="manifests">Manifests</span>
+      </button>
 
       <!-- Secondary Developer Labs Drawer Trigger -->
       <div class="hidden md:block w-8 mx-auto my-1 border-t border-ide-border/60 md:mt-auto"></div>
@@ -596,7 +601,10 @@
                   <h3 id="registry-title" class="section-title">Agent Manifest Registry</h3>
                   <p class="text-[11px] text-ide-faint">Active agent manifests, cryptographically signed with cost metering and kill-switches.</p>
                 </div>
-                <span id="registry-count" class="chip border-ide-border text-ide-muted text-[10px]">0 manifests</span>
+                <div class="flex items-center gap-1.5">
+                  <span id="registry-count" class="chip border-ide-border text-ide-muted text-[10px]">0 manifests</span>
+                  <button id="registry-open-inspector-btn" type="button" class="btn-outline h-6 px-2 text-[10px]">Open Inspector</button>
+                </div>
               </div>
               <div class="overflow-x-auto">
                 <table class="w-full text-xs">
@@ -1467,6 +1475,174 @@
       </div>
     </section>
 
+    <!-- ========================================== -->
+    <!-- 7. AGENT MANIFESTS INSPECTOR (#manifests)  -->
+    <!-- ========================================== -->
+    <section id="sec-manifests" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="manifests-panel-title">
+      <div id="studio-manifests-panel" class="flex-1 flex flex-col min-w-0 min-h-0">
+        <!-- Header Bar -->
+        <div class="px-4 md:px-6 pt-5 pb-3 border-b border-ide-border bg-ide-sidebar/40 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 id="manifests-panel-title" class="text-lg font-semibold tracking-tight">Agent Manifest Inspector</h2>
+              <span class="step-chip text-accent border-accent/50 font-mono text-[10px]">keelway.agent/v1</span>
+              <span id="manifests-signing-key-badge" class="chip border-ide-border text-ide-muted font-mono text-[10px]">Key unverified</span>
+              <span id="manifests-total-badge" class="chip border-ide-border text-ide-muted font-mono text-[10px]">0 manifests</span>
+            </div>
+            <p class="text-xs text-ide-muted mt-1">Inspect workspace <code class="font-mono">*.agent.json</code> specs and SQLite registry manifests: cryptographic HMAC-SHA256 provenance, kill-switches, tool scopes, USD budgets, and fail-closed security warnings.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="manifests-open-validator-btn" type="button" class="btn-outline h-8 px-3 text-xs flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <span>Validate Custom Manifest JSON</span>
+            </button>
+            <button id="manifests-refresh-btn" type="button" class="btn-primary h-8 px-3 text-xs flex items-center gap-1.5">
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Master-Detail Split Grid -->
+        <div class="px-4 md:px-6 py-4 grid lg:grid-cols-[20rem_minmax(0,1fr)] gap-4 items-start">
+          <!-- Discovered & Registered Manifests List -->
+          <aside class="card flex flex-col overflow-hidden" aria-label="Discovered and Registered Manifests">
+            <div class="p-2.5 border-b border-ide-border bg-ide-sidebar space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="section-title">Discovered Manifests</h3>
+                <span class="text-[10px] font-mono text-ide-faint">Registry + Workspace</span>
+              </div>
+              <label for="manifests-filter-input" class="sr-only">Filter manifests</label>
+              <input id="manifests-filter-input" type="search" class="input w-full text-xs font-mono" placeholder="Filter by name, routing, status…">
+            </div>
+            <ul id="manifests-list" role="listbox" aria-label="Agent Manifests" class="divide-y divide-ide-border max-h-[34rem] overflow-y-auto text-xs">
+              <li class="p-4 text-center text-ide-muted font-mono text-[11px]">Select Manifests to load workspace and registry specs.</li>
+            </ul>
+          </aside>
+
+          <!-- Selected Manifest Inspection Detail -->
+          <div id="manifest-detail-pane" class="space-y-4 min-w-0">
+            <!-- Summary & Actions Card -->
+            <section class="card p-4 space-y-3" aria-labelledby="manifest-selected-title">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="space-y-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 id="manifest-selected-title" class="text-base font-semibold font-mono truncate">No manifest selected</h3>
+                    <div id="manifest-detail-badges" class="flex flex-wrap items-center gap-1.5"></div>
+                  </div>
+                  <p id="manifest-selected-desc" class="text-xs text-ide-muted">Choose an agent manifest from the list to inspect its cryptographic digest, sandbox tier, tool permissions, and canonical specification.</p>
+                  <div id="manifest-selected-meta" class="text-[11px] font-mono text-ide-faint"></div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                  <button id="manifest-toggle-killswitch-btn" type="button" class="btn-outline h-7 px-2.5 text-xs hidden">Kill Switch</button>
+                  <button id="manifest-load-into-validator-btn" type="button" class="btn-outline h-7 px-2.5 text-xs hidden">Load into Validator</button>
+                </div>
+              </div>
+
+              <!-- Cryptographic Digest & Provenance -->
+              <div class="p-3 rounded-lg border border-ide-border bg-ide-bg/70 space-y-1.5">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                  <span class="font-semibold text-ide-muted uppercase tracking-wider">Cryptographic Digest (Canonical SHA-256)</span>
+                  <span id="manifest-signature-meta" class="font-mono text-ide-faint">Unsigned</span>
+                </div>
+                <code id="manifest-digest-value" class="block font-mono text-xs text-accent break-all">—</code>
+              </div>
+
+              <!-- Governance Summary Grid: Autonomy, Sandbox, Routing & Budget -->
+              <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+                  <div class="text-[10px] text-ide-muted uppercase font-mono">Autonomy &amp; Sandbox Tier</div>
+                  <div id="manifest-autonomy-sandbox" class="font-mono font-semibold text-ide-fg">—</div>
+                  <div id="manifest-network-policy" class="text-[11px] font-mono text-ide-muted">Network: —</div>
+                </div>
+                <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+                  <div class="text-[10px] text-ide-muted uppercase font-mono">Routing Policy</div>
+                  <div id="manifest-routing-policy" class="font-mono font-semibold text-ide-fg">—</div>
+                  <div id="manifest-preferred-provider" class="text-[11px] font-mono text-ide-muted">Provider: auto</div>
+                </div>
+                <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+                  <div class="text-[10px] text-ide-muted uppercase font-mono">USD Run Budget</div>
+                  <div id="manifest-budget-usd" class="font-mono font-semibold text-ok">—</div>
+                  <div class="text-[11px] font-mono text-ide-muted">Token-metered hard cap</div>
+                </div>
+                <div class="p-2.5 rounded border border-ide-border bg-ide-sidebar space-y-1">
+                  <div class="text-[10px] text-ide-muted uppercase font-mono">Max Execution Steps</div>
+                  <div id="manifest-budget-steps" class="font-mono font-semibold text-ide-fg">—</div>
+                  <div class="text-[11px] font-mono text-ide-muted">Tool-call guard ceiling</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Security Posture Warnings -->
+            <section class="card p-4 space-y-2" aria-labelledby="manifest-warnings-title">
+              <div class="flex items-center justify-between gap-2">
+                <h3 id="manifest-warnings-title" class="section-title">Security Posture Warnings</h3>
+                <span id="manifest-warnings-count" class="chip border-ide-border text-ide-muted font-mono text-[10px]">0 warnings</span>
+              </div>
+              <ul id="manifest-security-warnings" class="space-y-1.5 text-xs font-mono">
+                <li class="text-ide-muted">Select a manifest to evaluate security posture.</li>
+              </ul>
+            </section>
+
+            <!-- Allowed Tools, Read/Write Globs & Exact Commands -->
+            <section class="card p-4 space-y-3" aria-labelledby="manifest-capabilities-title">
+              <h3 id="manifest-capabilities-title" class="section-title">Allowed Tools, Read/Write Globs &amp; Exact Commands</h3>
+              <div class="grid sm:grid-cols-2 gap-3 text-xs">
+                <div class="p-2.5 rounded border border-ide-border bg-ide-bg/60 space-y-1.5">
+                  <div class="text-[10px] font-mono uppercase text-ide-muted">Declared Tools &amp; MCP Servers</div>
+                  <div id="manifest-tools-list" class="flex flex-wrap gap-1 font-mono text-[11px] text-ide-muted">—</div>
+                </div>
+                <div class="p-2.5 rounded border border-ide-border bg-ide-bg/60 space-y-1.5">
+                  <div class="text-[10px] font-mono uppercase text-ide-muted">Exact Allowed Commands (No Shell Operators)</div>
+                  <div id="manifest-commands-list" class="flex flex-wrap gap-1 font-mono text-[11px] text-ide-muted">—</div>
+                </div>
+                <div class="p-2.5 rounded border border-ide-border bg-ide-bg/60 space-y-1.5">
+                  <div class="text-[10px] font-mono uppercase text-ide-muted">Read Path Globs</div>
+                  <div id="manifest-read-paths" class="flex flex-wrap gap-1 font-mono text-[11px] text-ide-muted">—</div>
+                </div>
+                <div class="p-2.5 rounded border border-ide-border bg-ide-bg/60 space-y-1.5">
+                  <div class="text-[10px] font-mono uppercase text-ide-muted">Write Path Globs</div>
+                  <div id="manifest-write-paths" class="flex flex-wrap gap-1 font-mono text-[11px] text-ide-muted">—</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Canonical JSON -->
+            <section class="card p-4 space-y-2" aria-labelledby="manifest-canonical-title">
+              <div class="flex items-center justify-between gap-2">
+                <h3 id="manifest-canonical-title" class="section-title">Canonical JSON</h3>
+                <span class="text-[10px] font-mono text-ide-faint">Sorted keys · Deterministic digest input</span>
+              </div>
+              <pre id="manifest-canonical-json" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-64 overflow-y-auto bg-ide-bg p-3 rounded border border-ide-border" dir="ltr">Select a manifest to view canonical JSON.</pre>
+            </section>
+          </div>
+        </div>
+
+        <!-- Validate Custom Manifest JSON Drawer / Section -->
+        <div class="px-4 md:px-6 pb-6">
+          <section id="manifest-validator-drawer" class="card p-4 space-y-3" aria-labelledby="manifest-validator-title">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 id="manifest-validator-title" class="font-semibold">Validate Custom Manifest JSON</h3>
+                <p class="text-xs text-ide-muted">Live-validate <code class="font-mono">keelway.agent/v1</code> specifications via <code class="font-mono">POST /v1/studio/manifests/inspect</code> without mutating disk or signing keys.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button id="manifest-validator-sample-btn" type="button" class="btn-ghost h-7 px-2.5 text-xs">Load Sample v1 Spec</button>
+                <button id="manifest-validator-clear-btn" type="button" class="btn-outline h-7 px-2.5 text-xs">Clear</button>
+                <button id="manifest-validator-run-btn" type="button" class="btn-primary h-8 px-3 text-xs">Inspect &amp; Validate JSON</button>
+              </div>
+            </div>
+            <div>
+              <label for="manifest-validator-input" class="sr-only">Custom Manifest JSON</label>
+              <textarea id="manifest-validator-input" rows="9" spellcheck="false" dir="ltr" class="input w-full font-mono text-xs resize-y bg-ide-bg p-3" placeholder="{&#10;  &quot;schema&quot;: &quot;keelway.agent/v1&quot;,&#10;  &quot;name&quot;: &quot;my-agent&quot;,&#10;  &quot;version&quot;: &quot;0.1.0&quot;,&#10;  ...&#10;}"></textarea>
+            </div>
+            <div id="manifest-validator-result" class="rounded-lg border border-ide-border bg-ide-bg p-3 text-xs font-mono text-ide-muted space-y-2" aria-live="polite">
+              Paste or load a manifest JSON object and click Inspect &amp; Validate JSON.
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
     </div>
   </div>
 
@@ -1565,7 +1741,7 @@
 
   <footer class="hidden md:flex h-7 shrink-0 items-center justify-between gap-3 px-3 text-[11px] font-mono bg-ide-status border-t border-ide-border text-ide-faint whitespace-nowrap overflow-hidden cursor-pointer hover:bg-ide-sidebar/60 transition-colors" onclick="toggleStatusBarPopover()">
     <div class="flex items-center gap-3 min-w-0 overflow-hidden"><span id="sb-egress"></span><span id="sb-sent"></span><button id="sb-approval" type="button" class="hidden text-warn hover:underline" onclick="event.stopPropagation()"></button><span id="sb-branch" class="truncate"></span><span id="sb-changes"></span></div>
-    <div class="flex items-center gap-3 shrink-0"><span id="sb-model"></span><span id="sb-db" class="hidden lg:inline"></span><span id="sb-hw" class="hidden lg:inline"></span><span id="sb-mesh" class="hidden lg:inline"></span><span id="sb-ws"></span><svg class="w-3 h-3 text-ide-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+    <div class="flex items-center gap-3 shrink-0"><span id="sb-model"></span><span id="sb-manifests" class="hidden lg:inline"></span><span id="sb-db" class="hidden lg:inline"></span><span id="sb-hw" class="hidden lg:inline"></span><span id="sb-mesh" class="hidden lg:inline"></span><span id="sb-ws"></span><svg class="w-3 h-3 text-ide-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
   </footer>
 
   <div id="palette" class="fixed inset-0 z-50 hidden items-start justify-center pt-[12vh] bg-black/60" role="dialog" aria-modal="true" aria-labelledby="palette-label">
