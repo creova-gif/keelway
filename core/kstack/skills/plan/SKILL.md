@@ -24,3 +24,6 @@ Decomposes an engineering objective into minimal, deterministic file-level steps
 2. Formulate ordered steps: target path, purpose, constraints, and test commands.
 3. Compute blast radius based on import graph depth and shared library touched.
 4. Output structured plan JSON adhering to `outputs`.
+4. Plans must declare the autonomy tier each step requires and which steps need P-10 human approval before they may execute.
+5. A plan that requires cloud egress for classified or private payloads must route those steps to local open-weight models or mark them blocked — plans respect the air-gap invariant.
+6. Steps that mutate the workspace must name their isolation boundary (worktree + checkpoint) before execution begins.

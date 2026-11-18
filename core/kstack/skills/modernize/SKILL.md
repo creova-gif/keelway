@@ -25,3 +25,5 @@ Analyzes package and library dependencies, identifies deprecated AST call sites 
 2. Analyze AST call sites and import statements using the target library.
 3. Compare against target version breaking changes and deprecations.
 4. Draft the minimal, backward-compatible migration plan adhering to `outputs`.
+4. Migration plans must preserve durable state: approval rules, governance policy, flight tapes, and vault records survive dependency changes.
+5. Version drift that invalidates model/prompt-bound approval rules must trigger reconfirm steps in the migration plan.

@@ -24,3 +24,5 @@ Executes test suites within restricted workspace sandboxes, captures exit status
 1. Never invoke network egress unless explicitly configured.
 2. Terminate immediately upon test failure when in fail-fast mode.
 3. Record duration, exit code, and test stdout in sealed execution proof.
+4. Test output and failure traces may enter the flight tape; secrets and credentials in output must be flagged, never reproduced.
+5. A run that leaves the workspace dirty must report the residue; silent cleanup hides state the next run will inherit.
