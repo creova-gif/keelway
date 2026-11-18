@@ -51,7 +51,7 @@ class GlobalPaymentBroker:
         "SATS": 0.00065,  # Bitcoin Satoshis (L402)
     }
 
-    _SOURCE_DEFAULT_SECRET = "KORA_SOVEREIGN_PAYMENT_SECRET_2026"
+    _SOURCE_DEFAULT_SECRET = "KEELWAY_SOVEREIGN_PAYMENT_SECRET_2026"
     _SECRET_ENV = "KEELWAY_PAYMENT_BROKER_SECRET"
 
     def __init__(self, broker_secret: Optional[str] = None):
@@ -101,7 +101,7 @@ class GlobalPaymentBroker:
                 "pix_key": recipient,
                 "amount": f"{amount:.2f}",
                 "tx_id": f"KEELWAY{intent_id[-16:]}",
-                "copia_e_cola": f"00020126580014br.gov.bcb.pix0136{recipient}520400005303986540{amount:.2f}5802BR5907KORA_AI6009SAO_PAULO62070503***6304",
+                "copia_e_cola": f"00020126580014br.gov.bcb.pix0136{recipient}520400005303986540{amount:.2f}5802BR5907KEELWAY6009SAO_PAULO62070503***6304",
             })
 
         elif rail == GlobalRail.UPI:

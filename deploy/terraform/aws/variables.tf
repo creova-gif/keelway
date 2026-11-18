@@ -49,7 +49,7 @@ variable "db_allocated_storage_gb" {
 variable "container_image" {
   description = "Keelway container image"
   type        = string
-  default     = "ghcr.io/creova-gif/kora:latest"
+  default     = "ghcr.io/creova-gif/keelway:latest"
 }
 
 variable "control_plane_cpu" {

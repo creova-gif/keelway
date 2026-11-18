@@ -10,7 +10,7 @@ When historical documents, pitch decks, architectural diagrams, or legacy code c
 ## 1. Product Name and Corporate Identity
 * **Precedence Rule:** The official, canonical name of the product is **Keelway by Sorvex Labs**.
 * **Precedence Order:** Current PRD & Brand Guidelines > Historical ADRs > Legacy Commit History.
-* **Resolution:** All user-facing surfaces (CLI, Studio, documentation, web landing pages, API headers, error messages) MUST display **Keelway**. Internal database table prefixes (`kora_tasks`, `kora_audit_events`) and backward-compatible module aliases are preserved strictly for database migration continuity, not as branding.
+* **Resolution:** All user-facing surfaces (CLI, Studio, documentation, web landing pages, API headers, error messages) MUST display **Keelway**. Per owner decision OD-1 (ADR-001, 2026-11-18) every surface migrates to `keelway_*`, including database table names — `init_db()` renames `kora_*` tables to `keelway_*` on startup for existing installs. The `.kora/` state directory and `legacy_aware()` shims remain for pre-rename installs.
 
 ---
 

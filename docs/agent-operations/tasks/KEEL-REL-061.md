@@ -74,20 +74,42 @@ same release window.
   legacy `kora-ai.nosync` retained as fallback.
 - Verified: 81 + 29 targeted pytest green, `py_compile` clean.
 
+### Phase 2 (2026-11-18, owner: "change everything except the Vercel link and repo")
+- **`kora_*` SQLite tables renamed** to `keelway_*` in `models.py`,
+  `database.py`, `conftest.py`. `init_db()` now renames any pre-existing
+  `kora_%` tables to `keelway_%` on startup (guarded: canonical name wins on
+  conflict, legacy table retained). `decision-precedence.md` updated to
+  supersede the earlier keep-`kora_` decision. New coverage:
+  `tests/test_kora_table_migration.py` (positive migration + conflict path).
+- **Hardcoded default secrets renamed**: `KORA_OMNICHANNEL_SECRET_2026` →
+  `KEELWAY_OMNICHANNEL_SECRET_2026` (messaging.py),
+  `KORA_SOVEREIGN_PAYMENT_SECRET_2026` → `KEELWAY_…` (source_defaults.py,
+  payment_broker.py, test), `KORA_SOVEREIGN_OFFLINE_SALT_2026` →
+  `KEELWAY_…` (ledger.py). Rotating a *default* changes derived values —
+  real deployments must override these anyway.
+- **PIX merchant name** in the copia-e-cola payload `KORA_AI` → `KEELWAY`.
+- **Container images** `ghcr.io/creova-gif/kora` → `keelway` (helm, k8s,
+  terraform aws/gcp). The deploy workflow publishes
+  `ghcr.io/${{ github.repository }}` so builds already emit `keelway`
+  post-rename; the gcr.io default needs one republish before first use.
+- **NOTICE**: product naming → Keelway AI Core; `Kora Technologies` entity
+  copyright and trademark attributions preserved (legal facts).
+- Remaining identifiers: `kora_candidates` → `keelway_candidates`
+  (workflows), sandbox test vars, `cd kora` clone instructions →
+  `cd keelway`, `product-facts.yaml` repo URL, website demo comments.
+- Verified: 132 + 49 targeted pytest green, `py_compile` clean.
+
 ### Intentionally kept (documented, not forgotten)
-- `kora_*` SQLite table names (`kora_tasks`, `kora_audit_events`, …):
-  internal schema identifiers; renaming forces a startup data migration on
-  every existing install for zero user-facing gain. Grandfathered.
-- `.kora` entries in `PROTECTED_PREFIXES`/`PROTECTED_DIRS` and the
-  `legacy_aware()` shims: they protect and serve pre-rename installs —
-  correct by design.
-- `ghcr.io`/`gcr.io` image names `creova-gif/kora` in deploy configs:
-  package names do not follow repo renames; changing them without
-  republishing breaks deploys. Republish under `keelway` is queued below.
+- `.kora` entries in `PROTECTED_PREFIXES`/`PROTECTED_DIRS`, `legacy_aware()`
+  shims, `kora-ai.nosync` fallback probe, `kora.db` legacy filename fallback:
+  they protect and serve pre-rename installs — correct by design.
 - `kora-sable.vercel.app`: still the live deployment domain and referenced
   in the owner's YC application — kept working; cutover is owner-timed.
+- `Kora Technologies` entity attribution in NOTICE and the "Kora" trademark
+  lines: legal facts, altered only by owner counsel.
 - Historical docs (task logs, audits, `docs/archive/`,
-  `docs/release-readiness/2026-11-17/`): records of fact, not rewritten.
+  `docs/release-readiness/2026-11-17/`, roadmap milestones): records of
+  fact, not rewritten.
 
 ### Queued external steps
 - **Vercel project rename** `kora` → `keelway` + new domain assignment;

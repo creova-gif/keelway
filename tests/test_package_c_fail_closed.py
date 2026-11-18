@@ -112,7 +112,7 @@ def test_explicit_fixture_quorum_key_can_collect_a_role():
 
 
 def test_explicit_source_default_payment_secret_creates_no_intent():
-    broker = GlobalPaymentBroker(broker_secret="KORA_SOVEREIGN_PAYMENT_SECRET_2026")
+    broker = GlobalPaymentBroker(broker_secret="KEELWAY_SOVEREIGN_PAYMENT_SECRET_2026")
     with pytest.raises(InsecureDefaultConfiguration):
         broker.create_intent(GlobalRail.OFFLINE_VOUCHER, 10, "USD", "safety-recipient")
     assert broker.intents == {}
@@ -133,7 +133,7 @@ def test_env_payment_secret_enables_intent(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_env_payment_secret_set_to_source_default_still_refused(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setenv("KEELWAY_PAYMENT_BROKER_SECRET", "KORA_SOVEREIGN_PAYMENT_SECRET_2026")
+    monkeypatch.setenv("KEELWAY_PAYMENT_BROKER_SECRET", "KEELWAY_SOVEREIGN_PAYMENT_SECRET_2026")
     broker = GlobalPaymentBroker()
     with pytest.raises(InsecureDefaultConfiguration):
         broker.create_intent(GlobalRail.OFFLINE_VOUCHER, 10, "USD", "safety-recipient")

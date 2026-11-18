@@ -17,7 +17,7 @@ from core.storage.models import MemoryRecord, utc_now
 class SovereignLedger:
     """Tracks token consumption locally without external payment gatekeepers."""
 
-    VOUCHER_SALT = "KORA_SOVEREIGN_OFFLINE_SALT_2026"
+    VOUCHER_SALT = "KEELWAY_SOVEREIGN_OFFLINE_SALT_2026"
 
     @classmethod
     def generate_offline_voucher(cls, code: str, token_quota: int) -> str:

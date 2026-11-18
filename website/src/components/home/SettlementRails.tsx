@@ -75,7 +75,7 @@ const DETAILS: Record<Rail, { title: string; lines: React.ReactNode[] }> = {
 };
 
 /**
- * Multi-rail settlement explorer — migrated from the legacy Kora landing page.
+ * Multi-rail settlement explorer — migrated from the legacy Keelway landing page.
  * Shows how Keelway settles compute, licenses, and agent bounties on regional
  * payment rails for engineers excluded from Stripe/USD card billing.
  */

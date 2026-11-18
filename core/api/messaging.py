@@ -45,7 +45,7 @@ class AgentApprovalRequest:
 class OmnichannelDispatcher:
     """Dispatches actionable approvals and notifications across Telegram, WhatsApp, Mobile, and SMS."""
 
-    def __init__(self, webhook_secret: str = "KORA_OMNICHANNEL_SECRET_2026"):
+    def __init__(self, webhook_secret: str = "KEELWAY_OMNICHANNEL_SECRET_2026"):
         self.webhook_secret = webhook_secret
         self.pending_approvals: Dict[str, AgentApprovalRequest] = {}
 

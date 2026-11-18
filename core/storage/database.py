@@ -78,22 +78,36 @@ async def check_db_health() -> bool:
 async def init_db() -> None:
     """Initialize tables in local/test development with automatic column migration."""
     async with engine.begin() as conn:
+        if is_sqlite:
+            res = await conn.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'kora_%'")
+            )
+            existing = {
+                r[0]
+                for r in (
+                    await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+                ).fetchall()
+            }
+            for (old_name,) in res.fetchall():
+                new_name = f"keelway_{old_name[len('kora_'):]}"
+                if new_name not in existing:
+                    await conn.execute(text(f'ALTER TABLE "{old_name}" RENAME TO "{new_name}"'))
         await conn.run_sync(Base.metadata.create_all)
         if is_sqlite:
             try:
-                res = await conn.execute(text("PRAGMA table_info(kora_memories)"))
+                res = await conn.execute(text("PRAGMA table_info(keelway_memories)"))
                 columns = [row[1] for row in res.fetchall()]
                 if "vector_embedding" not in columns:
-                    await conn.execute(text("ALTER TABLE kora_memories ADD COLUMN vector_embedding JSON"))
+                    await conn.execute(text("ALTER TABLE keelway_memories ADD COLUMN vector_embedding JSON"))
                 if "metadata_json" not in columns:
-                    await conn.execute(text("ALTER TABLE kora_memories ADD COLUMN metadata_json JSON DEFAULT '{}'"))
+                    await conn.execute(text("ALTER TABLE keelway_memories ADD COLUMN metadata_json JSON DEFAULT '{}'"))
             except Exception:
                 pass
-            res = await conn.execute(text("PRAGMA table_info(kora_api_tokens)"))
+            res = await conn.execute(text("PRAGMA table_info(keelway_api_tokens)"))
             if "expires_at" not in [row[1] for row in res.fetchall()]:
-                await conn.execute(text("ALTER TABLE kora_api_tokens ADD COLUMN expires_at DATETIME"))
+                await conn.execute(text("ALTER TABLE keelway_api_tokens ADD COLUMN expires_at DATETIME"))
         else:
-            await conn.execute(text("ALTER TABLE kora_api_tokens ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE"))
+            await conn.execute(text("ALTER TABLE keelway_api_tokens ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE"))
 
 
 async def close_db() -> None:

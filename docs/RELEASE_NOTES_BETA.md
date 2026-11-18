@@ -198,7 +198,7 @@ Clone the repository and install the development environment using Python 3.11+:
 
 ```bash
 git clone https://github.com/creova-gif/keelway.git
-cd kora
+cd keelway
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"

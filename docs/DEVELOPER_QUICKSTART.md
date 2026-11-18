@@ -1,6 +1,6 @@
 # Keelway local quickstart
 
-This guide matches the commands in a clone of [creova-gif/keelway](https://github.com/creova-gif/keelway). The clone directory is `kora`. It does not use a PyPI package named `keelway`, and it does not use a `keelway.dev` or `get.keelway.dev` installer.
+This guide matches the commands in a clone of [creova-gif/keelway](https://github.com/creova-gif/keelway). The clone directory is `keelway`. It does not use a PyPI package named `keelway`, and it does not use a `keelway.dev` or `get.keelway.dev` installer.
 
 Studio, the governance server, and the static site in `website/` are three different surfaces. See `README.md` for the same split. This guide does not print a test pass count.
 
@@ -12,7 +12,7 @@ Python 3.11 or newer.
 
 ```bash
 git clone https://github.com/creova-gif/keelway.git
-cd kora
+cd keelway
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
