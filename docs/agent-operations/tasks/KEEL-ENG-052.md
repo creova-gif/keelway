@@ -47,6 +47,16 @@ These are baselines, not SLOs — no throughput claim beyond the test rig.
 - `pytest tests/test_m6_fault_injection_and_perf.py -v` → **9 passed in 0.31s**
 - `pytest tests/test_m6_crash_recovery.py -v` → **6 passed** (SIGKILL/WAL,
   read-only dir, auto-mkdir, `:memory:` fallback, torn page, concurrent writers)
+- GitHub Actions run `44208133157` (commit `0e548e5`) → **all 4 jobs green**
+  on Python 3.11 and 3.14, including the torn-page test on Linux CI
+
+Torn-page determinism notes (hard-won on CI): the corrupt target is the
+`harness_interceptions` root page from `sqlite_master`, never a guessed
+offset; each detection check runs on its own byte-level copy with a fresh
+first connection (a detecting connection's close-checkpoint can rewrite the
+torn page for later connections); `quick_check` output is asserted as
+`!= "ok"` rather than `pytest.raises` because newer SQLite builds report
+corruption as result rows instead of raising.
 
 ## Follow-on: OS-level crash suite (added 2026-11-17)
 
@@ -59,7 +69,7 @@ filesystem states:
 | Read-only directory | `sqlite3.OperationalError` on open — fails closed |
 | Missing parent dirs | **Auto-created** (`_resolve_sqlite_target` mkdirs) — actual contract |
 | Unwritable parent (file blocks mkdir) | **Silent `:memory:` fallback** — works but evidence is ephemeral. Asserted so a future fail-closed fix can't regress silently; flagged as an evidence-loss surface |
-| Torn page (corrupt page mid-file) | `quick_check` raises `DatabaseError`; first write through the store raises — corruption is lazy, writes surface it |
+| Torn page (corrupt page mid-file) | `quick_check` detects — `DatabaseError` or non-`ok` rows, both accepted (version-dependent); first engine write through a torn copy raises — corruption is lazy, writes surface it |
 | Two writers, one SIGKILLed | `integrity_check ok`; surviving + fresh engine consistent |
 
 ## Known Limits
