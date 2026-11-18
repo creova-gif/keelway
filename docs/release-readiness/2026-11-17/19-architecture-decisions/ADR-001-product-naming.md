@@ -1,6 +1,6 @@
 # ADR-001: Product Naming — Kora vs Keelway
 
-Status: OWNER_DECISION_REQUIRED
+Status: DECIDED — Option 1, **Keelway canonical** (owner decision OD-1, 2026-11-18)
 Date: 2026-11-17
 
 ## Context
@@ -12,7 +12,15 @@ Repository and package paths are named `kora`; product UI, README ("Keelway v1.1
 3. Dual-name policy: Kora = platform/repo codename, Keelway = product name (documented mapping).
 
 ## Decision
-Pending owner. Guardrail: no agent may mass-rename; the `kora`/`keelway` mix stays until OD-1 resolves.
+**Option 1 — Keelway canonical** (owner decision OD-1, 2026-11-18).
+The user-facing product name wins; `kora` migrates to `keelway` as one versioned
+migration tracked under `docs/agent-operations/tasks/KEEL-REL-061.md`.
+Until the migration lands, the `kora`/`keelway` mix stays and no agent may
+mass-rename — the guardrail below still applies.
 
 ## Consequences
-Any rename must cover: package name, binary, API namespace, env var prefix, domains, docs — as one versioned migration.
+The migration must cover — as one versioned migration, not piecemeal renames:
+package name, repo URL (`creova-gif/kora`), binary/CLI entry, API namespace,
+env var prefix, deployment domain (`kora-sable.vercel.app`), and all docs.
+Repo URL redirects make the old clone URL keep working, but remotes should be
+updated in the same release window.
