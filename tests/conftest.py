@@ -13,6 +13,12 @@ if "DATABASE_URL" not in os.environ:
 # key via KEELWAY_MANIFEST_SIGNING_KEY / _SEED / _KEY_FILE instead.
 os.environ.setdefault("KEELWAY_DEV_INSECURE_KEY", "1")
 
+# Components persisting under the state dir (schedules, signing seeds) must
+# never write real user state during tests.
+os.environ.setdefault(
+    "KEELWAY_STATE_DIR", os.path.join(tempfile.gettempdir(), "keelway_test_state")
+)
+
 from core.config import settings
 
 

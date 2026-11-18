@@ -3603,9 +3603,9 @@ class ScheduleCreateRequest(BaseModel):
 async def list_schedules(
     principal: Principal = Depends(current_principal),
 ) -> Dict[str, Any]:
-    """List interval schedules for KFlow DAGs. Schedules are in-memory and reset on restart."""
+    """List interval schedules for KFlow DAGs. Schedules persist under .keelway/ and survive restarts."""
     from core.orchestration.scheduler import flow_scheduler
-    return {"schedules": flow_scheduler.list(), "persistent": False}
+    return {"schedules": flow_scheduler.list(), "persistent": flow_scheduler.persistent}
 
 
 @router.post("/v1/schedules", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Scheduling"])
