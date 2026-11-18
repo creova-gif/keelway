@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, ApprovalRuleItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
+  AgentManifestItem, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
   DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal, GitCommitResult,
   GovernancePersistenceInfo, ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
   P10DiffLine, RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem,
@@ -738,12 +738,15 @@ export function decodeApprovalRule(raw: unknown): ApprovalRuleItem | null {
     createdAtEpoch: asNumber(raw.created_at ?? raw.createdAtEpoch, 0),
     boundModelId: asString(raw.bound_model_id || raw.boundModelId) || null,
     boundPromptVersion: asString(raw.bound_prompt_version || raw.boundPromptVersion) || null,
+    expiresAtEpoch: raw.expires_at || raw.expiresAtEpoch ? asNumber(raw.expires_at ?? raw.expiresAtEpoch, 0) : null,
+    expired: raw.expired === true,
   };
 }
 
-export function decodeApprovalRuleList(raw: unknown): ApprovalRuleItem[] | null {
+export function decodeApprovalRuleList(raw: unknown): ApprovalRulesListResponse | null {
   if (!isRecord(raw) || !Array.isArray(raw.rules)) return null;
-  return raw.rules
+  const rules = raw.rules
     .map((item) => decodeApprovalRule(item))
     .filter((item): item is ApprovalRuleItem => item !== null);
+  return { rules, workspace: asString(raw.workspace, "workspace") };
 }

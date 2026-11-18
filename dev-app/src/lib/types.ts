@@ -320,6 +320,14 @@ export interface ApprovalRuleItem {
   createdAtEpoch: number;
   boundModelId: string | null;
   boundPromptVersion: string | null;
+  expiresAtEpoch: number | null;
+  expired: boolean;
+}
+
+export interface ApprovalRulesListResponse {
+  rules: ApprovalRuleItem[];
+  /** Name of the workspace these rules govern (rules live in that workspace's .keelway/). */
+  workspace: string;
 }
 
 export interface AgentManifestItem {

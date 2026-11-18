@@ -31,6 +31,7 @@ class ApprovalRule:
     created_at: float
     bound_model_id: Optional[str] = None
     bound_prompt_version: Optional[str] = None
+    expires_at: Optional[float] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -66,6 +67,11 @@ def validate_scope(tool_name: str, scope: Any) -> str:
     if _is_protected(norm):
         raise ApprovalRuleError("Keelway and git internals always ask first.")
     return norm
+
+
+def is_expired(rule: "ApprovalRule", now: Optional[float] = None) -> bool:
+    """A rule past its TTL is dormant: it stays on disk for audit but never matches."""
+    return rule.expires_at is not None and rule.expires_at <= (time.time() if now is None else now)
 
 
 def _glob_match(path_parts: tuple, pattern_parts: tuple) -> bool:
@@ -123,14 +129,34 @@ class ApprovalRuleStore:
         tmp.write_text(json.dumps({"version": 1, "rules": [r.to_dict() for r in rules]}, indent=2), encoding="utf-8")
         os.replace(tmp, self.path)
 
-    def add(self, tool_name: str, scope: Any, created_by: str, bound_model_id: Optional[str] = None, bound_prompt_version: Optional[str] = None) -> Tuple[ApprovalRule, bool]:
+    def add(
+        self,
+        tool_name: str,
+        scope: Any,
+        created_by: str,
+        bound_model_id: Optional[str] = None,
+        bound_prompt_version: Optional[str] = None,
+        expires_at: Optional[float] = None,
+        ttl_seconds: Optional[float] = None,
+    ) -> Tuple[ApprovalRule, bool]:
         """Returns (rule, created); an identical existing rule is returned with created=False."""
         scope = validate_scope(tool_name, scope)
+        if expires_at is not None and ttl_seconds is not None:
+            raise ApprovalRuleError("Pass either expires_at or ttl_seconds, not both.")
+        if ttl_seconds is not None:
+            if not isinstance(ttl_seconds, (int, float)) or ttl_seconds <= 0:
+                raise ApprovalRuleError("ttl_seconds must be a positive number.")
+            expires_at = time.time() + ttl_seconds
+        if expires_at is not None:
+            if not isinstance(expires_at, (int, float)):
+                raise ApprovalRuleError("expires_at must be a unix timestamp.")
+            if expires_at <= time.time():
+                raise ApprovalRuleError("expires_at must be in the future.")
         rules = self.list()
         for rule in rules:
             if rule.tool_name == tool_name and rule.scope == scope:
                 return rule, False
-        rule = ApprovalRule(id=f"rule_{secrets.token_hex(6)}", tool_name=tool_name, scope=scope, created_by=created_by, created_at=time.time(), bound_model_id=bound_model_id, bound_prompt_version=bound_prompt_version)
+        rule = ApprovalRule(id=f"rule_{secrets.token_hex(6)}", tool_name=tool_name, scope=scope, created_by=created_by, created_at=time.time(), bound_model_id=bound_model_id, bound_prompt_version=bound_prompt_version, expires_at=expires_at)
         self._save(rules + [rule])
         return rule, True
 
@@ -178,8 +204,11 @@ class ApprovalRuleStore:
         else:
             checks = [arguments]
         for rule in self.list():
-            # Fail closed: a rule bound to a model/prompt only auto-approves that exact
-            # context. Unbound fields act as wildcards so legacy rules still apply.
+            # Fail closed: expired rules are dormant until re-created; a rule bound to
+            # a model/prompt only auto-approves that exact context. Unbound fields
+            # act as wildcards so legacy rules still apply.
+            if is_expired(rule):
+                continue
             if rule.bound_model_id is not None and rule.bound_model_id != model_id:
                 continue
             if rule.bound_prompt_version is not None and rule.bound_prompt_version != prompt_version:

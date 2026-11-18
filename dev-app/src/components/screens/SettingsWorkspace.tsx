@@ -453,6 +453,7 @@ export function SettingsWorkspace({
               scopedRules={controlledScopedRules}
               onUpdateScopedRules={handleUpdateRules}
               activeModelId={currentModelId}
+              workspaceName={workspacePath}
               fetchManifestsFn={fetchManifestsFn}
               toggleManifestFn={toggleManifestFn}
               inspectManifestFn={inspectManifestFn}

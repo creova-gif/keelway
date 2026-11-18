@@ -262,7 +262,7 @@ export function App({
     fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch((err) => noteLoadFailure("codebase symbols", err));
     fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch((err) => noteLoadFailure("studio diff", err));
     fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch((err) => noteLoadFailure("OpenCore weights", err));
-    fetchApprovalRules().then((rules) => { if (!cancelled) setScopedRules(rules); }).catch((err) => noteLoadFailure("approval rules", err));
+    fetchApprovalRules().then((res) => { if (!cancelled) setScopedRules(res.rules); }).catch((err) => noteLoadFailure("approval rules", err));
     fetchAirGapAudit()
       .then((audit) => {
         if (!cancelled && airGapReqSeqRef.current === 0) {

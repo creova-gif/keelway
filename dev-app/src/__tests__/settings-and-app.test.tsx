@@ -67,6 +67,69 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
     expect(screen.getByText("No standing Allow always rules — Keelway asks every time.")).toBeInTheDocument();
   });
 
+
+  it("grants a scoped rule from Settings with scope preview, TTL, and workspace attribution", async () => {
+    const user = userEvent.setup();
+    render(<SettingsWorkspace defaultSubSection="permissions" />);
+    const rulesTable = await screen.findByRole("table", { name: /Scoped Allow always rules/i });
+    expect(within(rulesTable).getByText("dev-app/src/**")).toBeInTheDocument();
+
+    // Workspace attribution — rules are stored per-workspace in .keelway/
+    expect(screen.getByText(/stored in that workspace's \.keelway\/ folder/i)).toBeInTheDocument();
+
+    // Invalid broad pattern is refused by the preview before any network call
+    await user.click(screen.getByText(/Grant a standing rule for this workspace/i));
+    const scopeInput = screen.getByPlaceholderText("dev-app/src/**");
+    await user.type(scopeInput, "**/*");
+    expect(screen.getByText(/matches every file/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Grant rule$/i })).toBeDisabled();
+
+    // Path traversal is refused too
+    await user.clear(scopeInput);
+    await user.type(scopeInput, "../secrets/**");
+    expect(screen.getByText(/relative to the workspace/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Grant rule$/i })).toBeDisabled();
+
+    // A valid scope previews what it matches, then grants bound to model+prompt with TTL
+    await user.clear(scopeInput);
+    await user.type(scopeInput, "src/tmp/**");
+    expect(screen.getByText(/Matches files under "src\/tmp\/\*\*"/i)).toBeInTheDocument();
+    await user.selectOptions(screen.getByRole("combobox", { name: /^Expires$/i }), "86400");
+    await user.click(screen.getByRole("button", { name: /^Grant rule$/i }));
+
+    const newScope = await within(rulesTable).findByText("src/tmp/**");
+    expect(newScope).toBeInTheDocument();
+    expect(await runAxe(document.body)).toHaveNoViolations();
+  });
+
+  it("renders an expired rule as dormant and shows its real expiry timestamp", async () => {
+    const expiredRule = {
+      id: "rule-expired",
+      toolName: "edit_file",
+      scope: "src/legacy/**",
+      createdBy: "owner",
+      createdAtEpoch: 1762987200,
+      boundModelId: "coder-7b@2.5.1",
+      boundPromptVersion: "p-14",
+      expiresAtEpoch: 1763000000,
+      expired: true,
+    };
+    render(
+      <SettingsWorkspace
+        defaultSubSection="permissions"
+        scopedRules={[expiredRule]}
+        onUpdateScopedRules={() => {}}
+      />,
+    );
+    const rulesTable = await screen.findByRole("table", { name: /Scoped Allow always rules/i });
+    expect(within(rulesTable).getByText("Expired")).toBeInTheDocument();
+    // Expired rules never count as drifted — no reconfirm prompt
+    expect(screen.queryByText(/paused until you re-confirm/i)).toBeNull();
+    const disclosure = rulesTable.querySelector("details");
+    disclosure?.setAttribute("open", "");
+    expect(within(rulesTable).getByText(/dormant, kept for audit/i)).toBeInTheDocument();
+  });
+
   it("loads keelway.agent/v1 manifests, toggles Kill-Switch, and validates live manifest JSON via /v1/studio/manifests/inspect", async () => {
     const user = userEvent.setup();
     render(<SettingsWorkspace defaultSubSection="permissions" />);

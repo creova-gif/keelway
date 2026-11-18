@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, ApprovalRuleItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
+  AgentManifestItem, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
   DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal,
   GitCommitResult, GovernancePersistenceInfo, ManifestInspectResult,
   MintedScopedApiKeyResult, OpenCoreWeightItem, RecordLedgerEntry,
@@ -649,6 +649,8 @@ const FALLBACK_APPROVAL_RULES: ApprovalRuleItem[] = [
     createdAtEpoch: 1762987200,
     boundModelId: "coder-7b@2.5.1",
     boundPromptVersion: "p-13",
+    expiresAtEpoch: null,
+    expired: false,
   },
   {
     id: "rule-edit-devapp",
@@ -658,11 +660,13 @@ const FALLBACK_APPROVAL_RULES: ApprovalRuleItem[] = [
     createdAtEpoch: 1762991700,
     boundModelId: "coder-7b@2.5.1",
     boundPromptVersion: "p-13",
+    expiresAtEpoch: null,
+    expired: false,
   },
 ];
 
-export function getFallbackApprovalRules(): ApprovalRuleItem[] {
-  return structuredClone(FALLBACK_APPROVAL_RULES);
+export function getFallbackApprovalRules(): ApprovalRulesListResponse {
+  return { rules: structuredClone(FALLBACK_APPROVAL_RULES), workspace: "default" };
 }
 
 export function getFallbackRevokedRule(rawId: string): ApprovalRuleItem | null {
