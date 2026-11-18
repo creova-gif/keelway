@@ -14,6 +14,7 @@ module.exports = {
           status: 'rgb(var(--ide-status) / <alpha-value>)',
           border: 'rgb(var(--ide-border) / <alpha-value>)',
           tab: 'rgb(var(--ide-tab) / <alpha-value>)',
+          surface: 'rgb(var(--ide-surface) / <alpha-value>)',
           fg: 'rgb(var(--ide-fg) / <alpha-value>)',
           muted: 'rgb(var(--ide-muted) / <alpha-value>)',
           faint: 'rgb(var(--ide-faint) / <alpha-value>)',

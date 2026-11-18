@@ -9,16 +9,38 @@
 :root, [data-theme="dark"] {
   --ide-bg: 11 15 20; --ide-sidebar: 17 22 29; --ide-activity: 11 15 20; --ide-editor: 13 18 24;
   --ide-panel: 17 22 29; --ide-status: 11 15 20; --ide-border: 35 43 54; --ide-tab: 22 28 36;
-  --ide-fg: 230 237 243; --ide-muted: 139 152 168; --ide-faint: 110 122 138;
+  --ide-surface: 22 28 36;
+  --ide-fg: 230 237 243; --ide-muted: 139 152 168; --ide-faint: 120 133 149;
   --accent: 45 212 191; --on-accent: 11 15 20; --ok: 74 222 128; --warn: 245 181 71; --danger: 248 113 113;
   color-scheme: dark;
 }
 [data-theme="light"] {
   --ide-bg: 247 248 250; --ide-sidebar: 255 255 255; --ide-activity: 241 243 246; --ide-editor: 255 255 255;
   --ide-panel: 247 248 250; --ide-status: 241 243 246; --ide-border: 214 219 226; --ide-tab: 255 255 255;
-  --ide-fg: 11 15 20; --ide-muted: 71 85 105; --ide-faint: 100 116 139;
+  --ide-surface: 241 243 246;
+  --ide-fg: 11 15 20; --ide-muted: 71 85 105; --ide-faint: 90 107 130;
   --accent: 15 118 110; --on-accent: 255 255 255; --ok: 21 128 61; --warn: 180 83 9; --danger: 220 38 38;
   color-scheme: light;
+}
+/* High-contrast dark: pure-black surfaces, ≥7:1 text, ≥3:1 component borders. */
+[data-theme="hc"] {
+  --ide-bg: 0 0 0; --ide-sidebar: 0 0 0; --ide-activity: 0 0 0; --ide-editor: 0 0 0;
+  --ide-panel: 0 0 0; --ide-status: 0 0 0; --ide-border: 148 163 184; --ide-tab: 0 0 0;
+  --ide-surface: 15 18 24;
+  --ide-fg: 255 255 255; --ide-muted: 226 232 240; --ide-faint: 203 213 225;
+  --accent: 94 234 212; --on-accent: 0 0 0; --ok: 134 239 172; --warn: 253 224 71; --danger: 252 165 165;
+  color-scheme: dark;
+}
+/* Honor OS "increase contrast" unless the user explicitly chose light. */
+@media (prefers-contrast: more) {
+  :root:not([data-theme="light"]) {
+    --ide-bg: 0 0 0; --ide-sidebar: 0 0 0; --ide-activity: 0 0 0; --ide-editor: 0 0 0;
+    --ide-panel: 0 0 0; --ide-status: 0 0 0; --ide-border: 148 163 184; --ide-tab: 0 0 0;
+    --ide-surface: 15 18 24;
+    --ide-fg: 255 255 255; --ide-muted: 226 232 240; --ide-faint: 203 213 225;
+    --accent: 94 234 212; --on-accent: 0 0 0; --ok: 134 239 172; --warn: 253 224 71; --danger: 252 165 165;
+    color-scheme: dark;
+  }
 }
 
 html, body { background: rgb(var(--ide-bg)); color: rgb(var(--ide-fg)); }

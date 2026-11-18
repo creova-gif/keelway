@@ -3440,3 +3440,135 @@ async def export_audit_bundle(
 
 
 
+
+
+# ---------------------------------------------------------------------------
+# Access Tokens & RBAC Administration
+# ---------------------------------------------------------------------------
+
+class TokenCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    role: str = Field(..., description="RBAC role: owner|admin|engineer|auditor|phone")
+    expires_in_days: Optional[int] = Field(default=None, ge=1, le=3650)
+
+
+@router.get("/v1/rbac/matrix", tags=["Access Control"])
+async def get_rbac_matrix(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Return the role → permission matrix exactly as enforced by the RBAC subsystem."""
+    from core.security.rbac import ROLE_PERMISSIONS
+    return {
+        "roles": {role.value: [p.value for p in perms] for role, perms in ROLE_PERMISSIONS.items()},
+        "permissions": [p.value for p in Permission],
+    }
+
+
+@router.get("/v1/tokens", dependencies=[Depends(require(Permission.MANAGE_KEYS))], tags=["Access Control"])
+async def list_api_tokens(
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """List API tokens (hashes are never returned). Owner role required."""
+    from sqlalchemy import select
+    from core.storage.models import ApiTokenRecord
+    rows = (await db.execute(select(ApiTokenRecord).order_by(ApiTokenRecord.created_at))).scalars().all()
+    return {
+        "tokens": [
+            {
+                "id": r.id,
+                "name": r.name,
+                "role": r.role,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "last_used_at": r.last_used_at.isoformat() if r.last_used_at else None,
+                "revoked": r.revoked_at is not None,
+                "expires_at": r.expires_at.isoformat() if r.expires_at else None,
+            }
+            for r in rows
+        ]
+    }
+
+
+@router.post("/v1/tokens", dependencies=[Depends(require(Permission.MANAGE_KEYS))], tags=["Access Control"])
+async def create_token_endpoint(
+    request: TokenCreateRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """Mint a new API token. The plaintext token is returned once and never stored."""
+    from datetime import datetime, timedelta, timezone
+    from core.security.auth import create_api_token
+    try:
+        role = Role(request.role)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Unknown role '{request.role}'. Valid: {[r.value for r in Role]}")
+    expires_at = None
+    if request.expires_in_days:
+        expires_at = datetime.now(timezone.utc) + timedelta(days=request.expires_in_days)
+    record, token = await create_api_token(db, request.name, role, expires_at=expires_at)
+    return {
+        "id": record.id,
+        "name": record.name,
+        "role": record.role,
+        "token": token,
+        "expires_at": record.expires_at.isoformat() if record.expires_at else None,
+        "note": "Store this token now; only its hash is kept.",
+    }
+
+
+@router.post("/v1/tokens/{token_id}/revoke", dependencies=[Depends(require(Permission.MANAGE_KEYS))], tags=["Access Control"])
+async def revoke_token_endpoint(
+    token_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """Revoke an API token by id. Revocation is immediate and irreversible."""
+    from datetime import datetime, timezone
+    from core.storage.models import ApiTokenRecord
+    record = await db.get(ApiTokenRecord, token_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"No token with id '{token_id}'.")
+    if record.revoked_at is None:
+        record.revoked_at = datetime.now(timezone.utc)
+    return {"id": record.id, "revoked": True}
+
+
+# ---------------------------------------------------------------------------
+# KFlow Interval Scheduling (in-memory, process-scoped)
+# ---------------------------------------------------------------------------
+
+class ScheduleCreateRequest(BaseModel):
+    flow_id: str = Field(..., min_length=1)
+    interval_seconds: int = Field(..., ge=60, description="Run interval in seconds (minimum 60)")
+
+
+@router.get("/v1/schedules", tags=["Scheduling"])
+async def list_schedules(
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """List interval schedules for KFlow DAGs. Schedules are in-memory and reset on restart."""
+    from core.orchestration.scheduler import flow_scheduler
+    return {"schedules": flow_scheduler.list(), "persistent": False}
+
+
+@router.post("/v1/schedules", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Scheduling"])
+async def create_schedule(
+    request: ScheduleCreateRequest,
+) -> Dict[str, Any]:
+    """Schedule a registered KFlow DAG to re-run on an interval."""
+    from core.orchestration.scheduler import flow_scheduler
+    try:
+        sched = flow_scheduler.add(request.flow_id, request.interval_seconds)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return sched.to_dict()
+
+
+@router.delete("/v1/schedules/{schedule_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Scheduling"])
+async def delete_schedule(
+    schedule_id: str,
+) -> Dict[str, Any]:
+    """Remove a schedule. The DAG itself is unaffected."""
+    from core.orchestration.scheduler import flow_scheduler
+    if not flow_scheduler.remove(schedule_id):
+        raise HTTPException(status_code=404, detail=f"Schedule '{schedule_id}' not found.")
+    return {"deleted": True, "schedule_id": schedule_id}

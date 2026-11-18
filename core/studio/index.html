@@ -10,16 +10,15 @@
   <link rel="preload" href="/studio/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/studio/assets/studio.css">
   <link rel="stylesheet" href="/studio/assets/monaco/vs/editor/editor.main.css">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'">
   <style>
     /* Self-hosted Inter + JetBrains Mono only (vendored under /studio/assets/fonts). */
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
     code, pre, kbd, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-    /* Density Modes (keelway.fig Artboard 06) */
-    [data-density="compact"] .task-item, [data-density="compact"] .tree-item, [data-density="compact"] .card-row { padding-top: 2px !important; padding-bottom: 2px !important; min-height: 24px !important; font-size: 11px !important; }
-    [data-density="compact"] input, [data-density="compact"] select, [data-density="compact"] button.btn-compact { height: 26px !important; font-size: 11px !important; }
-    [data-density="comfortable"] .task-item, [data-density="comfortable"] .tree-item, [data-density="comfortable"] .card-row { padding-top: 8px !important; padding-bottom: 8px !important; min-height: 38px !important; font-size: 13.5px !important; }
-    [data-density="comfortable"] input, [data-density="comfortable"] select { height: 36px !important; font-size: 13px !important; }
+    /* Density Modes: root font-size scales every rem-based Tailwind utility.
+       Fixed px values (icons, borders, brackets like h-7) stay anchored. */
+    html[data-density="compact"] { font-size: 14px; }
+    html[data-density="comfortable"] { font-size: 17px; }
 
     /* Keelway Unified Proof Strip (Workstream F) */
     .proof-strip-card {
@@ -169,11 +168,14 @@
       <span class="hidden md:inline text-ide-faint" aria-hidden="true">/</span>
       <span id="ws-name" class="hidden md:inline font-mono text-xs text-ide-muted truncate max-w-[12rem]">workspace</span>
       <span id="git-branch" class="hidden sm:inline-flex chip border-ide-border text-ide-muted font-mono">—</span>
-      <span id="project-badge" class="hidden lg:inline-flex chip border-ide-border text-ide-accent font-mono text-[11px]" title="Detected framework"></span>
+      <span id="project-badge" class="hidden lg:inline-flex chip border-ide-border text-accent font-mono text-[11px]" title="Detected framework"></span>
     </div>
     <button id="palette-btn" type="button" class="hidden md:flex items-center justify-between gap-2 w-80 px-3 py-1.5 rounded-md bg-ide-sidebar border border-ide-border text-ide-faint hover:text-ide-fg text-xs" aria-haspopup="dialog">
       <span class="flex items-center gap-2"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="search">Search files, symbols and commands</span></span>
       <kbd class="font-mono text-[10px] px-1.5 rounded bg-ide-bg border border-ide-border">Ctrl K</kbd>
+    </button>
+    <button id="palette-btn-mobile" type="button" class="md:hidden btn-ghost h-8 w-8 p-0 rounded-md bg-ide-sidebar border border-ide-border text-ide-faint hover:text-ide-fg" aria-haspopup="dialog" aria-label="Search files, symbols and commands">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     </button>
     <div class="flex items-center gap-1">
       <button id="airgap-btn" type="button" aria-pressed="false" class="chip h-7 px-2 border-ide-border text-ide-muted" title="Air-gap setting (Alt+A). Egress bytes stay unmeasured until a probe exists.">
@@ -182,7 +184,7 @@
       </button>
       <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
       <select id="lang-select" class="h-7 rounded-md bg-ide-sidebar border border-ide-border text-xs text-ide-muted px-1"></select>
-      <button id="density-btn" type="button" class="btn-ghost h-7 px-2 text-[11px] font-mono text-ide-muted hover:text-ide-fg flex items-center gap-1" title="Density: Compact (24px) / Normal (30px) / Comfort (38px)">
+      <button id="density-btn" type="button" class="btn-ghost h-7 px-2 text-[11px] font-mono text-ide-muted hover:text-ide-fg flex items-center gap-1" title="Interface density: Compact / Normal / Comfort (scales text & spacing)">
         <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         <span id="density-label">Normal</span>
       </button>
@@ -226,8 +228,23 @@
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         <span data-i18n="skills">Skills</span>
       </button>
-      <!-- 6. Settings / Organization -->
-      <button type="button" class="rail-btn" data-section="settings" aria-current="false" aria-keyshortcuts="Alt+6" title="Settings / Organization (Alt+6)">
+      <!-- 6. Models & Inference Runtime -->
+      <button type="button" class="rail-btn" data-section="models" aria-current="false" aria-keyshortcuts="Alt+6" title="Models & Runtime (Alt+6)">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+        <span data-i18n="models">Models</span>
+      </button>
+      <!-- 7. Security & Policies -->
+      <button type="button" class="rail-btn" data-section="security" aria-current="false" aria-keyshortcuts="Alt+7" title="Security & Policies (Alt+7)">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span data-i18n="security">Security</span>
+      </button>
+      <!-- 8. Ops / Team & Admin -->
+      <button type="button" class="rail-btn" data-section="ops" aria-current="false" aria-keyshortcuts="Alt+8" title="Ops / Team & Admin (Alt+8)">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span data-i18n="ops">Ops</span>
+      </button>
+      <!-- 9. Settings / Organization -->
+      <button type="button" class="rail-btn" data-section="settings" aria-current="false" aria-keyshortcuts="Alt+9" title="Settings / Organization (Alt+9)">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span data-i18n="settings">Settings</span>
       </button>
@@ -239,7 +256,7 @@
 
       <!-- Secondary Developer Labs Drawer Trigger -->
       <div class="hidden md:block w-8 mx-auto my-1 border-t border-ide-border/60 md:mt-auto"></div>
-      <button id="rail-labs-btn" type="button" class="rail-btn text-amber-alert/80 hover:text-amber-alert" data-drawer="labs" title="Developer Labs (Experimental Drawer)">
+      <button id="rail-labs-btn" type="button" class="rail-btn text-warn/80 hover:text-warn" data-drawer="labs" title="Developer Labs (Experimental Drawer)">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7.5 15h9"/></svg>
         <span data-i18n="labs">Labs</span>
       </button>
@@ -290,6 +307,7 @@
             <div class="flex flex-wrap gap-2 items-center">
               <button id="doctor-run-btn" type="button" class="btn-primary h-8 text-xs">Run System Diagnostics</button>
             </div>
+            <div id="doctor-sections" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs" aria-live="polite"></div>
             <pre id="doctor-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
@@ -499,6 +517,31 @@
               <h3 class="text-base font-semibold">Ready for autonomous execution</h3>
               <p class="text-xs text-ide-muted leading-relaxed">Select a task from the backlog, click an existing agent run, or describe a goal in the composer below. Keelway plans every step, requests human sign-off on mutations, and logs deterministic flight tapes.</p>
             </div>
+
+            <!-- Multi-Agent Orchestration -->
+            <div class="pt-3 border-t border-ide-border/60">
+              <h3 class="section-title">Multi-Agent Orchestration</h3>
+              <p class="text-[11px] text-ide-faint mt-0.5">DAG workflows, manifest registry, and bundle deployment. Fleet status reflects live agent runs.</p>
+              <div id="fleet-strip" class="flex flex-wrap gap-1.5 pt-2" aria-live="polite"></div>
+            </div>
+
+            <!-- Multi-Agent Team Workflow -->
+            <section id="lab-team" class="card p-4 space-y-3" aria-labelledby="team-title">
+              <div class="flex items-center justify-between gap-2">
+                <h3 id="team-title" class="font-semibold">Multi-Agent Team Workflow</h3>
+                <span class="step-chip text-accent border-accent/50 font-mono">Deterministic DAG</span>
+              </div>
+              <p class="text-xs text-ide-muted">Decomposes a goal into a role-specialized team DAG (lead-architect → coder-agent → security-reviewer → test-verifier) and executes it with a sealed flight tape.</p>
+              <form id="team-plan-form" class="flex flex-wrap gap-2" autocomplete="off">
+                <label for="team-goal" class="sr-only">Team workflow goal</label>
+                <input id="team-goal" required minlength="3" class="input flex-1 min-w-[16rem]" placeholder="Goal for the agent team, e.g. Implement user auth JWT validation…">
+                <button class="btn-outline h-8 text-xs" type="submit">Plan Team</button>
+                <button id="team-exec-btn" class="btn-outline h-8 text-xs" type="button" disabled title="Plan a workflow first">Execute Plan</button>
+              </form>
+              <div id="team-plan-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs" aria-live="polite"></div>
+              <div id="team-result" class="text-xs space-y-1" aria-live="polite"></div>
+              <pre id="team-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite">[·] Team workflow NOT RUN — plan a goal first.</pre>
+            </section>
 
             <!-- KFlow Durable Task DAG Orchestration & Proof Packet -->
             <section class="card p-4 space-y-2" aria-labelledby="kflow-title">
@@ -753,7 +796,7 @@
           </div>
           <div id="lab-evidence" class="space-y-3">
             <p class="text-xs text-ide-muted">Counts appear only after a check runs and returns evidence. Not-run checks stay unverified. No pass total is claimed here.</p>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div id="evidence-metrics" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div class="border border-ide-border rounded p-2.5 bg-ide-bg">
                 <div class="text-[10px] text-ide-muted uppercase">Automated Tests</div>
                 <div class="text-base font-semibold text-ide-muted">Not run</div>
@@ -787,6 +830,208 @@
 
       <!-- Speculative Decoding & Edge Acceleration Card -->
       <div class="px-4 md:px-6 pt-4">
+
+      </div>
+
+      <!-- Deterministic Flight Replay & Audit Cards -->
+      <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">
+        <section class="card flex flex-col min-h-[24rem] overflow-hidden" aria-labelledby="flight-title">
+          <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border">
+            <h3 id="flight-title" class="section-title me-auto" data-i18n="flight">Deterministic Flight Replay Visualizer</h3>
+            <span id="flight-seal-badge" class="chip border-ide-border text-ide-muted text-[10px] font-mono">SEAL PENDING</span>
+            <label for="tape-select" class="sr-only" data-i18n="flight">Flight tapes</label>
+            <select id="tape-select" class="input py-1 max-w-[13rem]"></select>
+            <button id="flight-fork" type="button" class="btn-outline text-xs px-2 h-7" disabled data-i18n="fork">Fork here</button>
+          </div>
+          <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border bg-ide-sidebar/40">
+            <div class="flex items-center gap-1">
+              <button id="flight-first" type="button" class="btn-outline px-1.5 h-6 text-xs" title="First Frame" disabled>⏮</button>
+              <button id="flight-prev" type="button" class="btn-outline px-1.5 h-6 text-xs" title="Step Back" disabled>◀</button>
+              <button id="flight-play" type="button" class="btn-primary px-2 h-6 text-xs flex items-center gap-1" title="Play / Pause Replay" disabled>
+                <span id="flight-play-icon">▶</span> <span id="flight-play-text">Play</span>
+              </button>
+              <button id="flight-next" type="button" class="btn-outline px-1.5 h-6 text-xs" title="Step Forward" disabled>▶</button>
+              <button id="flight-last" type="button" class="btn-outline px-1.5 h-6 text-xs" title="Latest Frame" disabled>⏭</button>
+            </div>
+            <label for="flight-scrubber" class="sr-only">Position</label>
+            <input id="flight-scrubber" type="range" min="0" max="0" value="0" class="flex-1 min-w-[8rem] accent-teal-400" disabled>
+            <span id="flight-step" class="font-mono text-[11px] text-ide-muted w-16 text-end">0 / 0</span>
+            <div class="flex items-center gap-1 border-s border-ide-border ps-2">
+              <button id="flight-tab-visual-btn" type="button" class="chip border-accent text-accent font-medium text-[10px]">Visual</button>
+              <button id="flight-tab-raw-btn" type="button" class="chip border-ide-border text-ide-muted text-[10px]">JSON</button>
+            </div>
+          </div>
+          <div class="flex-1 grid grid-cols-2 min-h-0">
+            <ol id="flight-events" class="overflow-auto p-2 space-y-0.5 border-e border-ide-border max-h-[28rem]"></ol>
+            <div id="flight-inspector" class="overflow-auto p-3 max-h-[28rem]">
+              <div id="flight-visual-container" class="space-y-3"></div>
+              <pre id="flight-payload" class="hidden font-mono text-[11px] text-ide-muted whitespace-pre-wrap" dir="ltr"></pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="card flex flex-col min-h-[20rem] overflow-hidden" aria-labelledby="audit-title">
+          <div class="px-3 py-2 border-b border-ide-border"><h3 id="audit-title" class="section-title" data-i18n="auditTitle">Permission log</h3></div>
+          <div class="flex-1 overflow-auto max-h-[32rem]"><table class="w-full text-[11px]"><tbody id="audit-body"></tbody></table></div>
+        </section>
+      </div>
+
+      <!-- Enterprise Merkle Audit & Proof Verifier Card -->
+      <div class="px-4 md:px-6 pt-4">
+        <section class="card p-4 space-y-2" aria-labelledby="merkle-card-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="merkle-card-title" class="font-semibold">Enterprise Merkle Audit &amp; Cryptographic Proofs</h3>
+            <span class="step-chip text-accent border-accent/50">SOC 2 / ISO 27001 Merkle Root</span>
+          </div>
+          <div id="lab-merkle-audit" class="space-y-3">
+            <p class="text-xs text-ide-muted">Verify immutable append-only hash chains, compute cryptographic Merkle roots over immutable audit events, and generate inclusion proofs for auditors.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="merkle-root-btn" type="button" class="btn-primary h-8 text-xs">Fetch Current Merkle Root</button>
+              <input id="merkle-seq-input" class="input w-28 font-mono text-xs" placeholder="Sequence #" value="1">
+              <button id="merkle-proof-btn" type="button" class="btn-outline h-8 text-xs">Generate Inclusion Proof</button>
+              <button id="merkle-verify-btn" type="button" class="btn-outline h-8 text-xs">Verify Cryptographic Proof</button>
+              <button id="merkle-export-btn" type="button" class="btn-outline h-8 text-xs">Export Compliance Bundle</button>
+            </div>
+            <pre id="merkle-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+      </div>
+
+      <!-- Model Economics & Cost Observability Card -->
+      <div class="px-4 md:px-6 pt-4 pb-6">
+
+      </div>
+
+      <!-- Standing Approvals Card -->
+      <div class="px-4 md:px-6 pb-6">
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 5. EXTENSIONS / SKILLS (#skills)           -->
+    <!-- ========================================== -->
+    <section id="sec-skills" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="skills-title">
+      <div class="px-4 md:px-6 pt-5 pb-3">
+        <h2 id="skills-title" class="text-lg font-semibold tracking-tight" data-i18n="skills">Extensions &amp; Skills</h2>
+        <p class="text-xs text-ide-muted">Composable KStack agent roles, Model Context Protocol plugins, and scope-aware fact memory.</p>
+      </div>
+
+      <div class="px-4 md:px-6 pb-6 space-y-4">
+        <!-- KStack Composable Role Skills & KHub Registry -->
+        <section class="card p-4 space-y-2" aria-labelledby="kstack-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="kstack-title" class="font-semibold">KStack Composable Role Skills &amp; KHub Importer</h3>
+            <span class="step-chip text-accent border-accent/50 font-mono">Pinned Roles &amp; Signatures</span>
+          </div>
+          <div id="lab-kstack" class="space-y-3">
+            <p class="text-xs text-ide-muted">Role skill governance (Architect, Reviewer, QA Lead, Security Lead), version pinning, and universal importer across Claude, Cursor, and Codex skills with prompt rules isolation.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="kstack-list-btn" type="button" class="btn-primary h-8 text-xs">List Active Role Skills</button>
+              <button id="khub-scan-btn" type="button" class="btn-outline h-8 text-xs">Scan External Skills (KHub)</button>
+            </div>
+            <div id="kstack-skills-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" aria-live="polite"></div>
+            <pre id="kstack-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- Plugins & MCP Extensions -->
+        <section class="card p-4 space-y-2" aria-labelledby="plugins-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="plugins-title" class="font-semibold">Plugins &amp; MCP Extensions</h3>
+            <button id="plugins-refresh-btn" type="button" class="btn-ghost text-xs h-6 px-2">Refresh</button>
+          </div>
+          <div id="lab-plugins" class="space-y-3">
+            <p class="text-xs text-ide-muted">Universal Model Context Protocol client bridge and declared agent tool extensions.</p>
+            <div id="plugins-list" class="space-y-2 max-h-48 overflow-y-auto text-xs font-mono" aria-live="polite"></div>
+            <form id="plugin-install-form" class="flex gap-2 items-end pt-2 border-t border-ide-border">
+              <input id="plugin-path-input" required class="input flex-1 font-mono text-xs" placeholder="path/to/plugin.json">
+              <button class="btn-outline h-8" type="submit">Install Plugin</button>
+            </form>
+            <pre id="plugin-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- KBrain Scope-Aware Fact Memory & DLP Scanner -->
+        <section class="card p-4 space-y-2" aria-labelledby="kbrain-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="kbrain-title" class="font-semibold">KBrain Scope-Aware Fact Memory &amp; DLP Scanner</h3>
+            <span class="step-chip text-ok border-ok/50 font-mono">Regex DLP Guard Active</span>
+          </div>
+          <div id="lab-kbrain" class="space-y-3">
+            <p class="text-xs text-ide-muted">Hierarchical knowledge facts (LOCAL_SESSION &lt; PROJECT &lt; TEAM &lt; ORG), conflict detection, and pre-flight DLP scanning preventing credentials (sk-, ghp-, Bearer, private keys) from entering memory stores.</p>
+            <div class="grid sm:grid-cols-4 gap-2">
+              <div>
+                <label for="kbrain-scope" class="label">Scope</label>
+                <select id="kbrain-scope" class="input w-full">
+                  <option value="project">PROJECT</option>
+                  <option value="local_session">LOCAL_SESSION</option>
+                  <option value="team">TEAM</option>
+                  <option value="org">ORG</option>
+                </select>
+              </div>
+              <div>
+                <label for="kbrain-key" class="label">Key</label>
+                <input id="kbrain-key" class="input w-full font-mono" placeholder="e.g. api_port">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="kbrain-statement" class="label">Fact Statement</label>
+                <textarea id="kbrain-statement" rows="2" class="input w-full resize-y font-sans text-xs" placeholder="e.g. Services communicate over port 8080 with mutual TLS authorization."></textarea>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button id="kbrain-record-btn" type="button" class="btn-primary h-8 text-xs">Record Fact</button>
+              <button id="kbrain-query-btn" type="button" class="btn-outline h-8 text-xs">Query Facts</button>
+            </div>
+            <div id="kbrain-list" class="space-y-2 text-xs" aria-live="polite"></div>
+            <pre id="kbrain-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <!-- Evaluation & Drift Radar -->
+        <section class="card p-4 space-y-2" aria-labelledby="eval-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="eval-title" class="font-semibold">Evaluation &amp; Drift Radar</h3>
+            <span class="step-chip text-ide-muted border-ide-border">Panel not run</span>
+          </div>
+          <div id="lab-eval-drift" class="space-y-3">
+            <p class="text-xs text-ide-muted">No benchmark result is shown until a run returns one. Pass counts stay unknown until then.</p>
+            <div class="flex flex-wrap gap-2">
+              <button id="eval-run-btn" type="button" class="btn-primary h-8">Run Benchmark &amp; Seal Receipt</button>
+              <button id="eval-drift-btn" type="button" class="btn-outline h-8">Check Drift vs Baseline</button>
+            </div>
+            <div id="eval-results" class="space-y-2 text-xs" aria-live="polite"></div>
+            <pre id="eval-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-52 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 6. SETTINGS / ORGANIZATION (#settings)     -->
+    <!-- ========================================== -->
+    
+    <!-- ========================================== -->
+    <!-- MODELS & RUNTIME (sec-models)              -->
+    <!-- ========================================== -->
+    <section id="sec-models" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="models-title">
+      <div class="px-4 md:px-6 pt-5 pb-3">
+        <h2 id="models-title" class="text-lg font-semibold tracking-tight">Models &amp; Inference Runtime</h2>
+        <p class="text-xs text-ide-muted">Local model runtime, chat modes, speculative acceleration, and inference economics.</p>
+      </div>
+      <div class="px-4 md:px-6 pb-6 space-y-4">
+        <!-- Local Model Runtime & Chat Modes -->
+        <section class="card p-4 space-y-3" aria-labelledby="runtime-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="runtime-title" class="font-semibold">Local Model Runtime &amp; Chat Modes</h3>
+            <button id="runtime-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">Configured inference runtime, active model, hardware fit, and available chat modes.</p>
+          <div id="runtime-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs" aria-live="polite"></div>
+          <div id="chat-modes-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <pre id="runtime-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+
         <section class="card" aria-labelledby="speculative-title">
           <div class="px-3 py-2 border-b border-ide-border flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -869,74 +1114,6 @@
             </div>
           </div>
         </section>
-      </div>
-
-      <!-- Deterministic Flight Replay & Audit Cards -->
-      <div class="px-4 md:px-6 py-4 grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 min-h-0">
-        <section class="card flex flex-col min-h-[24rem] overflow-hidden" aria-labelledby="flight-title">
-          <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border">
-            <h3 id="flight-title" class="section-title me-auto" data-i18n="flight">Deterministic Flight Replay Visualizer</h3>
-            <span id="flight-seal-badge" class="chip border-ide-border text-ide-muted text-[10px] font-mono">SEAL PENDING</span>
-            <label for="tape-select" class="sr-only" data-i18n="flight">Flight tapes</label>
-            <select id="tape-select" class="input py-1 max-w-[13rem]"></select>
-            <button id="flight-fork" type="button" class="btn-outline text-xs px-2 h-7" disabled data-i18n="fork">Fork here</button>
-          </div>
-          <div class="px-3 py-2 flex flex-wrap items-center gap-2 border-b border-ide-border bg-ide-sidebar/40">
-            <div class="flex items-center gap-1">
-              <button id="flight-first" type="button" class="btn-outline px-1.5 h-6 text-xs" title="First Frame" disabled>⏮</button>
-              <button id="flight-prev" type="button" class="btn-outline px-1.5 h-6 text-xs" title="Step Back" disabled>◀</button>
-              <button id="flight-play" type="button" class="btn-primary px-2 h-6 text-xs flex items-center gap-1" title="Play / Pause Replay" disabled>
-                <span id="flight-play-icon">▶</span> <span id="flight-play-text">Play</span>
-              </button>
-              <button id="flight-next" type="button" class="btn-outline px-1.5 h-6 text-xs" title="Step Forward" disabled>▶</button>
-              <button id="flight-last" type="button" class="btn-outline px-1.5 h-6 text-xs" title="Latest Frame" disabled>⏭</button>
-            </div>
-            <label for="flight-scrubber" class="sr-only">Position</label>
-            <input id="flight-scrubber" type="range" min="0" max="0" value="0" class="flex-1 min-w-[8rem] accent-teal-400" disabled>
-            <span id="flight-step" class="font-mono text-[11px] text-ide-muted w-16 text-end">0 / 0</span>
-            <div class="flex items-center gap-1 border-s border-ide-border ps-2">
-              <button id="flight-tab-visual-btn" type="button" class="chip border-accent text-accent font-medium text-[10px]">Visual</button>
-              <button id="flight-tab-raw-btn" type="button" class="chip border-ide-border text-ide-muted text-[10px]">JSON</button>
-            </div>
-          </div>
-          <div class="flex-1 grid grid-cols-2 min-h-0">
-            <ol id="flight-events" class="overflow-auto p-2 space-y-0.5 border-e border-ide-border max-h-[28rem]"></ol>
-            <div id="flight-inspector" class="overflow-auto p-3 max-h-[28rem]">
-              <div id="flight-visual-container" class="space-y-3"></div>
-              <pre id="flight-payload" class="hidden font-mono text-[11px] text-ide-muted whitespace-pre-wrap" dir="ltr"></pre>
-            </div>
-          </div>
-        </section>
-
-        <section class="card flex flex-col min-h-[20rem] overflow-hidden" aria-labelledby="audit-title">
-          <div class="px-3 py-2 border-b border-ide-border"><h3 id="audit-title" class="section-title" data-i18n="auditTitle">Permission log</h3></div>
-          <div class="flex-1 overflow-auto max-h-[32rem]"><table class="w-full text-[11px]"><tbody id="audit-body"></tbody></table></div>
-        </section>
-      </div>
-
-      <!-- Enterprise Merkle Audit & Proof Verifier Card -->
-      <div class="px-4 md:px-6 pt-4">
-        <section class="card p-4 space-y-2" aria-labelledby="merkle-card-title">
-          <div class="flex items-center justify-between gap-2">
-            <h3 id="merkle-card-title" class="font-semibold">Enterprise Merkle Audit &amp; Cryptographic Proofs</h3>
-            <span class="step-chip text-accent border-accent/50">SOC 2 / ISO 27001 Merkle Root</span>
-          </div>
-          <div id="lab-merkle-audit" class="space-y-3">
-            <p class="text-xs text-ide-muted">Verify immutable append-only hash chains, compute cryptographic Merkle roots over immutable audit events, and generate inclusion proofs for auditors.</p>
-            <div class="flex flex-wrap gap-2 items-center">
-              <button id="merkle-root-btn" type="button" class="btn-primary h-8 text-xs">Fetch Current Merkle Root</button>
-              <input id="merkle-seq-input" class="input w-28 font-mono text-xs" placeholder="Sequence #" value="1">
-              <button id="merkle-proof-btn" type="button" class="btn-outline h-8 text-xs">Generate Inclusion Proof</button>
-              <button id="merkle-verify-btn" type="button" class="btn-outline h-8 text-xs">Verify Cryptographic Proof</button>
-              <button id="merkle-export-btn" type="button" class="btn-outline h-8 text-xs">Export Compliance Bundle</button>
-            </div>
-            <pre id="merkle-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
-          </div>
-        </section>
-      </div>
-
-      <!-- Model Economics & Cost Observability Card -->
-      <div class="px-4 md:px-6 pt-4 pb-6">
         <section class="card" aria-labelledby="economics-title">
           <div class="px-3 py-2 border-b border-ide-border flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -995,123 +1172,38 @@
           </div>
         </section>
       </div>
-
-      <!-- Standing Approvals Card -->
-      <div class="px-4 md:px-6 pb-6">
-        <section class="card" aria-labelledby="rules-title">
-          <div class="px-3 py-2 border-b border-ide-border flex items-center justify-between"><h3 id="rules-title" class="section-title" data-i18n="rulesTitle">Standing approvals</h3><span class="text-[11px] text-ide-faint" data-i18n="rulesHint">Only for "Ask before changes" runs. Keelway and git internals always ask.</span></div>
-          <ul id="rule-list" class="divide-y divide-ide-border text-xs"></ul>
-        </section>
-      </div>
     </section>
 
     <!-- ========================================== -->
-    <!-- 5. EXTENSIONS / SKILLS (#skills)           -->
+    <!-- SECURITY & POLICIES (sec-security)         -->
     <!-- ========================================== -->
-    <section id="sec-skills" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="skills-title">
+    <section id="sec-security" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="security-title">
       <div class="px-4 md:px-6 pt-5 pb-3">
-        <h2 id="skills-title" class="text-lg font-semibold tracking-tight" data-i18n="skills">Extensions &amp; Skills</h2>
-        <p class="text-xs text-ide-muted">Composable KStack agent roles, Model Context Protocol plugins, and scope-aware fact memory.</p>
+        <h2 id="security-title" class="text-lg font-semibold tracking-tight">Security &amp; Policies</h2>
+        <p class="text-xs text-ide-muted">Hardware root of trust, egress audit, standing approvals, quorum governance, and entitlements.</p>
       </div>
-
       <div class="px-4 md:px-6 pb-6 space-y-4">
-        <!-- KStack Composable Role Skills & KHub Registry -->
-        <section class="card p-4 space-y-2" aria-labelledby="kstack-title">
+        <!-- Air-Gap Compliance Audit -->
+        <section class="card p-4 space-y-3" aria-labelledby="airgap-audit-title">
           <div class="flex items-center justify-between gap-2">
-            <h3 id="kstack-title" class="font-semibold">KStack Composable Role Skills &amp; KHub Importer</h3>
-            <span class="step-chip text-accent border-accent/50 font-mono">Pinned Roles &amp; Signatures</span>
+            <h3 id="airgap-audit-title" class="font-semibold">Air-Gap Compliance Audit</h3>
+            <button id="airgap-audit-btn" type="button" class="btn-primary h-8 text-xs">Run Air-Gap Audit</button>
           </div>
-          <div id="lab-kstack" class="space-y-3">
-            <p class="text-xs text-ide-muted">Role skill governance (Architect, Reviewer, QA Lead, Security Lead), version pinning, and universal importer across Claude, Cursor, and Codex skills with prompt rules isolation.</p>
-            <div class="flex flex-wrap gap-2 items-center">
-              <button id="kstack-list-btn" type="button" class="btn-primary h-8 text-xs">List Active Role Skills</button>
-              <button id="khub-scan-btn" type="button" class="btn-outline h-8 text-xs">Scan External Skills (KHub)</button>
-            </div>
-            <pre id="kstack-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
-          </div>
+          <p class="text-xs text-ide-muted">Independent egress checks: no cloud credentials, provider interception, zero telemetry. Results are claimed only after a run.</p>
+          <div id="airgap-checks" class="space-y-2 text-xs" aria-live="polite"></div>
+          <pre id="airgap-audit-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite">[ ] NOT RUN — no compliance is claimed until an audit runs.</pre>
         </section>
 
-        <!-- Plugins & MCP Extensions -->
-        <section class="card p-4 space-y-2" aria-labelledby="plugins-title">
+        <!-- Enterprise Entitlements -->
+        <section class="card p-4 space-y-3" aria-labelledby="entitlements-title">
           <div class="flex items-center justify-between gap-2">
-            <h3 id="plugins-title" class="font-semibold">Plugins &amp; MCP Extensions</h3>
-            <button id="plugins-refresh-btn" type="button" class="btn-ghost text-xs h-6 px-2">Refresh</button>
+            <h3 id="entitlements-title" class="font-semibold">Enterprise Entitlements</h3>
+            <button id="entitlements-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
           </div>
-          <div id="lab-plugins" class="space-y-3">
-            <p class="text-xs text-ide-muted">Universal Model Context Protocol client bridge and declared agent tool extensions.</p>
-            <div id="plugins-list" class="space-y-2 max-h-48 overflow-y-auto text-xs font-mono"></div>
-            <form id="plugin-install-form" class="flex gap-2 items-end pt-2 border-t border-ide-border">
-              <input id="plugin-path-input" required class="input flex-1 font-mono text-xs" placeholder="path/to/plugin.json">
-              <button class="btn-outline h-8" type="submit">Install Plugin</button>
-            </form>
-            <pre id="plugin-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
-          </div>
+          <div id="entitlements-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs" aria-live="polite"></div>
+          <pre id="entitlements-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </section>
 
-        <!-- KBrain Scope-Aware Fact Memory & DLP Scanner -->
-        <section class="card p-4 space-y-2" aria-labelledby="kbrain-title">
-          <div class="flex items-center justify-between gap-2">
-            <h3 id="kbrain-title" class="font-semibold">KBrain Scope-Aware Fact Memory &amp; DLP Scanner</h3>
-            <span class="step-chip text-ok border-ok/50 font-mono">Regex DLP Guard Active</span>
-          </div>
-          <div id="lab-kbrain" class="space-y-3">
-            <p class="text-xs text-ide-muted">Hierarchical knowledge facts (LOCAL_SESSION &lt; PROJECT &lt; TEAM &lt; ORG), conflict detection, and pre-flight DLP scanning preventing credentials (sk-, ghp-, Bearer, private keys) from entering memory stores.</p>
-            <div class="grid sm:grid-cols-4 gap-2">
-              <div>
-                <label for="kbrain-scope" class="label">Scope</label>
-                <select id="kbrain-scope" class="input w-full">
-                  <option value="project">PROJECT</option>
-                  <option value="local_session">LOCAL_SESSION</option>
-                  <option value="team">TEAM</option>
-                  <option value="org">ORG</option>
-                </select>
-              </div>
-              <div>
-                <label for="kbrain-key" class="label">Key</label>
-                <input id="kbrain-key" class="input w-full font-mono" placeholder="e.g. api_port">
-              </div>
-              <div class="sm:col-span-2">
-                <label for="kbrain-statement" class="label">Fact Statement</label>
-                <textarea id="kbrain-statement" rows="2" class="input w-full resize-y font-sans text-xs" placeholder="e.g. Services communicate over port 8080 with mutual TLS authorization."></textarea>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-2 items-center">
-              <button id="kbrain-record-btn" type="button" class="btn-primary h-8 text-xs">Record Fact</button>
-              <button id="kbrain-query-btn" type="button" class="btn-outline h-8 text-xs">Query Facts</button>
-            </div>
-            <pre id="kbrain-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
-          </div>
-        </section>
-
-        <!-- Evaluation & Drift Radar -->
-        <section class="card p-4 space-y-2" aria-labelledby="eval-title">
-          <div class="flex items-center justify-between gap-2">
-            <h3 id="eval-title" class="font-semibold">Evaluation &amp; Drift Radar</h3>
-            <span class="step-chip text-ide-muted border-ide-border">Panel not run</span>
-          </div>
-          <div id="lab-eval-drift" class="space-y-3">
-            <p class="text-xs text-ide-muted">No benchmark result is shown until a run returns one. Pass counts stay unknown until then.</p>
-            <div class="flex flex-wrap gap-2">
-              <button id="eval-run-btn" type="button" class="btn-primary h-8">Run Benchmark &amp; Seal Receipt</button>
-              <button id="eval-drift-btn" type="button" class="btn-outline h-8">Check Drift vs Baseline</button>
-            </div>
-            <pre id="eval-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-52 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- 6. SETTINGS / ORGANIZATION (#settings)     -->
-    <!-- ========================================== -->
-    <section id="sec-settings" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="settings-title">
-      <div class="px-4 md:px-6 pt-5 pb-3">
-        <h2 id="settings-title" class="text-lg font-semibold tracking-tight" data-i18n="settings">Settings &amp; Sovereign Infrastructure</h2>
-        <p class="text-xs text-ide-muted">Hardware root of trust, team mesh, quorum governance, and cross-machine synchronization.</p>
-      </div>
-
-      <div class="px-4 md:px-6 pb-6 space-y-4">
-        <!-- Tier 2 Hardware Security & Root Recovery Card -->
         <section class="card" aria-labelledby="tier2-title">
           <div class="px-3 py-2 border-b border-ide-border flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
@@ -1144,8 +1236,6 @@
           </div>
           <pre id="tier2-verify-output" class="hidden px-3 pb-3 font-mono text-[11px] text-ide-muted whitespace-pre-wrap"></pre>
         </section>
-
-        <!-- Two-Human Quorum Approvals (Production Governance) -->
         <section class="card p-4 space-y-2" aria-labelledby="quorum-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="quorum-title" class="font-semibold">Two-Human Quorum Governance (ADR-045 / ADR-046)</h3>
@@ -1180,8 +1270,109 @@
             <pre id="quorum-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-36 overflow-y-auto bg-ide-bg p-2 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+        <section class="card" aria-labelledby="rules-title">
+          <div class="px-3 py-2 border-b border-ide-border flex items-center justify-between"><h3 id="rules-title" class="section-title" data-i18n="rulesTitle">Standing approvals</h3><span class="text-[11px] text-ide-faint" data-i18n="rulesHint">Only for "Ask before changes" runs. Keelway and git internals always ask.</span></div>
+          <ul id="rule-list" class="divide-y divide-ide-border text-xs" aria-live="polite"></ul>
+        </section>
 
-        <!-- Local Team Mesh & GPU Resource Pooling -->
+        <!-- API Access & Roles -->
+        <section id="lab-access" class="card p-4 space-y-3" aria-labelledby="access-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="access-title" class="font-semibold">API Access &amp; Roles</h3>
+            <button id="tokens-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">API tokens are owner-managed (MANAGE_KEYS). The plaintext token is shown once at creation; only its hash is stored. SSO/org-directory management is not a Keelway capability today.</p>
+          <div id="rbac-matrix" class="overflow-x-auto" aria-live="polite"></div>
+          <div id="tokens-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <form id="token-create-form" class="flex flex-wrap gap-2 pt-2 border-t border-ide-border/60" autocomplete="off">
+            <label for="token-name" class="sr-only">Token name</label>
+            <input id="token-name" required minlength="1" maxlength="100" class="input w-56" placeholder="Token name, e.g. ci-bot">
+            <label for="token-role" class="sr-only">Token role</label>
+            <select id="token-role" class="input w-40">
+              <option value="engineer">engineer</option>
+              <option value="auditor">auditor</option>
+              <option value="admin">admin</option>
+              <option value="owner">owner</option>
+            </select>
+            <label for="token-expiry" class="sr-only">Expiry in days</label>
+            <input id="token-expiry" type="number" min="1" max="3650" class="input w-32" placeholder="Days (opt.)">
+            <button class="btn-outline h-8 text-xs" type="submit">Mint Token</button>
+          </form>
+          <pre id="tokens-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+          <pre id="token-minted" class="hidden font-mono text-[11px] text-accent whitespace-pre-wrap bg-ide-bg p-2 rounded border border-accent/40" aria-live="polite"></pre>
+        </section>
+
+        <!-- Software Bill of Materials -->
+        <section class="card p-4 space-y-3" aria-labelledby="sbom-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="sbom-title" class="font-semibold">Software Bill of Materials</h3>
+            <a href="/v1/sbom" download class="btn-outline h-7 text-[11px] px-2 flex items-center gap-1" title="Download CycloneDX SBOM">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span>Export CycloneDX</span>
+            </a>
+          </div>
+          <p class="text-xs text-ide-muted">Supply-chain provenance for this install, generated at request time.</p>
+          <div id="sbom-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs" aria-live="polite"></div>
+          <div id="sbom-components" class="max-h-56 overflow-y-auto space-y-1 text-[11px] font-mono" aria-live="polite"></div>
+          <pre id="sbom-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- OPS / TEAM & ADMIN (sec-ops)               -->
+    <!-- ========================================== -->
+    <section id="sec-ops" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="ops-title">
+      <div class="px-4 md:px-6 pt-5 pb-3">
+        <h2 id="ops-title" class="text-lg font-semibold tracking-tight">Ops, Team &amp; Administration</h2>
+        <p class="text-xs text-ide-muted">Workspaces, team mesh, cross-machine sync, and runner spool.</p>
+      </div>
+      <div class="px-4 md:px-6 pb-6 space-y-4">
+        <!-- Workspace Registry -->
+        <section class="card p-4 space-y-3" aria-labelledby="workspaces-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="workspaces-title" class="font-semibold">Registered Workspaces</h3>
+            <button id="workspaces-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <div id="workspaces-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <pre id="workspaces-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+
+        <section class="card p-4 space-y-3" aria-labelledby="runner-jobs-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="runner-jobs-title" class="font-semibold">Customer Runner Job Queue</h3>
+            <button id="runner-jobs-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">Jobs enqueued for outbound customer VPC runner daemons. Polling and completion acks happen on the runner side.</p>
+          <div id="runner-jobs-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <form id="runner-job-form" class="flex flex-wrap gap-2 pt-2 border-t border-ide-border/60" autocomplete="off">
+            <label for="runner-job-prompt" class="sr-only">Runner task prompt</label>
+            <input id="runner-job-prompt" required minlength="3" class="input flex-1 min-w-[14rem]" placeholder="Task prompt for runner job…">
+            <label for="runner-job-repo" class="sr-only">Repo path</label>
+            <input id="runner-job-repo" class="input w-56" placeholder="Repo path (default: .)" dir="ltr">
+            <button class="btn-outline h-8 text-xs" type="submit">Enqueue Job</button>
+          </form>
+          <pre id="runner-jobs-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+
+        <!-- Flow Schedules -->
+        <section id="lab-schedules" class="card p-4 space-y-3" aria-labelledby="schedules-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="schedules-title" class="font-semibold">Scheduled KFlow Runs</h3>
+            <button id="schedules-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">Re-runs a registered KFlow DAG on an interval with a sealed proof packet each run. Schedules are in-memory and reset when this server restarts.</p>
+          <div id="schedules-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <form id="schedule-form" class="flex flex-wrap gap-2 pt-2 border-t border-ide-border/60" autocomplete="off">
+            <label for="schedule-flow" class="sr-only">Flow ID</label>
+            <input id="schedule-flow" required minlength="1" class="input flex-1 min-w-[12rem]" placeholder="Registered flow_id, e.g. flow_ci_pipeline">
+            <label for="schedule-interval" class="sr-only">Interval in seconds</label>
+            <input id="schedule-interval" required type="number" min="60" class="input w-36" placeholder="Seconds ≥60">
+            <button class="btn-outline h-8 text-xs" type="submit">Schedule</button>
+          </form>
+          <pre id="schedules-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+
         <section class="card p-4 space-y-2" aria-labelledby="mesh-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="mesh-title" class="font-semibold">Local Team Mesh &amp; GPU Resource Pooling</h3>
@@ -1213,8 +1404,6 @@
             </div>
           </div>
         </section>
-
-        <!-- Cross-Machine Sovereign Sync & Mobile Mission Control -->
         <section class="card p-4 space-y-2" aria-labelledby="sync-card-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="sync-card-title" class="font-semibold">Cross-Machine Sovereign Sync &amp; Mobile Mission Control</h3>
@@ -1231,8 +1420,6 @@
             <pre id="sync-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
-
-        <!-- Customer VPC Runner Spool Monitor Card -->
         <section class="card p-4 space-y-2" aria-labelledby="spool-card-title">
           <div class="flex items-center justify-between gap-2">
             <h3 id="spool-card-title" class="font-semibold">Customer VPC Outbound Runner &amp; Offline Spool</h3>
@@ -1248,6 +1435,25 @@
             <pre id="spool-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap max-h-56 overflow-y-auto bg-ide-bg p-2.5 rounded border border-ide-border" aria-live="polite"></pre>
           </div>
         </section>
+      </div>
+    </section>
+
+    <section id="sec-settings" class="section hidden flex-1 flex-col min-w-0 min-h-0 overflow-y-auto" aria-labelledby="settings-title">
+      <div class="px-4 md:px-6 pt-5 pb-3">
+        <h2 id="settings-title" class="text-lg font-semibold tracking-tight" data-i18n="settings">Settings &amp; Sovereign Infrastructure</h2>
+        <p class="text-xs text-ide-muted">Hardware root of trust, team mesh, quorum governance, and cross-machine synchronization.</p>
+      </div>
+
+      <div class="px-4 md:px-6 pb-6 space-y-4">
+        <!-- Tier 2 Hardware Security & Root Recovery Card -->
+
+        <!-- Two-Human Quorum Approvals (Production Governance) -->
+
+        <!-- Local Team Mesh & GPU Resource Pooling -->
+
+        <!-- Cross-Machine Sovereign Sync & Mobile Mission Control -->
+
+        <!-- Customer VPC Runner Spool Monitor Card -->
 
         <!-- Developer Labs Drawer Quick Launcher -->
         <section class="card p-4 space-y-2" aria-labelledby="dev-labs-card-title">

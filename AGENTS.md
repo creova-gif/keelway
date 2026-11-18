@@ -184,3 +184,15 @@ A task is **DONE** only when all nine criteria are met:
   - `docs/agent-operations/TASK_TEMPLATE.md`: Specification template for new tasks
   - `docs/agent-operations/AGENT_HANDOFF.md`: Protocol & instructions for cross-agent switching
   - `docs/agent-operations/AGENT_COMPATIBILITY.md`: Platform feature matrix (Antigravity, Claude, Devin, gstack)
+
+---
+
+## 9. STUDIO CSS FRESHNESS
+
+If you change classes in `core/studio/index.html` or `core/studio/assets/studio.js`,
+rebuild the generated stylesheet and verify freshness:
+
+```bash
+make studio-css        # regenerate core/studio/assets/studio.css (committed)
+make studio-css-check  # fails if the committed css is stale
+```
