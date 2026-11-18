@@ -647,7 +647,20 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
     const origFetch = globalThis.fetch;
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-      if (new URL(url, "http://localhost").pathname === "/v1/audit") {
+      const pathname = new URL(url, "http://localhost").pathname;
+      if (pathname === "/v1/audit/verify") {
+        return new Response(
+          JSON.stringify({ status: "verified", total_entries: 1, head_hash: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (pathname.startsWith("/v1/audit/merkle/proof/")) {
+        return new Response(
+          JSON.stringify({ seq: 1301, proof: [], entry_hash: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900", merkle_root: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900", verified: true }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (pathname === "/v1/audit") {
         return new Response(
           JSON.stringify({
             entries: [

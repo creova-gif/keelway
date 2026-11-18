@@ -126,7 +126,6 @@ class WorkspaceRbacController:
                 )
                 seeds = (
                     ("default", "Sovereign Core Workspace", "main", "seatbelt_local", now),
-                    ("hipaa-intake", "HIPAA Intake Sandbox", "feat/hipaa-vault", "airgap_strict", now),
                 )
                 for ws_id, name, branch, iso, ts in seeds:
                     self._conn.execute("INSERT OR IGNORE INTO platform_workspaces_dir VALUES (?, ?, ?, ?, ?)", (ws_id, name, branch, iso, ts))

@@ -1,0 +1,110 @@
+# TASK: KEEL-P0-029 — Replace Demo-Like Settings With Real, Trustworthy State
+
+## 1. METADATA
+- **TASK ID**: KEEL-P0-029
+- **CATEGORY**: UI / SECURITY / DEV-APP
+- **CREATOR**: Owner directive (P0)
+- **ASSIGNED AGENT**: Devin
+- **STATUS**: READY_FOR_REVIEW
+- **TARGET BRANCH**: `fix/KEEL-P0-029-demo-free-settings`
+- **BASE COMMIT**: `1be4ead` (main @ PR #60 merge)
+
+---
+
+## 2. OBJECTIVE & MOTIVATION
+
+The `/app` dev tool presented fabricated state as real: `requestSameOriginDecoded`
+silently substituted bundled fixture data whenever a live API call failed, so a
+disconnected or erroring backend rendered as a healthy, populated product. A
+`hipaa-intake` demo workspace was seeded into the runtime registry on every fresh
+install. The P0 requirement: production must never fabricate successful
+operations — API failures surface as explicit, actionable errors; bundled
+fixtures may only serve explicitly-marked test environments.
+
+---
+
+## 3. BASELINE DEFECTS (documented before editing)
+
+| ID | Severity | Defect |
+|---|---|---|
+| D-A | P0 | `requestSameOriginDecoded` in `dev-app/src/lib/api.ts` caught *all* failures (network, HTTP 4xx/5xx, decode errors) and returned hard-coded fixture objects in production — indistinguishable from live data. |
+| D-B | P0 | `core/platform/rbac_webhooks.py` seeded a `hipaa-intake` example workspace into the runtime registry on startup — presented as real user state. |
+| D-C | P1 | API failures were invisible to the user — no error surface existed; consumers `.catch(() => {})`-swallowed rejections by design of the fallback contract. |
+| D-D | P2 | `.cursor/skills/verify-keelway/SKILL.md` and `tests/test_phase5_runtime_vault_rbac_webhooks.py` asserted the demo workspace existed — the verification harness itself depended on fake data. |
+
+---
+
+## 4. WORK COMPLETED & FILES MODIFIED
+
+- `dev-app/src/lib/api.ts`: `requestSameOriginDecoded` now throws a typed
+  `ApiRequestError` (path, status, message) on non-OK responses, decode
+  failures, or network errors. Fixture fallback is gated by
+  `shouldUseOfflineFallbackInTest()` — only in test mode *and* only when the
+  global `fetch` has not been replaced by a test mock. Every fallback served
+  is counted via a listener so the shell can report "offline fixture"
+  responses explicitly.
+- `dev-app/src/components/shell/DevAppShell.tsx`: tracks the latest
+  `ApiRequestError` + fallback-response count; passes both to the status bar.
+- `dev-app/src/components/shell/StatusBarEgress.tsx`: persistent
+  `role="status"` indicator — `API error: <path> (<status>)` with a title
+  directing the user to check the local API and retry. `role="status"` (not
+  `alert`) chosen deliberately: it is a persistent indicator, and an alert
+  role collided with component-level `getByRole("alert")` assertions.
+- `core/platform/rbac_webhooks.py`: removed the `hipaa-intake` workspace seed.
+  `default` remains — a real first-run home workspace, not fake data.
+- `tests/test_phase5_runtime_vault_rbac_webhooks.py`: expectations updated —
+  fresh registry contains `default`, not `hipaa-intake` (23 passed).
+- `.cursor/skills/verify-keelway/SKILL.md`: harness no longer asserts the demo
+  workspace.
+- `dev-app/src/__tests__/settings-and-app.test.tsx`: the Record-ledger test
+  now mocks `/v1/audit/verify` and `/v1/audit/merkle/proof/` — it previously
+  relied on fabricated fallback data to render entry #1301 (exactly the
+  defect this task removes).
+- `core/dev_app_dist/`: rebuilt via `npm run build` (Vite outDir).
+
+---
+
+## 5. TESTS EXECUTED & EVIDENCE
+
+- `cd dev-app && npm test`: **23 files / 108 tests passed**
+- `cd dev-app && npm run build`: ✓ built in 1.15s (dist freshness gate)
+- `pytest tests/test_phase5_runtime_vault_rbac_webhooks.py -q`: **23 passed**
+- `ruff check .`: clean (previous run after `rbac_webhooks.py` edit)
+
+---
+
+## 6. ACCEPTANCE CRITERIA
+
+- [x] Production API failure produces a typed error and a visible, actionable
+      status — never silent fixture data (`requestSameOriginDecoded` throws;
+      status bar shows `API error: <path> (<status>)`).
+- [x] Fixtures confined to explicit test environments
+      (`shouldUseOfflineFallbackInTest()`; fallback responses counted and
+      surfaced, not hidden).
+- [x] Fresh install shows no `hipaa-intake` demo workspace; `default` retained
+      as legitimate first-run state.
+- [x] Automated tests updated and passing (108 dev-app, 23 backend focused).
+- [ ] **Remaining scope (explicitly not claimed)**: permissions-settings UX
+      redesign, permission persistence/enforcement trace, onboarding/first-run
+      empty states, keyboard/SR accessibility pass, clean-install E2E.
+
+---
+
+## 7. KNOWN RISKS & BLOCKERS
+
+- Tests that mock `fetch` now see real errors for any unmocked endpoint — this
+  is intentional (the previous behavior was the defect), but future test
+  authors must mock every endpoint a view consumes.
+- Several consumers still `.catch(() => {})` — with the typed-error contract
+  this yields empty panels rather than fabricated ones; per-view explicit
+  error states are follow-up work, not this PR's scope.
+
+---
+
+## 8. NEXT RECOMMENDED ACTION
+
+1. Review/merge this branch; then continue the P0 with the permissions UX
+   redesign (plain-language categories, progressive disclosure) on a new
+   `feature/` branch.
+2. Add per-view error/empty states for the consumers that still silently
+   catch (App.tsx, SettingsGovernancePanel.tsx data loaders).

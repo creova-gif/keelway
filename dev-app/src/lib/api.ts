@@ -74,6 +74,41 @@ function shouldUseOfflineFallbackInTest(): boolean {
   return !hasMockProp && !wasReplaced;
 }
 
+export class ApiRequestError extends Error {
+  readonly path: string;
+  readonly status: number;
+  readonly kind: "http" | "decode" | "network";
+
+  constructor(path: string, status: number, kind: "http" | "decode" | "network", detail: string) {
+    super(detail);
+    this.name = "ApiRequestError";
+    this.path = path;
+    this.status = status;
+    this.kind = kind;
+  }
+}
+
+let lastApiError: ApiRequestError | null = null;
+const apiErrorListeners = new Set<(err: ApiRequestError | null) => void>();
+
+export function subscribeApiErrors(listener: (err: ApiRequestError | null) => void): () => void {
+  apiErrorListeners.add(listener);
+  listener(lastApiError);
+  return () => {
+    apiErrorListeners.delete(listener);
+  };
+}
+
+export function clearLastApiError(): void {
+  lastApiError = null;
+  apiErrorListeners.forEach((listener) => listener(null));
+}
+
+function noteApiError(err: ApiRequestError): void {
+  lastApiError = err;
+  apiErrorListeners.forEach((listener) => listener(err));
+}
+
 let fallbackResponseCount = 0;
 const fallbackListeners = new Set<(count: number) => void>();
 
@@ -117,19 +152,38 @@ async function requestSameOriginDecoded<T>(
       headers,
     });
     if (!response.ok) {
-      noteDataFallback();
-      return fallbackFactory();
+      const detail = `HTTP ${response.status} on ${path}`;
+      const err = new ApiRequestError(path, response.status, "http", detail);
+      if (shouldUseOfflineFallbackInTest()) {
+        noteDataFallback();
+        return fallbackFactory();
+      }
+      noteApiError(err);
+      throw err;
     }
     const raw: unknown = await response.json();
     const decoded = decode(raw);
     if (decoded !== null) {
       return decoded;
     }
-    noteDataFallback();
-    return fallbackFactory();
-  } catch {
-    noteDataFallback();
-    return fallbackFactory();
+    const err = new ApiRequestError(path, response.status, "decode", `Unexpected response shape on ${path}`);
+    if (shouldUseOfflineFallbackInTest()) {
+      noteDataFallback();
+      return fallbackFactory();
+    }
+    noteApiError(err);
+    throw err;
+  } catch (cause) {
+    if (cause instanceof ApiRequestError) {
+      throw cause;
+    }
+    const err = new ApiRequestError(path, 0, "network", `Request to ${path} failed: backend unreachable`);
+    if (shouldUseOfflineFallbackInTest()) {
+      noteDataFallback();
+      return fallbackFactory();
+    }
+    noteApiError(err);
+    throw err;
   }
 }
 
