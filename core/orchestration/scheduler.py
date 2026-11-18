@@ -1,20 +1,27 @@
 """
 Interval scheduler for durable KFlow DAGs.
 
-Schedules are held in memory and live for the lifetime of the server
-process — consistent with KFlow DAG registration, which is also
-process-scoped. Each tick executes the DAG via the standard KFlow
-engine, so proof packets are produced exactly as for a manual run.
+Schedules created through the app singleton (`flow_scheduler`) persist to
+`$KEELWAY_STATE_DIR/schedules.json` — or `~/.keelway/schedules.json` with a
+`legacy_aware` fallback to `~/.kora/schedules.json` — and survive restarts.
+`FlowScheduler` instances constructed without a `persist_path` stay
+in-memory. Each tick executes the DAG via the standard KFlow engine, so
+proof packets are produced exactly as for a manual run.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
+import os
 import threading
 import time
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+
+from core.config import legacy_aware
 
 MIN_INTERVAL_SECONDS = 60
 
@@ -46,6 +53,21 @@ class FlowSchedule:
             "enabled": self.enabled,
         }
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "FlowSchedule":
+        return cls(
+            schedule_id=data["schedule_id"],
+            flow_id=data["flow_id"],
+            interval_seconds=int(data["interval_seconds"]),
+            created_at_epoch=float(data["created_at_epoch"]),
+            next_run_epoch=float(data["next_run_epoch"]),
+            runs_completed=int(data.get("runs_completed", 0)),
+            last_run_epoch=data.get("last_run_epoch"),
+            last_status=data.get("last_status"),
+            last_error=data.get("last_error"),
+            enabled=bool(data.get("enabled", True)),
+        )
+
 
 class FlowScheduler:
     """Runs registered KFlow DAGs on a fixed interval.
@@ -54,11 +76,47 @@ class FlowScheduler:
     are captured onto the schedule so a failing flow does not kill the loop.
     """
 
-    def __init__(self, executor: Optional[Callable[[str], Any]] = None) -> None:
+    def __init__(
+        self,
+        executor: Optional[Callable[[str], Any]] = None,
+        persist_path: Optional[Path] = None,
+    ) -> None:
         self._schedules: Dict[str, FlowSchedule] = {}
         self._lock = threading.Lock()
         self._executor = executor or self._default_executor
         self._task: Optional[asyncio.Task] = None
+        self._persist_path: Optional[Path] = Path(persist_path) if persist_path else None
+        self._load()
+
+    @property
+    def persistent(self) -> bool:
+        return self._persist_path is not None
+
+    def _load(self) -> None:
+        if self._persist_path is None or not self._persist_path.exists():
+            return
+        try:
+            data = json.loads(self._persist_path.read_text(encoding="utf-8"))
+            for item in data.get("schedules", []):
+                sched = FlowSchedule.from_dict(item)
+                self._schedules[sched.schedule_id] = sched
+        except Exception:
+            # A corrupt or hand-edited file must never block startup.
+            pass
+
+    def _save(self) -> None:
+        if self._persist_path is None:
+            return
+        try:
+            self._persist_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {"schedules": [s.to_dict() for s in self._schedules.values()]}
+            tmp = self._persist_path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            tmp.replace(self._persist_path)
+        except Exception:
+            # Persistence degradation must not kill scheduling; in-memory
+            # state continues and the next mutation retries the write.
+            pass
 
     @staticmethod
     def _default_executor(flow_id: str) -> None:
@@ -86,10 +144,14 @@ class FlowScheduler:
             next_run_epoch=now + interval_seconds,
         )
         self._schedules[sched.schedule_id] = sched
+        self._save()
         return sched
 
     def remove(self, schedule_id: str) -> bool:
-        return self._schedules.pop(schedule_id, None) is not None
+        removed = self._schedules.pop(schedule_id, None) is not None
+        if removed:
+            self._save()
+        return removed
 
     def list(self) -> List[Dict[str, Any]]:
         return [s.to_dict() for s in sorted(self._schedules.values(), key=lambda s: s.created_at_epoch)]
@@ -115,6 +177,8 @@ class FlowScheduler:
             sched.runs_completed += 1
             sched.next_run_epoch = now + sched.interval_seconds
             ran += 1
+        if ran:
+            self._save()
         return ran
 
     async def _loop(self) -> None:
@@ -137,6 +201,17 @@ class FlowScheduler:
             except asyncio.CancelledError:
                 pass
             self._task = None
+        self._save()
 
 
-flow_scheduler = FlowScheduler()
+def _default_persist_path() -> Path:
+    state_dir = os.environ.get("KEELWAY_STATE_DIR", "").strip()
+    if state_dir:
+        return Path(state_dir).expanduser() / "schedules.json"
+    return legacy_aware(
+        Path.home() / ".keelway" / "schedules.json",
+        Path.home() / ".kora" / "schedules.json",
+    )
+
+
+flow_scheduler = FlowScheduler(persist_path=_default_persist_path())

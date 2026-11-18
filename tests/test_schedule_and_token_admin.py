@@ -98,7 +98,7 @@ def test_schedule_crud_via_api():
     res = client.get("/v1/schedules")
     assert res.status_code == 200
     data = res.json()
-    assert data["persistent"] is False
+    assert data["persistent"] is True
     assert any(s["schedule_id"] == sid for s in data["schedules"])
 
     res = client.delete(f"/v1/schedules/{sid}")
@@ -164,3 +164,53 @@ def test_token_create_rejects_unknown_role():
     client = TestClient(app)
     res = client.post("/v1/tokens", json={"name": "x", "role": "superuser"})
     assert res.status_code == 400
+
+
+# --- FlowScheduler persistence (KEEL-REL-062 / D-002) -------------------------
+
+
+def test_scheduler_persists_across_instances(tmp_path):
+    _register_dag()
+    path = tmp_path / "schedules.json"
+    ran: list[str] = []
+    sched = FlowScheduler(executor=lambda fid: ran.append(fid), persist_path=path)
+    assert sched.persistent is True
+    s = sched.add("flow_sched", 60)
+    sched.run_due(now=s.next_run_epoch)
+    assert ran == ["flow_sched"]
+
+    reloaded = FlowScheduler(executor=lambda fid: None, persist_path=path)
+    restored = reloaded.get(s.schedule_id)
+    assert restored is not None
+    assert restored.flow_id == "flow_sched"
+    assert restored.runs_completed == 1
+    assert restored.last_status == "completed"
+
+
+def test_scheduler_remove_persists(tmp_path):
+    _register_dag()
+    path = tmp_path / "schedules.json"
+    sched = FlowScheduler(executor=lambda fid: None, persist_path=path)
+    s = sched.add("flow_sched", 60)
+    assert sched.remove(s.schedule_id) is True
+
+    reloaded = FlowScheduler(executor=lambda fid: None, persist_path=path)
+    assert reloaded.get(s.schedule_id) is None
+    assert reloaded.list() == []
+
+
+def test_scheduler_corrupt_file_loads_empty(tmp_path):
+    path = tmp_path / "schedules.json"
+    path.write_text("{not json")
+    sched = FlowScheduler(executor=lambda fid: None, persist_path=path)
+    assert sched.list() == []
+    assert sched.persistent is True
+
+
+def test_scheduler_no_path_stays_in_memory(tmp_path):
+    _register_dag()
+    sched = FlowScheduler(executor=lambda fid: None)
+    assert sched.persistent is False
+    sched.add("flow_sched", 60)
+    assert not (tmp_path / "schedules.json").exists()
+    assert not sched._persist_path
