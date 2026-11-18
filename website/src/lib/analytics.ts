@@ -52,7 +52,8 @@ export type KeelwayAnalyticsEvent =
   | "spec_decoding_k_changed"
   | "self_healing_demo_run"
   | "airgap_enabled"
-  | "airgap_disabled";
+  | "airgap_disabled"
+  | "product_showcase_tab";
 
 export type EvaluatedExperimentMap = Record<string, string | boolean | number>;
 
