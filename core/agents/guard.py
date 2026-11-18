@@ -252,6 +252,8 @@ def loop_from_manifest(
         policy=AutonomyPolicy(manifest.permissions.autonomy),
         record_flight=record_flight,
         approval_rules=approval_rules,
+        model_id=getattr(manifest, "model_id", None),
+        prompt_version=getattr(manifest, "prompt_version", None),
     )
     runner = None
     if "run_command" in manifest.tools and manifest.sandbox == "worktree":

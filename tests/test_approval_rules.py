@@ -173,3 +173,47 @@ def test_legacy_rule_file_without_binding_fields_still_loads(tmp_path):
     }))
     rules = ApprovalRuleStore(tmp_path).list()
     assert [r.id for r in rules] == ["r1"] and rules[0].bound_prompt_version is None
+
+
+def test_bound_rule_pauses_on_model_or_prompt_mismatch(client, tmp_path):
+    """A rule bound to model A must not auto-approve work running under model B — fail closed."""
+    created = client.post("/v1/approval-rules", json={
+        "tool_name": "write_file", "scope": "notes*.txt",
+        "model_id": "coder-7b@2.5.1", "prompt_version": "p-13",
+    }).json()["rule"]
+
+    # Run under a different model: rule stays dormant, step pauses for human approval.
+    client.post("/v1/agent/run", json={
+        "task_id": "d1", "goal": "g", "steps": ["w"],
+        "model_id": "llama-3.3", "prompt_version": "p-13",
+    })
+    assert _write(client, "d1", "notes1.txt")["step_result"]["status"] == "paused_for_approval"
+    assert not (tmp_path / "notes1.txt").exists()
+
+    # Same rule, matching binding: auto-approves.
+    client.post("/v1/agent/run", json={
+        "task_id": "d2", "goal": "g", "steps": ["w"],
+        "model_id": "coder-7b@2.5.1", "prompt_version": "p-13",
+    })
+    auto = _write(client, "d2", "notes2.txt")["step_result"]
+    assert auto["status"] == "success" and auto["approved_by_rule"]["id"] == created["id"]
+    assert (tmp_path / "notes2.txt").exists()
+
+    # Prompt drift alone pauses too.
+    client.post("/v1/agent/run", json={
+        "task_id": "d3", "goal": "g", "steps": ["w"],
+        "model_id": "coder-7b@2.5.1", "prompt_version": "p-14",
+    })
+    assert _write(client, "d3", "notes3.txt")["step_result"]["status"] == "paused_for_approval"
+
+
+def test_unbound_rule_matches_regardless_of_run_context(client, tmp_path):
+    """Legacy/unbound rules keep working — binding only narrows a rule that declares one."""
+    client.post("/v1/approval-rules", json={"tool_name": "write_file", "scope": "open*.txt"})
+    client.post("/v1/agent/run", json={
+        "task_id": "e1", "goal": "g", "steps": ["w"],
+        "model_id": "any-model", "prompt_version": "p-99",
+    })
+    auto = _write(client, "e1", "open1.txt")["step_result"]
+    assert auto["status"] == "success"
+    assert (tmp_path / "open1.txt").exists()

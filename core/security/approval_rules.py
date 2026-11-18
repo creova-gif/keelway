@@ -163,7 +163,13 @@ class ApprovalRuleStore:
         except (ValueError, OSError):
             return None
 
-    def match(self, tool_name: str, arguments: Dict[str, Any]) -> Optional[ApprovalRule]:
+    def match(
+        self,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        model_id: Optional[str] = None,
+        prompt_version: Optional[str] = None,
+    ) -> Optional[ApprovalRule]:
         if tool_name in PATH_TOOLS:
             real = self._resolved_relative(arguments.get("path"))
             if real is None or real == "." or _is_protected(real):
@@ -171,4 +177,13 @@ class ApprovalRuleStore:
             checks = [arguments, {**arguments, "path": real}]
         else:
             checks = [arguments]
-        return next((r for r in self.list() if all(rule_matches(r, tool_name, a) for a in checks)), None)
+        for rule in self.list():
+            # Fail closed: a rule bound to a model/prompt only auto-approves that exact
+            # context. Unbound fields act as wildcards so legacy rules still apply.
+            if rule.bound_model_id is not None and rule.bound_model_id != model_id:
+                continue
+            if rule.bound_prompt_version is not None and rule.bound_prompt_version != prompt_version:
+                continue
+            if all(rule_matches(rule, tool_name, a) for a in checks):
+                return rule
+        return None

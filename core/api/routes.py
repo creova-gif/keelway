@@ -1692,6 +1692,8 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
             quorum_service=q_service,
             environment=env_mode,
             actor_id=principal.actor,
+            model_id=payload.get("model_id") if isinstance(payload.get("model_id"), str) else None,
+            prompt_version=payload.get("prompt_version") if isinstance(payload.get("prompt_version"), str) else None,
         )
         # Commands run only inside a verified sandbox; without one, run_command stays unavailable.
         agent.command_runner, _ = await asyncio.to_thread(verified_command_runner, _workspace_fs.root)
