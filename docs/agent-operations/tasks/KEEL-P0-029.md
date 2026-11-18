@@ -202,3 +202,43 @@ fixtures may only serve explicitly-marked test environments.
   behind a per-row `<details>` progressive-disclosure element.
 - Destructive confirms: Revoke and Revoke all arm on first click, execute on second.
 - Verified: 109/109 dev-app tests, tsc clean, bundle rebuilt into `core/dev_app_dist`.
+
+## Round 6 — Clean-install E2E verification (live isolated stack, evidence preserved)
+
+Ran the full new-user journey against a genuinely isolated instance via the
+`verify-keelway` harness (fresh `HOME`, fresh workspace `.keelway/`, fresh Chrome
+profile — no pre-existing state anywhere). Evidence in
+`/tmp/keelway-evidence-cleaninstall/` (ARIA snapshot, onboarding screenshot,
+audit readback).
+
+**First-run truthfulness — PASS**
+- `GET /v1/approval-rules` → `{"rules": []}` — no fabricated default rules.
+- `GET /v1/platform/workspaces` → exactly 1 real `default` workspace (legitimate
+  first-run home, not demo data).
+- `GET /v1/studio/manifests` → `[]` — no fake agents.
+- `/v1/audit` chain begins at `seq 1` — every entry is a real event from this
+  session; no seeded history.
+- Onboarding dialog ("Welcome to Keelway — Honest Sovereign Defaults") auto-opens
+  on first launch — verified in the live ARIA tree.
+
+**Grant → execute → drift → revoke → deny — PASS (runtime-proven, not UI)**
+- Approve with `remember` → bound rule `*.txt / m-1 / p-14` persisted; first write
+  executed after human approval.
+- Same-model run → `approved_by_rule` auto-approve; `auto.txt` written.
+- Drifted-model run (`m-2-drifted`) → `paused_for_approval`; `drift.txt` never
+  written — runtime binding enforcement is real, not a UI badge.
+- `DELETE` the rule → next write under `m-1` → `paused_for_approval`;
+  `post-revoke.txt` never written — revoke actually denies runtime.
+- Filesystem side-effect verified: only `hello.txt` + `auto.txt` exist in the
+  workspace; every denied write is absent.
+
+**Unauthorized-principal denial — PASS**
+- Auditor token (`keelway_U4qV…` minted via `POST /v1/tokens`): POST/DELETE
+  `/v1/approval-rules`, `/reconfirm`, `/agent/approve` → **all 403**, logged in
+  the audit chain as `approve_tier3` / `approve_agent_steps` with `allowed:false`.
+- `X-Keelway-Role` header is a simulation hint within the token's ceiling — an
+  owner token + auditor header still executes as owner (correct: headers are
+  not credentials).
+
+**Remaining honest gaps**: Ubuntu/Docker clean-install matrix (this ran on
+macOS); manual screen-reader pass (axe coverage exists but SR is manual).
