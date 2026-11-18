@@ -29,8 +29,8 @@ async def test_system_doctor_run_diagnostics():
     # Verify KStack Skills Catalog section
     kstack_sec = next(s for s in report.sections if s.name == "KStack Skills Catalog")
     assert kstack_sec.status == "OK"
-    assert kstack_sec.details["skills_verified"] == 8
-    assert kstack_sec.details["total_required"] == 8
+    assert kstack_sec.details["skills_verified"] == 14
+    assert kstack_sec.details["total_required"] == 14
     assert kstack_sec.details["manifest_integrity"] == "VERIFIED"
     expected_skills = [
         "plan",
@@ -41,6 +41,12 @@ async def test_system_doctor_run_diagnostics():
         "ship",
         "modernize",
         "repomap-sync",
+        "p10-gate",
+        "airgap-verify",
+        "flight-tape-verify",
+        "worktree-isolate",
+        "approval-grant",
+        "kflow-orchestrate",
     ]
     for skill_name in expected_skills:
         assert skill_name in kstack_sec.details["skills"]
