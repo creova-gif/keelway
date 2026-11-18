@@ -14,6 +14,49 @@ function h(tag, attrs = {}, ...kids) {
   return el;
 }
 
+// Escape a string for safe interpolation into innerHTML templates.
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Standard list-loader error block: message + optional retry action.
+function retryBtn(retry) {
+  return h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[11px] shrink-0', onclick: retry }, 'Retry');
+}
+function loadErrorNode(err, retry) {
+  return h('div', {
+    class: 'flex items-center justify-between gap-2 p-2.5 rounded border border-danger/40 bg-danger/5 text-danger text-xs',
+    role: 'alert',
+  }, h('span', { class: 'min-w-0 break-words' }, `Load failed: ${err.message}`), retry ? retryBtn(retry) : null);
+}
+function renderLoadError(el, err, retry) {
+  if (!el) return;
+  el.replaceChildren(loadErrorNode(err, retry));
+}
+
+// Status chip with semantic tone; color is never the only cue (text included).
+function statusChip(status) {
+  const raw = String(status || 'unknown');
+  const s = raw.toLowerCase();
+  const toneCls = ['ok', 'pass', 'passed', 'healthy', 'verified', 'active', 'stable'].includes(s)
+    ? 'text-ok border-ok/50'
+    : ['warn', 'warning', 'degraded', 'drift'].includes(s)
+      ? 'text-warn border-warn/50'
+      : ['fail', 'failed', 'error', 'critical', 'broken', 'drift_detected'].includes(s)
+        ? 'text-danger border-danger/50'
+        : 'text-ide-muted border-ide-border';
+  return h('span', { class: `chip text-[10px] shrink-0 ${toneCls}` }, raw.toUpperCase());
+}
+
+// Label/value metric tile used by eval and diagnostics summaries.
+function metricChip(label, value) {
+  return h('div', { class: 'px-2.5 py-1.5 rounded border border-ide-border bg-ide-bg min-w-[7rem]' },
+    h('div', { class: 'text-[10px] uppercase tracking-wide text-ide-faint' }, label),
+    h('div', { class: 'font-mono text-[11px] break-words' }, value));
+}
+
 function trapFocus(container, e) {
   if (e.key !== 'Tab') return;
   const focusables = Array.from(container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter((el) => {
@@ -37,7 +80,7 @@ function trapFocus(container, e) {
 
 // ---------- i18n ----------
 const STRINGS = {
-  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', home: 'Home', workspace: 'Workspace', openWorkspace: 'Open workspace', skills: 'Skills', settings: 'Settings', developerLabs: 'Developer Labs', evidence: 'Evidence', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Offline (setting)', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
+  en: { skip: 'Skip to editor', search: 'Search files, symbols and commands', language: 'Language', theme: 'Theme', sounds: 'Sounds', signOut: 'Sign out', views: 'Views', home: 'Home', workspace: 'Workspace', openWorkspace: 'Open workspace', skills: 'Skills', settings: 'Settings', models: 'Models', security: 'Security', ops: 'Ops', developerLabs: 'Developer Labs', evidence: 'Evidence', explorer: 'Explorer', changes: 'Changes', tasks: 'Tasks', memory: 'Memory', refresh: 'Refresh', newTask: 'New task', newTaskPh: 'New task…', add: 'Add', rememberPh: 'Remember that…', save: 'Save', openFiles: 'Open files', viewMode: 'View mode', code: 'Code', diff: 'Diff', editor: 'Editor', tagline: 'Local-first · Deterministic · Yours', welcomeTitle: 'Build with agents that never leave your machine.', welcomeBody: 'Every step is recorded, replayable and auditable. Open a file, give the agent a goal, or review what changed.', panel: 'Panel', console: 'Console', flight: 'Flight recorder', healing: 'Self-healing', ledger: 'Ledger', audit: 'Audit', fork: 'Fork here', healWarn: 'Runs the command in this repository. A passing patch is applied to your working tree.', testCommand: 'Test command', attempts: 'Attempts', runRepair: 'Run repair cycle', paySim: 'Simulated: builds a payment payload only. No money moves.', rail: 'Rail', amount: 'Amount', currency: 'Currency', recipient: 'Recipient', buildIntent: 'Build intent', auditHint: 'Every permission decision is appended to a SHA-256 hash chain.', verify: 'Verify chain', agent: 'Keelway agent', idle: 'idle', noGoal: 'No goal yet.', plan: 'Plan', approvalNeeded: 'Approval needed', allow: 'Allow', deny: 'Deny', activity: 'Activity', goal: 'Goal', goalPh: 'Describe a goal for the agent…', polConfirmMut: 'Ask before changes', polConfirmAll: 'Ask before every step', polAuto: 'Autonomous (admin)', start: 'Start', signInTitle: 'Sign in to Keelway', signInBody: 'Open the link printed by keelway dev, or paste a token from keelway token create.', apiToken: 'API token', signIn: 'Sign in', skipTour: 'Skip', next: 'Next', done: 'Get started', airOn: 'Offline (setting)', airOff: 'Cloud allowed', clean: 'Working tree clean', noTasks: 'No tasks yet', noMemories: 'No memories yet', noTapes: 'No flight tapes yet', openFile: 'Open a file', giveGoal: 'Give the agent a goal', reviewChanges: 'Review changes', saved: 'Saved', modified: 'Modified', badToken: 'That token was not accepted.',
     tour: [['Welcome to Keelway', 'A local-first, deterministic agent workspace. Your code, models and data stay on this machine.'], ['Agents you can trust', 'Agents propose a plan, ask before changing files, and every step lands in a replayable flight tape.'], ['Audit everything', 'Tokens, roles and a tamper-evident audit log make Keelway safe to share with your team.']] },
   es: { search: 'Buscar archivos, símbolos y comandos', signOut: 'Cerrar sesión', explorer: 'Explorador', changes: 'Cambios', tasks: 'Tareas', memory: 'Memoria', save: 'Guardar', tagline: 'Local · Determinista · Tuyo', welcomeTitle: 'Construye con agentes que nunca salen de tu equipo.', welcomeBody: 'Cada paso queda registrado, reproducible y auditable.', start: 'Iniciar', signIn: 'Entrar', signInTitle: 'Inicia sesión en Keelway', next: 'Siguiente', done: 'Empezar', skipTour: 'Omitir', airOn: 'Aislado', airOff: 'Nube permitida', plan: 'Plan', activity: 'Actividad', allow: 'Permitir', deny: 'Denegar', openFile: 'Abrir un archivo', giveGoal: 'Dar un objetivo', reviewChanges: 'Revisar cambios' },
   fr: { search: 'Rechercher fichiers, symboles et commandes', signOut: 'Déconnexion', explorer: 'Explorateur', changes: 'Modifications', tasks: 'Tâches', memory: 'Mémoire', save: 'Enregistrer', tagline: 'Local · Déterministe · À vous', welcomeTitle: 'Des agents qui ne quittent jamais votre machine.', welcomeBody: 'Chaque étape est enregistrée, rejouable et auditable.', start: 'Démarrer', signIn: 'Se connecter', signInTitle: 'Connexion à Keelway', next: 'Suivant', done: 'Commencer', skipTour: 'Passer', airOn: 'Isolé', airOff: 'Cloud autorisé', activity: 'Activité', allow: 'Autoriser', deny: 'Refuser', openFile: 'Ouvrir un fichier', giveGoal: 'Donner un objectif', reviewChanges: 'Voir les modifications' },
@@ -75,10 +118,12 @@ function applyI18n() {
 }
 
 // ---------- theme, density & sound ----------
+const THEMES = ['dark', 'light', 'hc'];
+const nextTheme = (t) => THEMES[(THEMES.indexOf(t) + 1) % THEMES.length] || 'dark';
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem('keelway.theme', theme);
-  if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : 'keelwayDark');
+  if (window.monaco) monaco.editor.setTheme(theme === 'light' ? 'vs' : theme === 'hc' ? 'hc-black' : 'keelwayDark');
 }
 
 function setDensity(density) {
@@ -92,7 +137,7 @@ function cycleDensity() {
   const current = document.documentElement.dataset.density || 'default';
   const next = current === 'default' ? 'compact' : current === 'compact' ? 'comfortable' : 'default';
   setDensity(next);
-  toast(`Density: ${next.charAt(0).toUpperCase() + next.slice(1)} (keelway.fig)`, 'tick');
+  toast(`Density: ${next.charAt(0).toUpperCase() + next.slice(1)}`, 'tick');
 }
 
 function toggleStatusBarPopover() {
@@ -302,7 +347,7 @@ function initMonaco() {
   require.config({ paths: { vs: '/studio/assets/monaco/vs' } });
   require(['vs/editor/editor.main'], () => {
     monaco.editor.defineTheme('keelwayDark', { base: 'vs-dark', inherit: true, rules: [], colors: { 'editor.background': '#0D1218', 'editor.lineHighlightBackground': '#161C24', 'editorCursor.foreground': '#2DD4BF' } });
-    editor = monaco.editor.create($('monaco-mount'), { theme: document.documentElement.dataset.theme === 'light' ? 'vs' : 'keelwayDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
+    editor = monaco.editor.create($('monaco-mount'), { theme: { light: 'vs', hc: 'hc-black' }[document.documentElement.dataset.theme] || 'keelwayDark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
     editor.onDidChangeModelContent(() => { if (state.active && !state.syncing) { state.dirty.add(state.active); renderTabs(); } });
     if (state.active) state.buffers[state.active] = $('fallback-editor').value;
@@ -420,7 +465,7 @@ async function loadTasks() {
 }
 
 // ---------- sections + agent runs ----------
-const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'settings', 'manifests'];
+const SECTIONS = ['home', 'workspace', 'tasks', 'runs', 'skills', 'models', 'security', 'ops', 'settings', 'manifests'];
 const SECTION_ALIASES = {
   files: 'workspace',
   evidence: 'runs',
@@ -480,9 +525,11 @@ function switchSection(sec) {
   if (sec === 'home') { welcomeFacts(); }
   if (sec === 'workspace') { refreshView(); if (editor) editor.layout(); }
   if (sec === 'tasks') { loadRuns(); loadTasks(); loadManifestRegistry(); }
-  if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadRules(); loadCostLedger(); loadEvidenceSummary(); }
+  if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadEvidenceSummary(); }
   if (sec === 'skills') { loadPlugins(); loadKStackSkillsInStudio(); }
-  if (sec === 'settings') { loadTier2Status(); loadMeshStatus(); loadSyncStatusInStudio(); }
+  if (sec === 'models') { loadModelRuntime(); loadCostLedger(); }
+  if (sec === 'security') { loadTier2Status(); loadEntitlements(); loadRules(); loadSbom(); loadAccessControl(); }
+  if (sec === 'ops') { loadMeshStatus(); loadSyncStatusInStudio(); loadWorkspaces(); loadRunnerJobs(); loadSchedules(); }
   if (sec === 'manifests') { loadStudioManifests(); }
 }
 async function loadRules() {
@@ -496,6 +543,342 @@ async function loadRules() {
       : [h('li', { class: 'px-3 py-2 text-ide-muted' }, t('noRules'))]));
   } catch { /* noop */ }
 }
+// ---------- models & runtime ----------
+async function loadModelRuntime() {
+  const grid = $('runtime-grid');
+  try {
+    const data = await api('/v1/models/local');
+    const rt = data.runtime || {};
+    const hw = rt.hardware || {};
+    const hwDesc = [hw.arch, hw.is_apple_silicon ? 'Apple Silicon' : '', hw.estimated_ram_gb ? `${hw.estimated_ram_gb} GB RAM` : ''].filter(Boolean).join(' · ');
+    grid.replaceChildren(...[
+      metricChip('Runtime', rt.runtime || '—'),
+      metricChip('Active model', rt.model || '—'),
+      metricChip('Endpoint', rt.endpoint || '—'),
+      metricChip('Hardware', hwDesc || '—'),
+    ]);
+    $('runtime-out').textContent = `[✓] RUNTIME ${String(data.status || 'unknown').toUpperCase()}${rt.zero_daemon ? ' · ZERO-DAEMON' : ''}${hw.recommended_model ? ` · RECOMMENDED ${hw.recommended_model}${hw.quantization ? ` (${hw.quantization})` : ''}` : ''}`;
+  } catch (err) {
+    renderLoadError(grid, err, loadModelRuntime);
+    $('runtime-out').textContent = '[✗] RUNTIME STATUS UNAVAILABLE';
+  }
+  const list = $('chat-modes-list');
+  try {
+    const { modes } = await api('/v1/chat/modes');
+    list.replaceChildren(...(modes && modes.length ? modes.map((m) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-semibold text-xs' }, m.name || m.id),
+        h('span', { class: 'flex gap-1' },
+          m.mutates_files ? h('span', { class: 'step-chip text-warn border-warn/50 text-[10px]' }, 'MUTATES FILES') : null,
+          m.requires_approval ? h('span', { class: 'step-chip text-accent border-accent/50 text-[10px]' }, 'REQUIRES APPROVAL') : null)),
+      m.description ? h('p', { class: 'text-ide-muted text-[11px]' }, m.description) : null))
+      : [h('p', { class: 'text-ide-muted' }, 'No chat modes reported.')]));
+  } catch (err) {
+    renderLoadError(list, err, loadModelRuntime);
+  }
+}
+// ---------- security & policies ----------
+async function loadAirgapAudit() {
+  const out = $('airgap-audit-out');
+  const checks = $('airgap-checks');
+  out.textContent = '[…] RUNNING AIR-GAP COMPLIANCE AUDIT…';
+  try {
+    const rep = await api('/v1/airgap/audit');
+    checks.replaceChildren(...(rep.checks || []).map((c) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-mono text-[11px] font-semibold' }, `${c.check_id} — ${c.title}`),
+        h('span', { class: 'flex gap-1' },
+          statusChip(c.passed ? 'passed' : 'failed'),
+          h('span', { class: 'step-chip text-[10px]' }, c.severity))),
+      c.details ? h('p', { class: 'text-ide-muted text-[11px] break-words' }, c.details) : null)));
+    out.textContent = `[${rep.overall_compliant ? '✓' : '✗'}] AUDIT ${rep.audit_id} · ${rep.overall_compliant ? 'COMPLIANT' : 'NON-COMPLIANT'} · ${rep.timestamp_utc}${rep.attestation_sha256 ? ` · attestation ${rep.attestation_sha256.slice(0, 12)}…` : ''}`;
+  } catch (err) {
+    renderLoadError(checks, err, loadAirgapAudit);
+    out.textContent = '[✗] AIR-GAP AUDIT FAILED — NO COMPLIANCE IS CLAIMED';
+  }
+}
+async function loadEntitlements() {
+  const grid = $('entitlements-grid');
+  try {
+    const e = await api('/v1/entitlements/status');
+    grid.replaceChildren(...[
+      metricChip('Tier', e.tier || '—'),
+      metricChip('Seats', e.seats ?? '—'),
+      metricChip('License', `${e.status || '—'}${e.is_valid ? ' · valid' : ''}`),
+      metricChip('Offline grace', e.offline_grace_days_remaining != null ? `${e.offline_grace_days_remaining} days` : '—'),
+    ]);
+    const feats = Object.entries(e.features || {});
+    if (feats.length) {
+      grid.append(h('div', { class: 'sm:col-span-2 lg:col-span-4 flex flex-wrap gap-1.5 pt-1' },
+        ...feats.map(([k, v]) => h('span', { class: `step-chip text-[10px] ${v ? 'text-ok border-ok/50' : 'text-ide-faint border-ide-border'}` }, `${v ? '✓' : '✗'} ${k.replace(/_/g, ' ')}`))));
+    }
+    $('entitlements-out').textContent = `[✓] ENTITLEMENTS ${String(e.status || 'unknown')}${e.days_offline ? ` · ${e.days_offline}d offline` : ''}`;
+  } catch (err) {
+    renderLoadError(grid, err, loadEntitlements);
+    $('entitlements-out').textContent = '[✗] ENTITLEMENT STATUS UNAVAILABLE';
+  }
+}
+async function loadSbom() {
+  const grid = $('sbom-grid');
+  const comps = $('sbom-components');
+  try {
+    const bom = await api('/v1/sbom');
+    const components = bom.components || [];
+    grid.replaceChildren(...[
+      metricChip('Format', `${bom.bom_format || '—'} ${bom.spec_version || ''}`.trim()),
+      metricChip('Components', String(components.length)),
+      metricChip('Generated', (bom.timestamp_utc || '—').replace('T', ' ').replace('Z', ' UTC')),
+      metricChip('License', (bom.metadata && bom.metadata.license) || '—'),
+    ]);
+    comps.replaceChildren(...(components.length ? components.map((c) => h('div', { class: 'px-2 py-1 rounded border border-ide-border/60 bg-ide-bg/60 flex items-center justify-between gap-2' },
+      h('span', { class: 'min-w-0 truncate' }, `${c.name || '—'}${c.version && c.version !== 'latest' ? `@${c.version}` : ''}`),
+      h('span', { class: 'text-ide-faint shrink-0' }, c.component_type || 'library')))
+      : [h('p', { class: 'text-ide-muted font-sans' }, 'No components reported.')]));
+    $('sbom-out').textContent = `[✓] SBOM ${bom.serial_number || 'generated'} · v${bom.version ?? '?'}`;
+  } catch (err) {
+    renderLoadError(grid, err, loadSbom);
+    $('sbom-out').textContent = '[✗] SBOM UNAVAILABLE';
+  }
+}
+// ---------- ops / team & admin ----------
+async function activateWorkspace(id) {
+  try {
+    await api(`/v1/workspaces/${encodeURIComponent(id)}/activate`, { method: 'POST' });
+    tone('tick');
+    loadWorkspaces();
+  } catch (err) { toast(err.message, 'err'); }
+}
+async function loadWorkspaces() {
+  const list = $('workspaces-list');
+  try {
+    const data = await api('/v1/workspaces');
+    const items = data.workspaces || [];
+    list.replaceChildren(...(items.length ? items.map((w) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-semibold text-xs' }, w.name || w.id),
+        h('span', { class: 'flex gap-1 items-center' },
+          w.is_active ? h('span', { class: 'step-chip text-accent border-accent/50 text-[10px]' }, 'ACTIVE')
+            : h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[10px]', onclick: () => activateWorkspace(w.id) }, 'Activate'),
+          w.git_branch ? h('span', { class: 'step-chip text-[10px] font-mono' }, `⎇ ${w.git_branch}`) : null,
+          w.detected_framework ? h('span', { class: 'step-chip text-[10px]' }, w.detected_framework) : null)),
+      h('p', { class: 'font-mono text-[11px] text-ide-muted break-all', dir: 'ltr' }, w.path || '')))
+      : [h('p', { class: 'text-ide-muted' }, 'No workspaces registered.')]));
+    $('workspaces-out').textContent = `[✓] ${items.length} WORKSPACE${items.length === 1 ? '' : 'S'} REGISTERED · ACTIVE ${data.active_workspace_id || 'none'}`;
+  } catch (err) {
+    renderLoadError(list, err, loadWorkspaces);
+    $('workspaces-out').textContent = '[✗] WORKSPACE REGISTRY UNAVAILABLE';
+  }
+}
+async function loadRunnerJobs() {
+  const list = $('runner-jobs-list');
+  try {
+    const { pending_jobs: jobs, count } = await api('/v1/runner/jobs/pending');
+    list.replaceChildren(...(jobs && jobs.length ? jobs.map((j) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-mono text-[11px] font-semibold' }, j.job_id),
+        h('span', { class: 'flex gap-1' },
+          h('span', { class: 'step-chip text-[10px]' }, j.org_id || 'default_org'),
+          h('span', { class: 'step-chip text-[10px]' }, j.project_id || 'default_project'))),
+      h('p', { class: 'text-ide-muted text-[11px] break-words' }, j.task_prompt || '—'),
+      h('p', { class: 'text-ide-faint text-[10px] font-mono' }, `${j.actor_id || '—'} · ${j.policy_version || '—'} · ≤${j.token_ceiling ?? '—'} tok · ≤${j.cost_ceiling_cents ?? '—'}¢ · ${j.created_at || ''}`)))
+      : [h('p', { class: 'text-ide-muted' }, 'Queue empty — no jobs awaiting runner pickup.')]));
+    $('runner-jobs-out').textContent = `[✓] ${count ?? (jobs ? jobs.length : 0)} JOB${(count ?? 0) === 1 ? '' : 'S'} PENDING`;
+  } catch (err) {
+    renderLoadError(list, err, loadRunnerJobs);
+    $('runner-jobs-out').textContent = '[✗] RUNNER QUEUE UNAVAILABLE';
+  }
+}
+async function enqueueRunnerJob(e) {
+  e.preventDefault();
+  const prompt = $('runner-job-prompt').value.trim();
+  const repo = $('runner-job-repo').value.trim();
+  try {
+    const res = await api('/v1/runner/jobs/enqueue', {
+      method: 'POST',
+      body: { task_prompt: prompt, repo_path: repo || '.' },
+    });
+    tone('tick');
+    $('runner-job-prompt').value = '';
+    $('runner-jobs-out').textContent = `[✓] ENQUEUED ${res.job_id} · depth ${res.queue_depth}`;
+    loadRunnerJobs();
+  } catch (err) {
+    toast(err.message, 'err');
+    $('runner-jobs-out').textContent = `[✗] ENQUEUE FAILED — ${err.message}`;
+  }
+}
+async function loadSchedules() {
+  const list = $('schedules-list');
+  try {
+    const data = await api('/v1/schedules');
+    const items = data.schedules || [];
+    const fmt = (epoch) => (epoch ? new Date(epoch * 1000).toLocaleTimeString() : '—');
+    list.replaceChildren(...(items.length ? items.map((s) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-mono text-[11px] font-semibold' }, s.flow_id),
+        h('span', { class: 'flex gap-1 items-center' },
+          statusChip(s.last_status ? s.last_status.toUpperCase() : 'NOT RUN'),
+          h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[10px] text-danger', onclick: () => deleteSchedule(s.schedule_id) }, 'Delete'))),
+      h('p', { class: 'text-ide-faint text-[10px] font-mono' },
+        `every ${s.interval_seconds}s · runs ${s.runs_completed} · last ${fmt(s.last_run_epoch)} · next ${fmt(s.next_run_epoch)}${s.last_error ? ` · err: ${s.last_error}` : ''}`)))
+      : [h('p', { class: 'text-ide-muted' }, 'No schedules — register one below.')]));
+    $('schedules-out').textContent = `[✓] ${items.length} SCHEDULE${items.length === 1 ? '' : 'S'} (in-memory; resets on restart)`;
+  } catch (err) {
+    renderLoadError(list, err, loadSchedules);
+    $('schedules-out').textContent = '[✗] SCHEDULER UNAVAILABLE';
+  }
+}
+async function createSchedule(e) {
+  e.preventDefault();
+  const flowId = $('schedule-flow').value.trim();
+  const interval = parseInt($('schedule-interval').value, 10);
+  try {
+    const res = await api('/v1/schedules', {
+      method: 'POST',
+      body: { flow_id: flowId, interval_seconds: interval },
+    });
+    tone('tick');
+    $('schedule-form').reset();
+    $('schedules-out').textContent = `[✓] SCHEDULED ${res.flow_id} every ${res.interval_seconds}s`;
+    loadSchedules();
+  } catch (err) {
+    toast(err.message, 'err');
+    $('schedules-out').textContent = `[✗] SCHEDULE FAILED — ${err.message}`;
+  }
+}
+async function deleteSchedule(id) {
+  try {
+    await api(`/v1/schedules/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    tone('tick');
+    loadSchedules();
+  } catch (err) { toast(err.message, 'err'); }
+}
+async function loadAccessControl() {
+  const matrixEl = $('rbac-matrix');
+  const list = $('tokens-list');
+  try {
+    const data = await api('/v1/rbac/matrix');
+    const roles = data.roles || {};
+    const perms = data.permissions || [];
+    const table = h('table', { class: 'w-full text-[11px] font-mono' },
+      h('thead', {}, h('tr', {},
+        h('th', { class: 'text-left py-1 pr-3 text-ide-muted font-normal' }, 'ROLE'),
+        ...perms.map((p) => h('th', { class: 'text-left py-1 px-2 text-ide-muted font-normal' }, p)))) ,
+      h('tbody', {}, ...Object.entries(roles).map(([role, allowed]) => h('tr', { class: 'border-t border-ide-border/40' },
+        h('td', { class: 'py-1 pr-3 text-ide-fg' }, role),
+        ...perms.map((p) => h('td', { class: `py-1 px-2 ${allowed.includes(p) ? 'text-ide-ok' : 'text-ide-faint'}` }, allowed.includes(p) ? '✓' : '—'))))));
+    matrixEl.replaceChildren(table);
+  } catch (err) {
+    renderLoadError(matrixEl, err, loadAccessControl);
+  }
+  try {
+    const data = await api('/v1/tokens');
+    const items = data.tokens || [];
+    list.replaceChildren(...(items.length ? items.map((t) => h('div', { class: 'card p-3 flex items-center justify-between gap-2 flex-wrap' },
+      h('div', {},
+        h('span', { class: 'font-semibold text-xs' }, t.name || t.id),
+        h('span', { class: 'ml-2 step-chip text-[10px]' }, t.role || '—'),
+        t.revoked ? statusChip('REVOKED') : statusChip('ACTIVE')),
+      h('div', { class: 'flex items-center gap-2' },
+        h('span', { class: 'text-ide-faint text-[10px] font-mono' },
+          `${t.last_used_at ? `used ${t.last_used_at.slice(0, 10)}` : 'never used'}${t.expires_at ? ` · expires ${t.expires_at.slice(0, 10)}` : ''}`),
+        t.revoked ? null : h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[10px] text-danger', onclick: () => revokeToken(t.id) }, 'Revoke'))))
+      : [h('p', { class: 'text-ide-muted' }, 'No API tokens minted yet.')]));
+    $('tokens-out').textContent = `[✓] ${items.length} TOKEN${items.length === 1 ? '' : 'S'} · ${items.filter((t) => !t.revoked).length} ACTIVE`;
+  } catch (err) {
+    renderLoadError(list, err, loadAccessControl);
+    $('tokens-out').textContent = '[✗] TOKEN REGISTRY UNAVAILABLE (owner role required)';
+  }
+}
+async function createToken(e) {
+  e.preventDefault();
+  const name = $('token-name').value.trim();
+  const role = $('token-role').value;
+  const days = parseInt($('token-expiry').value, 10);
+  const minted = $('token-minted');
+  try {
+    const res = await api('/v1/tokens', {
+      method: 'POST',
+      body: { name, role, ...(Number.isFinite(days) ? { expires_in_days: days } : {}) },
+    });
+    tone('tick');
+    $('token-create-form').reset();
+    minted.classList.remove('hidden');
+    minted.textContent = `[✓] MINTED '${res.name}' (${res.role}) — store now, shown once:\n${res.token}`;
+    loadAccessControl();
+  } catch (err) {
+    toast(err.message, 'err');
+    $('tokens-out').textContent = `[✗] MINT FAILED — ${err.message}`;
+  }
+}
+async function revokeToken(id) {
+  try {
+    await api(`/v1/tokens/${encodeURIComponent(id)}/revoke`, { method: 'POST' });
+    tone('tick');
+    loadAccessControl();
+  } catch (err) { toast(err.message, 'err'); }
+}
+// ---------- multi-agent team orchestration ----------
+let teamPlan = null;
+function renderTeamPlan(plan) {
+  const grid = $('team-plan-grid');
+  const nodes = Object.values((plan && plan.nodes) || {});
+  grid.replaceChildren(...(nodes.length ? nodes.map((n) => h('div', { class: 'border border-ide-border rounded p-2.5 bg-ide-bg/60 space-y-1' },
+    h('div', { class: 'flex justify-between items-center gap-2' },
+      h('span', { class: 'font-mono text-[10px] text-ide-muted' }, n.id),
+      statusChip((n.state || 'pending').toUpperCase())),
+    h('div', { class: 'font-semibold text-xs' }, n.title || n.id),
+    h('div', { class: 'text-[10px] text-ide-muted' }, `Role: ${n.role}`),
+    n.depends_on && n.depends_on.length ? h('div', { class: 'text-[10px] text-ide-faint font-mono' }, `after: ${n.depends_on.join(', ')}`) : null))
+    : [h('p', { class: 'text-ide-muted' }, 'Plan returned no nodes.')]));
+}
+async function planTeam(e) {
+  e.preventDefault();
+  const goal = $('team-goal').value.trim();
+  const out = $('team-out');
+  out.textContent = '[…] Planning team workflow…';
+  $('team-exec-btn').disabled = true;
+  teamPlan = null;
+  try {
+    teamPlan = await api('/v1/orchestration/team/plan', { method: 'POST', body: { goal } });
+    renderTeamPlan(teamPlan);
+    $('team-exec-btn').disabled = false;
+    out.textContent = `[✓] PLAN READY — ${Object.keys(teamPlan.nodes || {}).length} nodes · team ${teamPlan.team_id || '—'}`;
+  } catch (err) {
+    renderLoadError($('team-plan-grid'), err, planTeam);
+    out.textContent = `[✗] PLAN FAILED — ${err.message}`;
+  }
+}
+async function executeTeam() {
+  const out = $('team-out');
+  const result = $('team-result');
+  const goal = $('team-goal').value.trim();
+  const execBtn = $('team-exec-btn');
+  execBtn.disabled = true;
+  const startedAt = Date.now();
+  const timer = setInterval(() => {
+    out.textContent = `[…] Executing team workflow — verifier stage runs the project test suite; ${Math.round((Date.now() - startedAt) / 1000)}s elapsed…`;
+  }, 1000);
+  out.textContent = '[…] Executing team workflow — the verifier stage runs the project test suite and can take several minutes…';
+  try {
+    const res = await api('/v1/orchestration/team/execute', { method: 'POST', body: { goal, auto_approve: false } });
+    renderTeamPlan(res.plan || teamPlan);
+    result.replaceChildren(h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center gap-2 flex-wrap' },
+        statusChip((res.status || 'unknown').toUpperCase()),
+        metricChip('Nodes', String(res.nodes_executed ?? '—')),
+        metricChip('Duration', `${res.duration_ms ?? '—'}ms`)),
+      h('p', { class: 'text-ide-muted text-[11px] break-words' }, res.summary || '—'),
+      res.flight_tape_sha256 ? h('p', { class: 'text-[10px] font-mono text-ide-faint' }, `tape sha: ${res.flight_tape_sha256}`) : null));
+    out.textContent = `[✓] EXECUTED — team ${res.team_id || '—'} · ${res.status || '—'}`;
+    tone(res.status === 'succeeded' ? 'ok' : 'tick');
+  } catch (err) {
+    renderLoadError(result, err, executeTeam);
+    out.textContent = `[✗] EXECUTION FAILED — ${err.message}`;
+  } finally {
+    clearInterval(timer);
+    execBtn.disabled = !teamPlan;
+  }
+}
 async function loadRuns() {
   try { state.runs = (await api('/v1/agent/runs')).runs; } catch { return; }
   renderRuns();
@@ -503,6 +886,18 @@ async function loadRuns() {
 function renderRuns() {
   const runs = state.runs;
   const waiting = runs.filter((r) => r.pending_approval).length;
+  const fleet = $('fleet-strip');
+  if (fleet) {
+    const counts = { running: 0, completed: 0, failed: 0, other: 0 };
+    runs.forEach((r) => { counts[r.status in counts ? r.status : 'other'] += 1; });
+    fleet.replaceChildren(...[
+      metricChip('Runs', String(runs.length)),
+      metricChip('Running', String(counts.running)),
+      metricChip('Awaiting approval', String(waiting)),
+      metricChip('Completed', String(counts.completed)),
+      metricChip('Failed', String(counts.failed)),
+    ]);
+  }
   const dot = $('rail-approval-dot'); dot.textContent = String(waiting); dot.classList.toggle('hidden', !waiting);
   const sb = $('sb-approval'); sb.textContent = fmt('approvalsWaiting', { n: waiting }); sb.classList.toggle('hidden', !waiting);
   $('run-list').replaceChildren(...(runs.length ? runs.map((r) => {
@@ -911,20 +1306,18 @@ async function loadPlugins() {
   try {
     const plugins = await api('/v1/plugins');
     if (!plugins || plugins.length === 0) {
-      listEl.innerHTML = '<p class="text-ide-muted font-sans text-xs">No active plugins found in .keelway/plugins.</p>';
+      listEl.replaceChildren(h('p', { class: 'text-ide-muted font-sans text-xs' }, 'No active plugins found in .keelway/plugins.'));
       return;
     }
-    listEl.innerHTML = plugins.map((p) => `
-      <div class="p-2 rounded bg-ide-bg border border-ide-border space-y-1">
-        <div class="flex items-center justify-between font-semibold">
-          <span>${p.name} <span class="text-ide-faint font-normal">v${p.version}</span></span>
-          <span class="chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}">${p.status}</span>
-        </div>
-        <p class="text-ide-muted font-sans text-[11px]">${p.description || ''}</p>
-        ${p.active_tools && p.active_tools.length ? `<p class="text-[10px] text-ide-accent">Tools: ${p.active_tools.join(', ')}</p>` : ''}
-      </div>
-    `).join('');
-  } catch (err) { listEl.innerHTML = `<p class="text-danger">${err.message}</p>`; }
+    listEl.replaceChildren(...plugins.map((p) => h('div', { class: 'p-2 rounded bg-ide-bg border border-ide-border space-y-1' },
+      h('div', { class: 'flex items-center justify-between font-semibold' },
+        h('span', {}, p.name, ' ', h('span', { class: 'text-ide-faint font-normal' }, `v${p.version}`)),
+        h('span', { class: `chip text-[10px] ${p.status === 'ACTIVE' ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}` }, p.status)),
+      p.description ? h('p', { class: 'text-ide-muted font-sans text-[11px]' }, p.description) : null,
+      p.active_tools && p.active_tools.length
+        ? h('p', { class: 'text-[10px] text-accent truncate', title: p.active_tools.join(', ') }, `Tools: ${p.active_tools.join(', ')}`)
+        : null)));
+  } catch (err) { renderLoadError(listEl, err, loadPlugins); }
 }
 
 async function installPluginForm(e) {
@@ -946,12 +1339,23 @@ async function runEvalRadar() {
   const btn = $('eval-run-btn'); btn.disabled = true; $('eval-out').textContent = 'Executing 10-task golden evaluation panel…';
   try {
     const r = await api('/v1/evals/run', { method: 'POST', body: { model_name: 'keelway-local-default', save_receipt: true } });
-    $('eval-out').textContent = `[✓] 10-TASK GOLDEN BENCHMARK COMPLETE (Run ID: ${r.eval_run_id})\n` +
-      `Pass@1 Rate:     ${r.pass_rate_pct}% (${r.passed_tasks}/${r.total_tasks} passed)\n` +
-      `Duration:        ${r.total_duration_ms.toFixed(2)}ms (p50: ${r.p50_latency_ms.toFixed(2)}ms, p95: ${r.p95_latency_ms.toFixed(2)}ms)\n` +
-      `Receipt SHA-256: ${r.receipt_sha256}\n\n` +
-      `Tasks Verified:\n` +
-      r.task_results.map((t) => `  ${t.passed ? '[✓]' : '[✗]'} ${t.task_id}: ${t.name} (${t.duration_ms.toFixed(2)}ms)`).join('\n');
+    const res = $('eval-results');
+    if (res) {
+      res.replaceChildren(
+        h('div', { class: 'flex flex-wrap gap-2' },
+          metricChip('Pass@1', `${r.pass_rate_pct}% (${r.passed_tasks}/${r.total_tasks})`),
+          metricChip('Duration', `${r.total_duration_ms.toFixed(0)}ms`),
+          metricChip('p50 / p95', `${r.p50_latency_ms.toFixed(0)} / ${r.p95_latency_ms.toFixed(0)}ms`),
+          metricChip('Run', String(r.eval_run_id)),
+          metricChip('Receipt', `${String(r.receipt_sha256).slice(0, 16)}…`)),
+        h('div', { class: 'rounded border border-ide-border bg-ide-bg divide-y divide-ide-border/60 overflow-hidden' },
+          ...(r.task_results || []).map((t) => h('div', { class: 'flex items-center gap-2 px-2.5 py-1.5' },
+            h('span', { class: `font-mono shrink-0 ${t.passed ? 'text-ok' : 'text-danger'}` }, t.passed ? '✓' : '✗'),
+            h('span', { class: 'font-mono text-ide-faint shrink-0' }, t.task_id),
+            h('span', { class: 'flex-1 truncate min-w-0', title: t.name }, t.name),
+            h('span', { class: 'font-mono text-ide-faint shrink-0' }, `${t.duration_ms.toFixed(0)}ms`)))));
+    }
+    $('eval-out').textContent = `[✓] 10-TASK GOLDEN BENCHMARK COMPLETE (Run ID: ${r.eval_run_id})`;
     tone(r.pass_rate_pct === 100 ? 'ok' : 'warn');
   } catch (err) { $('eval-out').textContent = `[-] Eval error: ${err.message}`; tone('err'); }
   finally { btn.disabled = false; }
@@ -963,15 +1367,28 @@ async function checkDriftRadar() {
     const cand = await api('/v1/evals/run', { method: 'POST', body: { model_name: 'keelway-local-default', save_receipt: true } });
     const drift = await api('/v1/evals/drift/compare', { method: 'POST', body: { candidate_run_id: cand.eval_run_id } });
     const tag = drift.drift_detected ? `DRIFT DETECTED [${drift.drift_severity}]` : 'NO DRIFT DETECTED [✓]';
-    $('eval-out').textContent = `====================================================\n` +
-      `  DRIFT RADAR ANALYSIS: ${tag}\n` +
-      `====================================================\n` +
-      `Candidate:          ${drift.candidate_run_id} (${drift.candidate_pass_rate}% Pass@1)\n` +
-      `Baseline:           ${drift.baseline_run_id} (${drift.baseline_pass_rate}% Pass@1)\n` +
-      `Pass@1 Delta:       ${drift.pass_rate_delta > 0 ? '+' : ''}${drift.pass_rate_delta.toFixed(1)}%\n` +
-      `p50 Latency Delta:  ${drift.latency_p50_delta_pct > 0 ? '+' : ''}${drift.latency_p50_delta_pct.toFixed(1)}%\n` +
-      (drift.regressed_tasks && drift.regressed_tasks.length ? `Regressed Tasks:    ${drift.regressed_tasks.join(', ')}\n` : '') +
-      (drift.alert_reasons && drift.alert_reasons.length ? `Alerts:\n` + drift.alert_reasons.map((a) => `  • ${a}`).join('\n') : 'All metrics within stability threshold.');
+    const res = $('eval-results');
+    if (res) {
+      res.replaceChildren(h('div', {
+        class: `p-2.5 rounded border space-y-2 ${drift.drift_detected ? 'border-warn/50 bg-warn/5' : 'border-ok/40 bg-ok/5'}`,
+      },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold' }, 'Drift radar analysis'),
+          h('span', { class: `chip text-[10px] shrink-0 ${drift.drift_detected ? 'text-warn border-warn/50' : 'text-ok border-ok/50'}` },
+            drift.drift_detected ? `DRIFT · ${String(drift.drift_severity || '').toUpperCase()}` : 'NO DRIFT')),
+        h('div', { class: 'flex flex-wrap gap-2' },
+          metricChip('Candidate', `${drift.candidate_run_id} · ${drift.candidate_pass_rate}%`),
+          metricChip('Baseline', `${drift.baseline_run_id} · ${drift.baseline_pass_rate}%`),
+          metricChip('Pass@1 delta', `${drift.pass_rate_delta > 0 ? '+' : ''}${drift.pass_rate_delta.toFixed(1)}%`),
+          metricChip('p50 delta', `${drift.latency_p50_delta_pct > 0 ? '+' : ''}${drift.latency_p50_delta_pct.toFixed(1)}%`)),
+        drift.regressed_tasks && drift.regressed_tasks.length
+          ? h('p', { class: 'text-[11px] text-danger' }, `Regressed tasks: ${drift.regressed_tasks.join(', ')}`)
+          : null,
+        drift.alert_reasons && drift.alert_reasons.length
+          ? h('ul', { class: 'list-disc pl-4 text-[11px] text-ide-muted space-y-0.5' }, drift.alert_reasons.map((a) => h('li', {}, a)))
+          : h('p', { class: 'text-[11px] text-ide-muted' }, 'All metrics within stability threshold.')));
+    }
+    $('eval-out').textContent = `[${drift.drift_detected ? '!' : '✓'}] DRIFT RADAR ANALYSIS: ${tag}`;
     tone(drift.drift_detected ? 'warn' : 'ok');
   } catch (err) { $('eval-out').textContent = `[-] Drift check error: ${err.message}`; tone('err'); }
   finally { btn.disabled = false; }
@@ -1012,7 +1429,7 @@ async function loadMeshStatus() {
       });
     }
   } catch (err) {
-    if (list) list.innerHTML = `<div class="text-danger text-xs">[-] Error loading mesh: ${err.message}</div>`;
+    if (list) renderLoadError(list, err, loadMeshStatus);
   }
 }
 
@@ -1100,6 +1517,17 @@ async function loadEvidenceSummary() {
     const notRunCount = pkg.summary && Number.isInteger(pkg.summary.not_run_metrics)
       ? pkg.summary.not_run_metrics
       : pkg.metrics.filter((m) => evidenceMetricMark(m).mark === 'NOT RUN').length;
+    const grid = $('evidence-metrics');
+    if (grid && Array.isArray(pkg.metrics) && pkg.metrics.length) {
+      const markTone = { 'VERIFIED': 'text-ok', 'NOT RUN': 'text-ide-muted', 'ERROR': 'text-danger', 'UNVERIFIED': 'text-warn' };
+      grid.replaceChildren(...pkg.metrics.slice(0, 8).map((m) => {
+        const mark = evidenceMetricMark(m);
+        return h('div', { class: 'border border-ide-border rounded p-2.5 bg-ide-bg' },
+          h('div', { class: 'text-[10px] text-ide-muted uppercase truncate', title: m.name || '' }, m.name || 'Metric'),
+          h('div', { class: `text-base font-semibold ${markTone[mark.mark] || 'text-ide-muted'}` }, mark.mark),
+          h('div', { class: 'text-[10px] text-ide-muted truncate', title: m.reproduce_command || '' }, m.reproduce_command || m.category || ''));
+      }));
+    }
     out.textContent = `[i] EVIDENCE ROOM SUMMARY (WP21)\n` +
       `Package ID:   ${pkg.package_id}\n` +
       `Commit SHA:   ${pkg.commit_sha.slice(0, 16)} (${pkg.git_branch})\n` +
@@ -1167,20 +1595,28 @@ async function verifyEvidencePackage() {
 
 async function runDoctorDiagnostics() {
   const out = $('doctor-out');
+  const list = $('doctor-sections');
   if (!out) return;
   out.textContent = 'Running sovereign enterprise system diagnostics across 7 dimensions…';
   try {
     const report = await api('/v1/system/doctor');
-    out.textContent = `[✓] SOVEREIGN SYSTEM DIAGNOSTICS (${report.overall_status})\n` +
-      `Timestamp:   ${report.timestamp_utc}\n` +
-      `Python:      ${report.python_version} (${report.os_platform})\n` +
-      `Environment: ${report.environment}\n\n` +
-      report.sections.map((s, idx) => `[${idx + 1}] ${s.name} [${s.status}]\n` +
-        Object.entries(s.details).map(([k, v]) => `    • ${k.replace(/_/g, ' ')}: ${v}`).join('\n')
-      ).join('\n\n');
+    if (list) {
+      list.replaceChildren(...(report.sections || []).map((s, idx) => h('div', { class: 'p-2.5 rounded bg-ide-bg border border-ide-border space-y-1.5' },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold font-mono min-w-0' }, `${idx + 1}. ${s.name}`),
+          statusChip(s.status)),
+        h('dl', { class: 'grid grid-cols-[auto,1fr] gap-x-2 gap-y-0.5 font-mono text-[11px]' },
+          ...Object.entries(s.details || {}).flatMap(([k, v]) => [
+            h('dt', { class: 'text-ide-faint' }, `${k.replace(/_/g, ' ')}:`),
+            h('dd', { class: 'text-ide-muted break-words' }, String(v)),
+          ]))
+      )));
+    }
+    out.textContent = `[✓] SOVEREIGN SYSTEM DIAGNOSTICS — ${report.overall_status} · ${report.python_version} (${report.os_platform}) · ${report.environment}`;
     tone('ok');
     toast(`Diagnostics complete: ${report.overall_status}`, 'ok');
   } catch (err) {
+    if (list) renderLoadError(list, err, runDoctorDiagnostics);
     out.textContent = `[-] Diagnostics error: ${err.message}`;
     tone('err');
   }
@@ -1260,17 +1696,29 @@ async function showMobilePairingInStudio() {
 
 async function loadKStackSkillsInStudio() {
   const out = $('kstack-out');
+  const list = $('kstack-skills-list');
   if (!out) return;
   out.textContent = 'Querying KStack role skills registry…';
   try {
     const data = await api('/v1/kstack/skills');
     const skills = Array.isArray(data) ? data : (data.skills || []);
-    out.textContent = `[✓] KSTACK ACTIVE ROLE SKILLS (${skills.length} Loaded)\n` +
-      `─────────────────────────────────────────────────────────────────\n` +
-      skills.map(s => `• ${s.name.padEnd(20)} [${s.role}] (v${s.version})\n    Perms: ${s.permissions.join(', ')} | Status: ${s.pinned ? 'PINNED' : 'ACTIVE'}`).join('\n\n');
+    if (list) {
+      list.replaceChildren(...skills.map((s) => h('div', { class: 'p-2.5 rounded bg-ide-bg border border-ide-border space-y-1.5' },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold font-mono truncate', title: s.name }, s.name),
+          h('span', { class: `chip text-[10px] shrink-0 ${s.pinned ? 'text-accent border-accent/50' : 'text-ide-muted border-ide-border'}` }, s.pinned ? 'PINNED' : 'ACTIVE')),
+        h('div', { class: 'flex items-center gap-2 text-[11px] text-ide-muted' },
+          h('span', { class: 'chip text-[10px] border-ide-border text-ide-faint' }, s.role || 'role'),
+          h('span', { class: 'font-mono' }, `v${s.version}`)),
+        s.permissions && s.permissions.length
+          ? h('div', { class: 'flex flex-wrap gap-1' }, s.permissions.map((perm) => h('span', { class: 'chip text-[10px] border-ide-border/60 text-ide-faint font-mono' }, perm)))
+          : null)));
+    }
+    out.textContent = `[✓] KSTACK ACTIVE ROLE SKILLS (${skills.length} Loaded)`;
     tone('ok');
     toast(`${skills.length} role skills loaded`, 'ok');
   } catch (err) {
+    if (list) renderLoadError(list, err, loadKStackSkillsInStudio);
     out.textContent = `[-] KStack error: ${err.message}`;
     tone('err');
   }
@@ -1333,17 +1781,28 @@ async function recordKBrainFactInStudio() {
 
 async function queryKBrainFactsInStudio() {
   const out = $('kbrain-out');
+  const list = $('kbrain-list');
   const scope = $('kbrain-scope') ? $('kbrain-scope').value : 'project';
   out.textContent = `Querying KBrain facts (Scope <= ${scope})…`;
   try {
     const facts = await api(`/v1/kbrain/facts?scope=${encodeURIComponent(scope)}`);
-    const list = Array.isArray(facts) ? facts : (facts.facts || []);
-    out.textContent = `[✓] KBRAIN FACTS QUERY (Scope <= ${scope}, Total: ${list.length})\n` +
-      `─────────────────────────────────────────────────────────────────\n` +
-      (list.length ? list.map(f => `• [${f.scope}] [${f.status}] ${f.key} (rev ${f.revision}):\n    "${f.statement}"\n    Provenance: ${f.provenance_reason} | Hash: ${f.sha256.slice(0, 16)}…`).join('\n\n') : '  (no facts recorded in this scope)');
+    const items = Array.isArray(facts) ? facts : (facts.facts || []);
+    if (list) {
+      list.replaceChildren(...(items.length ? items.map((f) => h('div', { class: 'p-2.5 rounded bg-ide-bg border border-ide-border space-y-1.5' },
+        h('div', { class: 'flex items-center justify-between gap-2' },
+          h('span', { class: 'font-semibold font-mono truncate min-w-0', title: f.key }, f.key),
+          h('span', { class: 'flex items-center gap-1 shrink-0' },
+            h('span', { class: 'chip text-[10px] border-ide-border text-ide-faint' }, f.scope),
+            statusChip(f.status))),
+        h('p', { class: 'font-sans text-[11px] text-ide-muted' }, f.statement),
+        h('p', { class: 'font-mono text-[10px] text-ide-faint' }, `rev ${f.revision} · ${f.provenance_reason || 'n/a'} · ${(f.sha256 || '').slice(0, 16)}…`)))
+        : [h('p', { class: 'text-ide-muted font-sans text-xs' }, 'No facts recorded in this scope.')]));
+    }
+    out.textContent = `[✓] KBRAIN FACTS QUERY (Scope <= ${scope}, Total: ${items.length})`;
     tone('ok');
-    toast(`${list.length} facts retrieved`, 'ok');
+    toast(`${items.length} facts retrieved`, 'ok');
   } catch (err) {
+    if (list) renderLoadError(list, err, queryKBrainFactsInStudio);
     out.textContent = `[-] KBrain query error: ${err.message}`;
     tone('err');
   }
@@ -1838,9 +2297,9 @@ function renderUnifiedProofStrip(container, data, options = {}) {
   header.className = 'proof-strip-header';
   header.innerHTML = `
     <div class="flex items-center gap-2 flex-wrap">
-      <span class="font-semibold text-xs tracking-wider uppercase text-ide-fg">${modeLabel} Proof Strip</span>
-      <span class="step-chip text-accent border-accent/40 font-mono text-[10px]">${modelBadge}</span>
-      <span class="step-chip text-ide-muted border-ide-border font-mono text-[10px]">${egressChip}</span>
+      <span class="font-semibold text-xs tracking-wider uppercase text-ide-fg">${esc(modeLabel)} Proof Strip</span>
+      <span class="step-chip text-accent border-accent/40 font-mono text-[10px]">${esc(modelBadge)}</span>
+      <span class="step-chip text-ide-muted border-ide-border font-mono text-[10px]">${esc(egressChip)}</span>
     </div>
     <div class="flex items-center gap-2 text-[11px] font-mono">
       <span class="w-2 h-2 rounded-full shrink-0 ${statusBg} ${isActive || isWaiting ? 'pulse' : ''}" aria-hidden="true"></span>
@@ -1877,8 +2336,8 @@ function renderUnifiedProofStrip(container, data, options = {}) {
         .filter(([k]) => k !== 'summary')
         .map(([k, v]) => `
           <div class="flex items-start justify-between gap-4 py-1 border-b border-ide-border/40">
-            <span class="text-ide-muted font-mono uppercase text-[10px]">${k.replace(/([A-Z])/g, '_$1').toLowerCase()}:</span>
-            <span class="text-ide-fg font-mono text-[11px] text-right break-all">${v == null ? 'Not reported' : (typeof v === 'boolean' ? (v ? 'YES' : 'NO') : (Array.isArray(v) ? v.join(', ') : v))}</span>
+            <span class="text-ide-muted font-mono uppercase text-[10px]">${esc(k.replace(/([A-Z])/g, '_$1').toLowerCase())}:</span>
+            <span class="text-ide-fg font-mono text-[11px] text-right break-all">${v == null ? 'Not reported' : (typeof v === 'boolean' ? (v ? 'YES' : 'NO') : esc(Array.isArray(v) ? v.join(', ') : v))}</span>
           </div>
         `).join('');
     }
@@ -1888,15 +2347,15 @@ function renderUnifiedProofStrip(container, data, options = {}) {
         <div class="space-y-1">
           <div class="flex items-center gap-2">
             <span class="w-5 h-5 rounded-full border flex items-center justify-center font-mono text-xs ${badgeClass}">${badgeIcon}</span>
-            <h4 class="font-semibold text-xs text-ide-fg uppercase tracking-wide">Stage ${stage.index}: ${stage.title}</h4>
-            <span class="step-chip ${badgeClass} text-[10px] uppercase font-mono">${stage.status}</span>
+            <h4 class="font-semibold text-xs text-ide-fg uppercase tracking-wide">Stage ${esc(stage.index)}: ${esc(stage.title)}</h4>
+            <span class="step-chip ${badgeClass} text-[10px] uppercase font-mono">${esc(stage.status)}</span>
           </div>
-          <p class="text-xs text-ide-muted">${stage.desc}</p>
+          <p class="text-xs text-ide-muted">${esc(stage.desc)}</p>
         </div>
         <button type="button" class="btn-ghost h-6 w-6 p-0 text-ide-muted hover:text-ide-fg text-xs" aria-label="Close proof drawer" id="${mode}-drawer-close">✕</button>
       </div>
       <div class="mt-3 p-3 bg-ide-sidebar/80 rounded border border-ide-border space-y-1 text-xs">
-        <div class="text-ide-fg font-mono text-[11px] mb-2">${stage.details ? stage.details.summary : ''}</div>
+        <div class="text-ide-fg font-mono text-[11px] mb-2">${stage.details ? esc(stage.details.summary) : ''}</div>
         <div class="space-y-0.5">${detailsHtml}</div>
       </div>
     `;
@@ -1954,9 +2413,9 @@ function renderUnifiedProofStrip(container, data, options = {}) {
     btn.innerHTML = `
       <div class="flex items-center gap-1.5 w-full">
         <span class="proof-strip-badge ${iconClass}" aria-hidden="true">${icon}</span>
-        <span class="proof-strip-label truncate">${stg.label}</span>
+        <span class="proof-strip-label truncate">${esc(stg.label)}</span>
       </div>
-      <div class="proof-strip-sublabel truncate">${stg.status.toUpperCase()}</div>
+      <div class="proof-strip-sublabel truncate">${esc(stg.status).toUpperCase()}</div>
     `;
 
     btn.onclick = () => {
@@ -2764,9 +3223,7 @@ async function loadManifestRegistry() {
       );
     }));
   } catch (err) {
-    tbody.replaceChildren(
-      h('tr', {}, h('td', { colspan: '6', class: 'p-3 text-danger text-center font-mono' }, err.message))
-    );
+    tbody.replaceChildren(h('tr', {}, h('td', { colspan: '6', class: 'p-1' }, loadErrorNode(err, loadManifestRegistry))));
   }
 }
 
@@ -3285,8 +3742,8 @@ async function loadCostLedger() {
         h('td', { class: `px-3 py-2 text-right font-mono text-xs ${costCls}` }, costDisplay)
       );
     }));
-  } catch {
-    /* quiet fail */
+  } catch (err) {
+    tbody.replaceChildren(h('tr', {}, h('td', { colspan: '7', class: 'p-1' }, loadErrorNode(err, loadCostLedger))));
   }
 }
 
@@ -3491,6 +3948,16 @@ async function toggleAirGap() {
 // ---------- command palette ----------
 let paletteItems = [], paletteIdx = 0, fileIndex = [], lastFocusedBeforePalette = null;
 function flatten(n, out = []) { (n.children || []).forEach((c) => (c.type === 'directory' ? flatten(c, out) : out.push(c.path))); return out; }
+// Jump straight to a feature card inside a section, not just the section.
+function goFeature(sec, id) {
+  return () => {
+    switchSection(sec);
+    requestAnimationFrame(() => {
+      const card = $(id) && $(id).closest('section.card');
+      if (card) card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  };
+}
 function commands() {
   return [
     ['Go to Home', () => switchSection('home')],
@@ -3498,17 +3965,49 @@ function commands() {
     ['Go to Tasks', () => switchSection('tasks')],
     ['Go to Evidence', () => switchSection('runs')],
     ['Go to Skills', () => switchSection('skills')],
+    ['Go to Models', () => switchSection('models')],
+    ['Go to Security', () => switchSection('security')],
+    ['Go to Ops', () => switchSection('ops')],
     ['Go to Settings', () => switchSection('settings')],
     ['Go to Manifests', () => switchSection('manifests')],
     ['Validate Custom Manifest JSON', () => { switchSection('manifests'); $('manifest-validator-input')?.focus(); }],
     ['Open Developer Labs', () => toggleLabsDrawer(true)],
+    ['System Doctor diagnostics', goFeature('home', 'lab-doctor')],
+    ['Repository & symbol intelligence', goFeature('home', 'lab-code-intel')],
+    ['Workspace conflict resolver', goFeature('home', 'lab-conflict-resolver')],
+    ['App builder & scaffolder', goFeature('home', 'lab-app-builder')],
+    ['KFlow task orchestration', goFeature('tasks', 'lab-kflow')],
+    ['Multi-agent team workflow', goFeature('tasks', 'lab-team')],
+    ['Agent bundle builder', goFeature('tasks', 'lab-agent-bundle')],
+    ['Evidence room metrics', goFeature('runs', 'lab-evidence')],
+    ['Merkle audit trail', goFeature('runs', 'lab-merkle-audit')],
+    ['KStack role skills', goFeature('skills', 'lab-kstack')],
+    ['Plugins & MCP extensions', goFeature('skills', 'lab-plugins')],
+    ['KBrain fact memory', goFeature('skills', 'lab-kbrain')],
+    ['Evaluation & drift radar', goFeature('skills', 'lab-eval-drift')],
+    ['Local model runtime & chat modes', goFeature('models', 'runtime-grid')],
+    ['Speculative decoding benchmark', goFeature('models', 'spec-metrics-grid')],
+    ['Model economics & cost ledger', goFeature('models', 'econ-inferences-badge')],
+    ['Air-gap compliance audit', goFeature('security', 'airgap-checks')],
+    ['Enterprise entitlements', goFeature('security', 'entitlements-grid')],
+    ['Hardware root of trust', goFeature('security', 'tier2-status-grid')],
+    ['Mesh quorum controls', goFeature('security', 'lab-quorum')],
+    ['Standing approval rules', goFeature('security', 'rule-list')],
+    ['SBOM supply chain', goFeature('security', 'sbom-grid')],
+    ['API access & roles', goFeature('security', 'tokens-list')],
+    ['Workspace registry', goFeature('ops', 'workspaces-list')],
+    ['Runner job queue', goFeature('ops', 'runner-jobs-list')],
+    ['Scheduled KFlow runs', goFeature('ops', 'schedules-list')],
+    ['P2P compute mesh', goFeature('ops', 'lab-mesh')],
+    ['Cross-machine sync', goFeature('ops', 'lab-sync')],
+    ['Runner spool', goFeature('ops', 'lab-runner-spool')],
     ['New task', newRun],
     ['Explorer', () => { switchSection('workspace'); switchView('explorer'); }],
     ['Changes', () => { switchSection('workspace'); switchView('git'); }],
     ['Memory', () => { switchSection('workspace'); switchView('memory'); }],
     ['Show diff of working tree', () => { switchSection('workspace'); setMode('diff'); }],
     ['Toggle air-gap', toggleAirGap],
-    ['Toggle theme', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')],
+    ['Toggle theme', () => setTheme(nextTheme(document.documentElement.dataset.theme))],
     ['Verify audit chain', () => { switchSection('runs'); verifyAudit(); }],
     ['Replay product tour', startTour],
     ['Sign out', signOut],
@@ -3617,7 +4116,7 @@ function wire() {
   $('lang-select').replaceChildren(...Object.entries(LANGS).map(([k, v]) => h('option', { value: k }, v)));
   $('lang-select').value = lang;
   $('lang-select').addEventListener('change', (e) => { lang = e.target.value; localStorage.setItem('keelway.lang', lang); relabel(); });
-  $('theme-btn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
+  $('theme-btn').addEventListener('click', () => setTheme(nextTheme(document.documentElement.dataset.theme)));
   if ($('density-btn')) $('density-btn').addEventListener('click', cycleDensity);
   $('sound-btn').setAttribute('aria-pressed', String(sound));
   $('sound-btn').addEventListener('click', () => { sound = !sound; localStorage.setItem('keelway.sound', sound ? 'on' : 'off'); $('sound-btn').setAttribute('aria-pressed', String(sound)); tone('tick'); });
@@ -3625,6 +4124,7 @@ function wire() {
   $('signout-btn').addEventListener('click', signOut);
   $('signin-form').addEventListener('submit', signIn);
   $('palette-btn').addEventListener('click', openPalette);
+  $('palette-btn-mobile')?.addEventListener('click', openPalette);
   $('palette-input').addEventListener('input', () => { paletteIdx = 0; renderPalette(); });
   $('palette-input').addEventListener('keydown', paletteKey);
   $('palette').addEventListener('click', (e) => { if (e.target === $('palette')) closePalette(); });
@@ -3640,6 +4140,7 @@ function wire() {
     if (e.key === 'Tab') trapFocus($('onboard'), e);
     else if (e.key === 'Escape') { e.stopPropagation(); endTour(); }
   });
+  $('onboard')?.addEventListener('click', (e) => { if (e.target === $('onboard')) endTour(); });
   $('signin')?.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') trapFocus($('signin'), e);
   });
@@ -3819,6 +4320,18 @@ function wire() {
   if ($('spool-status-btn')) $('spool-status-btn').addEventListener('click', checkSpoolStatusInStudio);
   if ($('spool-flush-btn')) $('spool-flush-btn').addEventListener('click', flushSpoolInStudio);
   if ($('btn-run-spec-benchmark')) $('btn-run-spec-benchmark').addEventListener('click', runSpeculativeBenchmarkInStudio);
+  if ($('runtime-refresh-btn')) $('runtime-refresh-btn').addEventListener('click', loadModelRuntime);
+  if ($('airgap-audit-btn')) $('airgap-audit-btn').addEventListener('click', loadAirgapAudit);
+  if ($('entitlements-refresh-btn')) $('entitlements-refresh-btn').addEventListener('click', loadEntitlements);
+  if ($('workspaces-refresh-btn')) $('workspaces-refresh-btn').addEventListener('click', loadWorkspaces);
+  if ($('runner-jobs-refresh-btn')) $('runner-jobs-refresh-btn').addEventListener('click', loadRunnerJobs);
+  if ($('runner-job-form')) $('runner-job-form').addEventListener('submit', enqueueRunnerJob);
+  if ($('schedule-form')) $('schedule-form').addEventListener('submit', createSchedule);
+  if ($('schedules-refresh-btn')) $('schedules-refresh-btn').addEventListener('click', loadSchedules);
+  if ($('token-create-form')) $('token-create-form').addEventListener('submit', createToken);
+  if ($('tokens-refresh-btn')) $('tokens-refresh-btn').addEventListener('click', loadAccessControl);
+  if ($('team-plan-form')) $('team-plan-form').addEventListener('submit', planTeam);
+  if ($('team-exec-btn')) $('team-exec-btn').addEventListener('click', executeTeam);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));
@@ -3923,7 +4436,7 @@ function wire() {
       else closePalette();
     }
     else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); }
-    else if (e.altKey && /^[1-7]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
+    else if (e.altKey && /^[1-9]$/.test(e.key)) { e.preventDefault(); switchSection(SECTIONS[Number(e.key) - 1]); }
     else if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); toggleAirGap(); }
     else if (mod && e.key === 'j') { e.preventDefault(); $('panel').classList.toggle('hidden'); }
     else if (e.key === 'Escape') {
@@ -3952,7 +4465,7 @@ function wire() {
 }
 
 async function boot() {
-  setTheme(localStorage.getItem('keelway.theme') || 'dark');
+  setTheme(localStorage.getItem('keelway.theme') || (window.matchMedia && matchMedia('(prefers-contrast: more)').matches ? 'hc' : 'dark'));
   setDensity(localStorage.getItem('keelway.density') || 'default');
   wire(); relabel(); switchPanel('console'); initMonaco();
   log('Keelway Studio · type help', 'text-ide-muted');

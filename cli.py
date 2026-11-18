@@ -495,6 +495,12 @@ async def cmd_dev(
                 if self.path.split("?", 1)[0] in ("/", "/studio", "/index.html"):
                     self.send_response(200)
                     self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Security-Policy",
+                        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+                        "font-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; "
+                        "worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
+                    self.send_header("X-Content-Type-Options", "nosniff")
+                    self.send_header("Referrer-Policy", "no-referrer")
                     self.end_headers()
                     self.wfile.write(studio_html.read_bytes())
                 elif self.path == "/health":
@@ -3979,6 +3985,20 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None):
+    try:
+        return _main(argv)
+    except KeyboardInterrupt:
+        print("\n[-] Interrupted.", file=sys.stderr)
+        sys.exit(130)
+    except Exception as exc:
+        if os.environ.get("KEELWAY_DEBUG"):
+            raise
+        print(f"[-] Error: {exc}", file=sys.stderr)
+        print("    (set KEELWAY_DEBUG=1 for a full traceback)", file=sys.stderr)
+        sys.exit(1)
+
+
+def _main(argv=None):
     raw_args = list(sys.argv[1:] if argv is None else argv)
     if not raw_args:
         print_banner()

@@ -3,1816 +3,180 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Keelway — Sovereign &amp; Hybrid AI Platform Console</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'" />
+  <title>Keelway — Sovereign Cross-Machine Sync Console</title>
   <style>
     :root {
-      /* Monochrome zinc palette: zinc scale + teal accent */
-      --bg: #09090B;
-      --bg-deep: #09090B;
-      --card: #121215;
-      --card-hover: #18181B;
-      --border: #27272A;
-      --border-focus: #2DD4BF;
-      --fg: #FAFAFA;
-      --muted: #A1A1AA;
-      --accent: #2DD4BF;      /* Keelway Teal — Open-Weight / Sovereign */
-      --amber: #D4D4D8;       /* Monochrome Zinc Secondary — Closed Frontier */
-      --ok: #2DD4BF;
-      --warn: #D4D4D8;
-      --err: #F87171;
-      --open-weight: #2DD4BF;
-      --closed-prop: #D4D4D8;
-      --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
-      --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      --bg: #0c0e14;
+      --card: #151822;
+      --border: #232838;
+      --fg: #e2e8f0;
+      --muted: #8492a6;
+      --accent: #38bdf8;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --err: #f87171;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--fg);
-      font-family: var(--sans);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
       font-size: 13px;
       line-height: 1.5;
-      padding: 20px 26px 48px;
+      padding: 24px;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 14px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 18px;
+      margin-bottom: 24px;
     }
-    .brand {
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand span.accent { color: var(--accent); }
-    .brand span.sub {
-      font-size: 11px;
-      font-weight: 600;
-      font-family: var(--mono);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-    .header-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .auth-box {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 3px 8px;
-    }
-    .auth-box label {
-      font-size: 10px;
-      font-family: var(--mono);
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    .auth-box input {
-      width: 185px;
-      border: none;
-      background: transparent;
-      padding: 3px 4px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--accent);
-    }
-    .auth-box input:focus { outline: none; }
-
-    .nav-tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-    }
-    .nav-tab {
-      background: #121215;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .nav-tab:hover { border-color: var(--accent); color: var(--fg); }
-    .nav-tab.active {
-      background: rgba(45, 212, 191, 0.1);
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.2);
-    }
-    .nav-tab .tab-idx {
-      font-family: var(--mono);
-      font-size: 10px;
-      opacity: 0.75;
-    }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
+    .brand { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+    .brand span { color: var(--accent); }
     .pill {
-      display: inline-block;
       font-size: 11px;
-      padding: 2px 9px;
+      padding: 3px 10px;
       border-radius: 9999px;
       border: 1px solid var(--border);
-      font-family: var(--mono);
-      white-space: nowrap;
+      font-family: monospace;
     }
-    .pill.ok { border-color: var(--ok); color: var(--ok); background: rgba(16, 185, 129, 0.08); }
-    .pill.err { border-color: var(--err); color: var(--err); background: rgba(239, 68, 68, 0.08); }
-    .pill.accent { border-color: var(--accent); color: var(--accent); background: rgba(45, 212, 191, 0.08); }
-    .pill.amber { border-color: var(--amber); color: var(--amber); background: rgba(212, 212, 216, 0.08); }
-    .pill.open-weight {
-      background: rgba(45, 212, 191, 0.14);
-      border-color: var(--open-weight);
-      color: var(--open-weight);
-      font-weight: 700;
-    }
-    .pill.closed-prop {
-      background: rgba(212, 212, 216, 0.14);
-      border-color: var(--closed-prop);
-      color: var(--closed-prop);
-      font-weight: 700;
-    }
-
-    .grid-4 {
+    .pill.ok { border-color: var(--ok); color: var(--ok); }
+    .pill.accent { border-color: var(--accent); color: var(--accent); }
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
-      margin-bottom: 18px;
-    }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 24px;
     }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px 18px;
+      padding: 16px;
     }
     .card h3 {
-      font-size: 11px;
+      font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
       color: var(--muted);
       margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 8px;
     }
-    .metric {
-      font-size: 24px;
-      font-weight: 800;
-      font-family: var(--mono);
-      color: var(--accent);
-    }
-    .metric.amber { color: var(--amber); }
-    .metric.fg { color: var(--fg); font-size: 16px; }
-    .metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-family: var(--mono);
-      font-size: 11.5px;
-    }
-    th {
-      text-align: left;
-      padding: 9px 8px;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      font-size: 10.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    td {
-      padding: 9px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      vertical-align: top;
-    }
-    tr:hover td { background: rgba(255, 255, 255, 0.015); }
-
+    .metric { font-size: 24px; font-weight: 700; font-family: monospace; color: var(--accent); }
+    .metric-sub { font-size: 11px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
+    th { text-align: left; padding: 8px; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 11px; }
+    td { padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
     button {
       background: var(--card);
       border: 1px solid var(--border);
       color: var(--fg);
-      padding: 7px 14px;
+      padding: 6px 14px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 12px;
-      font-weight: 600;
+      font-family: monospace;
       transition: all 0.15s ease;
     }
     button:hover { border-color: var(--accent); color: var(--accent); }
-    button.primary {
-      background: var(--accent);
-      color: #041311;
-      border-color: var(--accent);
-      font-weight: 700;
-    }
-    button.primary:hover { background: #22b8a5; color: #041311; }
-    button.amber-btn {
-      background: rgba(212, 212, 216, 0.14);
-      color: var(--amber);
-      border-color: var(--amber);
-    }
-    button.amber-btn:hover { background: rgba(212, 212, 216, 0.24); }
-    button.sm { padding: 4px 10px; font-size: 11px; }
-
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
     pre {
-      background: var(--bg-deep);
+      background: #08090d;
       border: 1px solid var(--border);
-      padding: 12px 14px;
+      padding: 12px;
       border-radius: 6px;
       overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 11.5px;
-      color: var(--muted);
-      max-height: 300px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .form-group { margin-bottom: 12px; }
-    .form-group label {
-      display: block;
-      font-size: 10.5px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 5px;
-      font-weight: 600;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    select, input[type="text"], input[type="number"], input[type="password"], textarea {
-      width: 100%;
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 7px 10px;
-      color: var(--fg);
-      font-family: inherit;
-      font-size: 12.5px;
-    }
-    textarea.mono-input, input.mono-input { font-family: var(--mono); font-size: 11.5px; }
-    select:focus, input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--border-focus);
-    }
-    .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 6px 0;
-    }
-    .checkbox-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-family: var(--mono);
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .checkbox-pill input { width: auto; accent-color: var(--accent); }
-    .telemetry-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-top: 10px;
-      font-family: var(--mono);
+      font-family: monospace;
       font-size: 11px;
       color: var(--muted);
-    }
-    .telemetry-row span b { color: var(--fg); }
-    .provenance-box {
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
-      padding: 12px;
-    }
-    .provenance-box.amber { border-left-color: var(--amber); }
-    .provenance-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      font-family: var(--mono);
-    }
-    .provenance-val {
-      font-size: 13px;
-      font-weight: 700;
-      font-family: var(--mono);
-      margin-top: 4px;
-      color: var(--fg);
-    }
-    .chain-flow {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-      font-family: var(--mono);
-      font-size: 11.5px;
-    }
-    .persona-card {
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-    }
-    .episode-item {
-      border-left: 2px solid var(--accent);
-      padding: 6px 12px;
-      margin-bottom: 8px;
-      background: var(--bg-deep);
-      border-radius: 0 6px 6px 0;
-      font-size: 12px;
+      max-height: 240px;
     }
   </style>
 </head>
 <body>
   <div class="header">
     <div>
-      <div class="brand">
-        <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true">
-          <path d="M7 5h9v38H7z" fill="currentColor" />
-          <path d="M16 26 28 5h9L25.5 27 44 43H32L16 30z" fill="currentColor" />
-          <circle cx="42.5" cy="9" r="4.5" fill="var(--accent)" />
-        </svg>
-        <span>Keelway</span>
-        <span class="sub">UNIFIED HYBRID CONSOLE v1</span>
-      </div>
-      <div style="font-size: 12px; color: var(--muted); margin-top: 3px;">
-        Open-Weight Sovereign Runtimes &amp; Closed Frontier Orchestration • Cost Arbitrage • Zero-Egress Governance
-      </div>
+      <div class="brand">KEELWAY <span>SYNC</span></div>
+      <div style="font-size: 12px; color: var(--muted);">Cross-Machine Encrypted Task Synchronization &amp; Team Console</div>
     </div>
-    <div class="header-controls">
-      <div class="auth-box">
-        <label for="session-api-key">Bearer</label>
-        <input type="password" id="session-api-key" placeholder="Optional kw_live_* or token" autocomplete="off" />
-      </div>
-      <span class="pill open-weight">Open-Weight: Sovereign</span>
-      <span class="pill closed-prop">Closed Frontier: Hybrid</span>
-      <span class="pill ok">Air-Gap CSP Safe</span>
+    <div style="display: flex; gap: 8px;">
+      <span class="pill ok">End-to-End Encrypted</span>
+      <span class="pill accent">Monotonic Vector Clock</span>
+      <span class="pill" id="node-id-pill">Node: local</span>
     </div>
   </div>
 
-  <!-- 6 Interactive Console Tabs -->
-  <div class="nav-tabs" role="tablist" aria-label="Keelway Console Navigation">
-    <button class="nav-tab active" id="tab-playground" data-target="panel-playground" role="tab" aria-selected="true">
-      <span class="tab-idx">01</span> Unified Playground &amp; Catalog
-    </button>
-    <button class="nav-tab" id="tab-opencore" data-target="panel-opencore" role="tab" aria-selected="false">
-      <span class="tab-idx">02</span> OpenCore Studio &amp; Modelfiles
-    </button>
-    <button class="nav-tab" id="tab-routing" data-target="panel-routing" role="tab" aria-selected="false">
-      <span class="tab-idx">03</span> Hybrid Routing &amp; Provenance
-    </button>
-    <button class="nav-tab" id="tab-swarm" data-target="panel-swarm" role="tab" aria-selected="false">
-      <span class="tab-idx">04</span> MiroFish Swarm Lab
-    </button>
-    <button class="nav-tab" id="tab-governance" data-target="panel-governance" role="tab" aria-selected="false">
-      <span class="tab-idx">05</span> Governance &amp; Spend Caps
-    </button>
-    <button class="nav-tab" id="tab-sync" data-target="panel-sync" role="tab" aria-selected="false">
-      <span class="tab-idx">06</span> CRDT Sync &amp; Journal
-    </button>
+  <div class="grid">
+    <div class="card">
+      <h3>Local Node State</h3>
+      <div class="metric" id="lamport-clock">0</div>
+      <div class="metric-sub">Monotonic Logical Time (Lamport Counter)</div>
+      <div style="margin-top: 12px; font-family: monospace; font-size: 11px;">
+        <div>Machine: <span id="machine-id" style="color: var(--accent);">-</span></div>
+        <div>Org ID: <span id="org-id" style="color: var(--fg);">-</span></div>
+        <div>Journal Entries: <span id="journal-count" style="color: var(--ok);">-</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Vector Clocks (Peer Mesh)</h3>
+      <pre id="vector-clocks">{"local": 0}</pre>
+    </div>
+
+    <div class="card">
+      <h3>Synchronized Machine Peers</h3>
+      <div id="peer-list" style="font-family: monospace; font-size: 12px; color: var(--muted);">No external peers synced yet. Export or import an encrypted sync envelope to exchange state.</div>
+    </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- TAB 1: UNIFIED PLAYGROUND & CATALOG                                   -->
-  <!-- ===================================================================== -->
-  <section class="tab-panel active" id="panel-playground" role="tabpanel">
-    <div class="grid-4">
-      <div class="card">
-        <h3><span>Sovereign Efficiency Index</span><span class="pill accent">SEI</span></h3>
-        <div class="metric" id="metric-sei">100.0</div>
-        <div class="metric-sub">Autonomy, Cost Arbitrage &amp; Latency Score</div>
-      </div>
-      <div class="card">
-        <h3><span>Local Inference Ratio</span><span class="pill open-weight">OpenCore</span></h3>
-        <div class="metric" id="metric-local-ratio">100.0%</div>
-        <div class="metric-sub" id="metric-counts">0 local / 0 cloud inferences</div>
-      </div>
-      <div class="card">
-        <h3><span>Quantified Cloud Savings</span><span class="pill ok">Arbitrage</span></h3>
-        <div class="metric" id="metric-savings">$0.00</div>
-        <div class="metric-sub">Preserved vs commercial frontier APIs</div>
-      </div>
-      <div class="card">
-        <h3><span>External Cloud Spend</span><span class="pill closed-prop">Frontier</span></h3>
-        <div class="metric amber" id="metric-spend">$0.0000</div>
-        <div class="metric-sub">Billed external API expenditure (`/v1/usage`)</div>
-      </div>
+  <div class="card" style="margin-bottom: 24px;">
+    <h3>
+      <span>Encrypted Transmission Envelope Actions</span>
+      <span style="font-size: 11px; text-transform: none; color: var(--ok);">AES-256-CTR + HMAC-SHA256 Encrypt-then-MAC</span>
+    </h3>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <button class="primary" id="btn-refresh">Refresh Sync State</button>
+      <button id="btn-export">Export Encrypted Envelope</button>
+      <button id="btn-demo">Simulate Cross-Machine Peer</button>
     </div>
+    <pre id="output-log" aria-live="polite">// Ready for peer state synchronization...</pre>
+  </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <h3>
-          <span>Unified Inference Bench (`/v1/chat/completions` &amp; `/v1/responses`)</span>
-          <span class="pill accent" id="route-indicator">local-first</span>
-        </h3>
-        <div class="form-row">
-          <div>
-            <label for="pg-endpoint-mode">Unified Endpoint</label>
-            <select id="pg-endpoint-mode">
-              <option value="chat">POST /v1/chat/completions</option>
-              <option value="responses">POST /v1/responses (Stateful)</option>
-            </select>
-          </div>
-          <div>
-            <label for="model-select">Target Model</label>
-            <select id="model-select">
-              <option value="keelway-core:7b">keelway-core:7b (Open-Weight • Sovereign)</option>
-              <option value="qwen2.5-coder:7b">qwen2.5-coder:7b (Open-Weight • Local)</option>
-              <option value="gpt-4o">gpt-4o (Closed Frontier • Cloud)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div>
-            <label for="privacy-select">Privacy Boundary</label>
-            <select id="privacy-select">
-              <option value="standard">standard (Hybrid Cost Arbitrage)</option>
-              <option value="sensitive">sensitive (Prefer Self-Hosted)</option>
-              <option value="private">private (Zero-Egress Hard Invariant)</option>
-            </select>
-          </div>
-          <div>
-            <label for="stream-select">Delivery Mode</label>
-            <select id="stream-select">
-              <option value="false">Standard JSON Payload</option>
-              <option value="true">SSE Token Stream (chat/completions)</option>
-            </select>
-          </div>
-          <div>
-            <label for="format-select">Output Format</label>
-            <select id="format-select">
-              <option value="text">Freeform Text / Code</option>
-              <option value="json_object">Structured JSON Mode (json_object)</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="responses-state-controls" style="display: none; border: 1px dashed var(--border); border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-          <div class="form-row" style="margin-bottom: 8px;">
-            <div>
-              <label for="pg-prev-response-id">Stateful `previous_response_id` Chain</label>
-              <input type="text" id="pg-prev-response-id" class="mono-input" placeholder="resp_... (auto-filled after turn)" />
-            </div>
-            <div>
-              <label for="pg-instructions">System Instructions</label>
-              <input type="text" id="pg-instructions" placeholder="Concise sovereign engineering assistant" />
-            </div>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label class="checkbox-pill">
-              <input type="checkbox" id="pg-speculative" />
-              <span>Enable Speculative Draft Verification (`keelway-nano:1.5b`)</span>
-            </label>
-            <div style="display: flex; gap: 6px;">
-              <button type="button" class="sm" id="btn-fetch-response">Fetch ID</button>
-              <button type="button" class="sm" id="btn-clear-chain">Reset Chain</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="prompt-input">Prompt / Input Payload</label>
-          <textarea id="prompt-input" rows="4" placeholder="Enter engineering prompt...">Write a concise Python helper that verifies an HMAC-SHA256 webhook signature.</textarea>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button type="button" class="primary" id="btn-submit-inference">Execute Inference</button>
-          <button type="button" id="btn-refresh-catalog">Refresh Catalog &amp; Ledger</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>
-          <span>Live Output &amp; Telemetry</span>
-          <span id="response-status" class="pill ok">Ready</span>
-        </h3>
-        <pre id="inference-output">// Select /v1/chat/completions or /v1/responses and click Execute Inference...</pre>
-        <div class="telemetry-row">
-          <span>Latency: <b id="t-latency">-</b></span>
-          <span>Tokens: <b id="t-tokens">-</b></span>
-          <span>Cost: <b id="t-cost">$0.0000</b></span>
-          <span>Model: <b id="t-provider">-</b></span>
-          <span>Resp ID: <b id="t-resp-id">-</b></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>
-        <span>Unified Model Discovery Table (`GET /v1/models`)</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <select id="catalog-filter" style="width: 200px; padding: 4px 8px; font-size: 11px;">
-            <option value="">All Categories</option>
-            <option value="open_weight">Open-Weight Sovereign (#2DD4BF)</option>
-            <option value="closed_proprietary">Closed Frontier (#D4D4D8)</option>
-          </select>
-        </div>
-      </h3>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>Model ID</th>
-              <th>Class</th>
-              <th>Provider / Family</th>
-              <th>Deployment</th>
-              <th>Context</th>
-              <th>Pricing (In / Out MTok)</th>
-              <th>Capabilities</th>
-            </tr>
-          </thead>
-          <tbody id="models-tbody">
-            <tr><td colspan="7" style="color: var(--muted); text-align: center;">Loading unified model catalog...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- TAB 2: OPENCORE STUDIO & MODELFILES                                   -->
-  <!-- ===================================================================== -->
-  <section class="tab-panel" id="panel-opencore" role="tabpanel">
-    <div class="grid-4">
-      <div class="card">
-        <h3><span>Host Accelerator</span><span class="pill open-weight" id="oc-backend-pill">Detecting</span></h3>
-        <div class="metric fg" id="oc-hw-device">-</div>
-        <div class="metric-sub" id="oc-hw-vram">VRAM / Unified Memory: -</div>
-      </div>
-      <div class="card">
-        <h3><span>Resident Checkpoints</span><span class="pill accent">Cluster</span></h3>
-        <div class="metric" id="oc-loaded-count">0</div>
-        <div class="metric-sub" id="oc-vram-used">Allocated: 0.0 GB</div>
-      </div>
-      <div class="card">
-        <h3><span>Local Ollama Discovery</span><span class="pill ok">Loopback</span></h3>
-        <div class="metric fg" id="oc-runtime-status">Unprobed</div>
-        <div class="metric-sub">
-          <button type="button" class="sm" id="btn-oc-discover" style="margin-top: 4px;">Probe /v1/opencore/runtime/discover</button>
-        </div>
-      </div>
-      <div class="card">
-        <h3><span>Weight Manifest Cache</span><span class="pill accent">/v1/opencore/weights</span></h3>
-        <div class="metric" id="oc-manifest-count">0</div>
-        <div class="metric-sub">
-          <button type="button" class="sm" id="btn-oc-refresh" style="margin-top: 4px;">Refresh Telemetry</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>
-          <span>Checkpoint Lifecycle (`load` / `unload`) &amp; Sovereign Modelfile</span>
-          <span class="pill open-weight">Zero-Egress</span>
-        </h3>
-        <div class="form-row">
-          <div>
-            <label for="oc-model-id">OpenCore Checkpoint ID</label>
-            <select id="oc-model-id">
-              <option value="keelway-core:7b">keelway-core:7b (General &amp; Code)</option>
-              <option value="keelway-nano:1.5b">keelway-nano:1.5b (Edge / Draft)</option>
-              <option value="keelway-coder:14b">keelway-coder:14b (AST Synthesis)</option>
-            </select>
-          </div>
-          <div>
-            <label for="oc-quant">Quantization</label>
-            <select id="oc-quant">
-              <option value="awq_4bit">awq_4bit</option>
-              <option value="q4_k_m">q4_k_m (GGUF)</option>
-              <option value="q8_0">q8_0 (GGUF)</option>
-              <option value="fp16">fp16</option>
-            </select>
-          </div>
-          <div>
-            <label for="oc-worker-backend">Serving Backend</label>
-            <select id="oc-worker-backend">
-              <option value="mock">mock (Deterministic Verify)</option>
-              <option value="ollama">ollama</option>
-              <option value="vllm">vllm</option>
-              <option value="llamacpp">llamacpp</option>
-            </select>
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
-          <button type="button" class="primary" id="btn-oc-load">Load Checkpoint</button>
-          <button type="button" id="btn-oc-unload">Unload Checkpoint</button>
-        </div>
-
-        <div style="border-top: 1px solid var(--border); padding-top: 12px;">
-          <div class="form-row">
-            <div>
-              <label for="oc-base-source">Modelfile Base Source</label>
-              <input type="text" id="oc-base-source" class="mono-input" value="qwen3.5:latest" />
-            </div>
-            <div>
-              <label for="oc-adapter-id">Optional LoRA Adapter Path / ID</label>
-              <input type="text" id="oc-adapter-id" class="mono-input" placeholder="./adapters/keelway-afri-lora" />
-            </div>
-          </div>
-          <button type="button" id="btn-oc-modelfile">Generate Sovereign Modelfile (`/v1/opencore/modelfile`)</button>
-        </div>
-        <pre id="oc-lifecycle-output" style="margin-top: 12px;">// OpenCore cluster status, runtime discovery, and generated Modelfiles render here...</pre>
-      </div>
-
-      <div class="card">
-        <h3>
-          <span>Sovereign African Multilingual LoRA Recipe (`/v1/opencore/adapt/recipe`)</span>
-          <span class="pill accent">Unsloth + PEFT</span>
-        </h3>
-        <div class="form-row">
-          <div>
-            <label for="oc-adapt-base">Base Foundation Checkpoint</label>
-            <select id="oc-adapt-base">
-              <option value="keelway-core:7b">keelway-core:7b</option>
-              <option value="keelway-nano:1.5b">keelway-nano:1.5b</option>
-            </select>
-          </div>
-          <div>
-            <label for="oc-adapt-task">Adaptation Objective</label>
-            <select id="oc-adapt-task">
-              <option value="multilingual_localization">multilingual_localization</option>
-              <option value="code_ast_specialization">code_ast_specialization</option>
-              <option value="instruction_tuning">instruction_tuning</option>
-              <option value="mathematical_reasoning">mathematical_reasoning</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Target Sovereign Languages</label>
-          <div class="checkbox-group" id="oc-lang-group">
-            <label class="checkbox-pill"><input type="checkbox" value="swahili" checked /> Swahili</label>
-            <label class="checkbox-pill"><input type="checkbox" value="yoruba" checked /> Yoruba</label>
-            <label class="checkbox-pill"><input type="checkbox" value="hausa" checked /> Hausa</label>
-            <label class="checkbox-pill"><input type="checkbox" value="amharic" checked /> Amharic</label>
-            <label class="checkbox-pill"><input type="checkbox" value="english" checked /> English</label>
-          </div>
-        </div>
-        <button type="button" class="primary" id="btn-oc-adapt">Synthesize PEFT &amp; Unsloth Training Recipe</button>
-        <pre id="oc-adapt-output" style="margin-top: 12px;">// Select African languages above and generate LoRA fine-tuning recipe...</pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- TAB 3: HYBRID ROUTING & PROVENANCE                                    -->
-  <!-- ===================================================================== -->
-  <section class="tab-panel" id="panel-routing" role="tabpanel">
-    <div class="grid-2">
-      <div class="card">
-        <h3>
-          <span>Interactive Route Explainer (`POST /v1/routing/explain`)</span>
-          <span class="pill accent">4-Axis Provenance</span>
-        </h3>
-        <div class="form-row">
-          <div>
-            <label for="rt-model">Requested Model (or Auto)</label>
-            <input type="text" id="rt-model" class="mono-input" placeholder="Leave blank for policy router, or e.g. gpt-4o" />
-          </div>
-          <div>
-            <label for="rt-privacy">Privacy Containment</label>
-            <select id="rt-privacy">
-              <option value="standard">standard (Hybrid Arbitrage)</option>
-              <option value="sensitive">sensitive (Prefer Self-Hosted)</option>
-              <option value="private">private (Strict Zero-Egress)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div>
-            <label for="rt-caps">Required Capabilities (comma-separated)</label>
-            <input type="text" id="rt-caps" class="mono-input" value="code,reasoning" />
-          </div>
-          <div>
-            <label for="rt-max-cost">Max Cost Cap (USD)</label>
-            <input type="number" id="rt-max-cost" step="0.001" value="0.02" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="rt-prompt">Sample Workload Prompt</label>
-          <textarea id="rt-prompt" rows="3">Audit core/security/airgap.py for strict loopback socket containment.</textarea>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" class="primary" id="btn-rt-explain">Explain Routing &amp; Provenance</button>
-          <button type="button" id="btn-rt-decisions">Refresh Decision Log</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>
-          <span>4-Way Provenance Split &amp; Fallback Chain</span>
-          <span class="pill open-weight" id="rt-selected-badge">Awaiting Probe</span>
-        </h3>
-        <div class="grid-2" style="margin-bottom: 12px;">
-          <div class="provenance-box" id="prov-box-license">
-            <div class="provenance-label">1. Model License</div>
-            <div class="provenance-val" id="prov-license">Apache-2.0 / Open-Weight</div>
-          </div>
-          <div class="provenance-box" id="prov-box-hosting">
-            <div class="provenance-label">2. Hosting Location</div>
-            <div class="provenance-val" id="prov-hosting">Local Host / Loopback</div>
-          </div>
-          <div class="provenance-box" id="prov-box-operator">
-            <div class="provenance-label">3. Inference Operator</div>
-            <div class="provenance-val" id="prov-operator">Self-Hosted Keelway Daemon</div>
-          </div>
-          <div class="provenance-box" id="prov-box-residency">
-            <div class="provenance-label">4. Data Residency Boundary</div>
-            <div class="provenance-val" id="prov-residency">Zero External Egress</div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Deterministic Fallback Chain</label>
-          <div class="chain-flow" id="rt-fallback-chain">
-            <span class="pill open-weight">keelway-core:7b</span>
-            <span>&rarr;</span>
-            <span class="pill open-weight">qwen2.5-coder:7b</span>
-            <span>&rarr;</span>
-            <span class="pill closed-prop">gemini-3.5-flash-lite</span>
-          </div>
-        </div>
-        <pre id="rt-explain-raw" style="max-height: 150px;">// Click "Explain Routing &amp; Provenance" to inspect live policy evaluation...</pre>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>
-        <span>Recent Routing Decisions (`GET /v1/routing/decisions`)</span>
-        <span class="pill accent">Telemetry Audit</span>
-      </h3>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Selected Model</th>
-              <th>License / Class</th>
-              <th>Residency Boundary</th>
-              <th>Fallback Depth</th>
-              <th>Rationale</th>
-            </tr>
-          </thead>
-          <tbody id="rt-decisions-tbody">
-            <tr><td colspan="6" style="color: var(--muted); text-align: center;">No routing decisions fetched yet.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- TAB 4: MIROFISH SWARM LAB                                             -->
-  <!-- ===================================================================== -->
-  <section class="tab-panel" id="panel-swarm" role="tabpanel">
-    <div class="grid-4">
-      <div class="card">
-        <h3><span>Hybrid Cost Arbitrage</span><span class="pill ok">Swarm Savings</span></h3>
-        <div class="metric" id="sw-savings-pct">0.0%</div>
-        <div class="metric-sub" id="sw-cost-compare">$0.0000 actual vs $0.0000 all-cloud</div>
-      </div>
-      <div class="card">
-        <h3><span>Open-Weight Citizen Turns</span><span class="pill open-weight">$0.00 Local</span></h3>
-        <div class="metric" id="sw-ow-calls">0</div>
-        <div class="metric-sub">Executed on OpenCore checkpoints</div>
-      </div>
-      <div class="card">
-        <h3><span>Frontier Influencer Turns</span><span class="pill closed-prop">Cloud API</span></h3>
-        <div class="metric amber" id="sw-cloud-calls">0</div>
-        <div class="metric-sub">High-leverage synthesis &amp; anchors</div>
-      </div>
-      <div class="card">
-        <h3><span>Ontology &amp; Graph Memory</span><span class="pill accent" id="sw-graph-id">LocalGraphRAG</span></h3>
-        <div class="metric fg" id="sw-ontology-types">-</div>
-        <div class="metric-sub">Extracted entity archetypes</div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>
-          <span>MiroFish OASIS Multi-Agent Scenario (`POST /v1/eval/swarm`)</span>
-          <span class="pill accent">GraphRAG + Speculative</span>
-        </h3>
-        <div class="form-group">
-          <label for="sw-seed">Seed Scenario Document</label>
-          <textarea id="sw-seed" rows="3">East African fintech consortium proposes a sovereign open-weight settlement rail with zero cross-border PII egress while preserving instant mobile-money liquidity across Nairobi, Lagos, and Addis Ababa.</textarea>
-        </div>
-        <div class="form-group">
-          <label for="sw-goal">Simulation Forecast Goal</label>
-          <input type="text" id="sw-goal" value="Predict developer adoption, regulatory posture, and liquidity network effects over 2 quarters." />
-        </div>
-        <div class="form-row">
-          <div>
-            <label for="sw-rounds">Simulation Rounds</label>
-            <input type="number" id="sw-rounds" min="1" max="5" value="2" />
-          </div>
-          <div>
-            <label for="sw-mode">Execution Mode</label>
-            <select id="sw-mode">
-              <option value="mock">mock (Deterministic Fast Verify)</option>
-              <option value="live">live (Active Gateway Providers)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="sw-entities">OASIS Seed Entities JSON (`influencer` = Frontier, `citizen` = OpenCore)</label>
-          <textarea id="sw-entities" class="mono-input" rows="5">[
-  {"name": "CentralBankRegulator", "type": "Regulator", "summary": "Enforces strict national data residency", "tier": "influencer"},
-  {"name": "NairobiCoreDev", "type": "Developer", "summary": "Builds low-latency mobile settlement APIs", "tier": "citizen"},
-  {"name": "LagosMerchantGuild", "type": "Enterprise", "summary": "Optimizes per-transaction settlement fees", "tier": "citizen"}
-]</textarea>
-        </div>
-        <button type="button" class="primary" id="btn-sw-run">Launch Multi-Agent Swarm Simulation</button>
-      </div>
-
-      <div class="card">
-        <h3>
-          <span>OASIS Persona Cards &amp; Episode Timeline</span>
-          <span class="pill ok" id="sw-status-pill">Idle</span>
-        </h3>
-        <div id="sw-personas" class="grid-3" style="margin-bottom: 12px;">
-          <div style="color: var(--muted); font-family: var(--mono); font-size: 11px;">Run swarm simulation to materialize OASIS personas...</div>
-        </div>
-        <div class="form-group">
-          <label>Temporal Episode Feed &amp; Speculative Synthesis</label>
-          <div id="sw-episodes" style="max-height: 220px; overflow-y: auto; margin-bottom: 10px;"></div>
-          <pre id="sw-report-output" style="max-height: 140px;">// Speculative synthesis report will appear here...</pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- TAB 5: GOVERNANCE & SPEND CAPS                                        -->
-  <!-- ===================================================================== -->
-  <section class="tab-panel" id="panel-governance" role="tabpanel">
-    <div class="grid-3">
-      <!-- Tenant Policy Creator -->
-      <div class="card">
-        <h3>
-          <span>1. Tenant Policy Creator</span>
-          <span class="pill accent">/v1/governance/tenants</span>
-        </h3>
-        <div class="form-group">
-          <label for="gov-tenant-id">Tenant ID</label>
-          <input type="text" id="gov-tenant-id" class="mono-input" value="tenant-finserv-ke" />
-        </div>
-        <div class="form-group">
-          <label for="gov-tenant-name">Organization Name</label>
-          <input type="text" id="gov-tenant-name" value="Nairobi Sovereign FinServ" />
-        </div>
-        <div class="form-row">
-          <div>
-            <label for="gov-budget">Budget Cap (USD)</label>
-            <input type="number" id="gov-budget" step="0.5" value="25.00" />
-          </div>
-          <div>
-            <label for="gov-rpm">Rate Limit (RPM)</label>
-            <input type="number" id="gov-rpm" value="120" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="gov-residency">Residency Zone (`DataResidencyZone`)</label>
-          <select id="gov-residency">
-            <option value="local_only">local_only (OpenCore Zero-Egress)</option>
-            <option value="africa_sovereign">africa_sovereign (African Sovereign)</option>
-            <option value="eu_sovereign">eu_sovereign (EU Sovereign)</option>
-            <option value="global">global (Hybrid Local + Cloud)</option>
-          </select>
-        </div>
-        <button type="button" class="primary" id="btn-gov-create-tenant">Save Tenant Policy</button>
-      </div>
-
-      <!-- Scoped API Key Issuer -->
-      <div class="card">
-        <h3>
-          <span>2. Scoped `kw_live_*` Key Issuer</span>
-          <span class="pill open-weight">/v1/governance/keys</span>
-        </h3>
-        <div class="form-group">
-          <label for="gov-key-tenant">Target Tenant ID</label>
-          <input type="text" id="gov-key-tenant" class="mono-input" value="tenant-finserv-ke" />
-        </div>
-        <div class="form-group">
-          <label for="gov-key-name">Key Label</label>
-          <input type="text" id="gov-key-name" value="prod-settlement-worker" />
-        </div>
-        <div class="form-group">
-          <label>Granted Scopes</label>
-          <div class="checkbox-group" id="gov-scopes-group">
-            <label class="checkbox-pill"><input type="checkbox" value="inference:write" checked /> inference:write</label>
-            <label class="checkbox-pill"><input type="checkbox" value="models:read" checked /> models:read</label>
-            <label class="checkbox-pill"><input type="checkbox" value="opencore:read" checked /> opencore:read</label>
-            <label class="checkbox-pill"><input type="checkbox" value="governance:admin" /> governance:admin</label>
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button type="button" class="primary" id="btn-gov-issue-key">Issue `kw_live_*` Key</button>
-          <button type="button" id="btn-gov-apply-key">Apply to Session Header</button>
-        </div>
-      </div>
-
-      <!-- Pre-Flight Governance Simulator -->
-      <div class="card">
-        <h3>
-          <span>3. Pre-Flight Policy Simulator</span>
-          <span class="pill amber">/v1/governance/evaluate</span>
-        </h3>
-        <div class="form-row">
-          <div>
-            <label for="gov-eval-tenant">Tenant ID</label>
-            <input type="text" id="gov-eval-tenant" class="mono-input" value="tenant-finserv-ke" />
-          </div>
-          <div>
-            <label for="gov-eval-model">Target Model</label>
-            <input type="text" id="gov-eval-model" class="mono-input" value="gpt-4o" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div>
-            <label for="gov-eval-cost">Est. Cost (USD)</label>
-            <input type="number" id="gov-eval-cost" step="0.01" value="0.05" />
-          </div>
-          <div>
-            <label for="gov-eval-privacy">Privacy Level</label>
-            <select id="gov-eval-privacy">
-              <option value="standard">standard</option>
-              <option value="private">private</option>
-            </select>
-          </div>
-        </div>
-        <button type="button" class="amber-btn" id="btn-gov-evaluate">Simulate Pre-Flight Gate</button>
-        <pre id="gov-action-output" style="margin-top: 12px; max-height: 150px;">// Tenant policies, issued kw_live_* keys, and pre-flight verdicts appear here...</pre>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>
-        <span>4. SHA-256 Hash-Chained Governance Audit Log (`GET /v1/governance/audit`)</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <span class="pill ok" id="gov-chain-badge">Chain Integrity: Unverified</span>
-          <button type="button" class="sm" id="btn-gov-audit">Verify SHA-256 Audit Chain</button>
-        </div>
-      </h3>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>Seq / Timestamp</th>
-              <th>Tenant</th>
-              <th>Action / Event</th>
-              <th>Decision</th>
-              <th>Prev Hash</th>
-              <th>Entry SHA-256</th>
-            </tr>
-          </thead>
-          <tbody id="gov-audit-tbody">
-            <tr><td colspan="6" style="color: var(--muted); text-align: center;">Click "Verify SHA-256 Audit Chain" to inspect cryptographic audit entries.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- TAB 6: CRDT SYNC & JOURNAL (CROSS-MACHINE)                            -->
-  <!-- ===================================================================== -->
-  <section class="tab-panel" id="panel-sync" role="tabpanel">
-    <div class="grid-3">
-      <div class="card">
-        <h3><span>Cross-Machine Local Node State</span><span class="pill accent">CRDT</span></h3>
-        <div class="metric" id="lamport-clock">0</div>
-        <div class="metric-sub">Monotonic Logical Time (Lamport Counter)</div>
-        <div style="margin-top: 12px; font-family: var(--mono); font-size: 11px;">
-          <div>Machine: <span id="machine-id" style="color: var(--accent);">-</span></div>
-          <div>Org ID: <span id="org-id" style="color: var(--fg);">-</span></div>
-          <div>Journal Entries: <span id="journal-count" style="color: var(--ok);">-</span></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3><span>Vector Clocks (Peer Mesh)</span><span class="pill open-weight">Causal Order</span></h3>
-        <pre id="vector-clocks">{"local": 0}</pre>
-      </div>
-
-      <div class="card">
-        <h3><span>Synchronized Machine Peers</span><span class="pill ok">Mesh</span></h3>
-        <div id="peer-list" style="font-family: var(--mono); font-size: 12px; color: var(--muted);">
-          No external peers synced yet. Export or import an encrypted sync envelope to exchange state.
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom: 18px;">
-      <h3>
-        <span>Encrypted Transmission Envelope Actions</span>
-        <span style="font-size: 11px; text-transform: none; color: var(--ok);">AES-256-CTR + HMAC-SHA256 Encrypt-then-MAC</span>
-      </h3>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-        <button type="button" class="primary" id="btn-refresh">Refresh Sync State</button>
-        <button type="button" id="btn-export">Export Encrypted Envelope</button>
-        <button type="button" id="btn-demo">Simulate Cross-Machine Peer</button>
-      </div>
-      <pre id="output-log">// Ready for peer state synchronization...</pre>
-    </div>
-
-    <div class="card">
-      <h3><span>Synchronized State Journal (Append-Only Audit Chain)</span><span class="pill accent">/v1/sync/records</span></h3>
-      <div style="overflow-x: auto;">
-        <table id="records-table">
-          <thead>
-            <tr>
-              <th>Time (UTC)</th>
-              <th>Machine ID</th>
-              <th>Task ID</th>
-              <th>Entity Type</th>
-              <th>Lamport #</th>
-              <th>Payload Digest</th>
-            </tr>
-          </thead>
-          <tbody id="records-tbody">
-            <tr><td colspan="6" style="color: var(--muted); text-align: center;">No sync records recorded yet.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+  <div class="card">
+    <h3>Synchronized State Journal (Append-Only Audit Chain)</h3>
+    <table id="records-table">
+      <thead>
+        <tr>
+          <th>Time (UTC)</th>
+          <th>Machine ID</th>
+          <th>Task ID</th>
+          <th>Entity Type</th>
+          <th>Lamport #</th>
+          <th>Payload Digest</th>
+        </tr>
+      </thead>
+      <tbody id="records-tbody">
+        <tr><td colspan="6" style="color: var(--muted); text-align: center;">No sync records recorded yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <script>
-    function escHtml(val) {
-      return String(val === undefined || val === null ? '' : val)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function buildHeaders(extra) {
-      const headers = Object.assign({}, extra || {});
-      const keyInput = document.getElementById('session-api-key');
-      const token = keyInput ? keyInput.value.trim() : '';
-      if (token) {
-        headers['Authorization'] = 'Bearer ' + token;
-      }
-      return headers;
-    }
-
-    async function api(path, options) {
-      const opts = Object.assign({}, options || {});
-      opts.headers = buildHeaders(opts.headers);
-      const res = await fetch(path, opts);
-      if (!res.ok) {
-        let errDetail = '';
-        try {
-          const errJson = await res.json();
-          errDetail = errJson.detail ? (typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail)) : JSON.stringify(errJson);
-        } catch (_e) {
-          errDetail = await res.text();
-        }
-        throw new Error('HTTP ' + res.status + ': ' + errDetail);
-      }
+    async function api(path, options = {}) {
+      const res = await fetch(path, options);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     }
 
-    // --- 6-Tab Navigation Controller ---
-    const navTabs = Array.from(document.querySelectorAll('.nav-tab'));
-    const tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
-
-    function activateTab(targetId) {
-      navTabs.forEach((btn) => {
-        const isMatch = btn.getAttribute('data-target') === targetId;
-        btn.classList.toggle('active', isMatch);
-        btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
-      });
-      tabPanels.forEach((panel) => {
-        panel.classList.toggle('active', panel.id === targetId);
-      });
-
-      if (targetId === 'panel-opencore') {
-        loadOpenCoreStudio();
-      } else if (targetId === 'panel-routing') {
-        loadRoutingDecisions();
-      } else if (targetId === 'panel-governance') {
-        loadGovernanceAudit();
-      } else if (targetId === 'panel-sync') {
-        loadSyncState();
-        loadRecords();
-      }
-    }
-
-    navTabs.forEach((btn) => {
-      btn.addEventListener('click', () => activateTab(btn.getAttribute('data-target')));
-    });
-
-    // =========================================================================
-    // TAB 1: UNIFIED PLAYGROUND & CATALOG
-    // =========================================================================
-    const endpointModeSelect = document.getElementById('pg-endpoint-mode');
-    const responsesControls = document.getElementById('responses-state-controls');
-
-    endpointModeSelect.addEventListener('change', () => {
-      const isResp = endpointModeSelect.value === 'responses';
-      responsesControls.style.display = isResp ? 'block' : 'none';
-      document.getElementById('stream-select').disabled = isResp;
-    });
-
-    document.getElementById('btn-clear-chain').addEventListener('click', () => {
-      document.getElementById('pg-prev-response-id').value = '';
-      document.getElementById('t-resp-id').textContent = '-';
-    });
-
-    document.getElementById('btn-fetch-response').addEventListener('click', async () => {
-      const respId = document.getElementById('pg-prev-response-id').value.trim();
-      if (!respId) return;
-      const outputEl = document.getElementById('inference-output');
-      try {
-        const data = await api('/v1/responses/' + encodeURIComponent(respId));
-        outputEl.textContent = JSON.stringify(data, null, 2);
-      } catch (e) {
-        outputEl.textContent = '[!] Failed to fetch response: ' + e.message;
-      }
-    });
-
-    async function loadCatalog() {
-      const categoryFilter = document.getElementById('catalog-filter').value;
-      const query = categoryFilter ? ('?category=' + encodeURIComponent(categoryFilter)) : '';
-      try {
-        const data = await api('/v1/models' + query);
-        const select = document.getElementById('model-select');
-        const tbody = document.getElementById('models-tbody');
-        const models = Array.isArray(data.data) ? data.data : [];
-
-        if (models.length > 0 && !categoryFilter) {
-          const prev = select.value;
-          select.innerHTML = '';
-          models.forEach((m) => {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            const clsLabel = m.category === 'open_weight' ? 'Open-Weight' : 'Closed Frontier';
-            opt.textContent = m.id + ' (' + clsLabel + ' • ' + (m.owned_by || m.provider || 'hybrid') + ')';
-            select.appendChild(opt);
-          });
-          if (Array.from(select.options).some((o) => o.value === prev)) {
-            select.value = prev;
-          }
-        }
-
-        if (models.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" style="color: var(--muted); text-align: center;">No models matched filter.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = models.map((m) => {
-          const isOw = m.category === 'open_weight';
-          const badgeClass = isOw ? 'open-weight' : 'closed-prop';
-          const badgeText = isOw ? 'OPEN-WEIGHT' : 'CLOSED FRONTIER';
-          const inPrice = m.pricing ? m.pricing.input_usd_per_mtok : 0;
-          const outPrice = m.pricing ? m.pricing.output_usd_per_mtok : 0;
-          const priceStr = isOw && inPrice === 0 ? '$0.00 Sovereign' : ('$' + inPrice + ' / $' + outPrice);
-          const caps = Array.isArray(m.capabilities) ? m.capabilities.join(', ') : '-';
-          return '<tr>' +
-            '<td><b>' + escHtml(m.id) + '</b></td>' +
-            '<td><span class="pill ' + badgeClass + '">' + badgeText + '</span></td>' +
-            '<td>' + escHtml(m.owned_by || '-') + ' / ' + escHtml(m.family || '-') + '</td>' +
-            '<td>' + escHtml(m.deployment || m.deployment_type || '-') + '</td>' +
-            '<td>' + escHtml((m.context_window || 0).toLocaleString()) + '</td>' +
-            '<td><span class="pill ' + (isOw ? 'ok' : 'amber') + '">' + escHtml(priceStr) + '</span></td>' +
-            '<td style="color: var(--muted);">' + escHtml(caps) + '</td>' +
-          '</tr>';
-        }).join('');
-      } catch (e) {
-        document.getElementById('models-tbody').innerHTML =
-          '<tr><td colspan="7" style="color: var(--muted);">Catalog unavailable (' + escHtml(e.message) + ')</td></tr>';
-      }
-    }
-
-    document.getElementById('catalog-filter').addEventListener('change', loadCatalog);
-
-    async function loadUsage() {
-      try {
-        const data = await api('/v1/usage');
-        if (data.sovereign_efficiency_index !== undefined) {
-          document.getElementById('metric-sei').textContent = Number(data.sovereign_efficiency_index).toFixed(1);
-        }
-        if (data.local_inference_ratio !== undefined) {
-          document.getElementById('metric-local-ratio').textContent = (Number(data.local_inference_ratio) * 100).toFixed(1) + '%';
-          document.getElementById('metric-counts').textContent =
-            (data.local_inferences || 0) + ' local / ' + (data.cloud_inferences || 0) + ' cloud inferences';
-        }
-        if (data.quantified_local_savings_usd !== undefined) {
-          document.getElementById('metric-savings').textContent = '$' + Number(data.quantified_local_savings_usd).toFixed(2);
-        }
-        const spend = data.billed_cloud_expenditure_usd !== undefined ? data.billed_cloud_expenditure_usd : data.total_cost_usd;
-        if (spend !== undefined) {
-          document.getElementById('metric-spend').textContent = '$' + Number(spend).toFixed(4);
-        }
-      } catch (_e) {}
-    }
-
-    document.getElementById('btn-submit-inference').addEventListener('click', async () => {
-      const endpointMode = endpointModeSelect.value;
-      const model = document.getElementById('model-select').value;
-      const privacy = document.getElementById('privacy-select').value;
-      const stream = document.getElementById('stream-select').value === 'true';
-      const formatMode = document.getElementById('format-select').value;
-      const prompt = document.getElementById('prompt-input').value.trim();
-      const outputEl = document.getElementById('inference-output');
-      const statusEl = document.getElementById('response-status');
-
-      if (!prompt) return;
-      statusEl.textContent = 'Executing...';
-      statusEl.className = 'pill accent';
-      outputEl.textContent = '// Dispatching workload to Keelway Engine...';
-      const t0 = performance.now();
-
-      if (endpointMode === 'responses') {
-        const prevId = document.getElementById('pg-prev-response-id').value.trim();
-        const instructions = document.getElementById('pg-instructions').value.trim();
-        const speculative = document.getElementById('pg-speculative').checked;
-        const body = {
-          input: prompt,
-          model: model,
-          privacy_level: privacy,
-          speculative: speculative
-        };
-        if (prevId) body.previous_response_id = prevId;
-        if (instructions) body.instructions = instructions;
-        if (formatMode === 'json_object') body.text = { format: { type: 'json_object' } };
-
-        try {
-          const data = await api('/v1/responses', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          });
-          const latency = (performance.now() - t0).toFixed(1);
-          const outText = data.output_text ||
-            (data.output && data.output[0] && data.output[0].content && data.output[0].content[0] && data.output[0].content[0].text) ||
-            JSON.stringify(data, null, 2);
-          outputEl.textContent = outText;
-          if (data.id) {
-            document.getElementById('pg-prev-response-id').value = data.id;
-            document.getElementById('t-resp-id').textContent = data.id;
-          }
-          document.getElementById('t-latency').textContent = latency + ' ms';
-          document.getElementById('t-tokens').textContent = String((data.usage && data.usage.total_tokens) || '-');
-          document.getElementById('t-cost').textContent = '$' + Number((data.keelway_metadata && data.keelway_metadata.cost_usd) || data.cost_usd || 0).toFixed(4);
-          document.getElementById('t-provider').textContent = data.model || model;
-          statusEl.textContent = 'Stateful 200 OK';
-          statusEl.className = 'pill ok';
-          loadUsage();
-        } catch (e) {
-          outputEl.textContent = '[!] /v1/responses error: ' + e.message;
-          statusEl.textContent = 'Failed';
-          statusEl.className = 'pill err';
-        }
-        return;
-      }
-
-      // /v1/chat/completions
-      const payload = {
-        model: model,
-        messages: [{ role: 'user', content: prompt }],
-        privacy_level: privacy,
-        stream: stream,
-        temperature: 0.2
-      };
-      if (formatMode === 'json_object') {
-        payload.response_format = { type: 'json_object' };
-      }
-
-      if (!stream) {
-        try {
-          const data = await api('/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const latency = (performance.now() - t0).toFixed(1);
-          const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || JSON.stringify(data, null, 2);
-          outputEl.textContent = content;
-          document.getElementById('t-latency').textContent = latency + ' ms';
-          document.getElementById('t-tokens').textContent = String((data.usage && data.usage.total_tokens) || '-');
-          document.getElementById('t-cost').textContent = '$' + Number((data.keelway_metadata && data.keelway_metadata.cost_usd) || 0).toFixed(4);
-          document.getElementById('t-provider').textContent = data.model || model;
-          document.getElementById('t-resp-id').textContent = data.id || '-';
-          statusEl.textContent = 'Completed (200 OK)';
-          statusEl.className = 'pill ok';
-          loadUsage();
-        } catch (e) {
-          outputEl.textContent = '[!] Inference Failed: ' + e.message;
-          statusEl.textContent = 'Failed';
-          statusEl.className = 'pill err';
-        }
-      } else {
-        try {
-          const res = await fetch('/v1/chat/completions', {
-            method: 'POST',
-            headers: buildHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify(payload)
-          });
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          outputEl.textContent = '';
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let totalText = '';
-          let done = false;
-          while (!done) {
-            const step = await reader.read();
-            done = step.done;
-            const chunkStr = decoder.decode(step.value, { stream: true });
-            const lines = chunkStr.split('\n');
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('data:')) {
-                const dataStr = trimmed.slice(5).trim();
-                if (dataStr === '[DONE]') {
-                  done = true;
-                  break;
-                }
-                try {
-                  const parsed = JSON.parse(dataStr);
-                  const delta = (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) || '';
-                  totalText += delta;
-                  outputEl.textContent = totalText;
-                } catch (_err) {}
-              }
-            }
-          }
-          document.getElementById('t-latency').textContent = (performance.now() - t0).toFixed(1) + ' ms';
-          document.getElementById('t-provider').textContent = model;
-          statusEl.textContent = 'Stream Done';
-          statusEl.className = 'pill ok';
-          loadUsage();
-        } catch (e) {
-          outputEl.textContent = '[!] Stream Error: ' + e.message;
-          statusEl.textContent = 'Stream Failed';
-          statusEl.className = 'pill err';
-        }
-      }
-    });
-
-    document.getElementById('btn-refresh-catalog').addEventListener('click', () => {
-      loadCatalog();
-      loadUsage();
-    });
-
-    // =========================================================================
-    // TAB 2: OPENCORE STUDIO & MODELFILES
-    // =========================================================================
-    async function loadOpenCoreStudio() {
-      try {
-        const st = await api('/v1/opencore/status');
-        const hw = st.hardware || {};
-        const tel = st.telemetry || {};
-        document.getElementById('oc-backend-pill').textContent = hw.accelerator || hw.backend || 'CPU/MPS';
-        document.getElementById('oc-hw-device').textContent = hw.device_name || hw.accelerator || 'Host Node';
-        document.getElementById('oc-hw-vram').textContent = 'Available Memory: ' + (hw.vram_gb !== undefined ? hw.vram_gb : (hw.total_memory_gb || '-')) + ' GB';
-        const loadedList = Array.isArray(tel.loaded_models) ? tel.loaded_models : [];
-        document.getElementById('oc-loaded-count').textContent = String(tel.loaded_count !== undefined ? tel.loaded_count : loadedList.length);
-        document.getElementById('oc-vram-used').textContent = 'Allocated: ' + Number(tel.allocated_vram_gb || tel.used_vram_gb || 0).toFixed(1) + ' GB';
-      } catch (e) {
-        document.getElementById('oc-lifecycle-output').textContent = '[!] OpenCore status error: ' + e.message;
-      }
-
-      try {
-        const weights = await api('/v1/opencore/weights');
-        document.getElementById('oc-manifest-count').textContent = String(Array.isArray(weights) ? weights.length : 0);
-      } catch (_e) {}
-    }
-
-    document.getElementById('btn-oc-refresh').addEventListener('click', loadOpenCoreStudio);
-
-    document.getElementById('btn-oc-discover').addEventListener('click', async () => {
-      const out = document.getElementById('oc-lifecycle-output');
-      try {
-        const data = await api('/v1/opencore/runtime/discover');
-        const ollamaProbe = data.ollama || data;
-        const modelsArr = ollamaProbe.installed_models || ollamaProbe.models || data.models || [];
-        const count = Array.isArray(modelsArr) ? modelsArr.length : (data.discovered_count || 0);
-        document.getElementById('oc-runtime-status').textContent = (ollamaProbe.reachable ? 'Online' : 'Offline') + ' (' + count + ')';
-        out.textContent = JSON.stringify(data, null, 2);
-      } catch (e) {
-        document.getElementById('oc-runtime-status').textContent = 'Probe Error';
-        out.textContent = '[!] Runtime discovery error: ' + e.message;
-      }
-    });
-
-    document.getElementById('btn-oc-load').addEventListener('click', async () => {
-      const out = document.getElementById('oc-lifecycle-output');
-      const body = {
-        model_id: document.getElementById('oc-model-id').value,
-        quantization: document.getElementById('oc-quant').value,
-        backend: document.getElementById('oc-worker-backend').value
-      };
-      try {
-        const res = await api('/v1/opencore/models/load', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        out.textContent = JSON.stringify(res, null, 2);
-        loadOpenCoreStudio();
-      } catch (e) {
-        out.textContent = '[!] Load checkpoint failed: ' + e.message;
-      }
-    });
-
-    document.getElementById('btn-oc-unload').addEventListener('click', async () => {
-      const out = document.getElementById('oc-lifecycle-output');
-      const modelId = document.getElementById('oc-model-id').value;
-      try {
-        const res = await api('/v1/opencore/models/unload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model_id: modelId })
-        });
-        out.textContent = JSON.stringify(res, null, 2);
-        loadOpenCoreStudio();
-      } catch (e) {
-        out.textContent = '[!] Unload checkpoint failed: ' + e.message;
-      }
-    });
-
-    document.getElementById('btn-oc-modelfile').addEventListener('click', async () => {
-      const out = document.getElementById('oc-lifecycle-output');
-      const adapter = document.getElementById('oc-adapter-id').value.trim();
-      const body = {
-        model_id: document.getElementById('oc-model-id').value,
-        base_source: document.getElementById('oc-base-source').value.trim() || 'qwen3.5:latest',
-        quantization: document.getElementById('oc-quant').value
-      };
-      if (adapter) body.adapter_id = adapter;
-      try {
-        const res = await api('/v1/opencore/modelfile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        out.textContent = res.modelfile ? (res.modelfile + '\n\n// Digest: ' + (res.sha256 || res.digest || 'verified')) : JSON.stringify(res, null, 2);
-      } catch (e) {
-        out.textContent = '[!] Modelfile generation failed: ' + e.message;
-      }
-    });
-
-    document.getElementById('btn-oc-adapt').addEventListener('click', async () => {
-      const out = document.getElementById('oc-adapt-output');
-      const langs = Array.from(document.querySelectorAll('#oc-lang-group input:checked')).map((el) => el.value);
-      const body = {
-        base_model_id: document.getElementById('oc-adapt-base').value,
-        task: document.getElementById('oc-adapt-task').value,
-        target_languages: langs.length ? langs : ['swahili', 'yoruba', 'hausa', 'amharic']
-      };
-      try {
-        const res = await api('/v1/opencore/adapt/recipe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        out.textContent = JSON.stringify(res, null, 2);
-      } catch (e) {
-        out.textContent = '[!] Adaptation recipe failed: ' + e.message;
-      }
-    });
-
-    // =========================================================================
-    // TAB 3: HYBRID ROUTING & PROVENANCE
-    // =========================================================================
-    document.getElementById('btn-rt-explain').addEventListener('click', async () => {
-      const modelVal = document.getElementById('rt-model').value.trim();
-      const privacyVal = document.getElementById('rt-privacy').value;
-      const capsRaw = document.getElementById('rt-caps').value.trim();
-      const maxCostVal = parseFloat(document.getElementById('rt-max-cost').value);
-      const promptVal = document.getElementById('rt-prompt').value.trim() || 'Inspect hybrid route.';
-
-      const body = {
-        messages: [{ role: 'user', content: promptVal }],
-        privacy_level: privacyVal,
-        required_capabilities: capsRaw ? capsRaw.split(',').map((s) => s.trim()).filter(Boolean) : []
-      };
-      if (modelVal) body.model = modelVal;
-      if (!Number.isNaN(maxCostVal)) body.max_cost_usd = maxCostVal;
-
-      try {
-        const data = await api('/v1/routing/explain', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const prov = data.governance_provenance || data.provenance || data;
-        const selectedModel = data.selected_model || data.requested_model || data.selected_provider || 'keelway-core:7b';
-        const licVal = prov.license || prov.model_license || 'Apache-2.0';
-        const isClosed = String(prov.weight_category || licVal || data.category || '').toLowerCase().includes('proprietary') ||
-          String(prov.weight_category || licVal || '').toLowerCase().includes('closed');
-
-        const badge = document.getElementById('rt-selected-badge');
-        badge.textContent = selectedModel;
-        badge.className = 'pill ' + (isClosed ? 'closed-prop' : 'open-weight');
-
-        document.getElementById('prov-license').textContent = licVal;
-        document.getElementById('prov-hosting').textContent = prov.hosting || prov.hosting_location || 'Self-Hosted Local';
-        document.getElementById('prov-operator').textContent = prov.operator || prov.inference_operator || 'Keelway Runtime';
-        document.getElementById('prov-residency').textContent = prov.data_boundary || prov.data_residency_boundary || 'zero_external_egress';
-
-        ['prov-box-license', 'prov-box-hosting', 'prov-box-operator', 'prov-box-residency'].forEach((id) => {
-          document.getElementById(id).classList.toggle('amber', isClosed);
-        });
-
-        const chain = Array.isArray(data.fallback_chain) ? data.fallback_chain : [selectedModel];
-        document.getElementById('rt-fallback-chain').innerHTML = chain.map((item, idx) => {
-          const mId = typeof item === 'string' ? item : (item.model || item.id || JSON.stringify(item));
-          const stepCls = (mId.includes('keelway') || mId.includes('qwen') || mId.includes('llama') || mId.includes('deepseek')) ? 'open-weight' : 'closed-prop';
-          return (idx > 0 ? '<span>&rarr;</span>' : '') + '<span class="pill ' + stepCls + '">' + escHtml(mId) + '</span>';
-        }).join(' ');
-
-        document.getElementById('rt-explain-raw').textContent = JSON.stringify(data, null, 2);
-        loadRoutingDecisions();
-      } catch (e) {
-        document.getElementById('rt-explain-raw').textContent = '[!] Route explain failed: ' + e.message;
-      }
-    });
-
-    async function loadRoutingDecisions() {
-      const tbody = document.getElementById('rt-decisions-tbody');
-      try {
-        const res = await api('/v1/routing/decisions');
-        const list = Array.isArray(res) ? res : (res.decisions || res.data || []);
-        if (list.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="color: var(--muted); text-align: center;">No routing decisions logged yet.</td></tr>';
-          return;
-        }
-        tbody.innerHTML = list.map((d) => {
-          const prov = d.governance_provenance || d.provenance || {};
-          return '<tr>' +
-            '<td>' + escHtml(d.timestamp || d.created_at || '-') + '</td>' +
-            '<td><b>' + escHtml(d.selected_provider || d.selected_model || d.requested_model || '-') + '</b></td>' +
-            '<td>' + escHtml(prov.license || prov.model_license || d.category || '-') + '</td>' +
-            '<td>' + escHtml(prov.data_boundary || prov.data_residency_boundary || d.privacy_level || '-') + '</td>' +
-            '<td>' + escHtml(Array.isArray(d.fallback_chain) ? d.fallback_chain.length : 1) + '</td>' +
-            '<td style="color: var(--muted);">' + escHtml(d.reason || d.routing_reason || '-') + '</td>' +
-          '</tr>';
-        }).join('');
-      } catch (_e) {}
-    }
-
-    document.getElementById('btn-rt-decisions').addEventListener('click', loadRoutingDecisions);
-
-    // =========================================================================
-    // TAB 4: MIROFISH SWARM LAB
-    // =========================================================================
-    document.getElementById('btn-sw-run').addEventListener('click', async () => {
-      const statusPill = document.getElementById('sw-status-pill');
-      const reportOut = document.getElementById('sw-report-output');
-      statusPill.textContent = 'Simulating...';
-      statusPill.className = 'pill accent';
-
-      let entitiesSpec = [];
-      try {
-        entitiesSpec = JSON.parse(document.getElementById('sw-entities').value);
-      } catch (parseErr) {
-        statusPill.textContent = 'Invalid JSON';
-        statusPill.className = 'pill err';
-        reportOut.textContent = '[!] Invalid entities JSON: ' + parseErr.message;
-        return;
-      }
-
-      const body = {
-        seed_text: document.getElementById('sw-seed').value.trim(),
-        simulation_goal: document.getElementById('sw-goal').value.trim(),
-        entities_spec: entitiesSpec,
-        rounds: parseInt(document.getElementById('sw-rounds').value, 10) || 2,
-        mode: document.getElementById('sw-mode').value
-      };
-
-      try {
-        const data = await api('/v1/eval/swarm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-
-        const savingsPct = data.savings_pct !== undefined ? Number(data.savings_pct) : 0;
-        document.getElementById('sw-savings-pct').textContent = savingsPct.toFixed(1) + '%';
-        document.getElementById('sw-cost-compare').textContent =
-          '$' + Number(data.total_cost_usd || 0).toFixed(4) + ' actual vs $' + Number(data.estimated_all_cloud_cost_usd || 0).toFixed(4) + ' all-cloud';
-        document.getElementById('sw-ow-calls').textContent = String(data.open_weight_calls || 0);
-        document.getElementById('sw-cloud-calls').textContent = String(data.closed_cloud_calls || 0);
-        document.getElementById('sw-graph-id').textContent = data.graph_id || 'LocalGraphRAG';
-
-        const ontTypes = (data.ontology && data.ontology.entity_types) || [];
-        document.getElementById('sw-ontology-types').textContent = ontTypes.length
-          ? ontTypes.map((t) => (typeof t === 'string' ? t : t.name)).join(', ')
-          : 'Extracted';
-
-        const profiles = Array.isArray(data.profiles) ? data.profiles : [];
-        document.getElementById('sw-personas').innerHTML = profiles.map((p) => {
-          const isInf = p.tier === 'influencer';
-          return '<div class="persona-card">' +
-            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">' +
-              '<b style="font-family: var(--mono);">' + escHtml(p.name || p.user_name) + '</b>' +
-              '<span class="pill ' + (isInf ? 'closed-prop' : 'open-weight') + '">' + escHtml(p.tier || 'citizen') + '</span>' +
-            '</div>' +
-            '<div style="font-size: 11px; color: var(--muted);">' + escHtml(p.entity_type || 'Agent') + ' • @' + escHtml(p.user_name || 'agent') + '</div>' +
-            '<div style="font-size: 11.5px; margin-top: 6px;">' + escHtml(p.persona || p.bio || '') + '</div>' +
-          '</div>';
-        }).join('');
-
-        const episodes = Array.isArray(data.episodes) ? data.episodes : [];
-        document.getElementById('sw-episodes').innerHTML = episodes.map((ep) =>
-          '<div class="episode-item">' +
-            '<span class="pill accent">R' + escHtml(ep.round) + '</span> ' +
-            '<b>' + escHtml(ep.agent) + '</b> <span style="color: var(--muted);">(' + escHtml(ep.action) + ')</span>: ' +
-            escHtml(ep.content) +
-          '</div>'
-        ).join('');
-
-        reportOut.textContent = data.speculative_report || JSON.stringify(data, null, 2);
-        statusPill.textContent = 'Completed';
-        statusPill.className = 'pill ok';
-      } catch (e) {
-        statusPill.textContent = 'Failed';
-        statusPill.className = 'pill err';
-        reportOut.textContent = '[!] Swarm simulation error: ' + e.message;
-      }
-    });
-
-    // =========================================================================
-    // TAB 5: GOVERNANCE & SPEND CAPS
-    // =========================================================================
-    let lastIssuedApiKey = '';
-
-    document.getElementById('btn-gov-create-tenant').addEventListener('click', async () => {
-      const out = document.getElementById('gov-action-output');
-      const residency = document.getElementById('gov-residency').value;
-      const budget = parseFloat(document.getElementById('gov-budget').value) || 25.0;
-      const isLocalOnly = residency === 'local_only';
-      const body = {
-        tenant_id: document.getElementById('gov-tenant-id').value.trim(),
-        name: document.getElementById('gov-tenant-name').value.trim(),
-        residency_zone: residency,
-        daily_spend_limit_usd: budget,
-        monthly_spend_limit_usd: budget * 4,
-        requests_per_minute: parseInt(document.getElementById('gov-rpm').value, 10) || 120,
-        allowed_categories: isLocalOnly ? ['open_weight'] : ['open_weight', 'closed_proprietary'],
-        allowed_providers: isLocalOnly ? ['local'] : ['local', 'openai', 'gemini', 'anthropic'],
-        fallback_to_opencore_on_budget_exceeded: true
-      };
-      try {
-        const res = await api('/v1/governance/tenants', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        out.textContent = JSON.stringify(res, null, 2);
-        loadGovernanceAudit();
-      } catch (e) {
-        out.textContent = '[!] Create tenant failed: ' + e.message;
-      }
-    });
-
-    document.getElementById('btn-gov-issue-key').addEventListener('click', async () => {
-      const out = document.getElementById('gov-action-output');
-      const scopes = Array.from(document.querySelectorAll('#gov-scopes-group input:checked')).map((el) => el.value);
-      const body = {
-        tenant_id: document.getElementById('gov-key-tenant').value.trim(),
-        name: document.getElementById('gov-key-name').value.trim(),
-        scopes: scopes
-      };
-      try {
-        const res = await api('/v1/governance/keys', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        lastIssuedApiKey = res.api_key || res.key || res.raw_key || '';
-        out.textContent = JSON.stringify(res, null, 2);
-        loadGovernanceAudit();
-      } catch (e) {
-        out.textContent = '[!] Issue API key failed: ' + e.message;
-      }
-    });
-
-    document.getElementById('btn-gov-apply-key').addEventListener('click', () => {
-      if (lastIssuedApiKey) {
-        document.getElementById('session-api-key').value = lastIssuedApiKey;
-        document.getElementById('gov-action-output').textContent = '[✓] Applied issued kw_live_* key to Console Bearer header.';
-      } else {
-        document.getElementById('gov-action-output').textContent = '[i] Issue a kw_live_* key first, or type one directly into the top-right Bearer field.';
-      }
-    });
-
-    document.getElementById('btn-gov-evaluate').addEventListener('click', async () => {
-      const out = document.getElementById('gov-action-output');
-      const targetModel = document.getElementById('gov-eval-model').value.trim() || 'gpt-4o';
-      const isOw = targetModel.startsWith('keelway-') || targetModel.includes('qwen') || targetModel.includes('llama');
-      const body = {
-        tenant_id: document.getElementById('gov-eval-tenant').value.trim(),
-        requested_model: targetModel,
-        provider: isOw ? 'local' : (targetModel.includes('gemini') ? 'gemini' : 'openai'),
-        category: isOw ? 'open_weight' : 'closed_proprietary',
-        estimated_cost_usd: parseFloat(document.getElementById('gov-eval-cost').value) || 0.0,
-        estimated_tokens: 512
-      };
-      try {
-        const res = await api('/v1/governance/evaluate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        out.textContent = JSON.stringify(res, null, 2);
-        loadGovernanceAudit();
-      } catch (e) {
-        out.textContent = '[!] Pre-flight evaluation rejected: ' + e.message;
-      }
-    });
-
-    async function loadGovernanceAudit() {
-      const badge = document.getElementById('gov-chain-badge');
-      const tbody = document.getElementById('gov-audit-tbody');
-      try {
-        const data = await api('/v1/governance/audit');
-        const verified = data.chain_valid !== undefined ? data.chain_valid : (data.verified !== false);
-        badge.textContent = verified ? 'SHA-256 Chain: VERIFIED' : 'SHA-256 Chain: TAMPERED';
-        badge.className = 'pill ' + (verified ? 'ok' : 'err');
-
-        const entries = Array.isArray(data.entries) ? data.entries : (Array.isArray(data) ? data : []);
-        if (entries.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="color: var(--muted); text-align: center;">Audit chain verified (0 entries recorded).</td></tr>';
-          return;
-        }
-        tbody.innerHTML = entries.map((e, idx) => {
-          const prevHash = String(e.prev_hash || e.previous_hash || 'GENESIS');
-          const curHash = String(e.entry_hash || e.sha256 || e.hash || '-');
-          return '<tr>' +
-            '<td>#' + escHtml(e.seq !== undefined ? e.seq : idx + 1) + ' • ' + escHtml(e.timestamp || e.created_at || '') + '</td>' +
-            '<td>' + escHtml(e.tenant_id || '-') + '</td>' +
-            '<td><span class="pill accent">' + escHtml(e.action || e.event_type || 'policy') + '</span></td>' +
-            '<td>' + escHtml(e.outcome || e.decision || e.status || 'RECORDED') + '</td>' +
-            '<td><code>' + escHtml(prevHash.slice(0, 12)) + '...</code></td>' +
-            '<td><code>' + escHtml(curHash.slice(0, 16)) + '...</code></td>' +
-          '</tr>';
-        }).join('');
-      } catch (_e) {}
-    }
-
-    document.getElementById('btn-gov-audit').addEventListener('click', loadGovernanceAudit);
-
-    // =========================================================================
-    // TAB 6: CRDT SYNC & JOURNAL (CROSS-MACHINE)
-    // =========================================================================
     async function loadSyncState() {
       try {
         const data = await api('/v1/sync/status');
         document.getElementById('machine-id').textContent = data.machine_id;
+        document.getElementById('node-id-pill').textContent = `Node: ${data.machine_id.slice(0, 16)}`;
         document.getElementById('org-id').textContent = data.org_id;
         document.getElementById('lamport-clock').textContent = data.lamport_counter;
         document.getElementById('journal-count').textContent = data.journal_records_total;
@@ -1820,35 +184,64 @@
 
         const peerKeys = Object.keys(data.known_peers || {});
         const peerListEl = document.getElementById('peer-list');
+        peerListEl.textContent = '';
         if (peerKeys.length > 0) {
-          peerListEl.innerHTML = peerKeys.map((k) => {
-            const p = data.known_peers[k];
-            return '<div>• <b>' + escHtml(k) + '</b>: last seen ' + escHtml(p.last_seen_utc) + ' (' + escHtml(p.records_received) + ' records)</div>';
-          }).join('');
+          for (const k of peerKeys) {
+            const peer = data.known_peers[k] || {};
+            const row = document.createElement('div');
+            const name = document.createElement('b');
+            name.textContent = k;
+            row.append('• ', name, `: last seen ${peer.last_seen_utc} (${peer.records_received} records)`);
+            peerListEl.appendChild(row);
+          }
         } else {
           peerListEl.textContent = 'No external peers synced yet. Export or import an encrypted sync envelope to exchange state.';
         }
       } catch (e) {
-        document.getElementById('output-log').textContent = '[!] Sync status error: ' + e.message;
+        document.getElementById('output-log').textContent = `[!] Sync status error: ${e.message}`;
       }
     }
 
+    function td(parent, text) {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      parent.appendChild(cell);
+      return cell;
+    }
+
     async function loadRecords() {
+      const tbody = document.getElementById('records-tbody');
       try {
         const records = await api('/v1/sync/records');
-        const tbody = document.getElementById('records-tbody');
         if (!records || records.length === 0) return;
-        tbody.innerHTML = records.map((r) =>
-          '<tr>' +
-            '<td>' + escHtml(r.timestamp_utc) + '</td>' +
-            '<td>' + escHtml(String(r.machine_id || '').slice(0, 12)) + '</td>' +
-            '<td>' + escHtml(r.task_id) + '</td>' +
-            '<td><span class="pill accent">' + escHtml(r.entity_type) + '</span></td>' +
-            '<td>#' + escHtml(r.lamport_time) + '</td>' +
-            '<td><code>' + escHtml(String(r.payload_sha256 || '').slice(0, 12)) + '...</code></td>' +
-          '</tr>'
-        ).join('');
-      } catch (_e) {}
+        tbody.textContent = '';
+        for (const r of records) {
+          const tr = document.createElement('tr');
+          td(tr, r.timestamp_utc);
+          td(tr, String(r.machine_id).slice(0, 12));
+          td(tr, r.task_id);
+          const entityTd = td(tr, '');
+          const pill = document.createElement('span');
+          pill.className = 'pill accent';
+          pill.textContent = r.entity_type;
+          entityTd.appendChild(pill);
+          td(tr, `#${r.lamport_time}`);
+          const digestTd = td(tr, '');
+          const code = document.createElement('code');
+          code.textContent = `${String(r.payload_sha256).slice(0, 12)}...`;
+          digestTd.appendChild(code);
+          tbody.appendChild(tr);
+        }
+      } catch (e) {
+        tbody.textContent = '';
+        const tr = document.createElement('tr');
+        const cell = td(tr, `Load failed: ${e.message} — press Refresh Sync State to retry.`);
+        cell.colSpan = 6;
+        cell.style.color = 'var(--err)';
+        cell.style.textAlign = 'center';
+        cell.setAttribute('role', 'alert');
+        tbody.appendChild(tr);
+      }
     }
 
     document.getElementById('btn-refresh').addEventListener('click', () => {
@@ -1859,41 +252,40 @@
     document.getElementById('btn-export').addEventListener('click', async () => {
       try {
         const env = await api('/v1/sync/export', { method: 'POST' });
-        document.getElementById('output-log').textContent =
-          '[✓] ENCRYPTED SYNC ENVELOPE EXPORTED\n' +
-          'Envelope ID:    ' + env.envelope_id + '\n' +
-          'Records Count:  ' + env.records_count + '\n' +
-          'Cipher:         ' + env.cipher + '\n' +
-          'Digest SHA-256: ' + env.bundle_digest_sha256 + '\n' +
-          'Auth Tag:       ' + env.auth_tag;
+        document.getElementById('output-log').textContent = `[✓] ENCRYPTED SYNC ENVELOPE EXPORTED\n` +
+          `Envelope ID:    ${env.envelope_id}\n` +
+          `Records Count:  ${env.records_count}\n` +
+          `Cipher:         ${env.cipher}\n` +
+          `Digest SHA-256: ${env.bundle_digest_sha256}\n` +
+          `Auth Tag:       ${env.auth_tag}`;
         loadSyncState();
       } catch (e) {
-        document.getElementById('output-log').textContent = '[!] Export error: ' + e.message;
+        document.getElementById('output-log').textContent = `[!] Export error: ${e.message}`;
       }
     });
 
     document.getElementById('btn-demo').addEventListener('click', async () => {
       try {
+        // Record mutation first
         await api('/v1/sync/mutate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             entity_type: 'task_state',
-            task_id: 'task_' + Date.now(),
+            task_id: `task_${Date.now()}`,
             payload: { status: 'COMPLETED', test_results: '100% PASS' }
           })
         });
-        document.getElementById('output-log').textContent = '[✓] Local state mutation recorded and synced to monotonic journal.';
+        document.getElementById('output-log').textContent = `[✓] Local state mutation recorded and synced to monotonic journal.`;
         loadSyncState();
         loadRecords();
       } catch (e) {
-        document.getElementById('output-log').textContent = '[!] Mutation error: ' + e.message;
+        document.getElementById('output-log').textContent = `[!] Mutation error: ${e.message}`;
       }
     });
 
-    // Initial Console Telemetry Load
-    loadCatalog();
-    loadUsage();
+    loadSyncState();
+    loadRecords();
   </script>
 </body>
 </html>
