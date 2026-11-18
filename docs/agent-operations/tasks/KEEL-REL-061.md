@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | `IN_PROGRESS` |
+| **Status** | `VERIFIED_COMPLETE` |
 | **Category** | `RELEASE / BRANDING / MIGRATION` |
 | **Agent** | Devin |
 | **Date** | 2026-11-18 |
@@ -112,10 +112,20 @@ same release window.
   fact, not rewritten.
 
 ### Queued external steps
-- **Vercel project rename** `kora` → `keelway` + new domain assignment;
-  `kora-sable.vercel.app` stays live as an alias. Owner timing (YC app
-  references it). MCP team access authorization link was issued and
-  expired — re-issue via `authorize_team_access` when the owner is ready.
-- ghcr.io/gcr.io image republish under `keelway` + deploy-config update.
+- **Vercel project rename** `kora` → `keelway`: **PAUSED by owner**
+  (2026-11-18). The `kora` project and `kora-sable.vercel.app` remain
+  untouched; a domain cutover is owner-timed against the YC application.
+  When unpaused: `authorize_team_access` (MCP) → `update_project` rename →
+  verify `kora-sable` domain stays attached → optionally add a `keelway`
+  alias.
+- **gcr.io image republish** under `keelway`: happens naturally on the
+  next release build (deploy workflow publishes
+  `ghcr.io/${{ github.repository }}`); the terraform `gcr.io` default
+  needs one GCR push before first use.
 - PyPI/Homebrew artifacts regenerated under the keelway name on next
   release (formula file already `keelway.rb`).
+
+**Task closure note (2026-11-18):** all in-repo rename surfaces are
+migrated and verified (phases 1–2, PRs #68, #69). Remaining items are
+external/owner-timed operational actions documented above, not code
+work — marking `VERIFIED_COMPLETE`.
