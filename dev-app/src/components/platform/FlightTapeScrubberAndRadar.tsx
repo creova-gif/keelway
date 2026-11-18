@@ -24,25 +24,6 @@ export interface FlightTapeScrubberAndRadarProps {
   onStudioError?: (msg: string | null) => void;
 }
 
-const SEED_RADAR_AUDIT: BlastRadiusAuditRecord = {
-  audit_id: "blast-seed-01",
-  workspace_id: "default",
-  trace_id: "trace-otel-seed-default",
-  workflow_id: "WF-01",
-  fs_reads: ["core/billing/ledger.py", "core/security/p10_gate.py"],
-  fs_writes: [".keelway/wal/flight_tape.sqlite"],
-  blocked_paths: ["/etc/passwd", "~/.ssh/id_ed25519"],
-  egress_attempts: 0,
-  blocked_egress_hosts: ["telemetry.unapproved-egress.invalid"],
-  p10_gates_triggered: 1,
-  seatbelted: true,
-  zero_unapproved_egress: true,
-  syscalls_audited: 148,
-  risk_tier: "contained_guarded",
-  audit_sha256: "sha256:7b3c9d10e4f281a6b5c4d3e2f10987654321fedcba0987654321abcdef123456",
-  recorded_at: "2026-11-15T00:00:00.000Z",
-};
-
 function resolveRiskBadgeStyle(tier: BlastRadiusRiskTier): { classes: string; label: string } {
   switch (tier) {
     case "nominal_confined":
@@ -82,7 +63,7 @@ export function FlightTapeScrubberAndRadar({
   overridePrompt,
   onStudioError,
 }: FlightTapeScrubberAndRadarProps): React.JSX.Element {
-  const [audits, setAudits] = useState<BlastRadiusAuditRecord[]>([SEED_RADAR_AUDIT]);
+  const [audits, setAudits] = useState<BlastRadiusAuditRecord[]>([]);
   const [gateRuns, setGateRuns] = useState<PromptGateEvaluationRecord[]>([]);
   const [busyBlast, setBusyBlast] = useState<boolean>(false);
   const [busyGate, setBusyGate] = useState<boolean>(false);
@@ -95,12 +76,12 @@ export function FlightTapeScrubberAndRadar({
       .then((res) => {
         if (!cancelled && res.audits.length > 0) setAudits(res.audits);
       })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) onStudioError?.(err instanceof Error ? err.message : "Failed to load blast-radius audits."); });
     void fetchPromptGateRuns(workspaceId, activeRbacRole)
       .then((res) => {
         if (!cancelled) setGateRuns(res.runs);
       })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) onStudioError?.(err instanceof Error ? err.message : "Failed to load prompt gate runs."); });
     return () => {
       cancelled = true;
     };
@@ -129,8 +110,8 @@ export function FlightTapeScrubberAndRadar({
   const forkedCount = steps.filter((s) => s.step_index >= forkStepIndex).length;
   const forkTargetNode = steps.find((s) => s.step_index === forkStepIndex)?.node_name ?? `step_${forkStepIndex}`;
 
-  const activeAudit = audits[0] ?? SEED_RADAR_AUDIT;
-  const riskStyle = resolveRiskBadgeStyle(activeAudit.risk_tier);
+  const activeAudit = audits[0] ?? null;
+  const riskStyle = activeAudit ? resolveRiskBadgeStyle(activeAudit.risk_tier) : null;
   const latestGate = gateRuns[0] ?? null;
 
   const handleAuditBlastRadius = async () => {
@@ -325,8 +306,8 @@ export function FlightTapeScrubberAndRadar({
                 <h3 className="text-xs font-semibold text-fg">Live Sandbox Blast-Radius Radar</h3>
                 <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
                   <span className="text-fg-muted">Seatbelt Confinement:</span>
-                  <span className={`rounded-xs border px-1.5 py-0.2 font-semibold ${riskStyle.classes}`}>
-                    {riskStyle.label}
+                  <span className={`rounded-xs border px-1.5 py-0.2 font-semibold ${riskStyle ? riskStyle.classes : "border-border text-fg-muted"}`}>
+                    {riskStyle ? riskStyle.label : "UNAUDITED"}
                   </span>
                 </div>
               </div>
@@ -344,6 +325,12 @@ export function FlightTapeScrubberAndRadar({
             </Button>
           </div>
 
+          {activeAudit === null ? (
+            <p className="rounded-xs border border-border bg-canvas px-3 py-2 font-mono text-[11px] text-fg-muted">
+              No blast-radius audit recorded for this trace yet. Run "Audit Trace Blast-Radius" to produce a real audit; nothing is claimed until then.
+            </p>
+          ) : (
+          <>
           <div className="grid gap-1.5 font-mono text-[11px] sm:grid-cols-2">
             <div className="rounded-xs border border-border bg-canvas p-2">
               <div className="text-[10px] text-fg-dim">FS Reads &amp; Writes</div>
@@ -375,6 +362,8 @@ export function FlightTapeScrubberAndRadar({
               {activeAudit.audit_sha256}
             </code>
           </div>
+          </>
+          )}
         </div>
 
         <div

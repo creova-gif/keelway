@@ -293,8 +293,8 @@ export function StructuredOutputAndSelfHealingPanel({
 
   useEffect(() => {
     let cancelled = false;
-    void fetchStructuredOutputRuns(workspaceId, 10, activeRbacRole).then((runs) => { if (!cancelled && runs.length > 0) setActiveRun(runs[0] ?? null); }).catch(() => {});
-    void fetchSelfHealingDiagnoses(workspaceId, 10, activeRbacRole).then((diags) => { if (!cancelled && diags.length > 0) setDiagnosis(diags[0] ?? null); }).catch(() => {});
+    void fetchStructuredOutputRuns(workspaceId, 10, activeRbacRole).then((runs) => { if (!cancelled && runs.length > 0) setActiveRun(runs[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load structured output runs.")); });
+    void fetchSelfHealingDiagnoses(workspaceId, 10, activeRbacRole).then((diags) => { if (!cancelled && diags.length > 0) setDiagnosis(diags[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load self-healing diagnoses.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

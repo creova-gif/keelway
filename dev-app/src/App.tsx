@@ -242,11 +242,14 @@ export function App({
 
   useEffect(() => {
     let cancelled = false;
-    fetchFilesTree().then((nodes) => { if (!cancelled) setWorkspaceFiles(nodes); }).catch(() => {});
-    fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch(() => {});
-    fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch(() => {});
-    fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch(() => {});
-    fetchApprovalRules().then((rules) => { if (!cancelled) setScopedRules(rules); }).catch(() => {});
+    const noteLoadFailure = (label: string, err: unknown) => {
+      if (!cancelled) setLogLines((prev) => [...prev, `[load] ${label} failed: ${err instanceof Error ? err.message : "unknown error"}`]);
+    };
+    fetchFilesTree().then((nodes) => { if (!cancelled) setWorkspaceFiles(nodes); }).catch((err) => noteLoadFailure("workspace tree", err));
+    fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch((err) => noteLoadFailure("codebase symbols", err));
+    fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch((err) => noteLoadFailure("studio diff", err));
+    fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch((err) => noteLoadFailure("OpenCore weights", err));
+    fetchApprovalRules().then((rules) => { if (!cancelled) setScopedRules(rules); }).catch((err) => noteLoadFailure("approval rules", err));
     fetchAirGapAudit()
       .then((audit) => {
         if (!cancelled && airGapReqSeqRef.current === 0) {
@@ -254,7 +257,9 @@ export function App({
           setEgress(audit);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) setLogLines((prev) => [...prev, `[load] air-gap audit failed: ${err instanceof Error ? err.message : "unknown error"}`]);
+      });
     return () => { cancelled = true; };
   }, []);
 
@@ -358,7 +363,9 @@ export function App({
             prev.some((r) => r.id === rule.id) ? prev : [rule, ...prev],
           );
         })
-        .catch(() => {});
+        .catch((err) => {
+          setLogLines((prev) => [...prev, `[permissions] standing approval rule NOT saved: ${err instanceof Error ? err.message : "unknown error"}`]);
+        });
     },
     [activeModelId],
   );
@@ -384,7 +391,14 @@ export function App({
         setLogLines((prev) => [...prev, `[sandbox] $ ${cmd} -> exit ${res.exitCode}`]);
         setTerminalCommand("");
       })
-      .catch(() => {})
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : "unknown error";
+        setLogLines((prev) => [...prev, `[sandbox] $ ${cmd} -> request failed: ${msg}`]);
+        setTerminalHistory((prev) => [
+          ...prev,
+          { id: `term-${++navNonceRef.current}`, command: cmd, stdout: "", stderr: `request failed: ${msg}`, exitCode: -1, durationMs: 0 },
+        ]);
+      })
       .finally(() => setTerminalRunning(false));
   };
 
@@ -444,7 +458,9 @@ export function App({
             setDiffHunks((curr) => mergeFocusedDiffHunks(curr, fetched, diffPath, seq));
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          if (mountedRef.current) setLogLines((prev) => [...prev, `[load] diff refresh failed: ${err instanceof Error ? err.message : "unknown error"}`]);
+        });
     },
     [effectiveMobileCompanion, handleSelectSection],
   );

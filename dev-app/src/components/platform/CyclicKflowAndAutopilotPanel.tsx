@@ -237,8 +237,8 @@ export function CyclicKflowAndAutopilotPanel({
 
   useEffect(() => {
     let cancelled = false;
-    void listCyclicKflowRuns(workspaceId, workflowId, activeRbacRole).then((runs) => { if (!cancelled && runs.length > 0) setActiveRun(runs[0] ?? null); }).catch(() => {});
-    void listKflowAutopilotSimulations(workspaceId, workflowId, activeRbacRole).then((sims) => { if (!cancelled && sims.length > 0) setSimulation(sims[0] ?? null); }).catch(() => {});
+    void listCyclicKflowRuns(workspaceId, workflowId, activeRbacRole).then((runs) => { if (!cancelled && runs.length > 0) setActiveRun(runs[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatError(err, "Failed to load cyclic KFlow runs.")); });
+    void listKflowAutopilotSimulations(workspaceId, workflowId, activeRbacRole).then((sims) => { if (!cancelled && sims.length > 0) setSimulation(sims[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatError(err, "Failed to load autopilot simulations.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workflowId, workspaceId]);
 

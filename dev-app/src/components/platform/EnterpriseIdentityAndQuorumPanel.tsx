@@ -49,10 +49,10 @@ export function EnterpriseIdentityAndQuorumPanel({
     let cancelled = false;
     void fetchOidcConfig(workspaceId, activeRbacRole)
       .then((cfg) => { if (!cancelled) setOidcConfig(cfg); })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load OIDC configuration."); });
     void fetchScimUsers(workspaceId, activeRbacRole)
       .then((res) => { if (!cancelled) setScimUsers(res.Resources); })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load SCIM directory users."); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 
