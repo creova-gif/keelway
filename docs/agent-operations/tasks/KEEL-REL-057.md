@@ -41,7 +41,24 @@ layer directly:
   refused and writes nothing, `/v1/agent/run` returns no fabricated plan,
   source-level guard asserting cli.py holds no `/v1` handler branches.
 - `pytest tests/test_keelway_core_cli.py` — 7 passed.
+- Full backend suite: **1479 passed, 2 skipped** (`pytest tests/ -q`, 6m13s).
+  Includes `test_system_doctor.py` pin fix — catalog assertions updated 8 → 14
+  skills, missed in the earlier kstack expansion (`541cd88`).
 - `py_compile` on `cli.py`, `fallback_server.py` — clean. Ruff unavailable.
+- Dev-app: `tsc --noEmit` clean, 111/111 vitest, `vite build` fresh.
+
+## Frontend consumer audit (D-001 closure)
+Extracted **229 `/v1` call sites** across `dev-app/src` + `core/studio` and
+diffed against the real `core.main:app` OpenAPI inventory (**317 routes**) plus
+the `/v1/ws/studio` WebSocket route:
+- **Every frontend call resolves to a real route.** Studio's
+  `POST /v1/files/save`, `/v1/agent/run`, `/v1/agent/runs` all exist on the
+  real API and are principal-gated (`EXECUTE_AGENT`) — the removed fallback
+  shadows break no consumer; under the fallback they now get an honest 503.
+- One honesty defect found and fixed (`fe0ce91`): seeded example workflow
+  `WF-02` in `platformData.ts` advertised `POST /v1/webhooks/git-push` —
+  a non-existent route — as its trigger spec. Now reads
+  `git push event (registered via POST /v1/platform/webhooks)`.
 
 ## Known limits
 - Static fallback still serves cwd files via `SimpleHTTPRequestHandler`
