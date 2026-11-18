@@ -304,9 +304,9 @@ export function FormalSafetyAndEdgeMeshPanel({
 
   useEffect(() => {
     let cancelled = false;
-    void listSafetyVerifications(workspaceId, 10, activeRbacRole).then((items) => { if (!cancelled && items.length > 0) setVerification(items[0] ?? null); }).catch(() => {});
-    void listMeshNodes(workspaceId, activeRbacRole).then((nodes) => { if (!cancelled) setMeshNodes(nodes); }).catch(() => {});
-    void listMeshHandoffs(workspaceId, 10, activeRbacRole).then((items) => { if (!cancelled && items.length > 0) setHandoff(items[0] ?? null); }).catch(() => {});
+    void listSafetyVerifications(workspaceId, 10, activeRbacRole).then((items) => { if (!cancelled && items.length > 0) setVerification(items[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load safety verifications.")); });
+    void listMeshNodes(workspaceId, activeRbacRole).then((nodes) => { if (!cancelled) setMeshNodes(nodes); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load mesh nodes.")); });
+    void listMeshHandoffs(workspaceId, 10, activeRbacRole).then((items) => { if (!cancelled && items.length > 0) setHandoff(items[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load mesh handoffs.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

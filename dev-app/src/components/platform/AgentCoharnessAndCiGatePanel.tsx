@@ -276,14 +276,14 @@ export function AgentCoharnessAndCiGatePanel({
 
   useEffect(() => {
     let cancelled = false;
-    void renderAgentHookConfig({ workspace_id: workspaceId, agent_host: agentHost, mode: "enforce" }, activeRbacRole).then((m) => { if (!cancelled) setHookManifest(m); }).catch(() => {});
+    void renderAgentHookConfig({ workspace_id: workspaceId, agent_host: agentHost, mode: "enforce" }, activeRbacRole).then((m) => { if (!cancelled) setHookManifest(m); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load agent hook configuration.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, agentHost, workspaceId]);
 
   useEffect(() => {
     let cancelled = false;
-    void listHarnessTickets(workspaceId, undefined, 10, activeRbacRole).then((items) => { if (!cancelled) setTickets(items); }).catch(() => {});
-    void listWorktreeCiGateRuns(workspaceId, 10, activeRbacRole).then((runs) => { if (!cancelled && runs.length > 0) setGateRun(runs[0] ?? null); }).catch(() => {});
+    void listHarnessTickets(workspaceId, undefined, 10, activeRbacRole).then((items) => { if (!cancelled) setTickets(items); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load harness tickets.")); });
+    void listWorktreeCiGateRuns(workspaceId, 10, activeRbacRole).then((runs) => { if (!cancelled && runs.length > 0) setGateRun(runs[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load worktree CI gate runs.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

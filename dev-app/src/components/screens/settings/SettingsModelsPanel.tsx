@@ -25,6 +25,7 @@ export function SettingsModelsPanel({
 }: SettingsModelsPanelProps): React.JSX.Element {
   const [weights, setWeights] = useState<OpenCoreWeightItem[]>([]);
   const [loadingWeights, setLoadingWeights] = useState(true);
+  const [weightsError, setWeightsError] = useState<string | null>(null);
 
   const [taskPreview, setTaskPreview] = useState(
     "Refactor Studio auth middleware and verify pytest suite.",
@@ -60,7 +61,9 @@ export function SettingsModelsPanel({
           setWeights(items);
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (!cancelled) setWeightsError(err instanceof Error ? err.message : "Failed to inspect local weights.");
+      })
       .finally(() => {
         if (!cancelled) {
           setLoadingWeights(false);
@@ -194,10 +197,22 @@ export function SettingsModelsPanel({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {loadingWeights && weights.length === 0 ? (
+              {weightsError ? (
+                <tr>
+                  <td colSpan={6} role="alert" className="px-3 py-3 font-mono text-danger">
+                    {`Failed to inspect local OpenCore weights: ${weightsError}. Check the local runtime and reload.`}
+                  </td>
+                </tr>
+              ) : loadingWeights && weights.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-3 py-3 font-mono text-fg-muted">
                     Inspecting local OpenCore weights…
+                  </td>
+                </tr>
+              ) : weights.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-3 py-3 font-mono text-fg-muted">
+                    No local OpenCore weights installed.
                   </td>
                 </tr>
               ) : (

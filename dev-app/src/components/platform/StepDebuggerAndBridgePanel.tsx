@@ -72,14 +72,14 @@ export function StepDebuggerAndBridgePanel({
 
   useEffect(() => {
     let cancelled = false;
-    void listDebuggerBreakpoints(workspaceId, activeRbacRole).then((bps) => { if (!cancelled) setBreakpoints(bps); }).catch(() => {});
-    void listDebuggerSessions(workspaceId, activeRbacRole).then((s) => { if (!cancelled && s.length > 0) setSession(s[0] ?? null); }).catch(() => {});
+    void listDebuggerBreakpoints(workspaceId, activeRbacRole).then((bps) => { if (!cancelled) setBreakpoints(bps); }).catch((err) => { if (!cancelled) setErrorAlert(formatErrorMessage(err, "Failed to load debugger breakpoints.")); });
+    void listDebuggerSessions(workspaceId, activeRbacRole).then((s) => { if (!cancelled && s.length > 0) setSession(s[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErrorMessage(err, "Failed to load debugger sessions.")); });
     void getDebuggerCodeLens(workspaceId, activeRbacRole).then((res) => {
       if (cancelled) return;
       setLenses(res.lenses ?? []);
       if (res.cursor_attach_uri) setCursorAttachUri(res.cursor_attach_uri);
       if (res.vscode_attach_uri) setVscodeAttachUri(res.vscode_attach_uri);
-    }).catch(() => {});
+    }).catch((err) => { if (!cancelled) setErrorAlert(formatErrorMessage(err, "Failed to load debugger code lenses.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

@@ -56,8 +56,8 @@ export function KSpacesCrdtAndKflowPanel({
 
   useEffect(() => {
     let cancelled = false;
-    void fetchKspacesState(workspaceId, activeRbacRole).then((s) => { if (!cancelled) setCrdtState(s); }).catch(() => {});
-    void fetchKflowRuns(workspaceId, workflowId, activeRbacRole).then((r) => { if (!cancelled && r[0]) setDagRun(r[0]); }).catch(() => {});
+    void fetchKspacesState(workspaceId, activeRbacRole).then((s) => { if (!cancelled) setCrdtState(s); }).catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load KSpaces CRDT state."); });
+    void fetchKflowRuns(workspaceId, workflowId, activeRbacRole).then((r) => { if (!cancelled && r[0]) setDagRun(r[0]); }).catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load KFlow DAG runs."); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workflowId, workspaceId]);
 

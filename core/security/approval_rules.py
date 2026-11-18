@@ -29,6 +29,8 @@ class ApprovalRule:
     scope: str
     created_by: str
     created_at: float
+    bound_model_id: Optional[str] = None
+    bound_prompt_version: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -107,9 +109,11 @@ class ApprovalRuleStore:
         names = [f.name for f in fields(ApprovalRule)]
         rules = []
         for raw in raw_rules:
+            if not isinstance(raw, dict):
+                continue
             try:
-                rules.append(ApprovalRule(**{name: raw[name] for name in names}))
-            except (KeyError, TypeError):
+                rules.append(ApprovalRule(**{name: raw[name] for name in names if name in raw}))
+            except TypeError:
                 continue
         return rules
 
@@ -119,14 +123,14 @@ class ApprovalRuleStore:
         tmp.write_text(json.dumps({"version": 1, "rules": [r.to_dict() for r in rules]}, indent=2), encoding="utf-8")
         os.replace(tmp, self.path)
 
-    def add(self, tool_name: str, scope: Any, created_by: str) -> Tuple[ApprovalRule, bool]:
+    def add(self, tool_name: str, scope: Any, created_by: str, bound_model_id: Optional[str] = None, bound_prompt_version: Optional[str] = None) -> Tuple[ApprovalRule, bool]:
         """Returns (rule, created); an identical existing rule is returned with created=False."""
         scope = validate_scope(tool_name, scope)
         rules = self.list()
         for rule in rules:
             if rule.tool_name == tool_name and rule.scope == scope:
                 return rule, False
-        rule = ApprovalRule(id=f"rule_{secrets.token_hex(6)}", tool_name=tool_name, scope=scope, created_by=created_by, created_at=time.time())
+        rule = ApprovalRule(id=f"rule_{secrets.token_hex(6)}", tool_name=tool_name, scope=scope, created_by=created_by, created_at=time.time(), bound_model_id=bound_model_id, bound_prompt_version=bound_prompt_version)
         self._save(rules + [rule])
         return rule, True
 
@@ -136,6 +140,17 @@ class ApprovalRuleStore:
         if gone:
             self._save([r for r in rules if r.id != rule_id])
         return gone
+
+    def reconfirm(self, rule_id: str, bound_model_id: Optional[str], bound_prompt_version: Optional[str]) -> Optional[ApprovalRule]:
+        """Re-bind a drifted rule to the current model/prompt version. Returns None when absent."""
+        rules = self.list()
+        target = next((r for r in rules if r.id == rule_id), None)
+        if target is None:
+            return None
+        target.bound_model_id = bound_model_id
+        target.bound_prompt_version = bound_prompt_version
+        self._save(rules)
+        return target
 
     def _resolved_relative(self, path: Any) -> Optional[str]:
         """The path the filesystem will actually touch, relative to the workspace (symlinks followed)."""
@@ -148,7 +163,13 @@ class ApprovalRuleStore:
         except (ValueError, OSError):
             return None
 
-    def match(self, tool_name: str, arguments: Dict[str, Any]) -> Optional[ApprovalRule]:
+    def match(
+        self,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        model_id: Optional[str] = None,
+        prompt_version: Optional[str] = None,
+    ) -> Optional[ApprovalRule]:
         if tool_name in PATH_TOOLS:
             real = self._resolved_relative(arguments.get("path"))
             if real is None or real == "." or _is_protected(real):
@@ -156,4 +177,13 @@ class ApprovalRuleStore:
             checks = [arguments, {**arguments, "path": real}]
         else:
             checks = [arguments]
-        return next((r for r in self.list() if all(rule_matches(r, tool_name, a) for a in checks)), None)
+        for rule in self.list():
+            # Fail closed: a rule bound to a model/prompt only auto-approves that exact
+            # context. Unbound fields act as wildcards so legacy rules still apply.
+            if rule.bound_model_id is not None and rule.bound_model_id != model_id:
+                continue
+            if rule.bound_prompt_version is not None and rule.bound_prompt_version != prompt_version:
+                continue
+            if all(rule_matches(rule, tool_name, a) for a in checks):
+                return rule
+        return None

@@ -131,6 +131,7 @@ export function SettingsNetworkPanel({
 }: SettingsNetworkPanelProps): React.JSX.Element {
   const [audit, setAudit] = useState<EgressTelemetryState>(INITIAL_UNVERIFIED_AUDIT);
   const [auditLoading, setAuditLoading] = useState(true);
+  const [auditError, setAuditError] = useState<string | null>(null);
   const fetchAuditRef = useRef(fetchAirGapAuditFn);
   fetchAuditRef.current = fetchAirGapAuditFn;
 
@@ -142,7 +143,9 @@ export function SettingsNetworkPanel({
       .then((res) => {
         if (!cancelled) setAudit(res);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (!cancelled) setAuditError(err instanceof Error ? err.message : "Failed to load air-gap telemetry.");
+      })
       .finally(() => {
         if (!cancelled) setAuditLoading(false);
       });
@@ -209,7 +212,11 @@ export function SettingsNetworkPanel({
         </div>
 
         <ul className="divide-y divide-border rounded-sm border border-border bg-canvas text-xs">
-          {auditLoading && !audit.sc7Checks ? (
+          {auditError ? (
+            <li role="alert" className="px-3 py-2 font-mono text-danger">
+              {`Air-gap telemetry unavailable: ${auditError}. Egress claims are unverified — check the local API and reload.`}
+            </li>
+          ) : auditLoading && !audit.sc7Checks ? (
             <li className="px-3 py-2 font-mono text-fg-muted">
               Auditing loopback socket &amp; environment boundary…
             </li>

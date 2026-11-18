@@ -163,7 +163,10 @@ class SystemDoctor:
         skills_manifest_path = Path(__file__).resolve().parent.parent / "kstack" / "manifest.json"
         skills_ok = True
         skills_verified_count = 0
-        required_skills = ["plan", "investigate", "review", "qa", "security", "ship", "modernize", "repomap-sync"]
+        required_skills = [
+                "plan", "investigate", "review", "qa", "security", "ship", "modernize", "repomap-sync",
+                "p10-gate", "airgap-verify", "flight-tape-verify", "worktree-isolate", "approval-grant", "kflow-orchestrate",
+            ]
         skills_details: Dict[str, Any] = {
             "manifest_found": skills_manifest_path.exists(),
             "skills_verified": 0,

@@ -26,6 +26,7 @@ export interface PlatformWorkspaceBarProps {
   onCreateWorkspace?: (ws: { id: string; name: string; branch: string }) => void;
   activeRbacRole?: RbacRoleId;
   onChangeRbacRole?: (role: RbacRoleId) => void;
+  platformHydration?: "loading" | "live" | "example";
 }
 
 const PLATFORM_VIEWS: Array<{ id: PlatformViewId; label: string; capability: string }> = [
@@ -45,6 +46,7 @@ export function PlatformWorkspaceBar({
   activeView, onSelectView, experienceMode, onChangeExperienceMode, subscriptionTier, onChangeSubscriptionTier,
   workspacePath, workspaceBranch, activeModelLabel, pendingApprovalCount,
   activeWorkspaceId, workspaces, onSelectWorkspaceId, onCreateWorkspace, activeRbacRole, onChangeRbacRole,
+  platformHydration = "loading",
 }: PlatformWorkspaceBarProps): React.JSX.Element {
   const [localWorkspaces, setLocalWorkspaces] = useState<WorkspaceDirectoryItem[]>(workspaces ?? DEFAULT_WORKSPACES);
   const [localWsId, setLocalWsId] = useState<string>(activeWorkspaceId ?? "default");
@@ -108,6 +110,15 @@ export function PlatformWorkspaceBar({
           <span aria-hidden="true">·</span>
           <code dir="ltr" className="unicode-bidi-isolate text-fg">{workspacePath}</code>
           <span aria-hidden="true">·</span>
+          {platformHydration === "example" ? (
+            <span
+              role="status"
+              title="The platform API did not return workspace data — agents, issues, deployments and marketplace entries below are bundled examples, not your live state."
+              className="rounded-xs border border-warning/60 bg-warning-subtle px-1.5 py-0.2 font-semibold text-warning"
+            >
+              EXAMPLE DATA
+            </span>
+          ) : null}
           <span>
             <span aria-hidden="true" className="me-0.5">⎇</span>
             <code dir="ltr" className="unicode-bidi-isolate text-fg">{workspaceBranch}</code>

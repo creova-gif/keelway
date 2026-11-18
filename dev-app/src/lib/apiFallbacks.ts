@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
+  AgentManifestItem, ApprovalRuleItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
   DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal,
   GitCommitResult, GovernancePersistenceInfo, ManifestInspectResult,
   MintedScopedApiKeyResult, OpenCoreWeightItem, RecordLedgerEntry,
@@ -638,4 +638,34 @@ export function verifyFallbackScopedKey(apiKey: string): ScopedKeyVerifyResult {
     return { valid: true, keyId: matched.id, scopes: [...matched.scopes], reason: `Verified active key (${matched.label})` };
   }
   return { valid: false, scopes: [], reason: "Key SHA-256 digest not found or revoked" };
+}
+
+const FALLBACK_APPROVAL_RULES: ApprovalRuleItem[] = [
+  {
+    id: "rule-pytest-local",
+    toolName: "run_command",
+    scope: "pytest tests/**",
+    createdBy: "owner",
+    createdAtEpoch: 1762987200,
+    boundModelId: "coder-7b@2.5.1",
+    boundPromptVersion: "p-13",
+  },
+  {
+    id: "rule-edit-devapp",
+    toolName: "edit_file",
+    scope: "dev-app/src/**",
+    createdBy: "owner",
+    createdAtEpoch: 1762991700,
+    boundModelId: "coder-7b@2.5.1",
+    boundPromptVersion: "p-13",
+  },
+];
+
+export function getFallbackApprovalRules(): ApprovalRuleItem[] {
+  return structuredClone(FALLBACK_APPROVAL_RULES);
+}
+
+export function getFallbackRevokedRule(rawId: string): ApprovalRuleItem | null {
+  const found = FALLBACK_APPROVAL_RULES.find((r) => r.id === rawId);
+  return found ? { ...found } : null;
 }

@@ -176,17 +176,23 @@ export function FilesWorkspace({
           setOpenPaths([first]);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) setStatusMessage(`Failed to load workspace tree: ${err instanceof Error ? err.message : "unknown error"}`);
+      });
     fetchDiffFn()
       .then((hunks) => { if (!cancelled) setDiffHunks(hunks); })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) setStatusMessage(`Failed to load diff: ${err instanceof Error ? err.message : "unknown error"}`);
+      });
     fetchSymbolsFn()
       .then((items) => {
         if (cancelled) return;
         setSymbols(items);
         onSymbolsLoadedRef.current?.(items);
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) setStatusMessage(`Failed to load symbols: ${err instanceof Error ? err.message : "unknown error"}`);
+      });
     return () => { cancelled = true; };
   }, [fetchDiffFn, fetchSymbolsFn, fetchTreeFn]);
 
@@ -210,7 +216,9 @@ export function FilesWorkspace({
           setAiSeqByPath((prev) => ({ ...prev, [activePath]: res.aiRecordSeq! }));
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) setStatusMessage(`Failed to load ${activePath}: ${err instanceof Error ? err.message : "unknown error"}`);
+      });
 
     return () => {
       cancelled = true;

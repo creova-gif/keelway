@@ -26,3 +26,5 @@ Validates release readiness against fail-closed engineering gates, seals cryptog
 2. Zero-secret and zero-leakage DLP audit across modified files.
 3. Flight tape tamper detection and SHA-256 seal verification.
 4. Gate integrity check: verify all mutating actions obtained human approval.
+4. The manifest digest check, ruff, pytest, and frontend suites are gate requirements — a skipped gate is a release blocker, not a warning.
+5. Every ship decision references the sealed execution proof; a release without a verifiable run record is not shippable.

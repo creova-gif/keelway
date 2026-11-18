@@ -179,7 +179,8 @@ def test_workspace_rbac_seeding_and_5_role_matrix(tmp_path: Path) -> None:
 
     workspaces = rbac.list_workspaces()
     ws_ids = {w["id"] for w in workspaces}
-    assert {"default", "hipaa-intake"}.issubset(ws_ids)
+    assert {"default"}.issubset(ws_ids)
+    assert "hipaa-intake" not in ws_ids  # demo seed removed: fresh installs show no sample workspaces
 
     created = rbac.create_workspace(
         workspace_id="eu-regulated",
@@ -188,7 +189,7 @@ def test_workspace_rbac_seeding_and_5_role_matrix(tmp_path: Path) -> None:
         isolation_mode="airgap_strict",
     )
     assert created["id"] == "eu-regulated"
-    assert len(rbac.list_workspaces()) == 3
+    assert len(rbac.list_workspaces()) == 2
 
     rbac.upsert_member("eu-regulated", "alice@sorvex.io", "admin")
     rbac.upsert_member("eu-regulated", "bob@sorvex.io", "builder")
@@ -417,7 +418,7 @@ async def test_fastapi_runtime_routes_vault_rbac_webhooks_and_sse(tmp_path: Path
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
         # 1. Workspaces & RBAC endpoints
         ws_resp = await client.get("/v1/platform/workspaces", headers=headers)
-        assert ws_resp.status_code == 200 and ws_resp.json()["total"] >= 2
+        assert ws_resp.status_code == 200 and ws_resp.json()["total"] >= 1
 
         new_ws = await client.post("/v1/platform/workspaces", headers=headers, json={"id": "finops-prod", "name": "FinOps Production", "branch": "main", "isolation_mode": "seatbelt_local"})
         assert new_ws.status_code == 201 and new_ws.json()["id"] == "finops-prod"

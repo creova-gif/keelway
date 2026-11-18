@@ -706,7 +706,7 @@ describe("SettingsWorkspace & App Integration (Screens 08-11)", () => {
 
     const nav = screen.getByRole("navigation", { name: /Settings sections/i });
     expect(within(nav).getByRole("button", { name: /Permissions & Manifests/i })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByText("Prompt version changed: p-13 → p-14")).toBeInTheDocument();
+    expect(await screen.findByText("Prompt version changed: p-13 → p-14")).toBeInTheDocument();
     expect(screen.getByText("Only a person, at this keyboard")).toBeInTheDocument();
 
     await user.click(within(nav).getByRole("button", { name: /Network & Egress/i }));

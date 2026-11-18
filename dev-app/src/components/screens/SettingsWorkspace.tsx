@@ -3,7 +3,8 @@ import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsGovernancePanel } from "@/components/screens/settings/SettingsGovernancePanel";
 import { SettingsModelsPanel } from "@/components/screens/settings/SettingsModelsPanel";
 import {
-  DEFAULT_SCOPED_RULES,
+  CURRENT_PROMPT_VERSION,
+  isRuleDrifted,
   SettingsPermissionsPanel,
 } from "@/components/screens/settings/SettingsPermissionsPanel";
 import {
@@ -32,14 +33,14 @@ import {
   verifyScopedKey,
 } from "@/lib/api";
 import type {
+  ApprovalRuleItem,
   DensityMode,
   LocaleCode,
-  ScopedPermissionRule,
   SettingsSubSection,
   ThemeMode,
 } from "@/lib/types";
 
-export { DEFAULT_SCOPED_RULES, ORLA_UNMEASURED_NETWORK_COPY };
+export { ORLA_UNMEASURED_NETWORK_COPY };
 
 export const SETTINGS_SUB_SECTIONS: ReadonlyArray<{
   id: SettingsSubSection;
@@ -169,8 +170,8 @@ export interface SettingsWorkspaceProps {
   airGapEnabled?: boolean;
   onToggleAirGap?: (enabled: boolean) => void;
   disableGlobalAirGapShortcut?: boolean;
-  scopedRules?: ScopedPermissionRule[];
-  onUpdateScopedRules?: (rules: ScopedPermissionRule[]) => void;
+  scopedRules?: ApprovalRuleItem[];
+  onUpdateScopedRules?: (rules: ApprovalRuleItem[]) => void;
   activeModelId?: string;
   onSelectActiveModel?: (modelId: string, modelLabel: string) => void;
   workspacePath?: string;
@@ -284,10 +285,9 @@ export function SettingsWorkspace({
     return undefined;
   }, [currentTheme]);
 
-  const [uncontrolledRules, setUncontrolledRules] = useState<ScopedPermissionRule[]>(() =>
-    structuredClone(DEFAULT_SCOPED_RULES),
-  );
-  const currentRules = controlledScopedRules ?? uncontrolledRules;
+  /** Last rule list reported by the panel (load or mutation) — drives the drift badge. */
+  const [knownRules, setKnownRules] = useState<ApprovalRuleItem[]>([]);
+  const currentRules = controlledScopedRules ?? knownRules;
 
   const [uncontrolledModelId, setUncontrolledModelId] = useState("keelway-core:7b");
   const currentModelId = controlledActiveModelId ?? uncontrolledModelId;
@@ -306,32 +306,21 @@ export function SettingsWorkspace({
   );
 
   const handleUpdateRules = useCallback(
-    (nextRules: ScopedPermissionRule[]) => {
-      if (controlledScopedRules === undefined) {
-        setUncontrolledRules(nextRules);
-      }
+    (nextRules: ApprovalRuleItem[]) => {
+      setKnownRules(nextRules);
       onUpdateScopedRules?.(nextRules);
     },
-    [controlledScopedRules, onUpdateScopedRules],
+    [onUpdateScopedRules],
   );
 
   const handleSelectModel = useCallback(
     (nextModelId: string, nextModelLabel: string) => {
-      const changed = nextModelId !== currentModelId;
       if (controlledActiveModelId === undefined) {
         setUncontrolledModelId(nextModelId);
       }
-      if (changed && currentRules.length > 0) {
-        handleUpdateRules(
-          currentRules.map((rule) => ({
-            ...rule,
-            driftDetected: true,
-          })),
-        );
-      }
       onSelectActiveModel?.(nextModelId, nextModelLabel);
     },
-    [controlledActiveModelId, currentModelId, currentRules, handleUpdateRules, onSelectActiveModel],
+    [controlledActiveModelId, onSelectActiveModel],
   );
 
   const handleThemeChange = useCallback(
@@ -426,8 +415,9 @@ export function SettingsWorkspace({
   }, [disableGlobalAirGapShortcut, triggerToggleAirGap]);
 
   const driftedCount = useMemo(
-    () => currentRules.filter((r) => r.driftDetected).length,
-    [currentRules],
+    () =>
+      currentRules.filter((r) => isRuleDrifted(r, currentModelId, CURRENT_PROMPT_VERSION)).length,
+    [currentRules, currentModelId],
   );
 
   const sidebarNode = useMemo(
@@ -460,7 +450,7 @@ export function SettingsWorkspace({
         <div className="mx-auto max-w-4xl">
           {currentSubSection === "permissions" ? (
             <SettingsPermissionsPanel
-              scopedRules={currentRules}
+              scopedRules={controlledScopedRules}
               onUpdateScopedRules={handleUpdateRules}
               activeModelId={currentModelId}
               fetchManifestsFn={fetchManifestsFn}

@@ -26,7 +26,7 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
       </React.StrictMode>,
     );
 
-    const driftBanner = screen.getByText("Prompt version changed: p-13 → p-14").closest("[data-callout-variant='prompt-drift']");
+    const driftBanner = (await screen.findByText("Prompt version changed: p-13 → p-14")).closest("[data-callout-variant='prompt-drift']");
     if (!(driftBanner instanceof HTMLElement)) throw new Error("Expected prompt-drift banner element");
     expect(within(driftBanner).getByText("2 Allow always rules are paused until you re-confirm them.")).toBeInTheDocument();
     expect(within(driftBanner).getByRole("button", { name: /Review 2 rules/i })).toBeInTheDocument();
@@ -50,8 +50,20 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
     expect(screen.queryByText(/Prompt version changed:/i)).toBeNull();
     expect(within(rulesTable).getAllByText("Active")).toHaveLength(2);
 
-    // Revoke all transitions cleanly to honest empty state
-    await user.click(screen.getByRole("button", { name: /Revoke all/i }));
+    // Armed revoke state and progressive-disclosure details stay WCAG-clean
+    const armedRevokeBtn = screen.getByRole("button", { name: /Revoke all/i });
+    await user.click(armedRevokeBtn);
+    expect(screen.getByRole("button", { name: /Confirm revoke all/i })).toBeInTheDocument();
+    expect(await runAxe(document.body)).toHaveNoViolations();
+
+    // Grant provenance lives behind a per-row disclosure
+    const disclosure = rulesTable.querySelector("details");
+    disclosure?.setAttribute("open", "");
+    expect(within(rulesTable).getAllByText(/Bound to model & prompt|No model binding/).length).toBeGreaterThan(0);
+    expect(await runAxe(rulesTable)).toHaveNoViolations();
+
+    // Second click confirms the destructive change -> honest empty state
+    await user.click(screen.getByRole("button", { name: /Confirm revoke all/i }));
     expect(screen.getByText("No standing Allow always rules — Keelway asks every time.")).toBeInTheDocument();
   });
 
@@ -71,8 +83,10 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
     await waitFor(() => expect(toggleBtn).toHaveAttribute("aria-pressed", "false"));
     expect(toggleBtn).toHaveTextContent(/Disabled/i);
 
-    // Validate prefilled manifest JSON, then validate a network-enabled high-risk manifest & invalid JSON
+    // Inspector starts empty; the example manifest is an explicit, labeled option
     const inspectorInput = screen.getByLabelText(/Manifest JSON \(keelway\.agent\/v1\)/i);
+    expect((inspectorInput as HTMLTextAreaElement).value).toBe("");
+    await user.click(screen.getByRole("button", { name: /Insert example manifest/i }));
     await user.click(screen.getByRole("button", { name: /Validate manifest/i }));
     const inspectRegion = await screen.findByTestId("manifest-inspect-result");
     expect(within(inspectRegion).getByText("Valid")).toBeInTheDocument();
@@ -105,7 +119,7 @@ describe("Screen 09 — SettingsModelsPanel (Models & 4D Hybrid Routing)", () =>
     render(<SettingsWorkspace defaultSubSection="permissions" />);
 
     // First clear initial p-13 -> p-14 drift on Permissions tab so all standing rules are Active
-    await user.click(screen.getByRole("button", { name: /Re-confirm all/i }));
+    await user.click(await screen.findByRole("button", { name: /Re-confirm all/i }));
     expect(screen.queryByText(/Allow always rules are paused/i)).toBeNull();
 
     // Navigate to Models & 4D Routing
@@ -621,7 +635,7 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
 
     // Part A: ⌘K model switch updates activeModelId + status bar AND pauses re-confirmed standing rules
     const desktopApp = render(<App initialSection="settings" initialSettingsSubSection="permissions" />);
-    await user.click(screen.getByRole("button", { name: /Re-confirm all/i }));
+    await user.click(await screen.findByRole("button", { name: /Re-confirm all/i }));
     expect(screen.queryByText(/Allow always rules are paused/i)).toBeNull();
 
     fireEvent.keyDown(window, { key: "k", metaKey: true });
@@ -647,7 +661,20 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
     const origFetch = globalThis.fetch;
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-      if (new URL(url, "http://localhost").pathname === "/v1/audit") {
+      const pathname = new URL(url, "http://localhost").pathname;
+      if (pathname === "/v1/audit/verify") {
+        return new Response(
+          JSON.stringify({ status: "verified", total_entries: 1, head_hash: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (pathname.startsWith("/v1/audit/merkle/proof/")) {
+        return new Response(
+          JSON.stringify({ seq: 1301, proof: [], entry_hash: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900", merkle_root: "aa11bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900", verified: true }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (pathname === "/v1/audit") {
         return new Response(
           JSON.stringify({
             entries: [

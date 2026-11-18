@@ -81,6 +81,8 @@ class AutonomousAgentLoop:
         environment: str = "internal",
         actor_id: str = "local_engineer",
         flight_recorder: Optional[FlightRecorder] = None,
+        model_id: Optional[str] = None,
+        prompt_version: Optional[str] = None,
     ):
         self.task_id = task_id
         self.fs = workspace_fs or WorkspaceFilesystem()
@@ -96,6 +98,8 @@ class AutonomousAgentLoop:
         self.events: List[Dict[str, Any]] = []
         self.pending_approval: Optional[Dict[str, Any]] = None
         self.approval_rules = approval_rules
+        self.model_id = model_id
+        self.prompt_version = prompt_version
         self.command_runner: Optional[Any] = None  # (command, timeout) -> tool result; set when commands must run confined
         self.guard: Optional[Any] = None  # a core.agents.guard.ManifestGuard when running under an Agent Manifest
         self.active_proc: Optional[subprocess.Popen] = None
@@ -454,7 +458,10 @@ class AutonomousAgentLoop:
         )
 
         if needs_approval and self.policy == AutonomyPolicy.CONFIRM_MUTATION and self.approval_rules is not None:
-            rule = self.approval_rules.match(tool_name, arguments)
+            rule = self.approval_rules.match(
+                tool_name, arguments,
+                model_id=self.model_id, prompt_version=self.prompt_version,
+            )
             if rule:
                 self._record_event("approval_auto_granted", {
                     "task_id": self.task_id, "tool_name": tool_name, "arguments": arguments,

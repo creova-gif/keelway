@@ -292,13 +292,13 @@ export function McpLockfileAndBenchPanel({
     let cancelled = false;
     void fetchMcpLockfiles(workspaceId, 25, activeRbacRole).then((r) => {
       if (!cancelled) { setLockfiles(r.lockfiles); setActiveLockfile(r.lockfiles[0] ?? null); }
-    }).catch(() => {});
+    }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load MCP lockfiles.")); });
     void fetchMcpLockVerifications(workspaceId, 25, activeRbacRole).then((r) => {
       if (!cancelled) { setVerifications(r.verifications); setLatestVerification(r.verifications[0] ?? null); }
-    }).catch(() => {});
+    }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load lockfile verifications.")); });
     void fetchConformanceBenchmarks(workspaceId, 25, activeRbacRole).then((r) => {
       if (!cancelled) { setBenchRuns(r.runs); setLatestBench(r.runs[0] ?? null); }
-    }).catch(() => {});
+    }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load conformance benchmarks.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

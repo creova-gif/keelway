@@ -22,3 +22,5 @@ Maintains an up-to-date semantic symbol index and condensed repository map using
 1. Never invoke external network sockets or third-party embeddings services.
 2. Scrub all credentials and tokens from scanned documentation and source comments before storing in KBrain.
 3. Cache symbol digests incrementally to minimize re-indexing latency.
+3. Extracted symbols and call hierarchies sync to KBrain only — no extracted repository content leaves the local boundary.
+4. Sync records the workspace and index version so stale maps cannot be mistaken for current state.

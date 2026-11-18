@@ -95,7 +95,7 @@ export function BidirectionalKflowStudioPanel({
         setSyncSha256(res.sync_sha256);
         setSelectedNodeId((prev) => (res.nodes.some((n) => n.id === prev) ? prev : (res.nodes[0]?.id ?? "")));
       })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load KFlow studio graph."); });
     return () => { cancelled = true; };
   }, [workspaceId, workflowId]);
 

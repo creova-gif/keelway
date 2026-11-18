@@ -1692,6 +1692,8 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
             quorum_service=q_service,
             environment=env_mode,
             actor_id=principal.actor,
+            model_id=payload.get("model_id") if isinstance(payload.get("model_id"), str) else None,
+            prompt_version=payload.get("prompt_version") if isinstance(payload.get("prompt_version"), str) else None,
         )
         # Commands run only inside a verified sandbox; without one, run_command stays unavailable.
         agent.command_runner, _ = await asyncio.to_thread(verified_command_runner, _workspace_fs.root)
@@ -1803,7 +1805,13 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
             scope = validate_scope(pending["tool_name"], default if requested is None else requested)
         except ApprovalRuleError as e:
             raise HTTPException(status_code=400, detail=str(e))
-        rule, created = ApprovalRuleStore(_workspace_fs.root).add(pending["tool_name"], scope, principal.actor)
+        rule, created = ApprovalRuleStore(_workspace_fs.root).add(
+            pending["tool_name"],
+            scope,
+            principal.actor,
+            bound_model_id=remember.get("model_id") if isinstance(remember, dict) else None,
+            bound_prompt_version=remember.get("prompt_version") if isinstance(remember, dict) else None,
+        )
         if created:
             await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
 
@@ -2220,6 +2228,51 @@ async def revoke_approval_rule(rule_id: str, principal: Principal = Depends(curr
         raise HTTPException(status_code=404, detail=f"Approval rule '{rule_id}' not found.")
     await record_audit(principal, "approval_rule_revoke", f"{gone.tool_name}:{gone.scope}", True)
     return {"revoked": gone.to_dict()}
+
+
+@router.post("/v1/approval-rules", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
+async def create_approval_rule(request: Request, principal: Principal = Depends(current_principal)):
+    """Create a standing approval for the open workspace (Studio 'Allow always' grant path)."""
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Expected a JSON body.")
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Expected a JSON object.")
+    try:
+        rule, created = ApprovalRuleStore(_workspace_fs.root).add(
+            str(payload.get("tool_name") or ""),
+            payload.get("scope"),
+            principal.actor,
+            bound_model_id=payload.get("model_id") if isinstance(payload.get("model_id"), str) else None,
+            bound_prompt_version=payload.get("prompt_version") if isinstance(payload.get("prompt_version"), str) else None,
+        )
+    except ApprovalRuleError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if created:
+        await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
+    return {"created": created, "rule": rule.to_dict()}
+
+
+@router.post("/v1/approval-rules/{rule_id}/reconfirm", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
+async def reconfirm_approval_rule(rule_id: str, request: Request, principal: Principal = Depends(current_principal)):
+    """Re-bind a standing approval to the current model/prompt version after drift."""
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Expected a JSON object.")
+    store = ApprovalRuleStore(_workspace_fs.root)
+    rule = store.reconfirm(
+        rule_id,
+        payload.get("model_id") if isinstance(payload.get("model_id"), str) else None,
+        payload.get("prompt_version") if isinstance(payload.get("prompt_version"), str) else None,
+    )
+    if rule is None:
+        raise HTTPException(status_code=404, detail=f"Approval rule '{rule_id}' not found.")
+    await record_audit(principal, "approval_rule_reconfirm", f"{rule.tool_name}:{rule.scope}", True)
+    return {"reconfirmed": rule.to_dict()}
 
 
 @router.get("/v1/tier2/status", tags=["Tier 2 Hardware Verification"])

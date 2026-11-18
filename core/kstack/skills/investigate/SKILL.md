@@ -26,3 +26,6 @@ Performs systematic root-cause diagnosis of defects, test failures, and unexpect
 2. Distinguish product defect, invalid test expectation, and environment failure.
 3. Inspect stack traces, variable values, and error output inside the verified sandbox.
 4. Formulate the minimal repair plan with explicit verification assertions.
+4. Prefer flight-tape replay and sealed trace inspection over speculative re-execution — the recorded run is the ground truth.
+5. When a reproduction requires a Tier-3 action (network egress, push, deploy), record the need and stop for approval rather than executing it.
+6. Preserve Merkle-chain evidence: never truncate or rewrite tape records to make a reproduction cleaner.

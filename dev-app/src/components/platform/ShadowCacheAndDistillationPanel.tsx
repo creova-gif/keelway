@@ -284,9 +284,9 @@ export function ShadowCacheAndDistillationPanel({
 
   useEffect(() => {
     let cancelled = false;
-    void fetchSemanticCacheStats(workspaceId, activeRbacRole).then((s) => { if (!cancelled) setCacheStats(s); }).catch(() => {});
-    void fetchShadowPairs(workspaceId, "", 25, activeRbacRole).then((r) => { if (!cancelled) { setShadowPairs(r.pairs); setPairCount(r.count); } }).catch(() => {});
-    void fetchDistillationDatasets(workspaceId, 25, activeRbacRole).then((r) => { if (!cancelled && r.datasets.length > 0) setCompiledDataset((prev) => prev ?? r.datasets[0] ?? null); }).catch(() => {});
+    void fetchSemanticCacheStats(workspaceId, activeRbacRole).then((s) => { if (!cancelled) setCacheStats(s); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load semantic cache stats.")); });
+    void fetchShadowPairs(workspaceId, "", 25, activeRbacRole).then((r) => { if (!cancelled) { setShadowPairs(r.pairs); setPairCount(r.count); } }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load shadow evaluation pairs.")); });
+    void fetchDistillationDatasets(workspaceId, 25, activeRbacRole).then((r) => { if (!cancelled && r.datasets.length > 0) setCompiledDataset((prev) => prev ?? r.datasets[0] ?? null); }).catch((err) => { if (!cancelled) setErrorAlert(formatErr(err, "Failed to load distillation datasets.")); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

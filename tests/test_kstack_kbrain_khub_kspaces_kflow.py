@@ -74,6 +74,21 @@ def test_kstack_builtin_skills_loaded():
     assert sync is not None
     assert sync.role == "general"
 
+    # Keelway-mission skills: agentic capability surface, not generic dev workflow clones
+    for name, role in (
+        ("kstack/p10-gate", "gatekeeper"),
+        ("kstack/airgap-verify", "compliance_auditor"),
+        ("kstack/flight-tape-verify", "auditor"),
+        ("kstack/worktree-isolate", "operator"),
+        ("kstack/approval-grant", "policy_admin"),
+        ("kstack/kflow-orchestrate", "orchestrator"),
+    ):
+        sk = kstack_registry.get_skill(name)
+        assert sk is not None, name
+        assert sk.role == role
+        assert len(sk.digest_sha256) == 64
+        assert len(sk.instructions) > 100
+
 
 def test_kstack_versioned_manifest_integrity():
     """Verify built-in skills match their registered cryptographic digests in manifest.json."""

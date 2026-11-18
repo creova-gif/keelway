@@ -23,3 +23,6 @@ Evaluates the repository against NIST SP 800-53 SC-7 boundaries, STRIDE threat c
 1. Zero egress socket verification.
 2. Malicious package script inspection.
 3. Trust boundary and permission escalation detection.
+4. Air-gap and privacy classification are fail-closed: absence of an explicit COMPLIANT audit means non-compliant for gating purposes.
+5. RBAC denials must name the required permission; a denial that does not name what was required is a finding.
+6. Webhook, token, and quorum surfaces require positive verification — assert rejection of unsigned, replayed, and cross-role requests.

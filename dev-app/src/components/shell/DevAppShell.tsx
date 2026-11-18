@@ -9,7 +9,7 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import type { EgressTelemetryState, RailSection, SidebarTaskItem, TaskStatus } from "@/lib/types";
-import { subscribeDataFallbacks } from "@/lib/api";
+import { subscribeApiErrors, subscribeDataFallbacks, type ApiRequestError } from "@/lib/api";
 
 export { formatEgressBytes, resolveEgressDisplay };
 
@@ -168,8 +168,10 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
   const currentLogsTab = controlledLogsTab ?? uncontrolledLogsTab;
   const effectiveMobileCompanion = isMobileCompanion ?? isNarrowViewport;
   const [fallbackResponseCount, setFallbackResponseCount] = useState(0);
+  const [lastApiError, setLastApiError] = useState<ApiRequestError | null>(null);
 
   useEffect(() => subscribeDataFallbacks(setFallbackResponseCount), []);
+  useEffect(() => subscribeApiErrors(setLastApiError), []);
 
   useEffect(() => {
     if (
@@ -608,6 +610,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
             offlineSetting={offlineSetting}
             deployPending={deployPending}
             fallbackResponseCount={fallbackResponseCount}
+            apiError={lastApiError}
             onSwitchToLocalModel={onSwitchToLocalModel}
             onGoOffline={onGoOffline}
           />

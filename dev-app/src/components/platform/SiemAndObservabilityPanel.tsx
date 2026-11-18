@@ -40,7 +40,7 @@ export function SiemAndObservabilityPanel({
     let cancelled = false;
     void fetchObservabilityMetrics(workspaceId, "otlp_json", activeRbacRole)
       .then((snap) => { if (!cancelled) setTelemetry(snap); })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load observability metrics."); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

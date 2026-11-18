@@ -65,6 +65,8 @@ export function SettingsGovernancePanel({
   fetchSbomFn = fetchSbom,
 }: SettingsGovernancePanelProps): React.JSX.Element {
   const [persistence, setPersistence] = useState<GovernancePersistenceInfo | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [policyLoaded, setPolicyLoaded] = useState(false);
   const [policy, setPolicy] = useState<TenantGovernancePolicy>(DEFAULT_POLICY);
   const [budgetDraft, setBudgetDraft] = useState("150");
   const [keys, setKeys] = useState<ScopedApiKeyItem[]>([]);
@@ -122,10 +124,14 @@ export function SettingsGovernancePanel({
         if (cancelled) return;
         setPersistence(pers);
         setPolicy(pol);
+        setPolicyLoaded(true);
         setBudgetDraft(String(pol.monthlyBudgetUsd));
         setKeys(loadedKeys);
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (cancelled) return;
+        setLoadError(err instanceof Error ? err.message : "Failed to load governance state.");
+      });
     return () => {
       cancelled = true;
       mountedRef.current = false;
@@ -272,9 +278,12 @@ export function SettingsGovernancePanel({
   const handleCopySecret = () => {
     if (!mintedResult) return;
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-      void navigator.clipboard.writeText(mintedResult.plaintextSecret).catch(() => {});
+      void navigator.clipboard.writeText(mintedResult.plaintextSecret)
+        .then(() => setCopiedSecret(true))
+        .catch(() => setCopiedSecret(false));
+    } else {
+      setCopiedSecret(true);
     }
-    setCopiedSecret(true);
   };
 
   const dailySpend = policy.dailySpendUsd ?? 1.42;
@@ -296,6 +305,13 @@ export function SettingsGovernancePanel({
           <code dir="ltr" className="unicode-bidi-isolate font-mono">kw_live_*</code> tenant credentials.
         </p>
       </header>
+
+      {loadError ? (
+        <div role="alert" className="rounded-sm border border-danger/55 bg-danger-subtle px-4 py-2.5 text-xs text-fg">
+          <span className="font-semibold text-danger">{`Failed to load governance state: ${loadError}`}</span>
+          {" "}Values below are unsaved defaults, not server state. Check the local API and reload.
+        </div>
+      ) : null}
 
       {/* 1. Crash-Safe Persistence Strip */}
       <section

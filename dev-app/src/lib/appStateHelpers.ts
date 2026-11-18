@@ -12,7 +12,6 @@ import type {
   P10ScopedRuleSpec,
   PlatformViewId,
   RailSection,
-  ScopedPermissionRule,
   SettingsSubSection,
   SidebarTaskItem,
   StepReceiptItem,
@@ -232,22 +231,6 @@ export function buildApprovalReceipt(
   };
 }
 
-export function buildScopedRule(
-  spec: P10ScopedRuleSpec,
-  activeModelId: string,
-): ScopedPermissionRule {
-  return {
-    id: `rule-${Date.now()}`,
-    capability: spec.actionKind === "command" ? "Run sandboxed command" : "Edit workspace files",
-    scopePattern: spec.scopePattern,
-    mode: "allow_scoped",
-    boundModelId: activeModelId,
-    boundPromptVersion: spec.promptVersion,
-    currentPromptVersion: spec.promptVersion,
-    driftDetected: false,
-    createdAt: new Date().toISOString(),
-  };
-}
 
 export function resolveMainAriaLabel(
   platformView: PlatformViewId,

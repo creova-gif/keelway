@@ -311,18 +311,15 @@ export interface AuditMerkleProof {
    Settings & Sovereign Control Plane (Screens 08–11)
    ========================================================================== */
 
-export interface ScopedPermissionRule {
+/** Real standing approval persisted by the backend in .keelway/approval_rules.json. */
+export interface ApprovalRuleItem {
   id: string;
-  capability: string;
-  scopePattern: string;
-  mode: "allow_scoped" | "ask_every_time" | "locked_human_only";
-  boundModelId: string;
-  boundPromptVersion: string;
-  currentPromptVersion: string;
-  driftDetected: boolean;
-  immutable?: boolean;
-  policyRef?: string;
-  createdAt: string;
+  toolName: string;
+  scope: string;
+  createdBy: string;
+  createdAtEpoch: number;
+  boundModelId: string | null;
+  boundPromptVersion: string | null;
 }
 
 export interface AgentManifestItem {

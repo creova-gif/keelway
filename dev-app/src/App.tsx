@@ -11,25 +11,27 @@ import {
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import {
   applyDensityToDocument, applyLocaleToDocument, applyReduceMotionToDocument, applyThemeToDocument,
-  DEFAULT_SCOPED_RULES, isEditableKeyboardTarget, SettingsSubNav, SettingsWorkspace,
+  isEditableKeyboardTarget, SettingsSubNav, SettingsWorkspace,
 } from "@/components/screens/SettingsWorkspace";
+import { CURRENT_PROMPT_VERSION, isRuleDrifted } from "@/components/screens/settings/SettingsPermissionsPanel";
 import {
   buildLogsDrawerTabPanels, ReviewChangesContent, TasksWorkspace, type TerminalExecEntry,
 } from "@/components/screens/TasksWorkspace";
 import {
-  connectStudioWebSocket, execSandboxTerminal, fetchAirGapAudit, fetchCodebaseSymbols,
+  connectStudioWebSocket, createApprovalRule, execSandboxTerminal, fetchAirGapAudit,
+  fetchApprovalRules, fetchCodebaseSymbols,
   fetchFilesTree, fetchOpenCoreWeights, fetchStudioDiff, toggleAirGap,
 } from "@/lib/api";
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
 import {
-  buildApprovalReceipt, buildPaletteModelsAndSettings, buildScopedRule,
+  buildApprovalReceipt, buildPaletteModelsAndSettings,
   INITIAL_PROPOSALS, INITIAL_STEP_RECEIPTS, INITIAL_TASKS,
   mergeFocusedDiffHunks, readInitialUrlState, resolveMainAriaLabel, syncWorkspaceUrlParams,
 } from "@/lib/appStateHelpers";
 import type {
   CodeSymbolItem, DensityMode, EgressTelemetryState, FileDiffHunk, LocaleCode,
   OpenCoreWeightItem, P10ApprovalDecisionPayload, P10ApprovalReceipt, P10ScopedRuleSpec,
-  PlatformViewId, RailSection, ScopedPermissionRule, SettingsSubSection, SidebarTaskItem, ThemeMode,
+  PlatformViewId, RailSection, ApprovalRuleItem, SettingsSubSection, SidebarTaskItem, ThemeMode,
   WorkspaceFileNode,
 } from "@/lib/types";
 
@@ -112,9 +114,21 @@ export function App({
 
   const [workspacePath, setWorkspacePath] = useState("/workspace/keelway");
   const [workspaceBranch, setWorkspaceBranch] = useState("feat/unified-dev-app");
-  const [onboardingOpen, setOnboardingOpen] = useState<boolean>(
-    initialOnboardingOpen ?? urlInit.onboarding,
-  );
+  const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
+    if (initialOnboardingOpen !== undefined) return initialOnboardingOpen;
+    if (urlInit.onboarding) return true;
+    if (import.meta.env.MODE === "test") return false;
+    try {
+      return window.localStorage.getItem("keelway.onboarded") !== "1";
+    } catch {
+      return false;
+    }
+  });
+  const markOnboarded = useCallback(() => {
+    try {
+      window.localStorage.setItem("keelway.onboarded", "1");
+    } catch { /* private mode */ }
+  }, []);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   const [tasks, setTasks] = useState<SidebarTaskItem[]>(INITIAL_TASKS);
@@ -154,9 +168,7 @@ export function App({
   const [recordVerifyNonce, setRecordVerifyNonce] = useState(0);
   const [recordSeqLatest, setRecordSeqLatest] = useState(1283);
 
-  const [scopedRules, setScopedRules] = useState<ScopedPermissionRule[]>(() =>
-    structuredClone(DEFAULT_SCOPED_RULES),
-  );
+  const [scopedRules, setScopedRules] = useState<ApprovalRuleItem[]>([]);
   const [activeModelId, setActiveModelId] = useState("keelway-core:7b");
   const [activeModelLabel, setActiveModelLabel] = useState("coder-7b v2.5.1");
 
@@ -202,6 +214,7 @@ export function App({
     handleCreateWorkspace,
     activeRbacRole,
     setActiveRbacRole,
+    platformHydration,
     renderPlatformCanvas,
   } = useUnifiedPlatformState({
     onJumpToIdeComposer: handleJumpToIdeComposer,
@@ -242,10 +255,14 @@ export function App({
 
   useEffect(() => {
     let cancelled = false;
-    fetchFilesTree().then((nodes) => { if (!cancelled) setWorkspaceFiles(nodes); }).catch(() => {});
-    fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch(() => {});
-    fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch(() => {});
-    fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch(() => {});
+    const noteLoadFailure = (label: string, err: unknown) => {
+      if (!cancelled) setLogLines((prev) => [...prev, `[load] ${label} failed: ${err instanceof Error ? err.message : "unknown error"}`]);
+    };
+    fetchFilesTree().then((nodes) => { if (!cancelled) setWorkspaceFiles(nodes); }).catch((err) => noteLoadFailure("workspace tree", err));
+    fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch((err) => noteLoadFailure("codebase symbols", err));
+    fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch((err) => noteLoadFailure("studio diff", err));
+    fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch((err) => noteLoadFailure("OpenCore weights", err));
+    fetchApprovalRules().then((rules) => { if (!cancelled) setScopedRules(rules); }).catch((err) => noteLoadFailure("approval rules", err));
     fetchAirGapAudit()
       .then((audit) => {
         if (!cancelled && airGapReqSeqRef.current === 0) {
@@ -253,7 +270,9 @@ export function App({
           setEgress(audit);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) setLogLines((prev) => [...prev, `[load] air-gap audit failed: ${err instanceof Error ? err.message : "unknown error"}`]);
+      });
     return () => { cancelled = true; };
   }, []);
 
@@ -320,13 +339,10 @@ export function App({
 
   const handleSelectActiveModel = useCallback(
     (nextModelId: string, nextModelLabel: string) => {
-      if (nextModelId !== activeModelId) {
-        setScopedRules((prev) => prev.map((rule) => ({ ...rule, driftDetected: true })));
-      }
       setActiveModelId(nextModelId);
       setActiveModelLabel(nextModelLabel);
     },
-    [activeModelId],
+    [],
   );
 
   const handleProposalDecision = useCallback(
@@ -349,7 +365,20 @@ export function App({
 
   const handleCreateScopedRule = useCallback(
     (spec: P10ScopedRuleSpec) => {
-      setScopedRules((prev) => [buildScopedRule(spec, activeModelId), ...prev]);
+      void createApprovalRule({
+        toolName: spec.actionKind === "command" ? "run_command" : "edit_file",
+        scope: spec.scopePattern,
+        modelId: spec.modelId || activeModelId,
+        promptVersion: spec.promptVersion,
+      })
+        .then(({ rule }) => {
+          setScopedRules((prev) =>
+            prev.some((r) => r.id === rule.id) ? prev : [rule, ...prev],
+          );
+        })
+        .catch((err) => {
+          setLogLines((prev) => [...prev, `[permissions] standing approval rule NOT saved: ${err instanceof Error ? err.message : "unknown error"}`]);
+        });
     },
     [activeModelId],
   );
@@ -375,7 +404,14 @@ export function App({
         setLogLines((prev) => [...prev, `[sandbox] $ ${cmd} -> exit ${res.exitCode}`]);
         setTerminalCommand("");
       })
-      .catch(() => {})
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : "unknown error";
+        setLogLines((prev) => [...prev, `[sandbox] $ ${cmd} -> request failed: ${msg}`]);
+        setTerminalHistory((prev) => [
+          ...prev,
+          { id: `term-${++navNonceRef.current}`, command: cmd, stdout: "", stderr: `request failed: ${msg}`, exitCode: -1, durationMs: 0 },
+        ]);
+      })
       .finally(() => setTerminalRunning(false));
   };
 
@@ -435,7 +471,9 @@ export function App({
             setDiffHunks((curr) => mergeFocusedDiffHunks(curr, fetched, diffPath, seq));
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          if (mountedRef.current) setLogLines((prev) => [...prev, `[load] diff refresh failed: ${err instanceof Error ? err.message : "unknown error"}`]);
+        });
     },
     [effectiveMobileCompanion, handleSelectSection],
   );
@@ -454,8 +492,9 @@ export function App({
     [activeTask.id],
   );
   const driftedRulesCount = useMemo(
-    () => scopedRules.filter((r) => r.driftDetected).length,
-    [scopedRules],
+    () =>
+      scopedRules.filter((r) => isRuleDrifted(r, activeModelId, CURRENT_PROMPT_VERSION)).length,
+    [scopedRules, activeModelId],
   );
 
   const contextSidebarContent = useMemo(() => {
@@ -550,6 +589,7 @@ export function App({
             onCreateWorkspace={handleCreateWorkspace}
             activeRbacRole={activeRbacRole}
             onChangeRbacRole={setActiveRbacRole}
+            platformHydration={platformHydration}
           />
         }
         reviewDrawerOpen={reviewOpen}
@@ -700,9 +740,13 @@ export function App({
 
       <OnboardingModal
         open={onboardingOpen}
-        onOpenChange={setOnboardingOpen}
+        onOpenChange={(next) => {
+          if (!next) markOnboarded();
+          setOnboardingOpen(next);
+        }}
         defaultWorkspacePath={workspacePath}
         onComplete={({ workspacePath: chosenPath, branch }) => {
+          markOnboarded();
           setWorkspacePath(chosenPath);
           if (branch) setWorkspaceBranch(branch);
         }}

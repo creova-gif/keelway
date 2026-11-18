@@ -46,7 +46,7 @@ export function FlightTapeDebuggerPanel({
       });
     void fetchEvalDatasetCases(workspaceId, activeRbacRole)
       .then((res) => { if (!cancelled) setEvalCases(res.cases); })
-      .catch(() => {});
+      .catch((err) => { if (!cancelled) setErrorBanner(err instanceof Error ? err.message : "Failed to load evaluation dataset cases."); });
     return () => { cancelled = true; };
   }, [activeRbacRole, workspaceId]);
 

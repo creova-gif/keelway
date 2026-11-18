@@ -2,6 +2,7 @@ import React, { useId } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
+import type { ApiRequestError } from "@/lib/api";
 import type { EgressTelemetryState } from "@/lib/types";
 
 export function formatEgressBytes(bytes: number): string {
@@ -87,6 +88,7 @@ export interface StatusBarEgressProps {
   offlineSetting: boolean;
   deployPending: boolean;
   fallbackResponseCount?: number;
+  apiError?: ApiRequestError | null;
   onSwitchToLocalModel?: () => void;
   onGoOffline?: () => void;
 }
@@ -96,6 +98,7 @@ export function StatusBarEgress({
   offlineSetting,
   deployPending,
   fallbackResponseCount = 0,
+  apiError = null,
   onSwitchToLocalModel,
   onGoOffline,
 }: StatusBarEgressProps): React.JSX.Element {
@@ -115,6 +118,19 @@ export function StatusBarEgress({
       <span className={`font-mono tabular-nums ${display.showCloudDetails ? "text-fg" : "text-fg-muted"}`}>
         {display.bytesLabel}
       </span>
+      {apiError ? (
+        <>
+          <span aria-hidden="true" className="text-fg-dim">·</span>
+          <span
+            role="status"
+            aria-live="polite"
+            className="font-mono text-[11px] text-danger"
+            title={`${apiError.message} — check the local API is running, then retry the action.`}
+          >
+            {`API error: ${apiError.path}${apiError.status ? ` (${apiError.status})` : ""}`}
+          </span>
+        </>
+      ) : null}
       {fallbackResponseCount > 0 ? (
         <>
           <span aria-hidden="true" className="text-fg-dim">·</span>

@@ -27,7 +27,7 @@ cd keelway
 What `launch` isolates and verifies before returning `{"ok": true}`:
 
 1. **Side-by-side multi-instance isolation:** Two or more verification runs can execute concurrently when given distinct `--state-dir` paths. `launch` binds an ephemeral loopback port (`127.0.0.1:<PORT>`), generates a per-instance `kw_verify_<hex>` bearer token, and redirects **both** `HOME` (`$STATE_DIR/home/.keelway/platform_runtime.db`, `vault_master.key`, `keelway.db`) and working directory (`$STATE_DIR/workspace/.keelway/*`) so the operator's real `~/.keelway` and `<repo>/.keelway` are never touched.
-2. **True usability readiness (not just port open):** `launch` waits until `GET /health` returns `200`, authenticated `GET /v1/platform/workspaces` initializes `platform_runtime.db` and returns seeded workspaces (`default`, `hipaa-intake`), `GET /app?token=<TOKEN>` serves `/app/assets/*` from `core/dev_app_dist`, and headless Chrome hydrates React 19 with `[aria-label="Unified workspace bar"]` mounted in the live DOM.
+2. **True usability readiness (not just port open):** `launch` waits until `GET /health` returns `200`, authenticated `GET /v1/platform/workspaces` initializes `platform_runtime.db` and returns the first-run workspace (`default`), `GET /app?token=<TOKEN>` serves `/app/assets/*` from `core/dev_app_dist`, and headless Chrome hydrates React 19 with `[aria-label="Unified workspace bar"]` mounted in the live DOM.
 3. **Prerequisite check:** If `core/dev_app_dist/index.html` is missing or stale after editing `dev-app/src/`, rebuild it first with `(cd dev-app && npm run build)`.
 
 To tear down immediately after a run (or after a failed attempt):
@@ -71,7 +71,7 @@ $CTRL browser click --state-dir "$STATE" --role button --name "Operations"
 $CTRL browser click --state-dir "$STATE" --role button --name "No-Code Builder"
 
 # Workspace bar selectors (PlatformWorkspaceBar.tsx)
-$CTRL browser select --state-dir "$STATE" --label "Active workspace switcher" --value "hipaa-intake"
+$CTRL browser select --state-dir "$STATE" --label "Active workspace switcher" --value "default"
 $CTRL browser select --state-dir "$STATE" --label "Active RBAC role" --value "operator"
 $CTRL browser select --state-dir "$STATE" --label "Subscription tier" --value "byom"
 $CTRL browser click  --state-dir "$STATE" --role button --name "Guided Non-Coder"
