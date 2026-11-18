@@ -1569,7 +1569,7 @@ from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 from core.agents import manifest as agent_manifest
 from core.agents.guard import ManifestNotRunnable, loop_from_manifest, not_enforced, preflight
 from core.agents.sandbox import verified_command_runner
-from core.security.approval_rules import ApprovalRuleError, ApprovalRuleStore, validate_scope
+from core.security.approval_rules import ApprovalRuleError, ApprovalRuleStore, is_expired, validate_scope
 
 _active_agent_loops: Dict[str, AutonomousAgentLoop] = {}
 
@@ -2217,7 +2217,12 @@ async def get_customer_runner_spool_status(runner_id: str):
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
 async def list_approval_rules():
     """Standing approvals for the open workspace."""
-    return {"rules": [r.to_dict() for r in ApprovalRuleStore(_workspace_fs.root).list()]}
+    rules = ApprovalRuleStore(_workspace_fs.root).list()
+    now = time.time()
+    return {
+        "workspace": _workspace_fs.root.name,
+        "rules": [{**r.to_dict(), "expired": is_expired(r, now)} for r in rules],
+    }
 
 
 @router.delete("/v1/approval-rules/{rule_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
@@ -2246,6 +2251,8 @@ async def create_approval_rule(request: Request, principal: Principal = Depends(
             principal.actor,
             bound_model_id=payload.get("model_id") if isinstance(payload.get("model_id"), str) else None,
             bound_prompt_version=payload.get("prompt_version") if isinstance(payload.get("prompt_version"), str) else None,
+            expires_at=payload.get("expires_at") if isinstance(payload.get("expires_at"), (int, float)) else None,
+            ttl_seconds=payload.get("ttl_seconds") if isinstance(payload.get("ttl_seconds"), (int, float)) else None,
         )
     except ApprovalRuleError as e:
         raise HTTPException(status_code=400, detail=str(e))

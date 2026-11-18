@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, ApprovalRuleItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
+  AgentManifestItem, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
   DoctorCheckItem, EgressBarMode, EgressTelemetryState, FileDiffHunk,
   GitCommitProposal, GitCommitResult, GovernancePersistenceInfo,
   ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
@@ -811,7 +811,7 @@ export async function fetchPlatformOverviewStatus(): Promise<{ available: boolea
   );
 }
 
-export async function fetchApprovalRules(): Promise<ApprovalRuleItem[]> {
+export async function fetchApprovalRules(): Promise<ApprovalRulesListResponse> {
   return requestSameOriginDecoded(
     "/v1/approval-rules",
     { method: "GET" },
@@ -825,6 +825,7 @@ export interface CreateApprovalRuleInput {
   scope: string;
   modelId?: string;
   promptVersion?: string;
+  ttlSeconds?: number;
 }
 
 export async function createApprovalRule(input: CreateApprovalRuleInput): Promise<{ created: boolean; rule: ApprovalRuleItem }> {
@@ -837,6 +838,7 @@ export async function createApprovalRule(input: CreateApprovalRuleInput): Promis
         scope: input.scope,
         model_id: input.modelId,
         prompt_version: input.promptVersion,
+        ...(input.ttlSeconds ? { ttl_seconds: input.ttlSeconds } : {}),
       }),
     },
     (raw) => {
@@ -854,6 +856,8 @@ export async function createApprovalRule(input: CreateApprovalRuleInput): Promis
         createdAtEpoch: Math.floor(Date.now() / 1000),
         boundModelId: input.modelId ?? null,
         boundPromptVersion: input.promptVersion ?? null,
+        expiresAtEpoch: input.ttlSeconds ? Math.floor(Date.now() / 1000) + input.ttlSeconds : null,
+        expired: false,
       },
     }),
   );
@@ -890,6 +894,8 @@ export async function reconfirmApprovalRule(
         createdAtEpoch: Math.floor(Date.now() / 1000),
         boundModelId: binding.modelId ?? null,
         boundPromptVersion: binding.promptVersion ?? null,
+        expiresAtEpoch: null,
+        expired: false,
       };
     },
   );
@@ -908,6 +914,8 @@ export async function revokeApprovalRule(ruleId: string): Promise<ApprovalRuleIt
       createdAtEpoch: Math.floor(Date.now() / 1000),
       boundModelId: null,
       boundPromptVersion: null,
+      expiresAtEpoch: null,
+      expired: false,
     },
   );
 }

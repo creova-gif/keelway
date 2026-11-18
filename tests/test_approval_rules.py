@@ -1,3 +1,4 @@
+import json
 import time
 
 import pytest
@@ -103,6 +104,21 @@ def test_malformed_rule_files_mean_no_rules(tmp_path, content):
     store.path.parent.mkdir(parents=True)
     store.path.write_text(content)
     assert store.list() == [] and store.match("write_file", {"path": "a.txt"}) is None
+
+
+def test_hand_edited_rule_with_unknown_fields_still_loads(tmp_path):
+    """People may annotate the JSON on disk; unknown keys must not break loading or matching."""
+    from core.security.approval_rules import ApprovalRuleStore
+    store = ApprovalRuleStore(tmp_path)
+    store.path.parent.mkdir(parents=True)
+    store.path.write_text(json.dumps({"version": 1, "rules": [{
+        "id": "r1", "tool_name": "write_file", "scope": "src/*.txt",
+        "created_by": "owner", "created_at": 1.0,
+        "note": "temporary grant", "expires_in_days": 3,
+    }]}))
+    rules = store.list()
+    assert len(rules) == 1 and rules[0].expires_at is None
+    assert store.match("write_file", {"path": "src/a.txt"}) is not None
 
 
 def test_reapproving_an_existing_scope_does_not_log_a_second_creation(client):
@@ -217,3 +233,42 @@ def test_unbound_rule_matches_regardless_of_run_context(client, tmp_path):
     auto = _write(client, "e1", "open1.txt")["step_result"]
     assert auto["status"] == "success"
     assert (tmp_path / "open1.txt").exists()
+
+
+def test_ttl_rule_expires_and_stops_matching(client, tmp_path, monkeypatch):
+    """A rule created with a TTL auto-grants while live and goes dormant once expired."""
+    from core.security import approval_rules as ar
+    created = client.post("/v1/approval-rules", json={
+        "tool_name": "write_file", "scope": "tmp*.txt", "ttl_seconds": 3600,
+    })
+    assert created.status_code == 200
+    rule = created.json()["rule"]
+    assert rule["expires_at"] is not None
+
+    # Live: auto-approves.
+    client.post("/v1/agent/run", json={"task_id": "f1", "goal": "g", "steps": ["w"]})
+    assert _write(client, "f1", "tmp1.txt")["step_result"]["status"] == "success"
+
+    # Advance the clock past expiry: dormant — pauses instead of matching, listed expired.
+    real_now = time.time()
+    monkeypatch.setattr(ar.time, "time", lambda: real_now + 7200)
+    monkeypatch.setattr("core.api.routes.time.time", lambda: real_now + 7200)
+    client.post("/v1/agent/run", json={"task_id": "f2", "goal": "g", "steps": ["w"]})
+    assert _write(client, "f2", "tmp2.txt")["step_result"]["status"] == "paused_for_approval"
+    assert not (tmp_path / "tmp2.txt").exists()
+    listing = client.get("/v1/approval-rules").json()
+    assert listing["rules"][0]["expired"] is True
+    assert listing["workspace"] == tmp_path.name
+
+
+def test_expiry_validation_rejects_past_and_conflicting_values(client):
+    assert client.post("/v1/approval-rules", json={
+        "tool_name": "write_file", "scope": "x*.txt", "expires_at": 1,
+    }).status_code == 400
+    assert client.post("/v1/approval-rules", json={
+        "tool_name": "write_file", "scope": "x*.txt", "ttl_seconds": -5,
+    }).status_code == 400
+    assert client.post("/v1/approval-rules", json={
+        "tool_name": "write_file", "scope": "x*.txt",
+        "expires_at": time.time() + 60, "ttl_seconds": 60,
+    }).status_code == 400

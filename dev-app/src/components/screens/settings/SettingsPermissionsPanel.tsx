@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import {
+  createApprovalRule,
   fetchAgentManifests,
   fetchApprovalRules,
   inspectAgentManifest,
@@ -17,6 +18,33 @@ import type {
 } from "@/lib/types";
 
 /** The system prompt revision this build ships; bound rules on older versions drift. */
+const PROTECTED_SEGMENTS = new Set([".keelway", ".kora", ".git"]);
+
+type GrantPreview = { ok: boolean; text: string };
+
+/** Client-side mirror of core/security/approval_rules.py validate_scope — preview only; the API re-validates. */
+export function previewGrantScope(toolName: string, scope: string): GrantPreview {
+  const trimmed = scope.trim();
+  if (toolName === "run_command") {
+    if (!trimmed) return { ok: false, text: "Enter the exact command to allow — e.g. pytest tests/." };
+    return { ok: true, text: `Matches only the exact command "${trimmed}" run in this workspace.` };
+  }
+  const norm = trimmed.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!norm || norm === "." || trimmed.startsWith("/") || /^[A-Za-z]:/.test(trimmed)) {
+    return { ok: false, text: "Path rules must be relative to the workspace and stay inside it." };
+  }
+  if (norm.split("/").includes("..")) {
+    return { ok: false, text: "Path rules must be relative to the workspace and stay inside it." };
+  }
+  if (!norm.replace(/[*?[\]/.]/g, "")) {
+    return { ok: false, text: "That pattern matches every file; scope it to a file or folder." };
+  }
+  if (norm.split("/").some((part) => PROTECTED_SEGMENTS.has(part))) {
+    return { ok: false, text: "Keelway and git internals always ask first." };
+  }
+  return { ok: true, text: `Matches files under "${norm}" inside this workspace.` };
+}
+
 export const CURRENT_PROMPT_VERSION = "p-14";
 
 /** Plain-language capability labels per the permissions comprehension redesign. */
@@ -99,7 +127,10 @@ export interface SettingsPermissionsPanelProps {
   /** Current system prompt version — used to detect bound-version drift. */
   currentPromptVersion?: string;
   activeModelId?: string;
+  /** Display name/path of the workspace these rules govern (stored in its .keelway/ dir). */
+  workspaceName?: string;
   fetchRulesFn?: typeof fetchApprovalRules;
+  createRuleFn?: typeof createApprovalRule;
   reconfirmRuleFn?: typeof reconfirmApprovalRule;
   revokeRuleFn?: typeof revokeApprovalRule;
   fetchManifestsFn?: typeof fetchAgentManifests;
@@ -112,7 +143,9 @@ export function SettingsPermissionsPanel({
   onUpdateScopedRules,
   currentPromptVersion = CURRENT_PROMPT_VERSION,
   activeModelId,
+  workspaceName,
   fetchRulesFn = fetchApprovalRules,
+  createRuleFn = createApprovalRule,
   reconfirmRuleFn = reconfirmApprovalRule,
   revokeRuleFn = revokeApprovalRule,
   fetchManifestsFn = fetchAgentManifests,
@@ -123,6 +156,11 @@ export function SettingsPermissionsPanel({
   const [rulesLoading, setRulesLoading] = useState(controlledRules === undefined);
   const [rulesError, setRulesError] = useState<string | null>(null);
   const [rulesBusy, setRulesBusy] = useState(false);
+  const [rulesWorkspace, setRulesWorkspace] = useState<string | null>(null);
+  const [grantTool, setGrantTool] = useState<"edit_file" | "write_file" | "run_command">("edit_file");
+  const [grantScope, setGrantScope] = useState("");
+  const [grantTtl, setGrantTtl] = useState("");
+  const [grantBusy, setGrantBusy] = useState(false);
   const [armedRevokeId, setArmedRevokeId] = useState<string | null>(null);
   const [armedRevokeAll, setArmedRevokeAll] = useState(false);
   const [manifests, setManifests] = useState<AgentManifestItem[]>([]);
@@ -159,10 +197,11 @@ export function SettingsPermissionsPanel({
     setRulesLoading(true);
     fetchRulesRef
       .current()
-      .then((items) => {
+      .then((res) => {
         if (!cancelled) {
-          setUncontrolledRules(items);
-          onUpdateRulesRef.current?.(items);
+          setUncontrolledRules(res.rules);
+          setRulesWorkspace(res.workspace);
+          onUpdateRulesRef.current?.(res.rules);
           setRulesError(null);
         }
       })
@@ -212,9 +251,11 @@ export function SettingsPermissionsPanel({
     };
   }, []);
 
-  const driftedRules = scopedRules.filter((r) =>
-    isRuleDrifted(r, activeModelId, currentPromptVersion),
+  const driftedRules = scopedRules.filter(
+    (r) => !r.expired && isRuleDrifted(r, activeModelId, currentPromptVersion),
   );
+  const workspaceLabel = rulesWorkspace ?? workspaceName ?? null;
+  const grantPreview = previewGrantScope(grantTool, grantScope);
   const firstDrifted = driftedRules[0];
   const hasPromptVersionDelta = Boolean(
     firstDrifted?.boundPromptVersion &&
@@ -228,6 +269,30 @@ export function SettingsPermissionsPanel({
     driftedRules.length === 1
       ? "1 Allow always rule is paused until you re-confirm it."
       : `${driftedRules.length} Allow always rules are paused until you re-confirm them.`;
+
+  const handleGrantRule = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (grantBusy || !grantPreview.ok) return;
+    setGrantBusy(true);
+    setRulesError(null);
+    try {
+      const created = await createRuleFn({
+        toolName: grantTool,
+        scope: grantScope.trim(),
+        modelId: activeModelId,
+        promptVersion: currentPromptVersion,
+        ...(grantTtl ? { ttlSeconds: Number(grantTtl) } : {}),
+      });
+      commitRules([created.rule, ...scopedRules]);
+      setGrantScope("");
+    } catch (err) {
+      setRulesError(
+        err instanceof Error ? err.message : "Grant failed — no rule was saved.",
+      );
+    } finally {
+      setGrantBusy(false);
+    }
+  };
 
   const handleReconfirmOne = async (ruleId: string) => {
     if (rulesBusy) return;
@@ -441,6 +506,11 @@ export function SettingsPermissionsPanel({
             <p className="mt-0.5 text-xs text-fg-muted">
               Bound to exact path/command scope, active model ID, and system prompt version.
             </p>
+            <p className="mt-0.5 text-xs text-fg-muted">
+              {workspaceLabel
+                ? `Rules govern the ${workspaceLabel} workspace only — they are stored in that workspace's .keelway/ folder.`
+                : "Rules govern the current workspace only — they are stored in its .keelway/ folder."}
+            </p>
           </div>
           {scopedRules.length > 0 ? (
             <Button
@@ -449,7 +519,7 @@ export function SettingsPermissionsPanel({
               disabled={rulesBusy}
               onClick={() => void handleRevokeAll()}
             >
-              {armedRevokeAll ? "Confirm revoke all" : "Revoke all"}
+              {armedRevokeAll ? "Confirm revoke all (this workspace)" : "Revoke all"}
             </Button>
           ) : null}
         </div>
@@ -462,6 +532,80 @@ export function SettingsPermissionsPanel({
             {rulesError}
           </div>
         ) : null}
+
+        <details className="mb-3 rounded-sm border border-border bg-canvas px-3 py-2.5 text-xs">
+          <summary className="cursor-pointer select-none font-semibold text-fg">
+            Grant a standing rule for this workspace…
+          </summary>
+          <form className="mt-2.5 space-y-2.5" onSubmit={(e) => void handleGrantRule(e)}>
+            <div className="flex flex-wrap items-end gap-2.5">
+              <label className="space-y-1">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                  Capability
+                </span>
+                <select
+                  value={grantTool}
+                  onChange={(e) => setGrantTool(e.target.value as typeof grantTool)}
+                  className="rounded-xs border border-border bg-surface px-2 py-1.5 text-xs text-fg"
+                >
+                  <option value="edit_file">Edit workspace files</option>
+                  <option value="write_file">Write workspace files</option>
+                  <option value="run_command">Run sandboxed command</option>
+                </select>
+              </label>
+              <label className="min-w-56 flex-1 space-y-1">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                  {grantTool === "run_command" ? "Exact command" : "Path pattern"}
+                </span>
+                <input
+                  type="text"
+                  value={grantScope}
+                  onChange={(e) => setGrantScope(e.target.value)}
+                  placeholder={
+                    grantTool === "run_command" ? "pytest tests/" : "dev-app/src/**"
+                  }
+                  className="w-full rounded-xs border border-border bg-surface px-2 py-1.5 font-mono text-xs text-fg"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                  Expires
+                </span>
+                <select
+                  value={grantTtl}
+                  onChange={(e) => setGrantTtl(e.target.value)}
+                  className="rounded-xs border border-border bg-surface px-2 py-1.5 text-xs text-fg"
+                >
+                  <option value="">Never</option>
+                  <option value="3600">In 1 hour</option>
+                  <option value="86400">In 1 day</option>
+                  <option value="604800">In 7 days</option>
+                </select>
+              </label>
+              <Button
+                size="sm"
+                variant="primary"
+                type="submit"
+                disabled={grantBusy || !grantPreview.ok}
+              >
+                {grantBusy ? "Granting…" : "Grant rule"}
+              </Button>
+            </div>
+            <p
+              aria-live="polite"
+              className={grantPreview.ok ? "text-fg-muted" : "text-warning"}
+            >
+              {grantScope.trim()
+                ? grantPreview.text
+                : grantTool === "run_command"
+                  ? "The rule fires only when the command matches exactly."
+                  : "Glob pattern relative to the workspace. Keelway/git internals always ask first."}
+            </p>
+            <p className="text-fg-muted">
+              Bound to the active model and system prompt at grant time — a model or prompt change pauses the rule until re-confirmed.
+            </p>
+          </form>
+        </details>
 
         {rulesLoading ? (
           <div className="rounded-sm border border-border bg-canvas px-3 py-4 font-mono text-xs text-fg-muted">
@@ -555,13 +699,19 @@ export function SettingsPermissionsPanel({
                             </div>
                             <div className="flex gap-1.5">
                               <dt className="min-w-20 text-fg-muted">Expires</dt>
-                              <dd className="text-fg">No expiry — stays until revoked</dd>
+                              <dd className="text-fg">
+                                {rule.expiresAtEpoch
+                                  ? `${formatGrantedAt(rule.expiresAtEpoch)}${rule.expired ? " — dormant, kept for audit" : ""}`
+                                  : "No expiry — stays until revoked"}
+                              </dd>
                             </div>
                           </dl>
                         </details>
                       </td>
                       <td className="px-3 py-2">
-                        {drifted ? (
+                        {rule.expired ? (
+                          <SemanticBadge kind="failed" labelOverride="Expired" />
+                        ) : drifted ? (
                           <SemanticBadge kind="reconfirm" />
                         ) : (
                           <SemanticBadge kind="ready" labelOverride="Active" />
