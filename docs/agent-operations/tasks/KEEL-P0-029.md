@@ -192,3 +192,13 @@ fixtures may only serve explicitly-marked test environments.
 - Verified: 26/26 approval-rule tests; 85 passed / 10 skipped across
   approval-rules + agent-loop + guard + manifest suites; py_compile clean.
   ruff unavailable on this host (noted for the record).
+
+## Round 5 — Permissions comprehension redesign (commit adbd640)
+
+- Rules table now shows plain-language categories (File access / Command execution /
+  Agent access) plus a per-rule sentence stating what the grant allows in this workspace.
+- Grant provenance surfaced: bound model, bound prompt, granted-by, granted-on, and an
+  honest "No expiry — stays until revoked" (no expiry concept exists in the backend)
+  behind a per-row `<details>` progressive-disclosure element.
+- Destructive confirms: Revoke and Revoke all arm on first click, execute on second.
+- Verified: 109/109 dev-app tests, tsc clean, bundle rebuilt into `core/dev_app_dist`.
