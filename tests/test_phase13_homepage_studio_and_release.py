@@ -28,7 +28,7 @@ WEBSITE_DIR = KEELWAY_ROOT / "website"
 FORBIDDEN_PRIVATE_TOKENS = (
     "creova-gif",
     "creovas-projects",
-    "kora.git",
+    "keelway.git",
     "KEEL-",
     "Antigravity",
     "gstack",

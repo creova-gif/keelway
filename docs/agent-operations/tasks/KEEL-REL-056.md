@@ -14,11 +14,11 @@ agent contract tests: real ACP agent, Cursor pinned-schema, vendor re-probe.
 
 ## Work Completed
 
-### Public install (founder decision: open creova-gif/kora)
+### Public install (founder decision: open creova-gif/keelway)
 - Repo flipped PRIVATE→PUBLIC via `gh repo edit` (secret sweep first:
   only detection regexes + synthetic test fixtures found).
 - `website/install.sh` + `website/public/install.sh`: `KEELWAY_GIT_URL`
-  now defaults to `https://github.com/creova-gif/kora.git`
+  now defaults to `https://github.com/creova-gif/keelway.git`
   (SOURCE_DIR/PACKAGE still take precedence).
 - `tests/test_website_facts.py`: repo-URL tokens exempted for install.sh
   only (repo is intentionally public; ban still applies elsewhere).

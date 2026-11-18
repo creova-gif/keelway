@@ -3,7 +3,7 @@ class Keelway < Formula
 
   desc "Customer-managed governance and audit platform for AI-powered software change"
   homepage "https://keelway.dev"
-  url "https://github.com/creova-gif/kora/releases/download/v1.1.0/keelway-1.1.0.tar.gz"
+  url "https://github.com/creova-gif/keelway/releases/download/v1.1.0/keelway-1.1.0.tar.gz"
   sha256 "87f2ff7e0e2ad85aa62b1b3eadbdac916bcfd412bc6b60db642eed2d17672526"
   license "PROPRIETARY"
   version "1.1.0"

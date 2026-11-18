@@ -34,7 +34,7 @@ PHASE10_PYTHON_METHODS = (
 FORBIDDEN_PRIVATE_TOKENS = (
     "creova-gif",
     "creovas-projects",
-    "kora.git",
+    "keelway.git",
     "KEEL-MANIFEST-",
     "KEEL-PLATFORM-",
     "KEEL-SEC-",

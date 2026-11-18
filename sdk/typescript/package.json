@@ -41,7 +41,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/creova-gif/kora.git",
+    "url": "https://github.com/creova-gif/keelway.git",
     "directory": "sdk/typescript"
   }
 }

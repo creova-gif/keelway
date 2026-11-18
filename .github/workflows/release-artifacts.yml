@@ -71,7 +71,7 @@ jobs:
             SHA256SUMS.txt
           # Offline verification customers run:
           #   cosign verify-blob --bundle SHA256SUMS.txt.cosign.bundle \
-          #     --certificate-identity-regexp 'https://github.com/creova-gif/kora/' \
+          #     --certificate-identity-regexp 'https://github.com/creova-gif/keelway/' \
           #     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
           #     SHA256SUMS.txt
           #   sha256sum -c SHA256SUMS.txt

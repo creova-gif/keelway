@@ -1,6 +1,6 @@
 #!/bin/sh
 # Keelway installer (POSIX sh)
-# Usage: from a clone of https://github.com/creova-gif/kora
+# Usage: from a clone of https://github.com/creova-gif/keelway
 #   sh bin/install.sh
 # This script is not a keelway.dev or get.keelway.dev installer.
 
@@ -43,7 +43,7 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
     git -C "$INSTALL_DIR" pull --quiet origin main
 else
     say "[+] Downloading Keelway core..."
-    git clone --depth 1 --quiet https://github.com/creova-gif/kora.git "$INSTALL_DIR"
+    git clone --depth 1 --quiet https://github.com/creova-gif/keelway.git "$INSTALL_DIR"
 fi
 
 say "[+] Creating virtual environment and installing dependencies..."

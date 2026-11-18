@@ -41,7 +41,7 @@ then flip to `--mode enforce` once the team trusts the verdict stream.
 ### 2.2 Required configuration (production checklist)
 
 - [ ] `EARLY_ACCESS_GH_TOKEN` — fine-grained PAT, **Issues: write** on the intake repo only.
-- [ ] `EARLY_ACCESS_GH_REPO` — e.g. `creova-gif/kora`.
+- [ ] `EARLY_ACCESS_GH_REPO` — e.g. `creova-gif/keelway`.
 - [ ] Confirm the `early-access` label exists in that repo.
 - [ ] Confirm a human monitors the log stream for the no-token fallback.
 

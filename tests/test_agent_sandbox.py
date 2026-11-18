@@ -331,7 +331,7 @@ def test_bubblewrap_backend_structure(tmp_path):
 def test_bubblewrap_simulated_ubuntu_mount_ordering_and_protections(monkeypatch):
     import core.agents.sandbox as sbx
 
-    ws = Path("/home/runner/work/kora/kora")
+    ws = Path("/home/runner/work/keelway/keelway")
     tmp = Path("/tmp/keelway-sbx-ubuntu")
     py_root = Path("/opt/hostedtoolcache/Python/3.12.8/x64")
     user_bin = Path("/home/runner/.local/bin")

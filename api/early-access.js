@@ -2,7 +2,7 @@
 // Kept in sync with website/src/app/api/early-access/route.ts
 
 const REPO_OWNER = 'creova-gif';
-const REPO_NAME = 'kora';
+const REPO_NAME = 'keelway';
 const LABEL = 'early-access';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

@@ -34,7 +34,7 @@ GitHub Actions consumption against the ~2,000 hosted-minutes/month budget
    - `test_phase9`: `OIDC/SAML` split — KEEL-SEC-037 documents SAML as not yet
      implemented.
    - `test_sdk_v1`: web-console palette updated for KEEL-WEB-028 zinc refresh.
-4. **`install.sh` privacy violation**: hardcoded `github.com/creova-gif/kora.git`
+4. **`install.sh` privacy violation**: hardcoded `github.com/creova-gif/keelway.git`
    — a **private** repo — in customer-facing files. `test_website_facts`
    correctly flagged the internal-identity leak. Both installers now require
    explicit `KEELWAY_GIT_URL` (no default) and fail closed with guidance

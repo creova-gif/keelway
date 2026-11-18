@@ -64,7 +64,7 @@ PHASE14_GO_METHODS = (
 FORBIDDEN_PRIVATE_TOKENS = (
     "creova-gif",
     "creovas-projects",
-    "kora.git",
+    "keelway.git",
     "KEEL-",
     "verify_engineering_gates.sh",
     "Antigravity",

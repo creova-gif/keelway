@@ -26,7 +26,7 @@ The UI is built as a single-page responsive application served directly from the
 
 ```text
 +----------------------------------------------------------------------------------------------------+
-|  ⚡ KEELWAY STUDIO   |  Repo: creova-gif/kora  |  Provider: Qwen 3.5 (Local)  |  [🔒 AIR-GAPPED: ACTIVE] |
+|  ⚡ KEELWAY STUDIO   |  Repo: creova-gif/keelway  |  Provider: Qwen 3.5 (Local)  |  [🔒 AIR-GAPPED: ACTIVE] |
 +-----------------------+-----------------------------------------------+----------------------------+
 |  LEFT SIDEBAR         |  CENTER WORKSPACE (Tabs: Diff, Terminal, Code)|  RIGHT AGENT COPILOT PANEL  |
 |                       |                                               |                            |

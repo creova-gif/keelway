@@ -7,7 +7,7 @@
 [![Version 1.1.0](https://img.shields.io/badge/release-v1.1.0-emerald.svg)](./CHANGELOG.md)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-indigo.svg)](./LICENSE)
-[![CI](https://github.com/creova-gif/kora/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/kora/actions/workflows/ci.yml)
+[![CI](https://github.com/creova-gif/keelway/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/keelway/actions/workflows/ci.yml)
 
 </div>
 
@@ -42,8 +42,8 @@ Keelway `v1.1.0` unifies local open-weight neural inference (**OpenCore**), 4D p
 ### 1. Source Checkout or Python Wheel (`pip` / `uv`)
 
 ```bash
-git clone https://github.com/creova-gif/kora.git
-cd kora
+git clone https://github.com/creova-gif/keelway.git
+cd keelway
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"

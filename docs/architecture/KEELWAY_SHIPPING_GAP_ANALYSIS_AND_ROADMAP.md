@@ -1,7 +1,7 @@
 # Keelway — Commercial Shipping Gap Analysis & Production Roadmap
 
 **Author:** Principal Systems Architect & Senior Product Lead  
-**Scope:** `creova-gif/kora` Core Engine, Dev Studio, Agent Runtime, and CLI  
+**Scope:** `creova-gif/keelway` Core Engine, Dev Studio, Agent Runtime, and CLI  
 **Objective:** Exhaustive audit of what is missing if Keelway were to ship to commercial software engineers today as a sovereign, local-first developer tool competing against Devin, Cursor, Claude Code, and Aider.
 
 ---
@@ -133,7 +133,7 @@ However, if a developer were to download Keelway **today** on an external clean 
 * **Required to Ship Today:**
   1. **macOS Homebrew Formula:**
      ```bash
-     brew install creova-gif/kora/keelway
+     brew install creova-gif/keelway/keelway
      ```
   2. **PyPI Package:**
      ```bash

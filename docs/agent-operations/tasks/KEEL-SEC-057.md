@@ -9,7 +9,7 @@
 
 ## OBJECTIVE & ACCEPTANCE CRITERIA
 
-- [x] Identify the Bearer Token flagged by GitGuardian after `creova-gif/kora` went public
+- [x] Identify the Bearer Token flagged by GitGuardian after `creova-gif/keelway` went public
 - [x] Confirm no real credentials were exposed (all flagged strings were synthetic demo/test fixtures — nothing to rotate)
 - [x] Replace realistic-looking token literals with obviously-synthetic placeholders without breaking DLP-demo regexes or tests
 - [x] Rebuild `core/dev_app_dist` so the tracked bundle no longer embeds the flagged string

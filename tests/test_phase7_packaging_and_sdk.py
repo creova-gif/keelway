@@ -152,7 +152,7 @@ def test_homebrew_formula_structure_and_syntax() -> None:
 
     assert "class Keelway < Formula" in content
     assert "include Language::Python::Virtualenv" in content
-    assert "https://github.com/creova-gif/kora.git" in content
+    assert "https://github.com/creova-gif/keelway.git" in content
     assert 'license "Apache-2.0"' in content
     assert 'depends_on "python@3.12"' in content
     assert 'system "#{bin}/keelway", "--help"' in content

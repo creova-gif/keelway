@@ -1,6 +1,6 @@
 # Keelway local quickstart
 
-This guide matches the commands in a clone of [creova-gif/kora](https://github.com/creova-gif/kora). The clone directory is `kora`. It does not use a PyPI package named `keelway`, and it does not use a `keelway.dev` or `get.keelway.dev` installer.
+This guide matches the commands in a clone of [creova-gif/keelway](https://github.com/creova-gif/keelway). The clone directory is `kora`. It does not use a PyPI package named `keelway`, and it does not use a `keelway.dev` or `get.keelway.dev` installer.
 
 Studio, the governance server, and the static site in `website/` are three different surfaces. See `README.md` for the same split. This guide does not print a test pass count.
 
@@ -11,7 +11,7 @@ Package B (runtime labels) and package C (fail-closed authentication, isolation,
 Python 3.11 or newer.
 
 ```bash
-git clone https://github.com/creova-gif/kora.git
+git clone https://github.com/creova-gif/keelway.git
 cd kora
 python3 -m venv .venv
 source .venv/bin/activate

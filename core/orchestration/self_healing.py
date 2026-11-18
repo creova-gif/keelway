@@ -152,6 +152,7 @@ class SelfHealingLoop:
         py_exe = sys.executable
         candidate_venvs = [
             target_dir / ".venv" / "bin" / "python",
+            target_dir.parent / "keelway-ai.nosync" / ".venv" / "bin" / "python",
             target_dir.parent / "kora-ai.nosync" / ".venv" / "bin" / "python",
             Path(os.environ.get("VIRTUAL_ENV", "")) / "bin" / "python"
         ]
