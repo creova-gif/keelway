@@ -133,10 +133,34 @@ export function Footer() {
             <ul className="mt-3 space-y-1 text-sm">
               <li>
                 <Link
+                  href="/enterprise"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
+                >
+                  Enterprise &amp; VPC
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/governance"
                   className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
                 >
                   Security &amp; Governance
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/about"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
+                >
+                  About Sorvex Labs
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="inline-flex min-h-[44px] items-center text-fg-muted transition-colors duration-150 hover:text-fg"
+                >
+                  Contact &amp; Demo
                 </Link>
               </li>
               <li>

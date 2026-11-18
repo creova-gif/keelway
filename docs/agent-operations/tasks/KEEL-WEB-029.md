@@ -70,3 +70,28 @@ Review diff, merge `feature/website-kora-content-migration` to `main`, deploy to
 | /changelog | 76 | 437 | 336 | 0 |
 
 All LCP < 400ms (target <2.5s), CLS 0.0 — comfortably "good" CWV. Live `/changelog` returns 200.
+
+---
+
+## COMPETITIVE-GAP PASS — product proof, corporate surfaces, docs depth (Devin)
+
+**Branch:** `feature/website-product-proof`
+
+### Added
+- **Real product proof (gap 1):** `src/components/home/ProductShowcase.tsx` — tabbed gallery of actual `/app` captures (`public/product/app-main.png` P-10 gate + receipts, `app-automation.png` KFlow DAG studio, `app-security.png` governance posture). Mounted on homepage after Quickstart; `role="tablist"`/`aria-selected`, lazy-loaded imgs, `product_showcase_tab` analytics event registered in `KeelwayAnalyticsEvent` union.
+- **Verifiable-facts strip (gap 4):** honest proof layer on homepage — Apache-2.0 open core, Python/TS/Go SDK parity, 16-probe eval suite, 0% BYOM markup. No logos/testimonials fabricated.
+- **Corporate surfaces (gap 2):** `/about` (Sorvex Labs positioning + beliefs), `/enterprise` (VPC/air-gap, identity w/ honest OIDC-scope caveat, P-10 quorum, SIEM export, 4-step design-partner onboarding), `/contact` (reuses `EarlyAccessForm` → `/api/early-access`). All with canonical + OG metadata.
+- **Docs depth (gap 3):** DocsHub gained `05 Troubleshooting` (keelway doctor commands + symptom/resolution table incl. AirGapViolationError, P-10 quorum, credential-type, ledger-verification) and `06 Releases & Community` (changelog/RSS/openapi/contact links).
+- **Nav wiring:** `/enterprise`, `/about`, `/contact` in sitemap + Enterprise & Trust footer column; `/releases` → `/changelog` 308 redirect in `next.config.ts`.
+
+### Verification
+- `npm run build`: clean — 3 new routes static (~106–107 kB first load each).
+- `pytest tests/test_website_facts.py`: 11 passed.
+- Playwright @375px: 0px overflow on /, /about, /enterprise, /contact, /docs; 0 JS errors. Screenshot tabs switch images correctly; lazy-loaded shot confirmed loading on scroll (1440×900 intrinsic).
+
+### Decisions
+- `/contact` reuses `EarlyAccessForm` rather than a new endpoint — one intake, contextual copy distinguishes demo/enterprise intent.
+- No `/status` page: no real uptime data exists; live-product signal satisfied via changelog + `/releases` redirect + footer links (per "no fake activity" constraint).
+
+### Deferred
+- `keelway.dev` domain cutover + `SITE_URL` update (user-deferred).
