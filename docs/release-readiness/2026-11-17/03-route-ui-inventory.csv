@@ -1,0 +1,186 @@
+SURFACE,ROUTE,SECTION,UI_ID,LABEL,TYPE,TRUTH_STATE
+studio,/studio,home,sec-home,,section,UNVERIFIED
+studio,/studio,workspace,sec-workspace,,section,UNVERIFIED
+studio,/studio,tasks,sec-tasks,,section,UNVERIFIED
+studio,/studio,runs,sec-runs,,section,UNVERIFIED
+studio,/studio,skills,sec-skills,,section,UNVERIFIED
+studio,/studio,models,sec-models,,section,UNVERIFIED
+studio,/studio,security,sec-security,,section,UNVERIFIED
+studio,/studio,ops,sec-ops,,section,UNVERIFIED
+studio,/studio,settings,sec-settings,,section,UNVERIFIED
+studio,/studio,,palette-btn,"<svg class=""w-3",button,UNVERIFIED
+studio,/studio,,palette-btn-mobile,"<svg class=""w-4 h-4"" viewBox=""0 0 24 24"" fill=""non",button,UNVERIFIED
+studio,/studio,,airgap-btn,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24"" fill=",button,UNVERIFIED
+studio,/studio,,density-btn,"<svg class=""w-3 h-3"" viewBox=""0 0 24 24"" fill=""non",button,UNVERIFIED
+studio,/studio,,theme-btn,"<svg class=""w-4 h-4"" viewBox=""0 0 24 24"" fill=""non",button,UNVERIFIED
+studio,/studio,,sound-btn,"<svg class=""w-4 h-4"" viewBox=""0 0 24 24"" fill=""non",button,UNVERIFIED
+studio,/studio,,signout-btn,"Sign out
+    
+  
+
+  <div class=""flex",button,UNVERIFIED
+studio,/studio,,rail-labs-btn,"<svg class=""w-5 h-5"" viewBox=""0 0 24 24"" fill=""non",button,UNVERIFIED
+studio,/studio,,doctor-run-btn,Run System Diagnostics,button,UNVERIFIED
+studio,/studio,,code-intel-search-btn,"Search Symbol
+              <button id=""code-intel",button,UNVERIFIED
+studio,/studio,,code-intel-refs-btn,"Find References
+              <button id=""code-int",button,UNVERIFIED
+studio,/studio,,code-intel-hier-btn,"Call Hierarchy
+              <button id=""code-inte",button,UNVERIFIED
+studio,/studio,,code-intel-graph-btn,"Module Graph
+            
+            <pre id",button,UNVERIFIED
+studio,/studio,,conflict-check-btn,"Analyze 3-Way Conflicts
+              <button id=""",button,UNVERIFIED
+studio,/studio,,conflict-resolve-btn,"Auto-Resolve Hunks
+              <button id=""confl",button,UNVERIFIED
+studio,/studio,,conflict-timeline-btn,Fetch Team Timeline,button,UNVERIFIED
+studio,/studio,,app-plan-btn,"Synthesize Plan
+              <button id=""app-gene",button,UNVERIFIED
+studio,/studio,,app-generate-btn,Scaffold &amp; Verify App,button,UNVERIFIED
+studio,/studio,,sidebar,"<div class=""h-9 px-3 flex items-center justify-bet",a,UNVERIFIED
+studio,/studio,,open-repo-btn,"<svg class=""w-3.5 h-3.5 inline"" viewBox=""0 0",button,UNVERIFIED
+studio,/studio,,sidebar-refresh,"↻
+          
+        
+        <div clas",button,UNVERIFIED
+studio,/studio,,memory-form,key</,form,UNVERIFIED
+studio,/studio,,open-editor-btn,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24""",button,UNVERIFIED
+studio,/studio,,run-test-btn,"<svg class=""w-3.5 h-3.5 text-ok"" viewBox=""0 0",button,UNVERIFIED
+studio,/studio,,mode-editor,"Code
+              <button id=""mode-diff"" type=""bu",button,UNVERIFIED
+studio,/studio,,mode-diff,"Diff
+            
+            <button id=""sav",button,UNVERIFIED
+studio,/studio,,save-btn,"Save<kbd class=""text-[9px] opa",button,UNVERIFIED
+studio,/studio,,console-form,"<span class=""font-mono text-xs text-ok"" aria-",form,UNVERIFIED
+studio,/studio,,task-col,"<div class=""h-11 px-3 flex items-center justify-be",a,UNVERIFIED
+studio,/studio,,new-run-btn,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24"" fill=",button,UNVERIFIED
+studio,/studio,,task-form,"<label for=""task-title"" class=""sr-only"" data-",form,UNVERIFIED
+studio,/studio,,team-plan-form,Team,form,UNVERIFIED
+studio,/studio,,team-exec-btn,"Execute Plan
+              
+              <d",button,UNVERIFIED
+studio,/studio,,kflow-run-btn,"Run Topological DAG
+                  <button id=""",button,UNVERIFIED
+studio,/studio,,kflow-list-btn,"List Active DAGs
+                  <button id=""kfl",button,UNVERIFIED
+studio,/studio,,kflow-reset-btn,Reset Nodes,button,UNVERIFIED
+studio,/studio,,builder-scaffold-btn,Scaffold &amp; Run Fixture,button,UNVERIFIED
+studio,/studio,,bundle-pack-btn,"Pack &amp; Seal Agent Bundle
+                  </d",button,UNVERIFIED
+studio,/studio,,bundle-unpack-btn,Verify Digest &amp; Unpack,button,UNVERIFIED
+studio,/studio,,task-back,"<svg class=""w-4 h-4 rtl:rotate-180"" viewBox=""0 0 2",button,UNVERIFIED
+studio,/studio,,cancel-task-btn,"Cancel
+                <button id=""rev",button,UNVERIFIED
+studio,/studio,,review-btn,Review changes</butto,button,UNVERIFIED
+studio,/studio,,open-record-btn,Evidence,button,UNVERIFIED
+studio,/studio,,always-form,,form,UNVERIFIED
+studio,/studio,,always-confirm,"Allow and remember<button id=""always-cancel"" type=",button,UNVERIFIED
+studio,/studio,,always-cancel,"Cancel
+              
+              <d",button,UNVERIFIED
+studio,/studio,,approve-yes,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24"" fill=",button,UNVERIFIED
+studio,/studio,,approve-always,Allow always…,button,UNVERIFIED
+studio,/studio,,approve-no,Deny,button,UNVERIFIED
+studio,/studio,,agent-form,"<div id=""mode-selector"" class=""flex items-center",form,UNVERIFIED
+studio,/studio,,audit-anchor-btn,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24"" fill=",button,UNVERIFIED
+studio,/studio,,audit-verify,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24"" fill=",button,UNVERIFIED
+studio,/studio,,evidence-summary-btn,"Refresh Live Evidence
+              <button id=""ev",button,UNVERIFIED
+studio,/studio,,evidence-seal-btn,"Seal New Package
+              <button id=""evidenc",button,UNVERIFIED
+studio,/studio,,evidence-verify-btn,Verify Sealed Package,button,UNVERIFIED
+studio,/studio,,flight-fork,"Fork here
+          
+          <div class=""px",button,UNVERIFIED
+studio,/studio,,flight-first,"⏮
+              <button id=""flight-prev"" type=""but",button,UNVERIFIED
+studio,/studio,,flight-prev,"◀
+              <button id=""flight-play"" type=""but",button,UNVERIFIED
+studio,/studio,,flight-play,▶ <span,button,UNVERIFIED
+studio,/studio,,flight-next,"▶
+              <button id=""flight-last"" type=""but",button,UNVERIFIED
+studio,/studio,,flight-last,"⏭
+            
+            <label for=""flight",button,UNVERIFIED
+studio,/studio,,flight-tab-visual-btn,"Visual
+              <button id=""flight-tab-raw-bt",button,UNVERIFIED
+studio,/studio,,flight-tab-raw-btn,JSON,button,UNVERIFIED
+studio,/studio,,merkle-root-btn,"Fetch Current Merkle Root
+              <input id=",button,UNVERIFIED
+studio,/studio,,merkle-proof-btn,"Generate Inclusion Proof
+              <button id=",button,UNVERIFIED
+studio,/studio,,merkle-verify-btn,"Verify Cryptographic Proof
+              <button i",button,UNVERIFIED
+studio,/studio,,merkle-export-btn,Export Compliance Bundle,button,UNVERIFIED
+studio,/studio,,kstack-list-btn,"List Active Role Skills
+              <button id=""",button,UNVERIFIED
+studio,/studio,,khub-scan-btn,Scan External Skills (KHub),button,UNVERIFIED
+studio,/studio,,plugins-refresh-btn,"Refresh
+          
+          <div id=""lab-plu",button,UNVERIFIED
+studio,/studio,,plugin-install-form,"<input id=""plugin-path-input"" required class=",form,UNVERIFIED
+studio,/studio,,kbrain-record-btn,"Record Fact
+              <button id=""kbrain-query",button,UNVERIFIED
+studio,/studio,,kbrain-query-btn,"Query Facts
+            
+            <div id=",button,UNVERIFIED
+studio,/studio,,eval-run-btn,"Run Benchmark &amp; Seal Receipt
+              <bu",button,UNVERIFIED
+studio,/studio,,eval-drift-btn,Check Drift vs Baseline,button,UNVERIFIED
+studio,/studio,,runtime-refresh-btn,"Refresh
+          
+          <p class=""text-x",button,UNVERIFIED
+studio,/studio,,btn-run-spec-benchmark,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24",button,UNVERIFIED
+studio,/studio,,airgap-audit-btn,"Run Air-Gap Audit
+          
+          <p cla",button,UNVERIFIED
+studio,/studio,,entitlements-refresh-btn,"Refresh
+          
+          <div id=""entitle",button,UNVERIFIED
+studio,/studio,,tier2-verify-btn,"<svg class=""w-3.5 h-3.5"" viewBox=""0 0 24 24""",button,UNVERIFIED
+studio,/studio,,quorum-sign-sec-btn,Sign as Security Lead,button,UNVERIFIED
+studio,/studio,,quorum-sign-plat-btn,Sign as Platform Owner,button,UNVERIFIED
+studio,/studio,,tokens-refresh-btn,"Refresh
+          
+          <p class=""text-x",button,UNVERIFIED
+studio,/studio,,token-create-form,Token n,form,UNVERIFIED
+studio,/studio,,workspaces-refresh-btn,"Refresh
+          
+          <div id=""workspa",button,UNVERIFIED
+studio,/studio,,runner-jobs-refresh-btn,"Refresh
+          
+          <p class=""text-x",button,UNVERIFIED
+studio,/studio,,runner-job-form,,form,UNVERIFIED
+studio,/studio,,schedules-refresh-btn,"Refresh
+          
+          <p class=""text-x",button,UNVERIFIED
+studio,/studio,,schedule-form,Flow,form,UNVERIFIED
+studio,/studio,,mesh-refresh-btn,Refresh,button,UNVERIFIED
+studio,/studio,,mesh-delegate-form,"<input id=""mesh-intent-input"" class=""inpu",form,UNVERIFIED
+studio,/studio,,mesh-delegate-btn,Route &amp; Delegate,button,UNVERIFIED
+studio,/studio,,sync-status-btn,"Check Sync State
+              <button id=""sync-ex",button,UNVERIFIED
+studio,/studio,,sync-export-btn,"Export Encrypted Envelope
+              <button id",button,UNVERIFIED
+studio,/studio,,sync-mobile-btn,"Phone Pairing Link
+              <a href=""/console",button,UNVERIFIED
+studio,/studio,,spool-status-btn,"Check Spool Backlog
+              <button id=""spoo",button,UNVERIFIED
+studio,/studio,,spool-flush-btn,Simulate Batch Sync,button,UNVERIFIED
+studio,/studio,,settings-open-labs-btn,"<svg class=""w-3.5 h-3.5 text-warn"" viewBox=""0",button,UNVERIFIED
+studio,/studio,,labs-drawer,"<div class=""h-14 px-4 flex items-center justify-be",a,UNVERIFIED
+studio,/studio,,labs-close-btn,"<svg class=""w-4 h-4"" viewBox=""0 0 24 24"" fill=""no",button,UNVERIFIED
+studio,/studio,,heal-form,"<label for=""h",form,UNVERIFIED
+studio,/studio,,heal-run,"Run repair cycle
+          
+          <pre i",button,UNVERIFIED
+studio,/studio,,sb-approval,<span,button,UNVERIFIED
+studio,/studio,,signin-form,"<svg class=""w-10 h-10"" viewBox=""0 0 48 48"" aria-hi",form,UNVERIFIED
+studio,/studio,,onboard-skip,"Skip<button id=""onboard-next"" class=""btn-primary"" ",button,UNVERIFIED
+studio,/studio,,onboard-next,"Next
+    
+  
+
+  <div id=""toast"" r",button,UNVERIFIED

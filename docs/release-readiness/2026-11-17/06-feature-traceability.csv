@@ -1,0 +1,18 @@
+FEATURE,UI_SURFACE,BACKEND,TEST,TRUTH_STATE,EVIDENCE
+Workspace registry + activation,Ops,GET/POST /v1/workspaces* ,tests/,WORKING_E2E,live :7421 activation flip
+Runner job queue + enqueue,Ops,/v1/runner/jobs/*,tests/,WORKING_E2E,live enqueue 0→1 job
+Mesh status/peers,Ops,/v1/mesh/*,tests/,WORKING_COMPONENT,UI renders; multi-node unverified
+SBOM (CycloneDX),Security,/v1/sbom,tests/,WORKING_E2E,5 components rendered live
+Air-gap audit,Security,/v1/airgap/audit,tests/,WORKING_COMPONENT,5 checks COMPLIANT; not independently re-run
+Entitlements,Security,/v1/entitlements/status,tests/,WORKING_E2E,NO_TRUSTED_KEY honest render
+RBAC matrix + token admin,Security,/v1/rbac/matrix /v1/tokens*,test_schedule_and_token_admin,WORKING_E2E,mint+list+revoke verified
+Local model runtime + chat modes,Models,/v1/models/local /v1/chat/modes,tests/,WORKING_COMPONENT,renders ollama/qwen; inference itself not gated here
+Team orchestration plan+execute,Tasks,/v1/orchestration/team/*,tests/,WORKING_E2E,4-node 190s run w/ sealed tape
+KFlow schedules,Ops,/v1/orchestration/schedules + scheduler.py,test_schedule_and_token_admin,WORKING_COMPONENT,in-memory; resets on restart (labeled)
+KFlow DAG run,Tasks,/v1/flows/*,tests/,WORKING_COMPONENT,runner executes; crash recovery UNVERIFIED
+Evidence/Merkle/flight tape,Runs,/v1/evidence/* /v1/flight*,tests/,WORKING_COMPONENT,seals verified; full chain audit unverified
+Proof strip (6-stage),Runs,derived,tests/,WORKING_COMPONENT,proper tablist a11y verified
+File explorer/editor,Workspace,fs routes,tests/,PARTIAL,Monaco live; LSP/symbol nav UNVERIFIED
+Agent terminal exec,Workspace,/v1/terminal*,tests/,PARTIAL,fail-closed when isolation unverified
+SSO/SCIM/org directory,-,-,MISSING,no backend capability
+Desktop shell,keelway dev --desktop,-,WORKING_COMPONENT,Chromium app-mode; not packaged/signed
