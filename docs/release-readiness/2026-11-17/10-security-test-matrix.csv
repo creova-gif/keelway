@@ -1,0 +1,15 @@
+TEST,THREAT,STATUS,EVIDENCE
+XSS in dynamic rendering,web-console/studio innerHTML,PASS,injected payloads rendered inert (live)
+CSRF/CORS,API,UNVERIFIED,
+Auth default-deny,API,WORKING_COMPONENT,auth-required mode gates routes; anon matrix untested
+IDOR workspace substitution,tenancy,UNVERIFIED,
+Path traversal,fs routes,UNVERIFIED,
+Command injection,terminal/exec,UNVERIFIED,fail-closed helps but abuse suite not run
+Prompt injection via repo content,agents,UNVERIFIED,
+Secret exfiltration via prompt,agents,UNVERIFIED,
+MCP tool spoofing,tools,UNVERIFIED,
+Webhook replay/forgery,webhooks,UNVERIFIED,
+Approval replay/TOCTOU,governance,UNVERIFIED,
+Sandbox escape,runner,UNVERIFIED,no isolated runner impl
+Budget/race,limits,UNVERIFIED,
+Secret leakage in logs/traces,observability,UNVERIFIED,

@@ -1,0 +1,8 @@
+ISSUE_ID,SEVERITY,AREA,DESCRIPTION,REPRO,STATUS
+D-001,P1,architecture,Dual API authority documented (core:7420 vs governance:8000) with single-app reality,README vs core.main,open-ADR-needed
+D-002,P1,persistence,KFlow/scheduler/runner-queue in-memory; restart loses state,restart server,open
+D-003,P1,golden-path,No composed 30-step coding journey test from clean env,n/a,open
+D-004,P2,runner,No Docker/isolated Runner implementing create/exec/snapshot contract,n/a,open
+D-005,P2,cli,Two CLIs (cli.py vs keelway_core/cli.py) with different rigor,both exist,open
+D-006,P2,naming,Kora repo vs Keelway product naming conflict,README,ADR-001 OWNER_DECISION_REQUIRED
+D-007,P3,tests,StarletteDeprecationWarning in test_agent_builder.py,pytest -q,open
