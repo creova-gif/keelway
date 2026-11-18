@@ -525,8 +525,8 @@ function switchSection(sec) {
   if (sec === 'runs') { loadTapes(); loadAudit(); verifyAudit(); loadEvidenceSummary(); }
   if (sec === 'skills') { loadPlugins(); loadKStackSkillsInStudio(); }
   if (sec === 'models') { loadModelRuntime(); loadCostLedger(); }
-  if (sec === 'security') { loadTier2Status(); loadEntitlements(); loadRules(); loadSbom(); }
-  if (sec === 'ops') { loadMeshStatus(); loadSyncStatusInStudio(); loadWorkspaces(); loadRunnerJobs(); }
+  if (sec === 'security') { loadTier2Status(); loadEntitlements(); loadRules(); loadSbom(); loadAccessControl(); }
+  if (sec === 'ops') { loadMeshStatus(); loadSyncStatusInStudio(); loadWorkspaces(); loadRunnerJobs(); loadSchedules(); }
 }
 async function loadRules() {
   try {
@@ -700,6 +700,179 @@ async function enqueueRunnerJob(e) {
   } catch (err) {
     toast(err.message, 'err');
     $('runner-jobs-out').textContent = `[✗] ENQUEUE FAILED — ${err.message}`;
+  }
+}
+async function loadSchedules() {
+  const list = $('schedules-list');
+  try {
+    const data = await api('/v1/schedules');
+    const items = data.schedules || [];
+    const fmt = (epoch) => (epoch ? new Date(epoch * 1000).toLocaleTimeString() : '—');
+    list.replaceChildren(...(items.length ? items.map((s) => h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center justify-between gap-2 flex-wrap' },
+        h('span', { class: 'font-mono text-[11px] font-semibold' }, s.flow_id),
+        h('span', { class: 'flex gap-1 items-center' },
+          statusChip(s.last_status ? s.last_status.toUpperCase() : 'NOT RUN'),
+          h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[10px] text-danger', onclick: () => deleteSchedule(s.schedule_id) }, 'Delete'))),
+      h('p', { class: 'text-ide-faint text-[10px] font-mono' },
+        `every ${s.interval_seconds}s · runs ${s.runs_completed} · last ${fmt(s.last_run_epoch)} · next ${fmt(s.next_run_epoch)}${s.last_error ? ` · err: ${s.last_error}` : ''}`)))
+      : [h('p', { class: 'text-ide-muted' }, 'No schedules — register one below.')]));
+    $('schedules-out').textContent = `[✓] ${items.length} SCHEDULE${items.length === 1 ? '' : 'S'} (in-memory; resets on restart)`;
+  } catch (err) {
+    renderLoadError(list, err, loadSchedules);
+    $('schedules-out').textContent = '[✗] SCHEDULER UNAVAILABLE';
+  }
+}
+async function createSchedule(e) {
+  e.preventDefault();
+  const flowId = $('schedule-flow').value.trim();
+  const interval = parseInt($('schedule-interval').value, 10);
+  try {
+    const res = await api('/v1/schedules', {
+      method: 'POST',
+      body: { flow_id: flowId, interval_seconds: interval },
+    });
+    tone('tick');
+    $('schedule-form').reset();
+    $('schedules-out').textContent = `[✓] SCHEDULED ${res.flow_id} every ${res.interval_seconds}s`;
+    loadSchedules();
+  } catch (err) {
+    toast(err.message, 'err');
+    $('schedules-out').textContent = `[✗] SCHEDULE FAILED — ${err.message}`;
+  }
+}
+async function deleteSchedule(id) {
+  try {
+    await api(`/v1/schedules/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    tone('tick');
+    loadSchedules();
+  } catch (err) { toast(err.message, 'err'); }
+}
+async function loadAccessControl() {
+  const matrixEl = $('rbac-matrix');
+  const list = $('tokens-list');
+  try {
+    const data = await api('/v1/rbac/matrix');
+    const roles = data.roles || {};
+    const perms = data.permissions || [];
+    const table = h('table', { class: 'w-full text-[11px] font-mono' },
+      h('thead', {}, h('tr', {},
+        h('th', { class: 'text-left py-1 pr-3 text-ide-muted font-normal' }, 'ROLE'),
+        ...perms.map((p) => h('th', { class: 'text-left py-1 px-2 text-ide-muted font-normal' }, p)))) ,
+      h('tbody', {}, ...Object.entries(roles).map(([role, allowed]) => h('tr', { class: 'border-t border-ide-border/40' },
+        h('td', { class: 'py-1 pr-3 text-ide-fg' }, role),
+        ...perms.map((p) => h('td', { class: `py-1 px-2 ${allowed.includes(p) ? 'text-ide-ok' : 'text-ide-faint'}` }, allowed.includes(p) ? '✓' : '—'))))));
+    matrixEl.replaceChildren(table);
+  } catch (err) {
+    renderLoadError(matrixEl, err, loadAccessControl);
+  }
+  try {
+    const data = await api('/v1/tokens');
+    const items = data.tokens || [];
+    list.replaceChildren(...(items.length ? items.map((t) => h('div', { class: 'card p-3 flex items-center justify-between gap-2 flex-wrap' },
+      h('div', {},
+        h('span', { class: 'font-semibold text-xs' }, t.name || t.id),
+        h('span', { class: 'ml-2 step-chip text-[10px]' }, t.role || '—'),
+        t.revoked ? statusChip('REVOKED') : statusChip('ACTIVE')),
+      h('div', { class: 'flex items-center gap-2' },
+        h('span', { class: 'text-ide-faint text-[10px] font-mono' },
+          `${t.last_used_at ? `used ${t.last_used_at.slice(0, 10)}` : 'never used'}${t.expires_at ? ` · expires ${t.expires_at.slice(0, 10)}` : ''}`),
+        t.revoked ? null : h('button', { type: 'button', class: 'btn-ghost h-6 px-2 text-[10px] text-danger', onclick: () => revokeToken(t.id) }, 'Revoke'))))
+      : [h('p', { class: 'text-ide-muted' }, 'No API tokens minted yet.')]));
+    $('tokens-out').textContent = `[✓] ${items.length} TOKEN${items.length === 1 ? '' : 'S'} · ${items.filter((t) => !t.revoked).length} ACTIVE`;
+  } catch (err) {
+    renderLoadError(list, err, loadAccessControl);
+    $('tokens-out').textContent = '[✗] TOKEN REGISTRY UNAVAILABLE (owner role required)';
+  }
+}
+async function createToken(e) {
+  e.preventDefault();
+  const name = $('token-name').value.trim();
+  const role = $('token-role').value;
+  const days = parseInt($('token-expiry').value, 10);
+  const minted = $('token-minted');
+  try {
+    const res = await api('/v1/tokens', {
+      method: 'POST',
+      body: { name, role, ...(Number.isFinite(days) ? { expires_in_days: days } : {}) },
+    });
+    tone('tick');
+    $('token-create-form').reset();
+    minted.classList.remove('hidden');
+    minted.textContent = `[✓] MINTED '${res.name}' (${res.role}) — store now, shown once:\n${res.token}`;
+    loadAccessControl();
+  } catch (err) {
+    toast(err.message, 'err');
+    $('tokens-out').textContent = `[✗] MINT FAILED — ${err.message}`;
+  }
+}
+async function revokeToken(id) {
+  try {
+    await api(`/v1/tokens/${encodeURIComponent(id)}/revoke`, { method: 'POST' });
+    tone('tick');
+    loadAccessControl();
+  } catch (err) { toast(err.message, 'err'); }
+}
+// ---------- multi-agent team orchestration ----------
+let teamPlan = null;
+function renderTeamPlan(plan) {
+  const grid = $('team-plan-grid');
+  const nodes = Object.values((plan && plan.nodes) || {});
+  grid.replaceChildren(...(nodes.length ? nodes.map((n) => h('div', { class: 'border border-ide-border rounded p-2.5 bg-ide-bg/60 space-y-1' },
+    h('div', { class: 'flex justify-between items-center gap-2' },
+      h('span', { class: 'font-mono text-[10px] text-ide-muted' }, n.id),
+      statusChip((n.state || 'pending').toUpperCase())),
+    h('div', { class: 'font-semibold text-xs' }, n.title || n.id),
+    h('div', { class: 'text-[10px] text-ide-muted' }, `Role: ${n.role}`),
+    n.depends_on && n.depends_on.length ? h('div', { class: 'text-[10px] text-ide-faint font-mono' }, `after: ${n.depends_on.join(', ')}`) : null))
+    : [h('p', { class: 'text-ide-muted' }, 'Plan returned no nodes.')]));
+}
+async function planTeam(e) {
+  e.preventDefault();
+  const goal = $('team-goal').value.trim();
+  const out = $('team-out');
+  out.textContent = '[…] Planning team workflow…';
+  $('team-exec-btn').disabled = true;
+  teamPlan = null;
+  try {
+    teamPlan = await api('/v1/orchestration/team/plan', { method: 'POST', body: { goal } });
+    renderTeamPlan(teamPlan);
+    $('team-exec-btn').disabled = false;
+    out.textContent = `[✓] PLAN READY — ${Object.keys(teamPlan.nodes || {}).length} nodes · team ${teamPlan.team_id || '—'}`;
+  } catch (err) {
+    renderLoadError($('team-plan-grid'), err, planTeam);
+    out.textContent = `[✗] PLAN FAILED — ${err.message}`;
+  }
+}
+async function executeTeam() {
+  const out = $('team-out');
+  const result = $('team-result');
+  const goal = $('team-goal').value.trim();
+  const execBtn = $('team-exec-btn');
+  execBtn.disabled = true;
+  const startedAt = Date.now();
+  const timer = setInterval(() => {
+    out.textContent = `[…] Executing team workflow — verifier stage runs the project test suite; ${Math.round((Date.now() - startedAt) / 1000)}s elapsed…`;
+  }, 1000);
+  out.textContent = '[…] Executing team workflow — the verifier stage runs the project test suite and can take several minutes…';
+  try {
+    const res = await api('/v1/orchestration/team/execute', { method: 'POST', body: { goal, auto_approve: false } });
+    renderTeamPlan(res.plan || teamPlan);
+    result.replaceChildren(h('div', { class: 'card p-3 space-y-1' },
+      h('div', { class: 'flex items-center gap-2 flex-wrap' },
+        statusChip((res.status || 'unknown').toUpperCase()),
+        metricChip('Nodes', String(res.nodes_executed ?? '—')),
+        metricChip('Duration', `${res.duration_ms ?? '—'}ms`)),
+      h('p', { class: 'text-ide-muted text-[11px] break-words' }, res.summary || '—'),
+      res.flight_tape_sha256 ? h('p', { class: 'text-[10px] font-mono text-ide-faint' }, `tape sha: ${res.flight_tape_sha256}`) : null));
+    out.textContent = `[✓] EXECUTED — team ${res.team_id || '—'} · ${res.status || '—'}`;
+    tone(res.status === 'succeeded' ? 'ok' : 'tick');
+  } catch (err) {
+    renderLoadError(result, err, executeTeam);
+    out.textContent = `[✗] EXECUTION FAILED — ${err.message}`;
+  } finally {
+    clearInterval(timer);
+    execBtn.disabled = !teamPlan;
   }
 }
 async function loadRuns() {
@@ -3355,6 +3528,7 @@ function commands() {
     ['Workspace conflict resolver', goFeature('home', 'lab-conflict-resolver')],
     ['App builder & scaffolder', goFeature('home', 'lab-app-builder')],
     ['KFlow task orchestration', goFeature('tasks', 'lab-kflow')],
+    ['Multi-agent team workflow', goFeature('tasks', 'lab-team')],
     ['Agent bundle builder', goFeature('tasks', 'lab-agent-bundle')],
     ['Evidence room metrics', goFeature('runs', 'lab-evidence')],
     ['Merkle audit trail', goFeature('runs', 'lab-merkle-audit')],
@@ -3371,8 +3545,10 @@ function commands() {
     ['Mesh quorum controls', goFeature('security', 'lab-quorum')],
     ['Standing approval rules', goFeature('security', 'rule-list')],
     ['SBOM supply chain', goFeature('security', 'sbom-grid')],
+    ['API access & roles', goFeature('security', 'tokens-list')],
     ['Workspace registry', goFeature('ops', 'workspaces-list')],
     ['Runner job queue', goFeature('ops', 'runner-jobs-list')],
+    ['Scheduled KFlow runs', goFeature('ops', 'schedules-list')],
     ['P2P compute mesh', goFeature('ops', 'lab-mesh')],
     ['Cross-machine sync', goFeature('ops', 'lab-sync')],
     ['Runner spool', goFeature('ops', 'lab-runner-spool')],
@@ -3701,6 +3877,12 @@ function wire() {
   if ($('workspaces-refresh-btn')) $('workspaces-refresh-btn').addEventListener('click', loadWorkspaces);
   if ($('runner-jobs-refresh-btn')) $('runner-jobs-refresh-btn').addEventListener('click', loadRunnerJobs);
   if ($('runner-job-form')) $('runner-job-form').addEventListener('submit', enqueueRunnerJob);
+  if ($('schedule-form')) $('schedule-form').addEventListener('submit', createSchedule);
+  if ($('schedules-refresh-btn')) $('schedules-refresh-btn').addEventListener('click', loadSchedules);
+  if ($('token-create-form')) $('token-create-form').addEventListener('submit', createToken);
+  if ($('tokens-refresh-btn')) $('tokens-refresh-btn').addEventListener('click', loadAccessControl);
+  if ($('team-plan-form')) $('team-plan-form').addEventListener('submit', planTeam);
+  if ($('team-exec-btn')) $('team-exec-btn').addEventListener('click', executeTeam);
   $('agent-form').addEventListener('submit', startAgent);
   $('agent-goal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('agent-form').requestSubmit(); });
   $('approve-yes').addEventListener('click', () => approve(true));

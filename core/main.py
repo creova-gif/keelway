@@ -52,8 +52,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if relay.channels():
         logger.info("Approval messaging on: %s (blocked while air-gapped).", ", ".join(relay.channels()))
 
+    from core.orchestration.scheduler import flow_scheduler
+    flow_scheduler.start()
+
     yield
 
+    await flow_scheduler.stop()
     if poller:
         poller.cancel()
     logger.info("Shutting down Keelway Core...")

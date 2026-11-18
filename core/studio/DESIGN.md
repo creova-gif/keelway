@@ -136,22 +136,23 @@ deep-links to every card below via `goFeature`.
 |---|---|---|
 | `sec-home` | 01 Home & Workspace · 07 Runtime | Quick actions, model/hardware/tasks/tapes tiles, `lab-doctor` (system diagnostics), `lab-code-intel`, `lab-conflict-resolver`, `lab-app-builder` |
 | `sec-workspace` | 02 Projects · 04 Code & Terminal | Explorer, git changes, memory, Monaco editor, diff view, console |
-| `sec-tasks` | 03 Agent Workspace · 05 Orchestration (partial) | Run list/detail, fleet-status strip, `lab-kflow` (DAG orchestration), `lab-agent-bundle`, manifest registry |
+| `sec-tasks` | 03 Agent Workspace · 05 Orchestration | Run list/detail, fleet-status strip, `lab-team` (multi-agent team plan/execute via `/v1/orchestration/team/*`), `lab-kflow` (DAG orchestration), `lab-agent-bundle`, manifest registry |
 | `sec-runs` | 01 Evidence / observability | Flight tapes, `lab-evidence` (metric cards), `lab-merkle-audit` |
 | `sec-skills` | — | `lab-kstack` (role skills), `lab-plugins` (MCP), `lab-kbrain` (fact memory), `lab-eval-drift` |
 | `sec-models` | 06 AI Models | Local model runtime & chat modes (`/v1/models/local`, `/v1/chat/modes`), speculative decoding benchmark, model economics & cost ledger |
-| `sec-security` | 08 Security & Policies | Air-gap compliance audit (`/v1/airgap/audit`), Tier-2 hardware security, `lab-quorum` (approvals), standing approval rules, enterprise entitlements (`/v1/entitlements/status`), CycloneDX SBOM (`/v1/sbom`) |
-| `sec-ops` | 09 Enterprise Admin (partial) | Workspace registry + activation (`/v1/workspaces`), customer runner job queue (`/v1/runner/jobs/*`), `lab-mesh` (P2P compute), `lab-sync`, `lab-runner-spool` |
+| `sec-security` | 08 Security & Policies | Air-gap compliance audit (`/v1/airgap/audit`), Tier-2 hardware security, `lab-quorum` (approvals), standing approval rules, enterprise entitlements (`/v1/entitlements/status`), CycloneDX SBOM (`/v1/sbom`), `lab-access` (API tokens + RBAC matrix via `/v1/tokens`, `/v1/rbac/matrix`) |
+| `sec-ops` | 09 Enterprise Admin (partial) | Workspace registry + activation (`/v1/workspaces`), customer runner job queue (`/v1/runner/jobs/*`), `lab-schedules` (interval KFlow re-runs via `/v1/schedules`), `lab-mesh` (P2P compute), `lab-sync`, `lab-runner-spool` |
 | `sec-settings` | 10 Settings | Appearance/language/air-gap toggle, developer labs launcher |
 | Labs drawer | — | `lab-healing` (self-repair bench — experimental) |
 
-Remaining honest gaps: **05 Multi-Agent Orchestration** is covered for
-KFlow DAG workflows, manifest registry, bundles and runner delegation;
-there is no scheduling/conflict-resolution UI because no such backend
-exists today. **09 Enterprise Admin** covers workspace registry,
-runner queue, mesh, sync and spool; org/team/SSO management does not
-exist as backend capability. `/console` is a separate surface,
-not Studio.
+Remaining honest gaps: **05 Multi-Agent Orchestration** now covers
+KFlow DAGs, role-specialized team workflows (`/v1/orchestration/team/*`),
+interval scheduling (`/v1/schedules`, in-memory), manifest registry and
+bundles; there is still no cross-agent conflict visualizer beyond the
+workspace conflict resolver. **09 Enterprise Admin** covers workspaces,
+runner queue, API token/role administration, mesh, sync and spool;
+org-directory/SSO management does not exist as backend capability.
+`/console` is a separate surface, not Studio.
 
 ## Internationalization / RTL
 

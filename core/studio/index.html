@@ -520,6 +520,24 @@
               <div id="fleet-strip" class="flex flex-wrap gap-1.5 pt-2" aria-live="polite"></div>
             </div>
 
+            <!-- Multi-Agent Team Workflow -->
+            <section id="lab-team" class="card p-4 space-y-3" aria-labelledby="team-title">
+              <div class="flex items-center justify-between gap-2">
+                <h3 id="team-title" class="font-semibold">Multi-Agent Team Workflow</h3>
+                <span class="step-chip text-accent border-accent/50 font-mono">Deterministic DAG</span>
+              </div>
+              <p class="text-xs text-ide-muted">Decomposes a goal into a role-specialized team DAG (lead-architect → coder-agent → security-reviewer → test-verifier) and executes it with a sealed flight tape.</p>
+              <form id="team-plan-form" class="flex flex-wrap gap-2" autocomplete="off">
+                <label for="team-goal" class="sr-only">Team workflow goal</label>
+                <input id="team-goal" required minlength="3" class="input flex-1 min-w-[16rem]" placeholder="Goal for the agent team, e.g. Implement user auth JWT validation…">
+                <button class="btn-outline h-8 text-xs" type="submit">Plan Team</button>
+                <button id="team-exec-btn" class="btn-outline h-8 text-xs" type="button" disabled title="Plan a workflow first">Execute Plan</button>
+              </form>
+              <div id="team-plan-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs" aria-live="polite"></div>
+              <div id="team-result" class="text-xs space-y-1" aria-live="polite"></div>
+              <pre id="team-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite">[·] Team workflow NOT RUN — plan a goal first.</pre>
+            </section>
+
             <!-- KFlow Durable Task DAG Orchestration & Proof Packet -->
             <section class="card p-4 space-y-2" aria-labelledby="kflow-title">
               <div class="flex items-center justify-between gap-2">
@@ -1249,6 +1267,33 @@
           <ul id="rule-list" class="divide-y divide-ide-border text-xs" aria-live="polite"></ul>
         </section>
 
+        <!-- API Access & Roles -->
+        <section id="lab-access" class="card p-4 space-y-3" aria-labelledby="access-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="access-title" class="font-semibold">API Access &amp; Roles</h3>
+            <button id="tokens-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">API tokens are owner-managed (MANAGE_KEYS). The plaintext token is shown once at creation; only its hash is stored. SSO/org-directory management is not a Keelway capability today.</p>
+          <div id="rbac-matrix" class="overflow-x-auto" aria-live="polite"></div>
+          <div id="tokens-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <form id="token-create-form" class="flex flex-wrap gap-2 pt-2 border-t border-ide-border/60" autocomplete="off">
+            <label for="token-name" class="sr-only">Token name</label>
+            <input id="token-name" required minlength="1" maxlength="100" class="input w-56" placeholder="Token name, e.g. ci-bot">
+            <label for="token-role" class="sr-only">Token role</label>
+            <select id="token-role" class="input w-40">
+              <option value="engineer">engineer</option>
+              <option value="auditor">auditor</option>
+              <option value="admin">admin</option>
+              <option value="owner">owner</option>
+            </select>
+            <label for="token-expiry" class="sr-only">Expiry in days</label>
+            <input id="token-expiry" type="number" min="1" max="3650" class="input w-32" placeholder="Days (opt.)">
+            <button class="btn-outline h-8 text-xs" type="submit">Mint Token</button>
+          </form>
+          <pre id="tokens-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+          <pre id="token-minted" class="hidden font-mono text-[11px] text-accent whitespace-pre-wrap bg-ide-bg p-2 rounded border border-accent/40" aria-live="polite"></pre>
+        </section>
+
         <!-- Software Bill of Materials -->
         <section class="card p-4 space-y-3" aria-labelledby="sbom-title">
           <div class="flex items-center justify-between gap-2">
@@ -1300,6 +1345,24 @@
             <button class="btn-outline h-8 text-xs" type="submit">Enqueue Job</button>
           </form>
           <pre id="runner-jobs-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
+        </section>
+
+        <!-- Flow Schedules -->
+        <section id="lab-schedules" class="card p-4 space-y-3" aria-labelledby="schedules-title">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="schedules-title" class="font-semibold">Scheduled KFlow Runs</h3>
+            <button id="schedules-refresh-btn" type="button" class="btn-ghost h-7 px-2 text-xs">Refresh</button>
+          </div>
+          <p class="text-xs text-ide-muted">Re-runs a registered KFlow DAG on an interval with a sealed proof packet each run. Schedules are in-memory and reset when this server restarts.</p>
+          <div id="schedules-list" class="space-y-2 text-xs" aria-live="polite"></div>
+          <form id="schedule-form" class="flex flex-wrap gap-2 pt-2 border-t border-ide-border/60" autocomplete="off">
+            <label for="schedule-flow" class="sr-only">Flow ID</label>
+            <input id="schedule-flow" required minlength="1" class="input flex-1 min-w-[12rem]" placeholder="Registered flow_id, e.g. flow_ci_pipeline">
+            <label for="schedule-interval" class="sr-only">Interval in seconds</label>
+            <input id="schedule-interval" required type="number" min="60" class="input w-36" placeholder="Seconds ≥60">
+            <button class="btn-outline h-8 text-xs" type="submit">Schedule</button>
+          </form>
+          <pre id="schedules-out" class="font-mono text-[11px] text-ide-muted whitespace-pre-wrap" aria-live="polite"></pre>
         </section>
 
         <section class="card p-4 space-y-2" aria-labelledby="mesh-title">
