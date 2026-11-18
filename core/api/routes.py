@@ -3411,3 +3411,70 @@ async def delete_schedule(
     if not flow_scheduler.remove(schedule_id):
         raise HTTPException(status_code=404, detail=f"Schedule '{schedule_id}' not found.")
     return {"deleted": True, "schedule_id": schedule_id}
+
+
+# =====================================================================
+# Isolated Worktree / Checkpoint / CI — golden-journey primitives
+# =====================================================================
+
+@router.post("/v1/worktrees", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
+async def create_agent_worktree(payload: dict, principal: Principal = Depends(current_principal)):
+    """Creates an isolated git worktree + branch for agent edits."""
+    task_id = payload.get("task_id", "")
+    base_ref = payload.get("base_ref", "HEAD")
+    try:
+        res = _workspace_fs.create_worktree(task_id=task_id, base_ref=base_ref)
+        await record_audit(principal, "worktree_create", res["branch"], True)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/v1/worktrees", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
+async def list_agent_worktrees():
+    """Lists git worktrees; marks agent-isolated entries."""
+    return _workspace_fs.list_worktrees()
+
+
+@router.delete("/v1/worktrees/{task_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
+async def remove_agent_worktree(task_id: str, force: bool = False, principal: Principal = Depends(current_principal)):
+    """Removes an agent worktree. Only .keelway/worktrees paths are removable."""
+    try:
+        res = _workspace_fs.remove_worktree(task_id=task_id, force=force)
+        await record_audit(principal, "worktree_remove", task_id, True)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/v1/checkpoints", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
+async def create_checkpoint(payload: dict, principal: Principal = Depends(current_principal)):
+    """Snapshots working-tree state without modifying it."""
+    try:
+        res = _workspace_fs.create_checkpoint(label=payload.get("label", ""))
+        await record_audit(principal, "checkpoint_create", res["id"], True)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/v1/checkpoints", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
+async def list_checkpoints():
+    return _workspace_fs.list_checkpoints()
+
+
+@router.post("/v1/checkpoints/{checkpoint_id}/restore", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
+async def restore_checkpoint(checkpoint_id: str, principal: Principal = Depends(current_principal)):
+    """Restores a checkpoint's working-tree snapshot via git stash apply."""
+    try:
+        res = _workspace_fs.restore_checkpoint(checkpoint_id)
+        await record_audit(principal, "checkpoint_restore", checkpoint_id, True)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/v1/git/ci/status", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
+async def get_ci_status(branch: Optional[str] = None, limit: int = 10):
+    """CI check status via gh CLI; honest available:false when unavailable."""
+    return _workspace_fs.get_ci_status(branch=branch, limit=limit)

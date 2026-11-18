@@ -3,6 +3,7 @@ Keelway Sovereign Workspace Filesystem & Live Git Engine.
 Provides safe, sandboxed file operations, directory tree indexing, and git diff inspection.
 """
 
+import json
 import os
 import re
 import hashlib
@@ -394,3 +395,185 @@ class WorkspaceFilesystem:
             "patch_hash": patch_hash,
             "ready_to_push": False,
         }
+
+    # ---- Isolated worktrees (Gate-2: agent edit isolation) ----
+
+    def _git(self, args: List[str]) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["git"] + args, cwd=str(self.root),
+            capture_output=True, text=True, timeout=30,
+        )
+
+    def create_worktree(self, task_id: str, base_ref: str = "HEAD") -> Dict[str, Any]:
+        """Creates an isolated git worktree + branch under .keelway/worktrees/.
+        Agent mutations land here, never directly on the user's branch."""
+        status = self.get_git_status()
+        if not status["is_git"]:
+            raise ValueError("Workspace is not a Git repository.")
+        safe_id = re.sub(r"[^A-Za-z0-9_-]", "-", task_id)
+        safe_id = re.sub(r"-+", "-", safe_id).strip("-") or "task"
+        branch = f"keelway/task-{safe_id}"
+        wt_dir = self.root / ".keelway" / "worktrees" / safe_id
+        if wt_dir.exists():
+            raise ValueError(f"Worktree already exists for task '{safe_id}'.")
+        res = self._git(["worktree", "add", "-b", branch, str(wt_dir), base_ref])
+        if res.returncode != 0:
+            raise ValueError(f"git worktree add failed: {res.stderr.strip()}")
+        return {
+            "status": "created",
+            "task_id": safe_id,
+            "branch": branch,
+            "path": str(wt_dir.relative_to(self.root)),
+            "base_ref": base_ref,
+            "isolation": "git-worktree",
+        }
+
+    def list_worktrees(self) -> Dict[str, Any]:
+        """Lists git worktrees; entries under .keelway/worktrees are agent-isolated."""
+        res = self._git(["worktree", "list", "--porcelain"])
+        trees, current = [], {}
+        for line in res.stdout.splitlines():
+            if line.startswith("worktree "):
+                if current:
+                    trees.append(current)
+                current = {"path": line.split(" ", 1)[1]}
+            elif line.startswith("branch "):
+                current["branch"] = line.rsplit("/", 1)[-1]
+            elif line == "detached":
+                current["branch"] = "(detached)"
+        if current:
+            trees.append(current)
+        for t in trees:
+            t["agent_isolated"] = "/.keelway/worktrees/" in t["path"].replace(os.sep, "/")
+        return {"is_git": res.returncode == 0, "worktrees": trees}
+
+    def remove_worktree(self, task_id: str, force: bool = False) -> Dict[str, Any]:
+        """Removes an agent worktree. Refuses to remove anything outside
+        .keelway/worktrees/ to protect the user's main checkout."""
+        safe_id = re.sub(r"[^A-Za-z0-9_-]", "-", task_id)
+        safe_id = re.sub(r"-+", "-", safe_id).strip("-") or "task"
+        wt_dir = self.root / ".keelway" / "worktrees" / safe_id
+        if not wt_dir.exists():
+            raise ValueError(f"No worktree for task '{safe_id}'.")
+        args = ["worktree", "remove"] + (["--force"] if force else []) + [str(wt_dir)]
+        res = self._git(args)
+        if res.returncode != 0:
+            raise ValueError(f"git worktree remove failed: {res.stderr.strip()}")
+        return {"status": "removed", "task_id": safe_id, "force": force}
+
+    # ---- Checkpoints (Gate-2: rollback) ----
+
+    @property
+    def _checkpoints_file(self) -> Path:
+        return self.root / ".keelway" / "checkpoints.json"
+
+    def _load_checkpoints(self) -> List[Dict[str, Any]]:
+        f = self._checkpoints_file
+        if f.exists():
+            try:
+                return json.loads(f.read_text())
+            except Exception:
+                return []
+        return []
+
+    def create_checkpoint(self, label: str = "") -> Dict[str, Any]:
+        """Snapshots working-tree state without modifying it.
+        Uses `git stash create`+`stash store`: a real commit object capturing
+        staged+unstaged changes. Untracked files are NOT captured (git limit —
+        reported honestly via `untracked_captured`)."""
+        status = self.get_git_status()
+        if not status["is_git"]:
+            raise ValueError("Workspace is not a Git repository.")
+        head = self._git(["rev-parse", "HEAD"]).stdout.strip()
+        stash_oid = ""
+        if not status["clean"]:
+            create = self._git(["stash", "create"])
+            stash_oid = create.stdout.strip()
+            if stash_oid:
+                msg = label or f"checkpoint {head[:8]}"
+                self._git(["stash", "store", "-m", msg, stash_oid])
+        import uuid, datetime, shutil
+        cp_id = uuid.uuid4().hex[:12]
+        untracked_dir = self.root / ".keelway" / "checkpoints" / cp_id / "untracked"
+        untracked = [f["path"] for f in status["files"] if f["status"] == "??" and not f["path"].startswith(".keelway/")]
+        for rel in untracked:
+            src = self.resolve_safe_path(rel)
+            if src.is_file():
+                dst = untracked_dir / rel
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+        cp = {
+            "id": cp_id,
+            "label": label or f"checkpoint-{head[:8]}",
+            "head_sha": head,
+            "stash_oid": stash_oid or None,
+            "untracked_files": untracked,
+            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+        cps = self._load_checkpoints()
+        cps.append(cp)
+        self._checkpoints_file.parent.mkdir(parents=True, exist_ok=True)
+        self._checkpoints_file.write_text(json.dumps(cps, indent=1))
+        return {
+            "status": "created", **cp,
+            "untracked_captured": len(untracked) > 0,
+            "restore_semantics": "git restore from snapshot commit + untracked file restore; overwrites tracked changes, does not delete files created after the checkpoint",
+        }
+
+    def list_checkpoints(self) -> Dict[str, Any]:
+        return {"checkpoints": self._load_checkpoints()}
+
+    def restore_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
+        """Restores a checkpoint's working-tree snapshot via `git stash apply`.
+        Fails cleanly rather than discarding state if the snapshot is gone."""
+        cps = self._load_checkpoints()
+        cp = next((c for c in cps if c["id"] == checkpoint_id), None)
+        if not cp:
+            raise ValueError(f"Checkpoint '{checkpoint_id}' not found.")
+        import shutil
+        untracked_dir = self.root / ".keelway" / "checkpoints" / cp["id"] / "untracked"
+        restored_untracked = []
+        if untracked_dir.is_dir():
+            for src in untracked_dir.rglob("*"):
+                if src.is_file():
+                    rel = src.relative_to(untracked_dir).as_posix()
+                    dst = self.resolve_safe_path(rel)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src, dst)
+                    restored_untracked.append(rel)
+        if not cp.get("stash_oid"):
+            return {"status": "restored", "id": checkpoint_id,
+                    "note": "no tracked snapshot; restored untracked files only",
+                    "restored_untracked": restored_untracked,
+                    "head_sha": cp["head_sha"]}
+        res = self._git(["restore", "--source=" + cp["stash_oid"], "--staged", "--worktree", "--", "."])
+        if res.returncode != 0:
+            raise ValueError(f"checkpoint restore failed: {res.stderr.strip()}")
+        return {"status": "restored", "id": checkpoint_id,
+                "applied": cp["stash_oid"],
+                "restored_untracked": restored_untracked,
+                "head_sha": cp["head_sha"]}
+
+    # ---- CI status (Gate-2: PR → CI visibility) ----
+
+    def get_ci_status(self, branch: Optional[str] = None, limit: int = 10) -> Dict[str, Any]:
+        """Reads GitHub Actions check runs via the `gh` CLI when available.
+        Returns an honest `available:false` when gh/auth/remote is absent —
+        degraded dependency, never fabricated status."""
+        import shutil
+        if not shutil.which("gh"):
+            return {"available": False,
+                    "reason": "GitHub CLI (`gh`) not installed; CI status requires gh auth."}
+        args = ["gh", "run", "list", "--limit", str(limit),
+                "--json", "status,conclusion,workflowName,headBranch,createdAt,displayTitle,url"]
+        if branch:
+            args += ["--branch", branch]
+        res = subprocess.run(args, cwd=str(self.root), capture_output=True, text=True, timeout=20)
+        if res.returncode != 0:
+            return {"available": False,
+                    "reason": res.stderr.strip() or "gh run list failed"}
+        try:
+            runs = json.loads(res.stdout or "[]")
+        except json.JSONDecodeError:
+            return {"available": False, "reason": "unparseable gh output"}
+        return {"available": True, "branch": branch or "all", "runs": runs, "count": len(runs)}
