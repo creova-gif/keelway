@@ -167,3 +167,28 @@ fixtures may only serve explicitly-marked test environments.
   flight-tape-verify, worktree-isolate, approval-grant, kflow-orchestrate); existing
   eight enriched with Keelway invariants; manifest regenerated; doctor verifies all 14.
 - Verified: tsc clean, 108/108 dev-app tests, manifest VALID, kstack suite 8 passed.
+
+## Round 4 — Runtime binding enforcement + first-run onboarding (commits 088e752, a07459e)
+
+- First-run onboarding now auto-opens when `keelway.onboarded` is absent and persists
+  the flag on dismissal/completion (previously reachable only via `?onboarding=1`).
+- Platform surfaces disclose when they render example data because the API did not
+  hydrate — the example chip distinguishes live state from bundled records.
+- **Runtime binding enforcement (the P0's deepest gap):** `ApprovalRule` stored
+  `bound_model_id`/`bound_prompt_version` at grant time but
+  `ApprovalRuleStore.match()` never checked them — a model switch showed "paused"
+  in the permissions UI while the agent loop kept auto-approving. Now `match()`
+  takes the run's declared `model_id`/`prompt_version`; a bound field must equal
+  the run's declared context or the rule stays dormant (fail closed → step pauses
+  for human approval). Unbound fields remain wildcards so legacy rules keep working.
+  `AutonomousAgentLoop` carries the context from the run payload; the manifest
+  path passes it through when the manifest declares one.
+- Honest semantics note: binding is *declared* run context (drift protection),
+  not verified identity — a caller can claim any context. That matches the
+  existing scope-matching trust model: rules narrow grants, they are not a
+  principal-authentication boundary.
+- New tests: bound rule pauses on model mismatch, auto-approves on exact binding,
+  pauses on prompt drift alone, unbound rule matches any declared context.
+- Verified: 26/26 approval-rule tests; 85 passed / 10 skipped across
+  approval-rules + agent-loop + guard + manifest suites; py_compile clean.
+  ruff unavailable on this host (noted for the record).
