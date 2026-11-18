@@ -45,8 +45,9 @@ These are baselines, not SLOs — no throughput claim beyond the test rig.
 ## Evidence
 
 - `pytest tests/test_m6_fault_injection_and_perf.py -v` → **9 passed in 0.31s**
-- `pytest tests/test_m6_crash_recovery.py -v` → **6 passed** (SIGKILL/WAL,
-  read-only dir, auto-mkdir, `:memory:` fallback, torn page, concurrent writers)
+- `pytest tests/test_m6_crash_recovery.py -v` → **7 passed** (SIGKILL/WAL,
+  read-only dir, auto-mkdir, `:memory:` loud fallback + fail-closed env,
+  torn page, concurrent writers)
 - GitHub Actions run `44208133157` (commit `0e548e5`) → **all 4 jobs green**
   on Python 3.11 and 3.14, including the torn-page test on Linux CI
 
@@ -60,7 +61,7 @@ corruption as result rows instead of raising.
 
 ## Follow-on: OS-level crash suite (added 2026-11-17)
 
-`tests/test_m6_crash_recovery.py` — 6 tests against real subprocesses and
+`tests/test_m6_crash_recovery.py` — 7 tests against real subprocesses and
 filesystem states:
 
 | Test | Verified contract |
@@ -68,7 +69,7 @@ filesystem states:
 | SIGKILL mid-write | Fresh engine reopens the DB, WAL replays, committed rows intact, writes resume |
 | Read-only directory | `sqlite3.OperationalError` on open — fails closed |
 | Missing parent dirs | **Auto-created** (`_resolve_sqlite_target` mkdirs) — actual contract |
-| Unwritable parent (file blocks mkdir) | **Silent `:memory:` fallback** — works but evidence is ephemeral. Asserted so a future fail-closed fix can't regress silently; flagged as an evidence-loss surface |
+| Unwritable parent (file blocks mkdir) | `:memory:` fallback now emits `RuntimeWarning` — never silent; `KEELWAY_DB_FAIL_CLOSED=1` raises `RuntimeError` instead |
 | Torn page (corrupt page mid-file) | `quick_check` detects — `DatabaseError` or non-`ok` rows, both accepted (version-dependent); first engine write through a torn copy raises — corruption is lazy, writes surface it |
 | Two writers, one SIGKILLed | `integrity_check ok`; surviving + fresh engine consistent |
 
@@ -80,4 +81,7 @@ filesystem states:
   page-granularity is inherent to SQLite; `integrity_check` is the
   full-store detector.
 - `:memory:` fallback on unwritable parents means interception evidence is
-  silently lost — see surfaced finding above.
+  ephemeral — now mitigated: the fallback emits a loud `RuntimeWarning`
+  ("runtime evidence will NOT persist") and `KEELWAY_DB_FAIL_CLOSED=1`
+  converts it into a hard `RuntimeError` for sovereign deployments that
+  refuse evidence-free operation. Both asserted in the crash suite.

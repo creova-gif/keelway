@@ -85,16 +85,27 @@ def test_missing_parent_directory_auto_created(tmp_path):
 
 
 def test_unwritable_parent_falls_back_to_memory(tmp_path):
-    """Contract: if the target dir cannot be created, the engine silently
-    degrades to :memory: — works but writes are ephemeral. Documented
-    evidence-loss surface, asserted so a future fix can't regress silently."""
+    """Contract: if the target dir cannot be created, the engine degrades to
+    :memory: — works but writes are ephemeral. The degradation must now warn
+    loudly: silent evidence loss is not acceptable on a sovereignty platform."""
     blocker = tmp_path / "blocker"
     blocker.write_text("i am a file, not a dir")
-    eng = SQLiteAgentCoharnessEngine(db_path=blocker / "h.db")
+    with pytest.warns(RuntimeWarning, match="evidence.*NOT persist"):
+        eng = SQLiteAgentCoharnessEngine(db_path=blocker / "h.db")
     assert str(eng.db_path) == ":memory:"
     rec = eng.intercept_tool_call(workspace_id="w", agent_host="claude_code",
                                   tool_name="Bash", command="echo hi")
     assert rec["verdict"] == "ALLOW"  # works, but nothing persists
+
+
+def test_unwritable_parent_fail_closed_env(tmp_path, monkeypatch):
+    """KEELWAY_DB_FAIL_CLOSED=1 turns the ephemeral fallback into a hard
+    error — sovereign deployments can refuse evidence-free operation."""
+    monkeypatch.setenv("KEELWAY_DB_FAIL_CLOSED", "1")
+    blocker = tmp_path / "blocker"
+    blocker.write_text("i am a file, not a dir")
+    with pytest.raises(RuntimeError, match="KEELWAY_DB_FAIL_CLOSED"):
+        SQLiteAgentCoharnessEngine(db_path=blocker / "h.db")
 
 
 def test_torn_page_detected_not_silent(tmp_path):

@@ -18,6 +18,7 @@ from pathlib import Path
 import secrets
 import sqlite3
 import threading
+import warnings
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 VALID_SECRET_NAMESPACES = frozenset({"byom", "plugin", "plugins", "webhook", "webhooks", "env", "mcp"})
@@ -164,7 +165,22 @@ def _resolve_sqlite_target(db_path: Optional[Union[str, Path]], env_var: str = "
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
         return target, str(target)
-    except OSError:
+    except OSError as exc:
+        # Ephemeral fallback keeps sandboxes/read-only-HOME environments alive,
+        # but evidence silently evaporates — it must never be silent.
+        if os.environ.get("KEELWAY_DB_FAIL_CLOSED", "").strip().lower() in {"1", "true", "yes", "on"}:
+            raise RuntimeError(
+                f"KEELWAY_DB_FAIL_CLOSED is set and storage directory "
+                f"'{target.parent}' could not be created; refusing ephemeral "
+                ":memory: fallback."
+            ) from exc
+        warnings.warn(
+            f"SQLite storage directory '{target.parent}' could not be created "
+            f"({exc}); falling back to ephemeral :memory: — runtime evidence "
+            "will NOT persist. Set KEELWAY_DB_FAIL_CLOSED=1 to refuse instead.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
         return ":memory:", ":memory:"
 
 
