@@ -4,39 +4,40 @@ import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import {
   fetchAgentManifests,
+  fetchApprovalRules,
   inspectAgentManifest,
+  reconfirmApprovalRule,
+  revokeApprovalRule,
   toggleAgentManifest,
 } from "@/lib/api";
 import type {
   AgentManifestItem,
+  ApprovalRuleItem,
   ManifestInspectResult,
-  ScopedPermissionRule,
 } from "@/lib/types";
 
-export const DEFAULT_SCOPED_RULES: ScopedPermissionRule[] = [
-  {
-    id: "rule-pytest-local",
-    capability: "Run sandboxed command",
-    scopePattern: "pytest tests/**",
-    mode: "allow_scoped",
-    boundModelId: "coder-7b@2.5.1",
-    boundPromptVersion: "p-13",
-    currentPromptVersion: "p-14",
-    driftDetected: true,
-    createdAt: "2026-11-12T18:00:00Z",
-  },
-  {
-    id: "rule-edit-devapp",
-    capability: "Edit workspace files",
-    scopePattern: "dev-app/src/**",
-    mode: "allow_scoped",
-    boundModelId: "coder-7b@2.5.1",
-    boundPromptVersion: "p-13",
-    currentPromptVersion: "p-14",
-    driftDetected: true,
-    createdAt: "2026-11-12T19:15:00Z",
-  },
-];
+/** The system prompt revision this build ships; bound rules on older versions drift. */
+export const CURRENT_PROMPT_VERSION = "p-14";
+
+/** Plain-language capability labels per the permissions comprehension redesign. */
+const TOOL_CAPABILITY_LABELS: Record<string, string> = {
+  edit_file: "Edit workspace files",
+  write_file: "Write workspace files",
+  run_command: "Run sandboxed command",
+};
+
+export function capabilityLabelForTool(toolName: string): string {
+  return TOOL_CAPABILITY_LABELS[toolName] ?? toolName;
+}
+
+export function isRuleDrifted(
+  rule: ApprovalRuleItem,
+  activeModelId: string | undefined,
+  currentPromptVersion: string,
+): boolean {
+  if (rule.boundPromptVersion && rule.boundPromptVersion !== currentPromptVersion) return true;
+  return Boolean(rule.boundModelId && activeModelId && rule.boundModelId !== activeModelId);
+}
 
 const SAMPLE_MANIFEST_JSON = JSON.stringify(
   {
@@ -55,26 +56,42 @@ const SAMPLE_MANIFEST_JSON = JSON.stringify(
 );
 
 export interface SettingsPermissionsPanelProps {
-  scopedRules: ScopedPermissionRule[];
-  onUpdateScopedRules: (nextRules: ScopedPermissionRule[]) => void;
+  /** Controlled rules state; when omitted the panel fetches and owns them. */
+  scopedRules?: ApprovalRuleItem[];
+  /** Called with the reconciled list after every successful load/mutation. */
+  onUpdateScopedRules?: (nextRules: ApprovalRuleItem[]) => void;
+  /** Current system prompt version — used to detect bound-version drift. */
+  currentPromptVersion?: string;
   activeModelId?: string;
+  fetchRulesFn?: typeof fetchApprovalRules;
+  reconfirmRuleFn?: typeof reconfirmApprovalRule;
+  revokeRuleFn?: typeof revokeApprovalRule;
   fetchManifestsFn?: typeof fetchAgentManifests;
   toggleManifestFn?: typeof toggleAgentManifest;
   inspectManifestFn?: typeof inspectAgentManifest;
 }
 
 export function SettingsPermissionsPanel({
-  scopedRules,
+  scopedRules: controlledRules,
   onUpdateScopedRules,
+  currentPromptVersion = CURRENT_PROMPT_VERSION,
   activeModelId,
+  fetchRulesFn = fetchApprovalRules,
+  reconfirmRuleFn = reconfirmApprovalRule,
+  revokeRuleFn = revokeApprovalRule,
   fetchManifestsFn = fetchAgentManifests,
   toggleManifestFn = toggleAgentManifest,
   inspectManifestFn = inspectAgentManifest,
 }: SettingsPermissionsPanelProps): React.JSX.Element {
+  const [uncontrolledRules, setUncontrolledRules] = useState<ApprovalRuleItem[]>([]);
+  const [rulesLoading, setRulesLoading] = useState(controlledRules === undefined);
+  const [rulesError, setRulesError] = useState<string | null>(null);
+  const [rulesBusy, setRulesBusy] = useState(false);
   const [manifests, setManifests] = useState<AgentManifestItem[]>([]);
   const [manifestsLoading, setManifestsLoading] = useState(true);
+  const [manifestsError, setManifestsError] = useState<string | null>(null);
   const [togglingIds, setTogglingIds] = useState<Record<string, boolean>>({});
-  const [manifestJson, setManifestJson] = useState(SAMPLE_MANIFEST_JSON);
+  const [manifestJson, setManifestJson] = useState("");
   const [inspectResult, setInspectResult] = useState<ManifestInspectResult | null>(null);
   const [inspecting, setInspecting] = useState(false);
 
@@ -86,11 +103,52 @@ export function SettingsPermissionsPanel({
   const manifestInputId = useId();
   const fetchManifestsRef = useRef(fetchManifestsFn);
   fetchManifestsRef.current = fetchManifestsFn;
+  const fetchRulesRef = useRef(fetchRulesFn);
+  fetchRulesRef.current = fetchRulesFn;
+  const onUpdateRulesRef = useRef(onUpdateScopedRules);
+  onUpdateRulesRef.current = onUpdateScopedRules;
+
+  const isControlled = controlledRules !== undefined;
+  const scopedRules = isControlled ? controlledRules : uncontrolledRules;
+  const commitRules = (next: ApprovalRuleItem[]) => {
+    if (!isControlled) setUncontrolledRules(next);
+    onUpdateRulesRef.current?.(next);
+  };
+
+  useEffect(() => {
+    if (controlledRules !== undefined) return;
+    let cancelled = false;
+    setRulesLoading(true);
+    fetchRulesRef
+      .current()
+      .then((items) => {
+        if (!cancelled) {
+          setUncontrolledRules(items);
+          onUpdateRulesRef.current?.(items);
+          setRulesError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setRulesError(
+            err instanceof Error ? err.message : "Standing rules could not be loaded.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setRulesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
     setManifestsLoading(true);
+    setManifestsError(null);
     fetchManifestsRef
       .current()
       .then((items) => {
@@ -98,7 +156,13 @@ export function SettingsPermissionsPanel({
           setManifests(items);
         }
       })
-      .catch(() => {})
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setManifestsError(
+            err instanceof Error ? err.message : "Manifest registry could not be loaded.",
+          );
+        }
+      })
       .finally(() => {
         if (!cancelled) {
           setManifestsLoading(false);
@@ -110,52 +174,102 @@ export function SettingsPermissionsPanel({
     };
   }, []);
 
-  const driftedRules = scopedRules.filter((r) => r.driftDetected);
+  const driftedRules = scopedRules.filter((r) =>
+    isRuleDrifted(r, activeModelId, currentPromptVersion),
+  );
   const firstDrifted = driftedRules[0];
   const hasPromptVersionDelta = Boolean(
-    firstDrifted && firstDrifted.boundPromptVersion !== firstDrifted.currentPromptVersion,
+    firstDrifted?.boundPromptVersion &&
+      firstDrifted.boundPromptVersion !== currentPromptVersion,
   );
   const driftTitle =
     hasPromptVersionDelta && firstDrifted
-      ? `Prompt version changed: ${firstDrifted.boundPromptVersion} → ${firstDrifted.currentPromptVersion}`
+      ? `Prompt version changed: ${firstDrifted.boundPromptVersion} → ${currentPromptVersion}`
       : "Active model or prompt binding changed";
   const driftDescription =
     driftedRules.length === 1
       ? "1 Allow always rule is paused until you re-confirm it."
       : `${driftedRules.length} Allow always rules are paused until you re-confirm them.`;
 
-  const handleReconfirmOne = (ruleId: string) => {
-    onUpdateScopedRules(
-      scopedRules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              boundPromptVersion: rule.currentPromptVersion,
-              boundModelId: activeModelId ?? rule.boundModelId,
-              driftDetected: false,
-            }
-          : rule,
+  const handleReconfirmOne = async (ruleId: string) => {
+    if (rulesBusy) return;
+    setRulesBusy(true);
+    setRulesError(null);
+    try {
+      const updated = await reconfirmRuleFn(ruleId, {
+        modelId: activeModelId,
+        promptVersion: currentPromptVersion,
+      });
+      commitRules(scopedRules.map((rule) => (rule.id === ruleId ? updated : rule)));
+    } catch (err) {
+      setRulesError(
+        err instanceof Error ? err.message : "Re-confirm failed — rule unchanged.",
+      );
+    } finally {
+      setRulesBusy(false);
+    }
+  };
+
+  const handleReconfirmAll = async () => {
+    if (rulesBusy || driftedRules.length === 0) return;
+    setRulesBusy(true);
+    setRulesError(null);
+    const results = await Promise.allSettled(
+      driftedRules.map((rule) =>
+        reconfirmRuleFn(rule.id, {
+          modelId: activeModelId,
+          promptVersion: currentPromptVersion,
+        }),
       ),
     );
-  };
-
-  const handleReconfirmAll = () => {
-    onUpdateScopedRules(
-      scopedRules.map((rule) => ({
-        ...rule,
-        boundPromptVersion: rule.currentPromptVersion,
-        boundModelId: activeModelId ?? rule.boundModelId,
-        driftDetected: false,
-      })),
+    const failedIds = new Set(
+      results
+        .map((result, idx) => (result.status === "rejected" ? driftedRules[idx]!.id : null))
+        .filter((id): id is string => id !== null),
     );
+    if (failedIds.size > 0) {
+      setRulesError(`${failedIds.size} rule${failedIds.size === 1 ? "" : "s"} could not be re-confirmed — left unchanged.`);
+    }
+    const updatedById = new Map(
+      results
+        .map((result, idx) =>
+          result.status === "fulfilled" ? ([driftedRules[idx]!.id, result.value] as const) : null,
+        )
+        .filter((entry): entry is readonly [string, ApprovalRuleItem] => entry !== null),
+    );
+    commitRules(scopedRules.map((rule) => updatedById.get(rule.id) ?? rule));
+    setRulesBusy(false);
   };
 
-  const handleRevokeOne = (ruleId: string) => {
-    onUpdateScopedRules(scopedRules.filter((rule) => rule.id !== ruleId));
+  const handleRevokeOne = async (ruleId: string) => {
+    if (rulesBusy) return;
+    setRulesBusy(true);
+    setRulesError(null);
+    try {
+      await revokeRuleFn(ruleId);
+      commitRules(scopedRules.filter((rule) => rule.id !== ruleId));
+    } catch (err) {
+      setRulesError(
+        err instanceof Error ? err.message : "Revoke failed — rule is still active.",
+      );
+    } finally {
+      setRulesBusy(false);
+    }
   };
 
-  const handleRevokeAll = () => {
-    onUpdateScopedRules([]);
+  const handleRevokeAll = async () => {
+    if (rulesBusy || scopedRules.length === 0) return;
+    setRulesBusy(true);
+    setRulesError(null);
+    const results = await Promise.allSettled(
+      scopedRules.map((rule) => revokeRuleFn(rule.id)),
+    );
+    const kept = scopedRules.filter((_, idx) => results[idx]!.status === "rejected");
+    if (kept.length > 0) {
+      setRulesError(`${kept.length} rule${kept.length === 1 ? "" : "s"} could not be revoked — still active.`);
+    }
+    commitRules(kept);
+    setRulesBusy(false);
   };
 
   const handleToggleManifest = async (item: AgentManifestItem) => {
@@ -168,8 +282,12 @@ export function SettingsPermissionsPanel({
       setManifests((prev) =>
         prev.map((m) => (m.id === item.id ? { ...m, enabled: updated.enabled } : m)),
       );
-    } catch {
-      // Preserve current manifest enabled state if toggle fails
+    } catch (err) {
+      if (mountedRef.current) {
+        setManifestsError(
+          err instanceof Error ? err.message : "Kill-switch toggle failed — manifest state unchanged.",
+        );
+      }
     } finally {
       togglingSetRef.current.delete(item.id);
       if (mountedRef.current) {
@@ -277,13 +395,26 @@ export function SettingsPermissionsPanel({
             </p>
           </div>
           {scopedRules.length > 0 ? (
-            <Button size="sm" variant="danger-ghost" onClick={handleRevokeAll}>
+            <Button size="sm" variant="danger-ghost" disabled={rulesBusy} onClick={() => void handleRevokeAll()}>
               Revoke all
             </Button>
           ) : null}
         </div>
 
-        {scopedRules.length === 0 ? (
+        {rulesError ? (
+          <div
+            role="alert"
+            className="mb-3 rounded-sm border border-danger bg-danger-subtle px-3 py-2 text-xs text-fg"
+          >
+            {rulesError}
+          </div>
+        ) : null}
+
+        {rulesLoading ? (
+          <div className="rounded-sm border border-border bg-canvas px-3 py-4 font-mono text-xs text-fg-muted">
+            Loading standing rules…
+          </div>
+        ) : scopedRules.length === 0 ? (
           <div className="rounded-sm border border-border bg-canvas px-3 py-4 text-xs text-fg-muted">
             No standing Allow always rules — Keelway asks every time.
           </div>
@@ -306,33 +437,40 @@ export function SettingsPermissionsPanel({
               </thead>
               <tbody className="divide-y divide-border">
                 {scopedRules.map((rule) => {
-                  const attachRef = rule.driftDetected && !assignedFirstReconfirmRef;
+                  const drifted = isRuleDrifted(rule, activeModelId, currentPromptVersion);
+                  const attachRef = drifted && !assignedFirstReconfirmRef;
                   if (attachRef) {
                     assignedFirstReconfirmRef = true;
                   }
                   return (
                     <tr key={rule.id} className="min-h-table-row hover:bg-surface-elevated">
-                      <td className="px-3 py-2 font-medium text-fg">{rule.capability}</td>
+                      <td className="px-3 py-2 font-medium text-fg">{capabilityLabelForTool(rule.toolName)}</td>
                       <td className="px-3 py-2">
                         <code dir="ltr" className="unicode-bidi-isolate rounded-xs border border-border bg-code px-1.5 py-0.5 font-mono text-fg">
-                          {rule.scopePattern}
+                          {rule.scope}
                         </code>
                       </td>
                       <td className="px-3 py-2 font-mono text-fg-muted">
-                        <code dir="ltr" className="unicode-bidi-isolate">
-                          {`${rule.boundModelId} · ${rule.boundPromptVersion}`}
-                        </code>
-                        {rule.driftDetected && rule.boundPromptVersion !== rule.currentPromptVersion ? (
+                        {rule.boundModelId || rule.boundPromptVersion ? (
+                          <code dir="ltr" className="unicode-bidi-isolate">
+                            {`${rule.boundModelId ?? "unbound model"} · ${rule.boundPromptVersion ?? "unbound prompt"}`}
+                          </code>
+                        ) : (
+                          <span>no model binding recorded</span>
+                        )}
+                        {drifted &&
+                        rule.boundPromptVersion &&
+                        rule.boundPromptVersion !== currentPromptVersion ? (
                           <span className="ms-1.5 text-warning">
                             {"→ "}
                             <code dir="ltr" className="unicode-bidi-isolate">
-                              {rule.currentPromptVersion}
+                              {currentPromptVersion}
                             </code>
                           </span>
                         ) : null}
                       </td>
                       <td className="px-3 py-2">
-                        {rule.driftDetected ? (
+                        {drifted ? (
                           <SemanticBadge kind="reconfirm" />
                         ) : (
                           <SemanticBadge kind="ready" labelOverride="Active" />
@@ -340,12 +478,13 @@ export function SettingsPermissionsPanel({
                       </td>
                       <td className="px-3 py-2 text-end">
                         <div className="inline-flex items-center justify-end gap-1.5">
-                          {rule.driftDetected ? (
+                          {drifted ? (
                             <Button
                               ref={attachRef ? firstReconfirmRef : undefined}
                               size="sm"
                               variant="primary"
-                              onClick={() => handleReconfirmOne(rule.id)}
+                              disabled={rulesBusy}
+                              onClick={() => void handleReconfirmOne(rule.id)}
                             >
                               Re-confirm
                             </Button>
@@ -353,7 +492,8 @@ export function SettingsPermissionsPanel({
                           <Button
                             size="sm"
                             variant="danger-ghost"
-                            onClick={() => handleRevokeOne(rule.id)}
+                            disabled={rulesBusy}
+                            onClick={() => void handleRevokeOne(rule.id)}
                           >
                             Revoke
                           </Button>
@@ -428,6 +568,15 @@ export function SettingsPermissionsPanel({
           </p>
         </div>
 
+        {manifestsError ? (
+          <div
+            role="alert"
+            className="rounded-sm border border-danger bg-danger-subtle px-3 py-2 text-xs text-fg"
+          >
+            {manifestsError}
+          </div>
+        ) : null}
+
         <div className="overflow-x-auto rounded-sm border border-border bg-canvas">
           <table
             aria-label="Agent manifest registry"
@@ -447,6 +596,12 @@ export function SettingsPermissionsPanel({
                 <tr>
                   <td colSpan={5} className="px-3 py-3 font-mono text-fg-muted">
                     Loading registered manifests…
+                  </td>
+                </tr>
+              ) : manifests.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-3 py-3 text-fg-muted">
+                    No agent manifests registered on this install.
                   </td>
                 </tr>
               ) : (
@@ -512,9 +667,19 @@ export function SettingsPermissionsPanel({
             <label htmlFor={manifestInputId} className="text-xs font-semibold text-fg">
               Manifest JSON (keelway.agent/v1)
             </label>
-            <Button type="submit" size="sm" variant="primary" loading={inspecting}>
-              Validate manifest
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setManifestJson(SAMPLE_MANIFEST_JSON)}
+              >
+                Insert example manifest
+              </Button>
+              <Button type="submit" size="sm" variant="primary" loading={inspecting}>
+                Validate manifest
+              </Button>
+            </div>
           </div>
           <textarea
             id={manifestInputId}
@@ -523,6 +688,7 @@ export function SettingsPermissionsPanel({
             rows={6}
             value={manifestJson}
             onChange={(e) => setManifestJson(e.target.value)}
+            placeholder={'Paste a keelway.agent/v1 manifest, or press "Insert example manifest".'}
             className="unicode-bidi-isolate w-full rounded-sm border border-border-control bg-code p-2.5 font-mono text-xs text-fg"
           />
 

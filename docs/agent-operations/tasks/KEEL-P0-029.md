@@ -62,6 +62,29 @@ fixtures may only serve explicitly-marked test environments.
   defect this task removes).
 - `core/dev_app_dist/`: rebuilt via `npm run build` (Vite outDir).
 
+### Second commit — real permission persistence & enforcement (this round)
+
+- `core/security/approval_rules.py`: `ApprovalRule` gains `bound_model_id` /
+  `bound_prompt_version`; `list()` tolerates legacy JSON lacking the new
+  fields; new `reconfirm()` persists re-binding.
+- `core/api/routes.py`: agent approve path records binding from `remember`;
+  new `POST /v1/approval-rules` (Studio grant path) and
+  `POST /v1/approval-rules/{id}/reconfirm`, both `APPROVE_TIER3` + audited.
+- `dev-app/src/lib/api.ts` / `apiDecoders.ts` / `apiFallbacks.ts`:
+  `fetchApprovalRules`, `createApprovalRule`, `reconfirmApprovalRule`,
+  `revokeApprovalRule` with real decoders + test-only fallbacks.
+- `SettingsPermissionsPanel.tsx`: rules render the persisted backend model;
+  drift derived via `isRuleDrifted()`; mutations are async with busy locks,
+  server-reconciled state, and inline `role="alert"` errors on failure;
+  manifest load/toggle failures surface; inspector starts empty with an
+  explicit "Insert example manifest".
+- `SettingsWorkspace.tsx` / `App.tsx`: `DEFAULT_SCOPED_RULES` and
+  `ScopedPermissionRule` deleted; rules fetched from the API on mount;
+  `handleCreateScopedRule` POSTs a real rule; drift badge derived, not
+  flagged.
+- `tests/test_approval_rules.py`: +2 tests — create/reconfirm/audit coverage
+  and legacy-JSON deserialization tolerance.
+
 ---
 
 ## 5. TESTS EXECUTED & EVIDENCE
@@ -83,10 +106,32 @@ fixtures may only serve explicitly-marked test environments.
       surfaced, not hidden).
 - [x] Fresh install shows no `hipaa-intake` demo workspace; `default` retained
       as legitimate first-run state.
-- [x] Automated tests updated and passing (108 dev-app, 23 backend focused).
-- [ ] **Remaining scope (explicitly not claimed)**: permissions-settings UX
-      redesign, permission persistence/enforcement trace, onboarding/first-run
-      empty states, keyboard/SR accessibility pass, clean-install E2E.
+- [x] **Prepopulated permission rules removed.** `DEFAULT_SCOPED_RULES` and the
+      fictional `ScopedPermissionRule` model are gone; the panel renders real
+      rules from `GET /v1/approval-rules` (persisted in
+      `.keelway/approval_rules.json`, durable across restart).
+- [x] **Revoke / revoke-all / reconfirm are durable and authorized.** Wired to
+      `DELETE /v1/approval-rules/{id}`, and new
+      `POST /v1/approval-rules` + `POST /v1/approval-rules/{id}/reconfirm` —
+      all gated `APPROVE_TIER3` + audit events; no optimistic state (server
+      response reconciled; partial failures keep surviving rules and surface
+      an inline `role="alert"`).
+- [x] **Drift is real, not a UI flag.** `ApprovalRule` persists
+      `bound_model_id`/`bound_prompt_version` captured at grant; drift is
+      derived from binding-vs-current mismatch, so a model switch pauses
+      standing rules automatically.
+- [x] **Sample manifest is an explicit option.** Inspector starts empty with
+      a labeled "Insert example manifest" button.
+- [x] **Plain-language capability labels** (`run_command` → "Run sandboxed
+      command", `edit_file`/`write_file` → file-access wording); unbound
+      grants honestly shown as "no model binding recorded".
+- [x] Automated tests updated and passing (108 dev-app, 46 backend focused
+      incl. new create/reconfirm/legacy-JSON coverage).
+- [ ] **Remaining scope (explicitly not claimed)**: first-run onboarding,
+      full keyboard/SR accessibility pass on this screen, clean-install E2E,
+      per-view error states for the ~60 platform panels that still
+      `.catch(() => {})` (they now fail visibly in the status bar rather
+      than fabricating, but lack panel-level error UI).
 
 ---
 

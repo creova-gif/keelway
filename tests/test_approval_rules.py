@@ -138,3 +138,38 @@ def test_many_recursive_segments_match_in_polynomial_time():
     start = time.monotonic()
     assert not rule_matches(rule, "write_file", {"path": "/".join(["a"] * 20) + "/y.py"})
     assert time.monotonic() - start < 1
+
+
+def test_create_reconfirm_and_revoke_via_api(client, tmp_path):
+    created = client.post("/v1/approval-rules", json={
+        "tool_name": "edit_file", "scope": "src/*.py",
+        "model_id": "coder-7b@2.5.1", "prompt_version": "p-13",
+    })
+    assert created.status_code == 200
+    rule = created.json()["rule"]
+    assert rule["bound_model_id"] == "coder-7b@2.5.1" and rule["bound_prompt_version"] == "p-13"
+
+    dup = client.post("/v1/approval-rules", json={"tool_name": "edit_file", "scope": "src/*.py"})
+    assert dup.status_code == 200 and dup.json()["created"] is False
+
+    reconfirmed = client.post(f"/v1/approval-rules/{rule['id']}/reconfirm", json={"prompt_version": "p-14"})
+    assert reconfirmed.status_code == 200
+    bound = reconfirmed.json()["reconfirmed"]
+    assert bound["bound_prompt_version"] == "p-14" and bound["bound_model_id"] is None
+
+    assert client.post("/v1/approval-rules/nope/reconfirm", json={}).status_code == 404
+    assert client.post("/v1/approval-rules", json={"tool_name": "read_file", "scope": "x"}).status_code == 400
+    actions = [e["action"] for e in client.get("/v1/audit?limit=50").json()]
+    assert "approval_rule_create" in actions and "approval_rule_reconfirm" in actions
+
+
+def test_legacy_rule_file_without_binding_fields_still_loads(tmp_path):
+    import json as _json
+    from core.security.approval_rules import ApprovalRuleStore
+    (tmp_path / ".keelway").mkdir()
+    (tmp_path / ".keelway" / "approval_rules.json").write_text(_json.dumps({
+        "version": 1,
+        "rules": [{"id": "r1", "tool_name": "edit_file", "scope": "a.py", "created_by": "me", "created_at": 0.0}],
+    }))
+    rules = ApprovalRuleStore(tmp_path).list()
+    assert [r.id for r in rules] == ["r1"] and rules[0].bound_prompt_version is None

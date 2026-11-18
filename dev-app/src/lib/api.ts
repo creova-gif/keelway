@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
+  AgentManifestItem, ApprovalRuleItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
   DoctorCheckItem, EgressBarMode, EgressTelemetryState, FileDiffHunk,
   GitCommitProposal, GitCommitResult, GovernancePersistenceInfo,
   ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
@@ -8,6 +8,7 @@ import type {
 } from "./types";
 import {
   buildAuditBundleFromEntries, createFallbackGitCommit, getFallbackAirGapAudit,
+  getFallbackApprovalRules, getFallbackRevokedRule,
   getFallbackAuditEntries, getFallbackChainVerification, getFallbackDiffHunks,
   getFallbackDoctorChecks, getFallbackFileContent, getFallbackFilesTree,
   getFallbackGitProposal, getFallbackGovernancePersistence, getFallbackGovernancePolicy,
@@ -18,7 +19,8 @@ import {
   verifyFallbackScopedKey,
 } from "./apiFallbacks";
 import {
-  asNumber, asString, decodeAirGapAudit, decodeAuditEntry, decodeChainVerification,
+  asNumber, asString, decodeAirGapAudit, decodeApprovalRule, decodeApprovalRuleList,
+  decodeAuditEntry, decodeChainVerification,
   decodeDoctorChecks, decodeFilesTree, decodeGitCommitResult, decodeGitProposal,
   decodeGovernancePersistence, decodeManifestInspectResult, decodeManifestItem,
   decodeManifestList, decodeMerkleProof, decodeMintedScopedKey, decodeOpenCoreWeights,
@@ -806,5 +808,106 @@ export async function fetchPlatformOverviewStatus(): Promise<{ available: boolea
     { method: "GET" },
     (raw) => (isRecord(raw) ? { available: true, mode: "api" as const } : null),
     () => ({ available: true, mode: "local_offline" as const }),
+  );
+}
+
+export async function fetchApprovalRules(): Promise<ApprovalRuleItem[]> {
+  return requestSameOriginDecoded(
+    "/v1/approval-rules",
+    { method: "GET" },
+    decodeApprovalRuleList,
+    getFallbackApprovalRules,
+  );
+}
+
+export interface CreateApprovalRuleInput {
+  toolName: string;
+  scope: string;
+  modelId?: string;
+  promptVersion?: string;
+}
+
+export async function createApprovalRule(input: CreateApprovalRuleInput): Promise<{ created: boolean; rule: ApprovalRuleItem }> {
+  return requestSameOriginDecoded(
+    "/v1/approval-rules",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        tool_name: input.toolName,
+        scope: input.scope,
+        model_id: input.modelId,
+        prompt_version: input.promptVersion,
+      }),
+    },
+    (raw) => {
+      if (!isRecord(raw)) return null;
+      const rule = decodeApprovalRule(raw.rule);
+      return rule ? { created: raw.created === true, rule } : null;
+    },
+    () => ({
+      created: true,
+      rule: {
+        id: `rule-${Date.now()}`,
+        toolName: input.toolName,
+        scope: input.scope,
+        createdBy: "owner",
+        createdAtEpoch: Math.floor(Date.now() / 1000),
+        boundModelId: input.modelId ?? null,
+        boundPromptVersion: input.promptVersion ?? null,
+      },
+    }),
+  );
+}
+
+export async function reconfirmApprovalRule(
+  ruleId: string,
+  binding: { modelId?: string; promptVersion?: string },
+): Promise<ApprovalRuleItem> {
+  return requestSameOriginDecoded(
+    `/v1/approval-rules/${encodeURIComponent(ruleId)}/reconfirm`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        model_id: binding.modelId,
+        prompt_version: binding.promptVersion,
+      }),
+    },
+    (raw) => (isRecord(raw) ? decodeApprovalRule(raw.reconfirmed) : null),
+    () => {
+      const found = getFallbackRevokedRule(ruleId);
+      if (found) {
+        return {
+          ...found,
+          boundModelId: binding.modelId ?? found.boundModelId,
+          boundPromptVersion: binding.promptVersion ?? found.boundPromptVersion,
+        };
+      }
+      return {
+        id: ruleId,
+        toolName: "edit_file",
+        scope: "src/**",
+        createdBy: "owner",
+        createdAtEpoch: Math.floor(Date.now() / 1000),
+        boundModelId: binding.modelId ?? null,
+        boundPromptVersion: binding.promptVersion ?? null,
+      };
+    },
+  );
+}
+
+export async function revokeApprovalRule(ruleId: string): Promise<ApprovalRuleItem> {
+  return requestSameOriginDecoded(
+    `/v1/approval-rules/${encodeURIComponent(ruleId)}`,
+    { method: "DELETE" },
+    (raw) => (isRecord(raw) ? decodeApprovalRule(raw.revoked) : null),
+    () => getFallbackRevokedRule(ruleId) ?? {
+      id: ruleId,
+      toolName: "edit_file",
+      scope: "src/**",
+      createdBy: "owner",
+      createdAtEpoch: Math.floor(Date.now() / 1000),
+      boundModelId: null,
+      boundPromptVersion: null,
+    },
   );
 }

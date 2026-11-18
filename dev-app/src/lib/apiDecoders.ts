@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
+  AgentManifestItem, ApprovalRuleItem, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
   DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal, GitCommitResult,
   GovernancePersistenceInfo, ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
   P10DiffLine, RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem,
@@ -722,4 +722,28 @@ export function decodeMintedScopedKey(
     oneTimeWarning:
       "Copy this secret now. Keelway stores only its SHA-256 digest and cannot show it again.",
   };
+}
+
+export function decodeApprovalRule(raw: unknown): ApprovalRuleItem | null {
+  if (!isRecord(raw)) return null;
+  const id = asString(raw.id);
+  const toolName = asString(raw.tool_name || raw.toolName);
+  const scope = asString(raw.scope);
+  if (!id || !toolName || !scope) return null;
+  return {
+    id,
+    toolName,
+    scope,
+    createdBy: asString(raw.created_by || raw.createdBy, "unknown"),
+    createdAtEpoch: asNumber(raw.created_at ?? raw.createdAtEpoch, 0),
+    boundModelId: asString(raw.bound_model_id || raw.boundModelId) || null,
+    boundPromptVersion: asString(raw.bound_prompt_version || raw.boundPromptVersion) || null,
+  };
+}
+
+export function decodeApprovalRuleList(raw: unknown): ApprovalRuleItem[] | null {
+  if (!isRecord(raw) || !Array.isArray(raw.rules)) return null;
+  return raw.rules
+    .map((item) => decodeApprovalRule(item))
+    .filter((item): item is ApprovalRuleItem => item !== null);
 }

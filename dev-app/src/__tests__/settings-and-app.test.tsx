@@ -26,7 +26,7 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
       </React.StrictMode>,
     );
 
-    const driftBanner = screen.getByText("Prompt version changed: p-13 → p-14").closest("[data-callout-variant='prompt-drift']");
+    const driftBanner = (await screen.findByText("Prompt version changed: p-13 → p-14")).closest("[data-callout-variant='prompt-drift']");
     if (!(driftBanner instanceof HTMLElement)) throw new Error("Expected prompt-drift banner element");
     expect(within(driftBanner).getByText("2 Allow always rules are paused until you re-confirm them.")).toBeInTheDocument();
     expect(within(driftBanner).getByRole("button", { name: /Review 2 rules/i })).toBeInTheDocument();
@@ -71,8 +71,10 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
     await waitFor(() => expect(toggleBtn).toHaveAttribute("aria-pressed", "false"));
     expect(toggleBtn).toHaveTextContent(/Disabled/i);
 
-    // Validate prefilled manifest JSON, then validate a network-enabled high-risk manifest & invalid JSON
+    // Inspector starts empty; the example manifest is an explicit, labeled option
     const inspectorInput = screen.getByLabelText(/Manifest JSON \(keelway\.agent\/v1\)/i);
+    expect((inspectorInput as HTMLTextAreaElement).value).toBe("");
+    await user.click(screen.getByRole("button", { name: /Insert example manifest/i }));
     await user.click(screen.getByRole("button", { name: /Validate manifest/i }));
     const inspectRegion = await screen.findByTestId("manifest-inspect-result");
     expect(within(inspectRegion).getByText("Valid")).toBeInTheDocument();
@@ -105,7 +107,7 @@ describe("Screen 09 — SettingsModelsPanel (Models & 4D Hybrid Routing)", () =>
     render(<SettingsWorkspace defaultSubSection="permissions" />);
 
     // First clear initial p-13 -> p-14 drift on Permissions tab so all standing rules are Active
-    await user.click(screen.getByRole("button", { name: /Re-confirm all/i }));
+    await user.click(await screen.findByRole("button", { name: /Re-confirm all/i }));
     expect(screen.queryByText(/Allow always rules are paused/i)).toBeNull();
 
     // Navigate to Models & 4D Routing
@@ -621,7 +623,7 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
 
     // Part A: ⌘K model switch updates activeModelId + status bar AND pauses re-confirmed standing rules
     const desktopApp = render(<App initialSection="settings" initialSettingsSubSection="permissions" />);
-    await user.click(screen.getByRole("button", { name: /Re-confirm all/i }));
+    await user.click(await screen.findByRole("button", { name: /Re-confirm all/i }));
     expect(screen.queryByText(/Allow always rules are paused/i)).toBeNull();
 
     fireEvent.keyDown(window, { key: "k", metaKey: true });

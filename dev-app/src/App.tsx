@@ -11,25 +11,27 @@ import {
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import {
   applyDensityToDocument, applyLocaleToDocument, applyReduceMotionToDocument, applyThemeToDocument,
-  DEFAULT_SCOPED_RULES, isEditableKeyboardTarget, SettingsSubNav, SettingsWorkspace,
+  isEditableKeyboardTarget, SettingsSubNav, SettingsWorkspace,
 } from "@/components/screens/SettingsWorkspace";
+import { CURRENT_PROMPT_VERSION, isRuleDrifted } from "@/components/screens/settings/SettingsPermissionsPanel";
 import {
   buildLogsDrawerTabPanels, ReviewChangesContent, TasksWorkspace, type TerminalExecEntry,
 } from "@/components/screens/TasksWorkspace";
 import {
-  connectStudioWebSocket, execSandboxTerminal, fetchAirGapAudit, fetchCodebaseSymbols,
+  connectStudioWebSocket, createApprovalRule, execSandboxTerminal, fetchAirGapAudit,
+  fetchApprovalRules, fetchCodebaseSymbols,
   fetchFilesTree, fetchOpenCoreWeights, fetchStudioDiff, toggleAirGap,
 } from "@/lib/api";
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
 import {
-  buildApprovalReceipt, buildPaletteModelsAndSettings, buildScopedRule,
+  buildApprovalReceipt, buildPaletteModelsAndSettings,
   INITIAL_PROPOSALS, INITIAL_STEP_RECEIPTS, INITIAL_TASKS,
   mergeFocusedDiffHunks, readInitialUrlState, resolveMainAriaLabel, syncWorkspaceUrlParams,
 } from "@/lib/appStateHelpers";
 import type {
   CodeSymbolItem, DensityMode, EgressTelemetryState, FileDiffHunk, LocaleCode,
   OpenCoreWeightItem, P10ApprovalDecisionPayload, P10ApprovalReceipt, P10ScopedRuleSpec,
-  PlatformViewId, RailSection, ScopedPermissionRule, SettingsSubSection, SidebarTaskItem, ThemeMode,
+  PlatformViewId, RailSection, ApprovalRuleItem, SettingsSubSection, SidebarTaskItem, ThemeMode,
   WorkspaceFileNode,
 } from "@/lib/types";
 
@@ -154,9 +156,7 @@ export function App({
   const [recordVerifyNonce, setRecordVerifyNonce] = useState(0);
   const [recordSeqLatest, setRecordSeqLatest] = useState(1283);
 
-  const [scopedRules, setScopedRules] = useState<ScopedPermissionRule[]>(() =>
-    structuredClone(DEFAULT_SCOPED_RULES),
-  );
+  const [scopedRules, setScopedRules] = useState<ApprovalRuleItem[]>([]);
   const [activeModelId, setActiveModelId] = useState("keelway-core:7b");
   const [activeModelLabel, setActiveModelLabel] = useState("coder-7b v2.5.1");
 
@@ -246,6 +246,7 @@ export function App({
     fetchCodebaseSymbols().then((syms) => { if (!cancelled) setWorkspaceSymbols(syms); }).catch(() => {});
     fetchStudioDiff().then((hunks) => { if (!cancelled) setDiffHunks(hunks); }).catch(() => {});
     fetchOpenCoreWeights().then((w) => { if (!cancelled) setOpenCoreWeights(w); }).catch(() => {});
+    fetchApprovalRules().then((rules) => { if (!cancelled) setScopedRules(rules); }).catch(() => {});
     fetchAirGapAudit()
       .then((audit) => {
         if (!cancelled && airGapReqSeqRef.current === 0) {
@@ -320,13 +321,10 @@ export function App({
 
   const handleSelectActiveModel = useCallback(
     (nextModelId: string, nextModelLabel: string) => {
-      if (nextModelId !== activeModelId) {
-        setScopedRules((prev) => prev.map((rule) => ({ ...rule, driftDetected: true })));
-      }
       setActiveModelId(nextModelId);
       setActiveModelLabel(nextModelLabel);
     },
-    [activeModelId],
+    [],
   );
 
   const handleProposalDecision = useCallback(
@@ -349,7 +347,18 @@ export function App({
 
   const handleCreateScopedRule = useCallback(
     (spec: P10ScopedRuleSpec) => {
-      setScopedRules((prev) => [buildScopedRule(spec, activeModelId), ...prev]);
+      void createApprovalRule({
+        toolName: spec.actionKind === "command" ? "run_command" : "edit_file",
+        scope: spec.scopePattern,
+        modelId: spec.modelId || activeModelId,
+        promptVersion: spec.promptVersion,
+      })
+        .then(({ rule }) => {
+          setScopedRules((prev) =>
+            prev.some((r) => r.id === rule.id) ? prev : [rule, ...prev],
+          );
+        })
+        .catch(() => {});
     },
     [activeModelId],
   );
@@ -454,8 +463,9 @@ export function App({
     [activeTask.id],
   );
   const driftedRulesCount = useMemo(
-    () => scopedRules.filter((r) => r.driftDetected).length,
-    [scopedRules],
+    () =>
+      scopedRules.filter((r) => isRuleDrifted(r, activeModelId, CURRENT_PROMPT_VERSION)).length,
+    [scopedRules, activeModelId],
   );
 
   const contextSidebarContent = useMemo(() => {
