@@ -22,7 +22,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: control-plane
-          image: ghcr.io/creova-gif/kora:latest
+          image: ghcr.io/creova-gif/keelway:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

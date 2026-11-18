@@ -22,7 +22,7 @@ SOURCE_DEFAULT_SECRETS = frozenset(
         b"keelway_quorum_signing_secret_v1",
         b"KEELWAY_ENTERPRISE_ENTITLEMENT_SIGNING_KEY_2026",
         b"KEELWAY_BILLING_WEBHOOK_SECRET_2026",
-        b"KORA_SOVEREIGN_PAYMENT_SECRET_2026",
+        b"KEELWAY_SOVEREIGN_PAYMENT_SECRET_2026",
         b"keelway_github_webhook_secret_v1",
     }
 )

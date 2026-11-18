@@ -382,8 +382,8 @@ def test_bubblewrap_simulated_ubuntu_mount_ordering_and_protections(monkeypatch)
     ro_git = triple_idx("--ro-bind", str(ws / ".git"), str(ws / ".git"))
     tmpfs_keelway = pair_idx("--tmpfs", str(ws / ".keelway"))
     remount_keelway = pair_idx("--remount-ro", str(ws / ".keelway"))
-    tmpfs_kora = pair_idx("--tmpfs", str(ws / ".kora"))
-    remount_kora = pair_idx("--remount-ro", str(ws / ".kora"))
+    tmpfs_legacy = pair_idx("--tmpfs", str(ws / ".kora"))
+    remount_legacy = pair_idx("--remount-ro", str(ws / ".kora"))
 
     remount_home = pair_idx("--remount-ro", "/home")
     remount_root = pair_idx("--remount-ro", "/root")
@@ -397,9 +397,9 @@ def test_bubblewrap_simulated_ubuntu_mount_ordering_and_protections(monkeypatch)
     # 2. Protected .git, .keelway, and .kora masks apply AFTER workspace --bind.
     assert bind_ws < ro_git
     assert bind_ws < tmpfs_keelway < remount_keelway
-    assert bind_ws < tmpfs_kora < remount_kora
+    assert bind_ws < tmpfs_legacy < remount_legacy
     # 3. Parent --remount-ro on /home and /root occurs AFTER all child mounts so mkdir/bind never hit EROFS.
-    assert max(ro_user_bin, bind_ws, remount_keelway, remount_kora) < remount_home
+    assert max(ro_user_bin, bind_ws, remount_keelway, remount_legacy) < remount_home
     assert tmpfs_root < remount_root
     # 4. Namespace, session, and command arguments follow cleanly.
     for required_flag in ("--unshare-net", "--unshare-pid", "--die-with-parent", "--new-session"):

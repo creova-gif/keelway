@@ -30,5 +30,5 @@ variable "worm_retention_days" {
 variable "container_image" {
   description = "Keelway container image"
   type        = string
-  default     = "gcr.io/creova-gif/kora:latest"
+  default     = "gcr.io/creova-gif/keelway:latest"
 }

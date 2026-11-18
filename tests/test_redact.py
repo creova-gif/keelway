@@ -36,7 +36,7 @@ def test_secrets_are_removed_from_text(text, secret):
 
 @pytest.mark.parametrize("text", [
     "", "plain prose with no secrets", "def add(a, b):\n    return a + b", "max_tokens = 256", "tokenizer = load()",
-    "AUTHOR=Jane Doe", "DATABASE_URL=sqlite+aiosqlite:///./kora.db", "http://localhost:7420/?x=1", "redis://localhost:6379/0",
+    "AUTHOR=Jane Doe", "DATABASE_URL=sqlite+aiosqlite:///./keelway.db", "http://localhost:7420/?x=1", "redis://localhost:6379/0",
     "https://example.com/a@b", "sk-learn is a library", "ssh-rsa AAAAB3NzaC1yc2E user@host",
 ])
 def test_ordinary_text_is_left_alone(text):

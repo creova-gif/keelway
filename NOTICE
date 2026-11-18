@@ -1,5 +1,5 @@
 ========================================================================
-Keelway / Kora Software System Notice & Attribution
+Keelway Software System Notice & Attribution
 ========================================================================
 
 Copyright (c) 2026 Sorvex Labs & Kora Technologies Contributors.
@@ -8,7 +8,7 @@ All rights reserved.
 This product includes software developed by:
 - Sorvex Labs (Keelway developer software, sovereign enterprise governance,
   hardware security HAL, and customer runner fleet architecture)
-- Kora Technologies (Kora AI agent runtime, local model engine, and state machine)
+- Kora Technologies (Keelway AI agent runtime (formerly Kora AI), local model engine, and state machine)
 
 ========================================================================
 TRADEMARKS AND BRAND IDENTITIES
@@ -23,7 +23,7 @@ OPEN-CORE AND COMMERCIAL BOUNDARIES
 ========================================================================
 The open-core repository consists of:
 1. Open-Source Core (Apache License 2.0):
-   - Kora AI Core agent runtime, ReAct execution loop, and local model gateway.
+   - Keelway AI Core agent runtime, ReAct execution loop, and local model gateway.
    - Keelway Core reference workflow engine (keelway_core).
    - Local command-line interfaces (CLI) and project adapters.
    - Universal MCP bridge and plugin execution harness.

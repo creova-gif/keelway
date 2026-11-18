@@ -26,13 +26,13 @@ class ResearchSummaryWorkflow:
     def load_internal_docs_index(self) -> str:
         """Load internal architectural context for comparison."""
         context = []
-        kora_candidates = [
+        keelway_candidates = [
             self.docs_dir / "docs" / "architecture" / "KEELWAY.md",
             self.docs_dir / "KEELWAY.md",
             Path("docs/architecture/KEELWAY.md"),
             Path("KEELWAY.md"),
         ]
-        for k_path in kora_candidates:
+        for k_path in keelway_candidates:
             if k_path.exists():
                 context.append(f"=== Keelway Philosophy & Tenets ===\n{k_path.read_text()[:1500]}")
                 break

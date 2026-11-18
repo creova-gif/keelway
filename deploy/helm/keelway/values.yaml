@@ -3,7 +3,7 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/creova-gif/kora
+  repository: ghcr.io/creova-gif/keelway
   pullPolicy: IfNotPresent
   tag: "latest"
 

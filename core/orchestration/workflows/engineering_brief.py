@@ -26,13 +26,13 @@ class EngineeringBriefWorkflow:
     def load_governance_context(self) -> str:
         """Load KEELWAY.md and ADR-001 principles as grounded context."""
         context_parts = []
-        kora_candidates = [
+        keelway_candidates = [
             self.docs_dir / "docs" / "architecture" / "KEELWAY.md",
             self.docs_dir / "KEELWAY.md",
             Path("docs/architecture/KEELWAY.md"),
             Path("KEELWAY.md"),
         ]
-        for k_path in kora_candidates:
+        for k_path in keelway_candidates:
             if k_path.exists():
                 context_parts.append(f"=== KEELWAY.md Principles ===\n{k_path.read_text()[:2000]}")
                 break

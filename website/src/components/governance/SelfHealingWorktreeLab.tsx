@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
 
 /**
- * Closed-loop self-healing worktree demo — migrated from the legacy Kora
+ * Closed-loop self-healing worktree demo — migrated from the legacy Keelway
  * landing page. Simulates intercepting a failing test, slicing the AST frame,
  * and patching inside an isolated ephemeral Git worktree.
  */

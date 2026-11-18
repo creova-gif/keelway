@@ -34,7 +34,7 @@ def utc_now() -> datetime:
 
 
 class TaskRecord(Base):
-    __tablename__ = "kora_tasks"
+    __tablename__ = "keelway_tasks"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     title = Column(String(255), nullable=False)
@@ -52,10 +52,10 @@ class TaskRecord(Base):
 
 
 class TraceRecord(Base):
-    __tablename__ = "kora_traces"
+    __tablename__ = "keelway_traces"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    task_id = Column(String(36), ForeignKey("kora_tasks.id", ondelete="CASCADE"), nullable=True, index=True)
+    task_id = Column(String(36), ForeignKey("keelway_tasks.id", ondelete="CASCADE"), nullable=True, index=True)
     provider = Column(String(50), nullable=False)
     model = Column(String(100), nullable=False)
     prompt_tokens = Column(Integer, default=0, nullable=False)
@@ -70,10 +70,10 @@ class TraceRecord(Base):
 
 
 class EvidenceRecord(Base):
-    __tablename__ = "kora_evidence"
+    __tablename__ = "keelway_evidence"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    task_id = Column(String(36), ForeignKey("kora_tasks.id", ondelete="SET NULL"), nullable=True, index=True)
+    task_id = Column(String(36), ForeignKey("keelway_tasks.id", ondelete="SET NULL"), nullable=True, index=True)
     source_uri = Column(String(512), nullable=False)
     commit_sha = Column(String(40), nullable=True)
     classification = Column(String(50), default="UNVERIFIED", nullable=False)
@@ -85,7 +85,7 @@ class EvidenceRecord(Base):
 
 
 class MemoryRecord(Base):
-    __tablename__ = "kora_memories"
+    __tablename__ = "keelway_memories"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     scope = Column(String(100), default="project", nullable=False, index=True)
@@ -99,7 +99,7 @@ class MemoryRecord(Base):
 
 
 class ApiTokenRecord(Base):
-    __tablename__ = "kora_api_tokens"
+    __tablename__ = "keelway_api_tokens"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(100), nullable=False)
@@ -113,7 +113,7 @@ class ApiTokenRecord(Base):
 
 class PairingCodeRecord(Base):
     """Single-use code that a phone exchanges for a phone-role token; only its hash is stored."""
-    __tablename__ = "kora_pairing_codes"
+    __tablename__ = "keelway_pairing_codes"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     code_hash = Column(String(64), nullable=False, unique=True, index=True)
@@ -126,7 +126,7 @@ class PairingCodeRecord(Base):
 class AuditEventRecord(Base):
     """Append-only, hash-chained audit trail: entry_hash = sha256(prev_hash + canonical fields)."""
 
-    __tablename__ = "kora_audit_events"
+    __tablename__ = "keelway_audit_events"
 
     seq = Column(Integer, primary_key=True, autoincrement=True)
     timestamp = Column(String(40), nullable=False, index=True)

@@ -15,7 +15,7 @@ const SPEEDS: Record<number, string> = {
 
 /**
  * Speculative decoding tandem-velocity explorer — migrated from the legacy
- * Kora landing page. Simulates 0.5B draft + 7B target verification throughput.
+ * Keelway landing page. Simulates 0.5B draft + 7B target verification throughput.
  */
 export function SpeculativeDecodingLab() {
   const [k, setK] = useState(4);

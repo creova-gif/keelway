@@ -2,7 +2,7 @@
 # Schema: https://keelway.dev/schemas/product-facts.v1.yaml
 version: "0.1.0"
 last_verified_at: "2026-11-05T23:13:22Z"
-source_repository: "https://github.com/creova-gif/kora.git"
+source_repository: "https://github.com/creova-gif/keelway.git"
 active_commit_sha: "073d5e86e3dba727c4dd0e561e24927e98fe51db"
 local_model_target: "qwen3.5:latest (Ollama localhost:11434)"
 total_passing_tests: 768
