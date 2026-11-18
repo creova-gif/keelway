@@ -87,6 +87,167 @@ async def create_completion(request: CompletionRequestSchema) -> CompletionRespo
         )
 
 
+@router.get("/v1/models", dependencies=[Depends(current_principal)], tags=["Inference"])
+async def list_models(
+    category: Optional[str] = None,
+    provider: Optional[str] = None,
+    capability: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Discover all supported AI models across Open-Weight and Closed/Proprietary providers."""
+    from core.models.registry import model_registry, ModelCategory
+    from core.api.schemas import Provider
+
+    cat_enum = None
+    if category:
+        try:
+            cat_enum = ModelCategory(category.lower())
+        except ValueError:
+            pass
+
+    prov_enum = None
+    if provider:
+        try:
+            prov_enum = Provider(provider.lower())
+        except ValueError:
+            pass
+
+    models = model_registry.list_models(category=cat_enum, provider=prov_enum, capability=capability)
+
+    # Live local-runtime truth: which advertised open-weight models are actually installed.
+    installed_local: List[str] = []
+    try:
+        local_adapter = gateway.adapters.get(Provider.LOCAL)
+        rt = local_adapter.local_runtime() if hasattr(local_adapter, "local_runtime") else None
+        installed_local = list(rt.models) if rt is not None and rt.up else []
+    except Exception:
+        installed_local = []
+
+    def _installed(model_id: str) -> bool:
+        for name in installed_local:
+            if name == model_id or name == f"{model_id}:latest" or model_id == f"{name}:latest":
+                return True
+            if name.split(":latest")[0] == model_id.split(":latest")[0]:
+                return True
+        return False
+
+    # KEEL-PROD-041: flagship keelway-* models alias to a compatible installed
+    # local runtime model; only alias-incapable or unbound entries are simulated.
+    from core.opencore.runtime import LocalRuntimeDiscovery
+    from core.opencore.weights import weight_manager as _opencore_weights
+
+    def _runtime_alias_supported(model_id: str) -> bool:
+        return any(mf.runtime_alias for mf in _opencore_weights.list_manifests(model_id))
+
+    def _resolved_runtime_model(model_id: str) -> Optional[str]:
+        if not model_id.startswith("keelway-") or not _runtime_alias_supported(model_id):
+            return None
+        return LocalRuntimeDiscovery.resolve_compatible_model(model_id, installed_local)
+
+    def _simulated(model_id: str) -> bool:
+        if not model_id.startswith("keelway-"):
+            return False
+        return _resolved_runtime_model(model_id) is None
+
+    return {
+        "object": "list",
+        "data": [
+            {
+                "id": m.id,
+                "object": "model",
+                "name": m.name,
+                "created": 1730000000,
+                "owned_by": m.provider.value,
+                "category": m.category.value,
+                "family": m.family.value,
+                "deployment": m.deployment.value,
+                "deployment_type": m.deployment.value,
+                "context_window": m.context_window,
+                "max_output_tokens": m.max_output_tokens,
+                "capabilities": m.capabilities,
+                "supports_streaming": m.supports_streaming,
+                "supports_tools": m.supports_tools,
+                "supports_structured_output": m.supports_structured_output,
+                "modalities": m.modalities,
+                "pricing": {
+                    "input_usd_per_mtok": m.pricing_input_usd_per_mtok,
+                    "output_usd_per_mtok": m.pricing_output_usd_per_mtok,
+                },
+                "license": m.license,
+                "recommended_vram_gb": m.recommended_vram_gb,
+                "description": m.description,
+                "installed": _installed(m.id) if m.category == ModelCategory.OPEN_WEIGHT else None,
+                "simulated": _simulated(m.id),
+                "runtime_alias": _runtime_alias_supported(m.id) if m.id.startswith("keelway-") else False,
+                "resolved_model": _resolved_runtime_model(m.id),
+            }
+            for m in models
+        ],
+        "categories": {
+            "open_weight": len(model_registry.list_models(category=ModelCategory.OPEN_WEIGHT)),
+            "closed_proprietary": len(model_registry.list_models(category=ModelCategory.CLOSED_PROPRIETARY)),
+        },
+    }
+
+
+@router.post("/v1/chat/completions", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Inference"])
+async def chat_completions(request_raw: Request):
+    """OpenAI-compatible chat completions endpoint supporting non-streaming and Server-Sent Events (SSE) streaming."""
+    from core.models.provider import ChatCompletionRequest
+    from core.security.error_disclosure import public_inference_detail
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        body = await request_raw.json()
+        request = ChatCompletionRequest(**body)
+    except Exception as parse_err:
+        raise HTTPException(status_code=400, detail=f"Invalid chat completion payload: {parse_err}")
+
+    if request.stream:
+        async def event_generator():
+            try:
+                async for chunk in gateway.stream_chat(request):
+                    yield chunk.to_sse()
+                yield "data: [DONE]\n\n"
+            except Exception as e:
+                logger.warning("Streaming inference error", exc_info=e)
+                err_payload = json.dumps({"error": {"message": public_inference_detail(e), "type": "inference_error"}})
+                yield f"data: {err_payload}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+    else:
+        try:
+            response = await gateway.chat_complete(request)
+            return response.to_openai_dict()
+        except Exception as e:
+            logger.warning("Inference failure", exc_info=e)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=public_inference_detail(e),
+            )
+
+
+@router.get("/v1/usage", dependencies=[Depends(current_principal)], tags=["Inference"])
+async def get_model_usage() -> Dict[str, Any]:
+    """Retrieve aggregate usage statistics and cost accounting across all models."""
+    from core.models.cost_ledger import cost_ledger
+    report = cost_ledger.get_economics_report()
+    summary = cost_ledger.get_summary()
+    report["total_cost_usd"] = report.get("billed_cloud_expenditure_usd", summary.get("total_external_cost_usd", 0.0))
+    report["currency"] = "USD"
+    report["entries_recorded"] = summary.get("total_inferences", 0)
+    return report
+
+
 @router.get("/v1/chat/modes", dependencies=[Depends(current_principal)], tags=["AI Assistant"])
 async def list_chat_modes():
     """List available conversation modes and their governance constraints (Section 6.1)."""
@@ -3411,8 +3572,6 @@ async def delete_schedule(
     if not flow_scheduler.remove(schedule_id):
         raise HTTPException(status_code=404, detail=f"Schedule '{schedule_id}' not found.")
     return {"deleted": True, "schedule_id": schedule_id}
-
-
 # =====================================================================
 # Isolated Worktree / Checkpoint / CI — golden-journey primitives
 # =====================================================================

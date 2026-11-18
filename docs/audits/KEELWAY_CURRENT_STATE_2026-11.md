@@ -26,9 +26,9 @@ end to end here), **PARTIAL**, **PLANNED** (docs only), **BROKEN**, **DEPRECATED
 | Area | Status | Evidence / notes |
 |---|---|---|
 | Agent loop (`core/orchestration/agent_loop.py`) | IMPLEMENTED BUT UNVERIFIED end to end with a real model | unit + e2e tests pass with fakes; real-model test flaky |
-| Task state machine (`core/orchestration/state.py`) | IMPLEMENTED; **doc conflict**: `decision-precedence.md` says 12 states, the enum has 16 members (PR #34 F1) | `TaskState` |
+| Task state machine (`core/orchestration/state.py`) | IMPLEMENTED; state inventory aligned: `decision-precedence.md` §2 and `TaskState` both enumerate the canonical 16 states | `TaskState` |
 | Approvals: one-time + scoped "Allow always" | VERIFIED WORKING (Studio, PRs #14/#15) | `tests/test_approval_rules*.py` |
-| Hash-chained audit + flight tapes | IMPLEMENTED BUT UNVERIFIED externally (tests verify chain) | `core/security/audit*`, `core/flight/` |
+| Hash-chained audit + flight tapes | IMPLEMENTED BUT UNVERIFIED externally (tests verify chain) | `core/security/audit*`, `core/orchestration/flight_recorder.py`, `core/platform/flight_tape.py` |
 | API auth + RBAC | IMPLEMENTED, tested | PR #5, `keelway token` |
 | **Command execution** | **BROKEN for the Studio/chat agent**: `run_command` fails closed unless `command_runner` is set; only `core/agents/guard.py::loop_from_manifest` sets it. Studio (`core/api/routes.py:1511`), chat (`core/orchestration/chat.py:408`), `m1_slice`, `pilot` never do, so those agents cannot run tests | `agent_loop.py:203-221` |
 | macOS sandbox (seatbelt) | IMPLEMENTED BUT UNVERIFIED here (no macOS) | `core/agents/sandbox.py::SeatbeltBackend` |

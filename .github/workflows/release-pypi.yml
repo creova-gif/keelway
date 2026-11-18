@@ -1,0 +1,44 @@
+name: Publish to PyPI (trusted publishing)
+
+# Builds wheel+sdist from the tagged source and publishes via OIDC trusted
+# publishing — no long-lived PyPI token. One-time founder setup:
+#   1. pypi.org: create the `keelway` project, add this repo + this workflow
+#      file + environment `pypi` as a trusted publisher.
+#   2. github repo: create environment `pypi` and set repo variable
+#      PYPI_PUBLISH_ENABLED=true.
+# Until both switches exist the job skips; it never uploads without them.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish-pypi:
+    name: Build wheel & sdist, publish to PyPI
+    runs-on: ubuntu-latest
+    if: vars.PYPI_PUBLISH_ENABLED == 'true'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/keelway
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build wheel and sdist
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --outdir dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

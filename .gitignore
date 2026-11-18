@@ -4,17 +4,19 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
+/build/
 develop-eggs/
-dist/
+/dist/
+!sdk/typescript/dist/
+!sdk/typescript/dist/**
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
-parts/
+/lib/
+/lib64/
+/parts/
 sdist/
-var/
+/var/
 wheels/
 *.egg-info/
 .installed.cfg
@@ -81,3 +83,8 @@ Thumbs.db
 LOCAL_DEMO*.md
 PITCH_AND_JUDGE_QA.md
 .vercel
+
+# Unified Dev App frontend dependencies & cache
+dev-app/node_modules/
+dev-app/.vite/
+dev-app/coverage/

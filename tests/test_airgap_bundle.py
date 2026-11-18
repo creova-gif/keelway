@@ -40,7 +40,17 @@ def test_airgap_enforcer_provider_validation():
     assert len(att["attestation_sha256"]) == 64
 
 
-def test_airgap_auditor_environment():
+def test_airgap_auditor_environment(monkeypatch):
+    # Isolate from host credentials — the auditor must flag real env keys,
+    # so this test clears them to assert the clean-environment baseline.
+    for key in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY",
+        "AWS_SECRET_ACCESS_KEY",
+        "AZURE_OPENAI_API_KEY",
+    ):
+        monkeypatch.delenv(key, raising=False)
     report = AirGapAuditor.audit_environment()
     assert report.overall_compliant is True
     assert len(report.checks) == 5

@@ -74,7 +74,14 @@ def test_assemble_evidence_package():
         assert metric["observed_value"]["count"] is None
         assert metric["claim"].startswith("Not run.")
 
-    serialized = "\n".join(metric["claim"] for metric in pkg.metrics) + "\n" + json.dumps(pkg.summary)
+    # Provenance fields (commit_sha, git_branch) are arbitrary hashes/names
+    # and can legitimately contain any substring — exclude them from the
+    # marketing-claim ban scan.
+    summary_scan = {
+        key: value for key, value in pkg.summary.items()
+        if key not in ("commit_sha", "git_branch")
+    }
+    serialized = "\n".join(metric["claim"] for metric in pkg.metrics) + "\n" + json.dumps(summary_scan)
     for banned in ("745", "40/40", "10/10 stages", "7/7", "worm_verified", "100% Pass@1", "HEALTHY"):
         assert banned not in serialized
 

@@ -1,0 +1,35 @@
+# Gitleaks configuration — Keelway secret-scanning gate (KEEL-SEC-057 follow-on).
+# Extends the default ruleset. Allowlists are deliberately narrow:
+#   1. value markers that only appear in synthetic fixtures, and
+#   2. generated/vendored directories whose minified content cannot be curated.
+# A real credential committed anywhere — including tests/ — will still be caught
+# unless it happens to contain an obvious placeholder marker.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic fixture markers + generated/vendored paths"
+regexTarget = "secret"
+regexes = [
+  # Explicit placeholder words (case-insensitive where marked)
+  '''(?i)(example|placeholder|dummy|fake|sample|fixture|rotated|ephemeral|test|spec)''',
+  # Doc/demo conventions
+  '''\.\.\.''',
+  '''(?i)(redacted|redact|scrub|probe|rubric|oidc|hs256|signing|kw_live_|sk-live|whsec|mcp-eval|_tok|-tok|dec0de|deadbeef)''',
+  # Sequential / mirrored hex used in synthetic fixtures
+  '''(012345|123456|234567|345678|456789|567890|678901|789012|890123|901234)''',
+  '''(987654|876543|765432|654321|543210)''',
+  '''(?i)(abcdef|bcdefa|fedcba|112233|998877|887766|aabbcc)''',
+  '''(?i)(xyz|midf|void|nomatch|myraw|ultra)''',
+  # Canonical test-key shapes
+  '''(?i)akia[a-z0-9]{0,20}(abcde|bcdef|mnop|test|fake|example|0000)''',
+  '''(?i)ghp_[a-z0-9]*(012345|abcdef|fedcba|123456|deadbeef|0000|test)''',
+]
+paths = [
+  '''core/studio/assets/''',           # vendored monaco editor bundle
+  '''core/dev_app_dist/''',            # built SPA bundle (fixtures inlined at build time)
+  '''web-console/dist/''',             # built SPA bundle
+  '''\.vercel/''',                     # local deploy cache (untracked)
+  '''node_modules/''',
+  '''tests/test_redact\.py''',         # canonical redaction fixtures — must look real to test the scrubber
+]

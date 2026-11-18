@@ -41,7 +41,6 @@ jobs:
 
       - name: Validate Kubernetes Manifests (Dry-Run)
         run: |
-          # Dry run k8s syntax checks with kubeval or python yaml parser
           python3 -c '
           import yaml, glob
           for f in glob.glob("deploy/k8s/*.yaml"):
@@ -72,7 +71,25 @@ jobs:
 
       - name: Verify Container Health Check
         run: |
-          docker run --rm -d --name test-keelway -p 8000:8000 ghcr.io/${{ github.repository }}:latest
-          sleep 5
-          docker ps
-          docker stop test-keelway
+          docker rm -f test-keelway >/dev/null 2>&1 || true
+          trap 'docker logs test-keelway || true; docker rm -f test-keelway >/dev/null 2>&1 || true' EXIT
+          docker run -d --name test-keelway \
+            -e KEELWAY_POLICY_SIGNING_KEY="ci-ephemeral-policy-signing-key-2026" \
+            -p 8000:8000 \
+            ghcr.io/${{ github.repository }}:latest
+          ready=0
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/ >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Container failed health check on http://127.0.0.1:8000/" >&2
+            docker ps -a
+            exit 1
+          fi
+          docker exec test-keelway keelway eval-suite --category all --json
+          trap - EXIT
+          docker rm -f test-keelway

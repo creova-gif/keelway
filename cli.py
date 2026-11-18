@@ -47,48 +47,9 @@ except ImportError:
 
 def get_banner(plain: bool = False, use_color: Optional[bool] = None) -> str:
     """Return the distinctive Keelway terminal banner with ANSI styling or clean ASCII fallback."""
-    if use_color is None:
-        use_color = (
-            sys.stdout.isatty()
-            and os.environ.get("NO_COLOR") is None
-            and os.environ.get("TERM") != "dumb"
-            and not plain
-        )
+    from core.cli_tui import render_sovereign_tui_banner
 
-    # Determine whether terminal supports Unicode block elements
-    encoding = getattr(sys.stdout, "encoding", "utf-8") or "utf-8"
-    use_unicode = not plain and sys.platform != "win32" and "utf" in encoding.lower()
-
-    cyan = "\033[38;2;64;160;255m" if use_color else ""
-    bold = "\033[1m" if use_color else ""
-    dim = "\033[2m" if use_color else ""
-    reset = "\033[0m" if use_color else ""
-
-    if use_unicode:
-        art = [
-            r"  ██╗  ██╗███████╗███████╗██╗     ██╗    ██╗ █████╗ ██╗   ██╗",
-            r"  ██║ ██╔╝██╔════╝██╔════╝██║     ██║    ██║██╔══██╗╚██╗ ██╔╝",
-            r"  █████╔╝ █████╗  █████╗  ██║     ██║ █╗ ██║███████║ ╚████╔╝ ",
-            r"  ██╔═██╗ ██╔══╝  ██╔══╝  ██║     ██║███╗██║██╔══██║  ╚██╔╝  ",
-            r"  ██║  ██╗███████╗███████╗███████╗╚███╔███╔╝██║  ██║   ██║   ",
-            r"  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝   ",
-        ]
-    else:
-        art = [
-            r"  _  ______ _____ _ __          __     __",
-            r" | |/ /  ____|  ____| |         \ \   / /",
-            r" | ' /| |__  | |__  | |     /\   \ \_/ / ",
-            r" |  < |  __| |  __| | |    /  \   \   /  ",
-            r" | . \| |____| |____| |___/ /\ \   | |   ",
-            r" |_|\_\______|______|____/_/  \_\  |_|   ",
-        ]
-
-    lines = [f"{cyan}{line}{reset}" for line in art]
-    lines.append("")
-    lines.append(f"  {bold}Sovereign Local-First AI Developer Platform{reset}")
-    lines.append(f"  {dim}Sorvex Labs • https://keelway.dev • v0.9.0-beta{reset}")
-    lines.append("")
-    return "\n".join(lines)
+    return render_sovereign_tui_banner(plain=plain, use_color=use_color)
 
 
 def print_banner(plain: bool = False) -> None:
@@ -206,7 +167,7 @@ def cmd_init(
     config_file = keelway_dir / "config.json"
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
     cfg_data = {
-        "version": "1.0.0",
+        "version": "1.1.0",
         "workspace": {
             "name": ws_path.name,
             "root": str(ws_path),
@@ -388,9 +349,14 @@ async def cmd_spec():
 async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, description: str):
     """Create and display a sovereign multi-rail payment intent."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
+    from keelway.security.source_defaults import InsecureDefaultConfiguration
     broker = GlobalPaymentBroker()
     r = GlobalRail(rail)
-    intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
+    try:
+        intent = broker.create_intent(rail=r, amount=amount, currency=currency, recipient=recipient, description=description)
+    except InsecureDefaultConfiguration:
+        print("\n[!] Payment configuration unavailable: set KEELWAY_PAYMENT_BROKER_SECRET to a non-default secret.\n")
+        return
     print("\n" + "=" * 65)
     print("  SIMULATED PAYMENT INTENT: no provider is connected and no money moves")
     print(f"  Rail:        {intent.rail.value.upper()}")
@@ -446,7 +412,20 @@ def _launch_desktop_window(url: str):
     webbrowser.open(url)
 
 
-async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = False):
+def _resolve_dev_launch_path(legacy_studio: bool = False) -> str:
+    """Resolve the launch URL path for `keelway dev` / `keelway desktop`."""
+    dev_app_index = Path(__file__).resolve().parent / "core" / "dev_app_dist" / "index.html"
+    if not legacy_studio and dev_app_index.exists():
+        return "/app"
+    return "/"
+
+
+async def cmd_dev(
+    port: int = 7420,
+    host: str = "127.0.0.1",
+    desktop: bool = False,
+    legacy_studio: bool = False,
+):
     """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
     import threading
@@ -457,22 +436,27 @@ async def cmd_dev(port: int = 7420, host: str = "127.0.0.1", desktop: bool = Fal
     from core.config import settings
     from core.security.auth import launch_token
     os.environ["KEELWAY_DEV_CLI"] = "1"
+    launch_path = _resolve_dev_launch_path(legacy_studio=legacy_studio)
     if settings.auth_required:
-        print(f"  Studio: http://{host}:{port}/?token={launch_token()}")
+        print(f"  Studio: http://{host}:{port}{launch_path}?token={launch_token()}")
         print("  (owner launch token; changes every run unless KEELWAY_API_TOKEN is set)")
     else:
-        print(f"  Studio: http://{host}:{port}/  (AUTH_REQUIRED=false: no token needed)")
+        print(f"  Studio: http://{host}:{port}{launch_path}  (AUTH_REQUIRED=false: no token needed)")
     lan = _lan_ip() if host in ("0.0.0.0", "::") else None
     if lan:
         if settings.auth_required:
             print(f"  Phone (Keelway Mobile, same Wi-Fi): run `keelway mobile pair --port {port}` for a pairing link")
         else:
-            print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}/")
+            print(f"  Phone (Keelway Mobile, same Wi-Fi): http://{lan}:{port}{launch_path}")
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
     def auto_open_target():
-        target_url = f"http://{host}:{port}/?token={launch_token()}" if settings.auth_required else f"http://{host}:{port}"
+        target_url = (
+            f"http://{host}:{port}{launch_path}?token={launch_token()}"
+            if settings.auth_required
+            else f"http://{host}:{port}{launch_path}"
+        )
         if desktop:
             _launch_desktop_window(target_url)
         else:
@@ -1251,6 +1235,47 @@ def cmd_flight(action: str, target: str, show_events: bool = False) -> int:
     return 0
 
 
+def cmd_tape(action: str, workspace: str = "default", trace_id: str = "",
+             db_path: Optional[str] = None, limit: int = 20, as_json: bool = False) -> int:
+    """List platform flight tapes or verify their SHA-256 seals offline."""
+    import json as _json
+    from core.platform.flight_tape import SQLiteFlightTapeEngine
+    engine = SQLiteFlightTapeEngine(db_path=db_path)
+    try:
+        if action == "list":
+            res = engine.list_tapes(workspace_id=workspace, limit=limit)
+            if as_json:
+                print(_json.dumps(res, indent=2))
+            else:
+                print(f"\n[+] Flight Tapes — workspace '{res['workspace_id']}' ({res['total_tapes']} shown)\n")
+                for t in res["tapes"]:
+                    print(f"  {t['trace_id'][:24]:<26} steps={t['total_steps']:<4} "
+                          f"cost=${t['total_cost_usd']:.4f}  {t['tape_sha256'][:20]}...  {t['created_at'][:19]}")
+                print()
+            return 0
+        report = engine.verify_tape(workspace_id=workspace, trace_id=trace_id)
+        if as_json:
+            print(_json.dumps(report, indent=2))
+        else:
+            print(f"\n[+] Flight Tape Verification: {report['trace_id']}")
+            print(f"    Workspace:  {report['workspace_id']}")
+            print(f"    Steps:      {report['total_steps']} (all valid: {report['steps_valid']})")
+            print(f"    Claimed:    {report['tape_sha256_claimed']}")
+            print(f"    Calculated: {report['tape_sha256_calculated']}")
+            print(f"    Scope:      {report['verification_scope']} (unkeyed recompute — detects tampering, not forgery by DB writer)")
+            for s in report["steps"]:
+                if not s["valid"]:
+                    print(f"    [!] step {s['step_index']} ({s['node_name']}): hash mismatch")
+            print(f"    Status:     {'[✓] SEAL VERIFIED' if report['valid'] else '[✗] TAMPER DETECTED'}\n")
+        return 0 if report["valid"] else 1
+    except KeyError as e:
+        msg = f"Flight tape not found: {e}"
+        print(_json.dumps({"error": msg, "code": "tape_not_found"}, indent=2) if as_json else f"[-] {msg}")
+        return 1
+    finally:
+        engine.close()
+
+
 def cmd_sbom(action: str = "generate", out: Optional[Path] = None, target: Optional[str] = None) -> int:
     """Generate or verify CycloneDX-compatible Software Bill of Materials (SBOM)."""
     import json
@@ -1912,6 +1937,24 @@ async def cmd_doctor(json_output: bool = False):
     print("\n" + "=" * 68)
     print(f"  Diagnostic Result: {report.overall_status} — {len(report.sections)}/{len(report.sections)} Dimensions Evaluated.")
     print("=" * 68 + "\n")
+    return 0
+
+
+def cmd_migration_check(path: str = ".", json_output: bool = False) -> int:
+    """ADR-0042 Phase 1: census core.*/keelway_core imports for consolidation planning."""
+    import json as _json
+    from pathlib import Path as _Path
+    from core.system.migration_check import format_migration_report, scan_migration_imports
+
+    root = _Path(path).expanduser().resolve()
+    if not root.is_dir():
+        print(f"[!] migration-check path does not exist: {root}")
+        return 2
+    report = scan_migration_imports(root)
+    if json_output:
+        print(_json.dumps(report.to_dict(), indent=2))
+    else:
+        print(format_migration_report(report))
     return 0
 
 
@@ -3339,11 +3382,21 @@ def build_parser() -> argparse.ArgumentParser:
     dev_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     dev_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     dev_parser.add_argument("--desktop", "--app", dest="desktop", action="store_true", help="Launch in standalone desktop application window mode")
+    dev_parser.add_argument(
+        "--legacy-studio",
+        action="store_true",
+        help="Launch the legacy vanilla Studio UI at / instead of the unified Dev App at /app",
+    )
 
     # desktop (dedicated alias for standalone desktop window)
     desktop_parser = subparsers.add_parser("desktop", help="Launch Keelway Studio as a standalone desktop application window")
     desktop_parser.add_argument("--port", type=int, default=7420, help="Local port (default: 7420)")
     desktop_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    desktop_parser.add_argument(
+        "--legacy-studio",
+        action="store_true",
+        help="Launch the legacy vanilla Studio UI at / instead of the unified Dev App at /app",
+    )
 
     demo_parser = subparsers.add_parser("demo", help="Seed a sample project and open the Studio on it (own folder + DB)")
     demo_parser.add_argument("--dir", type=Path, default=None, help="Demo folder (default: ~/keelway-demo)")
@@ -3354,6 +3407,8 @@ def build_parser() -> argparse.ArgumentParser:
     # doctor
     doctor_parser = subparsers.add_parser("doctor", help="Run sovereign enterprise system diagnostics across 7 dimensions")
     doctor_parser.add_argument("--json", action="store_true", help="Output diagnostics report in JSON format")
+    doctor_parser.add_argument("--migration-check", action="store_true", help="Run ADR-0042 package-consolidation import census instead of diagnostics")
+    doctor_parser.add_argument("--path", default=".", help="Repository root to scan for --migration-check (default: cwd)")
 
     # mobile (Mission Control & Phone Pairing)
     mobile_parser = subparsers.add_parser("mobile", help="Keelway Mobile Phone Mission Control pairing & management")
@@ -3637,6 +3692,20 @@ def build_parser() -> argparse.ArgumentParser:
     _fl_rep.add_argument("target", help="Path to .flight.json tape")
     _fl_rep.add_argument("--events", action="store_true", help="Display verbose event payloads")
 
+    # tape (Platform SQLite Flight-Tape Store — list & hash verification)
+    tape_parser = subparsers.add_parser("tape", help="List and cryptographically verify platform flight tapes")
+    tape_sub = tape_parser.add_subparsers(dest="tape_command", required=True)
+    _tp_list = tape_sub.add_parser("list", help="List recorded platform flight tapes")
+    _tp_list.add_argument("--db-path", default=None, help="SQLite DB path (default: resolved Keelway store)")
+    _tp_list.add_argument("--workspace", default="default", help="Workspace ID (default: default)")
+    _tp_list.add_argument("--limit", type=int, default=20, help="Max tapes to list (default: 20)")
+    _tp_list.add_argument("--json", action="store_true", help="Output JSON")
+    _tp_ver = tape_sub.add_parser("verify", help="Recompute step/tape SHA-256 seals and verify integrity")
+    _tp_ver.add_argument("--trace-id", required=True, help="Flight tape trace ID to verify")
+    _tp_ver.add_argument("--db-path", default=None, help="SQLite DB path (default: resolved Keelway store)")
+    _tp_ver.add_argument("--workspace", default="default", help="Workspace ID (default: default)")
+    _tp_ver.add_argument("--json", action="store_true", help="Output JSON")
+
     mcp_parser = subparsers.add_parser("mcp", help="Serve read-only workspace tools to MCP clients over stdio (Cursor, Claude Code, Zed)")
     mcp_parser.add_argument("--workspace", default=None, help="Workspace root (default: current directory)")
 
@@ -3907,6 +3976,11 @@ def build_parser() -> argparse.ArgumentParser:
     api_export.add_argument("--out", type=Path, default=Path("website/openapi.json"), help="Output path for openapi.json")
     api_export.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
 
+    from core.cli_ai import register_ai_subparsers
+    from core.cli_tui import register_platform_cli_subparsers
+    register_ai_subparsers(subparsers)
+    register_platform_cli_subparsers(subparsers)
+
     return parser
 
 
@@ -3931,9 +4005,12 @@ def _main(argv=None):
         print("Usage: keelway <command> [options]\n")
         print("Essential Commands:")
         print("  init         Initialize Keelway in current directory or git repository")
-        print("  dev          Launch Keelway Studio (Local Web & App UI)")
+        print("  dev          Launch Keelway Studio (10-View Unified Local Web & App UI)")
         print("  chat         Start interactive sovereign agent REPL")
         print("  doctor       Run sovereign system diagnostics across 7 dimensions")
+        print("  marketplace  Discover & security-scan verified agents, skills, and plugins")
+        print("  blueprint    Compile a natural-language idea into PRD, sprint issues & DAG")
+        print("  cluster      Inspect GPU cluster worker nodes, schedule placements & lifecycle")
         print("  package      Build sovereign offline distribution package")
         print("  run          Start governed agent run with approval gate")
         print("  test-sandbox Run tests inside OS-level verified sandbox")
@@ -3945,6 +4022,16 @@ def _main(argv=None):
 
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    from core.cli_tui import dispatch_platform_cli
+    plat_rc = dispatch_platform_cli(args)
+    if plat_rc is not None:
+        return plat_rc
+
+    from core.cli_ai import dispatch_ai_command
+    ai_rc = dispatch_ai_command(args)
+    if ai_rc is not None:
+        sys.exit(ai_rc)
 
     if args.command == "init":
         sys.exit(
@@ -4097,9 +4184,28 @@ def _main(argv=None):
                 show_events=getattr(args, "events", False),
             )
         )
+    elif args.command == "tape":
+        sys.exit(
+            cmd_tape(
+                action=getattr(args, "tape_command", "list"),
+                workspace=getattr(args, "workspace", "default"),
+                trace_id=getattr(args, "trace_id", ""),
+                db_path=getattr(args, "db_path", None),
+                limit=getattr(args, "limit", 20),
+                as_json=getattr(args, "json", False),
+            )
+        )
     elif args.command in ("dev", "desktop"):
+        print_banner()
         is_desktop = getattr(args, "desktop", False) or args.command == "desktop"
-        asyncio.run(cmd_dev(args.port, args.host, desktop=is_desktop))
+        asyncio.run(
+            cmd_dev(
+                args.port,
+                args.host,
+                desktop=is_desktop,
+                legacy_studio=getattr(args, "legacy_studio", False),
+            )
+        )
     elif args.command == "demo":
         from core import demo
         sys.exit(demo.run(args.dir or demo.DEFAULT_DIR, args.port, args.host, args.reset))
@@ -4111,6 +4217,8 @@ def _main(argv=None):
             token_id=getattr(args, "token_id", ""),
         ))
     elif args.command == "doctor":
+        if getattr(args, "migration_check", False):
+            sys.exit(cmd_migration_check(path=getattr(args, "path", "."), json_output=getattr(args, "json", False)))
         asyncio.run(cmd_doctor(json_output=getattr(args, "json", False)))
     elif args.command == "mobile":
         sys.exit(asyncio.run(cmd_mobile(
@@ -4245,6 +4353,7 @@ def _main(argv=None):
             )
         )
     elif args.command == "chat":
+        print_banner()
         asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
     elif args.command == "brief":
         asyncio.run(cmd_brief(args.title, args.desc, args.files, args.failing, args.provider))
@@ -4415,4 +4524,4 @@ def _main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)
