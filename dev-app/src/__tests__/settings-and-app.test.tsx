@@ -50,8 +50,10 @@ describe("Screen 08 — SettingsPermissionsPanel (Permissions & Agent Manifests)
     expect(screen.queryByText(/Prompt version changed:/i)).toBeNull();
     expect(within(rulesTable).getAllByText("Active")).toHaveLength(2);
 
-    // Revoke all transitions cleanly to honest empty state
-    await user.click(screen.getByRole("button", { name: /Revoke all/i }));
+    // Revoke all is a destructive change: first click arms, second click confirms
+    const revokeAllBtn = screen.getByRole("button", { name: /Revoke all/i });
+    await user.click(revokeAllBtn);
+    await user.click(screen.getByRole("button", { name: /Confirm revoke all/i }));
     expect(screen.getByText("No standing Allow always rules — Keelway asks every time.")).toBeInTheDocument();
   });
 

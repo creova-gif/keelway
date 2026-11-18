@@ -26,8 +26,44 @@ const TOOL_CAPABILITY_LABELS: Record<string, string> = {
   run_command: "Run sandboxed command",
 };
 
+/** Coarse plain-language categories the comprehension spec asks for. */
+const TOOL_CATEGORY_LABELS: Record<string, string> = {
+  edit_file: "File access",
+  write_file: "File access",
+  read_file: "File access",
+  run_command: "Command execution",
+};
+
+/** What the rule lets the agent do, in one honest sentence. */
+const TOOL_ALLOW_DESCRIPTIONS: Record<string, string> = {
+  edit_file: "the agent may modify files matching this scope without asking",
+  write_file: "the agent may create or overwrite files matching this scope without asking",
+  read_file: "the agent may read files matching this scope without asking",
+  run_command: "the agent may run this exact command without asking",
+};
+
 export function capabilityLabelForTool(toolName: string): string {
   return TOOL_CAPABILITY_LABELS[toolName] ?? toolName;
+}
+
+export function categoryLabelForTool(toolName: string): string {
+  return TOOL_CATEGORY_LABELS[toolName] ?? "Agent access";
+}
+
+export function allowDescriptionForTool(toolName: string): string {
+  return (
+    TOOL_ALLOW_DESCRIPTIONS[toolName] ??
+    "the agent may perform this action without asking"
+  );
+}
+
+function formatGrantedAt(epoch: number): string {
+  if (!Number.isFinite(epoch) || epoch <= 0) return "unknown date";
+  return new Date(epoch * 1000).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function isRuleDrifted(
@@ -87,6 +123,8 @@ export function SettingsPermissionsPanel({
   const [rulesLoading, setRulesLoading] = useState(controlledRules === undefined);
   const [rulesError, setRulesError] = useState<string | null>(null);
   const [rulesBusy, setRulesBusy] = useState(false);
+  const [armedRevokeId, setArmedRevokeId] = useState<string | null>(null);
+  const [armedRevokeAll, setArmedRevokeAll] = useState(false);
   const [manifests, setManifests] = useState<AgentManifestItem[]>([]);
   const [manifestsLoading, setManifestsLoading] = useState(true);
   const [manifestsError, setManifestsError] = useState<string | null>(null);
@@ -243,6 +281,11 @@ export function SettingsPermissionsPanel({
 
   const handleRevokeOne = async (ruleId: string) => {
     if (rulesBusy) return;
+    if (armedRevokeId !== ruleId) {
+      setArmedRevokeId(ruleId);
+      return;
+    }
+    setArmedRevokeId(null);
     setRulesBusy(true);
     setRulesError(null);
     try {
@@ -259,6 +302,11 @@ export function SettingsPermissionsPanel({
 
   const handleRevokeAll = async () => {
     if (rulesBusy || scopedRules.length === 0) return;
+    if (!armedRevokeAll) {
+      setArmedRevokeAll(true);
+      return;
+    }
+    setArmedRevokeAll(false);
     setRulesBusy(true);
     setRulesError(null);
     const results = await Promise.allSettled(
@@ -395,8 +443,13 @@ export function SettingsPermissionsPanel({
             </p>
           </div>
           {scopedRules.length > 0 ? (
-            <Button size="sm" variant="danger-ghost" disabled={rulesBusy} onClick={() => void handleRevokeAll()}>
-              Revoke all
+            <Button
+              size="sm"
+              variant={armedRevokeAll ? "primary" : "danger-ghost"}
+              disabled={rulesBusy}
+              onClick={() => void handleRevokeAll()}
+            >
+              {armedRevokeAll ? "Confirm revoke all" : "Revoke all"}
             </Button>
           ) : null}
         </div>
@@ -444,30 +497,68 @@ export function SettingsPermissionsPanel({
                   }
                   return (
                     <tr key={rule.id} className="min-h-table-row hover:bg-surface-elevated">
-                      <td className="px-3 py-2 font-medium text-fg">{capabilityLabelForTool(rule.toolName)}</td>
+                      <td className="px-3 py-2">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                          {categoryLabelForTool(rule.toolName)}
+                        </div>
+                        <div className="font-medium text-fg">{capabilityLabelForTool(rule.toolName)}</div>
+                        <div className="text-[11px] text-fg-muted">
+                          {`While active, ${allowDescriptionForTool(rule.toolName)} in this workspace.`}
+                        </div>
+                      </td>
                       <td className="px-3 py-2">
                         <code dir="ltr" className="unicode-bidi-isolate rounded-xs border border-border bg-code px-1.5 py-0.5 font-mono text-fg">
                           {rule.scope}
                         </code>
                       </td>
                       <td className="px-3 py-2 font-mono text-fg-muted">
-                        {rule.boundModelId || rule.boundPromptVersion ? (
-                          <code dir="ltr" className="unicode-bidi-isolate">
-                            {`${rule.boundModelId ?? "unbound model"} · ${rule.boundPromptVersion ?? "unbound prompt"}`}
-                          </code>
-                        ) : (
-                          <span>no model binding recorded</span>
-                        )}
                         {drifted &&
                         rule.boundPromptVersion &&
                         rule.boundPromptVersion !== currentPromptVersion ? (
-                          <span className="ms-1.5 text-warning">
-                            {"→ "}
+                          <div className="mb-1 text-warning">
+                            {"prompt drift → "}
                             <code dir="ltr" className="unicode-bidi-isolate">
                               {currentPromptVersion}
                             </code>
-                          </span>
+                          </div>
                         ) : null}
+                        <details className="text-[11px]">
+                          <summary className="cursor-pointer select-none text-fg">
+                            {rule.boundModelId || rule.boundPromptVersion
+                              ? "Bound to model & prompt — details"
+                              : "No model binding — details"}
+                          </summary>
+                          <dl className="mt-1.5 space-y-1 rounded-xs border border-border bg-surface-elevated p-2">
+                            <div className="flex gap-1.5">
+                              <dt className="min-w-20 text-fg-muted">Bound model</dt>
+                              <dd className="text-fg">
+                                <code dir="ltr" className="unicode-bidi-isolate">
+                                  {rule.boundModelId ?? "none recorded"}
+                                </code>
+                              </dd>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <dt className="min-w-20 text-fg-muted">Bound prompt</dt>
+                              <dd className="text-fg">
+                                <code dir="ltr" className="unicode-bidi-isolate">
+                                  {rule.boundPromptVersion ?? "none recorded"}
+                                </code>
+                              </dd>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <dt className="min-w-20 text-fg-muted">Granted by</dt>
+                              <dd className="text-fg">{rule.createdBy || "unknown"}</dd>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <dt className="min-w-20 text-fg-muted">Granted on</dt>
+                              <dd className="text-fg">{formatGrantedAt(rule.createdAtEpoch)}</dd>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <dt className="min-w-20 text-fg-muted">Expires</dt>
+                              <dd className="text-fg">No expiry — stays until revoked</dd>
+                            </div>
+                          </dl>
+                        </details>
                       </td>
                       <td className="px-3 py-2">
                         {drifted ? (
@@ -491,11 +582,11 @@ export function SettingsPermissionsPanel({
                           ) : null}
                           <Button
                             size="sm"
-                            variant="danger-ghost"
+                            variant={armedRevokeId === rule.id ? "primary" : "danger-ghost"}
                             disabled={rulesBusy}
                             onClick={() => void handleRevokeOne(rule.id)}
                           >
-                            Revoke
+                            {armedRevokeId === rule.id ? "Confirm revoke" : "Revoke"}
                           </Button>
                         </div>
                       </td>
