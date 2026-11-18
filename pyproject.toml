@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 postgres = ["asyncpg"]
-dev = ["pytest", "pytest-asyncio", "ruff"]
+dev = ["pytest", "pytest-asyncio", "ruff", "httpx2"]
 
 [project.scripts]
 keelway = "cli:main"
