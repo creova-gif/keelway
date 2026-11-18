@@ -156,6 +156,10 @@ def test_torn_page_detected_not_silent(tmp_path):
             dbg["scan_error"] = str(exc)
     finally:
         conn.close()
+    dbg["files"] = sorted(p.name for p in tmp_path.iterdir())
+    for walish in tmp_path.iterdir():
+        if walish.name != "torn_corrupt.db" and walish.is_file():
+            dbg[f"extra_{walish.name}"] = walish.stat().st_size
     print("\nTORN_DEBUG", _json.dumps(dbg, default=str))
     conn = sqlite3.connect(str(torn))
     try:
