@@ -344,7 +344,7 @@ export const INITIAL_AUTOMATION_WORKFLOWS: AutomationWorkflowItem[] = [
     id: "WF-02",
     name: "PR Triage & Staged Preview Sync",
     triggerKind: "webhook",
-    triggerSpec: "POST /v1/webhooks/git-push",
+    triggerSpec: "git push event (registered via POST /v1/platform/webhooks)",
     lastRunStatus: "failed",
     tokenBudget: 40_000,
     nodes: [
