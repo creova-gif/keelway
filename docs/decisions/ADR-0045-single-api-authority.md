@@ -1,6 +1,6 @@
 # ADR-0045: `core.main:app` Is the Single Authority for All `/v1/*` API Paths
 
-- **Status**: Accepted (release-readiness decision D-001, 2026-11-18; task KEEL-REL-056)
+- **Status**: Accepted (release-readiness decision D-001, 2026-11-18; task KEEL-REL-057)
 - **Supersedes**: implicit policy that any process may serve `/v1` paths as a convenience fallback
 - **Informed by**: decision-precedence §3 (sovereign fail-closed policy), §4 (single runtime invariant), KEEL-P0-029 (no fabricated state behind real API contracts)
 
