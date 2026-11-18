@@ -114,9 +114,21 @@ export function App({
 
   const [workspacePath, setWorkspacePath] = useState("/workspace/keelway");
   const [workspaceBranch, setWorkspaceBranch] = useState("feat/unified-dev-app");
-  const [onboardingOpen, setOnboardingOpen] = useState<boolean>(
-    initialOnboardingOpen ?? urlInit.onboarding,
-  );
+  const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
+    if (initialOnboardingOpen !== undefined) return initialOnboardingOpen;
+    if (urlInit.onboarding) return true;
+    if (import.meta.env.MODE === "test") return false;
+    try {
+      return window.localStorage.getItem("keelway.onboarded") !== "1";
+    } catch {
+      return false;
+    }
+  });
+  const markOnboarded = useCallback(() => {
+    try {
+      window.localStorage.setItem("keelway.onboarded", "1");
+    } catch { /* private mode */ }
+  }, []);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   const [tasks, setTasks] = useState<SidebarTaskItem[]>(INITIAL_TASKS);
@@ -202,6 +214,7 @@ export function App({
     handleCreateWorkspace,
     activeRbacRole,
     setActiveRbacRole,
+    platformHydration,
     renderPlatformCanvas,
   } = useUnifiedPlatformState({
     onJumpToIdeComposer: handleJumpToIdeComposer,
@@ -576,6 +589,7 @@ export function App({
             onCreateWorkspace={handleCreateWorkspace}
             activeRbacRole={activeRbacRole}
             onChangeRbacRole={setActiveRbacRole}
+            platformHydration={platformHydration}
           />
         }
         reviewDrawerOpen={reviewOpen}
@@ -726,9 +740,13 @@ export function App({
 
       <OnboardingModal
         open={onboardingOpen}
-        onOpenChange={setOnboardingOpen}
+        onOpenChange={(next) => {
+          if (!next) markOnboarded();
+          setOnboardingOpen(next);
+        }}
         defaultWorkspacePath={workspacePath}
         onComplete={({ workspacePath: chosenPath, branch }) => {
+          markOnboarded();
           setWorkspacePath(chosenPath);
           if (branch) setWorkspaceBranch(branch);
         }}

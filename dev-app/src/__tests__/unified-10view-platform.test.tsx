@@ -461,6 +461,27 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("discloses example data when platform hydration fails instead of presenting it as live state", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/v1/platform/")) {
+        return new Response(JSON.stringify({ ok: false, error: "unreachable" }), {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    render(<App />);
+    const disclosure = await screen.findByText("EXAMPLE DATA");
+    expect(disclosure).toBeInTheDocument();
+    expect(disclosure).toHaveAttribute("role", "status");
+  });
+
   it("renders GPU Cluster fleet drain/restore, Canary lifecycle weights, and Marketplace Settlement ledger in Operations with 0 axe violations", async () => {
     const user = userEvent.setup();
     window.history.replaceState({}, "", "/app/?token=ops-tok-77");

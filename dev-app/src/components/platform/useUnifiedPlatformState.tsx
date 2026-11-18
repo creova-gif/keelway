@@ -100,11 +100,15 @@ export function useUnifiedPlatformState(options: {
   const [latestBlueprint, setLatestBlueprint] = useState<GeneratedProjectBlueprint | null>(null);
   const [blueprintCount, setBlueprintCount] = useState(0);
   const [retentionMode, setRetentionMode] = useState<EnterpriseRetentionMode>("standard_30d");
+  const [platformHydration, setPlatformHydration] = useState<"loading" | "live" | "example">("loading");
 
   useEffect(() => {
     let cancelled = false;
+    setPlatformHydration("loading");
     void fetchPlatformHydration(activeWorkspaceId).then((snap) => {
-      if (cancelled || !snap.hydrated) return;
+      if (cancelled) return;
+      setPlatformHydration(snap.hydrated ? "live" : "example");
+      if (!snap.hydrated) return;
       if (snap.packages.length > 0) setPackages((prev) => mergeById(snap.packages, prev));
       if (snap.installedPackageIds.length > 0) {
         setInstalledPackageIds((prev) => Array.from(new Set([...prev, ...snap.installedPackageIds])));
@@ -598,6 +602,7 @@ export function useUnifiedPlatformState(options: {
     handleCreateWorkspace,
     activeRbacRole,
     setActiveRbacRole,
+    platformHydration,
     renderPlatformCanvas,
   };
 }
