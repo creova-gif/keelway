@@ -10,6 +10,8 @@ const DOC_SECTIONS = [
   { id: "routing", label: "02 Routing & Governance" },
   { id: "enterprise", label: "03 Enterprise & Ecosystem" },
   { id: "surfaces", label: "04 SDKs & CLI" },
+  { id: "troubleshooting", label: "05 Troubleshooting" },
+  { id: "releases", label: "06 Releases & Community" },
 ] as const;
 
 const CAPABILITY_MATRIX = [
@@ -289,6 +291,87 @@ keelway migrate-langgraph --source graph.py`}
               <Link href="/pricing" className="hover:text-fg">Pricing</Link>
               <a href="/feed.xml" className="hover:text-fg">RSS Feed</a>
             </div>
+          </div>
+        </section>
+
+        <section id="troubleshooting" aria-labelledby="doc-ts-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
+            05 TROUBLESHOOTING
+          </span>
+          <h2 id="doc-ts-h" className="mt-2 text-2xl font-bold text-fg">
+            Diagnostics &amp; Common Issues
+          </h2>
+          <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
+            <code className="font-mono text-fg">keelway doctor</code> runs
+            sovereign diagnostics across 7 dimensions — runtime, storage,
+            models, routing policy, audit ledger, identity, and network
+            egress posture.
+          </p>
+          <CodePanel
+            id="docs-doctor"
+            title="bash — diagnostics & recovery"
+            code={`keelway doctor                      # 7-dimension health check
+keelway sync status               # KSpaces CRDT state & WAL integrity
+keelway mobile status             # paired approvals devices
+sqlite3 ~/.keelway/state.db 'PRAGMA wal_checkpoint(FULL);'  # compact WAL`}
+          />
+          <div className="mt-4 overflow-x-auto rounded-lg border border-border-strong bg-surface">
+            <table className="w-full min-w-[560px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-border-strong bg-surface-elevated font-mono uppercase text-fg">
+                  <th scope="col" className="px-4 py-3">Symptom</th>
+                  <th scope="col" className="px-4 py-3">Cause &amp; resolution</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {[
+                  [
+                    "AirGapViolationError (HTTP 403)",
+                    "A private/air-gap request attempted cloud egress — by design. Re-route to an open_weight model or lower the privacy level.",
+                  ],
+                  [
+                    "P-10 gate stuck pending",
+                    "High-impact action requires human approval (or 2-of-2 quorum in Enterprise). Check `keelway mobile status` for paired approvers.",
+                  ],
+                  [
+                    "Credential type unsupported",
+                    "Consumer subscription credentials are rejected — use a metered API key or BYOM open-weight route.",
+                  ],
+                  [
+                    "Ledger verification failure",
+                    "Audit hash-chain mismatch — the append-only record was modified. Preserve the DB and report to your security review; do not truncate.",
+                  ],
+                ].map(([sym, fix]) => (
+                  <tr key={sym} className="align-top hover:bg-surface-elevated/40">
+                    <td className="px-4 py-3 font-mono font-semibold text-fg">{sym}</td>
+                    <td className="px-4 py-3 leading-relaxed text-fg-muted">{fix}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="releases" aria-labelledby="doc-rel-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
+            06 RELEASES &amp; COMMUNITY
+          </span>
+          <h2 id="doc-rel-h" className="mt-2 text-2xl font-bold text-fg">
+            Changelog, Feed &amp; Release Channels
+          </h2>
+          <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
+            Releases follow SemVer and land in the repository{" "}
+            <code className="font-mono text-fg">CHANGELOG.md</code>, mirrored
+            on this site. Install or upgrade deterministically with the
+            pinned installer (<code className="font-mono text-fg">KEELWAY_GIT_REF</code>{" "}
+            for a specific ref).
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-4 rounded-md border border-border-subtle bg-surface/60 px-4 py-3 font-mono text-xs text-fg-muted">
+            <Link href="/changelog" className="text-teal-accent hover:underline">Changelog →</Link>
+            <Link href="/api-reference" className="hover:text-fg">API Reference</Link>
+            <a href="/feed.xml" className="hover:text-fg">RSS Feed</a>
+            <a href="/openapi.json" className="hover:text-fg">openapi.json</a>
+            <Link href="/contact" className="hover:text-fg">Contact &amp; Demo</Link>
           </div>
         </section>
       </article>

@@ -12,6 +12,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/docs", priority: 0.9 },
     { path: "/api-reference", priority: 0.85 },
     { path: "/changelog", priority: 0.7 },
+    { path: "/enterprise", priority: 0.8 },
+    { path: "/about", priority: 0.6 },
+    { path: "/contact", priority: 0.8 },
     { path: "/brand", priority: 0.6 },
   ];
 

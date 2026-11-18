@@ -9,6 +9,7 @@ import { GoldenThreadStudioShowcase } from "@/components/home/GoldenThreadStudio
 import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
 import { P10InteractiveDeck } from "@/components/home/P10InteractiveDeck";
 import { QuickstartTerminal } from "@/components/home/QuickstartTerminal";
+import { ProductShowcase } from "@/components/home/ProductShowcase";
 import { SettlementRails } from "@/components/home/SettlementRails";
 import { EarlyAccessForm } from "@/components/home/EarlyAccessForm";
 import { SITE_URL } from "@/lib/utils";
@@ -143,6 +144,39 @@ export default async function HomePage() {
       )}
 
       <QuickstartTerminal variant={quickstartVariant} />
+
+      <ProductShowcase />
+
+      <section
+        aria-labelledby="proof-strip-heading"
+        className="border-t border-border-subtle py-10"
+      >
+        <div className="mx-auto max-w-container px-4 sm:px-6">
+          <h2 id="proof-strip-heading" className="sr-only">
+            Verifiable platform facts
+          </h2>
+          <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[
+              { k: "LICENSE", v: "Apache-2.0 open core" },
+              { k: "SDK PARITY", v: "Python · TypeScript · Go" },
+              { k: "EVAL HARNESS", v: "16-probe golden suite" },
+              { k: "TOKEN MARKUP", v: "0% — BYOM pass-through" },
+            ].map((f) => (
+              <div
+                key={f.k}
+                className="rounded-md border border-border-subtle bg-surface px-4 py-3"
+              >
+                <dt className="font-mono text-[10px] uppercase tracking-wider text-fg-dim">
+                  {f.k}
+                </dt>
+                <dd className="mt-1 font-mono text-xs font-semibold text-fg">
+                  {f.v}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
 
       <SettlementRails />
 

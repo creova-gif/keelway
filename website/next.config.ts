@@ -55,6 +55,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/releases",
+        destination: "/changelog",
+        permanent: true,
+      },
+      {
         source: "/api.html",
         destination: "/api-reference",
         permanent: true,
