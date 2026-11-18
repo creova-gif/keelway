@@ -1,65 +1,54 @@
-# KEEL-REL-056 — Public Install Source + ACP/Adapter Contract Tests
+# KEEL-REL-056 — Single API Authority (D-001): Fallback Server `/v1` Shadow Surface
 
 | Field | Value |
 |---|---|
-| **Status** | `VERIFIED_COMPLETE` |
-| **Category** | `RELEASE / INSTALL / AGENTS` |
+| **Status** | `READY_FOR_REVIEW` |
+| **Category** | `RELEASE / API / SECURITY` |
 | **Agent** | Devin |
-| **Date** | 2026-11-17 |
-| **Branch** | `fix/KEEL-REL-056-public-install-acp-contract` |
+| **Date** | 2026-11-18 |
+| **Branch** | `fix/KEEL-REL-056-single-api-authority` (stacked on `feature/KEEL-P0-063-permissions-depth`) |
+| **ADR** | `docs/decisions/ADR-0045-single-api-authority.md` |
 
 ## Objective
-Close the last beta blocker (public install source) and run the pending
-agent contract tests: real ACP agent, Cursor pinned-schema, vendor re-probe.
+Release-readiness Phase 1 item "D-001": designate a single authoritative `/v1`
+API surface and remove the shadow implementation.
 
-## Work Completed
+## Verified finding
+`cli.py cmd_dev`/`cmd_desktop` installed a zero-dependency `http.server`
+fallback (`SovereignStudioHandler`) when uvicorn was unavailable and
+`AUTH_REQUIRED=false`. It re-implemented `/v1/*` paths against the service
+layer directly:
+- `POST /v1/files/save` — **unauthenticated file write; no principal, no P-10
+  gate, no audit event** (governance bypass).
+- `GET /v1/flight/tapes` → `{"tapes": []}`, `GET /v1/agent/status` → hardcoded
+  `"idle"`, `POST /v1/agent/run` → fabricated *completed* plan — stub data
+  rendered as product truth (the defect class KEEL-P0-029 removed client-side).
 
-### Public install (founder decision: open creova-gif/kora)
-- Repo flipped PRIVATE→PUBLIC via `gh repo edit` (secret sweep first:
-  only detection regexes + synthetic test fixtures found).
-- `website/install.sh` + `website/public/install.sh`: `KEELWAY_GIT_URL`
-  now defaults to `https://github.com/creova-gif/kora.git`
-  (SOURCE_DIR/PACKAGE still take precedence).
-- `tests/test_website_facts.py`: repo-URL tokens exempted for install.sh
-  only (repo is intentionally public; ban still applies elsewhere).
-- **Live E2E**: zero-env `install.sh` → clone public repo → venv →
-  `keelway doctor` HEALTHY 10/10.
+## Implementation
+- **ADR-0045** records the decision: `core.main:app` is the sole `/v1`
+  authority; auxiliary servers must proxy or use non-`/v1` prefixes; new routes
+  live in `core/api/` + `current_principal`/documented allowlist.
+- New `core/api/fallback_server.py`: `StaticFallbackHandler` serves only `/`,
+  `/studio`, `/index.html`, and `/health` (`status: degraded`,
+  `api_available: false`). Every `/v1/*` GET/POST → `503` +
+  `{"api_available": false}`. Extracted to module level so it is importable
+  and test-pinned.
+- `cli.py`: ~170-line nested handler replaced with `serve_static_fallback()`.
 
-### ACP contract test (KEEL-ENG-051 follow-up)
-- Registered `GeminiCliAdapter` (`gemini --acp`) and `HermesAcpAdapter`
-  (`hermes-acp`, with `--check` health probe in detect()).
-- `agents acp` injects adapter `acp_args` (`--acp` for gemini).
-- `VALID_AGENT_HOSTS` extended for interception records;
-  `render_hook_manifest` fails honestly for ACP-only hosts.
-- **Live**: `hermes-acp 0.22.5` real session — initialize/session/new/
-  prompt, 73 session/update events, real model reply "ACP_OK",
-  stop_reason=end_turn. `session/request_permission` not observed live
-  (agent emitted none — its permission config likely auto-approves);
-  permission path remains fixture-verified.
+## Evidence
+- `pytest tests/test_fallback_server.py` — **12 passed**: studio shell + CSP,
+  degraded health, 8 `/v1` GET paths → 503 (no stub keys), `/v1/files/save`
+  refused and writes nothing, `/v1/agent/run` returns no fabricated plan,
+  source-level guard asserting cli.py holds no `/v1` handler branches.
+- `pytest tests/test_keelway_core_cli.py` — 7 passed.
+- `py_compile` on `cli.py`, `fallback_server.py` — clean. Ruff unavailable.
 
-### Cursor contract test (schema pinned)
-- Official cursor.com/docs/hooks schema now implemented: lowercase
-  `preToolUse`/`postToolUse`/`sessionStart`/`sessionEnd` under `hooks`,
-  tool-name matcher, nested `permissionDecision` response (claude-code
-  format), `sessionEnd` event added. Previous manifest used wrong
-  capitalized keys — hooks would never have fired.
-- Live delivery still blocked: `cursor-agent` requires `agent login` /
-  CURSOR_API_KEY (not authenticated on this host).
+## Known limits
+- Static fallback still serves cwd files via `SimpleHTTPRequestHandler`
+  fallback for non-`/v1` unknown paths (parity with prior behavior).
+- Route-inventory guard scans `cli.py`; other files adding `/v1` servers would
+  need the same check — a full inventory linter is follow-up scope.
 
-### Vendor re-probe
-- claude_code: still quota-blocked (UserPromptSubmit hook, 104% daily,
-  resets midnight). codex_cli: usage limit until ~Nov 20.
-
-## Tests
-- 90 passed: adapters + conformance (now 6 adapters) + ACP + phase18.
-- 16 passed: website_facts + phase8 + beta journey.
-
-## Known Limits
-- cursor-agent live hook delivery unverified (needs login).
-- claude/codex live inference quota-gated.
-- gemini --acp session not yet run live.
-- PyPI publish still open (install.sh git path now works regardless).
-
-## Next Recommended Action
-Re-probe claude after midnight quota reset; cursor-agent login then
-live hook-delivery test; optional PyPI publish for `pip install keelway`.
+## Next recommended action
+- Release-readiness Phase 1 continues: remaining D-items per owner review of
+  ADR-0045; ratify status to `Accepted` on merge.
