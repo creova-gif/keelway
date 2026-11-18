@@ -127,25 +127,30 @@ def test_torn_page_detected_not_silent(tmp_path):
     # Each check below therefore gets its own first connection.
     offset = (rootpage - 1) * page_size
 
-    torn_qc = tmp_path / "torn_qc.db"
-    shutil.copy2(db, torn_qc)
-    with open(torn_qc, "r+b") as fh:
-        fh.seek(offset)
-        fh.write(b"\xde\xad\xbe\xef" * 512)
+    def _corrupt_copy(dst: Path) -> Path:
+        shutil.copy2(db, dst)
+        with open(dst, "r+b") as fh:
+            fh.seek(offset)
+            fh.write(b"\xde\xad\xbe\xef" * 512)
+        return dst
+
+    # Detection is version-dependent: older SQLite aborts quick_check with
+    # DatabaseError; newer builds report corruption as result rows. Either
+    # is proof the torn page was seen — only "ok" is a silent pass.
+    torn_qc = _corrupt_copy(tmp_path / "torn_qc.db")
     conn = sqlite3.connect(str(torn_qc))
     try:
-        with pytest.raises(sqlite3.DatabaseError):
-            conn.execute("PRAGMA quick_check").fetchone()
+        try:
+            rows = [r[0] for r in conn.execute("PRAGMA quick_check")]
+        except sqlite3.DatabaseError:
+            rows = []
     finally:
         conn.close()
+    assert rows != ["ok"], "torn page silently passed quick_check"
 
     # Construction is lazy; the engine's own first write through a corrupt
     # store must surface the error — evidence can never be fabricated.
-    torn_eng = tmp_path / "torn_eng.db"
-    shutil.copy2(db, torn_eng)
-    with open(torn_eng, "r+b") as fh:
-        fh.seek(offset)
-        fh.write(b"\xde\xad\xbe\xef" * 512)
+    torn_eng = _corrupt_copy(tmp_path / "torn_eng.db")
     eng2 = SQLiteAgentCoharnessEngine(db_path=torn_eng)
     with pytest.raises(sqlite3.DatabaseError):
         eng2.intercept_tool_call(workspace_id="w", agent_host="claude_code",
