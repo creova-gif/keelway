@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Check, Copy, Search, ShieldCheck } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
-import { CAPABILITY_MATRIX, TROUBLESHOOTING_ROWS } from "@/data/docs";
 
 const DOC_SECTIONS = [
   { id: "quickstart", label: "01 Quickstart" },
@@ -13,6 +12,44 @@ const DOC_SECTIONS = [
   { id: "surfaces", label: "04 SDKs & CLI" },
   { id: "troubleshooting", label: "05 Troubleshooting" },
   { id: "releases", label: "06 Releases & Community" },
+] as const;
+
+const CAPABILITY_MATRIX = [
+  {
+    domain: "4-K Sovereign Architecture",
+    title: "KFlow, KSpaces, KBrain & KHub Core",
+    summary:
+      "Topological KFlow DAGs, KSpaces CRDT sync, KBrain hybrid BM25 + n-gram memory, and KHub air-gapped skill mirrors (.skill.tar.gz).",
+    cliOrSpec: "keelway hub · .skill.tar.gz",
+  },
+  {
+    domain: "Visual & Code Sync",
+    title: "Golden-Thread Bidirectional KFlow Studio",
+    summary:
+      "Round-trip Python/TypeScript workflows with Seatbelt Blast-Radius Radar and inline Prompt Regression Gate checks.",
+    cliOrSpec: "kflow-sync · blast-radius · prompt-gate",
+  },
+  {
+    domain: "Observability & Evals",
+    title: "OpenTelemetry GenAI Flight-Tape Time-Travel Debugging",
+    summary:
+      "Deterministic step replay, 1-click Trace-to-Eval Promotion into the 16-probe Golden Benchmark, and Static AST LangGraph import.",
+    cliOrSpec: "migrate-langgraph · OpenTelemetry OTLP",
+  },
+  {
+    domain: "MCP & Supply Chain",
+    title: "Model Context Protocol (2025-06-18) & Signed Artifacts",
+    summary:
+      "Zero-trust tool discovery, Ed25519 Marketplace verification, and reproducible CycloneDX 1.5 SBOM release attestations.",
+    cliOrSpec: "MCP 2025-06-18 · CycloneDX 1.5 SBOM",
+  },
+  {
+    domain: "Enterprise Identity & SIEM",
+    title: "Enterprise SSO, SCIM 2.0 & Dual-Human P-10 Quorum",
+    summary:
+      "Directory-synced RBAC, two-person approval receipts for high-impact actions, and streaming OCSF, CEF, and JSONL audit exports. OIDC uses a self-issued HS256 token profile (`federation_profile: self_issued_hs256`) for sovereign deployments; external IdP discovery/JWKS federation and SAML are not yet implemented.",
+    cliOrSpec: "OIDC HS256 · SCIM 2.0 · OCSF / CEF / JSONL",
+  },
 ] as const;
 
 function CodePanel({ id, title, code }: { id: string; title: string; code: string }) {
@@ -134,12 +171,8 @@ export function DocsHub() {
 
       <article className="space-y-12 lg:col-span-9">
         <section id="quickstart" aria-labelledby="doc-qs-h" className="scroll-mt-28">
-          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
-            01 QUICKSTART
-          </span>
-          <h2 id="doc-qs-h" className="mt-2 text-2xl font-bold text-fg">
-            Boot Local Runtime in 60 Seconds
-          </h2>
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">01 QUICKSTART</span>
+          <h2 id="doc-qs-h" className="mt-2 text-2xl font-bold text-fg">Boot Local Runtime in 60 Seconds</h2>
           <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
             Run locally with zero mandatory cloud account, zero token markup, and crash-safe SQLite WAL state.
           </p>
@@ -153,12 +186,8 @@ keelway init && keelway dev`}
 
         <section id="routing" aria-labelledby="doc-routing-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
           <span id="approval-loop" className="sr-only" />
-          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
-            02 ROUTING &amp; GOVERNANCE
-          </span>
-          <h2 id="doc-routing-h" className="mt-2 text-2xl font-bold text-fg">
-            Drop-In Hybrid API &amp; Deterministic Policy Gates
-          </h2>
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">02 ROUTING &amp; GOVERNANCE</span>
+          <h2 id="doc-routing-h" className="mt-2 text-2xl font-bold text-fg">Drop-In Hybrid API &amp; Deterministic Policy Gates</h2>
           <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
             Point any OpenAI-compatible client or official SDK at{" "}
             <code className="font-mono text-fg">/v1/responses</code>. Every call evaluates privacy boundaries, USD spend caps, human P-10 approval gates, and appends a SHA-256 hash-chained receipt.
@@ -178,12 +207,8 @@ resp = client.responses.create(model=plan["selected_model"], input="Generate pat
           <span id="status" className="sr-only" />
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
-                03 ENTERPRISE &amp; ECOSYSTEM
-              </span>
-              <h2 id="doc-ent-h" className="mt-2 text-2xl font-bold text-fg">
-                Production Architecture &amp; Security Capabilities
-              </h2>
+              <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">03 ENTERPRISE &amp; ECOSYSTEM</span>
+              <h2 id="doc-ent-h" className="mt-2 text-2xl font-bold text-fg">Production Architecture &amp; Security Capabilities</h2>
             </div>
 
             <div className="relative w-full sm:w-64">
@@ -226,12 +251,8 @@ resp = client.responses.create(model=plan["selected_model"], input="Generate pat
         </section>
 
         <section id="surfaces" aria-labelledby="doc-sdks-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
-          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
-            04 SDKS &amp; CLI
-          </span>
-          <h2 id="doc-sdks-h" className="mt-2 text-2xl font-bold text-fg">
-            Tri-Language SDKs &amp; Developer CLI
-          </h2>
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">04 SDKS &amp; CLI</span>
+          <h2 id="doc-sdks-h" className="mt-2 text-2xl font-bold text-fg">Tri-Language SDKs &amp; Developer CLI</h2>
           <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
             Zero-dependency TypeScript (<code className="font-mono text-fg">@keelway/sdk</code>), Python (
             <code className="font-mono text-fg">keelway</code>), Go (<code className="font-mono text-fg">keelway-go</code>), and the VS Code / Cursor extension share identical REST &amp; SSE contracts.
@@ -258,12 +279,8 @@ keelway migrate-langgraph --source graph.py`}
         </section>
 
         <section id="troubleshooting" aria-labelledby="doc-ts-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
-          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
-            05 TROUBLESHOOTING
-          </span>
-          <h2 id="doc-ts-h" className="mt-2 text-2xl font-bold text-fg">
-            Diagnostics &amp; Common Issues
-          </h2>
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">05 TROUBLESHOOTING</span>
+          <h2 id="doc-ts-h" className="mt-2 text-2xl font-bold text-fg">Diagnostics &amp; Common Issues</h2>
           <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
             <code className="font-mono text-fg">keelway doctor</code> runs
             sovereign diagnostics across 7 dimensions — runtime, storage,
@@ -287,10 +304,15 @@ sqlite3 ~/.keelway/state.db 'PRAGMA wal_checkpoint(FULL);'  # compact WAL`}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle">
-                {TROUBLESHOOTING_ROWS.map((row) => (
-                  <tr key={row.symptom} className="align-top hover:bg-surface-elevated/40">
-                    <td className="px-4 py-3 font-mono font-semibold text-fg">{row.symptom}</td>
-                    <td className="px-4 py-3 leading-relaxed text-fg-muted">{row.resolution}</td>
+                {[
+                  ["AirGapViolationError (HTTP 403)", "A private/air-gap request attempted cloud egress — by design. Re-route to an open_weight model or lower the privacy level."],
+                  ["P-10 gate stuck pending", "High-impact action requires human approval (or 2-of-2 quorum in Enterprise). Check `keelway mobile status` for paired approvers."],
+                  ["Credential type unsupported", "Consumer subscription credentials are rejected — use a metered API key or BYOM open-weight route."],
+                  ["Ledger verification failure", "Audit hash-chain mismatch — the append-only record was modified. Preserve the DB and report to your security review; do not truncate."],
+                ].map(([sym, fix]) => (
+                  <tr key={sym} className="align-top hover:bg-surface-elevated/40">
+                    <td className="px-4 py-3 font-mono font-semibold text-fg">{sym}</td>
+                    <td className="px-4 py-3 leading-relaxed text-fg-muted">{fix}</td>
                   </tr>
                 ))}
               </tbody>
@@ -299,12 +321,8 @@ sqlite3 ~/.keelway/state.db 'PRAGMA wal_checkpoint(FULL);'  # compact WAL`}
         </section>
 
         <section id="releases" aria-labelledby="doc-rel-h" className="scroll-mt-28 border-t border-border-subtle pt-10">
-          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">
-            06 RELEASES &amp; COMMUNITY
-          </span>
-          <h2 id="doc-rel-h" className="mt-2 text-2xl font-bold text-fg">
-            Changelog, Feed &amp; Release Channels
-          </h2>
+          <span className="chip-neutral inline-block rounded-sm px-2.5 py-0.5 font-mono text-xs">06 RELEASES &amp; COMMUNITY</span>
+          <h2 id="doc-rel-h" className="mt-2 text-2xl font-bold text-fg">Changelog, Feed &amp; Release Channels</h2>
           <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
             Releases follow SemVer and land in the repository{" "}
             <code className="font-mono text-fg">CHANGELOG.md</code>, mirrored
