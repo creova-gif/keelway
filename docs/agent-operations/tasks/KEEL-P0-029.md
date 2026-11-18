@@ -153,3 +153,17 @@ fixtures may only serve explicitly-marked test environments.
    `feature/` branch.
 2. Add per-view error/empty states for the consumers that still silently
    catch (App.tsx, SettingsGovernancePanel.tsx data loaders).
+
+## Round 3 — Per-view error states + mission-aligned kskills (commit 451429f, 36b1e3f)
+
+- All 68 production `.catch(() => {})` sites eliminated: platform panels write to their
+  existing `errorAlert`/`errorBanner`, FilesWorkspace to its status line, shell loads and
+  mutations to the activity log, settings panels to new `role="alert"` blocks.
+- Fabricated `SEED_RADAR_AUDIT` blast-radius record removed — the radar shows UNAUDITED
+  with an honest empty state until a real audit runs.
+- Clipboard "Copied" no longer claims success on write failure; governance policy is
+  labeled unsaved defaults when the server fetch fails.
+- kstack catalog expanded 8→14 with mission-mapped skills (p10-gate, airgap-verify,
+  flight-tape-verify, worktree-isolate, approval-grant, kflow-orchestrate); existing
+  eight enriched with Keelway invariants; manifest regenerated; doctor verifies all 14.
+- Verified: tsc clean, 108/108 dev-app tests, manifest VALID, kstack suite 8 passed.
