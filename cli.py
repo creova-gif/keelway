@@ -3911,6 +3911,20 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None):
+    try:
+        return _main(argv)
+    except KeyboardInterrupt:
+        print("\n[-] Interrupted.", file=sys.stderr)
+        sys.exit(130)
+    except Exception as exc:
+        if os.environ.get("KEELWAY_DEBUG"):
+            raise
+        print(f"[-] Error: {exc}", file=sys.stderr)
+        print("    (set KEELWAY_DEBUG=1 for a full traceback)", file=sys.stderr)
+        sys.exit(1)
+
+
+def _main(argv=None):
     raw_args = list(sys.argv[1:] if argv is None else argv)
     if not raw_args:
         print_banner()

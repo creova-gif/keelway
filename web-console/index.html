@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'" />
   <title>Keelway — Sovereign Cross-Machine Sync Console</title>
   <style>
     :root {
@@ -142,7 +143,7 @@
       <button id="btn-export">Export Encrypted Envelope</button>
       <button id="btn-demo">Simulate Cross-Machine Peer</button>
     </div>
-    <pre id="output-log">// Ready for peer state synchronization...</pre>
+    <pre id="output-log" aria-live="polite">// Ready for peer state synchronization...</pre>
   </div>
 
   <div class="card">
@@ -181,10 +182,18 @@
         document.getElementById('journal-count').textContent = data.journal_records_total;
         document.getElementById('vector-clocks').textContent = JSON.stringify(data.vector_clock, null, 2);
 
-        const peerKeys = Object.keys(data.known_peers);
+        const peerKeys = Object.keys(data.known_peers || {});
         const peerListEl = document.getElementById('peer-list');
+        peerListEl.textContent = '';
         if (peerKeys.length > 0) {
-          peerListEl.innerHTML = peerKeys.map(k => `<div>• <b>${k}</b>: last seen ${data.known_peers[k].last_seen_utc} (${data.known_peers[k].records_received} records)</div>`).join('');
+          for (const k of peerKeys) {
+            const peer = data.known_peers[k] || {};
+            const row = document.createElement('div');
+            const name = document.createElement('b');
+            name.textContent = k;
+            row.append('• ', name, `: last seen ${peer.last_seen_utc} (${peer.records_received} records)`);
+            peerListEl.appendChild(row);
+          }
         } else {
           peerListEl.textContent = 'No external peers synced yet. Export or import an encrypted sync envelope to exchange state.';
         }
@@ -193,22 +202,46 @@
       }
     }
 
+    function td(parent, text) {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      parent.appendChild(cell);
+      return cell;
+    }
+
     async function loadRecords() {
+      const tbody = document.getElementById('records-tbody');
       try {
         const records = await api('/v1/sync/records');
-        const tbody = document.getElementById('records-tbody');
         if (!records || records.length === 0) return;
-        tbody.innerHTML = records.map(r => `
-          <tr>
-            <td>${r.timestamp_utc}</td>
-            <td>${r.machine_id.slice(0, 12)}</td>
-            <td>${r.task_id}</td>
-            <td><span class="pill accent">${r.entity_type}</span></td>
-            <td>#${r.lamport_time}</td>
-            <td><code>${r.payload_sha256.slice(0, 12)}...</code></td>
-          </tr>
-        `).join('');
-      } catch (e) {}
+        tbody.textContent = '';
+        for (const r of records) {
+          const tr = document.createElement('tr');
+          td(tr, r.timestamp_utc);
+          td(tr, String(r.machine_id).slice(0, 12));
+          td(tr, r.task_id);
+          const entityTd = td(tr, '');
+          const pill = document.createElement('span');
+          pill.className = 'pill accent';
+          pill.textContent = r.entity_type;
+          entityTd.appendChild(pill);
+          td(tr, `#${r.lamport_time}`);
+          const digestTd = td(tr, '');
+          const code = document.createElement('code');
+          code.textContent = `${String(r.payload_sha256).slice(0, 12)}...`;
+          digestTd.appendChild(code);
+          tbody.appendChild(tr);
+        }
+      } catch (e) {
+        tbody.textContent = '';
+        const tr = document.createElement('tr');
+        const cell = td(tr, `Load failed: ${e.message} — press Refresh Sync State to retry.`);
+        cell.colSpan = 6;
+        cell.style.color = 'var(--err)';
+        cell.style.textAlign = 'center';
+        cell.setAttribute('role', 'alert');
+        tbody.appendChild(tr);
+      }
     }
 
     document.getElementById('btn-refresh').addEventListener('click', () => {
