@@ -94,6 +94,13 @@ export interface SidebarTaskItem {
   filesChangedCount?: number;
 }
 
+export interface SidebarAgentItem {
+  id: string;
+  name: string;
+  roleTitle: string;
+  status: Extract<TaskStatus, "ready" | "running" | "needs_approval">;
+}
+
 export type StepReceiptKind = "read" | "searched" | "edited" | "command" | "test";
 
 export interface StepReceiptItem {

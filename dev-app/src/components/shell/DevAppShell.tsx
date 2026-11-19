@@ -8,7 +8,7 @@ import {
 import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
-import type { EgressTelemetryState, RailSection, SidebarTaskItem, TaskStatus } from "@/lib/types";
+import type { EgressTelemetryState, RailSection, SidebarAgentItem, SidebarTaskItem, TaskStatus } from "@/lib/types";
 import { subscribeApiErrors, subscribeDataFallbacks, type ApiRequestError } from "@/lib/api";
 
 export { formatEgressBytes, resolveEgressDisplay };
@@ -23,6 +23,8 @@ export interface DevAppShellProps {
   activeTaskId?: string;
   onSelectTask?: (taskId: string) => void;
   onNewTask?: () => void;
+  agents?: SidebarAgentItem[];
+  onSelectAgent?: () => void;
   pendingApprovalCount?: number;
   onJumpToApprovalHeading?: () => void;
   contextSidebarContent?: React.ReactNode;
@@ -144,9 +146,42 @@ function TasksQueueList({
   );
 }
 
+interface AgentsRailListProps {
+  agents: SidebarAgentItem[];
+  onSelectAgent?: () => void;
+}
+
+function AgentsRailList({ agents, onSelectAgent }: AgentsRailListProps): React.JSX.Element {
+  return (
+    <section aria-label="Agents" className="flex max-h-[45%] shrink-0 flex-col border-t border-border">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Agents</span>
+        <span className="font-mono text-[10px] text-fg-dim">{agents.length} registered</span>
+      </div>
+      <div className="flex-1 space-y-0.5 overflow-y-auto p-2">
+        {agents.map((agent) => (
+          <button
+            key={agent.id}
+            type="button"
+            onClick={onSelectAgent}
+            className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-start transition-colors hover:bg-surface"
+          >
+            <span className="flex min-w-0 flex-col">
+              <code className="truncate font-mono text-[11px] font-medium text-fg">{agent.name}</code>
+              <span className="truncate text-[10px] text-fg-dim">{agent.roleTitle}</span>
+            </span>
+            <SemanticBadge kind={TASK_STATUS_TO_BADGE[agent.status]} />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
   const {
     activeSection, onSelectSection, tasks = [], activeTaskId, onSelectTask, onNewTask,
+    agents = [], onSelectAgent,
     pendingApprovalCount, onJumpToApprovalHeading, contextSidebarContent, contextSidebarLabel,
     reviewDrawerOpen = false, onToggleReviewDrawer, reviewDrawerContent, reviewDrawerTitle = "Review",
     logsDrawerOpen: controlledLogsOpen, defaultLogsDrawerOpen = false, onToggleLogsDrawer,
@@ -239,8 +274,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
   const shouldRenderSidebar =
     !effectiveMobileCompanion &&
     !hideSidebar &&
-    activeSection !== "record" &&
-    (activeSection === "tasks" || contextSidebarContent !== undefined);
+    activeSection !== "record";
 
   const resolvedSidebarLabel =
     contextSidebarLabel ??
@@ -448,12 +482,19 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
             {contextSidebarContent !== undefined ? (
               contextSidebarContent
             ) : (
-              <TasksQueueList
-                tasks={sortedTasks}
-                activeTaskId={activeTaskId}
-                onSelectTask={onSelectTask}
-                onNewTask={onNewTask}
-              />
+              <div className="flex h-full flex-col overflow-hidden">
+                <div className="min-h-0 flex-1">
+                  <TasksQueueList
+                    tasks={sortedTasks}
+                    activeTaskId={activeTaskId}
+                    onSelectTask={onSelectTask}
+                    onNewTask={onNewTask}
+                  />
+                </div>
+                {agents.length > 0 ? (
+                  <AgentsRailList agents={agents} onSelectAgent={onSelectAgent} />
+                ) : null}
+              </div>
             )}
           </aside>
         ) : null}

@@ -224,7 +224,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     await user.type(screen.getByLabelText(/Custom agent name/i), "migration-guardian");
     await user.type(screen.getByLabelText(/Custom agent role/i), "Zero-Downtime Schema Reviewer");
     await user.click(screen.getByRole("button", { name: /Create custom agent/i }));
-    expect(screen.getByText("migration-guardian")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "migration-guardian" })).toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: /Dispatch team/i })[0]!);
     expect(await axe(container)).toHaveNoViolations();

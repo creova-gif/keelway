@@ -215,6 +215,7 @@ export function App({
     activeRbacRole,
     setActiveRbacRole,
     platformHydration,
+    agents,
     renderPlatformCanvas,
   } = useUnifiedPlatformState({
     onJumpToIdeComposer: handleJumpToIdeComposer,
@@ -570,7 +571,8 @@ export function App({
         onJumpToApprovalHeading={handleJumpToApprovalHeading}
         contextSidebarContent={contextSidebarContent}
         contextSidebarLabel={contextSidebarLabel}
-        hideSidebar={platformView !== "ide"}
+        agents={agents}
+        onSelectAgent={() => handleSelectPlatformView("agents")}
         topWorkspaceBar={
           <PlatformWorkspaceBar
             activeView={platformView}

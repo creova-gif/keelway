@@ -603,6 +603,7 @@ export function useUnifiedPlatformState(options: {
     activeRbacRole,
     setActiveRbacRole,
     platformHydration,
+    agents,
     renderPlatformCanvas,
   };
 }
