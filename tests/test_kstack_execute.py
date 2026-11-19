@@ -182,3 +182,67 @@ def test_execute_endpoint_async_handler_sealed_proof():
             assert len(proof["signature_sha256"]) == 64
 
     asyncio.run(_run())
+
+
+def test_cli_skill_execute_sealed_proof(capsys):
+    """`cli.py skill execute` runs the registered handler and prints a sealed proof."""
+    import json as _json
+    from cli import cmd_skill
+
+    rc = cmd_skill(action="execute", name="kstack/sbom-audit")
+    out = capsys.readouterr().out
+    assert rc == 0
+    proof = _json.loads(out)
+    assert proof["skill_name"] == "kstack/sbom-audit"
+    assert proof["success"] is True
+    assert proof["actor"] == "cli"
+    assert proof["signature_sha256"]
+    assert proof["outputs"]["sbom"]["bom_format"] == "CycloneDX"
+
+
+def test_cli_skill_execute_records_actor_and_inputs(capsys):
+    import json as _json
+    from cli import cmd_skill
+
+    rc = cmd_skill(
+        action="execute",
+        name="kstack/airgap-verify",
+        inputs=_json.dumps({"depth": "shallow"}),
+        actor="ci-runner",
+    )
+    out = capsys.readouterr().out
+    assert rc in (0, 1)
+    proof = _json.loads(out)
+    assert proof["actor"] == "ci-runner"
+    assert proof["inputs"] == {"depth": "shallow"}
+
+
+def test_cli_skill_execute_no_handler_and_unknown(capsys):
+    from cli import cmd_skill
+
+    assert cmd_skill(action="execute", name="kstack/plan") == 1
+    assert "no registered execution handler" in capsys.readouterr().out
+    assert cmd_skill(action="execute", name="kstack/does-not-exist") == 1
+    assert "not found" in capsys.readouterr().out
+
+
+def test_cli_skill_execute_rejects_malformed_inputs(capsys):
+    from cli import cmd_skill
+
+    assert cmd_skill(action="execute", name="kstack/sbom-audit", inputs="{bad") == 1
+    assert "Invalid --inputs JSON" in capsys.readouterr().out
+    assert cmd_skill(action="execute", name="kstack/sbom-audit", inputs="[1,2]") == 1
+    assert "JSON object" in capsys.readouterr().out
+
+
+def test_cli_skill_execute_via_argparse_dispatch(capsys):
+    """End-to-end through the parser dispatch: SystemExit carries the proof's exit code."""
+    import json as _json
+    from cli import main
+
+    with pytest.raises(SystemExit) as exc:
+        main(["skill", "execute", "kstack/sbom-audit"])
+    assert exc.value.code == 0
+    proof = _json.loads(capsys.readouterr().out)
+    assert proof["skill_name"] == "kstack/sbom-audit"
+    assert proof["success"] is True
