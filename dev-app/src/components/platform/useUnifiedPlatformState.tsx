@@ -31,6 +31,8 @@ import {
   type EnterpriseRetentionMode,
   type MarketplacePublishPayload,
 } from "@/lib/platformApi";
+import { fetchAgentRegistry } from "@/lib/api";
+import type { AgentRegistryRecord } from "@/lib/types";
 import {
   generateLocalBlueprint,
   INITIAL_AUTOMATION_WORKFLOWS,
@@ -85,6 +87,21 @@ export function useUnifiedPlatformState(options: {
   const [activeRbacRole, setActiveRbacRole] = useState<RbacRoleId>("owner");
 
   const [agents, setAgents] = useState<LifecycleAgentItem[]>(INITIAL_LIFECYCLE_AGENTS);
+  const [agentRegistry, setAgentRegistry] = useState<Map<string, AgentRegistryRecord> | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchAgentRegistry()
+      .then((records) => {
+        if (alive) setAgentRegistry(records ? new Map(records.map((r) => [r.name, r])) : null);
+      })
+      .catch(() => {
+        if (alive) setAgentRegistry(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [teams, setTeams] = useState<MultiAgentTeamItem[]>(INITIAL_MULTI_AGENT_TEAMS);
   const [issues, setIssues] = useState<PmIssueItem[]>(INITIAL_PM_ISSUES);
   const [prds, setPrds] = useState<ProductPrdItem[]>(INITIAL_PRODUCT_PRDS);
@@ -474,6 +491,7 @@ export function useUnifiedPlatformState(options: {
           <AgentsWorkspaceView
             experienceMode={experienceMode}
             agents={agents}
+            agentRegistry={agentRegistry}
             teams={teams}
             workspaceId={activeWorkspaceId}
             activeRbacRole={activeRbacRole}
@@ -604,6 +622,7 @@ export function useUnifiedPlatformState(options: {
     setActiveRbacRole,
     platformHydration,
     agents,
+    agentRegistry,
     renderPlatformCanvas,
   };
 }

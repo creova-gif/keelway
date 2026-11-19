@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
+  AgentManifestItem, AgentRegistryRecord, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem,
   DoctorCheckItem, EgressBarMode, EgressTelemetryState, FileDiffHunk,
   GitCommitProposal, GitCommitResult, GovernancePersistenceInfo,
   ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
@@ -22,7 +22,7 @@ import {
   asNumber, asString, decodeAirGapAudit, decodeApprovalRule, decodeApprovalRuleList,
   decodeAuditEntry, decodeChainVerification,
   decodeDoctorChecks, decodeFilesTree, decodeGitCommitResult, decodeGitProposal,
-  decodeGovernancePersistence, decodeManifestInspectResult, decodeManifestItem,
+  decodeAgentRegistry, decodeGovernancePersistence, decodeManifestInspectResult, decodeManifestItem,
   decodeManifestList, decodeMerkleProof, decodeMintedScopedKey, decodeOpenCoreWeights,
   decodeRoutingExplanation, decodeScopedKey, decodeStudioDiff, decodeSymbols,
   decodeTenantPolicy, isRecord,
@@ -501,6 +501,19 @@ export async function exportAuditBundle(): Promise<{
     return { ...buildAuditBundleFromEntries(parsedEntries), jsonl: trimmed };
   } catch {
     return buildAuditBundleFromEntries(getFallbackAuditEntries());
+  }
+}
+
+export async function fetchAgentRegistry(): Promise<AgentRegistryRecord[] | null> {
+  try {
+    return await requestSameOriginDecoded(
+      "/v1/agents/registry",
+      { method: "GET" },
+      decodeAgentRegistry,
+      () => null,
+    );
+  } catch {
+    return null;
   }
 }
 

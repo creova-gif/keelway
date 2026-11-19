@@ -337,6 +337,15 @@ export interface ApprovalRulesListResponse {
   workspace: string;
 }
 
+export interface AgentRegistryRecord {
+  id: string;
+  name: string;
+  version: string;
+  owner: string;
+  enabled: boolean;
+  digest: string;
+}
+
 export interface AgentManifestItem {
   id: string;
   name: string;

@@ -10,6 +10,7 @@ import {
   explainRouting,
   exportAuditBundle,
   fetchAgentManifests,
+  fetchAgentRegistry,
   fetchAirGapAudit,
   fetchFilesTree,
   fetchGitProposal,
@@ -415,6 +416,50 @@ describe("Tokens Rev 4 — SemanticBadge, Button & CalloutBanner primitives", ()
         maxTier: 1,
         tools: ["read_file", "scan_sbom"],
       });
+
+      // 2b. fetchAgentRegistry live /v1/agents/registry envelope: enabled + disabled records
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            manifests: [
+              {
+                id: "feature-coder@1.0.0",
+                name: "feature-coder",
+                version: "1.0.0",
+                owner: "system",
+                description: "Implements features",
+                digest: "a1b2c3d4e5f6",
+                enabled: true,
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+              },
+              {
+                id: "devops-sre@1.0.0",
+                name: "devops-sre",
+                version: "1.0.0",
+                owner: "system",
+                description: "SRE agent",
+                digest: "f6e5d4c3b2a1",
+                enabled: false,
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const registry = await fetchAgentRegistry();
+      expect(registry).not.toBeNull();
+      expect(registry).toHaveLength(2);
+      expect(registry?.[0]).toMatchObject({
+        name: "feature-coder",
+        version: "1.0.0",
+        owner: "system",
+        enabled: true,
+        digest: "a1b2c3d4e5f6",
+      });
+      expect(registry?.[1]).toMatchObject({ name: "devops-sre", enabled: false });
 
       // 3. exportAuditBundle plain-text application/x-ndjson response
       const ndjsonBody = [
