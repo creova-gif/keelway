@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| **Status** | `READY_FOR_REVIEW` |
+| **Status** | `VERIFIED_COMPLETE` |
 | **Category** | `RELEASE / ENTERPRISE / IDENTITY` |
 | **Agent** | Devin |
 | **Date** | 2026-11-18 |
-| **Branch** | `feature/rel-068-enterprise-idp-interop` |
+| **Branch** | merged `main` (PR #82) |
 
 ## Objective
 Per OD-5, OIDC + SCIM Users are in-scope for vNext. The routes existed but
