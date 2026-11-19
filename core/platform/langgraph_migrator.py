@@ -592,6 +592,11 @@ class LangGraphMigrator:
         else:
             raise ValueError(f"Unsupported source_language '{source_language}'. Expected 'python' or 'typescript'.")
 
+        if not raw_nodes:
+            raise ValueError(
+                "No LangGraph StateGraph nodes detected in the provided source; nothing to migrate."
+            )
+
         wf_name = _slugify_workflow_name(workflow_name, state_hint)
         p10_gates_injected = [n["id"] for n in raw_nodes if n["id"] in p10_set]
         nodes: List[Dict[str, Any]] = [

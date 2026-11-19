@@ -19,6 +19,10 @@ from core.api.platform_devx_routes import (
     get_langgraph_migrator,
     platform_devx_routes_router,
 )
+from core.api.platform_kflow_routes import (
+    get_kflow_engine,
+    router as platform_kflow_router,
+)
 from core.api.platform_runtime_routes import (
     get_rbac_controller,
     router as platform_runtime_router,
@@ -659,3 +663,181 @@ def test_cli_traces_trace_eval_and_migrate_langgraph_json(
     assert mig_out["workflow_name"] == "cli-migrated-flow"
     assert mig_out["cycles_detected"] == 1
     assert mig_out["p10_gates_injected"] == ["gate"]
+
+    # CLI end-to-end: feed the migrated blueprint straight into the KFlow executor.
+    blueprint_json = json.dumps(mig_out["kflow_blueprint"])
+    assert (
+        cli_main(
+            [
+                "kflow",
+                "execute",
+                "--workspace-id",
+                "default",
+                "--workflow-id",
+                mig_out["workflow_name"],
+                "--nodes-json",
+                blueprint_json,
+                "--db-path",
+                db_file,
+                "--json",
+            ]
+        )
+        == 0
+    )
+    held = json.loads(capsys.readouterr().out)
+    assert held["status"] == "awaiting_p10" and held["held_node_id"] == "gate"
+
+    assert (
+        cli_main(
+            [
+                "kflow",
+                "execute",
+                "--workspace-id",
+                "default",
+                "--workflow-id",
+                mig_out["workflow_name"],
+                "--nodes-json",
+                blueprint_json,
+                "--approve-node",
+                "gate",
+                "--db-path",
+                db_file,
+                "--json",
+            ]
+        )
+        == 0
+    )
+    approved = json.loads(capsys.readouterr().out)
+    assert approved["status"] == "completed"
+
+    assert cli_main(["kflow", "runs", "--workspace-id", "default", "--db-path", db_file, "--json"]) == 0
+    kflow_runs = json.loads(capsys.readouterr().out)
+    assert kflow_runs["count"] >= 2
+
+
+@pytest.mark.asyncio
+async def test_langgraph_import_to_governed_run_e2e(tmp_path: Path) -> None:
+    """Public-surface E2E: migrate real LangGraph source via the API, feed the returned
+    kflow_blueprint into the governed KFlow execute route, and verify P-10 pause,
+    RBAC-gated approval, completion, and durable run receipts."""
+    rbac = WorkspaceRbacController(db_path=tmp_path / "e2e_rbac.db")
+    kflow = KFlowDagEngine(db_path=tmp_path / "e2e_kflow.db")
+
+    test_app = FastAPI()
+    test_app.include_router(platform_runtime_router)
+    test_app.include_router(platform_devx_routes_router)
+    test_app.include_router(platform_kflow_router)
+    test_app.dependency_overrides[get_rbac_controller] = lambda: rbac
+    test_app.dependency_overrides[get_langgraph_migrator] = lambda: LangGraphMigrator()
+    test_app.dependency_overrides[get_kflow_engine] = lambda: kflow
+
+    token = launch_token()
+    base = {"Authorization": f"Bearer {token}"}
+    builder_headers = {**base, "X-Keelway-Role": "builder", "X-Keelway-Actor": "builder-e2e"}
+    operator_headers = {**base, "X-Keelway-Role": "operator", "X-Keelway-Actor": "operator-e2e"}
+    viewer_headers = {**base, "X-Keelway-Role": "viewer", "X-Keelway-Actor": "viewer-e2e"}
+
+    graph_source = (
+        "from langgraph.graph import StateGraph, START, END\n"
+        "from langgraph.types import interrupt\n"
+        "def fetch(state):\n"
+        "    return {'rows': 1}\n"
+        "def human_review(state):\n"
+        "    return interrupt({'question': 'approve?'})\n"
+        "g = StateGraph(dict)\n"
+        "g.add_node('fetch', fetch)\n"
+        "g.add_node('gate', human_review)\n"
+        "g.add_edge(START, 'fetch')\n"
+        "g.add_edge('fetch', 'gate')\n"
+        "g.add_edge('gate', END)\n"
+        "app = g.compile()\n"
+    )
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
+            # 1. Static migration through the public route.
+            mig = await client.post(
+                "/v1/platform/migrate/langgraph",
+                headers=builder_headers,
+                json={
+                    "workspace_id": "default",
+                    "source_language": "python",
+                    "workflow_name": "e2e-imported-flow",
+                    "source_code": graph_source,
+                },
+            )
+            assert mig.status_code == 200
+            migration = mig.json()
+            assert migration["p10_gates_injected"] == ["gate"]
+            blueprint = migration["kflow_blueprint"]
+            assert [n["id"] for n in blueprint] == ["fetch", "gate"]
+
+            # 2. Execute the imported blueprint through the governed KFlow route.
+            execute_payload = {
+                "workspace_id": "default",
+                "workflow_id": migration["workflow_name"],
+                "nodes": blueprint,
+                "trigger": "langgraph-import",
+            }
+            held = await client.post(
+                "/v1/platform/automation/workflows/execute",
+                headers=builder_headers,
+                json=execute_payload,
+            )
+            assert held.status_code == 200
+            held_body = held.json()
+            assert held_body["status"] == "awaiting_p10"
+            assert held_body["held_node_id"] == "gate"
+            assert held_body["receipt_sha256"].startswith("sha256:")
+            gate_node = [n for n in held_body["nodes"] if n["id"] == "gate"][0]
+            assert gate_node["status"] == "awaiting_p10"
+            fetch_node = [n for n in held_body["nodes"] if n["id"] == "fetch"][0]
+            assert fetch_node["status"] == "passed"
+
+            # 3. P-10 approval is RBAC-gated: builder lacks p10:approve.
+            denied = await client.post(
+                "/v1/platform/automation/workflows/execute",
+                headers=builder_headers,
+                json={**execute_payload, "approved_node_ids": ["gate"]},
+            )
+            assert denied.status_code == 403
+
+            # 4. Operator holds p10:approve — run completes end-to-end.
+            done = await client.post(
+                "/v1/platform/automation/workflows/execute",
+                headers=operator_headers,
+                json={**execute_payload, "approved_node_ids": ["gate"]},
+            )
+            assert done.status_code == 200
+            done_body = done.json()
+            assert done_body["status"] == "completed"
+            assert all(n["status"] == "passed" for n in done_body["nodes"])
+            assert all(n["output_digest"].startswith("sha256:") for n in done_body["nodes"])
+
+            # 5. Both runs are durably persisted with receipts.
+            runs = await client.get(
+                "/v1/platform/automation/runs?workspace_id=default",
+                headers=viewer_headers,
+            )
+            assert runs.status_code == 200
+            runs_body = runs.json()
+            assert runs_body["count"] == 2
+            statuses = {r["status"] for r in runs_body["runs"]}
+            assert statuses == {"awaiting_p10", "completed"}
+            assert all(r["receipt_sha256"].startswith("sha256:") for r in runs_body["runs"])
+
+            # 6. Negative path: graphless source refuses honestly.
+            bad = await client.post(
+                "/v1/platform/migrate/langgraph",
+                headers=builder_headers,
+                json={
+                    "workspace_id": "default",
+                    "source_language": "python",
+                    "source_code": "x = 1\nprint(x)\n",
+                },
+            )
+            assert bad.status_code == 400
+            assert "No LangGraph" in bad.json()["detail"]
+    finally:
+        kflow.close()
+        rbac.close()
