@@ -2,7 +2,7 @@
 
 - **TASK ID**: KEEL-WEB-040
 - **TASK TITLE**: Restore `/docs` as a Maritime Instrument docs index linking to canonical repo documentation
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: VERIFIED_COMPLETE
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-19
 - **BRANCH**: `feature/keel-web-040-docs-index`
