@@ -55,6 +55,7 @@
 | **KEEL-APP-041** | Dev App Maritime Instrument Token Retheme (P1 — Semantic Color Restoration) | `APP / UX / TOKENS` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-041-maritime-retheme` |
 | **KEEL-APP-042** | Dev App Chrome Consolidation (P2 — 4 Rows → 2: Merged Lifecycle + View Nav) | `APP / UX / CHROME` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-042-chrome-consolidation` |
 | **KEEL-APP-043** | Dev App P3: files/tree Decoder Fix, Honest Error Labels, Card-in-Card Flattening | `APP / UX / BUGFIX` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-043-denoise-and-decoder-fix` |
+| **KEEL-APP-044** | Dev App P4: Per-View Badge/Noise Audit & Targeted De-noising | `APP / UX` | `READY_FOR_REVIEW` | Devin | 2026-11-19 | `feature/keel-app-044-badge-denoise` |
 | **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
 | **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
 | **KEEL-ENG-038** | Simulated OpenCore Response Disclosure (`simulated` flag, mock-backend routing_reason) | `ENGINEERING / PRODUCT-TRUTH / INFERENCE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-038-simulated-disclosure` |

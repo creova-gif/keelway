@@ -154,16 +154,18 @@ export function KHubAirgapMirrorPanel({
         {skills.map((skill) => (
           <article
             key={skill.skill_id}
-            className="flex flex-col justify-between gap-1.5 rounded-sm border border-border bg-chrome p-2.5 text-xs"
+            className="flex flex-col justify-between gap-1.5 rounded-sm bg-canvas p-2.5 text-xs"
           >
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-1.5">
                 <code className="font-mono text-[11px] font-semibold text-teal-accent">
                   {skill.skill_id}
                 </code>
-                <span className="rounded-xs border border-border bg-canvas px-1.5 py-0.5 font-mono text-[10px] text-fg-muted">
-                  {skill.source_type}
-                </span>
+                {skill.source_type !== "kstack_builtin" ? (
+                  <span className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-fg-muted">
+                    {skill.source_type}
+                  </span>
+                ) : null}
               </div>
               <h3 className="text-xs font-semibold text-fg">{skill.name}</h3>
             </div>
