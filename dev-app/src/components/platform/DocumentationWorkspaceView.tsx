@@ -221,9 +221,6 @@ export function DocumentationWorkspaceView({
               : "Diataxis technical documentation + canonical cross-agent engineering contract (Antigravity · Claude Code · Devin · gstack)."}
           </p>
         </div>
-        <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-2 py-1 font-mono text-[11px] text-teal-accent">
-          Antigravity · Claude Code · Devin · gstack
-        </span>
       </div>
 
       <KBrainMemoryGraphPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
