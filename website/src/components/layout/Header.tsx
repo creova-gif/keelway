@@ -20,7 +20,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--rule)] bg-[rgba(8,9,10,0.85)] backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:px-8">
-        <Link href="/" className="kw-link flex items-center gap-2.5 text-[var(--ink)]" aria-label="Keelway home">
+        <Link href="/" className="kw-link flex items-center gap-2.5 text-[var(--ink)]" aria-label="K′ Keelway home">
           <Mark />
           <span className="text-[15px] font-bold tracking-tight">Keelway</span>
         </Link>

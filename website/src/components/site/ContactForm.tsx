@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const REPO_URL = "https://github.com/creova-gif/keelway";
+const REPO_URL = "/repo";
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);

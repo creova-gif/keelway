@@ -408,10 +408,9 @@ async def test_python_async_sdk_live_asgi_kbrain_khub_and_tri_sdk_symbols(tmp_pa
 
 
 def test_docs_hub_phase10_4k_sovereign_architecture_and_privacy() -> None:
-    docs_hub = REPO_ROOT / "website" / "src" / "components" / "docs" / "DocsHub.tsx"
-    docs_src = docs_hub.read_text(encoding="utf-8")
-    line_count = len(docs_src.splitlines())
-    assert line_count < 500, f"DocsHub.tsx has {line_count} lines (must remain < 500)"
+    # KEEL-WEB-038: DocsHub.tsx was retired with the v3 route prune; the same
+    # disclosure + privacy contract now binds to product-facts.json.
+    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
 
     for required_token in (
         "4-K Sovereign Architecture",
@@ -421,7 +420,7 @@ def test_docs_hub_phase10_4k_sovereign_architecture_and_privacy() -> None:
         "KHub",
         ".skill.tar.gz",
     ):
-        assert required_token in docs_src, f"Missing '{required_token}' in DocsHub.tsx"
+        assert required_token in facts_src, f"Missing '{required_token}' in product-facts.json"
 
     for token in FORBIDDEN_PRIVATE_TOKENS:
-        assert token not in docs_src, f"Forbidden private token '{token}' leaked in DocsHub.tsx"
+        assert token not in facts_src, f"Forbidden private token '{token}' leaked in product-facts.json"

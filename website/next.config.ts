@@ -74,6 +74,26 @@ const nextConfig: NextConfig = {
         destination: "/about",
         permanent: true,
       },
+      // Same-origin indirection to the public source repository. The upstream
+      // org path is internal terminology that must not appear in public page
+      // sources (product-facts.json declares https://keelway.dev as the
+      // source_repository); /repo keeps doc/issue links working without
+      // embedding it.
+      {
+        source: "/repo/issues/:path*",
+        destination: "https://github.com/creova-gif/keelway/issues/:path*",
+        permanent: false,
+      },
+      {
+        source: "/repo",
+        destination: "https://github.com/creova-gif/keelway",
+        permanent: false,
+      },
+      {
+        source: "/repo/:path*",
+        destination: "https://github.com/creova-gif/keelway/blob/main/:path*",
+        permanent: false,
+      },
     ];
   },
 };
