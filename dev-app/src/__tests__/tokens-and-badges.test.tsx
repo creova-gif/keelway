@@ -354,6 +354,36 @@ describe("Tokens Rev 4 — SemanticBadge, Button & CalloutBanner primitives", ()
         gitStatus: "M",
       });
 
+      // 1b. fetchFilesTree live-server envelope: single root node under `tree`
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            root: "/workspace/keelway",
+            name: "keelway",
+            tree: {
+              name: "keelway",
+              path: "",
+              type: "directory",
+              children: [
+                { name: "cli.py", path: "cli.py", type: "file" },
+                {
+                  name: "core",
+                  path: "core",
+                  type: "directory",
+                  children: [{ name: "main.py", path: "core/main.py", type: "file" }],
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+      const liveTree = await fetchFilesTree();
+      expect(liveTree).toHaveLength(2);
+      expect(liveTree[0]).toMatchObject({ name: "cli.py", type: "file", language: "python" });
+      expect(liveTree[1]).toMatchObject({ name: "core", type: "directory" });
+      expect(liveTree[1].children).toHaveLength(1);
+
       // 2. fetchAgentManifests { manifests, count, signing_key_present } envelope
       fetchSpy.mockResolvedValueOnce(
         new Response(

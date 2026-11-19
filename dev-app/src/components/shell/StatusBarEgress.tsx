@@ -127,7 +127,7 @@ export function StatusBarEgress({
             className="font-mono text-[11px] text-danger"
             title={`${apiError.message} — check the local API is running, then retry the action.`}
           >
-            {`API error: ${apiError.path}${apiError.status ? ` (${apiError.status})` : ""}`}
+            {`API error: ${apiError.path}${apiError.kind === "http" && apiError.status ? ` (${apiError.status})` : ` (${apiError.kind})`}`}
           </span>
         </>
       ) : null}

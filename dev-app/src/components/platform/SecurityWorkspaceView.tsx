@@ -263,7 +263,7 @@ export function SecurityWorkspaceView({
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-3 rounded-xs border border-border bg-chrome p-2.5 text-xs text-fg">
+            <div className="flex flex-wrap gap-3 rounded-xs bg-canvas p-2.5 text-xs text-fg">
               <label className="inline-flex items-center gap-1.5">
                 <input type="checkbox" checked={piiRedaction} onChange={(e) => setPiiRedaction(e.target.checked)} />
                 <span>PII Redaction Enforced</span>
@@ -280,7 +280,7 @@ export function SecurityWorkspaceView({
 
             <ul className="space-y-1.5 text-xs">
               {controls.map((ctrl) => (
-                <li key={ctrl.id} className="rounded-xs border border-border bg-canvas px-2.5 py-2">
+                <li key={ctrl.id} className="rounded-xs bg-canvas px-2.5 py-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium text-fg">{ctrl.title}</span>
                     <span className={`font-mono text-[10px] font-semibold uppercase ${ctrl.passed ? "text-ok" : "text-danger"}`}>
