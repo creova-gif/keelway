@@ -2,7 +2,7 @@
 
 - **TASK ID**: KEEL-APP-042
 - **TASK TITLE**: Consolidate `/app` chrome from 4 stacked rows to 2 (workspace identity + controls; merged lifecycle/nav row)
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: VERIFIED_COMPLETE
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-19
 - **BRANCH**: `feature/keel-app-042-chrome-consolidation`
@@ -36,6 +36,10 @@
 
 - Chrome reduction is structural only — brass accent still appears decoratively inside views; P3 de-noising (chips = states only, flatten card-in-card, `API error (200)` status-bar fix) remains
 - Narrow-width check is by `flex-wrap` design (no explicit viewport resize in control script); mobile companion path untouched
+
+## SHIP RECORD
+
+- PR #97 merged as `32ae78a` — chrome consolidation live on `main` (`core/dev_app_dist` rebuilt and served)
 
 ## NEXT RECOMMENDED ACTION
 
