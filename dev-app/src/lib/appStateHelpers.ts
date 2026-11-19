@@ -14,7 +14,6 @@ import type {
   RailSection,
   SettingsSubSection,
   SidebarTaskItem,
-  StepReceiptItem,
 } from "@/lib/types";
 
 function isRailSection(val: string | null): val is RailSection {
@@ -97,27 +96,6 @@ export const INITIAL_PROPOSALS: P10ApprovalProposal[] = [
     confidence: "Medium",
     createdAt: "2026-11-14T02:14:20Z",
     recordSeqCandidate: 1284,
-  },
-];
-
-export const INITIAL_STEP_RECEIPTS: StepReceiptItem[] = [
-  {
-    id: "step-read-main",
-    kind: "read",
-    title: "Read file",
-    target: "core/main.py",
-    status: "ready",
-    recordSeq: 1281,
-  },
-  {
-    id: "step-edit-csp",
-    kind: "edited",
-    title: "Edited file",
-    target: "core/main.py",
-    linesAdded: 3,
-    linesRemoved: 1,
-    status: "ready",
-    recordSeq: 1283,
   },
 ];
 
