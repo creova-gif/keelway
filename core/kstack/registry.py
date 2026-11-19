@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import inspect
 import time
 from pathlib import Path
 from threading import Lock
@@ -276,33 +277,25 @@ class KStackRegistry:
 
         return (len(errors) == 0, errors)
 
-    def execute_skill(
-        self,
-        name: str,
-        actor: str,
-        inputs: Dict[str, Any],
-        handler: Optional[Any] = None,
-    ) -> SkillExecutionProof:
+    def _resolve_for_execution(self, name: str):
         skill = self.get_skill(name)
         if not skill:
             raise KeyError(f"Skill '{name}' not found")
         if skill.revoked:
             raise PermissionError(f"Skill '{name}' is revoked: {skill.revocation_reason}")
+        return skill
 
-        t0 = time.time()
-        outputs: Dict[str, Any] = {}
-        success = True
-        try:
-            if handler:
-                outputs = handler(inputs)
-            else:
-                outputs = {"status": "executed", "echo_inputs": inputs}
-        except Exception as e:
-            success = False
-            outputs = {"error": str(e)}
-
+    def _seal_execution(
+        self,
+        skill,
+        actor: str,
+        inputs: Dict[str, Any],
+        t0: float,
+        outputs: Dict[str, Any],
+        success: bool,
+    ) -> SkillExecutionProof:
         duration_ms = round((time.time() - t0) * 1000, 2)
-        exec_id = f"ksexec_{name.replace('/', '_')}_{int(t0 * 1000)}"
+        exec_id = f"ksexec_{skill.name.replace('/', '_')}_{int(t0 * 1000)}"
         proof = SkillExecutionProof(
             execution_id=exec_id,
             skill_name=skill.name,
@@ -317,6 +310,61 @@ class KStackRegistry:
         )
         proof.seal()
         return proof
+
+    def execute_skill(
+        self,
+        name: str,
+        actor: str,
+        inputs: Dict[str, Any],
+        handler: Optional[Any] = None,
+    ) -> SkillExecutionProof:
+        skill = self._resolve_for_execution(name)
+
+        t0 = time.time()
+        outputs: Dict[str, Any] = {}
+        success = True
+        try:
+            if handler:
+                outputs = handler(inputs)
+                if inspect.isawaitable(outputs):
+                    if inspect.iscoroutine(outputs):
+                        outputs.close()
+                    success = False
+                    outputs = {
+                        "error": "handler returned an awaitable; dispatch via execute_skill_async"
+                    }
+            else:
+                outputs = {"status": "executed", "echo_inputs": inputs}
+        except Exception as e:
+            success = False
+            outputs = {"error": str(e)}
+
+        return self._seal_execution(skill, actor, inputs, t0, outputs, success)
+
+    async def execute_skill_async(
+        self,
+        name: str,
+        actor: str,
+        inputs: Dict[str, Any],
+        handler: Optional[Any] = None,
+    ) -> SkillExecutionProof:
+        """Async-aware execution: awaits handlers that return coroutines."""
+        skill = self._resolve_for_execution(name)
+
+        t0 = time.time()
+        outputs: Dict[str, Any] = {}
+        success = True
+        try:
+            if handler:
+                result = handler(inputs)
+                outputs = await result if inspect.isawaitable(result) else result
+            else:
+                outputs = {"status": "executed", "echo_inputs": inputs}
+        except Exception as e:
+            success = False
+            outputs = {"error": str(e)}
+
+        return self._seal_execution(skill, actor, inputs, t0, outputs, success)
 
 
 # Singleton instance

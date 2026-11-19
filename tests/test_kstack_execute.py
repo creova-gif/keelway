@@ -135,3 +135,50 @@ def test_execute_endpoint_records_handler_failure_in_proof():
             assert len(proof["signature_sha256"]) == 64
 
     asyncio.run(_run())
+
+
+def test_golden_eval_handler_runs_real_benchmark():
+    out = asyncio.run(BUILTIN_HANDLERS["kstack/golden-eval"]({"save_receipt": False}))
+    assert out["total_tasks"] == 10
+    assert "pass_rate_pct" in out
+    assert len(out["receipt_sha256"]) == 64
+
+
+def test_golden_eval_rejects_unwired_compare():
+    async def _run():
+        with pytest.raises(ValueError):
+            await BUILTIN_HANDLERS["kstack/golden-eval"]({"compare_to": "eval_x"})
+
+    asyncio.run(_run())
+
+
+def test_sync_dispatch_fails_closed_on_awaitable():
+    proof = kstack_registry.execute_skill(
+        name="kstack/golden-eval",
+        actor="test",
+        inputs={"save_receipt": False},
+        handler=BUILTIN_HANDLERS["kstack/golden-eval"],
+    )
+    assert proof.success is False
+    assert "awaitable" in proof.outputs["error"]
+    coro = None
+    # ensure no leaked coroutine warnings path: the recorded error is the honest result
+    assert len(proof.signature_sha256) == 64
+
+
+def test_execute_endpoint_async_handler_sealed_proof():
+    async def _run():
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            r = await client.post(
+                "/v1/kstack/execute",
+                json={"name": "kstack/golden-eval", "inputs": {"save_receipt": False}},
+            )
+            assert r.status_code == 200
+            proof = r.json()["proof"]
+            assert proof["success"] is True
+            assert proof["outputs"]["total_tasks"] == 10
+            assert "pass_rate_pct" in proof["outputs"]
+            assert len(proof["signature_sha256"]) == 64
+
+    asyncio.run(_run())
