@@ -19,6 +19,7 @@ export interface AgentsWorkspaceViewProps {
   experienceMode: ExperienceMode;
   agents: LifecycleAgentItem[];
   agentRegistry?: Map<string, AgentRegistryRecord> | null;
+  onToggleRegistryEntry?: (name: string, version: string, enabled: boolean) => Promise<boolean>;
   teams: MultiAgentTeamItem[];
   onCreateCustomAgent: (agent: LifecycleAgentItem) => void;
   onDispatchTeam: (teamId: string) => void;
@@ -39,6 +40,7 @@ export function AgentsWorkspaceView({
   experienceMode,
   agents,
   agentRegistry = null,
+  onToggleRegistryEntry,
   teams,
   onCreateCustomAgent,
   onDispatchTeam,
@@ -48,6 +50,8 @@ export function AgentsWorkspaceView({
   activeRbacRole = "owner",
 }: AgentsWorkspaceViewProps): React.JSX.Element {
   const [localAgents, setLocalAgents] = useState<LifecycleAgentItem[]>(agents);
+  const [pendingToggleId, setPendingToggleId] = useState<string | null>(null);
+  const canToggleRegistry = activeRbacRole === "owner" || activeRbacRole === "admin";
   const [localTeams, setLocalTeams] = useState<MultiAgentTeamItem[]>(teams);
   const [customName, setCustomName] = useState("");
   const [customRole, setCustomRole] = useState("");
@@ -377,20 +381,22 @@ export function AgentsWorkspaceView({
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filteredAgents.map((agent) => (
+          {filteredAgents.map((agent) => {
+            const reg = agentRegistry?.get(agent.id) ?? agentRegistry?.get(agent.name) ?? null;
+            return (
             <article key={agent.id} className="flex flex-col justify-between gap-2.5 rounded-md border border-border bg-surface p-3">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-mono text-xs font-semibold text-fg">{agent.name}</h3>
                   <div className="flex items-center gap-1.5">
                     <SemanticBadge kind={agent.status === "needs_approval" ? "needs-approval" : "ready"} />
-                    {(() => {
-                      if (agentRegistry === null) return null;
-                      const reg = agentRegistry.get(agent.id) ?? agentRegistry.get(agent.name);
-                      if (!reg) return <SemanticBadge kind="unmeasured" labelOverride="Unregistered" />;
-                      if (!reg.enabled) return <SemanticBadge kind="locked" labelOverride="Disabled" />;
-                      return <SemanticBadge kind="live" detail={reg.digest ? `digest ${reg.digest.replace(/^sha256:/, "").slice(0, 8)}` : reg.version} />;
-                    })()}
+                    {agentRegistry === null ? null : !reg ? (
+                      <SemanticBadge kind="unmeasured" labelOverride="Unregistered" />
+                    ) : !reg.enabled ? (
+                      <SemanticBadge kind="locked" labelOverride="Disabled" />
+                    ) : (
+                      <SemanticBadge kind="live" detail={reg.digest ? `digest ${reg.digest.replace(/^sha256:/, "").slice(0, 8)}` : reg.version} />
+                    )}
                   </div>
                 </div>
                 <div className="text-xs font-medium text-teal-accent">{agent.roleTitle}</div>
@@ -428,19 +434,44 @@ export function AgentsWorkspaceView({
                     {agent.requiresP10 ? "P-10 Human Gate" : "Read/Plan Scope"}
                   </span>
                 </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  aria-expanded={supervisedAgentId === agent.id}
-                  aria-label={`Inspect & Supervise ${agent.name}`}
-                  onClick={() => handleToggleSupervise(agent)}
-                  className="w-full"
-                >
-                  Inspect &amp; Supervise
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    aria-expanded={supervisedAgentId === agent.id}
+                    aria-label={`Inspect & Supervise ${agent.name}`}
+                    onClick={() => handleToggleSupervise(agent)}
+                    className="flex-1"
+                  >
+                    Inspect &amp; Supervise
+                  </Button>
+                  {reg && onToggleRegistryEntry ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      clickOnly
+                      aria-label={`${reg.enabled ? "Disable" : "Enable"} agent manifest ${reg.name}`}
+                      disabled={pendingToggleId === reg.id}
+                      aria-disabled={!canToggleRegistry ? "true" : undefined}
+                      title={canToggleRegistry ? "Kill-switch: toggles the manifest's enabled state in the registry" : "Requires owner or admin role"}
+                      onClick={async () => {
+                        if (!canToggleRegistry) return;
+                        setPendingToggleId(reg.id);
+                        try {
+                          await onToggleRegistryEntry(reg.name, reg.version, !reg.enabled);
+                        } finally {
+                          setPendingToggleId(null);
+                        }
+                      }}
+                    >
+                      {pendingToggleId === reg.id ? "Working…" : reg.enabled ? "Disable" : "Enable"}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
