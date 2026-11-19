@@ -31,7 +31,7 @@ import {
   type EnterpriseRetentionMode,
   type MarketplacePublishPayload,
 } from "@/lib/platformApi";
-import { fetchAgentRegistry } from "@/lib/api";
+import { fetchAgentRegistry, postAgentRegistryToggle } from "@/lib/api";
 import type { AgentRegistryRecord } from "@/lib/types";
 import {
   generateLocalBlueprint,
@@ -89,19 +89,23 @@ export function useUnifiedPlatformState(options: {
   const [agents, setAgents] = useState<LifecycleAgentItem[]>(INITIAL_LIFECYCLE_AGENTS);
   const [agentRegistry, setAgentRegistry] = useState<Map<string, AgentRegistryRecord> | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    fetchAgentRegistry()
-      .then((records) => {
-        if (alive) setAgentRegistry(records ? new Map(records.map((r) => [r.name, r])) : null);
-      })
-      .catch(() => {
-        if (alive) setAgentRegistry(null);
-      });
-    return () => {
-      alive = false;
-    };
+  const refreshAgentRegistry = useCallback(async () => {
+    const records = await fetchAgentRegistry();
+    setAgentRegistry(records ? new Map(records.map((r) => [r.name, r])) : null);
   }, []);
+
+  useEffect(() => {
+    void refreshAgentRegistry();
+  }, [refreshAgentRegistry]);
+
+  const handleToggleRegistryEntry = useCallback(
+    async (name: string, version: string, enabled: boolean): Promise<boolean> => {
+      const result = await postAgentRegistryToggle(name, version, enabled);
+      if (result) await refreshAgentRegistry();
+      return result !== null;
+    },
+    [refreshAgentRegistry],
+  );
   const [teams, setTeams] = useState<MultiAgentTeamItem[]>(INITIAL_MULTI_AGENT_TEAMS);
   const [issues, setIssues] = useState<PmIssueItem[]>(INITIAL_PM_ISSUES);
   const [prds, setPrds] = useState<ProductPrdItem[]>(INITIAL_PRODUCT_PRDS);
@@ -492,6 +496,7 @@ export function useUnifiedPlatformState(options: {
             experienceMode={experienceMode}
             agents={agents}
             agentRegistry={agentRegistry}
+            onToggleRegistryEntry={handleToggleRegistryEntry}
             teams={teams}
             workspaceId={activeWorkspaceId}
             activeRbacRole={activeRbacRole}

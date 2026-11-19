@@ -19,6 +19,9 @@ import {
   mintScopedKey,
 } from "@/lib/api";
 import { decodeAirGapAudit } from "@/lib/apiDecoders";
+import { AgentsWorkspaceView } from "@/components/platform/AgentsWorkspaceView";
+import { INITIAL_LIFECYCLE_AGENTS } from "@/lib/platformData";
+import type { AgentRegistryRecord } from "@/lib/types";
 import { isTrustedUserEvent, type StudioWsEvent } from "@/lib/types";
 import { runAxe } from "@/test/setup";
 import "@/styles/tokens.css";
@@ -672,5 +675,88 @@ describe("Tokens Rev 4 — SemanticBadge, Button & CalloutBanner primitives", ()
     const airGapLocked = decodeAirGapAudit({ air_gapped: true, egressBytes: 0 });
     expect(airGapLocked?.airGapLocked).toBe(true);
     expect(airGapLocked?.mode).toBe("air_gapped_verified");
+  });
+});
+
+describe("Agents view — live manifest registry overlay (KEEL-APP-048)", () => {
+  const baseProps = {
+    experienceMode: "builder" as const,
+    agents: INITIAL_LIFECYCLE_AGENTS,
+    teams: [],
+    onCreateCustomAgent: () => {},
+    onDispatchTeam: () => {},
+    onUpdateAgentModel: () => {},
+    onJumpToIdeTask: () => {},
+  };
+
+  it("renders live registry counts, per-card digest/disabled/unregistered badges, and fires the kill-switch for admin only", async () => {
+    const registry = new Map<string, AgentRegistryRecord>([
+      [
+        "feature-coder",
+        {
+          id: "feature-coder@1.0.0",
+          name: "feature-coder",
+          version: "1.0.0",
+          owner: "system",
+          enabled: true,
+          digest: "sha256:abc123def456",
+        },
+      ],
+      [
+        "devops-sre",
+        {
+          id: "devops-sre@1.0.0",
+          name: "devops-sre",
+          version: "1.0.0",
+          owner: "system",
+          enabled: false,
+          digest: "sha256:f6e5d4c3b2a1",
+        },
+      ],
+    ]);
+    const onToggle = vi.fn().mockResolvedValue(true);
+    const { rerender } = render(
+      <AgentsWorkspaceView
+        {...baseProps}
+        agentRegistry={registry}
+        onToggleRegistryEntry={onToggle}
+        activeRbacRole="admin"
+      />,
+    );
+
+    // Header reports real registry state, not the seed count.
+    expect(screen.getByText(/2 manifests registered · 1 enabled/)).toBeInTheDocument();
+    // Enabled record shows its digest; disabled record shows Disabled; unseeded agents show Unregistered.
+    expect(screen.getByText(/digest abc123de/)).toBeInTheDocument();
+    expect(screen.getByText("Disabled")).toBeInTheDocument();
+    expect(screen.getAllByText("Unregistered").length).toBeGreaterThan(0);
+
+    // Admin can actuate the kill-switch.
+    await userEvent.click(
+      screen.getByRole("button", { name: "Disable agent manifest feature-coder" }),
+    );
+    expect(onToggle).toHaveBeenCalledWith("feature-coder", "1.0.0", false);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Enable agent manifest devops-sre" }),
+    );
+    expect(onToggle).toHaveBeenCalledWith("devops-sre", "1.0.0", true);
+
+    // Viewer role sees the control locked.
+    rerender(
+      <AgentsWorkspaceView
+        {...baseProps}
+        agentRegistry={registry}
+        onToggleRegistryEntry={onToggle}
+        activeRbacRole="viewer"
+      />,
+    );
+    const locked = screen.getByRole("button", { name: "Disable agent manifest feature-coder" });
+    expect(locked).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("shows 'registry unverified' and no kill-switch controls when the registry is unavailable", () => {
+    render(<AgentsWorkspaceView {...baseProps} agentRegistry={null} activeRbacRole="admin" />);
+    expect(screen.getByText(/registry unverified/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /agent manifest/ })).not.toBeInTheDocument();
   });
 });

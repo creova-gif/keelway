@@ -22,7 +22,7 @@ import {
   asNumber, asString, decodeAirGapAudit, decodeApprovalRule, decodeApprovalRuleList,
   decodeAuditEntry, decodeChainVerification,
   decodeDoctorChecks, decodeFilesTree, decodeGitCommitResult, decodeGitProposal,
-  decodeAgentRegistry, decodeGovernancePersistence, decodeManifestInspectResult, decodeManifestItem,
+  decodeAgentRegistry, decodeGovernancePersistence, decodeRegistryToggle, decodeManifestInspectResult, decodeManifestItem,
   decodeManifestList, decodeMerkleProof, decodeMintedScopedKey, decodeOpenCoreWeights,
   decodeRoutingExplanation, decodeScopedKey, decodeStudioDiff, decodeSymbols,
   decodeTenantPolicy, isRecord,
@@ -510,6 +510,23 @@ export async function fetchAgentRegistry(): Promise<AgentRegistryRecord[] | null
       "/v1/agents/registry",
       { method: "GET" },
       decodeAgentRegistry,
+      () => null,
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function postAgentRegistryToggle(
+  name: string,
+  version: string,
+  enabled: boolean,
+): Promise<{ id: string; enabled: boolean } | null> {
+  try {
+    return await requestSameOriginDecoded(
+      `/v1/agents/registry/${encodeURIComponent(name)}/${encodeURIComponent(version)}/toggle`,
+      { method: "POST", body: JSON.stringify({ enabled }) },
+      decodeRegistryToggle,
       () => null,
     );
   } catch {

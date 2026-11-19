@@ -333,6 +333,12 @@ export function decodeAgentRegistry(raw: unknown): AgentRegistryRecord[] | null 
   return out;
 }
 
+export function decodeRegistryToggle(raw: unknown): { id: string; enabled: boolean } | null {
+  if (!isRecord(raw) || typeof raw.enabled !== "boolean") return null;
+  const id = asString(raw.id);
+  return id ? { id, enabled: raw.enabled } : null;
+}
+
 export function decodeManifestInspectResult(
   raw: unknown,
   parsedManifest: Record<string, unknown>,
