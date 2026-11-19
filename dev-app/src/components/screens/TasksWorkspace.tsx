@@ -14,6 +14,17 @@ import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import { execSandboxTerminal, toggleAirGap } from "@/lib/api";
+import {
+  approveAgentStep,
+  cancelAgentTask,
+  defaultStepArgs,
+  mapEventsToReceipts,
+  pendingToProposal,
+  runAgentTask,
+  STEPABLE_TOOLS,
+  stepAgentTool,
+  type AgentRunState,
+} from "@/lib/agentLoopApi";
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
 import type {
   EgressBarMode,
@@ -239,6 +250,46 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     defaultAirGapEnabled ? "air_gapped_verified" : "unmeasured",
   );
 
+  // Live governed agent run (`/v1/agent/*`). The loop is operator-stepped:
+  // every action returns full agent_state, so no polling is required.
+  const [liveRun, setLiveRun] = useState<{
+    taskId: string;
+    goal: string;
+    state: AgentRunState;
+  } | null>(null);
+  const [liveRunBusy, setLiveRunBusy] = useState(false);
+  const [stepTool, setStepTool] = useState<string>(STEPABLE_TOOLS[0]);
+  const [stepArgsText, setStepArgsText] = useState("{}");
+
+  const livePlanSteps = useMemo<PlanStepItem[]>(
+    () =>
+      liveRun
+        ? liveRun.state.plan.map((s) => ({
+            id: s.id,
+            label: s.observation ? `${s.description} — ${s.observation}` : s.description,
+            done: s.status === "completed",
+          }))
+        : planSteps,
+    [liveRun, planSteps],
+  );
+  const liveReceipts = useMemo<StepReceiptItem[]>(
+    () => (liveRun ? mapEventsToReceipts(liveRun.state.recent_events) : stepReceipts),
+    [liveRun, stepReceipts],
+  );
+  const livePending = liveRun?.state.pending_approval ?? null;
+  const liveQuorumPending = livePending?.requires_quorum === true ? livePending : null;
+  const liveProposals = useMemo<P10ApprovalProposal[]>(
+    () =>
+      livePending && !livePending.requires_quorum
+        ? [pendingToProposal(livePending, { modelId: activeModelLabel })]
+        : [],
+    [livePending, activeModelLabel],
+  );
+  const effectiveProposals = useMemo(
+    () => [...proposals, ...liveProposals],
+    [proposals, liveProposals],
+  );
+
   if (trackedTaskId !== taskId) {
     setTrackedTaskId(taskId);
     setTrackedDiffHunks(diffHunks);
@@ -262,8 +313,8 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
   );
 
   const undecidedProposals = useMemo(
-    () => proposals.filter((p) => !receipts?.[p.id] && !decidedReceipts[p.id]),
-    [decidedReceipts, proposals, receipts],
+    () => effectiveProposals.filter((p) => !receipts?.[p.id] && !decidedReceipts[p.id]),
+    [decidedReceipts, effectiveProposals, receipts],
   );
   const pendingKey = undecidedProposals.map((p) => p.id).join(",");
 
@@ -381,6 +432,44 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
         actorLabel: "you (local keyboard)",
       };
 
+      if (liveRun && proposal.id.startsWith("live-") && livePending) {
+        const approved = payload.decision !== "deny";
+        const remember = payload.scopedRule
+          ? {
+              scope: payload.scopedRule.scopePattern,
+              model_id: payload.scopedRule.modelId || undefined,
+              prompt_version: payload.scopedRule.promptVersion || undefined,
+            }
+          : undefined;
+        return Promise.resolve(
+          approveAgentStep(liveRun.taskId, { approved, remember }),
+        ).then((res) => {
+          if (!res.ok) {
+            setLogLines((prev) => [
+              ...prev,
+              `[agent] approve rejected: ${res.detail ?? `HTTP ${res.status}`}`,
+            ]);
+            return fallbackReceipt;
+          }
+          if (res.data?.agent_state) {
+            setLiveRun((prev) =>
+              prev ? { ...prev, state: res.data!.agent_state! } : prev,
+            );
+          }
+          const callerResult = onSubmitDecision?.(payload);
+          if (isPromiseLike<P10ApprovalReceipt | void>(callerResult)) {
+            return callerResult.then((resolved) => {
+              const finalReceipt = resolved ?? fallbackReceipt;
+              setDecidedReceipts((prev) => ({ ...prev, [proposal.id]: finalReceipt }));
+              return finalReceipt;
+            });
+          }
+          const finalReceipt = (callerResult as P10ApprovalReceipt | void) ?? fallbackReceipt;
+          setDecidedReceipts((prev) => ({ ...prev, [proposal.id]: finalReceipt }));
+          return finalReceipt;
+        });
+      }
+
       const callerResult = onSubmitDecision?.(payload);
       if (isPromiseLike<P10ApprovalReceipt | void>(callerResult)) {
         return Promise.resolve(callerResult).then((resolved) => {
@@ -394,18 +483,96 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
       setDecidedReceipts((prev) => ({ ...prev, [proposal.id]: finalReceipt }));
       return finalReceipt;
     },
-    [onSubmitDecision],
+    [livePending, liveRun, onSubmitDecision],
   );
 
   const submitComposerPrompt = () => {
     const trimmed = effectiveComposerValue.trim();
-    if (!runtimeReachable || trimmed.length === 0) return;
+    if (!runtimeReachable || trimmed.length === 0 || liveRunBusy) return;
     onSendPrompt?.(trimmed);
     setMessages((prev) => [
       ...prev,
       { id: `msg-${++seqRef.current}`, role: "user", content: trimmed },
     ]);
     updateComposerValue("");
+
+    setLiveRunBusy(true);
+    void runAgentTask({ goal: trimmed, modelId: activeModelLabel })
+      .then((res) => {
+        if (!res.ok || !res.data) {
+          setLogLines((prev) => [
+            ...prev,
+            `[agent] run rejected: ${res.detail ?? `HTTP ${res.status}`}`,
+          ]);
+          return;
+        }
+        const state = res.data.state;
+        if (state) {
+          const taskId = res.data.task_id;
+          setLiveRun({ taskId, goal: trimmed, state });
+          setLogLines((prev) => [
+            ...prev,
+            `[agent] run ${taskId} started · ${state.plan.length} steps (keyword-planned, policy: ${state.policy})`,
+          ]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `msg-${++seqRef.current}`,
+              role: "agent",
+              content: `Governed run started (${taskId}). Plan has ${state.plan.length} steps — keyword-planned, not model-driven. Step tools below; mutating tools gate for approval.`,
+            },
+          ]);
+        }
+      })
+      .finally(() => setLiveRunBusy(false));
+  };
+
+  const handleStepTool = () => {
+    if (!liveRun || liveRunBusy) return;
+    let parsed: Record<string, unknown>;
+    try {
+      const raw = JSON.parse(stepArgsText || "{}") as unknown;
+      parsed = raw !== null && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+    } catch {
+      setLogLines((prev) => [...prev, "[agent] step args are not valid JSON — step not sent"]);
+      return;
+    }
+    setLiveRunBusy(true);
+    void stepAgentTool(liveRun.taskId, { toolName: stepTool, arguments: parsed })
+      .then((res) => {
+        if (!res.ok || !res.data) {
+          setLogLines((prev) => [
+            ...prev,
+            `[agent] step ${stepTool} rejected: ${res.detail ?? `HTTP ${res.status}`}`,
+          ]);
+          return;
+        }
+        setLiveRun((prev) =>
+          prev ? { ...prev, state: res.data!.agent_state } : prev,
+        );
+        const status = res.data.step_result?.status;
+        setLogLines((prev) => [
+          ...prev,
+          `[agent] step ${stepTool} → ${typeof status === "string" ? status : "executed"}`,
+        ]);
+      })
+      .finally(() => setLiveRunBusy(false));
+  };
+
+  const handleCancelRun = () => {
+    if (!liveRun || liveRunBusy) return;
+    setLiveRunBusy(true);
+    void cancelAgentTask(liveRun.taskId)
+      .then((res) => {
+        setLogLines((prev) => [
+          ...prev,
+          res.ok ? `[agent] run ${liveRun.taskId} cancelled` : `[agent] cancel rejected: HTTP ${res.status}`,
+        ]);
+        if (res.ok && res.data?.agent_state) {
+          setLiveRun((prev) => (prev ? { ...prev, state: res.data!.agent_state! } : prev));
+        }
+      })
+      .finally(() => setLiveRunBusy(false));
   };
 
   const handleRunTerminal = (event: React.FormEvent) => {
@@ -461,7 +628,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
       });
   };
 
-  const completedPlanCount = planSteps.filter((s) => s.done).length;
+  const completedPlanCount = livePlanSteps.filter((s) => s.done).length;
   const firstPendingId = undecidedProposals[0]?.id;
   const activeShortcutProposalId = undecidedProposals.some((p) => p.id === focusedPendingId)
     ? focusedPendingId
@@ -525,7 +692,79 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
             />
           ) : null}
 
-          {planSteps.length > 0 ? (
+          {liveRun ? (
+            <div
+              data-testid="live-agent-run"
+              className="mb-3 rounded-sm border border-accent-border bg-accent-subtle/40 px-3 py-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs">
+                  <span className="font-semibold text-fg">Live agent run</span>
+                  <code dir="ltr" className="unicode-bidi-isolate font-mono text-[11px] text-fg-muted">
+                    {liveRun.taskId}
+                  </code>
+                  <span className="rounded-xs border border-border px-1.5 py-0.5 font-mono text-[10px] uppercase text-fg-muted">
+                    {liveRun.state.status}
+                  </span>
+                  <span className="text-[11px] text-fg-muted">
+                    {`${liveRun.state.events_count} events · policy ${liveRun.state.policy}`}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="danger-ghost"
+                  disabled={liveRunBusy || liveRun.state.status === "cancelled" || liveRun.state.status === "completed"}
+                  onClick={handleCancelRun}
+                >
+                  Cancel run
+                </Button>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2">
+                <label htmlFor="live-step-tool" className="text-[11px] font-medium text-fg-muted">
+                  Step tool
+                </label>
+                <select
+                  id="live-step-tool"
+                  value={stepTool}
+                  onChange={(e) => {
+                    const tool = e.target.value;
+                    setStepTool(tool);
+                    setStepArgsText(JSON.stringify(defaultStepArgs(tool, liveRun.goal)));
+                  }}
+                  className="rounded-xs border border-border bg-surface px-1.5 py-1 font-mono text-[11px] text-fg"
+                >
+                  {STEPABLE_TOOLS.map((tool) => (
+                    <option key={tool} value={tool}>{tool}</option>
+                  ))}
+                </select>
+                <label htmlFor="live-step-args" className="sr-only">
+                  Tool arguments (JSON)
+                </label>
+                <input
+                  id="live-step-args"
+                  value={stepArgsText}
+                  onChange={(e) => setStepArgsText(e.target.value)}
+                  spellCheck={false}
+                  className="min-w-40 flex-1 rounded-xs border border-border bg-surface px-1.5 py-1 font-mono text-[11px] text-fg"
+                />
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={liveRunBusy || liveRun.state.status === "cancelled" || liveRun.state.status === "completed"}
+                  onClick={handleStepTool}
+                >
+                  Run step
+                </Button>
+              </div>
+              {liveQuorumPending ? (
+                <p className="mt-2 text-[11px] text-warning" role="note">
+                  {`Pending action requires ${liveQuorumPending.required_roles?.join(" + ") ?? "multi-role"} quorum approval — single-approver card hidden.`}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {livePlanSteps.length > 0 ? (
             <div className="mb-3 rounded-sm border border-border-strong bg-surface">
               <button
                 type="button"
@@ -534,7 +773,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
                 className="flex min-h-row w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-xs hover:bg-surface-elevated"
               >
                 <span className="font-semibold text-fg">
-                  {`Plan · ${completedPlanCount}/${planSteps.length} steps`}
+                  {`Plan · ${completedPlanCount}/${livePlanSteps.length} steps`}
                 </span>
                 <span className="text-[11px] text-fg-muted">
                   {!isPlanExpanded && undecidedProposals.length > 0
@@ -546,7 +785,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
               </button>
               {isPlanExpanded ? (
                 <ol className="space-y-1 border-t border-border px-3 py-2 text-xs">
-                  {planSteps.map((step) => (
+                  {livePlanSteps.map((step) => (
                     <li key={step.id} className="flex items-center gap-2">
                       <span
                         aria-hidden="true"
@@ -562,12 +801,12 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
             </div>
           ) : null}
 
-          {stepReceipts.length > 0 ? (
+          {liveReceipts.length > 0 ? (
             <div className="mb-3 space-y-1.5">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
-                Execution receipts
+                {liveRun ? "Live execution events" : "Execution receipts"}
               </h2>
-              {stepReceipts.map((item) => (
+              {liveReceipts.map((item) => (
                 <StepReceiptRow key={item.id} item={item} />
               ))}
             </div>
@@ -591,7 +830,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
               </div>
             ))}
 
-            {proposals.map((proposal) => {
+            {effectiveProposals.map((proposal) => {
               const effectiveReceipt =
                 receipts?.[proposal.id] ?? decidedReceipts[proposal.id] ?? null;
               return (

@@ -25,7 +25,7 @@ import {
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
 import {
   buildApprovalReceipt, buildPaletteModelsAndSettings,
-  INITIAL_PROPOSALS, INITIAL_STEP_RECEIPTS, INITIAL_TASKS,
+  INITIAL_PROPOSALS, INITIAL_TASKS,
   mergeFocusedDiffHunks, readInitialUrlState, resolveMainAriaLabel, syncWorkspaceUrlParams,
 } from "@/lib/appStateHelpers";
 import type {
@@ -657,7 +657,7 @@ export function App({
             taskTitle={activeTask.title}
             workspaceBranch={workspaceBranch}
             activeModelLabel={activeModelLabel}
-            stepReceipts={activeTask.id === "task-csp-gate" ? INITIAL_STEP_RECEIPTS : []}
+
             proposals={activeTaskProposals}
             receipts={receiptsByProposalId}
             diffHunks={diffHunks}
