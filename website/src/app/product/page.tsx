@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import { ControlPlaneFigure } from "@/components/site/ControlPlaneFigure";
 
 export const metadata: Metadata = {
   title: "Product",
@@ -39,16 +39,12 @@ export default function ProductPage() {
         ))}
       </div>
       <figure className="mt-16">
-        <div className="kw-figure">
-          <Image src="/product/app-automation.png" alt="Keelway automation view" width={1440} height={900} className="block h-auto w-full" />
-        </div>
-        <figcaption className="kw-figcap mt-3">FIG 1.1 — KFlow automation boards. Every run writes to the tape.</figcaption>
+        <ControlPlaneFigure variant="flow" />
+        <figcaption className="kw-figcap mt-3">FIG 1.1 — KFlow run graph, sample render. Every edge writes to the tape.</figcaption>
       </figure>
       <figure className="mt-12">
-        <div className="kw-figure">
-          <Image src="/product/app-security.png" alt="Keelway security and policy view" width={1440} height={900} className="block h-auto w-full" />
-        </div>
-        <figcaption className="kw-figcap mt-3">FIG 1.2 — Policy surface. Gates, vaults, and air-gap state.</figcaption>
+        <ControlPlaneFigure variant="policy" />
+        <figcaption className="kw-figcap mt-3">FIG 1.2 — Policy engine, sample render. Denials are sealed, not silent.</figcaption>
       </figure>
     </div>
   );
