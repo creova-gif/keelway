@@ -240,7 +240,7 @@ export function AutomationWorkspaceView({
 
               <div className="grid gap-2 md:grid-cols-3">
                 {nodes.map((node) => (
-                  <div key={node.id} className="flex flex-col justify-between gap-2 rounded-sm border border-border bg-chrome p-2.5 text-xs">
+                  <div key={node.id} className="flex flex-col justify-between gap-2 rounded-sm bg-canvas p-2.5 text-xs">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center justify-between gap-1.5">
                         <span className="font-medium text-fg">{node.label}</span>
@@ -266,7 +266,7 @@ export function AutomationWorkspaceView({
               </div>
 
               {isTraceOpen ? (
-                <div role="log" aria-label={`Execution trace for ${wf.id}`} className="space-y-1 rounded-sm border border-border bg-canvas p-2.5 font-mono text-[11px] text-fg-muted">
+                <div role="log" aria-label={`Execution trace for ${wf.id}`} className="space-y-1 rounded-sm bg-canvas p-2.5 font-mono text-[11px] text-fg-muted">
                   <div className="font-semibold text-fg">Execution Trace &amp; Logs</div>
                   {logs.length === 0 ? (
                     <div>No execution runs recorded in this session yet. Click Run workflow to trace DAG output.</div>
@@ -470,7 +470,7 @@ export function OperationsWorkspaceView({
           {clusterNodes.map((node) => {
             const isDrained = node.status === "drained";
             return (
-              <article key={node.nodeId} className="flex flex-wrap items-center justify-between gap-2.5 rounded-sm border border-border bg-chrome p-3">
+              <article key={node.nodeId} className="flex flex-wrap items-center justify-between gap-2.5 rounded-sm bg-canvas p-3">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-mono text-xs font-semibold text-fg">{node.nodeId}</h3>

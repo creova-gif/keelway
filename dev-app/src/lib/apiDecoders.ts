@@ -115,6 +115,12 @@ export function decodeFilesTree(raw: unknown): WorkspaceFileNode[] | null {
     if (source) {
       return source.map(decodeFileNode).filter((n): n is WorkspaceFileNode => n !== null);
     }
+    if (isRecord(raw.tree)) {
+      const rootNode = decodeFileNode(raw.tree);
+      if (rootNode) {
+        return rootNode.type === "directory" && rootNode.children ? rootNode.children : [rootNode];
+      }
+    }
   }
   return null;
 }
