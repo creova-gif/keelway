@@ -2,7 +2,7 @@
 
 - **TASK ID**: KEEL-APP-043
 - **TASK TITLE**: `/app` P3 de-noising — fix files/tree decode contract mismatch, honest API error labels, flatten nested cards
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: VERIFIED_COMPLETE
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-19
 - **BRANCH**: `feature/keel-app-043-denoise-and-decoder-fix`
@@ -37,6 +37,10 @@
 - Note: P3 work initially built on the stale P1 branch `cae8754` (parallel-agent branch churn); changes were carried onto `main` (post-#98) and dist rebuilt — first p3 screenshot showing old chrome was a stale-bundle artifact, resolved
 - Narrow-width verification relies on `flex-wrap` (no viewport resize in control script); mobile companion path untouched
 - Decorative-chip *volume* inside views (many SemanticBadges per card) is a per-view IA question — deferred to future per-view passes, not a token/structure fix
+
+## SHIP RECORD
+
+- PR #99 merged as `e5811db` — decoder fix, honest error labels, and card flattening live on `main`
 
 ## NEXT RECOMMENDED ACTION
 
