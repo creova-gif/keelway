@@ -191,6 +191,10 @@ def test_live_docker_create_exec_snapshot_restore(tmp_path):
     mutate -> restore -> container layer rolled back, mounted workspace not
     (documented boundary) -> destroy."""
     backend = DockerRunnerBackend()
+    have_image = backend._run(["image", "inspect", "alpine:latest"], timeout=15).returncode == 0
+    if not have_image:
+        if backend._run(["pull", "alpine:latest"], timeout=180).returncode != 0:
+            pytest.skip("alpine:latest unavailable and pull failed (no registry access)")
     env = backend.create(tmp_path, image="alpine:latest")
     try:
         # exec: write inside the container layer (/tmp) and the mount (/work)
