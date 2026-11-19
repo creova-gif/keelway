@@ -16,7 +16,7 @@ help:
 	@echo "  make tier2-status  Run: python3 cli.py tier2 status"
 	@echo "  make tier2-verify  Run: python3 cli.py tier2 verify"
 	@echo "  make serve         Governance server only: python3 -m keelway.cli.main serve on 127.0.0.1:8000"
-	@echo "                     Same CLI as keelway-core serve. The keelway script has no serve command."
+	@echo "                     Same CLI as keelway-ops serve (keelway-core is a deprecated alias). The keelway script has no serve command."
 	@echo "  make runner        Run keelway.cli.main runner against http://127.0.0.1:8000"
 	@echo "  make infra-local   Run deploy/scripts/deploy-local.sh"
 	@echo "  make infra-aws     Run deploy/scripts/deploy-aws.sh"

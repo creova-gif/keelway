@@ -26,6 +26,8 @@ dev = ["pytest", "pytest-asyncio", "ruff"]
 
 [project.scripts]
 keelway = "cli:main"
+keelway-ops = "keelway.cli.main:main"
+# Deprecated alias kept for compatibility; emits a deprecation notice at runtime.
 keelway-core = "keelway.cli.main:main"
 
 [tool.setuptools]
@@ -33,6 +35,9 @@ py-modules = ["cli"]
 
 [tool.setuptools.packages.find]
 include = ["core*", "keelway*", "research*", "evaluations*"]
+# keelway_core is the zero-dependency reference engine (ADR-0042): repo-only,
+# never shipped in the wheel.
+exclude = ["keelway_core*"]
 
 [tool.setuptools.package-data]
 core = [

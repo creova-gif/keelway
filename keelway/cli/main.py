@@ -65,8 +65,15 @@ Sample repository used for evaluating and testing Keelway governance and audit c
 
 
 def main():
+    invoked_as = os.path.basename(sys.argv[0]) or "keelway-ops"
+    prog = invoked_as if invoked_as.startswith("keelway") else "keelway-ops"
+    if prog == "keelway-core":
+        print(
+            "WARNING: 'keelway-core' is deprecated; use 'keelway-ops' instead.",
+            file=sys.stderr,
+        )
     parser = argparse.ArgumentParser(
-        prog="keelway",
+        prog=prog,
         description="Keelway by Sorvex Labs: Governed AI Software Change CLI",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
