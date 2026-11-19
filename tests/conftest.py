@@ -38,6 +38,10 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
+        "live_docker: genuine Docker daemon integration; skips honestly when the daemon is absent",
+    )
+    config.addinivalue_line(
+        "markers",
         "safety_negative: mandatory Profile A fail-closed check; never skip, xfail, or deselect",
     )
 
