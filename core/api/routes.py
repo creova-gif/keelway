@@ -36,6 +36,7 @@ from core.api.schemas import (
 from core.config import legacy_aware, settings
 from core.models.gateway import gateway
 from core.security.auth import LOCAL_OWNER, Principal, current_principal, principal_for_token, record_audit, require, token_from_headers
+from core.runner.environments import DockerRunnerBackend
 from keelway.runner.enrollment import verify_enrolled_runner_token
 from keelway.security.source_defaults import InsecureDefaultConfiguration
 from core.security.env_scrub import scrub_env
@@ -2183,6 +2184,22 @@ async def acknowledge_customer_runner_job(payload: dict):
 async def get_pending_runner_jobs():
     """List queued runner jobs waiting for runner node pickup."""
     return {"pending_jobs": RUNNER_JOBS_QUEUE, "count": len(RUNNER_JOBS_QUEUE)}
+
+
+@router.get("/v1/runner/environment/status", dependencies=[Depends(current_principal)], tags=["Customer Runner"])
+async def get_runner_environment_status():
+    """Honest status of the isolated runner environment backend (D-004).
+
+    Reports `available: false` with a diagnostic when no Docker daemon can
+    back the create/exec/snapshot/restore contract — callers must refuse
+    rather than fall back to unconfined host execution."""
+    available = DockerRunnerBackend.available()
+    return {
+        "available": available,
+        "backend": DockerRunnerBackend.name,
+        "contract": "create/exec/snapshot/restore",
+        "diagnostic": "ok" if available else DockerRunnerBackend.diagnostic_reason(),
+    }
 
 
 @router.post("/v1/runner/spool/sync", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Customer Runner"])
