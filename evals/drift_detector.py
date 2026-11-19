@@ -174,7 +174,7 @@ class DriftDetector:
         p50, p95 = cls.compute_percentiles(latencies)
 
         now_iso = datetime.now(timezone.utc).isoformat()
-        run_id = eval_run_id or f"eval_{int(time.time())}"
+        run_id = eval_run_id or f"eval_{int(time.time() * 1000)}"
 
         receipt = EvaluationReceipt(
             eval_run_id=run_id,

@@ -12,6 +12,7 @@ from httpx import ASGITransport, AsyncClient
 from core.main import app
 from core.kstack import kstack_registry
 from core.kstack.handlers import BUILTIN_HANDLERS
+from evals.drift_detector import EvaluationReceiptStore
 
 
 def test_builtin_handlers_registered_for_real_skills():
@@ -246,3 +247,56 @@ def test_cli_skill_execute_via_argparse_dispatch(capsys):
     proof = _json.loads(capsys.readouterr().out)
     assert proof["skill_name"] == "kstack/sbom-audit"
     assert proof["success"] is True
+
+
+def test_golden_eval_compare_to_explicit_baseline(tmp_path):
+    """compare_to=<eval_run_id> attaches a DriftAnalysis against the stored baseline."""
+    h = BUILTIN_HANDLERS["kstack/golden-eval"]
+    receipts_dir = str(tmp_path / "receipts")
+    baseline = asyncio.run(h({"receipts_dir": receipts_dir, "model_name": "m-baseline"}))
+    candidate = asyncio.run(
+        h({"receipts_dir": receipts_dir, "compare_to": baseline["eval_run_id"], "save_receipt": False})
+    )
+    drift = candidate["drift"]
+    assert drift["baseline_run_id"] == baseline["eval_run_id"]
+    assert drift["candidate_run_id"] == candidate["eval_run_id"]
+    assert drift["drift_severity"] in ("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
+    assert drift["baseline_pass_rate"] == baseline["pass_rate_pct"]
+    # Candidate was not persisted (save_receipt=False): store still holds exactly one receipt.
+    assert len(EvaluationReceiptStore(receipts_dir).list_receipts()) == 1
+
+
+def test_golden_eval_compare_to_latest_resolves_prior_receipt(tmp_path):
+    """compare_to='latest' uses the most recent stored receipt, excluding the candidate itself."""
+    h = BUILTIN_HANDLERS["kstack/golden-eval"]
+    receipts_dir = str(tmp_path / "receipts")
+    first = asyncio.run(h({"receipts_dir": receipts_dir}))
+    second = asyncio.run(h({"receipts_dir": receipts_dir}))  # persisted; becomes latest
+    assert second["eval_run_id"] != first["eval_run_id"]
+    candidate = asyncio.run(
+        h({"receipts_dir": receipts_dir, "compare_to": "latest", "save_receipt": False})
+    )
+    assert candidate["drift"]["baseline_run_id"] == second["eval_run_id"]
+
+
+def test_golden_eval_compare_to_unknown_baseline_fails_closed(tmp_path):
+    """An unresolvable compare_to baseline raises ValueError -> sealed success:false proof."""
+    h = BUILTIN_HANDLERS["kstack/golden-eval"]
+    receipts_dir = str(tmp_path / "receipts")
+    with pytest.raises(ValueError, match="not found"):
+        asyncio.run(h({"receipts_dir": receipts_dir, "compare_to": "eval_does_not_exist"}))
+
+
+def test_golden_eval_compare_to_via_execute_seals_failure(tmp_path):
+    """Through execute_skill_async, an unknown baseline is a sealed failed proof, not a raise."""
+    h = BUILTIN_HANDLERS["kstack/golden-eval"]
+    proof = asyncio.run(
+        kstack_registry.execute_skill_async(
+            name="kstack/golden-eval",
+            actor="test",
+            inputs={"receipts_dir": str(tmp_path / "receipts"), "compare_to": "eval_missing"},
+            handler=h,
+        )
+    )
+    assert proof.success is False
+    assert "not found" in proof.outputs["error"]
