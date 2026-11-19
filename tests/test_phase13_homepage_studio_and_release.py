@@ -136,8 +136,6 @@ def test_homepage_golden_thread_studio_showcase_contract_and_hygiene() -> None:
     engine_file = WEBSITE_DIR / "src" / "lib" / "goldenThreadShowcaseEngine.ts"
     showcase_file = WEBSITE_DIR / "src" / "components" / "home" / "GoldenThreadStudioShowcase.tsx"
     home_page_file = WEBSITE_DIR / "src" / "app" / "page.tsx"
-    cmdk_file = WEBSITE_DIR / "src" / "components" / "layout" / "CommandPalette.tsx"
-    search_route_file = WEBSITE_DIR / "src" / "app" / "api" / "search-index" / "route.ts"
     analytics_file = WEBSITE_DIR / "src" / "lib" / "analytics.ts"
     verify_skill_file = (
         KEELWAY_ROOT / ".cursor" / "skills" / "verify-keelway" / "features" / "homepage-golden-thread-showcase.md"
@@ -150,7 +148,6 @@ def test_homepage_golden_thread_studio_showcase_contract_and_hygiene() -> None:
     engine_src = engine_file.read_text(encoding="utf-8")
     showcase_src = showcase_file.read_text(encoding="utf-8")
     home_src = home_page_file.read_text(encoding="utf-8")
-    search_src = search_route_file.read_text(encoding="utf-8")
     verify_skill_src = verify_skill_file.read_text(encoding="utf-8")
 
     # Line-count caps: <500 for new showcase files, <750 for modified website files, <120 for verify doc
@@ -158,7 +155,7 @@ def test_homepage_golden_thread_studio_showcase_contract_and_hygiene() -> None:
     assert len(showcase_src.splitlines()) < 500, "GoldenThreadStudioShowcase.tsx must be < 500 lines"
     assert len(verify_skill_src.splitlines()) < 120, "homepage-golden-thread-showcase.md must be < 120 lines"
 
-    for capped_file in (home_page_file, cmdk_file, search_route_file, analytics_file):
+    for capped_file in (home_page_file, analytics_file):
         count = len(capped_file.read_text(encoding="utf-8").splitlines())
         assert count < 750, f"{capped_file.relative_to(KEELWAY_ROOT)} has {count} lines (must be < 750)"
 
@@ -202,7 +199,8 @@ def test_homepage_golden_thread_studio_showcase_contract_and_hygiene() -> None:
             )
 
     # Homepage mount & Search Index synchronization
-    assert "GoldenThreadStudioShowcase" in home_src, "website/src/app/page.tsx must mount GoldenThreadStudioShowcase"
-    assert "#studio-showcase" in search_src, "search-index/route.ts must index #studio-showcase"
-    assert "$29 Pro" in search_src, "search-index/route.ts must reference calibrated '$29 Pro' pricing"
-    assert "$39" not in search_src, "search-index/route.ts must not contain stale '$39' pricing"
+    assert "GoldenThreadStudioShowcase" not in home_src, (
+        "v3 Maritime Instrument rebuild (KEEL-WEB-038): the marketing homepage "
+        "must not mount the studio showcase; it remains a self-contained embeddable"
+    )
+    # v3: Cmd+K palette + /api/search-index removed with the Maritime Instrument rebuild
