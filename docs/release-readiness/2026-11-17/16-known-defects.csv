@@ -1,11 +1,11 @@
 ISSUE_ID,SEVERITY,AREA,DESCRIPTION,REPRO,STATUS
 D-001,P1,architecture,Dual API authority documented (core:7420 vs governance:8000) with single-app reality,README vs core.main,closed-ADR-0045+PR66
 D-002,P1,persistence,KFlow/scheduler/runner-queue in-memory; restart loses state,restart server,closed-KEEL-REL-062-schedules-persist-dag-registration-residual
-D-003,P1,golden-path,No composed 30-step coding journey test from clean env,n/a,open
+D-003,P1,golden-path,No composed 30-step coding journey test from clean env,tests/test_composed_coding_journey.py: 30 steps via real /v1 API green,closed-KEEL-REL-063-composed-journey-test
 D-004,P2,runner,No Docker/isolated Runner implementing create/exec/snapshot contract,n/a,open
 D-005,P2,cli,Two CLIs (cli.py vs keelway_core/cli.py) with different rigor,both exist,open
 D-006,P2,naming,Kora repo vs Keelway product naming conflict,README,closed-ADR-001-OD1+PRs67-70
-D-007,P3,tests,StarletteDeprecationWarning in test_agent_builder.py,pytest -q,open
+D-007,P3,tests,StarletteDeprecationWarning in test_agent_builder.py,StarletteDeprecationWarning suppressed via scoped pytest.ini filterwarnings; httpx2 rejected - breaks SSE reconnection,closed-KEEL-REL-063-composed-journey-test
 D-008,P1,golden-path,No worktree/sandbox isolation route for agent edits,no /v1/worktree* in OpenAPI,closed-v1-worktrees-routes-py-3639
 D-009,P1,golden-path,No checkpoint/rollback route,no /v1/checkpoint* in OpenAPI,closed-v1-checkpoints-restore-routes-py-3669
 D-010,P2,golden-path,No CI-status surface for PRs,GitHub webhook route missing too,closed-v1-git-ci-status-routes-py-3696
