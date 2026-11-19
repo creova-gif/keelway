@@ -75,7 +75,6 @@ export function PlatformWorkspaceBar({
   const effectiveWsId = activeWorkspaceId ?? localWsId;
   const effectiveRole = activeRbacRole ?? localRole;
   const tierMeta = SUBSCRIPTION_TIERS[subscriptionTier];
-  const activeMeta = PLATFORM_VIEWS.find((v) => v.id === activeView) ?? PLATFORM_VIEWS[0]!;
 
   const handleSelectWorkspace = (wsId: string) => {
     setLocalWsId(wsId);
@@ -103,9 +102,9 @@ export function PlatformWorkspaceBar({
   };
 
   return (
-    <section aria-label="Unified workspace bar" className="flex shrink-0 flex-col gap-1.5 border-b border-border bg-chrome px-3 py-2 text-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5 rounded-sm border border-border-strong bg-surface px-2.5 py-1 font-mono text-[11px] text-fg-muted">
+    <section aria-label="Unified workspace bar" className="flex shrink-0 flex-col gap-1 border-b border-border bg-chrome px-3 py-1.5 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <div className="flex flex-wrap items-center gap-1.5 rounded-sm border border-border-strong bg-surface px-2 py-0.5 font-mono text-[11px] text-fg-muted">
           <BrandMark size={18} showWordmark />
           <span aria-hidden="true">·</span>
           <code dir="ltr" className="unicode-bidi-isolate text-fg">{workspacePath}</code>
@@ -190,14 +189,14 @@ export function PlatformWorkspaceBar({
         </form>
       ) : null}
 
-      <GoldenThreadJourneyBar
-        activeView={activeView}
-        onSelectView={onSelectView}
-        experienceMode={experienceMode}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-1">
+        <GoldenThreadJourneyBar
+          activeView={activeView}
+          onSelectView={onSelectView}
+          experienceMode={experienceMode}
+        />
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <nav aria-label="Unified platform views" className="flex flex-wrap items-center gap-1">
+        <nav aria-label="Unified platform views" className="flex flex-wrap items-center gap-0.5">
           {PLATFORM_VIEWS.map((view) => {
             const isActive = activeView === view.id;
             return (
@@ -207,7 +206,7 @@ export function PlatformWorkspaceBar({
                 title={`${view.label} — ${view.capability}`}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => onSelectView(view.id)}
-                className={`rounded-sm border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${
+                className={`rounded-sm border px-2 py-0.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${
                   isActive ? "border-teal-accent/50 bg-teal-surface font-semibold text-teal-accent" : "border-transparent text-fg-muted hover:border-border-strong hover:bg-surface hover:text-fg"
                 }`}
               >
@@ -216,13 +215,6 @@ export function PlatformWorkspaceBar({
             );
           })}
         </nav>
-        <span aria-live="polite" className="hidden items-center gap-1.5 rounded-xs border border-border bg-surface px-2 py-0.5 font-mono text-[11px] text-fg-muted lg:inline-flex">
-          <span className="text-teal-accent">{activeMeta.label}</span>
-          <span aria-hidden="true">·</span>
-          <span>{activeMeta.capability}</span>
-          <span aria-hidden="true">·</span>
-          <kbd className="font-mono text-[10px] text-fg-dim">⌘K</kbd>
-        </span>
       </div>
     </section>
   );
