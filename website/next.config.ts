@@ -56,7 +56,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/docs.html",
-        destination: "/changelog",
+        destination: "/docs",
         permanent: true,
       },
       {

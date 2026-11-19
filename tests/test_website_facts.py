@@ -115,7 +115,7 @@ def test_nextjs_app_router_structure_and_legacy_redirects() -> None:
 
     expected_redirects = (
         ("/index.html", "/"),
-        ("/docs.html", "/changelog"),
+        ("/docs.html", "/docs"),
         ("/api.html", "/product"),
         ("/brand.html", "/about"),
     )
@@ -133,6 +133,7 @@ def test_nextjs_app_router_structure_and_legacy_redirects() -> None:
         WEBSITE_DIR / "src" / "app" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "product" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "pricing" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "docs" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "changelog" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "about" / "page.tsx",
         WEBSITE_DIR / "src" / "app" / "contact" / "page.tsx",
@@ -150,7 +151,7 @@ def test_nextjs_app_router_structure_and_legacy_redirects() -> None:
     assert sitemap_file.exists(), "website/src/app/sitemap.ts must exist"
     sitemap_text = sitemap_file.read_text(encoding="utf-8")
     assert "SITE_URL" in sitemap_text
-    for route in ("", "/product", "/pricing", "/changelog", "/about", "/contact", "/sign-in"):
+    for route in ("", "/product", "/pricing", "/docs", "/changelog", "/about", "/contact", "/sign-in"):
         assert f'"{route}"' in sitemap_text, f"Route {route} missing from sitemap.ts"
 
     robots_file = WEBSITE_DIR / "src" / "app" / "robots.ts"

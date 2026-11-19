@@ -8,6 +8,7 @@ import { Mark } from "@/components/site/Mark";
 const NAV = [
   { href: "/product", label: "Product" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/docs", label: "Docs" },
   { href: "/changelog", label: "Changelog" },
   { href: "/about", label: "About" },
 ];
