@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ControlPlaneFigure } from "@/components/site/ControlPlaneFigure";
 
 const PRINCIPLES = [
   {
@@ -39,18 +39,9 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-8 sm:pt-24">
         <figure>
-          <div className="kw-figure">
-            <Image
-              src="/product/app-main.png"
-              alt="Keelway control plane — task queue, policy gates, and execution receipts"
-              width={1440}
-              height={900}
-              className="block h-auto w-full"
-              priority
-            />
-          </div>
+          <ControlPlaneFigure />
           <figcaption className="kw-figcap mt-3">
-            FIG 0.1 — Keelway control plane, captured live. Sealed receipts in green, P-10 gate in brass.
+            FIG 0.1 — Keelway control plane, sample render. Sealed receipts in green, P-10 gate in brass.
           </figcaption>
         </figure>
       </section>
