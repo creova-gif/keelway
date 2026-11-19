@@ -59,7 +59,7 @@
 | **KEEL-REL-064** | Isolated Docker runner backend (D-004): create/exec/snapshot/restore contract | `RELEASE / RUNNER / ISOLATION` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `feature/KEEL-REL-064-docker-runner-backend` |
 | **KEEL-REL-065** | CLI canonicalization (D-005): `keelway` + `keelway-ops`, `keelway-core` deprecated alias, `keelway_core` unshipped | `RELEASE / CLI / PACKAGING` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `fix/KEEL-REL-065-cli-canonicalization` |
 | **KEEL-REL-066** | Owner decisions OD-3/4/5 ratification (persistence, adapter order, enterprise scope) | `RELEASE / DECISIONS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `docs/KEEL-REL-066-owner-decisions` |
-| **KEEL-REL-067** | LangGraph adapter: complete + verify end-to-end (OD-4) | `RELEASE / ADAPTERS` | `QUEUED` | unassigned | 2026-11-18 | — |
+| **KEEL-REL-067** | LangGraph adapter: complete + verify end-to-end (OD-4) | `RELEASE / ADAPTERS` | `READY_FOR_REVIEW` | Devin | 2026-11-18 | `feature/KEEL-REL-067-langgraph-adapter` |
 | **KEEL-REL-068** | Enterprise IdP interop validation (OD-5): OIDC + SCIM Users | `RELEASE / ENTERPRISE / IDENTITY` | `QUEUED` | unassigned | 2026-11-18 | — |
 | **KEEL-ENG-039** | `/v1/models` Installed + Simulated Flags (registry-vs-reality disclosure) | `ENGINEERING / PRODUCT-TRUTH / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-039-model-flags` |
 | **KEEL-ENG-040** | Ollama Thinking-Model Handling (`think` flag + `message.thinking` fallback) | `ENGINEERING / INFERENCE / LOCAL-MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-040-thinking-models` |
