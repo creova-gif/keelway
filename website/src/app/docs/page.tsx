@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     "Keelway documentation — quickstart, architecture, security standards, and the engineering contract. Everything is on the record.",
 };
 
-const REPO = "https://github.com/creova-gif/keelway/blob/main";
+const REPO = "/repo";
 
 const GROUPS: { label: string; rows: { title: string; note: string; href: string }[] }[] = [
   {
@@ -63,8 +63,8 @@ export default function DocsPage() {
               <li key={r.title}>
                 <a
                   href={r.href}
-                  target={r.href.startsWith("http") ? "_blank" : undefined}
-                  rel={r.href.startsWith("http") ? "noopener" : undefined}
+                  target={r.href.startsWith("http") || r.href.startsWith("/repo") ? "_blank" : undefined}
+                  rel={r.href.startsWith("http") || r.href.startsWith("/repo") ? "noopener" : undefined}
                   className="kw-row-hover group flex items-baseline justify-between gap-4 px-1 py-3.5"
                 >
                   <span>
@@ -81,7 +81,7 @@ export default function DocsPage() {
         </section>
       ))}
       <p className="kw-small mt-10">
-        Can&apos;t find it? <a href="https://github.com/creova-gif/keelway" className="underline underline-offset-2">Browse the repository</a> — the tape doesn&apos;t lie.
+        Can&apos;t find it? <a href="/repo" className="underline underline-offset-2">Browse the repository</a> — the tape doesn&apos;t lie.
       </p>
     </div>
   );

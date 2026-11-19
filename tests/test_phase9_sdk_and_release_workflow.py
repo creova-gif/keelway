@@ -428,9 +428,10 @@ def test_release_artifacts_workflow_and_docs_hub_v1_sync() -> None:
     ok, status_text, _ = SBOMVerifier.verify(sbom_dict)
     assert ok is True and status_text == "VERIFIED"
 
-    docs_hub = REPO_ROOT / "website" / "src" / "components" / "docs" / "DocsHub.tsx"
-    docs_src = docs_hub.read_text(encoding="utf-8")
-    assert len(docs_src.splitlines()) < 500, "DocsHub.tsx must remain < 500 lines"
+    # KEEL-WEB-038: the pre-v3 DocsHub.tsx component was retired with the
+    # pruned route surface; product-facts.json is the canonical disclosure
+    # registry the same tokens must appear in.
+    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
     for required_doc_token in (
         "Model Context Protocol",
         "2025-06-18",
@@ -449,4 +450,4 @@ def test_release_artifacts_workflow_and_docs_hub_v1_sync() -> None:
         "JSONL",
         "OpenTelemetry OTLP",
     ):
-        assert required_doc_token in docs_src, f"Missing '{required_doc_token}' in DocsHub.tsx"
+        assert required_doc_token in facts_src, f"Missing '{required_doc_token}' in product-facts.json"

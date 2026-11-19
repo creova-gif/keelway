@@ -315,24 +315,52 @@ def test_tri_sdk_caps_298_routes_and_yc_minimal_website_curation() -> None:
         assert route in openapi_doc["paths"], f"Missing OpenAPI route {route}"
 
     # Verify YC / Investor Minimalist Public Website Curation (Workstream 17D)
+    # KEEL-WEB-038: the v3 "Maritime Instrument" rebuild pruned the public route
+    # surface to /, /about, /product, /pricing, /changelog, /contact, /docs,
+    # /sign-in. Retired pages (DocsHub, /governance, /models, /api-reference,
+    # /marketplace, /brand, /playground, /search) must stay absent; the
+    # no-internal-jargon / no-private-token scan binds to the live v3 surface.
     home_src = (WEBSITE_DIR / "src" / "app" / "page.tsx").read_text(encoding="utf-8")
-    docs_src = (WEBSITE_DIR / "src" / "components" / "docs" / "DocsHub.tsx").read_text(encoding="utf-8")
-    gov_src = (WEBSITE_DIR / "src" / "app" / "governance" / "page.tsx").read_text(encoding="utf-8")
-    models_src = (WEBSITE_DIR / "src" / "app" / "models" / "page.tsx").read_text(encoding="utf-8")
-    api_ref_src = (WEBSITE_DIR / "src" / "app" / "api-reference" / "page.tsx").read_text(encoding="utf-8")
+    v3_surface_files = (
+        WEBSITE_DIR / "src" / "app" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "about" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "product" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "pricing" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "changelog" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "contact" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "docs" / "page.tsx",
+        WEBSITE_DIR / "src" / "app" / "sign-in" / "page.tsx",
+    )
 
     assert len(home_src.splitlines()) < 220, "Homepage should remain concise and YC-focused (< 220 lines)"
     assert "RecordedDemosShowcase" not in home_src, "Redundant RecordedDemosShowcase should be removed from homepage"
-    for yc_signal in ("HeroControlCockpit", "CustomerJourneyGrid", "GoldenThreadStudioShowcase", "QuickstartTerminal", "EarlyAccessForm"):
-        assert yc_signal in home_src, f"Missing investor signal component {yc_signal} on homepage"
+    for yc_signal in ("ControlPlaneFigure", "#install", '"/product"'):
+        assert yc_signal in home_src, f"Missing investor signal {yc_signal} on homepage"
 
-    assert len(docs_src.splitlines()) < 350, "DocsHub.tsx must stay concise (< 350 lines)"
-    assert "GovernanceGuardrailsLab" not in gov_src, "Redundant GovernanceGuardrailsLab removed from /governance"
-    assert "allowed_providers" not in gov_src, "Internal Python config syntax removed from /governance"
-    assert "LAYER 4 REGISTRY" not in models_src, "Internal layer jargon removed from /models"
-    assert "/v1/chat/" in api_ref_src and "/v1/governance" in api_ref_src, "Public API filter present in /api-reference"
+    docs_src = (WEBSITE_DIR / "src" / "app" / "docs" / "page.tsx").read_text(encoding="utf-8")
+    assert len(docs_src.splitlines()) < 350, "docs index must stay concise (< 350 lines)"
 
-    for web_text in (home_src, docs_src, gov_src, models_src, api_ref_src):
+    for retired in (
+        "src/components/docs/DocsHub.tsx",
+        "src/components/home/CustomerJourneyGrid.tsx",
+        "src/app/governance/page.tsx",
+        "src/app/models/page.tsx",
+        "src/app/api-reference/page.tsx",
+        "src/app/marketplace/page.tsx",
+        "src/app/brand/page.tsx",
+        "src/app/playground/page.tsx",
+    ):
+        assert not (WEBSITE_DIR / retired).exists(), f"Retired v1 surface still present: {retired}"
+
+    # The /api-reference page is gone; the OpenAPI contract must still expose
+    # the public chat + governance route families it documented.
+    assert any("/v1/chat/" in p for p in openapi_doc["paths"]), "Public /v1/chat/* routes missing from openapi.json"
+    assert any("/v1/governance" in p for p in openapi_doc["paths"]), "Public /v1/governance* routes missing from openapi.json"
+
+    for surface_file in v3_surface_files:
+        web_text = surface_file.read_text(encoding="utf-8")
         assert '"/playground' not in web_text
+        assert "allowed_providers" not in web_text, "Internal Python config syntax leaked into public site"
+        assert "LAYER 4 REGISTRY" not in web_text, "Internal layer jargon leaked into public site"
         for tok in FORBIDDEN_PRIVATE_TOKENS:
             assert tok not in web_text, f"Forbidden token '{tok}' leaked in curated website source"

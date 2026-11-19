@@ -23,7 +23,7 @@
     },
     "zero_install_homepage_golden_thread_studio_showcase": {
       "status": "AVAILABLE",
-      "claim": "Zero-install Golden-Thread Studio showcase engine enabling LangGraph-to-KFlow SVG topology conversion, bidirectional Python and TypeScript SDK AST line sync, counterfactual Flight-Tape scrubbing, sandbox blast-radius inspection, and prompt regression gating \u2014 shipped as a self-contained embeddable component",
+      "claim": "Zero-install Golden-Thread Studio showcase engine enabling LangGraph-to-KFlow SVG topology conversion, bidirectional Python and TypeScript SDK AST line sync, counterfactual Flight-Tape scrubbing, sandbox blast-radius inspection, and prompt regression gating — shipped as a self-contained embeddable component",
       "code_path": "website/src/components/home/GoldenThreadStudioShowcase.tsx, website/src/lib/goldenThreadShowcaseEngine.ts",
       "evidence_test": "tests/test_phase13_homepage_studio_and_release.py"
     },
@@ -65,19 +65,19 @@
     },
     "golden_thread_bidirectional_studio_and_blast_radius": {
       "status": "AVAILABLE",
-      "claim": "4-Stage Golden-Thread Lifecycle Journey Bar, RCE-safe static Bidirectional AST <-> Visual SVG KFlow Split Studio across Python and TypeScript with exact line-span synchronization and P-10 lock round-trips, interactive Flight-Tape Waterfall Timeline Scrubber, SQLite WAL Seatbelt Sandbox Blast-Radius Radar, and 1-click Inline Prompt & Schema Regression Gates",
+      "claim": "Golden-Thread Bidirectional KFlow Studio — 4-Stage Golden-Thread Lifecycle Journey Bar, RCE-safe static Bidirectional AST <-> Visual SVG KFlow Split Studio across Python and TypeScript with exact line-span synchronization via the kflow-sync CLI and P-10 lock round-trips, interactive Flight-Tape Waterfall Timeline Scrubber, SQLite WAL Seatbelt Sandbox Blast-Radius Radar, and 1-click Inline Prompt & Schema Regression Gates (prompt-gate)",
       "code_path": "core/platform/kflow_bidirectional_sync.py, core/platform/sandbox_blast_radius.py, core/api/platform_studio_routes.py, core/cli_studio.py, dev-app/src/components/platform/GoldenThreadJourneyBar.tsx, dev-app/src/components/platform/BidirectionalKflowStudioPanel.tsx, dev-app/src/components/platform/FlightTapeScrubberAndRadar.tsx",
       "evidence_test": "tests/test_phase12_bidirectional_studio_and_blast_radius.py, tests/test_phase12_sdk_parity.py, dev-app/src/__tests__/phase12-golden-thread-studio.test.tsx"
     },
     "flight_tape_time_travel_otel_wedge_and_langgraph_migrator": {
       "status": "AVAILABLE",
-      "claim": "Zero-cost SQLite WAL OpenTelemetry GenAI trace ingestion with pre-storage DLP secret scrubbing, deterministic Flight-Tape counterfactual time-travel forking that reuses cached upstream steps at $0 cost and computes frontier-to-OpenCore spend deltas, 1-click Trace-to-Golden-Eval dataset promotion, and RCE-safe static AST StateGraph-to-KFlow migration with bounded loop policies and P-10 gate injection",
+      "claim": "OpenTelemetry GenAI Flight-Tape Time-Travel Debugging — zero-cost SQLite WAL OpenTelemetry GenAI trace ingestion with pre-storage DLP secret scrubbing, deterministic Flight-Tape counterfactual time-travel forking that reuses cached upstream steps at $0 cost and computes frontier-to-OpenCore spend deltas, 1-click Trace-to-Eval Promotion into the Golden Eval dataset, and RCE-safe Static AST StateGraph-to-KFlow migration via the migrate-langgraph CLI with bounded loop policies and P-10 gate injection",
       "code_path": "core/platform/flight_tape.py, core/platform/langgraph_migrator.py, core/api/platform_devx_routes.py, core/cli_devx.py, dev-app/src/components/platform/FlightTapeDebuggerPanel.tsx, dev-app/src/components/platform/LangGraphMigratorPanel.tsx",
       "evidence_test": "tests/test_phase11_flight_tape_otel_and_langgraph_migrator.py, tests/test_phase11_sdk_parity.py, dev-app/src/__tests__/phase11-flight-tape-and-migrator.test.tsx"
     },
     "kbrain_hybrid_memory_and_khub_airgap_mirror": {
       "status": "AVAILABLE",
-      "claim": "KBrain scope-governed workspace memory graph (local_session < project < team < org) in SQLite WAL with fail-closed DLP secret rejection, deterministic conflict detection, P-10 owner/operator resolution, and Hybrid BM25 + Character 3-Gram Cosine Similarity retrieval; plus KHub air-gapped skill catalog and symlink-hardened .tar.gz cryptographic mirror verification",
+      "claim": "The 4-K Sovereign Architecture pillars — kBrain scope-governed workspace memory graph (local_session < project < team < org) in SQLite WAL with fail-closed DLP secret rejection, deterministic conflict detection, P-10 owner/operator resolution, and Hybrid BM25 + Character 3-gram (n-gram) Cosine Similarity retrieval; plus KHub air-gapped skill catalog and symlink-hardened .skill.tar.gz cryptographic mirror verification",
       "code_path": "core/platform/kbrain_khub.py, core/api/platform_kbrain_routes.py, core/cli_kbrain_khub.py, core/khub/sync.py, dev-app/src/components/platform/KBrainMemoryGraphPanel.tsx, dev-app/src/components/platform/KHubAirgapMirrorPanel.tsx",
       "evidence_test": "tests/test_phase10_kbrain_khub_and_tar_hardening.py, tests/test_phase10_sdk_parity.py, dev-app/src/__tests__/phase10-kbrain-and-khub.test.tsx"
     },

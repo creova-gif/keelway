@@ -319,10 +319,20 @@ def test_tri_sdk_module_caps_and_website_292_route_24_feature_parity() -> None:
         lines = fpath.read_text(encoding="utf-8").splitlines()
         assert len(lines) < 480, f"{fpath} exceeds 480-line cap ({len(lines)} lines)"
 
-    docs_src = (WEBSITE_DIR / "src" / "components" / "docs" / "DocsHub.tsx").read_text(encoding="utf-8")
-    assert len(docs_src.splitlines()) < 500, "DocsHub.tsx must stay strictly < 500 lines"
+    # KEEL-WEB-038: DocsHub.tsx was retired with the v3 route prune; the
+    # no-private-token scan now covers the live v3 docs + marketing surface.
+    v3_surface = "\n".join(
+        (WEBSITE_DIR / p).read_text(encoding="utf-8")
+        for p in (
+            "src/app/docs/page.tsx",
+            "src/app/page.tsx",
+            "src/app/product/page.tsx",
+            "src/app/pricing/page.tsx",
+            "src/data/releases.ts",
+        )
+    )
     for tok in FORBIDDEN_PRIVATE_TOKENS:
-        assert tok not in docs_src, f"Private token '{tok}' leaked in DocsHub.tsx"
+        assert tok not in v3_surface, f"Private token '{tok}' leaked in v3 public surface"
 
     ts_src = (REPO_ROOT / "sdk" / "typescript" / "src" / "platformHealing.ts").read_text(encoding="utf-8")
     go_src = (REPO_ROOT / "sdk" / "go" / "platform_phase16.go").read_text(encoding="utf-8")

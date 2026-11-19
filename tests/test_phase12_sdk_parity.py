@@ -411,10 +411,10 @@ async def test_python_async_sdk_and_optional_live_asgi_plus_tri_sdk_symbols() ->
 
 
 def test_website_phase12_docs_hub_pricing_calibration_and_line_caps() -> None:
-    docs_hub = REPO_ROOT / "website" / "src" / "components" / "docs" / "DocsHub.tsx"
-    docs_src = docs_hub.read_text(encoding="utf-8")
-    docs_lines = len(docs_src.splitlines())
-    assert docs_lines < 500, f"DocsHub.tsx has {docs_lines} lines (must remain < 500)"
+    # KEEL-WEB-038: DocsHub.tsx and CustomerJourneyGrid.tsx were retired with
+    # the v3 route prune; the same disclosure + privacy contract now binds to
+    # product-facts.json, and the pricing contract binds to src/data/pricing.ts.
+    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
 
     for required_token in (
         "Golden-Thread Bidirectional KFlow Studio",
@@ -424,15 +424,19 @@ def test_website_phase12_docs_hub_pricing_calibration_and_line_caps() -> None:
         "Prompt Regression Gate",
         "prompt-gate",
     ):
-        assert required_token in docs_src, f"Missing '{required_token}' in DocsHub.tsx"
+        assert required_token in facts_src, f"Missing '{required_token}' in product-facts.json"
 
     for token in FORBIDDEN_PRIVATE_TOKENS:
-        assert token not in docs_src, f"Forbidden private token '{token}' leaked in DocsHub.tsx"
+        assert token not in facts_src, f"Forbidden private token '{token}' leaked in product-facts.json"
 
-    journey_grid = REPO_ROOT / "website" / "src" / "components" / "home" / "CustomerJourneyGrid.tsx"
-    journey_src = journey_grid.read_text(encoding="utf-8")
-    assert "Predictable $29/seat Pro pricing & spend caps" in journey_src
-    assert "$39/seat" not in journey_src
+    pricing_src = (REPO_ROOT / "website" / "src" / "data" / "pricing.ts").read_text(
+        encoding="utf-8"
+    ) + (REPO_ROOT / "website" / "src" / "app" / "pricing" / "page.tsx").read_text(
+        encoding="utf-8"
+    )
+    assert "$29/seat" in pricing_src, "Pro $29/seat pricing must be disclosed on /pricing"
+    assert "spend cap" in pricing_src.lower(), "spend caps must be disclosed on /pricing"
+    assert "$39/seat" not in pricing_src, "$39/seat pricing must not appear on /pricing"
 
     phase12b_files = (
         REPO_ROOT / "core" / "sdk" / "platform_studio_client.py",

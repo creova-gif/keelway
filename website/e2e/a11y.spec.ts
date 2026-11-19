@@ -1,15 +1,17 @@
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 
+// KEEL-WEB-038 v3 public route surface. Retired routes (/models, /api-reference,
+// /marketplace, /governance, /brand, /playground, /search) 301 via next.config.ts.
 const ROUTES = [
   "/",
-  "/models",
+  "/about",
+  "/product",
   "/pricing",
+  "/changelog",
+  "/contact",
   "/docs",
-  "/api-reference",
-  "/marketplace",
-  "/governance",
-  "/brand",
+  "/sign-in",
 ] as const;
 
 for (const route of ROUTES) {
