@@ -143,14 +143,39 @@ def _schedule_ops(inputs: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def _golden_eval(inputs: Dict[str, Any]) -> Dict[str, Any]:
-    if inputs.get("compare_to"):
-        raise ValueError("drift 'compare_to' is not wired through the builtin handler")
-    store = EvaluationReceiptStore() if inputs.get("save_receipt", True) else None
+    compare_to = inputs.get("compare_to")
+    receipts_dir = inputs.get("receipts_dir")
+    store = (
+        EvaluationReceiptStore(receipts_dir)
+        if inputs.get("save_receipt", True) or compare_to
+        else None
+    )
     receipt = await DriftDetector.run_evaluation_and_create_receipt(
         model_name=str(inputs.get("model_name") or "keelway-local-default"),
-        store=store,
+        store=store if inputs.get("save_receipt", True) else None,
     )
-    return receipt.to_dict()
+    out = receipt.to_dict()
+    if compare_to:
+        if store is None:
+            store = EvaluationReceiptStore(receipts_dir)
+        if str(compare_to) == "latest":
+            baseline = next(
+                (
+                    r
+                    for r in (
+                        store.get_receipt(entry["eval_run_id"])
+                        for entry in store.list_receipts()
+                    )
+                    if r is not None and r.eval_run_id != receipt.eval_run_id
+                ),
+                None,
+            )
+        else:
+            baseline = store.get_receipt(str(compare_to))
+        if baseline is None:
+            raise ValueError(f"baseline receipt '{compare_to}' not found in {store.receipts_dir}")
+        out["drift"] = DriftDetector.compare(baseline, receipt).to_dict()
+    return out
 
 
 BUILTIN_HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
