@@ -26,7 +26,7 @@ export function HeroCtaLinks() {
         }
         className="kw-btn kw-btn-secondary"
       >
-        <Sparkles className="h-4 w-4 text-teal-accent" aria-hidden="true" />
+        <Sparkles className="h-4 w-4 text-fg-muted" aria-hidden="true" />
         <span>Explore Signed Marketplace</span>
       </Link>
     </div>

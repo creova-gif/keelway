@@ -41,18 +41,18 @@
 }
 
 [data-theme="light"] {
-  --bg-canvas: #fafafa;
+  --bg-canvas: #f6f5f2;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f4f4f5;
-  --border-subtle: #e4e4e7;
-  --border-strong: #d4d4d8;
+  --bg-surface-elevated: #efeeeb;
+  --border-subtle: #e5e3de;
+  --border-strong: #d5d2ca;
 
-  --fg-primary: #09090b;
-  --fg-muted: #52525b;
-  --fg-dim: #71717a;
+  --fg-primary: #141416;
+  --fg-muted: #4f4f55;
+  --fg-dim: #83837f;
 
-  --teal-accent: #0f766e;
-  --teal-surface: rgba(15, 118, 110, 0.1);
+  --teal-accent: #0d9488;
+  --teal-surface: rgba(13, 148, 136, 0.09);
   --teal-ink: #ffffff;
 
   --amber-alert: #27272a;
@@ -63,14 +63,10 @@
   --red-surface: rgba(185, 28, 28, 0.1);
   --red-ink: #ffffff;
 
-  --grid-line: rgba(9, 9, 11, 0.035);
-  --hero-glow: radial-gradient(
-    880px circle at 50% 0%,
-    rgba(15, 118, 110, 0.05),
-    transparent 70%
-  );
-  --card-ring: inset 0 1px 0 0 rgba(255, 255, 255, 0.8),
-    0 16px 36px -18px rgba(9, 9, 11, 0.08);
+  --grid-line: rgba(9, 9, 11, 0.03);
+  --hero-glow: none;
+  --card-ring: 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 16px 36px -22px rgba(9, 9, 11, 0.12);
 }
 
 @layer base {
@@ -189,14 +185,13 @@
 }
 
 .kw-btn-primary {
-  background-color: var(--teal-accent);
-  color: var(--teal-ink);
+  background-color: var(--fg-primary);
+  color: var(--bg-canvas);
   border: 1px solid transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .kw-btn-primary:hover {
-  filter: brightness(1.06);
+  opacity: 0.88;
 }
 
 .kw-btn-secondary {
@@ -216,10 +211,10 @@
    ------------------------------------------------------------------ */
 
 .kw-display {
-  font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+  font-size: clamp(2.625rem, 5.25vw, 4.5rem);
   font-weight: 800;
-  letter-spacing: -0.032em;
-  line-height: 1.05;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
 }
 
 .kw-h2 {
@@ -276,6 +271,29 @@
 }
 .kw-reveal-delay-1 { transition-delay: 60ms; }
 .kw-reveal-delay-2 { transition-delay: 120ms; }
+
+/* Editorial figure — the product screenshot IS the hero. Thin hairline
+   frame, no glow, no chrome. Mono caption per DESIGN.md v2. */
+.kw-figure {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface);
+  box-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.45);
+}
+[data-theme="light"] .kw-figure,
+[data-theme="light"].kw-figure {
+  box-shadow: 0 24px 48px -30px rgba(9, 9, 11, 0.18);
+}
+
+.kw-fig-label {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
 }
 
 @media (prefers-reduced-motion: reduce) {

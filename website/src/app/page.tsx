@@ -1,9 +1,9 @@
 import React from "react";
+import Image from "next/image";
 import { evaluate } from "flags/next";
 import { expHomeGateFlag, expQuickstartCliFlag } from "@/flags";
 import { ExperimentFlagValues } from "@/components/experiments/ExperimentFlagValues";
 import { HeroCtaLinks } from "@/components/home/HeroCtaLinks";
-import { HeroControlCockpit } from "@/components/home/HeroControlCockpit";
 import { CustomerJourneyGrid } from "@/components/home/CustomerJourneyGrid";
 import { GoldenThreadStudioShowcase } from "@/components/home/GoldenThreadStudioShowcase";
 import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
@@ -54,83 +54,44 @@ export default async function HomePage() {
 
       <section
         aria-labelledby="hero-heading"
-        className="blueprint-surface relative border-b border-border-subtle py-16 sm:py-24"
+        data-theme="dark"
+        className="bg-canvas pb-16 pt-16 text-fg sm:pb-24 sm:pt-24"
       >
         <div className="mx-auto max-w-container px-4 sm:px-6">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12">
-            <div className="lg:col-span-6">
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border-strong bg-surface/90 px-3.5 py-1.5 font-mono text-xs">
-                <span
-                  className="h-2 w-2 rounded-full bg-teal-accent"
-                  aria-hidden="true"
-                />
-                <span className="font-semibold text-fg">
-                  APACHE-2.0 OPEN-CORE
-                </span>
-                <span className="text-fg-dim">·</span>
-                <span className="text-fg-muted">
-                  Sovereign Runtime · 4D Router · Signed Marketplace
-                </span>
-              </div>
+          <div className="max-w-3xl">
+            <p className="kw-fig-label">
+              Apache-2.0 Open-Core — Sovereign Runtime · 4D Router · Signed
+              Marketplace
+            </p>
 
-              <h1
-                id="hero-heading"
-                className="kw-display mt-6 text-fg"
-              >
-                Local-first AI agent runtime with{" "}
-                <span className="text-teal-accent">
-                  cryptographic governance.
-                </span>
-              </h1>
+            <h1 id="hero-heading" className="kw-display mt-5 text-fg">
+              Local-first AI agent runtime with cryptographic governance.
+            </h1>
 
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">
-                Execute routine agent loops locally at $0 token COGS, burst to
-                Frontier APIs at 0% markup, and enforce human-signed approvals
-                before every production mutation.
-              </p>
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">
+              Execute routine agent loops locally at $0 token COGS, burst to
+              Frontier APIs at 0% markup, and enforce human-signed approvals
+              before every production mutation.
+            </p>
 
-              <HeroCtaLinks />
-
-              <dl className="mt-10 grid grid-cols-2 gap-4 border-t border-border-subtle pt-6 font-mono sm:grid-cols-4">
-                <div>
-                  <dt className="text-[11px] uppercase text-fg-muted">
-                    Local Traces
-                  </dt>
-                  <dd className="mt-1 text-lg font-bold tabular-nums text-fg">
-                    $0
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] uppercase text-fg-muted">
-                    BYOM Markup
-                  </dt>
-                  <dd className="mt-1 text-lg font-bold tabular-nums text-fg">
-                    0%
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] uppercase text-fg-muted">
-                    Team Seat
-                  </dt>
-                  <dd className="mt-1 text-lg font-bold tabular-nums text-fg">
-                    $29/seat
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] uppercase text-fg-muted">
-                    Marketplace
-                  </dt>
-                  <dd className="mt-1 text-lg font-bold tabular-nums text-fg">
-                    85/15
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            <div className="lg:col-span-6">
-              <HeroControlCockpit />
-            </div>
+            <HeroCtaLinks />
           </div>
+
+          <figure className="mt-14 sm:mt-16">
+            <div className="kw-figure">
+              <Image
+                src="/product/app-main.png"
+                alt="Keelway unified control plane — automation view with agent runs, routing decisions, and cost ledger"
+                width={2880}
+                height={1800}
+                priority
+                className="h-auto w-full"
+              />
+            </div>
+            <figcaption className="kw-fig-label mt-3">
+              FIG 0.1 — Keelway Dev App, captured live from <code>keelway dev</code>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -158,21 +119,18 @@ export default async function HomePage() {
           <h2 id="proof-strip-heading" className="sr-only">
             Verifiable platform facts
           </h2>
-          <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-y-6 border-t border-border-subtle pt-6 md:grid-cols-4">
             {[
               { k: "LICENSE", v: "Apache-2.0 open core" },
               { k: "SDK PARITY", v: "Python · TypeScript · Go" },
               { k: "EVAL HARNESS", v: "16-probe golden suite" },
               { k: "TOKEN MARKUP", v: "0% — BYOM pass-through" },
             ].map((f) => (
-              <div
-                key={f.k}
-                className="rounded-md border border-border-subtle bg-surface px-4 py-3"
-              >
-                <dt className="font-mono text-[10px] uppercase tracking-wider text-fg-dim">
+              <div key={f.k}>
+                <dt className="kw-fig-label">
                   {f.k}
                 </dt>
-                <dd className="mt-1 font-mono text-xs font-semibold text-fg">
+                <dd className="mt-1.5 text-sm font-semibold text-fg">
                   {f.v}
                 </dd>
               </div>

@@ -146,7 +146,7 @@ export function GoldenThreadStudioShowcase() {
   }, [isStudioPane, selectedNodeId, language, sourceCode]);
 
   return (
-    <section id="studio-showcase" aria-labelledby="golden-thread-studio-heading" className="blueprint-surface border-b border-border-subtle py-16 sm:py-20">
+    <section id="studio-showcase" aria-labelledby="golden-thread-studio-heading" data-theme="dark" className="blueprint-surface border-b border-border-subtle bg-canvas text-fg py-16 sm:py-20">
       <div className="mx-auto max-w-container px-4 sm:px-6">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-3xl">

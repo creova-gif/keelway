@@ -10,16 +10,16 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "dark",
+  theme: "light",
   toggleTheme: () => {},
 });
 
 /**
- * Provides Dark (default per DESIGN.md) and Light theme switching
+ * Provides Light (default per DESIGN.md v2) and Dark theme switching
  * backed by [data-theme] on <html> for zero-flash CSS variable resolution.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<ThemeMode>("dark");
+  const [theme, setTheme] = useState<ThemeMode>("light");
 
   useEffect(() => {
     try {
@@ -28,10 +28,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTheme(saved);
         document.documentElement.setAttribute("data-theme", saved);
       } else {
-        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme", "light");
       }
     } catch {
-      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-theme", "light");
     }
   }, []);
 

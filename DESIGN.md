@@ -142,3 +142,46 @@ Marketing-site additions on top of the base system. North star: **calm engineeri
 ### Motion — intentional, CSS-gated
 - `.kw-reveal` + `Reveal` component (`components/motion/Reveal.tsx`): fade-rise 200ms ease-out, ≤3-item stagger via `kw-reveal-delay-{1,2}`. Hidden state applied post-mount only to offscreen elements — content is fully visible without JS and under `prefers-reduced-motion`.
 - Tab/segmented indicators transition at 150ms. No bounce, no glow, no loops.
+
+---
+
+## 7. Website v2 — "Editorial Precision" Direction (2026-11-19)
+
+Supersedes §6 defaults where they conflict. Benchmarked against Linear,
+Cognition, Conductor, and Factory marketing surfaces: the shared trait is
+**restraint** — ~3 elements per viewport, typography doing the work, one
+large real product visual, near-invisible accent.
+
+### Theme model — hybrid light editorial / dark product
+- **Default = light editorial.** `data-theme="light"` on `<html>`; warm
+  paper canvas `#f6f5f2`, white surfaces, near-black ink `#141416`.
+- **Dark product bands.** `data-theme="dark"` scoped sections for the
+  homepage hero, studio/terminal/product showcases, and the app-adjacent
+  pages (`/docs`, `/api-reference`, `/governance`, `/models`,
+  `/marketplace`). Near-black canvas `#09090b` retained.
+- User theme toggle still works; scoped bands stay dark either way.
+
+### Near-monochrome accent
+- Teal is no longer the CTA color. `.kw-btn-primary` is inverted
+  monochrome (ink on paper / white on black).
+- Teal survives only inside authentic product screenshots and at most
+  ~2 functional data points per surface (e.g., a receipt seal, a live
+  gate state). Decorative teal bullets/icons are removed.
+
+### Chrome budget
+- No pill badges, no blueprint grid, no glows on marketing surfaces.
+- Hairline `border` is the default separator; `frame-crosshair` reserved
+  for genuinely framed product captures.
+- JetBrains Mono only for `kw-fig-label` figure captions (`FIG 0.1 —`),
+  code, and tabular data — never for nav, badges-as-decoration, or body.
+
+### Type
+- `.kw-display` bumped to `clamp(2.625rem, 5.25vw, 4.5rem)`, `-0.045em`
+  tracking — Linear-scale statement headlines.
+- Section numbering stays mono micro-label style (`FIG` / `01 /`) but
+  quieter (10px, dim).
+
+### Hero contract
+- One statement headline, one supporting sentence, one primary CTA +
+  one text link, then ONE full-width authentic product screenshot in a
+  `kw-figure` hairline frame. No stat grids, no synthetic demo panels.

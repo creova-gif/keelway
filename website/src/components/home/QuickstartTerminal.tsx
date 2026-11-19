@@ -168,7 +168,7 @@ export function QuickstartTerminal({
       aria-labelledby="quickstart-heading"
       data-experiment-key="exp-quickstart-cli-v1"
       data-experiment-variant={variant}
-      className="border-t border-border-subtle py-20"
+      data-theme="dark" className="border-t border-border-subtle bg-canvas text-fg py-20"
     >
       <div className="mx-auto max-w-container px-4 sm:px-6">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
