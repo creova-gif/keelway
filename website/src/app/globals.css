@@ -2,307 +2,211 @@
 @tailwind components;
 @tailwind utilities;
 
-:root,
-[data-theme="dark"] {
-  --bg-canvas: #09090b;
-  --bg-surface: #121215;
-  --bg-surface-elevated: #18181b;
-  --border-subtle: #27272a;
-  --border-strong: #3f3f46;
+/* ============================================================
+   KEELWAY — MARITIME INSTRUMENT (v3)
+   A ship's bridge at night. Flat ink on dark chart paper.
+   Layering = hairline rules + fog-lift surfaces.
+   No gradients, no glows, no decorative shadows.
+   ============================================================ */
 
-  --fg-primary: #fafafa;
-  --fg-muted: #a1a1aa;
-  --fg-dim: #8e8e96;
+:root {
+  /* canvas + surfaces */
+  --canvas: #08090a;
+  --fog-4: rgba(255, 255, 255, 0.04);
+  --fog-8: rgba(255, 255, 255, 0.08);
+  --rule: rgba(255, 255, 255, 0.06);
+  --rule-strong: rgba(255, 255, 255, 0.12);
 
-  --teal-accent: #2dd4bf;
-  --teal-surface: rgba(45, 212, 191, 0.12);
-  --teal-ink: #042f2e;
+  /* ink */
+  --ink: #f4f5f5;
+  --muted: #9ba1a6;
+  --dim: #5d6268;
 
-  --amber-alert: #e4e4e7;
-  --amber-surface: rgba(228, 228, 231, 0.08);
-  --amber-ink: #09090b;
+  /* brass — rare, meaningful */
+  --brass: #c9a45c;
+  --brass-deep: #a8854a;
+  --brass-ink: #08090a;
+  --brass-8: rgba(201, 164, 92, 0.08);
+  --brass-40: rgba(201, 164, 92, 0.4);
+  --brass-ring: rgba(201, 164, 92, 0.35);
 
-  --red-danger: #f87171;
-  --red-surface: rgba(248, 113, 113, 0.14);
-  --red-ink: #2a0606;
-
-  --grid-line: rgba(255, 255, 255, 0.03);
-  --hero-glow: radial-gradient(
-    880px circle at 50% 0%,
-    rgba(45, 212, 191, 0.06),
-    transparent 70%
-  );
-  --card-ring: inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-    0 20px 44px -18px rgba(0, 0, 0, 0.55);
-
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* semantic — port / starboard / flag */
+  --green: #6fae8e;
+  --green-8: rgba(111, 174, 142, 0.08);
+  --green-35: rgba(111, 174, 142, 0.35);
+  --red: #b0564e;
+  --red-8: rgba(176, 86, 78, 0.07);
+  --red-40: rgba(176, 86, 78, 0.4);
+  --blue: #6f87a3;
+  --blue-8: rgba(111, 135, 163, 0.08);
+  --blue-35: rgba(111, 135, 163, 0.35);
 }
 
-[data-theme="light"] {
-  --bg-canvas: #f6f5f2;
-  --bg-surface: #ffffff;
-  --bg-surface-elevated: #efeeeb;
-  --border-subtle: #e5e3de;
-  --border-strong: #d5d2ca;
-
-  --fg-primary: #141416;
-  --fg-muted: #4f4f55;
-  --fg-dim: #83837f;
-
-  --teal-accent: #0d9488;
-  --teal-surface: rgba(13, 148, 136, 0.09);
-  --teal-ink: #ffffff;
-
-  --amber-alert: #27272a;
-  --amber-surface: rgba(39, 39, 42, 0.06);
-  --amber-ink: #fafafa;
-
-  --red-danger: #b91c1c;
-  --red-surface: rgba(185, 28, 28, 0.1);
-  --red-ink: #ffffff;
-
-  --grid-line: rgba(9, 9, 11, 0.03);
-  --hero-glow: none;
-  --card-ring: 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 16px 36px -22px rgba(9, 9, 11, 0.12);
+html {
+  background: var(--canvas);
+  color-scheme: dark;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
-@layer base {
-  * {
-    border-color: var(--border-subtle);
-  }
-
-  html {
-    background-color: var(--bg-canvas);
-    color: var(--fg-primary);
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    background-color: var(--bg-canvas);
-    color: var(--fg-primary);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    overflow-x: hidden;
-  }
-
-  code,
-  pre,
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--teal-accent);
-    outline-offset: 3px;
-  }
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.skip-link {
-  position: fixed;
-  top: -100px;
-  left: 16px;
-  z-index: 100;
-  padding: 10px 16px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--radius-sm);
-  background: var(--teal-accent);
-  color: var(--teal-ink);
-  font-weight: 600;
-  font-size: 14px;
-  transition: top 150ms ease;
+::selection {
+  background: var(--brass);
+  color: var(--brass-ink);
 }
 
-.skip-link:focus {
-  top: 12px;
+/* ---------- type ---------- */
+.kw-display {
+  font-size: clamp(2.75rem, 5.5vw, 4.75rem);
+  font-weight: 640;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  color: var(--ink);
 }
-
-.blueprint-surface {
-  background-image: var(--hero-glow),
-    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-  background-size: 100% 100%, 64px 64px, 64px 64px;
-  background-position: center top;
+.kw-h1 {
+  font-size: clamp(2rem, 3.5vw, 2.5rem);
+  font-weight: 640;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--ink);
 }
-
-.frame-crosshair {
-  position: relative;
-  box-shadow: var(--card-ring);
+.kw-h2 {
+  font-size: clamp(1.5rem, 2.4vw, 1.75rem);
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--ink);
 }
-
-.chip-teal {
-  background-color: var(--teal-accent);
-  color: var(--teal-ink);
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.04em;
+.kw-h3 {
+  font-size: 1.25rem;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--ink);
 }
-
-.chip-fault {
-  background-color: var(--red-danger);
-  color: var(--red-ink);
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
-.chip-neutral {
-  background-color: var(--bg-surface-elevated);
-  color: var(--fg-primary);
-  border: 1px solid var(--border-strong);
-  font-family: var(--font-jetbrains-mono), monospace;
+.kw-label {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
   font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
+.kw-label-brass { color: var(--brass); }
+.kw-data {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.kw-body { font-size: 1rem; line-height: 1.6; color: var(--muted); }
+.kw-small { font-size: 0.75rem; line-height: 1.5; color: var(--muted); }
 
-@layer components {
+/* ---------- controls ---------- */
 .kw-btn {
-  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 0 18px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  transition: filter 150ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 100ms ease;
+  border-radius: 6px;
+  padding: 0.625rem 1rem;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
-
-.kw-btn:active {
-  transform: scale(0.99);
+.kw-btn:focus-visible,
+.kw-input:focus-visible,
+.kw-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brass-ring);
 }
-
-.kw-btn-primary {
-  background-color: var(--fg-primary);
-  color: var(--bg-canvas);
-  border: 1px solid transparent;
-}
-
-.kw-btn-primary:hover {
-  opacity: 0.88;
-}
-
+.kw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.kw-btn-primary { background: var(--brass); color: var(--brass-ink); }
+.kw-btn-primary:hover:not(:disabled) { background: var(--brass-deep); }
 .kw-btn-secondary {
-  background-color: var(--bg-surface);
-  color: var(--fg-primary);
-  border: 1px solid var(--border-strong);
-}
-
-.kw-btn-secondary:hover {
-  border-color: var(--fg-dim);
-  background-color: var(--bg-surface-elevated);
-}
-
-/* ------------------------------------------------------------------
-   v1.1 "Precision Instrument" — fluid type scale, section rhythm,
-   unified chips, intentional motion. See DESIGN.md §Typography.
-   ------------------------------------------------------------------ */
-
-.kw-display {
-  font-size: clamp(2.625rem, 5.25vw, 4.5rem);
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  line-height: 1.02;
-}
-
-.kw-h2 {
-  font-size: clamp(1.5rem, 2.6vw, 2.25rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-}
-
-.kw-kicker {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.kw-section-index {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--fg-dim);
-  user-select: none;
-}
-
-/* Teal top-rule — only on interactive/emphasis cards. */
-.frame-teal-rule {
-  position: relative;
-}
-.frame-teal-rule::before {
-  content: "";
-  position: absolute;
-  inset: -1px -1px auto -1px;
-  height: 1px;
-  background: var(--teal-accent);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
-/* Intentional scroll reveal — fade-rise only, disabled under
-   prefers-reduced-motion by the global motion block below. */
-.kw-reveal {
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 200ms ease-out,
-    transform 200ms ease-out;
-}
-.kw-reveal.is-visible {
-  opacity: 1;
-  transform: none;
-}
-.kw-reveal-delay-1 { transition-delay: 60ms; }
-.kw-reveal-delay-2 { transition-delay: 120ms; }
-
-/* Editorial figure — the product screenshot IS the hero. Thin hairline
-   frame, no glow, no chrome. Mono caption per DESIGN.md v2. */
-.kw-figure {
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--bg-surface);
-  box-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.45);
-}
-[data-theme="light"] .kw-figure,
-[data-theme="light"].kw-figure {
-  box-shadow: 0 24px 48px -30px rgba(9, 9, 11, 0.18);
-}
-
-.kw-fig-label {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 10px;
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--fg-dim);
 }
+.kw-btn-secondary:hover { background: var(--fog-8); }
+.kw-link {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  transition: color 150ms ease;
 }
+.kw-link:hover { color: var(--ink); }
+.kw-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: 6px;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.kw-input::placeholder { color: var(--dim); }
+.kw-input:focus { border-color: var(--brass); box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15); outline: none; }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+/* ---------- chips ---------- */
+.kw-chip {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  padding: 0.3125rem 0.625rem;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  color: var(--dim);
+}
+.kw-chip-brass { color: var(--brass); border-color: var(--brass-40); background: var(--brass-8); }
+.kw-chip-green { color: var(--green); border-color: var(--green-35); background: var(--green-8); }
+.kw-chip-red { color: var(--red); border-color: var(--red-40); background: var(--red-8); }
+.kw-chip-blue { color: var(--blue); border-color: var(--blue-35); background: var(--blue-8); }
+
+/* ---------- surfaces ---------- */
+.kw-card {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--fog-4);
+}
+.kw-figure {
+  border: 1px solid var(--rule-strong);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.kw-figcap {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+.kw-rule { border-top: 1px solid var(--rule); }
+.kw-row-hover { transition: background-color 120ms ease; }
+.kw-row-hover:hover { background: rgba(255, 255, 255, 0.015); }
+
+/* nav link */
+.kw-navlink {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  transition: color 150ms ease;
+}
+.kw-navlink:hover { color: var(--ink); }
+
+/* motion — fade-rise, reduced-motion safe */
+@media (prefers-reduced-motion: no-preference) {
+  .kw-rise {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: kw-rise 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+}
+@keyframes kw-rise {
+  to { opacity: 1; transform: none; }
 }

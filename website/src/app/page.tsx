@@ -1,157 +1,82 @@
-import React from "react";
 import Image from "next/image";
-import { evaluate } from "flags/next";
-import { expHomeGateFlag, expQuickstartCliFlag } from "@/flags";
-import { ExperimentFlagValues } from "@/components/experiments/ExperimentFlagValues";
-import { HeroCtaLinks } from "@/components/home/HeroCtaLinks";
-import { CustomerJourneyGrid } from "@/components/home/CustomerJourneyGrid";
-import { GoldenThreadStudioShowcase } from "@/components/home/GoldenThreadStudioShowcase";
-import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
-import { P10InteractiveDeck } from "@/components/home/P10InteractiveDeck";
-import { QuickstartTerminal } from "@/components/home/QuickstartTerminal";
-import { ProductShowcase } from "@/components/home/ProductShowcase";
-import { Reveal } from "@/components/motion/Reveal";
-import { SettlementRails } from "@/components/home/SettlementRails";
-import { EarlyAccessForm } from "@/components/home/EarlyAccessForm";
-import { SITE_URL } from "@/lib/utils";
+import Link from "next/link";
 
-const softwareSchema = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Keelway",
-  url: SITE_URL,
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "macOS, Linux, Windows, Docker",
-  license: "https://www.apache.org/licenses/LICENSE-2.0",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
+const PRINCIPLES = [
+  {
+    label: "YOUR HARDWARE",
+    body: "Open-weight models run where they live — Ollama or private vLLM. $0 marginal token.",
+    accent: true,
   },
-  description:
-    "Local-first AI agent runtime with deterministic 4D routing, human-in-the-loop P-10 governance, and zero-markup BYOM cloud bursting.",
-};
+  {
+    label: "YOUR POLICY",
+    body: "Privacy, cost, and capability decide where each call runs — before the prompt leaves the machine.",
+    accent: false,
+  },
+  {
+    label: "YOUR RECORDS",
+    body: "Hash-chained tape of every action. P-10 human gates on anything that touches production.",
+    accent: false,
+  },
+];
 
-export default async function HomePage() {
-  const [homeGateVariant, quickstartVariant] = await evaluate([
-    expHomeGateFlag,
-    expQuickstartCliFlag,
-  ]);
-
+export default function HomePage() {
   return (
-    <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
-      />
-      <ExperimentFlagValues
-        surface="home"
-        values={{
-          "exp-home-gate-v1": homeGateVariant,
-          "exp-quickstart-cli-v1": quickstartVariant,
-        }}
-      />
+    <>
+      <section className="mx-auto max-w-6xl px-5 pt-20 sm:px-8 sm:pt-28">
+        <p className="kw-label kw-rise">Keelway — Sovereign Agent Platform</p>
+        <h1 className="kw-display kw-rise mt-6 max-w-4xl" style={{ animationDelay: "60ms" }}>
+          Agents that answer to you.
+        </h1>
+        <p className="kw-body kw-rise mt-6 max-w-xl" style={{ animationDelay: "120ms" }}>
+          Keelway is a sovereign platform for AI agents. Local inference.
+          Governed cloud routing. A signed receipt for every action.
+        </p>
+        <div className="kw-rise mt-9 flex flex-wrap items-center gap-5" style={{ animationDelay: "180ms" }}>
+          <a href="#install" className="kw-btn kw-btn-primary">Install Keelway</a>
+          <Link href="/product" className="kw-link">See how it works &rarr;</Link>
+        </div>
+      </section>
 
-      <section
-        aria-labelledby="hero-heading"
-        data-theme="dark"
-        className="bg-canvas pb-16 pt-16 text-fg sm:pb-24 sm:pt-24"
-      >
-        <div className="mx-auto max-w-container px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <p className="kw-fig-label">
-              Apache-2.0 Open-Core — Sovereign Runtime · 4D Router · Signed
-              Marketplace
-            </p>
-
-            <h1 id="hero-heading" className="kw-display mt-5 text-fg">
-              Local-first AI agent runtime with cryptographic governance.
-            </h1>
-
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">
-              Execute routine agent loops locally at $0 token COGS, burst to
-              Frontier APIs at 0% markup, and enforce human-signed approvals
-              before every production mutation.
-            </p>
-
-            <HeroCtaLinks />
+      <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-8 sm:pt-24">
+        <figure>
+          <div className="kw-figure">
+            <Image
+              src="/product/app-main.png"
+              alt="Keelway control plane — task queue, policy gates, and execution receipts"
+              width={1440}
+              height={900}
+              className="block h-auto w-full"
+              priority
+            />
           </div>
+          <figcaption className="kw-figcap mt-3">
+            FIG 0.1 — Keelway control plane, captured live. Sealed receipts in green, P-10 gate in brass.
+          </figcaption>
+        </figure>
+      </section>
 
-          <figure className="mt-14 sm:mt-16">
-            <div className="kw-figure">
-              <Image
-                src="/product/app-main.png"
-                alt="Keelway unified control plane — automation view with agent runs, routing decisions, and cost ledger"
-                width={2880}
-                height={1800}
-                priority
-                className="h-auto w-full"
-              />
+      <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+        <div className="grid gap-10 border-t border-[var(--rule)] pt-12 sm:grid-cols-3">
+          {PRINCIPLES.map((p) => (
+            <div key={p.label}>
+              <p className={`kw-label ${p.accent ? "kw-label-brass" : ""}`}>{p.label}</p>
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--muted)]">{p.body}</p>
             </div>
-            <figcaption className="kw-fig-label mt-3">
-              FIG 0.1 — Keelway Dev App, captured live from <code>keelway dev</code>
-            </figcaption>
-          </figure>
+          ))}
         </div>
       </section>
 
-      <CustomerJourneyGrid />
-
-      <GoldenThreadStudioShowcase />
-
-      {homeGateVariant === "interactive-p10-deck" ? (
-        <P10InteractiveDeck />
-      ) : (
-        <ApprovalGateStepper />
-      )}
-
-      <QuickstartTerminal variant={quickstartVariant} />
-
-      <Reveal>
-        <ProductShowcase />
-      </Reveal>
-
-      <section
-        aria-labelledby="proof-strip-heading"
-        className="border-t border-border-subtle py-10"
-      >
-        <div className="mx-auto max-w-container px-4 sm:px-6">
-          <h2 id="proof-strip-heading" className="sr-only">
-            Verifiable platform facts
-          </h2>
-          <dl className="grid grid-cols-2 gap-y-6 border-t border-border-subtle pt-6 md:grid-cols-4">
-            {[
-              { k: "LICENSE", v: "Apache-2.0 open core" },
-              { k: "SDK PARITY", v: "Python · TypeScript · Go" },
-              { k: "EVAL HARNESS", v: "16-probe golden suite" },
-              { k: "TOKEN MARKUP", v: "0% — BYOM pass-through" },
-            ].map((f) => (
-              <div key={f.k}>
-                <dt className="kw-fig-label">
-                  {f.k}
-                </dt>
-                <dd className="mt-1.5 text-sm font-semibold text-fg">
-                  {f.v}
-                </dd>
-              </div>
-            ))}
-          </dl>
+      <section id="install" className="kw-rule">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+          <h2 className="kw-h2">One line to a running system.</h2>
+          <div className="kw-card kw-data mt-8 max-w-2xl overflow-x-auto p-5 text-[var(--ink)]">
+            <span className="text-[var(--dim)]">$ </span>curl -fsSL https://kora-sable.vercel.app/install.sh | sh &amp;&amp; keelway dev
+          </div>
+          <p className="kw-small mt-5">
+            Apache-2.0 open core &middot; works fully offline &middot; BYOM and Pro tiers add governed frontier routing.
+          </p>
         </div>
       </section>
-
-      <SettlementRails />
-
-      <div className="border-t border-border-subtle bg-canvas py-8">
-        <div className="mx-auto flex max-w-container flex-col items-start justify-between gap-3 px-4 sm:flex-row sm:items-center sm:px-6">
-          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-fg">
-            ENTERPRISE VPC &amp; DESIGN-PARTNER DEPLOYMENTS
-          </p>
-          <p className="text-sm text-fg-muted">
-            Air-gapped AWS, GCP, and on-prem deployments with enterprise SSO (OIDC), SCIM 2.0, and SOC2/HIPAA audit exports.
-          </p>
-        </div>
-      </div>
-      <EarlyAccessForm />
-    </div>
+    </>
   );
 }

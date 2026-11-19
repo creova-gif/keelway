@@ -185,3 +185,71 @@ large real product visual, near-invisible accent.
 - One statement headline, one supporting sentence, one primary CTA +
   one text link, then ONE full-width authentic product screenshot in a
   `kw-figure` hairline frame. No stat grids, no synthetic demo panels.
+
+## 8. Website v3 — "Maritime Instrument" (2026-11-19)
+
+Supersedes §1 mark lockup, §1 color systems, and §7 theme model where they
+conflict. A ship's bridge at night: flat ink on dark chart paper. Depth
+comes from hairline rules and fog-lift surfaces — **no gradients, no glows,
+no decorative shadows, no textures**. Approved on the Paper board
+`Keelway — v3 Brand Kit & Homepage` (four pages: Concept, Brand System,
+Website, Product & Components).
+
+### Canvas & ink — dark native (no light mode on marketing surfaces)
+- `--canvas #08090a` instrument black. Surfaces are translucency steps
+  (`--fog-4`, `--fog-8`), never solid grays.
+- `--rule rgba(255,255,255,.06)` hairlines are the only borders.
+- `--ink #f4f5f5` (17.4:1 AAA), `--muted #9ba1a6` (7.0:1 AA),
+  `--dim #5d6268` (3.5:1 — decorative captions only, never body/nav).
+
+### Accent — binnacle brass
+- `--brass #c9a45c` (7.6:1 AA) replaces teal entirely. Brass is a material,
+  not decoration: the mark's prime, primary CTAs, recommended/selected
+  states, and sealed/awaiting instrument states. ~4 uses per view, max.
+- `--brass-deep #a8854a` hover/active. Warning shares brass.
+- Semantic: starboard green `#6fae8e` success, port red `#b0564e` error,
+  flag blue `#6f87a3` info. Color never carries meaning alone — always
+  paired with a text label or icon.
+
+### Mark — K′
+- Primary mark is `K′`: a K plus brass prime (`components/site/Mark.tsx`,
+  `favicon.svg`). Wordmark "Keelway" in Inter 700, sentence case — never
+  all-caps or letter-spaced. Min sizes: lockup 96px, mark alone 20px.
+
+### Type — Inter + JetBrains Mono
+- `.kw-display` `clamp(2.75rem,5.5vw,4.75rem)` weight 640 `-0.045em` —
+  hero H1 only. `.kw-h1/.kw-h2/.kw-h3` 640/640/620.
+- Mono is instrument labeling: `.kw-label` (11px, +0.14em, uppercase) for
+  eyebrows/`FIG`/section indices, `.kw-data` for IDs/hashes/code. Never
+  for prose or headlines.
+
+### Components
+- `.kw-btn`: primary brass/ink (hover `--brass-deep`), secondary hairline
+  (`--fog-8` hover), tertiary `.kw-link`. Disabled 40%. Focus-visible =
+  3px `--brass-ring` — never removed.
+- `.kw-input` hairline; focus = brass border + 15% ring; error = port.
+- `.kw-chip` mono pills per semantic (brass/green/red/blue).
+- `.kw-card` fog-4 + hairline, radius 10; `.kw-figure` hairline-strong +
+  `kw-figcap` mono caption. Brass border reserved for recommended cards.
+- Motion: `.kw-rise` fade-rise, CSS-only, gated on
+  `prefers-reduced-motion: no-preference` (also gates smooth scroll).
+
+### Route set (v3)
+`/`, `/about`, `/product`, `/pricing`, `/changelog`, `/contact`,
+`/sign-in`, 404 — plus `/feed.xml`, `/sitemap.xml`, `/robots.txt`,
+`/manifest.webmanifest`. Legacy paths 301 to live equivalents
+(`next.config.ts`); removed pages stay recoverable in git history.
+
+### Page contracts
+- Home: eyebrow → "Agents that answer to you." → subline → 2 CTAs →
+  `FIG 0.1` real app capture → 3 hairline columns (YOUR HARDWARE /
+  YOUR POLICY / YOUR RECORDS) → install line → footer.
+- Product: "One platform. Three instruments." → Gateway / Policy /
+  Flight recorder cards → `FIG 1.x` captures.
+- Pricing: "Priced like a ledger." → canonical 5-tier (Community $0,
+  BYOM $15, Pro $29 brass-recommended, Team $49, Enterprise VPC row),
+  0% token markup noted.
+- Changelog: "The logbook, public." releases on hairline rows.
+- Contact: "Talk to a human." form → drafted GitHub issue (no invented
+  mailbox). Sign-in: `K′` + magic-link stub + SSO/GitHub (preview-gated).
+- 404: port-red `ERR 404 — off the chart` → "isn't on the tape."

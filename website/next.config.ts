@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/favicon.ico",
+        destination: "/favicon.svg",
+        permanent: true,
+      },
+      {
         source: "/playground",
         destination: "/",
         permanent: true,
@@ -51,7 +56,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/docs.html",
-        destination: "/docs",
+        destination: "/changelog",
         permanent: true,
       },
       {
@@ -61,12 +66,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/api.html",
-        destination: "/api-reference",
+        destination: "/product",
         permanent: true,
       },
       {
         source: "/brand.html",
-        destination: "/brand",
+        destination: "/about",
         permanent: true,
       },
     ];

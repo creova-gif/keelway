@@ -11,21 +11,21 @@ interface FeedItem {
 const FEED_ITEMS: readonly FeedItem[] = [
   {
     title: "Keelway v1.1.0 — Local-First Agent Runtime & 10-View Unified Studio",
-    path: "/docs",
+    path: "/changelog",
     pubDate: "Thu, 01 Oct 2026 00:00:00 GMT",
     description:
       "Run open-weight OpenCore models locally at $0 token COGS alongside 0%-markup BYOM cloud routing and P-10 human approval gates.",
   },
   {
     title: "Signed Marketplace & 85/15 Creator Split",
-    path: "/marketplace",
+    path: "/pricing",
     pubDate: "Wed, 30 Sep 2026 00:00:00 GMT",
     description:
       "Install Ed25519-signed agents, multi-agent squads, skills, and workflow extensions verified by SHA-256 digests.",
   },
   {
     title: "4D Deterministic Routing & Hash-Chained Execution Proofs",
-    path: "/governance",
+    path: "/product",
     pubDate: "Tue, 29 Sep 2026 00:00:00 GMT",
     description:
       "Verify SHA-256 flight-tape continuity, manifest drift protection, and zero-egress privacy boundaries.",
