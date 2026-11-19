@@ -3092,7 +3092,7 @@ async def execute_kstack_skill(
             detail=f"Skill '{request.name}' has no registered execution handler",
         )
     try:
-        proof = kstack_registry.execute_skill(
+        proof = await kstack_registry.execute_skill_async(
             name=request.name,
             actor=principal.id if hasattr(principal, "id") else "unknown",
             inputs=request.inputs,

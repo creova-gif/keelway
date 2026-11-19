@@ -16,6 +16,7 @@ from core.orchestration.scheduler import flow_scheduler
 from core.security.airgap_auditor import AirGapAuditor
 from core.security.merkle_audit import AuditMerkleTree
 from core.security.sbom import SBOMGenerator
+from evals.drift_detector import DriftDetector, EvaluationReceiptStore
 
 
 def _scope(value: Any) -> KnowledgeScope:
@@ -141,6 +142,17 @@ def _schedule_ops(inputs: Dict[str, Any]) -> Dict[str, Any]:
     raise ValueError(f"unknown action '{action}'; supported: list, create")
 
 
+async def _golden_eval(inputs: Dict[str, Any]) -> Dict[str, Any]:
+    if inputs.get("compare_to"):
+        raise ValueError("drift 'compare_to' is not wired through the builtin handler")
+    store = EvaluationReceiptStore() if inputs.get("save_receipt", True) else None
+    receipt = await DriftDetector.run_evaluation_and_create_receipt(
+        model_name=str(inputs.get("model_name") or "keelway-local-default"),
+        store=store,
+    )
+    return receipt.to_dict()
+
+
 BUILTIN_HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
     "kstack/airgap-verify": _airgap_verify,
     "kstack/flight-tape-verify": _flight_tape_verify,
@@ -150,4 +162,5 @@ BUILTIN_HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
     "kstack/mesh-verify": _mesh_verify,
     "kstack/sbom-audit": _sbom_audit,
     "kstack/schedule-ops": _schedule_ops,
+    "kstack/golden-eval": _golden_eval,
 }
