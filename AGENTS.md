@@ -204,3 +204,8 @@ rebuild the generated stylesheet and verify freshness:
 make studio-css        # regenerate core/studio/assets/studio.css (committed)
 make studio-css-check  # fails if the committed css is stale
 ```
+## 10. DESIGN SYSTEM
+
+Read DESIGN.md before visual or UI work: it defines the fonts, colors, spacing,
+and aesthetic direction. Ask the user before departing from it. When reviewing
+or QA-ing UI, flag code that doesn't match DESIGN.md.

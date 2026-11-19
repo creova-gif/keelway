@@ -209,6 +209,73 @@
   border-color: var(--fg-dim);
   background-color: var(--bg-surface-elevated);
 }
+
+/* ------------------------------------------------------------------
+   v1.1 "Precision Instrument" — fluid type scale, section rhythm,
+   unified chips, intentional motion. See DESIGN.md §Typography.
+   ------------------------------------------------------------------ */
+
+.kw-display {
+  font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  line-height: 1.05;
+}
+
+.kw-h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.kw-kicker {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.kw-section-index {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-dim);
+  user-select: none;
+}
+
+/* Teal top-rule — only on interactive/emphasis cards. */
+.frame-teal-rule {
+  position: relative;
+}
+.frame-teal-rule::before {
+  content: "";
+  position: absolute;
+  inset: -1px -1px auto -1px;
+  height: 1px;
+  background: var(--teal-accent);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* Intentional scroll reveal — fade-rise only, disabled under
+   prefers-reduced-motion by the global motion block below. */
+.kw-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 200ms ease-out,
+    transform 200ms ease-out;
+}
+.kw-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.kw-reveal-delay-1 { transition-delay: 60ms; }
+.kw-reveal-delay-2 { transition-delay: 120ms; }
 }
 
 @media (prefers-reduced-motion: reduce) {

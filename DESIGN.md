@@ -1,3 +1,4 @@
+<!-- gstack: design-md-format=legacy-keep -->
 # Keelway Design System & Interface Specification
 <!-- Keelway Sovereign Developer Infrastructure Design System -->
 
@@ -83,7 +84,7 @@ Keelway uses one standardized logo geometry across every surface: a geometric **
 
 | Role | Font Family | Weight | Size / Line Height | Tracking | Purpose |
 |---|---|---|---|---|---|
-| **Display Header** | `Inter`, system-ui | 800 (Bold) | `clamp(2rem, 4vw, 3rem)` / 1.1 | `-0.03em` | Studio Welcome & Hero Titles |
+| **Display Header** | `Inter`, system-ui | 800 (Bold) | `clamp(2.25rem, 4.5vw, 3.75rem)` / 1.05 | `-0.032em` | Studio Welcome & Hero Titles |
 | **Section Header** | `Inter`, system-ui | 700 (Semi-bold) | `1.25rem - 1.5rem` / 1.25 | `-0.02em` | Card titles and lab views |
 | **Body Text** | `Inter`, system-ui | 400 (Regular) | `15px` / 1.6 | `normal` | Explanations and descriptions |
 | **Code & AST** | `JetBrains Mono` | 500 (Medium) | `13px` / 1.7 | `0.02em` | Terminal, diffs, JSON, paths |
@@ -118,3 +119,26 @@ Strict 4px/8px modular grid:
 - **Touch Targets:** All clickable buttons, pills, and dropdown triggers maintain at least 44px $\times$ 44px tap targets.
 - **Keyboard Navigation:** Full tab order through file tree, editor, action buttons, and terminal console.
 - **Reduced Motion:** Fully honors `@media (prefers-reduced-motion: reduce)` by disabling all transitions and animations.
+
+
+---
+
+## 6. Website v1.1 — "Precision Instrument" Layer (2026-11-19)
+
+Marketing-site additions on top of the base system. North star: **calm engineering** — the site reads like a well-made instrument.
+
+### Type scale (utilities in `globals.css`)
+- `.kw-display` — fluid hero display: `clamp(2.25rem, 4.5vw, 3.75rem)`, wght 800, tracking `-0.032em`.
+- `.kw-h2` — section headings: `clamp(1.5rem, 2.6vw, 2.25rem)`, wght 700, `-0.02em`.
+- `.kw-kicker` — mono eyebrow label: JetBrains Mono 11px / 600, `0.14em` tracking, uppercase. The "instrument label" signature; use on section badges.
+
+### Section rhythm
+- Uniform `py-16 sm:py-24` with `border-t border-border-subtle` hairline separation.
+- `.kw-section-index` — mono `NN / LABEL` index top-right on major sections only ("engineering drawing" marker; never more than one per section).
+
+### Emphasis rule
+- `.frame-teal-rule` — 1px teal top rule, **only** on interactive/emphasis cards (e.g., the product-proof figure). Teal stays rare; neutral cards never get it.
+
+### Motion — intentional, CSS-gated
+- `.kw-reveal` + `Reveal` component (`components/motion/Reveal.tsx`): fade-rise 200ms ease-out, ≤3-item stagger via `kw-reveal-delay-{1,2}`. Hidden state applied post-mount only to offscreen elements — content is fully visible without JS and under `prefers-reduced-motion`.
+- Tab/segmented indicators transition at 150ms. No bounce, no glow, no loops.

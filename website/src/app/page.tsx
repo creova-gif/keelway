@@ -10,6 +10,7 @@ import { ApprovalGateStepper } from "@/components/home/ApprovalGateStepper";
 import { P10InteractiveDeck } from "@/components/home/P10InteractiveDeck";
 import { QuickstartTerminal } from "@/components/home/QuickstartTerminal";
 import { ProductShowcase } from "@/components/home/ProductShowcase";
+import { Reveal } from "@/components/motion/Reveal";
 import { SettlementRails } from "@/components/home/SettlementRails";
 import { EarlyAccessForm } from "@/components/home/EarlyAccessForm";
 import { SITE_URL } from "@/lib/utils";
@@ -74,7 +75,7 @@ export default async function HomePage() {
 
               <h1
                 id="hero-heading"
-                className="mt-6 text-4xl font-extrabold tracking-tight text-fg sm:text-5xl lg:leading-[1.08]"
+                className="kw-display mt-6 text-fg"
               >
                 Local-first AI agent runtime with{" "}
                 <span className="text-teal-accent">
@@ -145,7 +146,9 @@ export default async function HomePage() {
 
       <QuickstartTerminal variant={quickstartVariant} />
 
-      <ProductShowcase />
+      <Reveal>
+        <ProductShowcase />
+      </Reveal>
 
       <section
         aria-labelledby="proof-strip-heading"
