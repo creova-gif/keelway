@@ -107,73 +107,70 @@ export function GoldenThreadJourneyBar({
     <div
       role="region"
       aria-label="Golden-thread lifecycle journey"
-      className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border-strong bg-canvas/85 px-2.5 py-1.5"
+      className="flex flex-wrap items-center gap-1"
     >
-      <div className="flex flex-wrap items-center gap-1">
-        <span className="me-1 hidden items-center gap-1 rounded-xs border border-teal-accent/35 bg-teal-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-teal-accent xl:inline-flex">
-          <span aria-hidden="true">◈</span>
-          <span>GOLDEN THREAD</span>
-        </span>
+      <span aria-hidden="true" className="me-0.5 font-mono text-[10px] font-semibold tracking-wide text-fg-dim">
+        ◈
+      </span>
+      {GOLDEN_STAGES.map((stage, idx) => {
+        const isActive = stage.id === activeStageId;
+        const isCompleted = idx < resolvedIdx;
+        const isGovernanceStage = stage.id === "govern_ship";
 
-        {GOLDEN_STAGES.map((stage, idx) => {
-          const isActive = stage.id === activeStageId;
-          const isCompleted = idx < resolvedIdx;
-          const isGovernanceStage = stage.id === "govern_ship";
+        const pillTone = isActive
+          ? isGovernanceStage
+            ? "border-ochre/65 bg-ochre-subtle text-ochre"
+            : "border-teal-accent/65 bg-teal-surface text-teal-accent"
+          : isCompleted
+            ? "border-teal-accent/30 bg-surface text-fg hover:border-teal-accent/55"
+            : "border-border-strong bg-surface text-fg-muted hover:border-border-control hover:text-fg";
 
-          const pillTone = isActive
-            ? isGovernanceStage
-              ? "border-ochre/65 bg-ochre-subtle text-ochre shadow-[0_0_12px_rgba(212,212,216,0.18)]"
-              : "border-teal-accent/65 bg-teal-surface text-teal-accent shadow-[0_0_12px_rgba(45,212,191,0.18)]"
-            : isCompleted
-              ? "border-teal-accent/30 bg-surface text-fg hover:border-teal-accent/55"
-              : "border-border-strong bg-surface text-fg-muted hover:border-border-control hover:text-fg";
-
-          return (
-            <React.Fragment key={stage.id}>
-              <button
-                type="button"
-                aria-current={isActive ? "step" : undefined}
-                onClick={() => onSelectView(resolvePrimaryStageView(stage.id, experienceMode))}
-                className={`group inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-[11px] transition-all focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${pillTone}`}
+        return (
+          <React.Fragment key={stage.id}>
+            <button
+              type="button"
+              aria-label={stage.fullLabel}
+              aria-current={isActive ? "step" : undefined}
+              title={`${stage.fullLabel} · ${stage.subtitle}`}
+              onClick={() => onSelectView(resolvePrimaryStageView(stage.id, experienceMode))}
+              className={`group inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[11px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${pillTone}`}
+            >
+              <span
+                aria-hidden="true"
+                className={`inline-flex h-4 min-w-[18px] items-center justify-center rounded-xs px-0.5 font-mono text-[10px] font-bold ${
+                  isActive
+                    ? isGovernanceStage
+                      ? "bg-ochre text-ochre-ink"
+                      : "bg-teal-accent text-teal-ink"
+                    : isCompleted
+                      ? "bg-teal-surface text-teal-accent"
+                      : "bg-chrome text-fg-dim"
+                }`}
               >
-                <span
-                  aria-hidden="true"
-                  className={`inline-flex h-4 min-w-[20px] items-center justify-center rounded-xs px-1 font-mono text-[10px] font-bold ${
-                    isActive
-                      ? isGovernanceStage
-                        ? "bg-ochre text-ochre-ink"
-                        : "bg-teal-accent text-teal-ink"
-                      : isCompleted
-                        ? "bg-teal-surface text-teal-accent"
-                        : "bg-chrome text-fg-dim"
-                  }`}
-                >
-                  {isCompleted ? "✓" : stage.stepNumber}
-                </span>
-                <span className="font-semibold">{stage.fullLabel}</span>
-                <span className="hidden font-mono text-[10px] opacity-80 2xl:inline">{`· ${stage.subtitle}`}</span>
-              </button>
+                {isCompleted ? "✓" : stage.stepNumber}
+              </span>
+              <span className="font-semibold">{stage.shortLabel}</span>
+            </button>
 
-              {idx < GOLDEN_STAGES.length - 1 ? (
-                <span
-                  aria-hidden="true"
-                  className={`px-0.5 font-mono text-[11px] select-none ${
-                    idx < resolvedIdx ? "text-teal-accent" : "text-fg-dim"
-                  }`}
-                >
-                  →
-                </span>
-              ) : null}
-            </React.Fragment>
-          );
-        })}
-      </div>
+            {idx < GOLDEN_STAGES.length - 1 ? (
+              <span
+                aria-hidden="true"
+                className={`px-0.5 font-mono text-[11px] select-none ${
+                  idx < resolvedIdx ? "text-teal-accent" : "text-fg-dim"
+                }`}
+              >
+                →
+              </span>
+            ) : null}
+          </React.Fragment>
+        );
+      })}
 
       <button
         type="button"
         aria-label="Advance golden thread stage"
         onClick={() => onSelectView(resolvePrimaryStageView(nextStage.id, experienceMode))}
-        className="inline-flex min-h-ctrl-sm items-center gap-1.5 rounded-sm border border-teal-accent/50 bg-teal-surface px-2.5 py-0.5 font-mono text-[11px] font-semibold text-teal-accent transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
+        className="ms-1 inline-flex items-center gap-1 rounded-sm border border-teal-accent/50 bg-teal-surface px-2 py-0.5 font-mono text-[10px] font-semibold text-teal-accent transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
       >
         <span>{`Next in Golden Thread: ${nextStage.shortLabel} →`}</span>
       </button>
