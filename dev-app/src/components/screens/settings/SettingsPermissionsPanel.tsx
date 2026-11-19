@@ -439,14 +439,19 @@ export function SettingsPermissionsPanel({
     }
   };
 
-  const renderSignatureBadge = (status: AgentManifestItem["signatureStatus"]): React.JSX.Element => {
-    if (status === "verified") {
-      return <SemanticBadge kind="passed" labelOverride="Verified" />;
-    }
-    if (status === "unsigned") {
-      return <SemanticBadge kind="reconfirm" labelOverride="Unsigned" />;
-    }
-    return <SemanticBadge kind="failed" labelOverride="Invalid" />;
+  const renderSignatureStatus = (status: AgentManifestItem["signatureStatus"]): React.JSX.Element => {
+    const spec =
+      status === "verified"
+        ? { dot: "bg-ok", text: "text-fg-muted", label: "Verified" }
+        : status === "unsigned"
+          ? { dot: "bg-warning", text: "text-warning", label: "Unsigned" }
+          : { dot: "bg-danger", text: "text-danger", label: "Invalid" };
+    return (
+      <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] ${spec.text}`}>
+        <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${spec.dot}`} />
+        {spec.label}
+      </span>
+    );
   };
 
   let assignedFirstReconfirmRef = false;
@@ -826,22 +831,21 @@ export function SettingsPermissionsPanel({
             <thead className="border-b border-border-strong bg-chrome text-fg-muted">
               <tr>
                 <th scope="col" className="px-3 py-2 text-start font-semibold">Agent</th>
-                <th scope="col" className="px-3 py-2 text-start font-semibold">Schema</th>
-                <th scope="col" className="px-3 py-2 text-start font-semibold">HMAC-SHA256 Signature</th>
-                <th scope="col" className="px-3 py-2 text-start font-semibold">Autonomy / Tier</th>
+                <th scope="col" className="px-3 py-2 text-start font-semibold">Signature</th>
+                <th scope="col" className="px-3 py-2 text-start font-semibold">Autonomy</th>
                 <th scope="col" className="px-3 py-2 text-end font-semibold">Kill-Switch</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {manifestsLoading && manifests.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-3 font-mono text-fg-muted">
+                  <td colSpan={4} className="px-3 py-3 font-mono text-fg-muted">
                     Loading registered manifests…
                   </td>
                 </tr>
               ) : manifests.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-3 text-fg-muted">
+                  <td colSpan={4} className="px-3 py-3 text-fg-muted">
                     No agent manifests registered on this install.
                   </td>
                 </tr>
@@ -855,32 +859,38 @@ export function SettingsPermissionsPanel({
                         </code>
                       </div>
                       <div className="text-[11px] text-fg-muted">{item.description}</div>
+                      <div className="mt-0.5 font-mono text-[10px] text-fg-dim">
+                        <code dir="ltr" className="unicode-bidi-isolate">{item.schemaVersion}</code>
+                      </div>
                       {item.securityWarnings && item.securityWarnings.length > 0 ? (
-                        <ul className="mt-1 space-y-1">
-                          {item.securityWarnings.map((warn) => (
-                            <li
-                              key={warn}
-                              className="rounded-xs border border-warning bg-warning-subtle px-1.5 py-0.5 text-[11px] text-fg"
-                            >
-                              {warn}
-                            </li>
-                          ))}
-                        </ul>
+                        <details className="mt-1 text-[11px]">
+                          <summary className="cursor-pointer select-none text-warning">
+                            {`${item.securityWarnings.length} warning${item.securityWarnings.length === 1 ? "" : "s"}`}
+                          </summary>
+                          <ul className="mt-1 space-y-1">
+                            {item.securityWarnings.map((warn) => (
+                              <li
+                                key={warn}
+                                className="rounded-xs border border-warning bg-warning-subtle px-1.5 py-0.5 text-fg"
+                              >
+                                {warn}
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
                       ) : null}
                     </td>
-                    <td className="px-3 py-2 font-mono text-fg-muted">
-                      <code dir="ltr" className="unicode-bidi-isolate">{item.schemaVersion}</code>
-                    </td>
-                    <td className="px-3 py-2">{renderSignatureBadge(item.signatureStatus)}</td>
+                    <td className="px-3 py-2">{renderSignatureStatus(item.signatureStatus)}</td>
                     <td className="px-3 py-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] text-fg">
-                          {`Tier ${item.maxTier}`}
-                        </span>
+                      <div className="flex flex-wrap items-baseline gap-x-1.5 font-mono text-[11px]">
+                        <span className="text-fg">{`Tier ${item.maxTier}`}</span>
                         {item.networkAllowed ? (
-                          <SemanticBadge kind="reconfirm" labelOverride="Network allowed" />
+                          <span className="inline-flex items-center gap-1 text-warning">
+                            <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-warning" />
+                            network allowed
+                          </span>
                         ) : (
-                          <span className="font-mono text-[11px] text-fg-muted">Offline sandbox</span>
+                          <span className="text-fg-dim">· offline</span>
                         )}
                       </div>
                     </td>
