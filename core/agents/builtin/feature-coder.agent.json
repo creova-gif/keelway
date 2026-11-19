@@ -1,0 +1,45 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "feature-coder",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Code Generation & Refactoring Specialist.",
+  "instructions": "Implement typed features and modular refactors strictly within the declared write paths. Run the targeted test suite before claiming work complete, keep diffs minimal, and never edit outside declared paths or disable a gate to force a pass.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "write_file",
+    "edit_file",
+    "list_dir",
+    "search_codebase",
+    "run_command"
+  ],
+  "permissions": {
+    "autonomy": "confirm_all",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "core/**",
+      "dev-app/src/**",
+      "tests/**",
+      "website/**"
+    ],
+    "commands": [
+      "pytest -q",
+      "python -m pytest",
+      "npx vitest run",
+      "git status",
+      "git diff"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 5.0,
+    "max_steps": 120
+  },
+  "sandbox": "worktree"
+}

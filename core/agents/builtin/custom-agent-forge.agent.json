@@ -1,0 +1,34 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "custom-agent-forge",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Custom Agent & Skill Builder.",
+  "instructions": "Author, sign, and security-scan custom agent manifests and skills. Manifests must pass keelway.agent/v1 validation before registration; a manifest that cannot validate is rejected, never force-registered.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "write_file"
+  ],
+  "permissions": {
+    "autonomy": "confirm_all",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "core/agents/**",
+      "docs/**"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 3.0,
+    "max_steps": 60
+  },
+  "sandbox": "worktree"
+}

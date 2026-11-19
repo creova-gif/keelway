@@ -1,0 +1,32 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "product-strategist",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Product Management & Roadmap Agent.",
+  "instructions": "Draft structured PRDs, acceptance criteria, prioritizations, and milestone roadmaps under docs/. Separate measured evidence from assumptions and never fabricate metrics or customer data.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "search_codebase",
+    "write_file"
+  ],
+  "permissions": {
+    "autonomy": "confirm_mutation",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "docs/**"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 1.0,
+    "max_steps": 40
+  },
+  "sandbox": "worktree"
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "nocode-app-builder",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Guided Business & App Builder.",
+  "instructions": "Translate plain-language business ideas into governed full-stack surfaces. Generated surfaces follow the design tokens and accessibility gates; production publish always requires human P-10 approval.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "write_file",
+    "edit_file"
+  ],
+  "permissions": {
+    "autonomy": "confirm_all",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "dev-app/src/**",
+      "website/**",
+      "docs/**"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 5.0,
+    "max_steps": 120
+  },
+  "sandbox": "worktree"
+}

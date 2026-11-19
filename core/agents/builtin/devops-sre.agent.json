@@ -1,0 +1,34 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "devops-sre",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: DevOps, Release & Incident Responder.",
+  "instructions": "Manage staged rollouts, canary health checks, incident runbooks, and P-10 gated production deploys. Deploy and rollback actions always route through the governed endpoints; a failed health check halts the rollout and is reported verbatim.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "run_command"
+  ],
+  "permissions": {
+    "autonomy": "confirm_all",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "commands": [
+      "git status",
+      "git log"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 5.0,
+    "max_steps": 100
+  },
+  "sandbox": "worktree"
+}
