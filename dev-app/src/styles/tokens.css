@@ -31,47 +31,47 @@
     Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --bg-canvas: #09090b;
-  --bg-chrome: #0c0c0e;
-  --bg-code: #09090b;
-  --bg-surface: #121215;
-  --bg-surface-elevated: #18181b;
+  --bg-canvas: #08090a;
+  --bg-chrome: #0a0b0d;
+  --bg-code: #08090a;
+  --bg-surface: rgba(255, 255, 255, 0.04);
+  --bg-surface-elevated: rgba(255, 255, 255, 0.08);
 
-  --border-subtle: #27272a;
-  --border-strong: #3f3f46;
-  --border-control: #71717a;
-  --border-focus: #2dd4bf;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-control: rgba(255, 255, 255, 0.30);
+  --border-focus: #c9a45c;
 
-  --fg-primary: #fafafa;
-  --fg-muted: #a1a1aa;
-  --fg-dim: #8e8e96;
-  --fg-disabled: #52525b;
+  --fg-primary: #f4f5f5;
+  --fg-muted: #9ba1a6;
+  --fg-dim: #5d6268;
+  --fg-disabled: #4a4f55;
 
-  --teal-accent: #2dd4bf;
-  --teal-ink: #042f2e;
-  --teal-surface: rgba(45, 212, 191, 0.12);
+  --teal-accent: #c9a45c;
+  --teal-ink: #08090a;
+  --teal-surface: rgba(201, 164, 92, 0.12);
 
-  --status-ok: #2dd4bf;
-  --status-ok-subtle: rgba(45, 212, 191, 0.12);
-  --status-ok-ink: #042f2e;
+  --status-ok: #6fae8e;
+  --status-ok-subtle: rgba(111, 174, 142, 0.12);
+  --status-ok-ink: #08090a;
 
-  --attn-ochre: #e4e4e7;
-  --attn-ochre-subtle: rgba(228, 228, 231, 0.12);
-  --attn-ochre-ink: #09090b;
+  --attn-ochre: #c9a45c;
+  --attn-ochre-subtle: rgba(201, 164, 92, 0.12);
+  --attn-ochre-ink: #08090a;
 
-  --status-warning: #d4d4d8;
-  --status-warning-subtle: rgba(212, 212, 216, 0.10);
-  --status-warning-ink: #09090b;
+  --status-warning: #c9a45c;
+  --status-warning-subtle: rgba(201, 164, 92, 0.12);
+  --status-warning-ink: #08090a;
 
-  --status-running: #d4d4d8;
-  --status-running-subtle: rgba(212, 212, 216, 0.10);
+  --status-running: #6f87a3;
+  --status-running-subtle: rgba(111, 135, 163, 0.12);
 
-  --red-danger: #f87171;
-  --red-surface: rgba(248, 113, 113, 0.12);
-  --red-ink: #2a0606;
+  --red-danger: #b0564e;
+  --red-surface: rgba(176, 86, 78, 0.14);
+  --red-ink: #f4f5f5;
 
-  --diff-add-bg: rgba(45, 212, 191, 0.12);
-  --diff-del-bg: rgba(248, 113, 113, 0.12);
+  --diff-add-bg: rgba(111, 174, 142, 0.12);
+  --diff-del-bg: rgba(176, 86, 78, 0.14);
 
   --shell-rail-w: 48px;
   --shell-sidebar-w: 240px;
@@ -95,41 +95,41 @@
   --bg-surface: #ffffff;
   --bg-surface-elevated: #f4f4f5;
 
-  --border-subtle: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --border-control: #71717a;
-  --border-focus: #0f766e;
+  --border-subtle: rgba(9, 9, 11, 0.08);
+  --border-strong: rgba(9, 9, 11, 0.14);
+  --border-control: rgba(9, 9, 11, 0.32);
+  --border-focus: #a8854a;
 
   --fg-primary: #09090b;
   --fg-muted: #52525b;
   --fg-dim: #71717a;
   --fg-disabled: #a1a1aa;
 
-  --teal-accent: #0f766e;
+  --teal-accent: #a8854a;
   --teal-ink: #ffffff;
-  --teal-surface: rgba(15, 118, 110, 0.08);
+  --teal-surface: rgba(168, 133, 74, 0.10);
 
-  --status-ok: #0f766e;
-  --status-ok-subtle: rgba(15, 118, 110, 0.08);
+  --status-ok: #3d7a5c;
+  --status-ok-subtle: rgba(61, 122, 92, 0.10);
   --status-ok-ink: #ffffff;
 
-  --attn-ochre: #18181b;
-  --attn-ochre-subtle: rgba(24, 24, 27, 0.08);
+  --attn-ochre: #a8854a;
+  --attn-ochre-subtle: rgba(168, 133, 74, 0.10);
   --attn-ochre-ink: #ffffff;
 
-  --status-warning: #3f3f46;
-  --status-warning-subtle: rgba(63, 63, 70, 0.08);
+  --status-warning: #a8854a;
+  --status-warning-subtle: rgba(168, 133, 74, 0.10);
   --status-warning-ink: #ffffff;
 
-  --status-running: #52525b;
-  --status-running-subtle: rgba(82, 82, 91, 0.08);
+  --status-running: #4a6480;
+  --status-running-subtle: rgba(74, 100, 128, 0.10);
 
-  --red-danger: #b91c1c;
-  --red-surface: rgba(185, 28, 28, 0.08);
+  --red-danger: #94392f;
+  --red-surface: rgba(148, 57, 47, 0.10);
   --red-ink: #ffffff;
 
-  --diff-add-bg: rgba(15, 118, 110, 0.08);
-  --diff-del-bg: rgba(185, 28, 28, 0.08);
+  --diff-add-bg: rgba(61, 122, 92, 0.10);
+  --diff-del-bg: rgba(148, 57, 47, 0.10);
 
   --shadow-popover: 0 8px 24px rgba(9, 9, 11, 0.12);
   --shadow-modal: 0 20px 48px rgba(9, 9, 11, 0.18);
@@ -200,6 +200,7 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-ui);
     line-height: var(--line-height-ui);
+    font-feature-settings: "cv01", "ss03";
   }
 
   code,
