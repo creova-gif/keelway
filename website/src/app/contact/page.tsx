@@ -35,7 +35,7 @@ export default function ContactPage() {
           </div>
           <h1
             id="contact-heading"
-            className="mt-4 text-3xl font-extrabold tracking-tight text-fg sm:text-5xl"
+            className="kw-display mt-4 text-fg"
           >
             Talk to us about
             <br className="hidden sm:block" /> <span className="text-teal-accent">Keelway</span>.

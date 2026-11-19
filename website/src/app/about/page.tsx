@@ -36,7 +36,7 @@ export default function AboutPage() {
           </div>
           <h1
             id="about-heading"
-            className="mt-4 text-3xl font-extrabold tracking-tight text-fg sm:text-5xl"
+            className="kw-display mt-4 text-fg"
           >
             Software engineering sovereignty,
             <br className="hidden sm:block" /> by <span className="text-teal-accent">Sorvex Labs</span>.

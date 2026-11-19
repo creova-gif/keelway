@@ -43,18 +43,21 @@ export function ProductShowcase() {
   return (
     <section
       aria-labelledby="product-showcase-heading"
-      className="border-t border-border-subtle bg-canvas py-14 sm:py-20"
+      className="relative border-t border-border-subtle bg-canvas py-16 sm:py-24"
     >
+      <span className="kw-section-index" aria-hidden="true">
+        01 / PROOF
+      </span>
       <div className="mx-auto max-w-container px-4 sm:px-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-surface px-3 py-1 font-mono text-xs text-fg-muted">
+            <span className="kw-kicker inline-flex items-center gap-1.5 rounded-sm border border-border-strong bg-surface px-3 py-1 text-fg-muted">
               <Camera className="h-3.5 w-3.5 text-teal-accent" aria-hidden="true" />
               ACTUAL PRODUCT — CAPTURED FROM keelway dev
             </span>
             <h2
               id="product-showcase-heading"
-              className="mt-4 text-2xl font-bold tracking-tight text-fg sm:text-4xl"
+              className="kw-h2 mt-4 text-fg"
             >
               This is the running product,
               <br className="hidden sm:block" /> not a mockup.
@@ -89,7 +92,7 @@ export function ProductShowcase() {
         <figure className="mt-8">
           <div
             role="tabpanel"
-            className="frame-crosshair overflow-hidden rounded-lg border border-border-strong bg-surface"
+            className="frame-crosshair frame-teal-rule overflow-hidden rounded-lg border border-border-strong bg-surface"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
