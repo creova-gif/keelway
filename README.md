@@ -21,7 +21,7 @@ Keelway `v1.1.0` unifies local open-weight neural inference (**OpenCore**), 4D p
 |---|---|---|---|
 | **Unified 10-View Sovereign Dev Tool** | `127.0.0.1:7420/app` | `dev-app/` → `core/dev_app_dist/` (`core.main:app`) | `keelway dev` |
 | **Keelway Studio IDE** | `127.0.0.1:7420/studio` | `core/studio/` (`core.main:app`) | `keelway dev` or `keelway desktop` |
-| **Governance Control Plane** | `127.0.0.1:8000/` | `keelway/api/app.py` (`keelway-core`) | `keelway-core serve` or `make serve` |
+| **Governance Control Plane** | `127.0.0.1:8000/` | `keelway/api/app.py` (`keelway-ops`) | `keelway-ops serve` or `make serve` |
 | **Next.js 15 Product & Docs Site** | `:3000` (dev/prod) | `website/` | `npm --prefix website run dev` |
 
 ---
@@ -54,7 +54,8 @@ python -m build --wheel --outdir dist/
 
 Installed console scripts:
 - `keelway` → `cli:main` (Unified Dev Tool, Studio, MCP, Golden Eval Suite, Vault, Workspace, TUI)
-- `keelway-core` → `keelway.cli.main:main` (Governance Control Plane `:8000`, Runner Daemon, Audit Verification)
+- `keelway-ops` → `keelway.cli.main:main` (Governance Control Plane `:8000`, Runner Daemon, Audit Verification)
+- `keelway-core` → deprecated alias for `keelway-ops` (emits a warning; will be removed in a future release)
 
 ### 2. POSIX Installer & Homebrew Formula
 

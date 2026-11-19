@@ -25,7 +25,7 @@ pip install -r requirements.lock   # pinned, hash-verified dependencies
 fails if it drifts from `pyproject.toml`; regenerate it whenever dependencies
 change.
 
-After that install, `keelway` is `cli.py` and `keelway-core` is `keelway.cli.main`. `./bin/keelway` is a wrapper around `cli.py`.
+After that install, `keelway` is `cli.py` and `keelway-ops` is `keelway.cli.main` (`keelway-core` remains as a deprecated alias that prints a warning). `./bin/keelway` is a wrapper around `cli.py`.
 
 `website/install.sh` creates `~/.keelway/runtime/.venv` and installs Keelway. Until the package is published, it requires `KEELWAY_SOURCE_DIR=/path/to/checkout` (editable install) or an explicit `KEELWAY_PACKAGE=<dist>`; it fails closed otherwise. `scripts/verify_install.sh` reproduces the clean-env check (venv → editable install → `keelway doctor` HEALTHY → `harness agents detect`).
 
@@ -46,9 +46,9 @@ In this tree, Studio agent-task planning in `AutonomousAgentLoop.formulate_plan`
 make serve
 ```
 
-`make serve` runs `python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000`. After the editable install the same command is `keelway-core serve`. The `keelway` script has no `serve` subcommand. Both parsers set `prog="keelway"`, so the governance module's help text says `usage: keelway`. The installed name for that module is `keelway-core`. `cli.py` has a separate `run` subcommand from `keelway-core run`.
+`make serve` runs `python3 -m keelway.cli.main serve --host 127.0.0.1 --port 8000`. After the editable install the same command is `keelway-ops serve`. The `keelway` script has no `serve` subcommand. The governance parser derives `prog` from the invocation name, so `keelway-ops --help` says `usage: keelway-ops` and the deprecated `keelway-core` alias warns on every invocation. `cli.py` has a separate `run` subcommand from `keelway-ops run`.
 
-The governance model gateway in this tree defaults to `ProviderKind.DETERMINISTIC_MOCK` unless a caller passes another provider. This guide does not call `keelway-core run` a live model agent.
+The governance model gateway in this tree defaults to `ProviderKind.DETERMINISTIC_MOCK` unless a caller passes another provider. This guide does not call `keelway-ops run` a live model agent.
 
 The container entrypoint starts `keelway.cli.main serve`. That image does not include Studio.
 
