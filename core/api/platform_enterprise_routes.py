@@ -72,6 +72,8 @@ class OidcConfigureRequest(BaseModel):
     issuer: Optional[str] = Field(default=None, max_length=2048)
     client_id: str = Field(default="", max_length=256)
     signing_secret: Optional[str] = Field(default=None, max_length=4096)
+    jwks_uri: Optional[str] = Field(default=None, max_length=2048)
+    jwks_json: Optional[Any] = Field(default=None)
     group_role_mapping: Dict[str, str] = Field(default_factory=dict)
     enabled: bool = True
 
@@ -87,6 +89,8 @@ class ScimUserProvisionRequest(BaseModel):
     user_name: Optional[str] = Field(default=None, max_length=255)
     displayName: Optional[str] = Field(default=None, max_length=255)
     display_name: Optional[str] = Field(default=None, max_length=255)
+    name: Optional[Dict[str, Any]] = Field(default=None)
+    emails: Optional[List[Any]] = Field(default=None)
     groups: Optional[List[Any]] = Field(default=None)
     active: bool = True
 
@@ -109,31 +113,77 @@ class P10QuorumApproveRequest(BaseModel):
     reason: str = Field(default="", max_length=2000)
 
 
+def _coerce_scim_bool(value: Any) -> Optional[bool]:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.strip().lower() in {"true", "false"}:
+        return value.strip().lower() == "true"
+    return None
+
+
 def _extract_scim_patch_fields(
     payload: ScimUserPatchRequest,
-) -> tuple[Optional[bool], Optional[List[Any]], Optional[str]]:
+) -> tuple[Optional[bool], Optional[List[Any]], Optional[str], List[str]]:
     active = payload.active
     groups = payload.groups
     display = payload.displayName if payload.displayName is not None else payload.display_name
+    ignored: List[str] = []
+    name_parts: Dict[str, str] = {}
     for op in payload.Operations or []:
         if not isinstance(op, dict):
+            ignored.append("<malformed-op>")
             continue
+        verb = str(op.get("op") or "replace").strip().lower()
         path = str(op.get("path") or "").strip().lower()
         val = op.get("value")
-        if path == "active" and isinstance(val, bool):
-            active = val
+        if verb == "remove":
+            if path == "groups":
+                groups = []
+            elif path in {"active", "displayname"}:
+                ignored.append(f"{verb}:{path} (required attribute cannot be removed)")
+            else:
+                ignored.append(f"{verb}:{path or '<bulk>'}")
+            continue
+        if verb not in {"add", "replace"}:
+            ignored.append(f"{verb}:{path or '<bulk>'}")
+            continue
+        if path == "active":
+            coerced = _coerce_scim_bool(val)
+            active = coerced if coerced is not None else active
+            if coerced is None:
+                ignored.append(f"{verb}:active (non-boolean value ignored)")
         elif path == "displayname" and isinstance(val, str):
             display = val
         elif path == "groups" and isinstance(val, list):
             groups = val
+        elif path in {"name.givenname", "name.familyname"} and isinstance(val, str):
+            name_parts[path] = val.strip()
         elif not path and isinstance(val, dict):
-            if "active" in val and isinstance(val["active"], bool):
-                active = val["active"]
-            if "displayName" in val and isinstance(val["displayName"], str):
+            if "active" in val:
+                coerced = _coerce_scim_bool(val["active"])
+                if coerced is not None:
+                    active = coerced
+                else:
+                    ignored.append(f"{verb}:active (non-boolean value ignored)")
+            if isinstance(val.get("displayName"), str):
                 display = val["displayName"]
-            if "groups" in val and isinstance(val["groups"], list):
+            if isinstance(val.get("groups"), list):
                 groups = val["groups"]
-    return active, groups, display
+            name_val = val.get("name")
+            if isinstance(name_val, dict):
+                if isinstance(name_val.get("givenName"), str):
+                    name_parts["name.givenname"] = name_val["givenName"].strip()
+                if isinstance(name_val.get("familyName"), str):
+                    name_parts["name.familyname"] = name_val["familyName"].strip()
+            handled = {"active", "displayName", "groups", "name"}
+            ignored.extend(f"{verb}:{k}" for k in val if k not in handled)
+        else:
+            ignored.append(f"{verb}:{path or '<bulk>'}")
+    if display is None and name_parts:
+        composed = " ".join(p for p in (name_parts.get("name.givenname"), name_parts.get("name.familyname")) if p).strip()
+        if composed:
+            display = composed
+    return active, groups, display, ignored
 
 
 @router.get("/enterprise/oidc")
@@ -169,6 +219,8 @@ async def configure_enterprise_oidc_route(
             signing_secret=payload.signing_secret,
             group_role_mapping=payload.group_role_mapping,
             enabled=payload.enabled,
+            jwks_uri=payload.jwks_uri,
+            jwks_json=payload.jwks_json,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -195,13 +247,18 @@ async def exchange_enterprise_oidc_token_route(
 async def list_enterprise_scim_users_route(
     request: Request,
     workspace_id: str = Query(default="default"),
+    filter: Optional[str] = Query(default=None),
+    startIndex: int = Query(default=1),
+    count: Optional[int] = Query(default=None),
     principal: Principal = Depends(current_principal),
     rbac: WorkspaceRbacController = Depends(get_rbac_controller),
     manager: EnterpriseIdentitySiemManager = Depends(get_enterprise_identity_siem_manager),
 ) -> Dict[str, Any]:
     _enforce_rbac(request, principal, rbac, workspace_id, "workspace:read")
     try:
-        return manager.list_scim_users(workspace_id=workspace_id)
+        return manager.list_scim_users(
+            workspace_id=workspace_id, filter=filter, start_index=startIndex, count=count,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -219,6 +276,10 @@ async def provision_enterprise_scim_user_route(
     _enforce_rbac(request, principal, rbac, target_ws, "rbac:manage")
     resolved_user = payload.userName if payload.userName is not None else (payload.user_name or "")
     resolved_display = payload.displayName if payload.displayName is not None else (payload.display_name or "")
+    if not resolved_display and isinstance(payload.name, dict):
+        resolved_display = " ".join(
+            p for p in (str(payload.name.get("givenName") or "").strip(), str(payload.name.get("familyName") or "").strip()) if p
+        ).strip()
     try:
         with _synced_rbac_controller(rbac, manager) as effective_rbac:
             return manager.provision_scim_user(
@@ -245,10 +306,10 @@ async def patch_enterprise_scim_user_route(
 ) -> Dict[str, Any]:
     target_ws = workspace_id or payload.workspace_id or "default"
     _enforce_rbac(request, principal, rbac, target_ws, "rbac:manage")
-    next_active, next_groups, next_display = _extract_scim_patch_fields(payload)
+    next_active, next_groups, next_display, ignored_ops = _extract_scim_patch_fields(payload)
     try:
         with _synced_rbac_controller(rbac, manager) as effective_rbac:
-            return manager.patch_scim_user(
+            resource = manager.patch_scim_user(
                 workspace_id=target_ws,
                 scim_user_id=scim_user_id,
                 active=next_active,
@@ -256,6 +317,9 @@ async def patch_enterprise_scim_user_route(
                 display_name=next_display,
                 rbac=effective_rbac,
             )
+            if ignored_ops:
+                resource["warnings"] = {"ignored_operations": ignored_ops}
+            return resource
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ValueError as exc:
