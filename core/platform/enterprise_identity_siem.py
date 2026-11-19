@@ -2,13 +2,19 @@
 Enterprise Identity, SCIM 2.0 Directory Sync, Dual-Human P-10 Quorum,
 Tamper-Evident SIEM Audit Exporter & Prometheus/OTLP Observability (`core.platform.enterprise_identity_siem`).
 
-Scope note (KEEL-SEC-037): the OIDC surface implements a self-issued HS256
-shared-secret token profile — suitable for sovereign/air-gapped deployments
-where the customer operates the issuing side. Full external IdP federation
-(OIDC discovery document + JWKS + asymmetric RS256/ES256/EdDSA verification)
-and SAML are NOT implemented. Every response discloses
-`federation_profile: "self_issued_hs256"` so callers cannot mistake this for
-standards-federated SSO.
+Scope note (KEEL-SEC-037, extended by KEEL-REL-068): the OIDC surface supports
+two federation profiles, and every response discloses which one verified the
+token:
+  - `self_issued_hs256`  — shared-secret HS256 verification for sovereign /
+    air-gapped deployments where the customer operates the issuing side.
+  - `external_idp_rs256` — external-IdP RS256 verification against a JWKS
+    (RFC 7517) key set: either a pinned `jwks_json` document stored with the
+    provider config (no egress; preferred for sovereign deployments and CI) or
+    a `jwks_uri` fetched over HTTPS with the same SSRF validation applied to
+    issuer URLs and a bounded in-memory cache.
+ES256/EdDSA signatures, OIDC discovery auto-configuration, SAML, and full
+organization-directory synchronization are NOT implemented — configure
+`issuer_url`, `client_id`, and `jwks_uri`/`jwks_json` explicitly.
 """
 
 from __future__ import annotations
@@ -27,6 +33,7 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from urllib.parse import urlparse
+from urllib.request import Request as _UrlRequest, urlopen as _urlopen
 import uuid
 
 from core.platform.mcp_registry import redact_sensitive_text
@@ -41,6 +48,10 @@ from core.platform.vault import (
 from core.security.redact import redact_payload
 
 if _HAS_CRYPTOGRAPHY:
+    from cryptography.hazmat.primitives.asymmetric import padding as _rsa_padding
+    from cryptography.hazmat.primitives.asymmetric import rsa as _rsa
+    from cryptography.hazmat.primitives import hashes as _hashes
+    from cryptography.hazmat.primitives import serialization as _serialization
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 VALID_ENTERPRISE_ROLES: Dict[str, int] = {"viewer": 0, "builder": 1, "operator": 2, "admin": 3, "owner": 4}
@@ -61,6 +72,7 @@ _SCHEMA_SQL = (
     "CREATE TABLE IF NOT EXISTS platform_oidc_providers ("
     "workspace_id TEXT PRIMARY KEY, issuer_url TEXT NOT NULL, client_id TEXT NOT NULL, "
     "secret_nonce BLOB NOT NULL, secret_ciphertext BLOB NOT NULL, secret_fingerprint TEXT NOT NULL, "
+    "jwks_uri TEXT NOT NULL DEFAULT '', jwks_json TEXT NOT NULL DEFAULT '', "
     "group_role_mapping_json TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, updated_at TEXT NOT NULL); "
     "CREATE TABLE IF NOT EXISTS platform_scim_users ("
     "id TEXT NOT NULL, workspace_id TEXT NOT NULL, user_name TEXT NOT NULL, display_name TEXT NOT NULL, "
@@ -212,6 +224,92 @@ def build_hs256_id_token(
     return f"{signing_input}.{_b64url_encode(sig)}"
 
 
+def rsa_public_jwk(private_key_pem: Union[str, bytes], kid: str) -> Dict[str, Any]:
+    """Derive an RFC 7517 RSA public JWK from an RSA private key PEM (test/ops helper for JWKS pinning)."""
+    if not _HAS_CRYPTOGRAPHY:
+        raise RuntimeError("RS256 JWKS support requires the 'cryptography' package.")
+    pem = private_key_pem.encode("utf-8") if isinstance(private_key_pem, str) else bytes(private_key_pem)
+    key = _serialization.load_pem_private_key(pem, password=None)
+    if not isinstance(key, _rsa.RSAPrivateKey):
+        raise ValueError("JWKS key material must be an RSA private key.")
+    numbers = key.public_key().public_numbers()
+    def _enc_int(value: int) -> str:
+        return _b64url_encode(value.to_bytes((value.bit_length() + 7) // 8 or 1, "big"))
+    return {
+        "kty": "RSA", "use": "sig", "alg": "RS256", "kid": str(kid),
+        "n": _enc_int(numbers.n), "e": _enc_int(numbers.e),
+    }
+
+
+def build_rs256_id_token(
+    issuer: str,
+    client_id: Union[str, List[str]],
+    private_key_pem: Union[str, bytes],
+    kid: str,
+    subject: str = "enterprise-user",
+    email: str = "",
+    groups: Optional[Sequence[str]] = None,
+    exp_offset_seconds: int = 3600,
+    nbf_offset_seconds: Optional[int] = None,
+    extra_claims: Optional[Dict[str, Any]] = None,
+    header_overrides: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Deterministically mint an RS256 OIDC ID token for IdP replay suites and operator verification."""
+    if not _HAS_CRYPTOGRAPHY:
+        raise RuntimeError("RS256 token minting requires the 'cryptography' package.")
+    pem = private_key_pem.encode("utf-8") if isinstance(private_key_pem, str) else bytes(private_key_pem)
+    key = _serialization.load_pem_private_key(pem, password=None)
+    if not isinstance(key, _rsa.RSAPrivateKey):
+        raise ValueError("RS256 signing requires an RSA private key.")
+    now = int(time.time())
+    header: Dict[str, Any] = {"alg": "RS256", "typ": "JWT", "kid": str(kid), **(header_overrides or {})}
+    claims: Dict[str, Any] = {"iss": issuer, "aud": client_id, "sub": subject, "iat": now, "exp": now + int(exp_offset_seconds)}
+    if email:
+        claims["email"] = email
+    if groups is not None:
+        claims["groups"] = [str(g) for g in groups]
+    if nbf_offset_seconds is not None:
+        claims["nbf"] = now + int(nbf_offset_seconds)
+    if extra_claims:
+        claims.update(extra_claims)
+    signing_input = f"{_b64url_encode(_canonical_json(header).encode('utf-8'))}.{_b64url_encode(_canonical_json(claims).encode('utf-8'))}"
+    sig = key.sign(signing_input.encode("ascii"), _rsa_padding.PKCS1v15(), _hashes.SHA256())
+    return f"{signing_input}.{_b64url_encode(sig)}"
+
+
+def _rsa_public_key_from_jwk(jwk: Dict[str, Any]) -> Any:
+    if not isinstance(jwk, dict) or jwk.get("kty") != "RSA" or not jwk.get("n") or not jwk.get("e"):
+        raise PermissionError("JWKS entry is not a valid RSA public key (requires kty/n/e).")
+    if jwk.get("alg") is not None and str(jwk["alg"]) != "RS256":
+        raise PermissionError(f"JWKS entry alg '{jwk['alg']}' is not RS256.")
+    try:
+        n = int.from_bytes(_b64url_decode(str(jwk["n"])), "big")
+        e = int.from_bytes(_b64url_decode(str(jwk["e"])), "big")
+        return _rsa.RSAPublicNumbers(e, n).public_key()
+    except PermissionError:
+        raise
+    except Exception as exc:
+        raise PermissionError("JWKS RSA public key parameters are malformed.") from exc
+
+
+def _parse_jwks_document(raw: Any) -> List[Dict[str, Any]]:
+    if isinstance(raw, (bytes, bytearray)):
+        raw = bytes(raw).decode("utf-8")
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception as exc:
+            raise PermissionError("JWKS document is not valid JSON.") from exc
+    keys = raw.get("keys") if isinstance(raw, dict) else None
+    if not isinstance(keys, list) or not keys:
+        raise PermissionError("JWKS document must contain a non-empty 'keys' list.")
+    return [k for k in keys if isinstance(k, dict)]
+
+
+_JWKS_CACHE_TTL_SECONDS = 300.0
+_JWKS_MAX_BYTES = 262_144
+
+
 def _map_groups_to_role(groups: Sequence[str], mapping: Dict[str, str]) -> str:
     best = "viewer"
     for grp in groups:
@@ -229,7 +327,10 @@ def _normalize_groups(groups: Optional[Sequence[Any]]) -> List[str]:
     out: List[str] = []
     seen: set[str] = set()
     for item in groups:
-        raw = item.get("value") or item.get("display") if isinstance(item, dict) else item
+        # SCIM group refs carry {value: <opaque IdP id>, display: <name>}; prefer the
+        # display name so entries match the same group→role mapping used for OIDC
+        # `groups` claims. Fall back to `value` when no display is present.
+        raw = item.get("display") or item.get("value") if isinstance(item, dict) else item
         clean = str(raw or "").strip()
         if clean and clean not in seen:
             out.append(clean)
@@ -250,6 +351,7 @@ class EnterpriseIdentitySiemManager:
         self._db_path: Union[str, Path] = ":memory:"
         self._journal_mode = "unknown"
         self._closed = False
+        self._jwks_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
         with self._lock:
             self._ensure_conn()
 
@@ -267,6 +369,10 @@ class EnterpriseIdentitySiemManager:
         conn.execute("PRAGMA foreign_keys=ON")
         with conn:
             conn.executescript(_SCHEMA_SQL)
+            oidc_cols = {str(r[1]) for r in conn.execute("PRAGMA table_info(platform_oidc_providers)").fetchall()}
+            for col in ("jwks_uri", "jwks_json"):
+                if col not in oidc_cols:
+                    conn.execute(f"ALTER TABLE platform_oidc_providers ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
         self._conn, self._active_target, self._db_path, self._closed = conn, connect_target, resolved_path, False
         return conn
 
@@ -301,6 +407,7 @@ class EnterpriseIdentitySiemManager:
     def configure_oidc(
         self, workspace_id: str, issuer_url: str, client_id: str,
         signing_secret: Optional[str] = None, group_role_mapping: Optional[Dict[str, str]] = None, enabled: bool = True,
+        jwks_uri: Optional[str] = None, jwks_json: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         ws = self._clean_ws(workspace_id)
         clean_issuer = validate_oidc_issuer_url(issuer_url)
@@ -309,6 +416,19 @@ class EnterpriseIdentitySiemManager:
             raise ValueError("OIDC 'client_id' must be non-empty.")
         if group_role_mapping is not None and not isinstance(group_role_mapping, dict):
             raise ValueError("OIDC 'group_role_mapping' must be an object mapping IdP groups to roles.")
+
+        clean_jwks_uri = str(jwks_uri or "").strip()
+        if clean_jwks_uri:
+            clean_jwks_uri = validate_oidc_issuer_url(clean_jwks_uri)
+        clean_jwks_json = ""
+        if jwks_json is not None and jwks_json != "":
+            try:
+                _parse_jwks_document(jwks_json)
+            except PermissionError as exc:
+                raise ValueError(f"OIDC 'jwks_json' is not a valid JWKS document: {exc}") from exc
+            clean_jwks_json = jwks_json if isinstance(jwks_json, str) else _canonical_json(jwks_json)
+            if len(clean_jwks_json.encode("utf-8")) > _JWKS_MAX_BYTES:
+                raise ValueError("OIDC 'jwks_json' exceeds the 256KB JWKS limit.")
 
         clean_map: Dict[str, str] = {}
         for raw_group, raw_role in (group_role_mapping or {}).items():
@@ -323,7 +443,7 @@ class EnterpriseIdentitySiemManager:
         with self._lock:
             conn, cipher = self._ensure_conn(), self._cipher_for_current_db()
             existing = conn.execute(
-                "SELECT secret_nonce, secret_ciphertext, secret_fingerprint FROM platform_oidc_providers WHERE workspace_id=?", (ws,)
+                "SELECT secret_nonce, secret_ciphertext, secret_fingerprint, jwks_uri, jwks_json FROM platform_oidc_providers WHERE workspace_id=?", (ws,)
             ).fetchone()
             if signing_secret is not None and str(signing_secret) != "":
                 raw_sec = str(signing_secret)
@@ -334,45 +454,115 @@ class EnterpriseIdentitySiemManager:
                 fp = f"sha256:{hashlib.sha256(raw_sec.encode('utf-8')).hexdigest()}"
             elif existing is not None and bytes(existing["secret_ciphertext"]):
                 nonce, ciphertext, fp = bytes(existing["secret_nonce"]), bytes(existing["secret_ciphertext"]), str(existing["secret_fingerprint"])
+            elif not clean_jwks_uri and not clean_jwks_json:
+                raise ValueError("OIDC requires 'signing_secret' (>= 16 chars, HS256) or 'jwks_uri'/'jwks_json' (RS256) when configuring a provider.")
             else:
-                raise ValueError("OIDC 'signing_secret' (>= 16 chars) is required when configuring a provider.")
+                nonce, ciphertext, fp = b"", b"", ""
+
+            stored_jwks_uri = clean_jwks_uri or (str(existing["jwks_uri"]) if existing is not None and jwks_uri is None else "")
+            stored_jwks_json = clean_jwks_json or (str(existing["jwks_json"]) if existing is not None and jwks_json is None else "")
+            federation_profile = "external_idp_rs256" if (stored_jwks_uri or stored_jwks_json) else "self_issued_hs256"
+            if stored_jwks_uri:
+                self._jwks_cache.pop(stored_jwks_uri, None)
 
             with conn:
                 conn.execute(
-                    "INSERT INTO platform_oidc_providers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                    "INSERT INTO platform_oidc_providers "
+                    "(workspace_id, issuer_url, client_id, secret_nonce, secret_ciphertext, secret_fingerprint, "
+                    "jwks_uri, jwks_json, group_role_mapping_json, enabled, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                     "ON CONFLICT(workspace_id) DO UPDATE SET issuer_url=excluded.issuer_url, client_id=excluded.client_id, "
                     "secret_nonce=excluded.secret_nonce, secret_ciphertext=excluded.secret_ciphertext, "
-                    "secret_fingerprint=excluded.secret_fingerprint, group_role_mapping_json=excluded.group_role_mapping_json, "
+                    "secret_fingerprint=excluded.secret_fingerprint, jwks_uri=excluded.jwks_uri, jwks_json=excluded.jwks_json, "
+                    "group_role_mapping_json=excluded.group_role_mapping_json, "
                     "enabled=excluded.enabled, updated_at=excluded.updated_at",
-                    (ws, clean_issuer, clean_client, nonce, ciphertext, fp, _canonical_json(clean_map), 1 if enabled else 0, now),
+                    (ws, clean_issuer, clean_client, nonce, ciphertext, fp, stored_jwks_uri, stored_jwks_json, _canonical_json(clean_map), 1 if enabled else 0, now),
                 )
         return {
             "workspace_id": ws, "enabled": bool(enabled), "issuer_url": clean_issuer, "client_id": clean_client,
-            "group_role_mapping": clean_map, "signing_secret_configured": True, "signing_secret_fingerprint": fp, "updated_at": now,
-            "federation_profile": "self_issued_hs256",
+            "group_role_mapping": clean_map, "signing_secret_configured": bool(ciphertext),
+            "signing_secret_fingerprint": fp or None,
+            "jwks_uri": stored_jwks_uri, "jwks_configured": bool(stored_jwks_uri or stored_jwks_json), "updated_at": now,
+            "federation_profile": federation_profile,
         }
 
     def get_oidc(self, workspace_id: str = "default") -> Dict[str, Any]:
         ws = self._clean_ws(workspace_id)
         with self._lock:
             row = self._ensure_conn().execute(
-                "SELECT issuer_url, client_id, secret_ciphertext, secret_fingerprint, group_role_mapping_json, enabled, updated_at "
+                "SELECT issuer_url, client_id, secret_ciphertext, secret_fingerprint, jwks_uri, jwks_json, "
+                "group_role_mapping_json, enabled, updated_at "
                 "FROM platform_oidc_providers WHERE workspace_id=?", (ws,),
             ).fetchone()
         if row is None:
             return {
                 "workspace_id": ws, "enabled": False, "issuer_url": "", "client_id": "",
-                "group_role_mapping": {}, "signing_secret_configured": False, "signing_secret_fingerprint": None, "updated_at": None,
+                "group_role_mapping": {}, "signing_secret_configured": False, "signing_secret_fingerprint": None,
+                "jwks_uri": "", "jwks_configured": False, "updated_at": None,
                 "federation_profile": "self_issued_hs256",
             }
         has_secret = bool(bytes(row["secret_ciphertext"]))
+        jwks_uri, jwks_json = str(row["jwks_uri"] or ""), str(row["jwks_json"] or "")
         return {
             "workspace_id": ws, "enabled": bool(int(row["enabled"])), "issuer_url": str(row["issuer_url"]),
-            "federation_profile": "self_issued_hs256",
+            "federation_profile": "external_idp_rs256" if (jwks_uri or jwks_json) else "self_issued_hs256",
             "client_id": str(row["client_id"]), "group_role_mapping": json.loads(str(row["group_role_mapping_json"])),
             "signing_secret_configured": has_secret, "signing_secret_fingerprint": str(row["secret_fingerprint"]) if has_secret else None,
+            "jwks_uri": jwks_uri, "jwks_configured": bool(jwks_uri or jwks_json),
             "updated_at": str(row["updated_at"]),
         }
+
+    def _fetch_jwks_keys(self, jwks_uri: str) -> List[Dict[str, Any]]:
+        """Fetch an IdP JWKS key set over HTTPS with a 300s in-memory cache and a 256KB size cap."""
+        with self._lock:
+            cached = self._jwks_cache.get(jwks_uri)
+            if cached is not None and (time.monotonic() - cached[0]) < _JWKS_CACHE_TTL_SECONDS:
+                return cached[1]
+        try:
+            req = _UrlRequest(jwks_uri, headers={"Accept": "application/json", "User-Agent": "keelway-enterprise-oidc/1.0"})
+            with _urlopen(req, timeout=10) as resp:  # noqa: S310 - jwks_uri is SSRF-validated at configure time
+                body = resp.read(_JWKS_MAX_BYTES + 1)
+        except Exception as exc:
+            raise PermissionError(f"JWKS fetch from configured 'jwks_uri' failed: {type(exc).__name__}") from exc
+        if len(body) > _JWKS_MAX_BYTES:
+            raise PermissionError("JWKS document exceeds the 256KB size limit.")
+        keys = _parse_jwks_document(body)
+        with self._lock:
+            self._jwks_cache[jwks_uri] = (time.monotonic(), keys)
+        return keys
+
+    def _resolve_jwks_keys(self, row: sqlite3.Row) -> List[Dict[str, Any]]:
+        jwks_json, jwks_uri = str(row["jwks_json"] or ""), str(row["jwks_uri"] or "")
+        if jwks_json:
+            return _parse_jwks_document(jwks_json)
+        if jwks_uri:
+            return self._fetch_jwks_keys(jwks_uri)
+        raise PermissionError("OIDC RS256 verification requires a configured 'jwks_uri' or 'jwks_json' for this workspace.")
+
+    def _verify_rs256_signature(self, signing_input: str, sig_bytes: bytes, header: Dict[str, Any], row: sqlite3.Row) -> None:
+        if not _HAS_CRYPTOGRAPHY:
+            raise PermissionError("RS256 verification requires the 'cryptography' package.")
+        keys = [k for k in self._resolve_jwks_keys(row) if k.get("kty") == "RSA"]
+        if not keys:
+            raise PermissionError("Configured JWKS contains no RSA signing keys.")
+        kid = str(header.get("kid") or "").strip()
+        if kid:
+            keys = [k for k in keys if str(k.get("kid") or "") == kid]
+            if not keys:
+                raise PermissionError(f"No JWKS key matches token 'kid' '{kid}'.")
+        elif len(keys) > 1:
+            raise PermissionError("Token has no 'kid' header and JWKS contains multiple RSA keys.")
+        signing_bytes = signing_input.encode("ascii")
+        for jwk in keys:
+            try:
+                _rsa_public_key_from_jwk(jwk).verify(
+                    sig_bytes, signing_bytes, _rsa_padding.PKCS1v15(), _hashes.SHA256()
+                )
+                return
+            except PermissionError:
+                raise
+            except Exception:
+                continue
+        raise PermissionError("OIDC token RS256 signature verification failed against configured JWKS.")
 
     def exchange_oidc_token(self, workspace_id: str, id_token: str) -> Dict[str, Any]:
         ws = self._clean_ws(workspace_id)
@@ -382,17 +572,13 @@ class EnterpriseIdentitySiemManager:
 
         with self._lock:
             row = self._ensure_conn().execute(
-                "SELECT issuer_url, client_id, secret_nonce, secret_ciphertext, group_role_mapping_json, enabled "
+                "SELECT issuer_url, client_id, secret_nonce, secret_ciphertext, jwks_uri, jwks_json, group_role_mapping_json, enabled "
                 "FROM platform_oidc_providers WHERE workspace_id=?", (ws,),
             ).fetchone()
-            if row is None or not bool(int(row["enabled"])) or not bytes(row["secret_ciphertext"]):
-                raise PermissionError(f"OIDC federation is disabled or unconfigured for workspace '{ws}'.")
-            try:
-                signing_secret = self._cipher_for_current_db().decrypt(
-                    bytes(row["secret_nonce"]), bytes(row["secret_ciphertext"]), f"oidc:{ws}".encode("utf-8")
-                )
-            except Exception as exc:
-                raise PermissionError("OIDC signing secret decryption failed.") from exc
+        if row is None or not bool(int(row["enabled"])) or (
+            not bytes(row["secret_ciphertext"]) and not str(row["jwks_uri"]) and not str(row["jwks_json"])
+        ):
+            raise PermissionError(f"OIDC federation is disabled or unconfigured for workspace '{ws}'.")
 
         parts = raw_token.split(".")
         if len(parts) != 3 or not parts[0] or not parts[1] or not parts[2]:
@@ -407,13 +593,30 @@ class EnterpriseIdentitySiemManager:
 
         if not isinstance(header, dict) or not isinstance(claims, dict):
             raise PermissionError("JWT header and claims payload must be JSON objects.")
-        if header.get("alg") != "HS256":
-            raise PermissionError(f"Unsupported or disallowed JWT alg '{header.get('alg')}'; strictly expected 'HS256'.")
 
+        alg = str(header.get("alg") or "")
         sig_bytes = _b64url_decode(parts[2])
-        expected_sig = hmac.new(signing_secret, f"{parts[0]}.{parts[1]}".encode("ascii"), hashlib.sha256).digest()
-        if not hmac.compare_digest(sig_bytes, expected_sig):
-            raise PermissionError("OIDC token HMAC-SHA256 signature verification failed.")
+        signing_input = f"{parts[0]}.{parts[1]}"
+        if alg == "HS256":
+            if not bytes(row["secret_ciphertext"]):
+                raise PermissionError("OIDC HS256 verification requires a configured signing secret for this workspace.")
+            try:
+                signing_secret = self._cipher_for_current_db().decrypt(
+                    bytes(row["secret_nonce"]), bytes(row["secret_ciphertext"]), f"oidc:{ws}".encode("utf-8")
+                )
+            except Exception as exc:
+                raise PermissionError("OIDC signing secret decryption failed.") from exc
+            expected_sig = hmac.new(signing_secret, signing_input.encode("ascii"), hashlib.sha256).digest()
+            if not hmac.compare_digest(sig_bytes, expected_sig):
+                raise PermissionError("OIDC token HMAC-SHA256 signature verification failed.")
+            federation_profile = "self_issued_hs256"
+        elif alg == "RS256":
+            self._verify_rs256_signature(signing_input, sig_bytes, header, row)
+            federation_profile = "external_idp_rs256"
+        else:
+            raise PermissionError(
+                f"Unsupported or disallowed JWT alg '{alg or 'none'}'; expected 'HS256' or 'RS256'."
+            )
 
         expected_iss, expected_aud = str(row["issuer_url"]), str(row["client_id"])
         if claims.get("iss") != expected_iss:
@@ -447,7 +650,7 @@ class EnterpriseIdentitySiemManager:
         return {
             "workspace_id": ws, "authenticated": True, "subject": sub, "email": str(claims.get("email") or "").strip(),
             "groups": groups, "mapped_role": mapped_role, "issuer": expected_iss,
-            "federation_profile": "self_issued_hs256",
+            "federation_profile": federation_profile,
         }
 
     @staticmethod
@@ -516,14 +719,42 @@ class EnterpriseIdentitySiemManager:
             rbac.upsert_member(ws, str(existing["user_name"]), next_role if next_active else "viewer")
         return self._scim_resource(row)  # type: ignore[arg-type]
 
-    def list_scim_users(self, workspace_id: str = "default") -> Dict[str, Any]:
+    _SCIM_USERNAME_EQ_RE = re.compile(r'^userName\s+eq\s+"([^"]+)"$', re.IGNORECASE)
+
+    def list_scim_users(
+        self, workspace_id: str = "default",
+        filter: Optional[str] = None, start_index: int = 1, count: Optional[int] = None,
+    ) -> Dict[str, Any]:
         ws = self._clean_ws(workspace_id)
+        clean_filter = str(filter or "").strip()
+        username_eq: Optional[str] = None
+        if clean_filter:
+            match = self._SCIM_USERNAME_EQ_RE.match(clean_filter)
+            if match is None:
+                raise ValueError(
+                    f"Unsupported SCIM filter '{clean_filter}'. Only 'userName eq \"<value>\"' is supported."
+                )
+            username_eq = match.group(1).strip().lower()
+            if not username_eq:
+                raise ValueError("SCIM 'userName eq' filter value must be non-empty.")
+        if isinstance(start_index, bool) or not isinstance(start_index, int) or start_index < 1:
+            raise ValueError("SCIM 'startIndex' must be an integer >= 1.")
+        if count is not None and (isinstance(count, bool) or not isinstance(count, int) or count < 1 or count > 500):
+            raise ValueError("SCIM 'count' must be an integer between 1 and 500.")
+
         with self._lock:
-            rows = self._ensure_conn().execute("SELECT * FROM platform_scim_users WHERE workspace_id=? ORDER BY user_name ASC", (ws,)).fetchall()
-        resources = [self._scim_resource(r) for r in rows]
+            rows = self._ensure_conn().execute(
+                "SELECT * FROM platform_scim_users WHERE workspace_id=? ORDER BY user_name ASC", (ws,),
+            ).fetchall()
+        if username_eq is not None:
+            rows = [r for r in rows if str(r["user_name"]).strip().lower() == username_eq]
+        total = len(rows)
+        sliced = rows[start_index - 1 : (start_index - 1 + count) if count else None]
+        resources = [self._scim_resource(r) for r in sliced]
         return {
             "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-            "workspace_id": ws, "totalResults": len(resources), "Resources": resources,
+            "workspace_id": ws, "totalResults": total, "startIndex": start_index,
+            "itemsPerPage": len(resources), "Resources": resources,
         }
 
     def approve_p10_quorum(
