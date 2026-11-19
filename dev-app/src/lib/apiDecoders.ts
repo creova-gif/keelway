@@ -1,5 +1,5 @@
 import type {
-  AgentManifestItem, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
+  AgentManifestItem, AgentRegistryRecord, ApprovalRuleItem, ApprovalRulesListResponse, AuditMerkleProof, ChainVerificationState, CodeSymbolItem, DataResidencyZone,
   DoctorCheckItem, EgressTelemetryState, FileDiffHunk, GitCommitProposal, GitCommitResult,
   GovernancePersistenceInfo, ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
   P10DiffLine, RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem,
@@ -310,6 +310,27 @@ export function decodeManifestList(raw: unknown): AgentManifestItem[] | null {
       ? raw.manifests
       : null;
   return list ? list.map(decodeManifestItem).filter((m): m is AgentManifestItem => m !== null) : null;
+}
+
+export function decodeAgentRegistry(raw: unknown): AgentRegistryRecord[] | null {
+  const list = isRecord(raw) && Array.isArray(raw.manifests) ? raw.manifests : null;
+  if (!list) return null;
+  const out: AgentRegistryRecord[] = [];
+  for (const item of list) {
+    if (!isRecord(item)) continue;
+    const name = asString(item.name);
+    if (!name) continue;
+    const version = asString(item.version, "1.0.0");
+    out.push({
+      id: asString(item.id) || `${name}@${version}`,
+      name,
+      version,
+      owner: asString(item.owner, "unknown"),
+      enabled: item.enabled !== false,
+      digest: asString(item.digest, ""),
+    });
+  }
+  return out;
 }
 
 export function decodeManifestInspectResult(

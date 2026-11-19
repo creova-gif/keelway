@@ -13,10 +13,12 @@ import type {
   MultiAgentTeamItem,
 } from "@/lib/platformData";
 import type { RbacRoleId } from "@/lib/platformRuntimeApi";
+import type { AgentRegistryRecord } from "@/lib/types";
 
 export interface AgentsWorkspaceViewProps {
   experienceMode: ExperienceMode;
   agents: LifecycleAgentItem[];
+  agentRegistry?: Map<string, AgentRegistryRecord> | null;
   teams: MultiAgentTeamItem[];
   onCreateCustomAgent: (agent: LifecycleAgentItem) => void;
   onDispatchTeam: (teamId: string) => void;
@@ -36,6 +38,7 @@ interface DryRunTraceStep {
 export function AgentsWorkspaceView({
   experienceMode,
   agents,
+  agentRegistry = null,
   teams,
   onCreateCustomAgent,
   onDispatchTeam,
@@ -203,7 +206,14 @@ export function AgentsWorkspaceView({
               : "Builder mode: 12 built-in keelway.agent/v1 lifecycle agents + coordinated multi-agent swarms with scoped tool envelopes and P-10 gates."}
           </p>
         </div>
-        <SemanticBadge kind="opencore" detail={`${localAgents.length} agents registered`} />
+        <SemanticBadge
+          kind="opencore"
+          detail={
+            agentRegistry
+              ? `${agentRegistry.size} manifests registered · ${[...agentRegistry.values()].filter((r) => r.enabled).length} enabled`
+              : `${localAgents.length} agents · registry unverified`
+          }
+        />
       </div>
 
       <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
@@ -372,7 +382,16 @@ export function AgentsWorkspaceView({
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-mono text-xs font-semibold text-fg">{agent.name}</h3>
-                  <SemanticBadge kind={agent.status === "needs_approval" ? "needs-approval" : "ready"} />
+                  <div className="flex items-center gap-1.5">
+                    <SemanticBadge kind={agent.status === "needs_approval" ? "needs-approval" : "ready"} />
+                    {(() => {
+                      if (agentRegistry === null) return null;
+                      const reg = agentRegistry.get(agent.id) ?? agentRegistry.get(agent.name);
+                      if (!reg) return <SemanticBadge kind="unmeasured" labelOverride="Unregistered" />;
+                      if (!reg.enabled) return <SemanticBadge kind="locked" labelOverride="Disabled" />;
+                      return <SemanticBadge kind="live" detail={reg.digest ? `digest ${reg.digest.replace(/^sha256:/, "").slice(0, 8)}` : reg.version} />;
+                    })()}
+                  </div>
                 </div>
                 <div className="text-xs font-medium text-teal-accent">{agent.roleTitle}</div>
                 <p className="text-xs text-fg-muted">{agent.plainSummary}</p>
