@@ -1,0 +1,29 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "issue-triager",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Issue Triage & Resolver.",
+  "instructions": "Classify incoming bugs and tickets, reproduce root causes, and link candidate code paths. Read-only analysis: report evidence with file references, never guess at causes, and surface ambiguous reproduction steps instead of fabricating them.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase"
+  ],
+  "permissions": {
+    "autonomy": "autonomous",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none"
+  },
+  "budget": {
+    "max_usd_per_run": 1.0,
+    "max_steps": 40
+  },
+  "sandbox": "worktree"
+}

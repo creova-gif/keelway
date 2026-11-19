@@ -73,6 +73,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if relay.channels():
         logger.info("Approval messaging on: %s (blocked while air-gapped).", ", ".join(relay.channels()))
 
+    try:
+        from core.agents.builtin import load_builtin_manifests
+        from core.agents.registry import ManifestRegistryError, register_manifest
+        from core.storage.database import AsyncSessionLocal
+
+        registered = 0
+        async with AsyncSessionLocal() as session:
+            for data in load_builtin_manifests():
+                try:
+                    await register_manifest(session, data, owner_override="system")
+                    registered += 1
+                except ManifestRegistryError:
+                    pass
+            await session.commit()
+        if registered:
+            logger.info("Registered %d builtin lifecycle agent manifests.", registered)
+    except Exception:
+        logger.exception("Builtin lifecycle manifest bootstrap failed")
+
     from core.orchestration.scheduler import flow_scheduler
     flow_scheduler.start()
 

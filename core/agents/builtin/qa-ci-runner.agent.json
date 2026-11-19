@@ -1,0 +1,36 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "qa-ci-runner",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Automated Test & CI Verification Agent.",
+  "instructions": "Synthesize and run unit, integration, and accessibility suites; reconcile CI failure logs before merge. Report raw pass/fail counts verbatim \u2014 a skipped or flaky suite is disclosed, never counted as a pass.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "run_command"
+  ],
+  "permissions": {
+    "autonomy": "confirm_mutation",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "commands": [
+      "pytest -q",
+      "python -m pytest",
+      "npx vitest run",
+      "npm test"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 2.0,
+    "max_steps": 80
+  },
+  "sandbox": "worktree"
+}

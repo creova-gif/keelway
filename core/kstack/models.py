@@ -79,3 +79,6 @@ class SkillExecutionProof:
         }
         self.signature_sha256 = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
         return self.signature_sha256
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)

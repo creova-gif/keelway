@@ -1,0 +1,34 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "workflow-automator",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Workflow & Event Automation Architect.",
+  "instructions": "Design durable multi-step DAGs, retries, and event-driven automation pipelines. Scheduled or webhook-triggered mutations inherit the same P-10 policy as manual runs \u2014 automation never bypasses the human gate.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "write_file"
+  ],
+  "permissions": {
+    "autonomy": "confirm_all",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "docs/**",
+      "workflows/**"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 3.0,
+    "max_steps": 60
+  },
+  "sandbox": "worktree"
+}

@@ -3062,6 +3062,49 @@ async def inspect_kstack_skill(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+class KStackExecuteRequest(BaseModel):
+    name: str
+    inputs: Dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post(
+    "/v1/kstack/execute",
+    dependencies=[Depends(require(Permission.EXECUTE_AGENT))],
+    tags=["KStack"],
+)
+async def execute_kstack_skill(
+    request: KStackExecuteRequest,
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Execute a KStack skill through its registered builtin service handler.
+
+    Returns a sealed SkillExecutionProof. Skills with no registered handler
+    fail closed with 501 — no echo fallback. Revoked skills are rejected.
+    """
+    from core.kstack import kstack_registry
+    from core.kstack.handlers import BUILTIN_HANDLERS
+    handler = BUILTIN_HANDLERS.get(request.name)
+    if handler is None:
+        if kstack_registry.get_skill(request.name) is None:
+            raise HTTPException(status_code=404, detail=f"Skill '{request.name}' not found")
+        raise HTTPException(
+            status_code=501,
+            detail=f"Skill '{request.name}' has no registered execution handler",
+        )
+    try:
+        proof = kstack_registry.execute_skill(
+            name=request.name,
+            actor=principal.id if hasattr(principal, "id") else "unknown",
+            inputs=request.inputs,
+            handler=handler,
+        )
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    return {"proof": proof.to_dict()}
+
+
 @router.get("/v1/kbrain/facts", tags=["KBrain"])
 async def query_kbrain_facts(
     scope: str = "project",

@@ -1,0 +1,33 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "code-architect",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Systems Architecture & ADR Advisor.",
+  "instructions": "Define shared-infrastructure boundaries, data schemas, ADRs, and latency/cost budgets. Decisions are recorded as ADRs with explicit trade-offs; undocumented coupling is flagged, not silently accepted.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "write_file"
+  ],
+  "permissions": {
+    "autonomy": "confirm_mutation",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "docs/**"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 1.0,
+    "max_steps": 60
+  },
+  "sandbox": "worktree"
+}

@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
   "format": "kstack_skills_manifest_v1",
-  "skills_count": 14,
-  "generated_at_utc": 1795018367.432947,
+  "skills_count": 22,
+  "generated_at_utc": 1795118658.670075,
   "skills": [
     {
       "name": "kstack/airgap-verify",
@@ -24,12 +24,12 @@
         }
       },
       "instructions": "# KStack Air-Gap Verify Skill (Compliance Auditor Role)\n\n## Overview\nExecutes the `/v1/airgap/audit` boundary check: loopback socket inventory, environment egress surface, and per-check verdicts that gate whether classified payloads may run at all.\n\n## Execution Rules\n1. When the audit is unavailable or fails, the verdict is UNVERIFIED \u2014 treat as non-compliant and block egress-dependent work. Never infer compliance from a prior pass.\n2. Any request flagged `private`, `air_gap`, or classified must not proceed to a cloud model until a current COMPLIANT verdict exists.\n3. The audit record is append-only evidence: expose the attestation hash verbatim, never paraphrase or regenerate it.\n4. Report per-check results honestly, including skipped or failed checks \u2014 a partial audit is not a passing audit.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/airgap-verify/SKILL.md",
+      "source_uri": "core/kstack/skills/airgap-verify/SKILL.md",
       "digest_sha256": "5bcc2752f44944d937a4172a9e2c6c3e7e89a1a0a05038728b86caf36e062cf9",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432317
+      "created_at_utc": 1795118658.6693609
     },
     {
       "name": "kstack/approval-grant",
@@ -53,12 +53,68 @@
         }
       },
       "instructions": "# KStack Approval Grant Skill (Policy Admin Role)\n\n## Overview\nManages durable standing approvals via `/v1/approval-rules`. A grant is persisted policy \u2014 it survives restarts, is recorded in `.keelway/approval_rules.json`, and is enforced at runtime by exact tool and scope match.\n\n## Execution Rules\n1. Scopes must be explicit and safe: unscoped grants and patterns reaching `.keelway`, `.kora`, or `.git` are rejected by the store \u2014 do not attempt to work around the rejection.\n2. Every grant binds to the granting model and prompt version. When either drifts, the rule pauses; reconfirm via `POST /v1/approval-rules/{id}/reconfirm` rather than recreating it.\n3. Revocation is durable (`DELETE /v1/approval-rules/{id}`) and takes effect at the next runtime match \u2014 a revoked rule must cause the action to return to the approval queue.\n4. List state reflects the store only. Never present a locally assumed or cached rule as granted when the API is unreachable.\n5. All create, reconfirm, and revoke operations carry an audit event; unauthorized principals must receive the denial, not a silent no-op.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/approval-grant/SKILL.md",
+      "source_uri": "core/kstack/skills/approval-grant/SKILL.md",
       "digest_sha256": "08aeb0522519a9d5bc7a9e39894b7a073a965fbc4f16c4d6280cd41aa32a00bd",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432387
+      "created_at_utc": 1795118658.668919
+    },
+    {
+      "name": "kstack/cost-ledger",
+      "version": "1.0.0",
+      "role": "economics_auditor",
+      "description": "Read the platform cost ledger for exact per-model token, spend, and OpenCore-versus-cloud savings accounting.",
+      "permissions": [
+        "read"
+      ],
+      "contract": {
+        "inputs": {
+          "model_id": "Optional model filter",
+          "window": "Optional aggregation window"
+        },
+        "outputs": {
+          "total_cost_usd": "Aggregate billed cloud expenditure",
+          "entries_recorded": "Number of ledger entries",
+          "per_model": "Per-model cost breakdown",
+          "savings_usd": "Quantified open-weight savings versus cloud spend"
+        }
+      },
+      "instructions": "# KStack Cost Ledger Skill (Economics Auditor Role)\n\n## Overview\nReads `/v1/usage` \u2014 the aggregate economics report over the cost ledger: billed cloud expenditure, entries recorded, per-model accounting, and the quantified savings of open-weight inference over cloud models.\n\n## Execution Rules\n1. Figures come from the ledger verbatim \u2014 cost is an audit surface, not a marketing claim.\n2. `entries_recorded` of zero means no measured spend; report it as such rather than implying free operation.\n3. Distinguish billed external expenditure from local $0.00 OpenCore spend \u2014 conflating the two fabricates savings.\n4. The ledger is append-only evidence; a gap in coverage is disclosed, not interpolated.",
+      "source_uri": "core/kstack/skills/cost-ledger/SKILL.md",
+      "digest_sha256": "0ab48b3f4a9f74d6dfc03f5117ff0aaf6895ec636b3c8b0af2af244c00c8ca33",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.669046
+    },
+    {
+      "name": "kstack/finops-forecast",
+      "version": "1.0.0",
+      "role": "finops_analyst",
+      "description": "Forecast OpenCore local-inference savings versus BYOM external API spend using the platform cost ledger and quota simulator.",
+      "permissions": [
+        "read"
+      ],
+      "contract": {
+        "inputs": {
+          "window_days": "Lookback window for usage aggregation",
+          "projected_tokens": "Optional forward token volume to price"
+        },
+        "outputs": {
+          "local_spend_usd": "OpenCore spend for the window",
+          "external_spend_usd": "BYOM/vendor spend for the window",
+          "savings_usd": "Quantified delta between the two paths",
+          "projection": "Forward cost estimate at the projected volume"
+        }
+      },
+      "instructions": "# KStack FinOps Forecast Skill (FinOps Analyst Role)\n\n## Overview\nReads `/v1/usage` economics \u2014 total billed cloud expenditure, entries recorded, and per-model cost accounting \u2014 plus the quota/pricing simulator to quantify the savings of OpenCore local inference versus BYOM external API spend, and to project forward cost at a given token volume.\n\n## Execution Rules\n1. Report ledger figures verbatim \u2014 billed expenditure and entry counts come from the cost ledger, never estimated.\n2. When usage data is empty or the ledger is unavailable, report spend as unmeasured \u2014 never fabricate a savings figure.\n3. Paid-tier token markup is 0% \u2014 a projection that assumes markup contradicts the published commercial model and must not be emitted.\n4. Local inference is costed honestly: $0.00 vendor spend is real for OpenCore weights, but note hardware amortization is out of ledger scope.",
+      "source_uri": "core/kstack/skills/finops-forecast/SKILL.md",
+      "digest_sha256": "1f32e3b54dd00d7f0912cecba9e7c0560e6d2e3432171b4645ad5c23ae6ec38a",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.669548
     },
     {
       "name": "kstack/flight-tape-verify",
@@ -79,12 +135,40 @@
         }
       },
       "instructions": "# KStack Flight-Tape Verify Skill (Auditor Role)\n\n## Overview\nVerifies the append-only Merkle chain backing the flight recorder via `/v1/audit/verify`, and fetches Merkle proofs for individual entries. Any truncation or mutation breaks verification \u2014 that break is the finding.\n\n## Execution Rules\n1. Verification failure is a security finding, not an error to retry: report the first bad sequence verbatim and stop.\n2. Secrets, tokens, and private key material must never appear in skill output, even when present in tape records \u2014 surface redacted forms only.\n3. A verification receipt is evidence of what was checked at a point in time; include chain length and timestamp so the receipt cannot be replayed as proof of a different chain.\n4. If the tape store is unreachable, report UNVERIFIED rather than claiming the chain is valid.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/flight-tape-verify/SKILL.md",
+      "source_uri": "core/kstack/skills/flight-tape-verify/SKILL.md",
       "digest_sha256": "44df03478b4d9a6b7b48f1eb28dc3e606b8b1f4a433590f9049415e0ef433fcb",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432437
+      "created_at_utc": 1795118658.668837
+    },
+    {
+      "name": "kstack/golden-eval",
+      "version": "1.0.0",
+      "role": "eval_engineer",
+      "description": "Run the golden evaluation benchmark, seal evaluation receipts, and compare drift between candidate and reference runs.",
+      "permissions": [
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "model_name": "Model identifier to evaluate",
+          "save_receipt": "Persist the cryptographic evaluation receipt",
+          "compare_to": "Optional prior receipt or model to drift-compare against"
+        },
+        "outputs": {
+          "receipt_id": "Sealed evaluation receipt identifier",
+          "pass_at_1": "Pass@1 rate across the benchmark tasks",
+          "drift": "Drift comparison outcome when a reference is supplied"
+        }
+      },
+      "instructions": "# KStack Golden Eval Skill (Eval Engineer Role)\n\n## Overview\nExecutes `/v1/evals/run` \u2014 the golden benchmark producing a cryptographic `EvaluationReceipt` \u2014 reads `/v1/evals/history` for prior receipts, and uses `/v1/evals/drift/compare` to measure drift between a candidate and a reference run.\n\n## Execution Rules\n1. A regression gate reads the sealed receipt, not a verbal summary \u2014 quote `pass_at_1` and the receipt id verbatim.\n2. `save_receipt=false` produces an unsealed estimate; label it as such and never promote it to a gate input.\n3. Drift comparison is evidence, not verdict: report the measured delta and the gate threshold side by side.\n4. On evaluator unavailability the run is UNMEASURED \u2014 do not carry a prior pass forward as proof.",
+      "source_uri": "core/kstack/skills/golden-eval/SKILL.md",
+      "digest_sha256": "75b1876fdccbac751b54b259578cfdb7991905ad60106d4b20101b681b025e92",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.6693969
     },
     {
       "name": "kstack/investigate",
@@ -108,12 +192,41 @@
         }
       },
       "instructions": "# KStack Investigate Skill (Debugger Role)\n\n## Overview\nPerforms systematic root-cause diagnosis of defects, test failures, and unexpected behaviors. Never propose mutations before reproducing the failure.\n\n## Investigation Discipline\n1. Reproduce with the smallest relevant test or script before touching code.\n2. Distinguish product defect, invalid test expectation, and environment failure.\n3. Inspect stack traces, variable values, and error output inside the verified sandbox.\n4. Formulate the minimal repair plan with explicit verification assertions.\n4. Prefer flight-tape replay and sealed trace inspection over speculative re-execution \u2014 the recorded run is the ground truth.\n5. When a reproduction requires a Tier-3 action (network egress, push, deploy), record the need and stop for approval rather than executing it.\n6. Preserve Merkle-chain evidence: never truncate or rewrite tape records to make a reproduction cleaner.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/investigate/SKILL.md",
+      "source_uri": "core/kstack/skills/investigate/SKILL.md",
       "digest_sha256": "35b6d3792739060e7a5cc9b73ffe2ee685b573db03ee0f15191b4aafe342f2e8",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.4324841
+      "created_at_utc": 1795118658.668878
+    },
+    {
+      "name": "kstack/kbrain-fact",
+      "version": "1.0.0",
+      "role": "knowledge_curator",
+      "description": "Record and query scope-governed KBrain memory facts with ACL boundaries and secret-leakage protection.",
+      "permissions": [
+        "read",
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "key": "Stable fact key (e.g. arch.storage_engine)",
+          "statement": "Fact statement to record",
+          "scope": "agent, project, or org ACL scope"
+        },
+        "outputs": {
+          "fact_id": "Persisted fact identifier",
+          "scope": "Effective ACL scope applied",
+          "matched": "Matching facts returned on query operations"
+        }
+      },
+      "instructions": "# KStack KBrain Fact Skill (Knowledge Curator Role)\n\n## Overview\nRecords and queries workspace knowledge via `/v1/kbrain/fact` and `/v1/kbrain/facts` \u2014 scope-governed facts enforced by an ACL boundary (agent \u2264 project \u2264 org) with pre-storage DLP secret blocking and P-10 conflict resolution.\n\n## Execution Rules\n1. A `SecretLeakDetectedError` (HTTP 422) is a hard stop \u2014 never retry the same statement with secrets merely obfuscated.\n2. Facts are scope-governed: a caller may only read facts at or below its max scope, and write at its declared scope. Do not report facts beyond the caller's boundary.\n3. A conflicting fact requires P-10 resolution \u2014 surface the conflict, never silently overwrite.\n4. Record provenance (`provenance_uri`, `provenance_reason`) on every fact; a fact without provenance is weaker evidence.",
+      "source_uri": "core/kstack/skills/kbrain-fact/SKILL.md",
+      "digest_sha256": "e90923b604e4cd17870aa7bea76c6f58914a46ef1ee3748d736915222c6328dc",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.6692128
     },
     {
       "name": "kstack/kflow-orchestrate",
@@ -136,12 +249,40 @@
         }
       },
       "instructions": "# KStack KFlow Orchestrate Skill (Orchestrator Role)\n\n## Overview\nDrives the KFlow execution engine \u2014 `/v1/orchestration/team/plan` decomposes a goal into a role-specialized agent DAG, and `/execute` runs it through the governed pipeline with per-node approvals and sealed proof output.\n\n## Execution Rules\n1. Every run must produce a sealed proof packet; a run that cannot seal is reported as unverified, not successful.\n2. Long-running executions (multi-minute node work, real test suites) are normal \u2014 poll to completion rather than declaring a timeout failure early.\n3. Node-level gates still apply: a DAG may pause for P-10 approval mid-run, and that pause is expected orchestration behavior, not a stall.\n4. Multi-agent plans never bypass individual human approval \u2014 role-specialized nodes inherit the principal's permission envelope.\n5. Schedule state is process-scoped; represent intervals and run counts as live registry state, not durable history.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/kflow-orchestrate/SKILL.md",
+      "source_uri": "core/kstack/skills/kflow-orchestrate/SKILL.md",
       "digest_sha256": "c0d7e497df8e40820a911bd4496205884708689eb90ee53035e451e1b5839867",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432533
+      "created_at_utc": 1795118658.669251
+    },
+    {
+      "name": "kstack/mesh-verify",
+      "version": "1.0.0",
+      "role": "mesh_operator",
+      "description": "Inspect edge-mesh peer health and delegation state, and verify delegated executions against their sealed proofs.",
+      "permissions": [
+        "read",
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "action": "status, peers, delegate, heartbeat, or prune",
+          "peer_id": "Target peer for delegate or heartbeat actions"
+        },
+        "outputs": {
+          "peers": "Live peer inventory with health state",
+          "delegation": "Delegation outcome and proof reference for delegate actions",
+          "pruned": "Stale peers removed for prune actions"
+        }
+      },
+      "instructions": "# KStack Mesh Verify Skill (Mesh Operator Role)\n\n## Overview\nOperates the `/v1/mesh/*` surface: `/v1/mesh/status` and `/v1/mesh/peers` for fleet visibility, `/v1/mesh/delegate` for peer execution, `/v1/mesh/heartbeat` for liveness, and `/v1/mesh/prune` for stale-peer eviction.\n\n## Execution Rules\n1. Delegation is a governance event \u2014 carry the delegation proof reference back verbatim.\n2. A peer missing heartbeats is stale evidence, not dead capacity: report last-seen state honestly before pruning.\n3. Prune is destructive within the mesh view \u2014 confirm the peer is actually stale per the heartbeat window first.\n4. Never represent a locally simulated mesh as real remote peers; state the boundary when the mesh runs in simulation.",
+      "source_uri": "core/kstack/skills/mesh-verify/SKILL.md",
+      "digest_sha256": "9e0eaf7f8a0e4352a2f56e1e3952c6083b6afe30a072498fc6c17b3e7cd95fdf",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.669583
     },
     {
       "name": "kstack/modernize",
@@ -164,12 +305,12 @@
         }
       },
       "instructions": "# KStack Modernize Skill (Engineer Role)\n\n## Overview\nAnalyzes package and library dependencies, identifies deprecated AST call sites across the codebase, and drafts an atomic migration path.\n\n## Workflow\n1. Inspect `pyproject.toml`, `package.json`, or requirements files for current pinned version.\n2. Analyze AST call sites and import statements using the target library.\n3. Compare against target version breaking changes and deprecations.\n4. Draft the minimal, backward-compatible migration plan adhering to `outputs`.\n4. Migration plans must preserve durable state: approval rules, governance policy, flight tapes, and vault records survive dependency changes.\n5. Version drift that invalidates model/prompt-bound approval rules must trigger reconfirm steps in the migration plan.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/modernize/SKILL.md",
+      "source_uri": "core/kstack/skills/modernize/SKILL.md",
       "digest_sha256": "d63f33e1eacd4a9552e17aa3868dc0625c7fb8c29592a868806cb58623c42f4e",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432579
+      "created_at_utc": 1795118658.668632
     },
     {
       "name": "kstack/p10-gate",
@@ -191,12 +332,12 @@
         }
       },
       "instructions": "# KStack P-10 Gate Skill (Gatekeeper Role)\n\n## Overview\nRoutes Tier-3 (high-risk) agent actions through the human approval gate. A P-10 decision is a governance event: it is recorded on the Merkle flight tape, produces a sealed receipt, and \u2014 when scoped \u2014 persists a standing approval rule bound to the granting model and prompt version.\n\n## Execution Rules\n1. Never auto-approve. The skill may only carry a human's explicit decision to the gate; it cannot manufacture one.\n2. A missing, revoked, or model/prompt-mismatched standing rule must resolve to \"requires approval\" \u2014 fail closed, never fail open.\n3. `allow_always` persists via `POST /v1/approval-rules` and binds the rule to the current `model_id` and `prompt_version`; drift pauses the rule until reconfirm.\n4. Every decision emits an audit event and returns its receipt. If the API rejects the decision (RBAC, unsafe scope), surface the denial \u2014 do not retry as a different principal.\n5. On API unavailability, report the action as still pending. Never represent an unrecorded decision as granted.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/p10-gate/SKILL.md",
+      "source_uri": "core/kstack/skills/p10-gate/SKILL.md",
       "digest_sha256": "39cc9b23f5bed1de57d47cef21d70063401df21c8cce65b42c5ed6055e04cdb0",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432628
+      "created_at_utc": 1795118658.668739
     },
     {
       "name": "kstack/plan",
@@ -218,12 +359,12 @@
         }
       },
       "instructions": "# KStack Plan Skill (Architect Role)\n\n## Overview\nDecomposes an engineering objective into minimal, deterministic file-level steps without applying mutations.\n\n## Workflow\n1. Read the target workspace and examine symbols and imports related to `goal`.\n2. Formulate ordered steps: target path, purpose, constraints, and test commands.\n3. Compute blast radius based on import graph depth and shared library touched.\n4. Output structured plan JSON adhering to `outputs`.\n4. Plans must declare the autonomy tier each step requires and which steps need P-10 human approval before they may execute.\n5. A plan that requires cloud egress for classified or private payloads must route those steps to local open-weight models or mark them blocked \u2014 plans respect the air-gap invariant.\n6. Steps that mutate the workspace must name their isolation boundary (worktree + checkpoint) before execution begins.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/plan/SKILL.md",
+      "source_uri": "core/kstack/skills/plan/SKILL.md",
       "digest_sha256": "5cec2dd7ab3a4b151475e933415584511db0b626e5156598ac5a2db0acbc981b",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432673
+      "created_at_utc": 1795118658.668781
     },
     {
       "name": "kstack/qa",
@@ -246,12 +387,12 @@
         }
       },
       "instructions": "# KStack QA Skill (QA Lead Role)\n\n## Overview\nExecutes test suites within restricted workspace sandboxes, captures exit status, and certifies reproduction or resolution.\n\n## Execution Rules\n1. Never invoke network egress unless explicitly configured.\n2. Terminate immediately upon test failure when in fail-fast mode.\n3. Record duration, exit code, and test stdout in sealed execution proof.\n4. Test output and failure traces may enter the flight tape; secrets and credentials in output must be flagged, never reproduced.\n5. A run that leaves the workspace dirty must report the residue; silent cleanup hides state the next run will inherit.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/qa/SKILL.md",
+      "source_uri": "core/kstack/skills/qa/SKILL.md",
       "digest_sha256": "dc4db5a69b89def93f87d1d45bf62505512cddb70ca9dee8e69fbf9ea95a4433",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.4327161
+      "created_at_utc": 1795118658.668958
     },
     {
       "name": "kstack/repomap-sync",
@@ -272,12 +413,12 @@
         }
       },
       "instructions": "# KStack RepoMap Sync Skill (General Role)\n\n## Overview\nMaintains an up-to-date semantic symbol index and condensed repository map using pure-Python AST parsing and deterministic vector projection.\n\n## Execution Rules\n1. Never invoke external network sockets or third-party embeddings services.\n2. Scrub all credentials and tokens from scanned documentation and source comments before storing in KBrain.\n3. Cache symbol digests incrementally to minimize re-indexing latency.\n3. Extracted symbols and call hierarchies sync to KBrain only \u2014 no extracted repository content leaves the local boundary.\n4. Sync records the workspace and index version so stale maps cannot be mistaken for current state.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/repomap-sync/SKILL.md",
+      "source_uri": "core/kstack/skills/repomap-sync/SKILL.md",
       "digest_sha256": "853e81cb1ea76c355244791139e9dbda219c3bfffe145059de3db7d4d8fe66cf",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432759
+      "created_at_utc": 1795118658.669106
     },
     {
       "name": "kstack/review",
@@ -299,12 +440,66 @@
         }
       },
       "instructions": "# KStack Review Skill (Reviewer Role)\n\n## Overview\nInspects proposed unified diffs for security regressions, accidental secret commits, syntax breakage, and policy compliance.\n\n## Verification Gates\n1. Secret Scan: Assert no tokens, keys, passwords, or credentials appear in additions.\n2. Scope Check: Verify all touched files reside strictly within permitted workspace boundaries.\n3. Gate Integrity: Confirm all elevated actions obtained human quorum or approval.\n4. Fail-Closed Invariants: verify air-gap classification, secret redaction in tapes/errors, sandboxed execution, and append-only audit writes were not weakened.\n5. Standing approval rules are policy: diffs that widen rule scope, remove model/prompt binding, or skip the runtime match are security regressions, not refactors.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/review/SKILL.md",
+      "source_uri": "core/kstack/skills/review/SKILL.md",
       "digest_sha256": "291fa5c1b8f3ab4006a7013c62514b3a35028671b2cfd3d6e3c451aae5a5ebd9",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.4328
+      "created_at_utc": 1795118658.669325
+    },
+    {
+      "name": "kstack/sbom-audit",
+      "version": "1.0.0",
+      "role": "supply_chain_auditor",
+      "description": "Generate and inspect the CycloneDX SBOM for dependency inventory, license posture, and supply-chain evidence.",
+      "permissions": [
+        "read"
+      ],
+      "contract": {
+        "inputs": {
+          "format": "SBOM serialization (cyclonedx JSON)",
+          "include_dev": "Include development dependencies"
+        },
+        "outputs": {
+          "sbom": "CycloneDX document payload",
+          "component_count": "Enumerated dependency count",
+          "licenses": "License distribution across components"
+        }
+      },
+      "instructions": "# KStack SBOM Audit Skill (Supply-Chain Auditor Role)\n\n## Overview\nReads `/v1/sbom` \u2014 the CycloneDX software bill of materials \u2014 to enumerate runtime dependencies, license posture, and supply-chain evidence for release qualification and compliance review.\n\n## Execution Rules\n1. The SBOM is generated from the live environment; a stale export is not evidence of current posture.\n2. Report `component_count` and license distribution verbatim \u2014 a dependency omitted from the count is a finding, not noise.\n3. An unknown or unmapped license is flagged, never guessed.\n4. SBOM inspection is read-only evidence gathering; vulnerability verdicts belong to the scanner skill, not this one.",
+      "source_uri": "core/kstack/skills/sbom-audit/SKILL.md",
+      "digest_sha256": "ecb31a128fce96c811a1718275ca83882022e1bc286be35b1a6f1fc026e9610a",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.6689951
+    },
+    {
+      "name": "kstack/schedule-ops",
+      "version": "1.0.0",
+      "role": "automation_operator",
+      "description": "List, create, and audit scheduled automations \u2014 cron and webhook triggers bound to governed KFlow executions.",
+      "permissions": [
+        "read",
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "action": "list or create",
+          "spec": "Schedule definition for create (trigger, cadence, target workflow)"
+        },
+        "outputs": {
+          "schedules": "Registered schedule inventory on list",
+          "schedule_id": "Persisted schedule identifier on create"
+        }
+      },
+      "instructions": "# KStack Schedule Ops Skill (Automation Operator Role)\n\n## Overview\nOperates `/v1/schedules` \u2014 listing registered cron and webhook triggers and creating new schedules bound to governed workflow executions.\n\n## Execution Rules\n1. A schedule that mutates workspace state runs under the same P-10 policy as a manual run \u2014 automation does not bypass the gate.\n2. Webhook triggers are an egress surface; creating one against an unverified endpoint is a finding, not a convenience.\n3. Report the persisted `schedule_id` verbatim on create; an unacknowledged create is reported as unconfirmed.\n4. Inventory reads reflect the live registry \u2014 never answer from a cached list when asked for current schedules.",
+      "source_uri": "core/kstack/skills/schedule-ops/SKILL.md",
+      "digest_sha256": "d7cfb1c568b75cd2f361bcb26a7b80b37818913146e0389690b058168e3506a0",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.66917
     },
     {
       "name": "kstack/security",
@@ -326,12 +521,12 @@
         }
       },
       "instructions": "# KStack Security Skill (Security Lead Role)\n\n## Overview\nEvaluates the repository against NIST SP 800-53 SC-7 boundaries, STRIDE threat categories, and software supply chain components.\n\n## Audit Checks\n1. Zero egress socket verification.\n2. Malicious package script inspection.\n3. Trust boundary and permission escalation detection.\n4. Air-gap and privacy classification are fail-closed: absence of an explicit COMPLIANT audit means non-compliant for gating purposes.\n5. RBAC denials must name the required permission; a denial that does not name what was required is a finding.\n6. Webhook, token, and quorum surfaces require positive verification \u2014 assert rejection of unsigned, replayed, and cross-role requests.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/security/SKILL.md",
+      "source_uri": "core/kstack/skills/security/SKILL.md",
       "digest_sha256": "4a216af058fb5aa4f58a85596a9d6a2945c421879f6f6cca9524b3ea84a190d3",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432843
+      "created_at_utc": 1795118658.668679
     },
     {
       "name": "kstack/ship",
@@ -355,12 +550,40 @@
         }
       },
       "instructions": "# KStack Ship Skill (Release Lead Role)\n\n## Overview\nValidates release readiness against fail-closed engineering gates, seals cryptographic flight tapes, and generates signed release receipts.\n\n## Release Gates\n1. Full test suite execution in verified OS sandbox.\n2. Zero-secret and zero-leakage DLP audit across modified files.\n3. Flight tape tamper detection and SHA-256 seal verification.\n4. Gate integrity check: verify all mutating actions obtained human approval.\n4. The manifest digest check, ruff, pytest, and frontend suites are gate requirements \u2014 a skipped gate is a release blocker, not a warning.\n5. Every ship decision references the sealed execution proof; a release without a verifiable run record is not shippable.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/ship/SKILL.md",
+      "source_uri": "core/kstack/skills/ship/SKILL.md",
       "digest_sha256": "a22a69ddac494eb8936e3ceb7532375524e449fbba9790d158f537f1d65ddda7",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.432889
+      "created_at_utc": 1795118658.669512
+    },
+    {
+      "name": "kstack/wcag-aa",
+      "version": "1.0.0",
+      "role": "accessibility_auditor",
+      "description": "Enforce WCAG 2.2 AA on rendered surfaces \u2014 semantic landmarks, keyboard reachability, focus visibility, zero axe-core violations.",
+      "permissions": [
+        "read",
+        "execute_restricted"
+      ],
+      "contract": {
+        "inputs": {
+          "surface": "Route or view identifier to audit (e.g. /app, a platform view id)",
+          "mode": "audit or remediate"
+        },
+        "outputs": {
+          "verdict": "PASS or FAIL against the zero-violation gate",
+          "violations": "axe-core violation list with rule ids and affected nodes",
+          "remediations": "Ordered fix list when mode is remediate"
+        }
+      },
+      "instructions": "# KStack WCAG AA Skill (Accessibility Auditor Role)\n\n## Overview\nAudits rendered surfaces for WCAG 2.2 AA conformance using the same axe-core gate the dev-app test suite enforces: semantic landmarks, name-role-value, keyboard reachability, focus visibility, live regions, and color contrast. Optionally produces a remediation list.\n\n## Execution Rules\n1. The gate is zero axe-core violations \u2014 one violation is a FAIL, never a warning.\n2. Audit the rendered DOM, not source code; decorative text must not be flagged, and interactive elements must expose an accessible name.\n3. Remediation must preserve existing accessible names and live-region behavior \u2014 shortening a visible label without updating `aria-label` regresses the contract.\n4. Report violations with their axe rule id and node selector verbatim. Never paraphrase a violation into a pass.\n5. RTL/bidirectional text and reduced-motion states are part of the audit surface, not optional extras.",
+      "source_uri": "core/kstack/skills/wcag-aa/SKILL.md",
+      "digest_sha256": "07dd653c3f679e71ed2a1caa5614e5290058c2a2fe163bca1f6b5f51babb9937",
+      "pinned": true,
+      "revoked": false,
+      "revocation_reason": null,
+      "created_at_utc": 1795118658.669461
     },
     {
       "name": "kstack/worktree-isolate",
@@ -382,12 +605,12 @@
         }
       },
       "instructions": "# KStack Worktree Isolate Skill (Operator Role)\n\n## Overview\nProvisions the isolated execution boundary for agent edits: `POST /v1/worktrees` creates a detached worktree plus task branch, and `POST /v1/checkpoints` snapshots pre-edit state \u2014 including untracked files \u2014 so rollback is real, not aspirational.\n\n## Execution Rules\n1. Agent edits must land in the isolated worktree, never directly on the primary checkout. If isolation provisioning fails, do not begin edits.\n2. Capture a checkpoint before the first agent mutation; report its id so the caller can restore via `POST /v1/checkpoints/{id}/restore`.\n3. Worktree removal is restricted to agent-managed paths; never delete a worktree that contains uncommitted human changes without an explicit instruction.\n4. If the workspace is not a git repository or worktree creation is denied, report the boundary as absent \u2014 do not simulate isolation by editing in place.",
-      "source_uri": "/Users/justinmafie/Documents/antigravity/mysterious-brahmagupta/keelway/core/kstack/skills/worktree-isolate/SKILL.md",
+      "source_uri": "core/kstack/skills/worktree-isolate/SKILL.md",
       "digest_sha256": "b833936296c8bf18517ce90b43f255c56e72aa7b9afc3ace2d6fc16241eef53b",
       "pinned": true,
       "revoked": false,
       "revocation_reason": null,
-      "created_at_utc": 1795018367.4329321
+      "created_at_utc": 1795118658.669287
     }
   ]
 }

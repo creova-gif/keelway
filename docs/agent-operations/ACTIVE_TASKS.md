@@ -57,6 +57,7 @@
 | **KEEL-APP-043** | Dev App P3: files/tree Decoder Fix, Honest Error Labels, Card-in-Card Flattening | `APP / UX / BUGFIX` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-043-denoise-and-decoder-fix` |
 | **KEEL-APP-044** | Dev App P4: Per-View Badge/Noise Audit & Targeted De-noising | `APP / UX` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-044-badge-denoise` |
 | **KEEL-APP-045** | Dev App: Conductor-Style Persistent Sidebar Rail (Tasks + Agents) | `APP / UX / IA` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-045-conductor-rail` |
+| **KEEL-APP-046** | KStack Program: 8 New Skill Contracts, Builtin Handlers, `/v1/kstack/execute`, 12 Lifecycle Manifests | `APP / KSTACK / AGENTS` | `READY_FOR_REVIEW` | Devin | 2026-11-19 | `feature/keel-app-046-kstack-program` |
 | **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
 | **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
 | **KEEL-ENG-038** | Simulated OpenCore Response Disclosure (`simulated` flag, mock-backend routing_reason) | `ENGINEERING / PRODUCT-TRUTH / INFERENCE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-038-simulated-disclosure` |

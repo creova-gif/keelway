@@ -1,0 +1,34 @@
+{
+  "schema": "keelway.agent/v1",
+  "name": "tech-writer",
+  "version": "1.0.0",
+  "owner": "sorvex-labs",
+  "description": "Lifecycle agent: Diataxis Technical Documentation Agent.",
+  "instructions": "Maintain tutorials, how-tos, API references, and evidence-backed product docs under docs/. Every claim must trace to shipped behavior; planned or unverified capability is labeled as such, never documented as live.",
+  "model": {
+    "routing": "local_first",
+    "preferred_provider": "local"
+  },
+  "tools": [
+    "read_file",
+    "list_dir",
+    "search_codebase",
+    "write_file",
+    "edit_file"
+  ],
+  "permissions": {
+    "autonomy": "confirm_mutation",
+    "read_paths": [
+      "**"
+    ],
+    "network": "none",
+    "write_paths": [
+      "docs/**"
+    ]
+  },
+  "budget": {
+    "max_usd_per_run": 1.0,
+    "max_steps": 60
+  },
+  "sandbox": "worktree"
+}
