@@ -124,8 +124,6 @@ export function PlatformWorkspaceBar({
           </span>
           <span aria-hidden="true">·</span>
           <code dir="ltr" className="unicode-bidi-isolate">{activeModelLabel}</code>
-          <span aria-hidden="true">·</span>
-          <span className="font-medium text-teal-accent">Zero Context Loss</span>
           {pendingApprovalCount > 0 ? (
             <span className="ms-1 rounded-xs border border-ochre/40 bg-ochre-subtle px-1.5 py-0.5 text-[10px] font-semibold text-ochre">
               {`${pendingApprovalCount} P-10 pending`}
