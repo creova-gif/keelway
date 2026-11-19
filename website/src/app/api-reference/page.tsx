@@ -80,7 +80,7 @@ export default function ApiReferencePage() {
   const { operations, tags, specVersion } = loadOpenApiOperations();
 
   return (
-    <div>
+    <div data-theme="dark" className="bg-canvas text-fg">
       <section
         aria-labelledby="api-hero-heading"
         className="blueprint-surface border-b border-border-subtle py-12 sm:py-16"

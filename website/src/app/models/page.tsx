@@ -41,7 +41,7 @@ const modelsDatasetSchema = {
  */
 export default function ModelsCatalogPage() {
   return (
-    <div>
+    <div data-theme="dark" className="bg-canvas text-fg">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(modelsDatasetSchema) }}

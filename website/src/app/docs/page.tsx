@@ -38,7 +38,7 @@ const techArticleJsonLd = {
  */
 export default function DocsPage() {
   return (
-    <div>
+    <div data-theme="dark" className="bg-canvas text-fg">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(techArticleJsonLd) }}

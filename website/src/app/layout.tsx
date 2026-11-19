@@ -24,8 +24,8 @@ const jetbrainsMono = localFont({
 
 export const viewport: Viewport = {
   themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F6F5F2" },
     { media: "(prefers-color-scheme: dark)", color: "#09090B" },
-    { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -109,7 +109,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${inter.variable} ${jetbrainsMono.variable}`}

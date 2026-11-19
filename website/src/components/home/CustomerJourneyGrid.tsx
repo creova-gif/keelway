@@ -143,7 +143,7 @@ export function CustomerJourneyGrid() {
                     {item.highlights.map((pt) => (
                       <li key={pt} className="flex items-start gap-2">
                         <span
-                          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-accent"
+                          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-fg-dim"
                           aria-hidden="true"
                         />
                         <span>{pt}</span>

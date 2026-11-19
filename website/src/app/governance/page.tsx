@@ -62,7 +62,7 @@ const GOVERNANCE_INVARIANTS = [
  */
 export default function GovernancePage() {
   return (
-    <div>
+    <div data-theme="dark" className="bg-canvas text-fg">
       {/* Page Hero */}
       <section
         aria-labelledby="gov-hero-heading"

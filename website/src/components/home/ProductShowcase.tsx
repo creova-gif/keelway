@@ -43,7 +43,7 @@ export function ProductShowcase() {
   return (
     <section
       aria-labelledby="product-showcase-heading"
-      className="relative border-t border-border-subtle bg-canvas py-16 sm:py-24"
+      data-theme="dark" className="relative border-t border-border-subtle bg-canvas text-fg py-16 sm:py-24"
     >
       <span className="kw-section-index" aria-hidden="true">
         01 / PROOF
