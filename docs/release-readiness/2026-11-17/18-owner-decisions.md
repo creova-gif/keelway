@@ -46,11 +46,41 @@ degrades honestly:
 3. No new storage layer or migration program — the existing SQLite WAL
    infrastructure is the standard.
 
-**Carve-out flagged for evaluation (not automatic migration):**
-`core/security/approval_rules.py` stores approval policy as file-JSON;
-approval policy is security-relevant and arguably belongs under rule 2.
-Evaluation task queued — if it migrates, use the `init_db()`-style startup
-rename precedent, not a new migration framework.
+**Carve-out resolved — `approval_rules` stays file-JSON (evaluated
+2026-11-18, recommendation: KEEP):**
+
+`core/security/approval_rules.py` stores standing approval policy at
+`<workspace>/.keelway/approval_rules.json`. Evaluation evidence:
+
+- **Workspace-scoped by design.** Rules govern tools inside one workspace
+  and are intentionally reviewable in-tree (docstring: "local and
+  reviewable"). A central SQLite store would decouple policy from workspace
+  lifecycle — a recreated workspace could resurrect stale standing
+  approvals, a *security regression*, not a neutral refactor.
+- **Audit evidence already lands on the WAL layer.** Every mutation emits
+  `record_audit` into the hash-chained `keelway_audit.db`
+  (`approval_rule_create`, `approval_rule_revoke`, `approval_rule_reconfirm`
+  — `core/api/routes.py`). The JSON file is current-state *policy*, not the
+  evidence trail — like CODEOWNERS vs the git log. OD-3 rule 2's
+  "audit/evidence" requirement is therefore already satisfied.
+- **Fail-closed posture is correct.** Atomic tmp+rename writes; corrupt or
+  missing file loads as `[]` (no approvals — deny by default); `.keelway`
+  sits in `PROTECTED_PREFIXES` so the file cannot be modified through a
+  standing approval itself (no self-escalation).
+- **No query requirement.** Read path is one JSON parse per tool-call check
+  against a handful of rules; no relational queries, no cross-tenant access.
+
+**Binding conditions for keeping file-JSON:**
+1. `record_audit` coverage of create/revoke/reconfirm is mandatory — any
+   new mutation path must audit before returning.
+2. The file must remain inside the workspace tree (never a shared/global
+   path) and remain covered by `PROTECTED_PREFIXES`.
+3. If approval rules ever gain cross-workspace or tenant-wide scope, they
+   migrate to SQLite WAL under rule 2 — that is the trigger condition.
+
+If a future owner overrides this and migrates anyway, use the
+`init_db()`-style startup rename precedent (read legacy JSON once, write to
+SQLite, rename file to `.migrated`), not a new migration framework.
 
 ## OD-4 — Framework-adapter roadmap — DECIDED (2026-11-18)
 
