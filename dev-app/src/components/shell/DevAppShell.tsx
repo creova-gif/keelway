@@ -151,29 +151,61 @@ interface AgentsRailListProps {
   onSelectAgent?: () => void;
 }
 
+const AGENT_STATUS_DOT: Record<TaskStatus, { label: string; dot: string } | null> = {
+  needs_approval: { label: "Needs approval", dot: "bg-ochre" },
+  running: { label: "Running", dot: "bg-running" },
+  queued: { label: "Queued", dot: "bg-fg-dim" },
+  ready: null,
+  done: { label: "Done", dot: "bg-fg-muted" },
+  failed: { label: "Failed", dot: "bg-danger" },
+};
+
 function AgentsRailList({ agents, onSelectAgent }: AgentsRailListProps): React.JSX.Element {
+  const [collapsed, setCollapsed] = useState(false);
+  const attentionCount = agents.filter((a) => AGENT_STATUS_DOT[a.status] !== null).length;
   return (
     <section aria-label="Agents" className="flex max-h-[45%] shrink-0 flex-col border-t border-border">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Agents</span>
-        <span className="font-mono text-[10px] text-fg-dim">{agents.length} registered</span>
-      </div>
-      <div className="flex-1 space-y-0.5 overflow-y-auto p-2">
-        {agents.map((agent) => (
-          <button
-            key={agent.id}
-            type="button"
-            onClick={onSelectAgent}
-            className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-start transition-colors hover:bg-surface"
-          >
-            <span className="flex min-w-0 flex-col">
-              <code className="truncate font-mono text-[11px] font-medium text-fg">{agent.name}</code>
-              <span className="truncate text-[10px] text-fg-dim">{agent.roleTitle}</span>
-            </span>
-            <SemanticBadge kind={TASK_STATUS_TO_BADGE[agent.status]} />
-          </button>
-        ))}
-      </div>
+      <button
+        type="button"
+        aria-expanded={!collapsed}
+        onClick={() => setCollapsed((v) => !v)}
+        className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-start transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-accent"
+      >
+        <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          <span aria-hidden="true" className={`font-mono text-[9px] transition-transform ${collapsed ? "" : "rotate-90"}`}>▸</span>
+          Agents
+        </span>
+        <span className="font-mono text-[10px] text-fg-dim">
+          {attentionCount > 0 ? `${attentionCount} need attention · ` : ""}
+          {agents.length} registered
+        </span>
+      </button>
+      {!collapsed ? (
+        <div className="flex-1 space-y-0.5 overflow-y-auto p-2">
+          {agents.map((agent) => {
+            const status = AGENT_STATUS_DOT[agent.status];
+            return (
+              <button
+                key={agent.id}
+                type="button"
+                onClick={onSelectAgent}
+                className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-start transition-colors hover:bg-surface"
+              >
+                <span className="flex min-w-0 flex-col">
+                  <code className="truncate font-mono text-[11px] font-medium text-fg">{agent.name}</code>
+                  <span className="truncate text-[10px] text-fg-dim">{agent.roleTitle}</span>
+                </span>
+                {status ? (
+                  <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] text-fg-muted">
+                    <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${status.dot}`} />
+                    {status.label}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }

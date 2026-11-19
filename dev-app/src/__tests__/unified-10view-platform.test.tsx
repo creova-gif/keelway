@@ -32,7 +32,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     const contextBar = screen.getByRole("region", { name: /Unified workspace bar/i });
     expect(within(contextBar).getByText("/workspace/keelway")).toBeInTheDocument();
     expect(within(contextBar).getByText("feat/unified-dev-app")).toBeInTheDocument();
-    expect(within(contextBar).getByText(/Zero Context Loss/i)).toBeInTheDocument();
+    expect(within(contextBar).getByText(/1 P-10 pending/i)).toBeInTheDocument();
 
     const composer = screen.getByRole("textbox", { name: /Ask agent|Instruction|Composer/i });
     await user.type(composer, "Preserve this draft across all 10 platform views");

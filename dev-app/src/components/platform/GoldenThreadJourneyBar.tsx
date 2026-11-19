@@ -107,23 +107,22 @@ export function GoldenThreadJourneyBar({
     <div
       role="region"
       aria-label="Golden-thread lifecycle journey"
-      className="flex flex-wrap items-center gap-1"
+      className="flex flex-wrap items-center gap-0.5"
     >
-      <span aria-hidden="true" className="me-0.5 font-mono text-[10px] font-semibold tracking-wide text-fg-dim">
+      <span aria-hidden="true" className="me-0.5 font-mono text-[10px] text-fg-dim">
         ◈
       </span>
       {GOLDEN_STAGES.map((stage, idx) => {
         const isActive = stage.id === activeStageId;
         const isCompleted = idx < resolvedIdx;
-        const isGovernanceStage = stage.id === "govern_ship";
 
-        const pillTone = isActive
-          ? isGovernanceStage
-            ? "border-ochre/65 bg-ochre-subtle text-ochre"
-            : "border-teal-accent/65 bg-teal-surface text-teal-accent"
+        const tone = isActive
+          ? stage.id === "govern_ship"
+            ? "font-semibold text-ochre"
+            : "font-semibold text-teal-accent"
           : isCompleted
-            ? "border-teal-accent/30 bg-surface text-fg hover:border-teal-accent/55"
-            : "border-border-strong bg-surface text-fg-muted hover:border-border-control hover:text-fg";
+            ? "text-fg hover:text-teal-accent"
+            : "text-fg-dim hover:text-fg";
 
         return (
           <React.Fragment key={stage.id}>
@@ -133,29 +132,18 @@ export function GoldenThreadJourneyBar({
               aria-current={isActive ? "step" : undefined}
               title={`${stage.fullLabel} · ${stage.subtitle}`}
               onClick={() => onSelectView(resolvePrimaryStageView(stage.id, experienceMode))}
-              className={`group inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[11px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${pillTone}`}
+              className={`inline-flex items-baseline gap-1 rounded-xs px-1 py-0.5 font-mono text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${tone}`}
             >
-              <span
-                aria-hidden="true"
-                className={`inline-flex h-4 min-w-[18px] items-center justify-center rounded-xs px-0.5 font-mono text-[10px] font-bold ${
-                  isActive
-                    ? isGovernanceStage
-                      ? "bg-ochre text-ochre-ink"
-                      : "bg-teal-accent text-teal-ink"
-                    : isCompleted
-                      ? "bg-teal-surface text-teal-accent"
-                      : "bg-chrome text-fg-dim"
-                }`}
-              >
+              <span aria-hidden="true" className="text-fg-dim">
                 {isCompleted ? "✓" : stage.stepNumber}
               </span>
-              <span className="font-semibold">{stage.shortLabel}</span>
+              <span>{stage.shortLabel}</span>
             </button>
 
             {idx < GOLDEN_STAGES.length - 1 ? (
               <span
                 aria-hidden="true"
-                className={`px-0.5 font-mono text-[11px] select-none ${
+                className={`px-0.5 font-mono text-[10px] select-none ${
                   idx < resolvedIdx ? "text-teal-accent" : "text-fg-dim"
                 }`}
               >
@@ -170,7 +158,7 @@ export function GoldenThreadJourneyBar({
         type="button"
         aria-label="Advance golden thread stage"
         onClick={() => onSelectView(resolvePrimaryStageView(nextStage.id, experienceMode))}
-        className="ms-1 inline-flex items-center gap-1 rounded-sm border border-teal-accent/50 bg-teal-surface px-2 py-0.5 font-mono text-[10px] font-semibold text-teal-accent transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
+        className="ms-1 inline-flex items-center gap-1 rounded-xs px-1 py-0.5 font-mono text-[10px] text-teal-accent underline-offset-2 transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
       >
         <span>{`Next in Golden Thread: ${nextStage.shortLabel} →`}</span>
       </button>
