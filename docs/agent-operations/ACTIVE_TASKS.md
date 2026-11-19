@@ -55,7 +55,7 @@
 | **KEEL-REL-057** | Single API Authority (D-001): ADR-0045 + remove fallback-server `/v1` shadow surface | `RELEASE / API / SECURITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `fix/KEEL-REL-057-single-api-authority` (merged #66) |
 | **KEEL-REL-061** | Kora → Keelway canonical rename migration (OD-1, ADR-001) | `RELEASE / BRANDING / MIGRATION` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `rename/KEEL-REL-061-kora-to-keelway` |
 | **KEEL-REL-062** | Durable interval schedules (D-002): `flow_scheduler` persists to state dir | `RELEASE / RELIABILITY / STATE` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `fix/KEEL-REL-062-durable-schedules` |
-| **KEEL-REL-063** | Composed 30-step coding journey test (D-003) + httpx2 test harness (D-007) | `RELEASE / TESTING` | `IN_PROGRESS` | Devin | 2026-11-18 | `feature/KEEL-REL-063-composed-journey` |
+| **KEEL-REL-063** | Composed 30-step coding journey test (D-003) + httpx2 test harness (D-007) | `RELEASE / TESTING` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `feature/KEEL-REL-063-composed-journey` |
 | **KEEL-ENG-039** | `/v1/models` Installed + Simulated Flags (registry-vs-reality disclosure) | `ENGINEERING / PRODUCT-TRUTH / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-039-model-flags` |
 | **KEEL-ENG-040** | Ollama Thinking-Model Handling (`think` flag + `message.thinking` fallback) | `ENGINEERING / INFERENCE / LOCAL-MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-040-thinking-models` |
 | **KEEL-ENG-041** | Third-Party Agent Integration Scoping (co-harness verified; adapter/MCP-client gaps documented) | `ENGINEERING / EXTENSIBILITY / AGENTS` | `SCOPED` | Devin | 2026-11-16 | `docs/KEEL-ENG-041-agent-integration-scope` |

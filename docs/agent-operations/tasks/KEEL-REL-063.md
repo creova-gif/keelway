@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | `IN_PROGRESS` |
+| **Status** | `VERIFIED_COMPLETE` |
 | **Category** | `RELEASE / TESTING` |
 | **Agent** | Devin |
 | **Date** | 2026-11-18 |
@@ -53,6 +53,9 @@ Release-readiness defects **D-003 (P1)** and **D-007 (P3)**.
 - `pytest tests/test_composed_coding_journey.py tests/test_full_beta_developer_journey.py tests/test_full_beta_user_journey.py tests/test_workspace_registry.py tests/test_schedule_and_token_admin.py -x -q`: **21 passed**
 - `pytest tests/test_studio_realtime_events.py tests/test_composed_coding_journey.py -q`: **9 passed, 0 warnings**
 - httpx2 causation proven: same file fails `assert 0 == 1` with httpx2 installed, 8 passed without
+
+## Close-out
+- PR #73 merged to `main` (CI green: py3.11/py3.14 tests, website/dev-app/SDK, wheel/SBOM, Vercel, Devin Review, CodeRabbit).
 
 ## Handoff notes
 - Remaining open defects after this slice: D-004 (isolated Runner backend),
