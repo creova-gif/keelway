@@ -2444,6 +2444,8 @@ def cmd_skill(
     path: Optional[Path] = None,
     out: Optional[Path] = None,
     reason: str = "user revocation",
+    inputs: str = "{}",
+    actor: str = "cli",
 ) -> int:
     """KStack role skills: inspect, import, validate, list, pin, export, and revoke."""
     import json
@@ -2515,6 +2517,44 @@ def cmd_skill(
         except Exception as e:
             print(f"[-] Export failed: {e}")
             return 1
+    elif action == "execute":
+        if not name:
+            print("[-] Error: Skill name is required for execute.")
+            return 1
+        import asyncio
+        from core.kstack.handlers import BUILTIN_HANDLERS
+        handler = BUILTIN_HANDLERS.get(name)
+        if handler is None:
+            if kstack_registry.get_skill(name) is None:
+                print(f"[-] Skill '{name}' not found.")
+                return 1
+            print(f"[-] Skill '{name}' has no registered execution handler.")
+            return 1
+        try:
+            inputs_obj = json.loads(inputs) if inputs else {}
+        except json.JSONDecodeError as e:
+            print(f"[-] Invalid --inputs JSON: {e}")
+            return 1
+        if not isinstance(inputs_obj, dict):
+            print("[-] --inputs must be a JSON object.")
+            return 1
+        try:
+            proof = asyncio.run(
+                kstack_registry.execute_skill_async(
+                    name=name,
+                    actor=actor,
+                    inputs=inputs_obj,
+                    handler=handler,
+                )
+            )
+        except KeyError as e:
+            print(f"[-] {e}")
+            return 1
+        except PermissionError as e:
+            print(f"[-] {e}")
+            return 1
+        print(json.dumps(proof.to_dict(), indent=2))
+        return 0 if proof.success else 1
     else:
         print(f"[-] Unknown skill action: {action}")
         return 1
@@ -3729,6 +3769,10 @@ def build_parser() -> argparse.ArgumentParser:
     _sk_exp = skill_sub.add_parser("export", help="Export skill to SKILL.md")
     _sk_exp.add_argument("name", help="Skill name")
     _sk_exp.add_argument("--out", type=Path, required=True, help="Destination output path")
+    _sk_exe = skill_sub.add_parser("execute", help="Execute a skill through its registered handler; prints the sealed SkillExecutionProof as JSON")
+    _sk_exe.add_argument("name", help="Skill name (e.g. kstack/sbom-audit)")
+    _sk_exe.add_argument("--inputs", default="{}", help="JSON object of handler inputs")
+    _sk_exe.add_argument("--actor", default="cli", help="Actor identity recorded in the sealed proof")
 
     # brain (KBrain Scope-Aware Knowledge Memory)
     brain_parser = subparsers.add_parser("brain", help="KBrain scope-aware knowledge and fact memory with DLP scanning")
@@ -4293,6 +4337,8 @@ def _main(argv=None):
                 path=getattr(args, "path", None),
                 out=getattr(args, "out", None),
                 reason=getattr(args, "reason", "user revocation"),
+                inputs=getattr(args, "inputs", "{}"),
+                actor=getattr(args, "actor", "cli"),
             )
         )
     elif args.command == "brain":
