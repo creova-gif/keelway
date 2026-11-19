@@ -62,6 +62,7 @@
 | **KEEL-REL-066** | Owner decisions OD-3/4/5 ratification (persistence, adapter order, enterprise scope) | `RELEASE / DECISIONS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `docs/KEEL-REL-066-owner-decisions` |
 | **KEEL-REL-067** | LangGraph adapter: complete + verify end-to-end (OD-4) | `RELEASE / ADAPTERS` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | merged `main` (PR #80) |
 | **KEEL-REL-068** | Enterprise IdP interop validation (OD-5): OIDC + SCIM Users | `RELEASE / ENTERPRISE / IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | merged `main` (PR #82) |
+| **KEEL-REL-069** | OD-3 carve-out evaluation: `approval_rules` stays file-JSON (workspace-scoped policy + audited mutations) | `RELEASE / DECISIONS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-18 | `docs/KEEL-REL-069-approval-rules-carveout` |
 | **KEEL-ENG-039** | `/v1/models` Installed + Simulated Flags (registry-vs-reality disclosure) | `ENGINEERING / PRODUCT-TRUTH / MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-039-model-flags` |
 | **KEEL-ENG-040** | Ollama Thinking-Model Handling (`think` flag + `message.thinking` fallback) | `ENGINEERING / INFERENCE / LOCAL-MODELS` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-040-thinking-models` |
 | **KEEL-ENG-041** | Third-Party Agent Integration Scoping (co-harness verified; adapter/MCP-client gaps documented) | `ENGINEERING / EXTENSIBILITY / AGENTS` | `SCOPED` | Devin | 2026-11-16 | `docs/KEEL-ENG-041-agent-integration-scope` |
