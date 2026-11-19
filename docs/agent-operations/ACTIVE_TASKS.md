@@ -52,7 +52,7 @@
 | **KEEL-WEB-038** | Website v3 "Maritime Instrument": Fresh Rebuild, New Brand Kit (K′ + Binnacle Brass), 8-Route Surface | `WEBSITE / UX / BRAND` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-web-038-maritime-instrument` |
 | **KEEL-WEB-039** | Brand-Native Sample Figures Replace Stale Product Screenshots (ControlPlaneFigure, 3 Variants) | `WEBSITE / UX` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-web-039-sample-figures` |
 | **KEEL-WEB-040** | /docs Route Resurrected as Brand-Native Docs Index (15 Verified Repo Links) | `WEBSITE / UX / DX` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-web-040-docs-index` |
-| **KEEL-APP-041** | Dev App Maritime Instrument Token Retheme (P1 — Semantic Color Restoration) | `APP / UX / TOKENS` | `READY_FOR_REVIEW` | Devin | 2026-11-19 | `feature/keel-app-041-maritime-retheme` |
+| **KEEL-APP-041** | Dev App Maritime Instrument Token Retheme (P1 — Semantic Color Restoration) | `APP / UX / TOKENS` | `VERIFIED_COMPLETE` | Devin | 2026-11-19 | `feature/keel-app-041-maritime-retheme` |
 | **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
 | **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
 | **KEEL-ENG-038** | Simulated OpenCore Response Disclosure (`simulated` flag, mock-backend routing_reason) | `ENGINEERING / PRODUCT-TRUTH / INFERENCE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-038-simulated-disclosure` |
