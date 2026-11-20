@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 WORKDIR /build
 COPY pyproject.toml README.md cli.py ./
@@ -11,7 +11,7 @@ COPY evaluations evaluations/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 
 RUN groupadd -g 10001 keelway && \
     useradd -u 10001 -g keelway -s /bin/bash -m keelway && \
