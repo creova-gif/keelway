@@ -627,10 +627,10 @@ export function RecordAuditLedger({
                         {entry.timestampEt}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-baseline gap-1.5">
                           <span className="font-medium text-fg">{entry.actorLabel}</span>
-                          <span className="rounded-xs border border-border-control bg-surface-elevated px-1 py-0 font-mono text-[10px] text-fg-muted">
-                            {entry.actorKind}
+                          <span className="font-mono text-[10px] text-fg-dim">
+                            {`· ${entry.actorKind}`}
                           </span>
                         </div>
                       </td>
@@ -639,7 +639,7 @@ export function RecordAuditLedger({
                           <span className="font-medium text-fg">{entry.action}</span>
                           <code
                             dir="ltr"
-                            className="unicode-bidi-isolate truncate rounded-xs border border-border bg-code px-1.5 py-0.5 font-mono text-[11px] text-fg-muted"
+                            className="unicode-bidi-isolate truncate font-mono text-[11px] text-fg-muted"
                           >
                             {entry.target}
                           </code>
