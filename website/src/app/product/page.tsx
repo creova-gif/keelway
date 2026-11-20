@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ControlPlaneFigure } from "@/components/site/ControlPlaneFigure";
+import { FigureTabs } from "@/components/site/FigureTabs";
+import { Reveal } from "@/components/motion/Reveal";
 
 export const metadata: Metadata = {
   title: "Product",
@@ -30,22 +31,19 @@ export default function ProductPage() {
       <p className="kw-label">Product</p>
       <h1 className="kw-h1 mt-5 max-w-2xl">One platform. Three instruments.</h1>
       <div className="mt-14 grid gap-5 sm:grid-cols-3">
-        {INSTRUMENTS.map((i) => (
-          <div key={i.label} className="kw-card p-7">
-            <p className="kw-label kw-label-brass">{i.label}</p>
-            <h2 className="kw-h3 mt-4">{i.title}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{i.body}</p>
-          </div>
+        {INSTRUMENTS.map((i, idx) => (
+          <Reveal key={i.label} delay={idx as 0 | 1 | 2}>
+            <div className="kw-card h-full p-7 transition-colors duration-fast ease-state hover:border-[var(--rule-strong)]">
+              <p className="kw-label kw-label-brass">{i.label}</p>
+              <h2 className="kw-h3 mt-4">{i.title}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{i.body}</p>
+            </div>
+          </Reveal>
         ))}
       </div>
-      <figure className="mt-16">
-        <ControlPlaneFigure variant="flow" />
-        <figcaption className="kw-figcap mt-3">FIG 1.1 — KFlow run graph, sample render. Every edge writes to the tape.</figcaption>
-      </figure>
-      <figure className="mt-12">
-        <ControlPlaneFigure variant="policy" />
-        <figcaption className="kw-figcap mt-3">FIG 1.2 — Policy engine, sample render. Denials are sealed, not silent.</figcaption>
-      </figure>
+      <div className="mt-16">
+        <FigureTabs />
+      </div>
     </div>
   );
 }

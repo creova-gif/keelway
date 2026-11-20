@@ -266,6 +266,15 @@ body {
     transform: translateY(12px);
     animation: kw-rise var(--dur-slow) var(--ease-settle) forwards;
   }
+  /* scroll reveal (Reveal.tsx) — hidden state only applied post-mount */
+  .kw-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity var(--dur-base) var(--ease-settle), transform var(--dur-base) var(--ease-settle);
+  }
+  .kw-reveal.kw-reveal-in { opacity: 1; transform: none; }
+  .kw-reveal-delay-1 { transition-delay: 60ms; }
+  .kw-reveal-delay-2 { transition-delay: 120ms; }
 }
 @keyframes kw-rise {
   to { opacity: 1; transform: none; }
