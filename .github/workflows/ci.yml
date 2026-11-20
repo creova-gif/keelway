@@ -101,7 +101,7 @@ jobs:
           npm --prefix website run typecheck
           npm --prefix website run build
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('website/package-lock.json') }}
