@@ -117,6 +117,8 @@
 | **KEEL-DEPS-062** | Dependabot weekly grouped version updates (pip, npm ×5, gomod, docker, github-actions); re-lands stale PR #57 | `CI / DEPENDENCIES` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `feature/keel-deps-062-dependabot` |
 | **KEEL-REL-063** | Root CONTRIBUTING + CODE_OF_CONDUCT (Contributor Covenant) for public repo; re-lands community half of stale PR #59 | `RELEASE / COMMUNITY / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `feature/keel-rel-063-community-files` |
 | **KEEL-SEC-061** | Marketplace publish forgery fix — unsigned `first_party` payloads rejected (was server auto-signed); lands un-merged half of PR #56 | `SECURITY / SUPPLY-CHAIN / MARKETPLACE` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `fix/keel-sec-061-marketplace-first-party-forgery` |
+| **KEEL-DEPS-064** | Dependabot ignore rules for dangerous majors (TS ≥7, Tailwind ≥4, vitest ≥5, python ≥3.15) | `CI / DEPENDENCIES` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `chore/keel-deps-064-dependabot-ignores` |
+| **KEEL-SEC-065** | RBAC publisher-role gate on `/marketplace/publish` — new `marketplace:publish` permission (owner/admin/builder), viewer+operator → 403 before scanner | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `fix/keel-sec-065-marketplace-publish-rbac` |
 
 ---
 

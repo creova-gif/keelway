@@ -36,10 +36,12 @@ ROLE_PERMISSION_MATRIX: Dict[str, FrozenSet[str]] = {
     "owner": frozenset({"*"}),
     "admin": frozenset({
         "workspace:manage", "rbac:manage", "secrets:write", "secrets:read_meta", "webhooks:manage",
-        "agents:dispatch", "workflows:run", "p10:approve", "docs:write", "issues:write", "read:all",
+        "agents:dispatch", "workflows:run", "p10:approve", "docs:write", "issues:write",
+        "marketplace:publish", "read:all",
     }),
     "builder": frozenset({
-        "secrets:read_meta", "agents:dispatch", "workflows:run", "docs:write", "issues:write", "read:all",
+        "secrets:read_meta", "agents:dispatch", "workflows:run", "docs:write", "issues:write",
+        "marketplace:publish", "read:all",
     }),
     "operator": frozenset({
         "secrets:read_meta", "workflows:run", "p10:approve", "issues:write", "read:all",
