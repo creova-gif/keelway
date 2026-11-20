@@ -1,7 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
-import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsKeyMintModal } from "@/components/screens/settings/SettingsKeyMintModal";
 import {
   fetchGovernancePersistence,
@@ -320,9 +319,15 @@ export function SettingsGovernancePanel({
       >
         <div className="flex flex-wrap items-center gap-2.5">
           {persistence?.healthy !== false ? (
-            <SemanticBadge kind="passed" labelOverride="SQLite WAL Crash-Safe" />
+            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-ok">
+              <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-ok" />
+              SQLite WAL Crash-Safe
+            </span>
           ) : (
-            <SemanticBadge kind="reconfirm" labelOverride="Ephemeral memory · not WAL" />
+            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-warning">
+              <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-warning" />
+              Ephemeral memory · not WAL
+            </span>
           )}
           <span className="font-mono text-fg">
             {`${persistence?.engine ?? "SQLite 3"} · journal=${persistence?.journalMode ?? "WAL"} · sync=${persistence?.synchronous ?? "NORMAL"}`}
@@ -386,7 +391,7 @@ export function SettingsGovernancePanel({
             </select>
           </div>
 
-          <div className="flex items-center gap-2.5 rounded-sm border border-border bg-canvas px-3 py-2">
+          <div className="flex items-center gap-2.5 px-1 py-2">
             <input
               id={dlpCheckboxId}
               type="checkbox"
@@ -484,7 +489,7 @@ export function SettingsGovernancePanel({
           </Button>
         </form>
 
-        <div className="flex items-center gap-2.5 rounded-sm border border-border bg-canvas px-3 py-2.5">
+        <div className="flex items-center gap-2.5 px-1 py-1">
           <input
             id={fallbackCheckboxId}
             type="checkbox"
@@ -497,7 +502,7 @@ export function SettingsGovernancePanel({
           </label>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border bg-canvas px-3 py-2 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-1 pt-3 text-xs">
           <div className="space-y-0.5">
             <div className="font-semibold text-fg">Supply-Chain SBOM Verification (<code dir="ltr" className="unicode-bidi-isolate font-mono">/v1/sbom</code>)</div>
             {sbomInfo ? (
@@ -562,7 +567,7 @@ export function SettingsGovernancePanel({
                         <code
                           key={sc}
                           dir="ltr"
-                          className="unicode-bidi-isolate rounded-xs border border-border bg-code px-1.5 py-0.5 font-mono text-[11px] text-fg"
+                          className="unicode-bidi-isolate rounded-xs bg-code px-1.5 py-0.5 font-mono text-[11px] text-fg-muted"
                         >
                           {sc}
                         </code>
@@ -577,37 +582,48 @@ export function SettingsGovernancePanel({
           </table>
         </div>
 
-        <form onSubmit={(e) => void handleVerifyKey(e)} className="space-y-2 rounded-sm border border-border bg-canvas p-3 text-xs">
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="min-w-48 flex-1 space-y-1">
-              <label htmlFor={verifyKeyInputId} className="block font-medium text-fg">
-                Verify scoped key (<code dir="ltr" className="unicode-bidi-isolate font-mono">POST /v1/governance/keys/verify</code>)
-              </label>
-              <input
-                id={verifyKeyInputId}
-                type="password"
-                dir="ltr"
-                value={verifyTokenInput}
-                onChange={(e) => setVerifyTokenInput(e.target.value)}
-                placeholder="kw_live_…"
-                className="unicode-bidi-isolate min-h-ctrl-sm w-full rounded-xs border border-border-control bg-surface px-2.5 py-1 font-mono text-xs text-fg"
-              />
+        <details className="rounded-sm border border-border bg-canvas px-3 py-2 text-xs">
+          <summary className="cursor-pointer select-none font-semibold text-fg">
+            Verify a scoped key…
+          </summary>
+          <form onSubmit={(e) => void handleVerifyKey(e)} className="mt-2 space-y-2 border-t border-border pt-2.5">
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="min-w-48 flex-1 space-y-1">
+                <label htmlFor={verifyKeyInputId} className="block font-medium text-fg">
+                  Verify scoped key (<code dir="ltr" className="unicode-bidi-isolate font-mono">POST /v1/governance/keys/verify</code>)
+                </label>
+                <input
+                  id={verifyKeyInputId}
+                  type="password"
+                  dir="ltr"
+                  value={verifyTokenInput}
+                  onChange={(e) => setVerifyTokenInput(e.target.value)}
+                  placeholder="kw_live_…"
+                  className="unicode-bidi-isolate min-h-ctrl-sm w-full rounded-xs border border-border-control bg-surface px-2.5 py-1 font-mono text-xs text-fg"
+                />
+              </div>
+              <Button type="submit" size="sm" variant="secondary" loading={verifyingKey}>
+                Verify key
+              </Button>
             </div>
-            <Button type="submit" size="sm" variant="secondary" loading={verifyingKey}>
-              Verify key
-            </Button>
-          </div>
-          {verifyKeyResult ? (
-            <div className="flex flex-wrap items-center gap-2 pt-0.5">
-              {verifyKeyResult.valid ? (
-                <SemanticBadge kind="passed" labelOverride="Key valid" />
-              ) : (
-                <SemanticBadge kind="failed" labelOverride="Key rejected" />
-              )}
-              <span className="text-fg-muted">{verifyKeyResult.reason}</span>
-            </div>
-          ) : null}
-        </form>
+            {verifyKeyResult ? (
+              <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                {verifyKeyResult.valid ? (
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-ok">
+                    <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-ok" />
+                    Key valid
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-danger">
+                    <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-danger" />
+                    Key rejected
+                  </span>
+                )}
+                <span className="text-fg-muted">{verifyKeyResult.reason}</span>
+              </div>
+            ) : null}
+          </form>
+        </details>
       </section>
 
       <SettingsKeyMintModal

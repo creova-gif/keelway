@@ -132,50 +132,52 @@ export function PlatformWorkspaceBar({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-1.5 rounded-sm border border-border-control/70 bg-surface px-2 py-0.5">
-            <span className="font-mono text-[10px] uppercase tracking-wide text-fg-muted">WS</span>
-            <select aria-label="Active workspace switcher" value={effectiveWsId} onChange={(e) => handleSelectWorkspace(e.target.value)} className="bg-surface font-mono text-[11px] font-semibold text-fg focus:outline-none focus-visible:underline">
-              {localWorkspaces.map((ws) => <option key={ws.id} value={ws.id}>{`${ws.id} · ${ws.name}`}</option>)}
-            </select>
-            <button type="button" aria-label="New workspace" aria-expanded={creatingWs} onClick={() => setCreatingWs((v) => !v)} className="rounded-xs border border-border-control px-1.5 py-0.5 font-mono text-[10px] font-semibold text-teal-accent hover:bg-teal-surface">
-              + New
-            </button>
-          </div>
-
-          <div className="inline-flex items-center gap-1.5 rounded-sm border border-border-control/70 bg-surface px-2 py-0.5">
-            <span className="font-mono text-[10px] uppercase tracking-wide text-fg-muted">RBAC</span>
-            <select aria-label="Active RBAC role" value={effectiveRole} onChange={(e) => handleSelectRole(e.target.value as RbacRoleId)} className="bg-surface font-mono text-[11px] font-semibold text-teal-accent focus:outline-none focus-visible:underline">
-              <option value="owner">owner</option>
-              <option value="admin">admin</option>
-              <option value="builder">builder</option>
-              <option value="operator">operator</option>
-              <option value="viewer">viewer</option>
-            </select>
-          </div>
-
-          <div role="group" aria-label="Experience persona" className="inline-flex items-center rounded-sm border border-border-control/70 bg-surface p-0.5">
-            <button type="button" aria-pressed={experienceMode === "builder"} onClick={() => onChangeExperienceMode("builder")} className={`rounded-xs px-2 py-0.5 text-[11px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${experienceMode === "builder" ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}>
-              Builder
-            </button>
-            <button type="button" aria-pressed={experienceMode === "non_coder"} onClick={() => onChangeExperienceMode("non_coder")} className={`rounded-xs px-2 py-0.5 text-[11px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${experienceMode === "non_coder" ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}>
-              Guided Non-Coder
-            </button>
+          <div className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-sm border border-border-control/70 bg-surface px-2 py-0.5">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-wide text-fg-muted">WS</span>
+              <select aria-label="Active workspace switcher" value={effectiveWsId} onChange={(e) => handleSelectWorkspace(e.target.value)} className="bg-surface font-mono text-[11px] font-semibold text-fg focus:outline-none focus-visible:underline">
+                {localWorkspaces.map((ws) => <option key={ws.id} value={ws.id}>{`${ws.id} · ${ws.name}`}</option>)}
+              </select>
+              <button type="button" aria-label="New workspace" aria-expanded={creatingWs} onClick={() => setCreatingWs((v) => !v)} className="rounded-xs px-1 py-0.5 font-mono text-[10px] font-semibold text-teal-accent hover:bg-teal-surface">
+                + New
+              </button>
+            </span>
+            <span aria-hidden="true" className="h-3.5 w-px bg-border-strong" />
+            <span className="inline-flex items-center gap-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-wide text-fg-muted">RBAC</span>
+              <select aria-label="Active RBAC role" value={effectiveRole} onChange={(e) => handleSelectRole(e.target.value as RbacRoleId)} className="bg-surface font-mono text-[11px] font-semibold text-teal-accent focus:outline-none focus-visible:underline">
+                <option value="owner">owner</option>
+                <option value="admin">admin</option>
+                <option value="builder">builder</option>
+                <option value="operator">operator</option>
+                <option value="viewer">viewer</option>
+              </select>
+            </span>
+            <span aria-hidden="true" className="h-3.5 w-px bg-border-strong" />
+            <div role="group" aria-label="Experience persona" className="inline-flex items-center gap-0.5">
+              <button type="button" aria-pressed={experienceMode === "builder"} onClick={() => onChangeExperienceMode("builder")} className={`rounded-xs px-1.5 py-0.5 text-[11px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${experienceMode === "builder" ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}>
+                Builder
+              </button>
+              <button type="button" aria-pressed={experienceMode === "non_coder"} onClick={() => onChangeExperienceMode("non_coder")} className={`rounded-xs px-1.5 py-0.5 text-[11px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${experienceMode === "non_coder" ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}>
+                Guided Non-Coder
+              </button>
+            </div>
+            <span aria-hidden="true" className="h-3.5 w-px bg-border-strong" />
+            <span className="inline-flex items-center gap-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-wide text-fg-dim">Tier</span>
+              <select aria-label="Subscription tier" value={subscriptionTier} onChange={(e) => onChangeSubscriptionTier(e.target.value as SubscriptionTierId)} className="bg-transparent font-mono text-[11px] font-semibold text-teal-accent focus:outline-none focus-visible:underline">
+                <option value="community">Community</option>
+                <option value="pro">Pro</option>
+                <option value="byom">BYOM · 0% Markup</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <span className="hidden font-mono text-[10px] text-fg-dim xl:inline">{tierMeta.priceLabel}</span>
+            </span>
           </div>
 
           {experienceMode === "non_coder" && activeView !== "nocode" ? (
             <Button size="sm" variant="primary" onClick={() => onSelectView("nocode")}>Open No-Code Builder</Button>
           ) : null}
-
-          <div className="inline-flex items-center gap-1.5 rounded-sm border border-border-control/70 bg-surface px-2 py-0.5">
-            <span className="font-mono text-[10px] uppercase tracking-wide text-fg-dim">Tier</span>
-            <select aria-label="Subscription tier" value={subscriptionTier} onChange={(e) => onChangeSubscriptionTier(e.target.value as SubscriptionTierId)} className="bg-transparent font-mono text-[11px] font-semibold text-teal-accent focus:outline-none focus-visible:underline">
-              <option value="community">Community</option>
-              <option value="pro">Pro</option>
-              <option value="byom">BYOM · 0% Markup</option>
-              <option value="enterprise">Enterprise</option>
-            </select>
-            <span className="hidden font-mono text-[10px] text-fg-dim xl:inline">{tierMeta.priceLabel}</span>
-          </div>
         </div>
       </div>
 
