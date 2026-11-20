@@ -131,6 +131,8 @@ export class KeelwayClient {
     opencore;
     governance;
     swarm;
+    kstack;
+    agents;
     platform;
     cluster;
     constructor(options = {}) {
@@ -379,6 +381,19 @@ export class KeelwayClient {
                     options: opts,
                 });
             },
+        };
+        this.kstack = {
+            execute: async (req, opts) => {
+                const res = await this.requestJson("POST", "/v1/kstack/execute", { body: { name: req.name, inputs: req.inputs ?? {} }, options: opts });
+                return res.proof;
+            },
+        };
+        this.agents = {
+            listRegistry: (params, opts) => this.requestJson("GET", "/v1/agents/registry", {
+                query: params?.enabled_only ? { enabled_only: "true" } : undefined,
+                options: opts,
+            }),
+            toggleManifest: (name, version, enabled, opts) => this.requestJson("POST", `/v1/agents/registry/${encodeURIComponent(name)}/${encodeURIComponent(version)}/toggle`, { body: { enabled }, options: opts }),
         };
         this.platform = new PlatformNamespace((method, path, params) => this.requestJson(method, path, params), (method, path, params) => this.requestSseFrames(method, path, params));
         this.cluster = new ClusterNamespace((method, path, params) => this.requestJson(method, path, params));

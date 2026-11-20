@@ -27,6 +27,9 @@ import type {
   KeelwayClientOptions,
   LoadOpenCoreModelRequest,
   ModelListResponse,
+  AgentRegistryListResponse,
+  AgentRegistryToggleResponse,
+  KStackExecuteRequest,
   ModelsListParams,
   OpenCoreAdaptersResponse,
   OpenCoreStatusResponse,
@@ -39,6 +42,7 @@ import type {
   RoutingDecisionsResponse,
   RoutingExplainRequest,
   RoutingExplainResponse,
+  SkillExecutionProof,
   SwarmEvaluateRequest,
   SwarmEvaluateResponse,
   TenantPolicy,
@@ -275,6 +279,26 @@ export class KeelwayClient {
       req: SwarmEvaluateRequest,
       options?: RequestOptions,
     ) => Promise<SwarmEvaluateResponse>;
+  };
+
+  public readonly kstack: {
+    execute: (
+      req: KStackExecuteRequest,
+      options?: RequestOptions,
+    ) => Promise<SkillExecutionProof>;
+  };
+
+  public readonly agents: {
+    listRegistry: (
+      params?: { enabled_only?: boolean },
+      options?: RequestOptions,
+    ) => Promise<AgentRegistryListResponse>;
+    toggleManifest: (
+      name: string,
+      version: string,
+      enabled: boolean,
+      options?: RequestOptions,
+    ) => Promise<AgentRegistryToggleResponse>;
   };
 
   public readonly platform: PlatformNamespace;
@@ -537,6 +561,31 @@ export class KeelwayClient {
           options: opts,
         });
       },
+    };
+
+    this.kstack = {
+      execute: async (req, opts) => {
+        const res = await this.requestJson<{ proof: SkillExecutionProof }>(
+          "POST",
+          "/v1/kstack/execute",
+          { body: { name: req.name, inputs: req.inputs ?? {} }, options: opts },
+        );
+        return res.proof;
+      },
+    };
+
+    this.agents = {
+      listRegistry: (params, opts) =>
+        this.requestJson<AgentRegistryListResponse>("GET", "/v1/agents/registry", {
+          query: params?.enabled_only ? { enabled_only: "true" } : undefined,
+          options: opts,
+        }),
+      toggleManifest: (name, version, enabled, opts) =>
+        this.requestJson<AgentRegistryToggleResponse>(
+          "POST",
+          `/v1/agents/registry/${encodeURIComponent(name)}/${encodeURIComponent(version)}/toggle`,
+          { body: { enabled }, options: opts },
+        ),
     };
 
     this.platform = new PlatformNamespace(

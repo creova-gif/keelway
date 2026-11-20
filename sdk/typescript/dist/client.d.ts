@@ -6,7 +6,7 @@
  */
 import { ClusterNamespace } from "./cluster.js";
 import { PlatformNamespace } from "./platform.js";
-import type { AdaptRecipeRequest, ChatCompletionCreateRequest, ChatCompletionResponse, ChatCompletionStreamRequest, ChatStreamChunk, CompileModelfileRequest, CompileModelfileResponse, GovernanceAuditResponse, GovernanceDecisionResponse, GovernanceEvaluateRequest, IssuedKeyResponse, IssueKeyRequest, KeelwayClientOptions, LoadOpenCoreModelRequest, ModelListResponse, ModelsListParams, OpenCoreAdaptersResponse, OpenCoreStatusResponse, OpenCoreWeightManifest, RequestOptions, ResponseCreateRequest, ResponseObject, ResponseStreamEvent, ResponseStreamRequest, RoutingDecisionsResponse, RoutingExplainRequest, RoutingExplainResponse, SwarmEvaluateRequest, SwarmEvaluateResponse, TenantPolicy, TenantPolicyUpsertRequest, UsageSummary } from "./types.js";
+import type { AdaptRecipeRequest, ChatCompletionCreateRequest, ChatCompletionResponse, ChatCompletionStreamRequest, ChatStreamChunk, CompileModelfileRequest, CompileModelfileResponse, GovernanceAuditResponse, GovernanceDecisionResponse, GovernanceEvaluateRequest, IssuedKeyResponse, IssueKeyRequest, KeelwayClientOptions, LoadOpenCoreModelRequest, ModelListResponse, AgentRegistryListResponse, AgentRegistryToggleResponse, KStackExecuteRequest, ModelsListParams, OpenCoreAdaptersResponse, OpenCoreStatusResponse, OpenCoreWeightManifest, RequestOptions, ResponseCreateRequest, ResponseObject, ResponseStreamEvent, ResponseStreamRequest, RoutingDecisionsResponse, RoutingExplainRequest, RoutingExplainResponse, SkillExecutionProof, SwarmEvaluateRequest, SwarmEvaluateResponse, TenantPolicy, TenantPolicyUpsertRequest, UsageSummary } from "./types.js";
 /**
  * Official Keelway Platform Client (`@keelway/sdk` v1.0.0).
  */
@@ -63,6 +63,15 @@ export declare class KeelwayClient {
     };
     readonly swarm: {
         evaluate: (req: SwarmEvaluateRequest, options?: RequestOptions) => Promise<SwarmEvaluateResponse>;
+    };
+    readonly kstack: {
+        execute: (req: KStackExecuteRequest, options?: RequestOptions) => Promise<SkillExecutionProof>;
+    };
+    readonly agents: {
+        listRegistry: (params?: {
+            enabled_only?: boolean;
+        }, options?: RequestOptions) => Promise<AgentRegistryListResponse>;
+        toggleManifest: (name: string, version: string, enabled: boolean, options?: RequestOptions) => Promise<AgentRegistryToggleResponse>;
     };
     readonly platform: PlatformNamespace;
     readonly cluster: ClusterNamespace;
