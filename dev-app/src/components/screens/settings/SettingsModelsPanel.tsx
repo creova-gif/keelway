@@ -171,7 +171,7 @@ export function SettingsModelsPanel({
             className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
           >
             <div
-              className="h-full bg-teal-accent transition-all"
+              className="h-full bg-teal-accent transition-all duration-base ease-settle"
               style={{ width: `${memoryPct}%` }}
             />
           </div>

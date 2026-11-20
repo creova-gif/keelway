@@ -217,7 +217,7 @@ export function FlightTapeScrubberAndRadar({
                   aria-label={`Scrub waterfall to step ${step.step_index} ${step.node_name}`}
                   aria-pressed={isForkAnchor}
                   onClick={() => onChangeForkStepIndex(step.step_index)}
-                  className={`group flex w-full flex-col gap-1 rounded-xs border p-1.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent disabled:cursor-not-allowed disabled:opacity-75 ${
+                  className={`group flex w-full flex-col gap-1 rounded-xs border p-1.5 text-left transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent disabled:cursor-not-allowed disabled:opacity-75 ${
                     isForkAnchor
                       ? "border-ochre bg-ochre-subtle/60"
                       : isCachedUpstream
@@ -243,7 +243,7 @@ export function FlightTapeScrubberAndRadar({
                   <div className="relative h-3 w-full overflow-hidden rounded-xs bg-surface">
                     <div
                       style={{ marginLeft: `${startPct}%`, width: `${widthPct}%` }}
-                      className={`h-full rounded-xs transition-all ${
+                      className={`h-full rounded-xs transition-all duration-base ease-settle ${
                         isCachedUpstream ? "bg-teal-accent/80" : "bg-ochre/85"
                       }`}
                     />

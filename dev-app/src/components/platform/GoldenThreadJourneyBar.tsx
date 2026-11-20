@@ -132,7 +132,7 @@ export function GoldenThreadJourneyBar({
               aria-current={isActive ? "step" : undefined}
               title={`${stage.fullLabel} · ${stage.subtitle}`}
               onClick={() => onSelectView(resolvePrimaryStageView(stage.id, experienceMode))}
-              className={`inline-flex items-baseline gap-1 rounded-xs px-1 py-0.5 font-mono text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${tone}`}
+              className={`inline-flex items-baseline gap-1 rounded-xs px-1 py-0.5 font-mono text-[10px] transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent ${tone}`}
             >
               <span aria-hidden="true" className="text-fg-dim">
                 {isCompleted ? "✓" : stage.stepNumber}
@@ -158,7 +158,7 @@ export function GoldenThreadJourneyBar({
         type="button"
         aria-label="Advance golden thread stage"
         onClick={() => onSelectView(resolvePrimaryStageView(nextStage.id, experienceMode))}
-        className="ms-1 inline-flex items-center gap-1 rounded-xs px-1 py-0.5 font-mono text-[10px] text-teal-accent underline-offset-2 transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
+        className="ms-1 inline-flex items-center gap-1 rounded-xs px-1 py-0.5 font-mono text-[10px] text-teal-accent underline-offset-2 transition-colors duration-fast ease-state hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
       >
         <span>{`Next in Golden Thread: ${nextStage.shortLabel} →`}</span>
       </button>

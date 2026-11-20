@@ -117,7 +117,7 @@ export function LiveExecutionDrawer({
   return (
     <section
       aria-label="Live streaming execution console"
-      className="space-y-3 rounded-md border border-teal-accent/50 bg-surface p-4"
+      className="kw-fade-in space-y-3 rounded-md border border-teal-accent/50 bg-surface p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
         <div className="space-y-0.5">

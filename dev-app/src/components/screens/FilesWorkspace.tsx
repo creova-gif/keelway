@@ -581,7 +581,7 @@ export function FilesWorkspace({
                   type="button"
                   aria-current={isCurrent ? "true" : undefined}
                   onClick={() => openFileTab(path, 1)}
-                  className={`inline-flex min-h-ctrl-sm items-center gap-1.5 rounded-xs border px-2.5 py-1 text-xs transition-colors ${
+                  className={`inline-flex min-h-ctrl-sm items-center gap-1.5 rounded-xs border px-2.5 py-1 text-xs transition-colors duration-fast ease-state ${
                     isCurrent
                       ? "border-border-strong bg-surface text-fg"
                       : "border-transparent bg-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
@@ -608,7 +608,7 @@ export function FilesWorkspace({
                   type="button"
                   aria-pressed={viewMode === mode}
                   onClick={() => setViewMode(mode)}
-                  className={`rounded-xs px-2 py-1 text-xs font-medium transition-colors ${viewMode === mode ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}
+                  className={`rounded-xs px-2 py-1 text-xs font-medium transition-colors duration-fast ease-state ${viewMode === mode ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}
                 >
                   {label}
                 </button>

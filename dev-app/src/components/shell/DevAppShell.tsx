@@ -119,7 +119,7 @@ function TasksQueueList({
                 type="button"
                 aria-current={isSelected ? "true" : undefined}
                 onClick={() => onSelectTask?.(task.id)}
-                className={`flex min-h-task-row w-full flex-col gap-1 rounded-sm border px-2.5 py-2 text-start transition-colors ${
+                className={`flex min-h-task-row w-full flex-col gap-1 rounded-sm border px-2.5 py-2 text-start transition-colors duration-fast ease-state ${
                   isPending
                     ? "border-s-2 border-ochre bg-ochre-subtle/30 hover:bg-ochre-subtle/50"
                     : isSelected
@@ -169,7 +169,7 @@ function AgentsRailList({ agents, onSelectAgent }: AgentsRailListProps): React.J
         type="button"
         aria-expanded={!collapsed}
         onClick={() => setCollapsed((v) => !v)}
-        className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-start transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-accent"
+        className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-start transition-colors duration-fast ease-state hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-accent"
       >
         <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-muted">
           <span aria-hidden="true" className={`font-mono text-[9px] transition-transform ${collapsed ? "" : "rotate-90"}`}>▸</span>
@@ -189,7 +189,7 @@ function AgentsRailList({ agents, onSelectAgent }: AgentsRailListProps): React.J
                 key={agent.id}
                 type="button"
                 onClick={onSelectAgent}
-                className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-start transition-colors hover:bg-surface"
+                className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-start transition-colors duration-fast ease-state hover:bg-surface"
               >
                 <span className="flex min-w-0 flex-col">
                   <code className="truncate font-mono text-[11px] font-medium text-fg">{agent.name}</code>
@@ -470,7 +470,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                     aria-current={isActive ? "page" : undefined}
                     title={item.label}
                     onClick={() => onSelectSection(item.section)}
-                    className={`relative flex h-9 w-9 items-center justify-center rounded-sm border transition-colors ${
+                    className={`relative flex h-9 w-9 items-center justify-center rounded-sm border transition-colors duration-fast ease-state ${
                       isActive
                         ? "border-teal-accent/50 bg-teal-surface text-teal-accent"
                         : "border-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"

@@ -274,7 +274,7 @@ export function DocumentationWorkspaceView({
                   type="button"
                   aria-pressed={isSelected}
                   onClick={() => setSelectedDocId(doc.id)}
-                  className={`w-full space-y-1 rounded-md border p-3 text-start transition-colors ${
+                  className={`w-full space-y-1 rounded-md border p-3 text-start transition-colors duration-fast ease-state ${
                     isSelected ? "border-teal-accent/60 bg-teal-surface" : "border-border bg-surface hover:border-border-strong"
                   }`}
                 >

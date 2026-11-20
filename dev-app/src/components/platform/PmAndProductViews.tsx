@@ -180,7 +180,7 @@ export function ProjectManagerView({
           <span className="font-mono text-teal-accent">{`${doneCount} / ${totalCount} issues (${velocityPct}%)`}</span>
         </div>
         <div role="progressbar" aria-label="Sprint milestone completion" aria-valuenow={velocityPct} aria-valuemin={0} aria-valuemax={100} className="h-2 w-full overflow-hidden rounded-xs bg-chrome">
-          <div className="h-full bg-teal-accent transition-all" style={{ width: `${velocityPct}%` }} />
+          <div className="h-full bg-teal-accent transition-all duration-base ease-settle" style={{ width: `${velocityPct}%` }} />
         </div>
       </section>
 

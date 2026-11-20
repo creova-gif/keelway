@@ -11,9 +11,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
+from core.api.platform_runtime_routes import (
+    _enforce_workspace_permission,
+    get_rbac_controller,
+)
 from core.platform.enterprise import (
     EnterpriseGovernanceManager,
     EnterprisePolicyValidationError,
@@ -24,6 +28,7 @@ from core.platform.marketplace import (
     MarketplaceSecurityError,
     marketplace_registry,
 )
+from core.platform.rbac_webhooks import WorkspaceRbacController
 from core.platform.settlement import (
     MarketplaceSettlementLedger,
     marketplace_settlement_ledger,
@@ -278,10 +283,19 @@ async def scan_marketplace_package(
 
 @router.post("/marketplace/publish", status_code=status.HTTP_201_CREATED)
 async def publish_marketplace_package(
+    request: Request,
     payload: Dict[str, Any] = Body(...),
-    _: Principal = Depends(current_principal),
+    principal: Principal = Depends(current_principal),
+    rbac: WorkspaceRbacController = Depends(get_rbac_controller),
     mp: MarketplaceRegistry = Depends(get_marketplace_registry),
 ) -> Dict[str, Any]:
+    _enforce_workspace_permission(
+        request,
+        principal,
+        rbac,
+        str(payload.get("workspace_id") or "default"),
+        "marketplace:publish",
+    )
     try:
         return mp.publish_package(payload)
     except MarketplaceSecurityError as exc:

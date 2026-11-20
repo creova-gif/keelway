@@ -84,6 +84,16 @@
   --radius-md: 10px;
   --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.62);
+
+  /* Motion — Maritime Instrument choreography (kit 07)
+     Durations: snap=press/hover, fast=chips/toggles, base=panels/tabs, slow=modals/drawers */
+  --dur-snap: 80ms;
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-state: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-release: cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 [data-theme="light"] {
@@ -236,6 +246,108 @@
 
 .unicode-bidi-isolate {
   unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Motion choreography — seal lands, gate fades, underline slides, draw-on.
+   No spinners, shimmer, springs, loops. Reduced-motion guards below zero
+   every duration; state changes still land instantly so meaning survives.
+   ========================================================================== */
+
+/* Toast / receipt / chip "land" — settles into place once */
+@keyframes kw-land {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.kw-land {
+  animation: kw-land var(--dur-base) var(--ease-settle) both;
+}
+
+/* Modal / drawer / gate card — fade only, never scale */
+@keyframes kw-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.kw-fade-in {
+  animation: kw-fade var(--dur-slow) var(--ease-settle) both;
+}
+.kw-fade-fast {
+  animation: kw-fade var(--dur-base) var(--ease-settle) both;
+}
+
+/* Gate seal ring — a single binnacle pulse on approval, then still */
+@keyframes kw-seal-ring {
+  from {
+    box-shadow: 0 0 0 0 var(--attn-ochre);
+    opacity: 1;
+  }
+  to {
+    box-shadow: 0 0 0 14px transparent;
+    opacity: 0;
+  }
+}
+.kw-seal-ring {
+  position: relative;
+}
+.kw-seal-ring::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: kw-seal-ring var(--dur-slow) var(--ease-release) both;
+}
+
+/* Route / tab brass underline — slides in, persists while active */
+.kw-underline {
+  position: relative;
+}
+.kw-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--teal-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-settle);
+}
+.kw-underline:hover::after,
+.kw-underline[data-active="true"]::after,
+.kw-underline[aria-selected="true"]::after,
+.kw-underline[aria-current]::after {
+  transform: scaleX(1);
+}
+
+/* Chart / tape draw-on — runs once, then holds */
+@keyframes kw-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.kw-draw {
+  transform-origin: left;
+  animation: kw-draw var(--dur-slow) var(--ease-settle) both;
+}
+
+/* Skeleton rows — static blocks, never shimmer */
+.kw-skeleton {
+  background: var(--bg-surface-elevated);
+  border-radius: var(--radius-xs);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -440,7 +440,7 @@ export function SettingsGovernancePanel({
               aria-valuemax={Math.max(1, dailyBudget)}
               className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
             >
-              <div className="h-full bg-teal-accent transition-all" style={{ width: `${dailyPct}%` }} />
+              <div className="h-full bg-teal-accent transition-all duration-base ease-settle" style={{ width: `${dailyPct}%` }} />
             </div>
           </div>
 
@@ -460,7 +460,7 @@ export function SettingsGovernancePanel({
               className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
             >
               <div
-                className={`h-full transition-all ${
+                className={`h-full transition-all duration-base ease-settle ${
                   isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-teal-accent"
                 }`}
                 style={{ width: `${spendPct}%` }}

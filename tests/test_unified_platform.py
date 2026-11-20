@@ -503,6 +503,30 @@ def test_platform_api_end_to_end_routes(isolated_platform_client: TestClient) ->
     )
     assert pub_fail.status_code == 422 and pub_fail.json()["detail"]["passed"] is False
 
+    pub_payload = {"id": "ok-pkg", "name": "Ok", "kind": "agent_skill", "version": "0.1.0", "publisher": "Y", "description": "eval(user_input)"}
+    for denied_role in ("viewer", "operator"):
+        denied = client.post(
+            "/v1/platform/marketplace/publish",
+            json=pub_payload,
+            headers={"X-Keelway-Role": denied_role},
+        )
+        assert denied.status_code == 403, denied_role
+        assert "marketplace:publish" in denied.json()["detail"]
+
+    builder_reaches_scanner = client.post(
+        "/v1/platform/marketplace/publish",
+        json=pub_payload,
+        headers={"X-Keelway-Role": "builder"},
+    )
+    assert builder_reaches_scanner.status_code == 422 and builder_reaches_scanner.json()["detail"]["passed"] is False
+
+    bad_role = client.post(
+        "/v1/platform/marketplace/publish",
+        json=pub_payload,
+        headers={"X-Keelway-Role": "superadmin"},
+    )
+    assert bad_role.status_code == 400
+
     inst_resp = client.post(
         "/v1/platform/marketplace/install",
         json={"package_id": pkgs_resp.json()["packages"][0]["id"], "workspace_id": "default"},

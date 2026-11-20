@@ -309,7 +309,7 @@ export function SettingsAppearancePanel({
                 type="button"
                 aria-pressed={active}
                 onClick={() => onThemeModeChange(opt.mode)}
-                className={`min-h-ctrl-md rounded-sm border px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`min-h-ctrl-md rounded-sm border px-3 py-1.5 text-xs font-medium transition-colors duration-fast ease-state ${
                   active
                     ? "border-teal-accent bg-teal-surface text-teal-accent"
                     : "border-border-control bg-canvas text-fg hover:bg-surface-elevated"
@@ -342,7 +342,7 @@ export function SettingsAppearancePanel({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onDensityModeChange(card.mode)}
-                className={`flex flex-col gap-2.5 rounded-md border p-3 text-start transition-colors ${
+                className={`flex flex-col gap-2.5 rounded-md border p-3 text-start transition-colors duration-fast ease-state ${
                   selected
                     ? "border-teal-accent bg-teal-surface text-fg"
                     : "border-border-control bg-canvas text-fg hover:bg-surface-elevated"
