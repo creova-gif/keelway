@@ -272,6 +272,22 @@ class AsyncKeelwayClient:
         """Execute closed-loop test execution and automated AST surgical repair."""
         return await self._req("POST", "/v1/healing/repair", json={"test_command": test_command, "attempts": max_attempts})
 
+    # --- KStack Skills & Agent Manifest Registry ---
+    async def kstack_execute(self, name: str, inputs: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute a KStack skill through its builtin handler; returns the sealed SkillExecutionProof."""
+        res = await self._req("POST", "/v1/kstack/execute", json={"name": name, "inputs": inputs or {}})
+        return res.get("proof", res)
+
+    async def list_agent_registry(self) -> Dict[str, Any]:
+        """List all registered agent lifecycle manifests."""
+        return await self._req("GET", "/v1/agents/registry")
+
+    async def toggle_agent_manifest(self, name: str, version: str, enabled: bool) -> Dict[str, Any]:
+        """Kill-switch a registered agent manifest on or off (requires APPROVE_TIER3)."""
+        return await self._req(
+            "POST", f"/v1/agents/registry/{name}/{version}/toggle", json={"enabled": enabled}
+        )
+
     # --- Unified AI Platform v1: Models & Usage ---
     async def list_models(
         self,
@@ -628,6 +644,22 @@ class KeelwayClient:
     # --- Self-Healing Test & Repair ---
     def execute_self_healing(self, test_command: str = "pytest -q", max_attempts: int = 3) -> Dict[str, Any]:
         return self._req("POST", "/v1/healing/repair", json={"test_command": test_command, "attempts": max_attempts})
+
+    # --- KStack Skills & Agent Manifest Registry ---
+    def kstack_execute(self, name: str, inputs: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute a KStack skill through its builtin handler; returns the sealed SkillExecutionProof."""
+        res = self._req("POST", "/v1/kstack/execute", json={"name": name, "inputs": inputs or {}})
+        return res.get("proof", res)
+
+    def list_agent_registry(self) -> Dict[str, Any]:
+        """List all registered agent lifecycle manifests."""
+        return self._req("GET", "/v1/agents/registry")
+
+    def toggle_agent_manifest(self, name: str, version: str, enabled: bool) -> Dict[str, Any]:
+        """Kill-switch a registered agent manifest on or off (requires APPROVE_TIER3)."""
+        return self._req(
+            "POST", f"/v1/agents/registry/{name}/{version}/toggle", json={"enabled": enabled}
+        )
 
     # --- Unified AI Platform v1: Models & Usage ---
     def list_models(

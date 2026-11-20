@@ -490,6 +490,51 @@ export interface SwarmEvaluateResponse {
   [key: string]: unknown;
 }
 
+export interface KStackExecuteRequest {
+  name: string;
+  inputs?: Record<string, unknown>;
+}
+
+export interface SkillExecutionProof {
+  execution_id: string;
+  skill_name: string;
+  skill_digest_sha256: string;
+  actor: string;
+  inputs: Record<string, unknown>;
+  outputs: Record<string, unknown>;
+  permissions_used: string[];
+  success: boolean;
+  duration_ms: number;
+  timestamp_utc: string;
+  signature_sha256: string;
+  [key: string]: unknown;
+}
+
+export interface AgentRegistryRecord {
+  id: number;
+  name: string;
+  version: string;
+  owner: string;
+  description?: string;
+  digest: string;
+  enabled: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AgentRegistryListResponse {
+  manifests: AgentRegistryRecord[];
+  [key: string]: unknown;
+}
+
+export interface AgentRegistryToggleResponse {
+  id: number;
+  enabled: boolean;
+  updated_at?: string | null;
+  [key: string]: unknown;
+}
+
 export type * from "./platformMcpEval.js";
 export type * from "./platformKflow.js";
 export type * from "./platformEnterprise.js";

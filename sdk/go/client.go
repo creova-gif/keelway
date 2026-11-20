@@ -49,6 +49,8 @@ type Client struct {
 	Routing    *RoutingService
 	Platform   *PlatformService
 	Cluster    *ClusterService
+	KStack     *KStackService
+	Agents     *AgentsService
 	apiKey     string
 	httpClient *http.Client
 	timeout    time.Duration
@@ -73,6 +75,7 @@ func NewClient(baseURL string, opts ...Option) *Client {
 	}
 	c.Responses, c.Routing = &ResponsesService{client: c}, &RoutingService{client: c}
 	c.Platform, c.Cluster = &PlatformService{client: c}, &ClusterService{client: c}
+	c.KStack, c.Agents = &KStackService{client: c}, &AgentsService{client: c}
 	return c
 }
 
