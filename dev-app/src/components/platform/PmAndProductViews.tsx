@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type {
   ExperienceMode,
   LifecycleAgentItem,
@@ -297,8 +296,13 @@ export function ProjectManagerView({
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-xs font-semibold text-teal-accent">{issue.id}</span>
                   <h3 className="text-xs font-semibold text-fg">{issue.title}</h3>
-                  <span className="rounded-xs border border-border-strong bg-chrome px-1.5 py-0.5 font-mono text-[10px] uppercase text-fg-muted">{issue.priority}</span>
-                  {issue.status === "in_progress" ? <SemanticBadge kind="running" labelOverride="Delegated · In Progress" /> : null}
+                  <span className="font-mono text-[10px] uppercase text-fg-dim">{issue.priority}</span>
+                  {issue.status === "in_progress" ? (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-running">
+                      <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-running" />
+                      Delegated · In Progress
+                    </span>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-fg-dim">
                   <span>{issue.sprint}</span>
@@ -494,7 +498,7 @@ export function ProductWorkspaceView({
               : "Structured PRDs with RICE prioritization, executable acceptance criteria, user feedback evidence, and linked KEEL sprint issues."}
           </p>
         </div>
-        <SemanticBadge kind="live" labelOverride={`${localPrds.length} Active PRDs`} />
+        <span className="font-mono text-[11px] text-fg-muted">{`${localPrds.length} Active PRDs`}</span>
       </div>
 
       <section aria-label="Author new PRD and RICE calculator" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">

@@ -9,7 +9,6 @@ import { QuotaAndPricingSimulatorPanel } from "@/components/platform/QuotaAndPri
 import { SiemAndObservabilityPanel } from "@/components/platform/SiemAndObservabilityPanel";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
-import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import {
   fetchClusterAndSettlementSnapshot, postClusterNodeAction, postClusterSchedule, postModelLifecycleAction,
   type ClusterNodeItem, type MarketplaceSettlementSummary, type ModelCanaryItem,
@@ -136,7 +135,7 @@ export function AutomationWorkspaceView({
               : "Compile durable KFlow DAG specifications with node dependency graphs, cron/webhook triggers, and token budgets."}
           </p>
         </div>
-        <SemanticBadge kind="opencore" detail={`${workflows.length} KFlow DAGs`} />
+        <span className="font-mono text-[11px] text-fg-muted">{`${workflows.length} KFlow DAGs`}</span>
       </div>
 
       <BidirectionalKflowStudioPanel
@@ -213,7 +212,13 @@ export function AutomationWorkspaceView({
           const nodes = getEffectiveNodes(wf);
           const logs = traceByWf[wf.id] ?? [];
           const isTraceOpen = Boolean(traceOpenByWf[wf.id]);
-          const wfBadge = wf.lastRunStatus === "passed" ? "passed" : wf.lastRunStatus === "failed" ? "failed" : wf.lastRunStatus === "running" ? "running" : "ready";
+          const wfStatus = wf.lastRunStatus === "passed"
+            ? { dot: "bg-ok", text: "text-ok", label: "Passed" }
+            : wf.lastRunStatus === "failed"
+              ? { dot: "bg-danger", text: "text-danger", label: "Failed" }
+              : wf.lastRunStatus === "running"
+                ? { dot: "bg-running", text: "text-running", label: "Running" }
+                : { dot: "bg-fg-muted", text: "text-fg-muted", label: "Ready" };
           return (
             <article key={wf.id} className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -221,7 +226,10 @@ export function AutomationWorkspaceView({
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-semibold text-teal-accent">{wf.id}</span>
                     <h3 className="text-sm font-semibold text-fg">{wf.name}</h3>
-                    <SemanticBadge kind={wfBadge} />
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] ${wfStatus.text}`}>
+                      <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${wfStatus.dot}`} />
+                      {wfStatus.label}
+                    </span>
                   </div>
                   <div className="mt-0.5 font-mono text-[11px] text-fg-dim">
                     {`Trigger: ${wf.triggerKind.toUpperCase()} (${wf.triggerSpec}) · Budget: ${wf.tokenBudget.toLocaleString()} tok`}
@@ -244,9 +252,17 @@ export function AutomationWorkspaceView({
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center justify-between gap-1.5">
                         <span className="font-medium text-fg">{node.label}</span>
-                        <div className="flex items-center gap-1">
-                          {node.requiresP10 ? <SemanticBadge kind="needs-approval" labelOverride="P-10 Gate" /> : null}
-                          <SemanticBadge kind={node.status === "passed" ? "passed" : node.status === "failed" ? "failed" : "ready"} />
+                        <div className="flex items-center gap-1.5">
+                          {node.requiresP10 ? (
+                            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-ochre">
+                              <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-ochre" />
+                              P-10 Gate
+                            </span>
+                          ) : null}
+                          <span className={`inline-flex items-center gap-1 font-mono text-[10px] ${node.status === "failed" ? "text-danger" : node.status === "passed" ? "text-ok" : "text-fg-muted"}`}>
+                            <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${node.status === "failed" ? "bg-danger" : node.status === "passed" ? "bg-ok" : "bg-fg-muted"}`} />
+                            {node.status === "passed" ? "Passed" : node.status === "failed" ? "Failed" : "Ready"}
+                          </span>
                         </div>
                       </div>
                       <div className="font-mono text-[10px] text-fg-dim">
@@ -370,7 +386,7 @@ export function OperationsWorkspaceView({
           <h1 className="text-base font-semibold text-fg">Operations · Deployments, Cost Governance &amp; SLOs</h1>
           <p className="text-xs text-fg-muted">Monitor managed deployments, P-10 human-confirmed rollbacks, OpenCore $0.00 local inference vs BYOM spend, and TTFT latency SLOs.</p>
         </div>
-        <SemanticBadge kind="live" labelOverride={`Active Tier · ${tier.badgeLabel}`} />
+        <span className="font-mono text-[11px] text-fg-muted">{`Active Tier · ${tier.badgeLabel}`}</span>
       </div>
 
       <CalloutBanner variant="spend-warn" title="BYOM Credential & Consumer-Subscription Compliance" description={BYOM_CONSUMER_COMPLIANCE_CALLOUT} safeStateNote="Keelway charges $0.00 token markup on authorized BYOM API keys and local OpenCore weights." />
@@ -441,7 +457,10 @@ export function OperationsWorkspaceView({
                   <div className="flex items-center gap-2">
                     <h3 className="text-xs font-semibold text-fg">{dep.environment}</h3>
                     <code className="font-mono text-xs text-teal-accent">{dep.version}</code>
-                    <SemanticBadge kind={dep.status === "rolled_back" ? "reconfirm" : "passed"} labelOverride={dep.status === "rolled_back" ? "Rolled back with P-10 receipt" : dep.status === "staging_ready" ? "Staging Verified" : "Healthy"} />
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] ${dep.status === "rolled_back" ? "text-warning" : dep.status === "staging_ready" ? "text-ok" : "text-fg-muted"}`}>
+                      <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${dep.status === "rolled_back" ? "bg-warning" : dep.status === "staging_ready" ? "bg-ok" : "bg-fg-muted"}`} />
+                      {dep.status === "rolled_back" ? "Rolled back with P-10 receipt" : dep.status === "staging_ready" ? "Staging Verified" : "Healthy"}
+                    </span>
                   </div>
                   <div className="font-mono text-[11px] text-fg-dim">{`${dep.url} · Last deploy: ${dep.lastDeployedAt}${dep.rollbackReceipt ? ` · ${dep.rollbackReceipt}` : ""}`}</div>
                 </div>
@@ -464,7 +483,7 @@ export function OperationsWorkspaceView({
       <section aria-label="Multi-node GPU cluster and model canary rollout" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-fg">Multi-Node GPU Cluster &amp; Model Canary Rollout</h2>
-          <SemanticBadge kind="opencore" detail={`${clusterNodes.filter((n) => n.status !== "drained").length}/${clusterNodes.length} Nodes Active`} />
+          <span className="font-mono text-[11px] text-fg-muted">{`${clusterNodes.filter((n) => n.status !== "drained").length}/${clusterNodes.length} Nodes Active`}</span>
         </div>
         <div className="grid gap-2.5 md:grid-cols-2">
           {clusterNodes.map((node) => {
@@ -474,7 +493,10 @@ export function OperationsWorkspaceView({
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-mono text-xs font-semibold text-fg">{node.nodeId}</h3>
-                    <SemanticBadge kind={isDrained ? "reconfirm" : "passed"} labelOverride={isDrained ? "Drained" : "Healthy"} />
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] ${isDrained ? "text-warning" : "text-fg-muted"}`}>
+                      <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${isDrained ? "bg-warning" : "bg-ok"}`} />
+                      {isDrained ? "Drained" : "Healthy"}
+                    </span>
                   </div>
                   <div className="font-mono text-[11px] text-fg-muted">{`${node.runtimeLabel} · ${node.totalVramGb}GB · ${node.region}`}</div>
                 </div>
@@ -539,7 +561,10 @@ export function OperationsWorkspaceView({
       <section aria-label="Marketplace settlement and creator payout ledger" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-fg">Marketplace Settlement &amp; Creator Payout Ledger</h2>
-          <SemanticBadge kind="passed" labelOverride={settlement.verifiedSplitLabel} />
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-ok">
+            <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-ok" />
+            {settlement.verifiedSplitLabel}
+          </span>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-sm border border-border bg-chrome p-2.5">
