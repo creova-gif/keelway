@@ -253,3 +253,33 @@ Website, Product & Components).
 - Contact: "Talk to a human." form → drafted GitHub issue (no invented
   mailbox). Sign-in: `K′` + magic-link stub + SSO/GitHub (preview-gated).
 - 404: port-red `ERR 404 — off the chart` → "isn't on the tape."
+
+## 9. Motion — "Servo, not theatre" (codified 2026-11-22)
+
+Shared choreography between website (`globals.css`) and dev-app
+(`styles/tokens.css` + tailwind `duration-*/ease-*` utilities). Approved on
+Paper kit page 07.
+
+### Tokens
+- Durations: `--dur-snap` 80ms (press/hover), `--dur-fast` 140ms
+  (chips/toggles/tooltips), `--dur-base` 220ms (panels/tabs/toasts),
+  `--dur-slow` 380ms ceiling (modals/drawers/entrances).
+- Easings: `--ease-settle` `cubic-bezier(.16,1,.3,1)` entrances;
+  `--ease-state` `(.65,0,.35,1)` toggles; `--ease-release` `(.7,0,.84,0)`
+  exits. No springs, no bounce.
+
+### What moves
+- Route/tab → brass underline slides (`kw-navlink`, `.kw-underline`).
+- Seal/approval → element lands (`kw-land` 220ms settle) + single 380ms
+  `kw-seal-ring` binnacle pulse.
+- Modal/drawer/palette → `kw-fade-in` 380ms fade only, never scale.
+- Chart/tape bar → `kw-draw` scaleX draw-on, once.
+- The homepage `ControlPlaneFigure` gate panel is a live demo: Allow once /
+  Deny / ↺ replay transition the chip, step, and receipt states in place —
+  denials seal to the tape the same as approvals.
+
+### What never moves
+- No spinners/shimmer (`.kw-skeleton` static blocks), no looping pulses,
+  no scroll reveals beyond `kw-rise` first-paint, no cursor effects.
+- Reduced motion: every duration collapses via the existing guards; state
+  still lands so meaning survives.

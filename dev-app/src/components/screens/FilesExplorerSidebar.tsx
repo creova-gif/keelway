@@ -159,7 +159,7 @@ export function FilesExplorerSidebar({
           aria-current={isCurrent ? "true" : undefined}
           onClick={() => onSelectFile(node.path)}
           style={{ paddingInlineStart: `${16 + depth * 12}px` }}
-          className={`flex min-h-row w-full items-center justify-between gap-1.5 rounded-xs pe-2 py-1 text-start text-xs transition-colors ${
+          className={`flex min-h-row w-full items-center justify-between gap-1.5 rounded-xs pe-2 py-1 text-start text-xs transition-colors duration-fast ease-state ${
             isCurrent
               ? "bg-teal-surface text-fg"
               : "text-fg-muted hover:bg-surface-elevated hover:text-fg"

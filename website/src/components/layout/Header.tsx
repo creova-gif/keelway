@@ -29,7 +29,9 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`kw-navlink ${pathname.startsWith(item.href) ? "text-[var(--ink)]" : ""}`}
+              className="kw-navlink"
+              data-active={pathname.startsWith(item.href) ? "true" : undefined}
+              aria-current={pathname.startsWith(item.href) ? "page" : undefined}
             >
               {item.label}
             </Link>

@@ -40,6 +40,16 @@
   --blue: #6f87a3;
   --blue-8: rgba(111, 135, 163, 0.08);
   --blue-35: rgba(111, 135, 163, 0.35);
+
+  /* motion — Maritime Instrument choreography (kit 07)
+     snap=press/hover, fast=chips/toggles, base=panels/tabs, slow=modals/entrances */
+  --dur-snap: 80ms;
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-state: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-release: cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 html {
@@ -119,7 +129,7 @@ body {
   font-weight: 600;
   border-radius: 6px;
   padding: 0.625rem 1rem;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition: background-color var(--dur-fast) var(--ease-state), border-color var(--dur-fast) var(--ease-state), color var(--dur-fast) var(--ease-state);
 }
 .kw-btn:focus-visible,
 .kw-input:focus-visible,
@@ -139,7 +149,7 @@ body {
 .kw-link {
   font-size: 0.8125rem;
   color: var(--muted);
-  transition: color 150ms ease;
+  transition: color var(--dur-fast) var(--ease-state);
 }
 .kw-link:hover { color: var(--ink); }
 .kw-input {
@@ -150,7 +160,7 @@ body {
   padding: 0.625rem 0.75rem;
   font-size: 0.8125rem;
   color: var(--ink);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease-state), box-shadow var(--dur-fast) var(--ease-state);
 }
 .kw-input::placeholder { color: var(--dim); }
 .kw-input:focus { border-color: var(--brass); box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15); outline: none; }
@@ -188,23 +198,73 @@ body {
   color: var(--dim);
 }
 .kw-rule { border-top: 1px solid var(--rule); }
-.kw-row-hover { transition: background-color 120ms ease; }
+.kw-row-hover { transition: background-color var(--dur-snap) var(--ease-state); }
 .kw-row-hover:hover { background: rgba(255, 255, 255, 0.015); }
 
-/* nav link */
+/* nav link — brass underline slides in (kit 07: route → underline) */
 .kw-navlink {
+  position: relative;
   font-size: 0.8125rem;
   color: var(--muted);
-  transition: color 150ms ease;
+  transition: color var(--dur-fast) var(--ease-state);
+}
+.kw-navlink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: var(--brass);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-settle);
 }
 .kw-navlink:hover { color: var(--ink); }
+.kw-navlink:hover::after,
+.kw-navlink[data-active="true"]::after { transform: scaleX(1); }
+.kw-navlink[data-active="true"] { color: var(--ink); }
+
+/* interactive figure — live gate decisions */
+.kw-fig-btn {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  transition: background-color var(--dur-fast) var(--ease-state),
+    border-color var(--dur-fast) var(--ease-state), color var(--dur-fast) var(--ease-state);
+  cursor: pointer;
+}
+.kw-fig-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--brass-ring); }
+.kw-fig-btn:disabled { cursor: default; }
+
+/* chip state transitions — tone change settles, never pops */
+.kw-chip { transition: color var(--dur-base) var(--ease-state), border-color var(--dur-base) var(--ease-state), background-color var(--dur-base) var(--ease-state); }
+
+/* seal land — receipt row settles once */
+@media (prefers-reduced-motion: no-preference) {
+  .kw-land { animation: kw-land var(--dur-base) var(--ease-settle) both; }
+  .kw-seal-ring { animation: kw-seal-ring var(--dur-slow) var(--ease-release) both; }
+}
+@keyframes kw-land {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes kw-seal-ring {
+  from { box-shadow: 0 0 0 0 var(--brass-40); }
+  to { box-shadow: 0 0 0 14px transparent; }
+}
+
+/* figure state washes — gated brass, sealed green, denied port */
+.kw-fig-state-gated { background: var(--brass-8); }
+.kw-fig-state-denied { background: var(--red-8); }
 
 /* motion — fade-rise, reduced-motion safe */
 @media (prefers-reduced-motion: no-preference) {
   .kw-rise {
     opacity: 0;
     transform: translateY(12px);
-    animation: kw-rise 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: kw-rise var(--dur-slow) var(--ease-settle) forwards;
   }
 }
 @keyframes kw-rise {

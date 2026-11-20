@@ -615,7 +615,7 @@ export function RecordAuditLedger({
                       key={entry.seq}
                       data-selected={isSelected ? "true" : undefined}
                       onClick={() => handleSelectSeq(entry.seq)}
-                      className={`h-table-row min-h-table-row cursor-pointer transition-colors ${
+                      className={`h-table-row min-h-table-row cursor-pointer transition-colors duration-fast ease-state ${
                         isSelected
                           ? "border-s-2 border-s-teal-accent bg-teal-surface"
                           : isTamperedHere
@@ -674,7 +674,7 @@ export function RecordAuditLedger({
                             handleSelectSeq(entry.seq);
                           }}
                           onKeyDown={(e) => handleRowButtonKeyDown(e, rowIndex)}
-                          className={`inline-flex items-center gap-1.5 rounded-xs border px-2 py-0.5 font-mono text-[11px] transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-xs border px-2 py-0.5 font-mono text-[11px] transition-colors duration-fast ease-state ${
                             isTamperedHere
                               ? "border-danger bg-danger-subtle font-semibold text-danger"
                               : isUntrustedAfterBreak

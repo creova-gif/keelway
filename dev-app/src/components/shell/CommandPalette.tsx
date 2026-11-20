@@ -266,10 +266,10 @@ export function CommandPalette({
   return (
     <Dialog.Root open={isOpen} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60" />
+        <Dialog.Overlay className="kw-fade-fast fixed inset-0 z-40 bg-black/60" />
         <Dialog.Content
           aria-describedby={descId}
-          className="fixed start-1/2 top-[14%] z-50 flex w-full max-w-xl -translate-x-1/2 flex-col overflow-hidden rounded-md border border-border-strong bg-surface text-fg shadow-modal rtl:translate-x-1/2"
+          className="kw-fade-in fixed start-1/2 top-[14%] z-50 flex w-full max-w-xl -translate-x-1/2 flex-col overflow-hidden rounded-md border border-border-strong bg-surface text-fg shadow-modal rtl:translate-x-1/2"
         >
           <Dialog.Title className="sr-only">Command palette</Dialog.Title>
           <Dialog.Description id={descId} className="sr-only">
@@ -310,7 +310,7 @@ export function CommandPalette({
                       <div
                         key={entry.key} id={`${baseId}-opt-${idx}`} role="option" aria-selected={isSelected}
                         onMouseEnter={() => setSelectedIndex(idx)} onClick={() => entry.onActivate()}
-                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-sm px-2.5 py-2 text-xs transition-colors ${isSelected ? "bg-teal-surface text-fg" : "text-fg hover:bg-surface-elevated"}`}
+                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-sm px-2.5 py-2 text-xs transition-colors duration-fast ease-state ${isSelected ? "bg-teal-surface text-fg" : "text-fg hover:bg-surface-elevated"}`}
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">

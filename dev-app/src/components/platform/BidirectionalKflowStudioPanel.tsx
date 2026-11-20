@@ -322,7 +322,7 @@ export function BidirectionalKflowStudioPanel({
             {nodes.map((node) => {
               const isSelected = selectedNode?.id === node.id;
               return (
-                <div key={node.id} className={`flex items-center justify-between gap-2 rounded-sm border p-2 transition-colors ${isSelected ? "border-teal-accent/65 bg-teal-surface" : "border-border-strong bg-chrome hover:border-border-control"}`}>
+                <div key={node.id} className={`flex items-center justify-between gap-2 rounded-sm border p-2 transition-colors duration-fast ease-state ${isSelected ? "border-teal-accent/65 bg-teal-surface" : "border-border-strong bg-chrome hover:border-border-control"}`}>
                   <button
                     type="button" aria-label={`Select studio node ${node.id}`} aria-pressed={isSelected}
                     onClick={() => setSelectedNodeId(node.id)}
@@ -339,7 +339,7 @@ export function BidirectionalKflowStudioPanel({
                   <button
                     type="button" aria-label={`Toggle P-10 lock for ${node.id}`} aria-pressed={node.requires_p10}
                     disabled={!canMutate || syncing} onClick={() => { void handleToggleP10Lock(node.id); }}
-                    className={`shrink-0 rounded-xs border px-2 py-1 font-mono text-[10px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent disabled:cursor-not-allowed disabled:opacity-55 ${node.requires_p10 ? "border-ochre/55 bg-ochre-subtle text-ochre" : "border-border-control bg-canvas text-fg-muted hover:text-fg"}`}
+                    className={`shrink-0 rounded-xs border px-2 py-1 font-mono text-[10px] font-semibold transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent disabled:cursor-not-allowed disabled:opacity-55 ${node.requires_p10 ? "border-ochre/55 bg-ochre-subtle text-ochre" : "border-border-control bg-canvas text-fg-muted hover:text-fg"}`}
                   >
                     {node.requires_p10 ? "⚿ P-10 Locked" : "○ Lock P-10"}
                   </button>

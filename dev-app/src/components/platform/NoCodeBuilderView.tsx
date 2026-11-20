@@ -141,7 +141,7 @@ export function NoCodeBuilderView({
                   setSelectedTemplate(tpl.label);
                   setIdeaPrompt(tpl.prompt);
                 }}
-                className={`rounded-md border p-3 text-start transition-colors ${
+                className={`rounded-md border p-3 text-start transition-colors duration-fast ease-state ${
                   active ? "border-teal-accent/60 bg-teal-surface text-fg" : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
                 }`}
               >

@@ -102,6 +102,17 @@ const config: Config = {
         popover: "var(--shadow-popover)",
         modal: "var(--shadow-modal)",
       },
+      transitionDuration: {
+        snap: "var(--dur-snap)",
+        fast: "var(--dur-fast)",
+        base: "var(--dur-base)",
+        slow: "var(--dur-slow)",
+      },
+      transitionTimingFunction: {
+        settle: "var(--ease-settle)",
+        state: "var(--ease-state)",
+        release: "var(--ease-release)",
+      },
     },
   },
   plugins: [

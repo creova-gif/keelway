@@ -135,7 +135,7 @@ export function SettingsSubNav({
               type="button"
               aria-current={isActive ? "page" : undefined}
               onClick={() => onSelectSubSection(item.id)}
-              className={`flex min-h-row w-full items-center justify-between gap-2 rounded-xs px-2.5 py-1.5 text-start text-xs font-medium transition-colors ${
+              className={`flex min-h-row w-full items-center justify-between gap-2 rounded-xs px-2.5 py-1.5 text-start text-xs font-medium transition-colors duration-fast ease-state ${
                 isActive
                   ? "border-s-2 border-s-teal-accent bg-teal-surface text-fg"
                   : "border-s-2 border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"

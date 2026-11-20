@@ -98,7 +98,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       aria-describedby={describedByIds}
       data-click-only={clickOnly ? "true" : undefined}
       onClick={handleClick}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-sm border transition-colors duration-150 select-none ${
+      className={`inline-flex items-center justify-center gap-1.5 rounded-sm border transition-colors duration-fast ease-state select-none ${
         VARIANT_CLASSES[variant]
       } ${SIZE_CLASSES[size]} ${
         isInactive ? "opacity-55 cursor-not-allowed" : "cursor-pointer active:scale-[0.99]"

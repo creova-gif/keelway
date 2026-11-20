@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
+
 type Variant = "gate" | "flow" | "policy";
+type GateState = "gated" | "sealed" | "denied";
 
 const LABELS: Record<Variant, string> = {
   gate: "Keelway control plane sample: task queue, P-10 approval gate, sealed execution receipts, and tape status.",
@@ -47,9 +52,24 @@ function Chrome({ right }: { right?: React.ReactNode }) {
 }
 
 function GatePanel() {
+  const [gate, setGate] = useState<GateState>("gated");
+
+  const gateChip =
+    gate === "gated"
+      ? { tone: "brass" as const, text: "P-10 GATE · QUORUM 1/2" }
+      : gate === "sealed"
+        ? { tone: "green" as const, text: "P-10 GATE · APPROVED" }
+        : { tone: "red" as const, text: "P-10 GATE · DENIED" };
+
+  const stepState = (s: (typeof STEPS)[number]) =>
+    s.state !== "gate" ? s.state : gate === "sealed" ? "done" : gate === "denied" ? "denied" : "gate";
+
+  const receiptState = (r: (typeof RECEIPTS)[number]) =>
+    r.state !== "awaiting" ? r.state : gate === "sealed" ? "sealed" : gate === "denied" ? "denied" : "awaiting";
+
   return (
     <div className="grid sm:grid-cols-[15rem_1fr]">
-      <div className="hidden border-r border-[var(--rule)] sm:block">
+      <div className="hidden border-r border-[var(--rule)] sm:block" aria-hidden="true">
         <p className="kw-label px-4 pt-4">Tasks</p>
         <ul className="mt-2">
           {TASKS.map((t) => (
@@ -62,37 +82,91 @@ function GatePanel() {
       </div>
       <div className="px-4 py-4 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Chip tone="brass">P-10 GATE · QUORUM 1/2</Chip>
+          <span className={gate === "sealed" ? "kw-seal-ring inline-flex" : "inline-flex"}>
+            <Chip tone={gateChip.tone}>{gateChip.text}</Chip>
+          </span>
           <span className="kw-data text-[10px] text-[var(--dim)]">run 7b02.5.1 · p-14</span>
         </div>
-        <ol className="mt-4 flex flex-wrap gap-2">
-          {STEPS.map((s) => (
-            <li key={s.n} className="flex items-center gap-2">
-              <span className={`kw-data text-[10px] ${s.state === "gate" ? "text-[var(--brass)]" : s.state === "done" ? "text-[var(--green)]" : "text-[var(--dim)]"}`}>
-                {s.n} {s.name}
-              </span>
-              {s.n !== "04" && <span className="h-px w-4 bg-[var(--rule-strong)]" aria-hidden="true" />}
-            </li>
-          ))}
+        <ol className="mt-4 flex flex-wrap gap-2" aria-hidden="true">
+          {STEPS.map((s) => {
+            const st = stepState(s);
+            return (
+              <li key={s.n} className="flex items-center gap-2">
+                <span
+                  className={`kw-data text-[10px] ${
+                    st === "gate"
+                      ? "text-[var(--brass)]"
+                      : st === "done"
+                        ? "text-[var(--green)]"
+                        : st === "denied"
+                          ? "text-[var(--red)]"
+                          : "text-[var(--dim)]"
+                  }`}
+                >
+                  {s.n} {s.name}
+                </span>
+                {s.n !== "04" && <span className="h-px w-4 bg-[var(--rule-strong)]" aria-hidden="true" />}
+              </li>
+            );
+          })}
         </ol>
         <p className="kw-label mt-6">Execution receipts</p>
-        <ul className="mt-2 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
-          {RECEIPTS.map((r) => (
-            <li key={r.id} className="flex items-center justify-between gap-3 py-2.5">
-              <span className="kw-data text-[11px] text-[var(--muted)]"><span className="text-[var(--dim)]">{r.id}</span> {r.action}</span>
-              <Chip tone={r.state === "sealed" ? "green" : "brass"}>{r.state.toUpperCase()}</Chip>
-            </li>
-          ))}
+        <ul className="mt-2 divide-y divide-[var(--rule)] border-y border-[var(--rule)]" aria-live="polite">
+          {RECEIPTS.map((r) => {
+            const st = receiptState(r);
+            return (
+              <li
+                key={r.id}
+                className={`flex items-center justify-between gap-3 py-2.5 ${
+                  r.state === "awaiting" && gate !== "gated" ? "kw-land" : ""
+                } ${r.state === "awaiting" && gate === "denied" ? "kw-fig-state-denied" : ""}`}
+              >
+                <span className="kw-data text-[11px] text-[var(--muted)]">
+                  <span className="text-[var(--dim)]">{r.id}</span> {r.action}
+                </span>
+                <Chip tone={st === "sealed" ? "green" : st === "denied" ? "red" : "brass"}>{st.toUpperCase()}</Chip>
+              </li>
+            );
+          })}
         </ul>
         <div className="mt-4 flex items-center gap-3">
-          <span className="kw-btn kw-btn-primary px-3 py-1.5 text-[11px]">Allow once</span>
-          <span className="kw-btn kw-btn-secondary px-3 py-1.5 text-[11px]">Deny</span>
-          <span className="kw-data ml-auto text-[10px] text-[var(--dim)]">Esc = deny</span>
+          {gate === "gated" ? (
+            <>
+              <button
+                type="button"
+                className="kw-fig-btn bg-[var(--brass)] text-[var(--brass-ink)] hover:bg-[var(--brass-deep)]"
+                onClick={() => setGate("sealed")}
+              >
+                Allow once
+              </button>
+              <button
+                type="button"
+                className="kw-fig-btn border border-[var(--rule-strong)] text-[var(--ink)] hover:bg-[var(--fog-8)]"
+                onClick={() => setGate("denied")}
+              >
+                Deny
+              </button>
+              <span className="kw-data ml-auto text-[10px] text-[var(--dim)]">try the gate</span>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="kw-fig-btn border border-[var(--rule-strong)] text-[var(--muted)] hover:bg-[var(--fog-8)] hover:text-[var(--ink)]"
+                onClick={() => setGate("gated")}
+              >
+                ↺ replay
+              </button>
+              <span className="kw-data ml-auto text-[10px] text-[var(--dim)]">
+                {gate === "sealed" ? "approval sealed to tape #1284" : "denial sealed to tape #1284"}
+              </span>
+            </>
+          )}
         </div>
       </div>
-      <div className="flex flex-wrap gap-x-6 gap-y-1 border-t border-[var(--rule)] px-4 py-2.5 sm:col-span-2">
+      <div className="flex flex-wrap gap-x-6 gap-y-1 border-t border-[var(--rule)] px-4 py-2.5 sm:col-span-2" aria-hidden="true">
         <span className="kw-data text-[10px] text-[var(--dim)]">cost $0.00</span>
-        <span className="kw-data text-[10px] text-[var(--dim)]">tape #1283</span>
+        <span className="kw-data text-[10px] text-[var(--dim)]">tape #{gate === "gated" ? "1283" : "1284"}</span>
         <span className="kw-data text-[10px] text-[var(--green)]">chain verified</span>
       </div>
     </div>
@@ -160,9 +234,14 @@ function PolicyPanel() {
 }
 
 export function ControlPlaneFigure({ variant = "gate" }: { variant?: Variant }) {
+  const interactive = variant === "gate";
   return (
-    <div className="kw-figure bg-[var(--fog-4)]" role="img" aria-label={LABELS[variant]}>
-      <div aria-hidden="true">
+    <div
+      className="kw-figure bg-[var(--fog-4)]"
+      role={interactive ? "group" : "img"}
+      aria-label={LABELS[variant]}
+    >
+      <div aria-hidden={interactive ? undefined : true}>
         <Chrome />
         {variant === "gate" && <GatePanel />}
         {variant === "flow" && <FlowPanel />}

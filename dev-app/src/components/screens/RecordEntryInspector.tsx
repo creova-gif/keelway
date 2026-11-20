@@ -414,7 +414,7 @@ export function RecordEntryInspector({
                 <button
                   type="button"
                   onClick={() => onSelectPrevSeq(prevSeq)}
-                  className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-teal-accent transition-colors hover:border-teal-accent"
+                  className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-teal-accent transition-colors duration-fast ease-state hover:border-teal-accent"
                 >
                   {`(#${prevSeq})`}
                 </button>
