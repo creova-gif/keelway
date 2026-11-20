@@ -5,7 +5,7 @@
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-22
 - **BRANCH**: feature/keel-app-058-maritime-motion
-- **HEAD COMMIT**: (pending)
+- **HEAD COMMIT**: 87cd30e
 
 #### OBJECTIVE & ACCEPTANCE CRITERIA
 - [x] Shared motion tokens (80/140/220/380ms + settle/state/release easings) in both `dev-app/src/styles/tokens.css` and `website/src/app/globals.css` — Paper kit page 07 codified
