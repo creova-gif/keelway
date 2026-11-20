@@ -133,3 +133,58 @@ def test_marketplace_first_party_signed_with_managed_key(
     for pkg in first_party:
         ok, reason = signer.verify_manifest(pkg)
         assert ok, f"{pkg.get('id')}: {reason}"
+
+
+def test_marketplace_rejects_unsigned_first_party_publish(
+    clear_key_env: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """Unsigned ``first_party`` payloads must not be auto-signed server-side.
+
+    The managed key is configured here on purpose: even when the server can
+    sign, a caller-supplied unsigned first-party manifest must be rejected so
+    authenticated publishers cannot mint Sorvex Labs signatures.
+    """
+    from core.platform.marketplace import MarketplaceSecurityError
+
+    clear_key_env.setenv("KEELWAY_MANIFEST_KEY_FILE", str(tmp_path / "signing.seed"))
+    registry = MarketplaceRegistry()
+
+    payload = {
+        "id": "forged-first-party-skill",
+        "name": "Forged Sorvex Skill",
+        "kind": "agent_skill",
+        "publisher": "Attacker",
+        "publisher_tier": "first_party",
+        "description": "Should never become first-party signed.",
+    }
+    with pytest.raises(MarketplaceSecurityError) as excinfo:
+        registry.publish_package(payload)
+    categories = {f["category"] for f in excinfo.value.report["findings"]}
+    assert "unsigned_first_party" in categories
+    assert registry.get_package("forged-first-party-skill") is None
+
+
+def test_marketplace_rejects_self_signed_first_party_publish(
+    clear_key_env: pytest.MonkeyPatch,
+) -> None:
+    """A ``first_party`` manifest signed by an untrusted key is rejected."""
+    from core.platform.marketplace import MarketplaceSecurityError
+
+    registry = MarketplaceRegistry()
+    attacker_pem, attacker_pub = generate_publisher_keypair()
+    payload = {
+        "id": "self-signed-first-party-skill",
+        "name": "Self Signed Sorvex Skill",
+        "kind": "agent_skill",
+        "publisher": "Attacker",
+        "publisher_tier": "first_party",
+        "description": "Signed by an untrusted publisher key.",
+    }
+    signed = Ed25519ManifestSigner(trusted_keys={"attacker-key": attacker_pub}).sign_manifest(
+        payload, attacker_pem, "attacker-key"
+    )
+    with pytest.raises(MarketplaceSecurityError) as excinfo:
+        registry.publish_package(signed)
+    categories = {f["category"] for f in excinfo.value.report["findings"]}
+    assert "invalid_signature" in categories
+    assert registry.get_package("self-signed-first-party-skill") is None
