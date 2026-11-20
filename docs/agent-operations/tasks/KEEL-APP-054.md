@@ -1,4 +1,4 @@
-# KEEL-APP-052 — Tri-SDK Parity: `kstack_execute` + Agent Manifest Registry
+# KEEL-APP-054 — Tri-SDK Parity: `kstack_execute` + Agent Manifest Registry
 
 - **STATUS**: VERIFIED_COMPLETE
 - **DATE**: 2026-11-19
