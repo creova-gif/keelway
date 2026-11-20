@@ -329,7 +329,7 @@ class MarketplaceRegistry:
 
         for seed in CURATED_SEED_PACKAGES:
             if seed["id"] not in self._packages:
-                self.publish_package(seed)
+                self.publish_package(seed, _curated_seed=True)
 
         if self.store is not None:
             for row in self.store.list_all_installs():
@@ -349,7 +349,7 @@ class MarketplaceRegistry:
                     "installed_at": row["installed_at"],
                 }
 
-    def publish_package(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def publish_package(self, payload: Dict[str, Any], *, _curated_seed: bool = False) -> Dict[str, Any]:
         pkg_id = str(payload.get("id") or "").strip()
         if not pkg_id:
             raise ValueError("Package 'id' is required.")
@@ -415,6 +415,28 @@ class MarketplaceRegistry:
             record["signer_key_id"] = str(payload["signer_key_id"])
             record["ed25519_signature"] = str(payload["ed25519_signature"])
         elif publisher_tier == "first_party":
+            if not _curated_seed:
+                raise MarketplaceSecurityError(
+                    {
+                        "passed": False,
+                        "risk_grade": "C",
+                        "findings": [
+                            {
+                                "category": "unsigned_first_party",
+                                "rule_id": "unsigned_first_party_manifest",
+                                "severity": "critical",
+                                "field": "ed25519_signature",
+                                "message": (
+                                    "Unsigned 'first_party' packages are not accepted. Sign the manifest "
+                                    "with a key registered in the publisher trust set before publishing."
+                                ),
+                            }
+                        ],
+                        "findings_count": 1,
+                        "manifest_sha256": _canonical_sha256(payload),
+                        "scanned_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
             try:
                 sorvex_pem, _ = get_sorvex_first_party_keypair()
             except FirstPartySigningKeyUnavailable:
