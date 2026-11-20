@@ -129,20 +129,20 @@ export function RecordOutcomeBadge({
 }: {
   outcome: RecordOutcomeKind;
 }): React.JSX.Element {
-  switch (outcome) {
-    case "passed":
-      return <SemanticBadge kind="passed" />;
-    case "ready":
-      return <SemanticBadge kind="ready" />;
-    case "allowed":
-      return <SemanticBadge kind="done" labelOverride="Allowed" />;
-    case "denied":
-      return <SemanticBadge kind="failed" labelOverride="Denied" />;
-    case "blocked":
-      return <SemanticBadge kind="failed" labelOverride="Blocked" />;
-    case "failed":
-      return <SemanticBadge kind="failed" />;
-  }
+  const spec =
+    outcome === "passed"
+      ? { dot: "bg-ok", text: "text-ok", label: "Passed" }
+      : outcome === "ready"
+        ? { dot: "bg-fg-muted", text: "text-fg-muted", label: "Ready" }
+        : outcome === "allowed"
+          ? { dot: "bg-fg-muted", text: "text-fg", label: "Allowed" }
+          : { dot: "bg-danger", text: "text-danger", label: outcome === "denied" ? "Denied" : outcome === "blocked" ? "Blocked" : "Failed" };
+  return (
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] ${spec.text}`}>
+      <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${spec.dot}`} />
+      {spec.label}
+    </span>
+  );
 }
 
 export interface RecordEntryInspectorProps {

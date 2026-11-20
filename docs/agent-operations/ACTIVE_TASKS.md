@@ -67,6 +67,7 @@
 | **KEEL-APP-053** | Permissions & Manifests decongestion: dot-status, warnings disclosure, constant-column drop | `APP / UX` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `feature/keel-app-053-permissions-decongestion` |
 | **KEEL-APP-054** | Tri-SDK Parity: `kstack_execute` + Agent Manifest Registry (`Python`/`TypeScript`/`Go`) | `SDK / KSTACK / AGENTS` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `feature/keel-app-054-sdk-kstack-registry-parity` |
 | **KEEL-APP-055** | Workspace-bar control consolidation + Governance card-in-card de-chroming | `APP / UX` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `feature/keel-app-055-control-cluster-decongestion` |
+| **KEEL-APP-056** | Record ledger dot-status outcomes + onboarding badge budget | `APP / UX` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `feature/keel-app-056-record-onboarding-decongestion` |
 | **KEEL-ENG-036** | `core/config.py` No-Pydantic Fallback `default_factory` Fix | `ENGINEERING / DEVEX / MINIMAL-ENV` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-036-config-fallback` |
 | **KEEL-SEC-037** | OIDC Federation Profile Disclosure (`self_issued_hs256`) & SAML Claim Correction | `SECURITY / PRODUCT-TRUTH / ENTERPRISE-IDENTITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-SEC-037-oidc-profile` |
 | **KEEL-ENG-038** | Simulated OpenCore Response Disclosure (`simulated` flag, mock-backend routing_reason) | `ENGINEERING / PRODUCT-TRUTH / INFERENCE` | `VERIFIED_COMPLETE` | Devin | 2026-11-16 | `fix/KEEL-ENG-038-simulated-disclosure` |

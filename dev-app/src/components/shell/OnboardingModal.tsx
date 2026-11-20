@@ -143,13 +143,18 @@ export function OnboardingModal({
   };
 
   const renderDoctorBadge = (status: DoctorCheckItem["status"]): React.JSX.Element => {
-    if (status === "ok") {
-      return <SemanticBadge kind="passed" />;
-    }
-    if (status === "warning") {
-      return <SemanticBadge kind="reconfirm" labelOverride="Warning" />;
-    }
-    return <SemanticBadge kind="failed" />;
+    const spec =
+      status === "ok"
+        ? { dot: "bg-ok", text: "text-ok", label: "Passed" }
+        : status === "warning"
+          ? { dot: "bg-warning", text: "text-warning", label: "Warning" }
+          : { dot: "bg-danger", text: "text-danger", label: "Failed" };
+    return (
+      <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] ${spec.text}`}>
+        <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${spec.dot}`} />
+        {spec.label}
+      </span>
+    );
   };
 
   return (
@@ -174,7 +179,7 @@ export function OnboardingModal({
                   : "Step 2 of 2 · Bind a local workspace directory and verify OS sandbox, OpenCore runtime, and audit ledger."}
               </Dialog.Description>
             </div>
-            <span className="shrink-0 rounded-xs border border-border-strong bg-surface px-2 py-1 font-mono text-[11px] text-fg-muted">
+            <span className="shrink-0 font-mono text-[11px] tabular-nums text-fg-dim">
               {`Step ${step} / 2`}
             </span>
           </div>
