@@ -22,6 +22,13 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
+      - dependency-name: "tailwindcss"
+        versions: [">=4.0.0"]
+      - dependency-name: "vitest"
+        versions: [">=5.0.0"]
     groups:
       npm-minor-patch:
         update-types:
@@ -42,6 +49,9 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "python"
+        versions: [">=3.15"]
     groups:
       docker-minor-patch:
         update-types:
