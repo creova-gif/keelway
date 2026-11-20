@@ -113,6 +113,7 @@
 | **KEEL-REL-059** | M7: cosign keyless signing, PyPI OIDC publish job, generated Homebrew formula (41 pinned resources) | `RELEASE / DISTRIBUTION / SIGNING` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 | **KEEL-REL-060** | M8: SECURITY.md disclosure policy, SUPPORT runbook, PILOT_READINESS runbook | `RELEASE / OPS / DOCS` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
 | **KEEL-ENG-053** | ACP content-aware policy: `rawInput` edit bodies fold into evaluator → real content-DLP DENY | `ENGINEERING / AGENTS / SECURITY` | `VERIFIED_COMPLETE` | Devin | 2026-11-17 | `main` |
+| **KEEL-DEPS-062** | Dependabot weekly grouped version updates (pip, npm ×5, gomod, docker, github-actions); re-lands stale PR #57 | `CI / DEPENDENCIES` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `feature/keel-deps-062-dependabot` |
 | **KEEL-SEC-061** | Marketplace publish forgery fix — unsigned `first_party` payloads rejected (was server auto-signed); lands un-merged half of PR #56 | `SECURITY / SUPPLY-CHAIN / MARKETPLACE` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `fix/keel-sec-061-marketplace-first-party-forgery` |
 
 ---
