@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Reveal } from "@/components/motion/Reveal";
 
 export const metadata: Metadata = {
   title: "About",
@@ -23,14 +24,16 @@ export default function AboutPage() {
         with commercial tiers for teams that need governed routing at scale.
       </p>
       <div className="mt-14 border-t border-[var(--rule)]">
-        {PRINCIPLES.map((p) => (
-          <div key={p.id} className="kw-row-hover flex flex-col gap-2 border-b border-[var(--rule)] py-7 sm:flex-row sm:gap-10">
-            <p className="kw-label w-16 shrink-0 pt-1">{p.id}</p>
-            <div>
-              <h2 className="kw-h3">{p.title}</h2>
-              <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-[var(--muted)]">{p.body}</p>
+        {PRINCIPLES.map((p, idx) => (
+          <Reveal key={p.id} delay={Math.min(idx, 2) as 0 | 1 | 2}>
+            <div className="kw-row-hover flex flex-col gap-2 border-b border-[var(--rule)] py-7 sm:flex-row sm:gap-10">
+              <p className="kw-label w-16 shrink-0 pt-1">{p.id}</p>
+              <div>
+                <h2 className="kw-h3">{p.title}</h2>
+                <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-[var(--muted)]">{p.body}</p>
+              </div>
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </div>
