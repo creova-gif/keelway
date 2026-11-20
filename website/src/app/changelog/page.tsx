@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RELEASES } from "@/data/releases";
+import { Reveal } from "@/components/motion/Reveal";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -13,15 +14,17 @@ export default function ChangelogPage() {
       <h1 className="kw-h1 mt-5">The logbook, public.</h1>
       <div className="mt-14 border-t border-[var(--rule)]">
         {RELEASES.map((r) => (
-          <article key={r.version} className="kw-row-hover border-b border-[var(--rule)] py-8">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="kw-h3">v{r.version}</h2>
-              <p className="kw-data text-[var(--dim)]">{r.date}</p>
-            </div>
-            <ul className="mt-4 space-y-2 text-[14px] leading-relaxed text-[var(--muted)]">
-              {r.highlights.map((h) => <li key={h}>{h}</li>)}
-            </ul>
-          </article>
+          <Reveal key={r.version}>
+            <article className="kw-row-hover border-b border-[var(--rule)] py-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-3">
+                <h2 className="kw-h3">v{r.version}</h2>
+                <p className="kw-data text-[var(--dim)]">{r.date}</p>
+              </div>
+              <ul className="mt-4 space-y-2 text-[14px] leading-relaxed text-[var(--muted)]">
+                {r.highlights.map((h) => <li key={h}>{h}</li>)}
+              </ul>
+            </article>
+          </Reveal>
         ))}
       </div>
     </div>
