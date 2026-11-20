@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Reveal } from "@/components/motion/Reveal";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -22,21 +23,22 @@ export default function PricingPage() {
         Seat pricing shown at annual billing. Every paid tier routes at 0% token markup.
       </p>
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {TIERS.map((t) => (
-          <div
-            key={t.name}
-            className={`kw-card p-6 ${t.brass ? "border-[var(--brass-40)] bg-[var(--brass-8)]" : ""}`}
-          >
-            <p className={`kw-label ${t.brass ? "kw-label-brass" : ""}`}>{t.name}</p>
-            <p className="mt-4 text-3xl font-semibold tracking-tight text-[var(--ink)]">
-              {t.price}
-              {t.price !== "$0" && <span className="text-sm font-normal text-[var(--dim)]">/seat/mo</span>}
-            </p>
-            <p className="kw-small mt-2">{t.cadence}</p>
-            <ul className="mt-5 space-y-2.5 border-t border-[var(--rule)] pt-4 text-[13px] text-[var(--muted)]">
-              {t.features.map((f) => <li key={f}>{f}</li>)}
-            </ul>
-          </div>
+        {TIERS.map((t, idx) => (
+          <Reveal key={t.name} delay={Math.min(idx, 2) as 0 | 1 | 2}>
+            <div
+              className={`kw-card h-full p-6 transition-colors duration-fast ease-state hover:border-[var(--rule-strong)] ${t.brass ? "border-[var(--brass-40)] bg-[var(--brass-8)]" : ""}`}
+            >
+              <p className={`kw-label ${t.brass ? "kw-label-brass" : ""}`}>{t.name}</p>
+              <p className="mt-4 text-3xl font-semibold tracking-tight text-[var(--ink)]">
+                {t.price}
+                {t.price !== "$0" && <span className="text-sm font-normal text-[var(--dim)]">/seat/mo</span>}
+              </p>
+              <p className="kw-small mt-2">{t.cadence}</p>
+              <ul className="mt-5 space-y-2.5 border-t border-[var(--rule)] pt-4 text-[13px] text-[var(--muted)]">
+                {t.features.map((f) => <li key={f}>{f}</li>)}
+              </ul>
+            </div>
+          </Reveal>
         ))}
       </div>
       <div className="mt-10 flex flex-col gap-3 border-t border-[var(--rule)] pt-6 sm:flex-row sm:items-baseline sm:justify-between">

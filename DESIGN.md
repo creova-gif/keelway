@@ -140,8 +140,8 @@ Marketing-site additions on top of the base system. North star: **calm engineeri
 - `.frame-teal-rule` — 1px teal top rule, **only** on interactive/emphasis cards (e.g., the product-proof figure). Teal stays rare; neutral cards never get it.
 
 ### Motion — intentional, CSS-gated
-- `.kw-reveal` + `Reveal` component (`components/motion/Reveal.tsx`): fade-rise 200ms ease-out, ≤3-item stagger via `kw-reveal-delay-{1,2}`. Hidden state applied post-mount only to offscreen elements — content is fully visible without JS and under `prefers-reduced-motion`.
-- Tab/segmented indicators transition at 150ms. No bounce, no glow, no loops.
+- `.kw-reveal` + `Reveal` component (`components/motion/Reveal.tsx`): fade-rise on `var(--dur-base)` settle, ≤3-item stagger via `kw-reveal-delay-{1,2}`. Hidden state applied post-mount only to offscreen elements — content is fully visible without JS and under `prefers-reduced-motion`. Canonical tokens in §9.
+- Tab/segmented indicators transition at `--dur-fast`. No bounce, no glow, no loops.
 
 ---
 
