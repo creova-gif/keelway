@@ -92,6 +92,7 @@ jobs:
           cache-dependency-path: |
             website/package-lock.json
             dev-app/package-lock.json
+            web-next/package-lock.json
       - uses: actions/setup-go@v7
         with:
           go-version: "1.23"
@@ -100,6 +101,11 @@ jobs:
           npm --prefix website ci
           npm --prefix website run typecheck
           npm --prefix website run build
+      - name: Build & typecheck web-next scaffold
+        run: |
+          npm --prefix web-next ci
+          npm --prefix web-next run typecheck
+          npm --prefix web-next run build
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
