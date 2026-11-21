@@ -115,6 +115,7 @@ export function FilesWorkspace({
   const resolvedInitialLine = navigationTarget?.line ?? selectedLine ?? initialActiveLine;
 
   const [tree, setTree] = useState<WorkspaceFileNode[]>([]);
+  const [treeResolved, setTreeResolved] = useState(false);
   const [symbols, setSymbols] = useState<CodeSymbolItem[]>([]);
   const [diffHunks, setDiffHunks] = useState<FileDiffHunk[]>([]);
   const [sidebarTab, setSidebarTab] = useState<FilesExplorerTab>(initialSidebarTab);
@@ -169,15 +170,18 @@ export function FilesWorkspace({
         setTree(nodes);
         onTreeLoadedRef.current?.(nodes);
         const files = flattenFiles(nodes);
-        if (files.length > 0 && !files.some((f) => f.path === initialPathRef.current)) {
-          const first = files[0].path;
+        setTreeResolved(true);
+        if (!files.some((f) => f.path === initialPathRef.current)) {
+          const first = files[0]?.path ?? "";
           setSeedErrorPath(first);
           setActivePath(first);
-          setOpenPaths([first]);
+          setOpenPaths(first ? [first] : []);
         }
       })
       .catch((err) => {
-        if (!cancelled) setStatusMessage(`Failed to load workspace tree: ${err instanceof Error ? err.message : "unknown error"}`);
+        if (cancelled) return;
+        setTreeResolved(true);
+        setStatusMessage(`Failed to load workspace tree: ${err instanceof Error ? err.message : "unknown error"}`);
       });
     fetchDiffFn()
       .then((hunks) => { if (!cancelled) setDiffHunks(hunks); })
@@ -199,7 +203,7 @@ export function FilesWorkspace({
   const loadedPathsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!activePath || loadedPathsRef.current.has(activePath)) {
+    if (!activePath || !treeResolved || loadedPathsRef.current.has(activePath)) {
       return;
     }
     let cancelled = false;
@@ -223,7 +227,7 @@ export function FilesWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [activePath, fetchContentFn]);
+  }, [activePath, fetchContentFn, treeResolved]);
 
   const flatFiles = useMemo(() => flattenFiles(tree), [tree]);
 
@@ -618,6 +622,7 @@ export function FilesWorkspace({
             <Button
               size="sm"
               variant="secondary"
+              disabled={!activePath}
               onClick={() => void openInEditorFn(activePath, activeLine).then((res) => setStatusMessage(`Opened ${res.target} in ${res.editor}`))}
             >
               Open in VS Code
@@ -672,7 +677,11 @@ export function FilesWorkspace({
           </div>
         ) : null}
 
-        {viewMode === "code" ? (
+        {viewMode === "code" && !activePath ? (
+          <div className="flex min-h-0 flex-1 items-center justify-center bg-code text-xs text-fg-dim">
+            No file open — select a file in the workspace tree.
+          </div>
+        ) : viewMode === "code" ? (
           <div className="flex min-h-0 flex-1 overflow-hidden bg-code">
             <div
               data-testid="provenance-gutter"
@@ -713,9 +722,13 @@ export function FilesWorkspace({
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-chrome px-3 py-1 text-[11px] text-fg-muted">
           <div className="flex items-center gap-2.5 font-mono">
-            <code dir="ltr" className="unicode-bidi-isolate text-fg">{activePath}</code>
-            <span className="tabular-nums">{`Ln ${activeLine}`}</span>
-            <span>{activeLanguage}</span>
+            <code dir="ltr" className="unicode-bidi-isolate text-fg">{activePath || "No file open"}</code>
+            {activePath ? (
+              <>
+                <span className="tabular-nums">{`Ln ${activeLine}`}</span>
+                <span>{activeLanguage}</span>
+              </>
+            ) : null}
             {typeof activeAiSeq === "number" ? <SemanticBadge kind="ai" detail={`#${activeAiSeq}`} /> : null}
           </div>
           <div className="flex items-center gap-3">

@@ -505,7 +505,7 @@ export function App({
         symbols: workspaceSymbols,
         activeTab: "tree",
         onTabChange: () => {},
-        activePath: filesNavTarget?.path ?? "core/main.py",
+        activePath: filesNavTarget?.path ?? "",
         dirtyByPath: {},
         saveErrorsByPath: {},
         onSelectFile: (path: string) =>
