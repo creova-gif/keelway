@@ -509,7 +509,7 @@ export function SettingsPermissionsPanel({
       >
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+            <h3 className="text-[15px] font-semibold text-fg">
               Human-granted Allow always (scoped) rules
             </h3>
             <p className="mt-0.5 text-xs text-fg-muted">
@@ -521,16 +521,23 @@ export function SettingsPermissionsPanel({
                 : "Rules govern the current workspace only — they are stored in its .keelway/ folder."}
             </p>
           </div>
-          {scopedRules.length > 0 ? (
-            <Button
-              size="sm"
-              variant={armedRevokeAll ? "primary" : "danger-ghost"}
-              disabled={rulesBusy}
-              onClick={() => void handleRevokeAll()}
-            >
-              {armedRevokeAll ? "Confirm revoke all (this workspace)" : "Revoke all"}
-            </Button>
-          ) : null}
+          <div className="flex items-center gap-3">
+            {rulesLoading ? null : (
+              <span className="font-mono text-[11px] text-fg-dim">
+                {scopedRules.length} scoped
+              </span>
+            )}
+            {scopedRules.length > 0 ? (
+              <Button
+                size="sm"
+                variant={armedRevokeAll ? "primary" : "danger-ghost"}
+                disabled={rulesBusy}
+                onClick={() => void handleRevokeAll()}
+              >
+                {armedRevokeAll ? "Confirm revoke all (this workspace)" : "Revoke all"}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {rulesError ? (
@@ -763,12 +770,17 @@ export function SettingsPermissionsPanel({
         aria-label="Immutable P-10 governance invariants"
         className="rounded-md border border-border-strong bg-surface p-4"
       >
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
-          Immutable P-10 approval invariants
-        </h3>
-        <p className="mt-0.5 text-xs text-fg-muted">
-          Enforced in runtime code; standing rules and agent manifests cannot weaken these gates.
-        </p>
+        <div className="flex items-baseline justify-between gap-3">
+          <div>
+            <h3 className="text-[15px] font-semibold text-fg">
+              Immutable P-10 approval invariants
+            </h3>
+            <p className="mt-0.5 text-xs text-fg-muted">
+              Enforced in runtime code; standing rules and agent manifests cannot weaken these gates.
+            </p>
+          </div>
+          <span className="shrink-0 font-mono text-[11px] text-fg-dim">immutable</span>
+        </div>
 
         <ul className="mt-3 divide-y divide-border rounded-sm border border-border bg-canvas text-xs">
           <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
@@ -810,7 +822,7 @@ export function SettingsPermissionsPanel({
         className="space-y-4 rounded-md border border-border-strong bg-surface p-4"
       >
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+          <h3 className="text-[15px] font-semibold text-fg">
             Agent Manifest Registry (<code dir="ltr" className="unicode-bidi-isolate font-mono">keelway.agent/v1</code>)
           </h3>
           <p className="mt-0.5 text-xs text-fg-muted">
