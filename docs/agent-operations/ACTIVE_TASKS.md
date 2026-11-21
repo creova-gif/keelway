@@ -125,6 +125,7 @@
 | **KEEL-DSN-002** | Full-screen Paper design (Phase 2): page `17 - Settings` (17.1–17.6, all 8 subsections) + page `18 - Missing Surfaces` (18.1 P-10+run lane, 18.2 billing/tiers, 18.3 overlays, 18.4 views+state matrix). Remaining: drawers only | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-dsn-002-settings-design` |
 
 | **KEEL-DSN-001** | Paper Design program ratified (Phase 0/1): verified MCP integration, `docs/design/` program + screen inventory + canonical `tokens.json` registry, DESIGN.md §10 declares Paper canonical | `UI / DESIGN-SYSTEM` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `main` @ `60fd5cf` (PR #159) |
+| **KEEL-WEB-041** | Homepage session-replay terminal demo (typewriter k′ run → P-10 gate → seal/deny) + copyable install command | `APP / WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-041-terminal-demo` |
 
 ---
 
@@ -148,7 +149,7 @@
 All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tri-Language SDK (`Python`, `TypeScript`, `Go`) backlog items are `VERIFIED_COMPLETE`.
 | **KEEL-APP-061** | Files workspace honest empty state — no phantom `core/main.py` fetch/404 on empty workspaces | `APP` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `fix/keel-app-061-files-empty-workspace` |
 | **KEEL-APP-062** | Settings shell wired to Paper anatomy 17.1 (`2AQ-0`): rail grammar, active-rule-no-fill, quiet drift count, content padding | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-062-settings-shell-anatomy` |
-| **KEEL-APP-063** | Settings panel header grammar — shared `SettingsPanelHeader` (17px title + purpose + quiet status) across all 8 panels | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-063-settings-panel-header` |
+| **KEEL-WEB-041** | Settings panel header grammar — shared `SettingsPanelHeader` (17px title + purpose + quiet status) across all 8 panels | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-063-settings-panel-header` |
 | **KEEL-APP-064** | Settings Permissions deep-dive wiring — section-title grammar, quiet right-statuses, immutable band marker per Paper `17.2` (`2CG-0`) | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-064-permissions-deep-dive` |
 | **KEEL-APP-065** | Settings section-title grammar — sentence-case 15px/600 h3s + quiet counts across Governance, Models, Network, light panels (Paper 17.3–17.6) | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-065-settings-section-grammar` |
 | **KEEL-DSN-003** | Desktop completeness audit + Paper page 19 — component primitives, agent composer, workspace switcher+inbox, app auth/About (competitor-informed) | `DESIGN` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-dsn-003-desktop-completeness` |
