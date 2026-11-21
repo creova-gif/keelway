@@ -121,7 +121,7 @@ export function AgentComposer({
                 onClick={() => insertSlashSkill(skill.name)}
                 className={`flex cursor-pointer items-center justify-between gap-2 rounded-xs px-2.5 py-1.5 text-xs ${
                   isSelected
-                    ? "bg-teal-surface text-teal-accent"
+                    ? "bg-accent-subtle text-accent"
                     : "text-fg hover:bg-surface"
                 }`}
               >

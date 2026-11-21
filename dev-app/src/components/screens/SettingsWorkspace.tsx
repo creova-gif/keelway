@@ -139,7 +139,7 @@ export function SettingsSubNav({
               onClick={() => onSelectSubSection(item.id)}
               className={`flex w-full items-center justify-between gap-2 border-s-2 pe-5 ps-[18px] py-[7px] text-start text-[13px] transition-colors duration-fast ease-state ${
                 isActive
-                  ? "border-s-teal-accent text-fg"
+                  ? "border-s-accent text-fg"
                   : "border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
               }`}
             >

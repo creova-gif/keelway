@@ -142,7 +142,7 @@ export function NoCodeBuilderView({
                   setIdeaPrompt(tpl.prompt);
                 }}
                 className={`rounded-md border p-3 text-start transition-colors duration-fast ease-state ${
-                  active ? "border-teal-accent/60 bg-teal-surface text-fg" : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
+                  active ? "border-accent/60 bg-accent-subtle text-fg" : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
                 }`}
               >
                 <div className="text-xs font-semibold text-fg">{tpl.label}</div>
@@ -174,10 +174,10 @@ export function NoCodeBuilderView({
       </form>
 
       {activeBlueprint ? (
-        <section aria-label="Generated project blueprint" className="space-y-4 rounded-md border border-teal-accent/45 bg-surface p-4">
+        <section aria-label="Generated project blueprint" className="space-y-4 rounded-md border border-accent/45 bg-surface p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
             <div>
-              <span className="font-mono text-[11px] uppercase text-teal-accent">Committed to Shared Workspace</span>
+              <span className="font-mono text-[11px] uppercase text-accent">Committed to Shared Workspace</span>
               <h2 className="text-sm font-semibold text-fg">{activeBlueprint.prd.title}</h2>
             </div>
             <SemanticBadge kind="passed" labelOverride="Synced to Product, PM, Automation & Agents" />
@@ -199,7 +199,7 @@ export function NoCodeBuilderView({
               </div>
               <ul className="space-y-1 text-xs text-fg-muted">
                 {activeBlueprint.issues.map((iss) => (
-                  <li key={iss.id}><code className="font-mono text-teal-accent">{iss.id}</code> — {iss.title}</li>
+                  <li key={iss.id}><code className="font-mono text-accent">{iss.id}</code> — {iss.title}</li>
                 ))}
               </ul>
             </article>
@@ -218,7 +218,7 @@ export function NoCodeBuilderView({
                 <Button size="sm" variant="ghost" onClick={() => onNavigateView("agents")}>Open in Agents</Button>
               </div>
               <div className="text-xs text-fg">{activeBlueprint.assignedTeamName}</div>
-              <div className="font-mono text-[11px] text-teal-accent">{`Preview: ${activeBlueprint.previewUrl}`}</div>
+              <div className="font-mono text-[11px] text-accent">{`Preview: ${activeBlueprint.previewUrl}`}</div>
               <div className="font-mono text-[10px] text-ochre">P-10 Human Approval Required before external production promotion</div>
             </article>
           </div>
@@ -232,7 +232,7 @@ export function NoCodeBuilderView({
               <h2 className="text-sm font-semibold text-fg">
                 {`Interactive Live App Preview · ${activeBlueprint?.prd.title ?? selectedTemplate}`}
               </h2>
-              <p className="font-mono text-[11px] text-teal-accent">
+              <p className="font-mono text-[11px] text-accent">
                 {activeBlueprint?.previewUrl ?? "http://127.0.0.1:7420/preview/starter-sandbox"}
               </p>
             </div>
@@ -316,7 +316,7 @@ export function NoCodeBuilderView({
               <tbody className="divide-y divide-border bg-canvas">
                 {previewRecords.map((rec) => (
                   <tr key={rec.id}>
-                    <td className="px-3 py-2 font-mono text-teal-accent">{rec.id}</td>
+                    <td className="px-3 py-2 font-mono text-accent">{rec.id}</td>
                     <td className="px-3 py-2 text-fg">{rec.requestor}</td>
                     <td className="px-3 py-2 text-fg-muted">{`${rec.summary} (${rec.extraMeta})`}</td>
                     <td className="px-3 py-2 font-mono text-[11px]">

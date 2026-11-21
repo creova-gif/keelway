@@ -252,7 +252,7 @@ export function AgentsWorkspaceView({
                 <p className="text-xs text-fg-muted">{team.description}</p>
                 <div className="flex flex-wrap gap-1">
                   {team.memberAgentIds.map((m) => (
-                    <span key={m} className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-teal-accent">{m}</span>
+                    <span key={m} className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-accent">{m}</span>
                   ))}
                 </div>
                 <div className="rounded-xs border border-ochre/35 bg-ochre-subtle/30 px-2 py-1 font-mono text-[10px] text-ochre">
@@ -281,7 +281,7 @@ export function AgentsWorkspaceView({
       </section>
 
       {supervisedAgent ? (
-        <section aria-label="Agent session supervisor and manifest inspector" className="space-y-3 rounded-md border border-teal-accent/50 bg-surface p-4">
+        <section aria-label="Agent session supervisor and manifest inspector" className="space-y-3 rounded-md border border-accent/50 bg-surface p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
             <div>
               <h2 className="text-sm font-semibold text-fg">
@@ -296,7 +296,7 @@ export function AgentsWorkspaceView({
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-1">
-              <div className="font-mono text-[11px] text-teal-accent">Canonical keelway.agent/v1 Manifest (Ed25519 Verified)</div>
+              <div className="font-mono text-[11px] text-accent">Canonical keelway.agent/v1 Manifest (Ed25519 Verified)</div>
               <pre className="overflow-x-auto rounded-xs border border-border bg-code p-3 font-mono text-[11px] text-fg">
                 <code>{manifestJson}</code>
               </pre>
@@ -399,7 +399,7 @@ export function AgentsWorkspaceView({
                     )}
                   </div>
                 </div>
-                <div className="text-xs font-medium text-teal-accent">{agent.roleTitle}</div>
+                <div className="text-xs font-medium text-accent">{agent.roleTitle}</div>
                 <p className="text-xs text-fg-muted">{agent.plainSummary}</p>
                 {experienceMode === "builder" ? (
                   <div className="flex flex-wrap gap-1 pt-0.5">

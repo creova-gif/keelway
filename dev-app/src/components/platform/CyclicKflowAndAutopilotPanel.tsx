@@ -93,7 +93,7 @@ function CyclicReflectionColumn({
 
       {validation ? (
         <div className="rounded-xs border border-border bg-canvas px-2.5 py-1.5 font-mono text-[11px] text-fg-muted">
-          <span className="font-semibold text-teal-accent">Graph Verified:</span>{" "}
+          <span className="font-semibold text-accent">Graph Verified:</span>{" "}
           {`${validation.topological_spine.join(" -> ")} · max steps ${validation.max_worst_case_steps} · handlers [${validation.compensation_handlers.join(", ")}]`}
         </div>
       ) : null}
@@ -105,7 +105,7 @@ function CyclicReflectionColumn({
               <span className="font-semibold text-fg">
                 {`Iterations: ${activeRun.iterations_executed}/${activeRun.max_iterations} · Final Critic: ${activeRun.final_critic_score.toFixed(2)} · Shards: ${activeRun.fan_out_shards}`}
               </span>
-              <span className="text-teal-accent">
+              <span className="text-accent">
                 {`map_reduce (${activeRun.fan_out_shards}sh) · $${activeRun.total_cost_usd.toFixed(3)} · ${activeRun.total_latency_ms}ms`}
               </span>
             </div>
@@ -191,7 +191,7 @@ function AutopilotPlannerColumn({
             </div>
             <div>
               <div className="text-[10px] text-fg-muted">Savings % &amp; Violations Resolved</div>
-              <div className="font-semibold text-teal-accent">{`${simulation.savings_pct.toFixed(1)}% saved · ${simulation.violations_resolved} resolved`}</div>
+              <div className="font-semibold text-accent">{`${simulation.savings_pct.toFixed(1)}% saved · ${simulation.violations_resolved} resolved`}</div>
             </div>
             <div>
               <div className="text-[10px] text-fg-muted">Expected TTFT</div>
@@ -349,15 +349,15 @@ export function CyclicKflowAndAutopilotPanel({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-xs border border-teal-accent/45 bg-teal-surface px-2 py-1 font-mono text-[11px]">
+          <div className="flex items-center gap-1.5 rounded-xs border border-accent/45 bg-accent-subtle px-2 py-1 font-mono text-[11px]">
             <span className="text-fg-muted">run_sha256:</span>
-            <code data-testid="cyclic-run-sha256" title={activeRun?.run_sha256 ?? "awaiting-run"} className="max-w-[160px] truncate font-semibold text-teal-accent">
+            <code data-testid="cyclic-run-sha256" title={activeRun?.run_sha256 ?? "awaiting-run"} className="max-w-[160px] truncate font-semibold text-accent">
               {activeRun?.run_sha256 ?? "awaiting-run"}
             </code>
           </div>
           <div className="flex items-center gap-1.5 rounded-xs border border-border-strong bg-chrome px-2 py-1 font-mono text-[11px]">
             <span className="text-fg-muted">simulation_sha256:</span>
-            <code data-testid="autopilot-simulation-sha256" title={simulation?.simulation_sha256 ?? "awaiting-simulation"} className="max-w-[160px] truncate font-semibold text-teal-accent">
+            <code data-testid="autopilot-simulation-sha256" title={simulation?.simulation_sha256 ?? "awaiting-simulation"} className="max-w-[160px] truncate font-semibold text-accent">
               {simulation?.simulation_sha256 ?? "awaiting-simulation"}
             </code>
           </div>

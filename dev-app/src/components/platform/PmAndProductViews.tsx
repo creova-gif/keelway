@@ -170,17 +170,17 @@ export function ProjectManagerView({
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-fg-muted">
           <span className="rounded-xs border border-border bg-surface px-2 py-1">Sprint 14 · Sovereign Platform</span>
-          <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-2 py-1 text-teal-accent">Milestone: v1.1 Unified GA</span>
+          <span className="rounded-xs border border-accent/40 bg-accent-subtle px-2 py-1 text-accent">Milestone: v1.1 Unified GA</span>
         </div>
       </div>
 
       <section aria-label="Sprint velocity and milestone progress" className="space-y-2 rounded-md border border-border bg-surface p-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="font-semibold text-fg">Sprint Velocity &amp; Milestone Completion</span>
-          <span className="font-mono text-teal-accent">{`${doneCount} / ${totalCount} issues (${velocityPct}%)`}</span>
+          <span className="font-mono text-accent">{`${doneCount} / ${totalCount} issues (${velocityPct}%)`}</span>
         </div>
         <div role="progressbar" aria-label="Sprint milestone completion" aria-valuenow={velocityPct} aria-valuemin={0} aria-valuemax={100} className="h-2 w-full overflow-hidden rounded-xs bg-chrome">
-          <div className="h-full bg-teal-accent transition-all duration-base ease-settle" style={{ width: `${velocityPct}%` }} />
+          <div className="h-full bg-accent transition-all duration-base ease-settle" style={{ width: `${velocityPct}%` }} />
         </div>
       </section>
 
@@ -193,7 +193,7 @@ export function ProjectManagerView({
               aria-pressed={statusFilter === st}
               onClick={() => setStatusFilter(st)}
               className={`rounded-sm border px-2.5 py-1 text-xs font-medium capitalize ${
-                statusFilter === st ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
+                statusFilter === st ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
               }`}
             >
               {st.replace("_", " ")}
@@ -212,7 +212,7 @@ export function ProjectManagerView({
               aria-pressed={layout === mode.id}
               onClick={() => setLayout(mode.id)}
               className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-                layout === mode.id ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
+                layout === mode.id ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
               }`}
             >
               {mode.label}
@@ -245,7 +245,7 @@ export function ProjectManagerView({
       </form>
 
       {inspectedIssue ? (
-        <section aria-label={`Issue detail inspector for ${inspectedIssue.id}`} className="space-y-3 rounded-md border border-teal-accent/50 bg-surface p-4">
+        <section aria-label={`Issue detail inspector for ${inspectedIssue.id}`} className="space-y-3 rounded-md border border-accent/50 bg-surface p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
             <h2 className="text-sm font-semibold text-fg">{`Issue Detail Inspector · ${inspectedIssue.id}: ${inspectedIssue.title}`}</h2>
             <div className="flex items-center gap-2">
@@ -281,7 +281,7 @@ export function ProjectManagerView({
             <div className="flex items-center gap-2 md:col-span-2">
               <Button type="submit" size="sm" variant="primary">Save Issue Details</Button>
               {savedInspectId === inspectedIssue.id ? <span role="status" className="font-mono text-xs text-ok">Issue details updated</span> : null}
-              {ideDispatchedId === inspectedIssue.id ? <span role="status" className="font-mono text-xs text-teal-accent">Queued in IDE Composer</span> : null}
+              {ideDispatchedId === inspectedIssue.id ? <span role="status" className="font-mono text-xs text-accent">Queued in IDE Composer</span> : null}
             </div>
           </form>
         </section>
@@ -294,7 +294,7 @@ export function ProjectManagerView({
             <article key={issue.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface px-3.5 py-2.5">
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs font-semibold text-teal-accent">{issue.id}</span>
+                  <span className="font-mono text-xs font-semibold text-accent">{issue.id}</span>
                   <h3 className="text-xs font-semibold text-fg">{issue.title}</h3>
                   <span className="font-mono text-[10px] uppercase text-fg-dim">{issue.priority}</span>
                   {issue.status === "in_progress" ? (
@@ -308,7 +308,7 @@ export function ProjectManagerView({
                   <span>{issue.sprint}</span>
                   <span aria-hidden="true">·</span>
                   <span>{issue.milestone}</span>
-                  {issue.linkedPrdId ? <span className="text-teal-accent">{`· ${issue.linkedPrdId}`}</span> : null}
+                  {issue.linkedPrdId ? <span className="text-accent">{`· ${issue.linkedPrdId}`}</span> : null}
                   {issue.assignedAgentId ? <span className="text-fg-muted">{`· Agent: ${issue.assignedAgentId}`}</span> : null}
                   {issue.dependencies.length > 0 ? (
                     <span className="rounded-xs border border-warning/40 bg-warning-subtle px-1.5 py-0.5 text-[10px] text-warning">
@@ -346,7 +346,7 @@ export function ProjectManagerView({
                   {colIssues.map((issue) => (
                     <article key={issue.id} className="space-y-2 rounded-sm border border-border bg-surface p-2.5 text-xs">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="font-mono font-semibold text-teal-accent">{issue.id}</span>
+                        <span className="font-mono font-semibold text-accent">{issue.id}</span>
                         <span className="font-mono text-[10px] uppercase text-fg-dim">{issue.priority}</span>
                       </div>
                       <h3 className="font-medium text-fg">{issue.title}</h3>
@@ -504,7 +504,7 @@ export function ProductWorkspaceView({
       <section aria-label="Author new PRD and RICE calculator" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-fg">+ Author New PRD &amp; RICE Prioritization Calculator</h2>
-          <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-2 py-0.5 font-mono text-xs font-semibold text-teal-accent">
+          <span className="rounded-xs border border-accent/40 bg-accent-subtle px-2 py-0.5 font-mono text-xs font-semibold text-accent">
             {`RICE: ${computedRice}`}
           </span>
         </div>
@@ -562,10 +562,10 @@ export function ProductWorkspaceView({
             <article key={prd.id} className="flex flex-col justify-between gap-3 rounded-md border border-border-strong bg-surface p-4">
               <div className="space-y-2.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-mono text-xs font-semibold text-teal-accent">{prd.id}</span>
+                  <span className="font-mono text-xs font-semibold text-accent">{prd.id}</span>
                   <div className="flex items-center gap-1.5">
                     <span className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-fg">{`RICE ${prd.riceScore}`}</span>
-                    <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 font-mono text-[10px] uppercase text-teal-accent">
+                    <span className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 font-mono text-[10px] uppercase text-accent">
                       {prd.releaseStage.replace("_", " ")}
                     </span>
                   </div>
@@ -587,7 +587,7 @@ export function ProductWorkspaceView({
                 <div className="flex flex-wrap items-center gap-1">
                   <span className="text-[11px] text-fg-dim">Linked issues:</span>
                   {allIssueIds.map((id) => (
-                    <button key={id} type="button" onClick={onJumpToPm} className="rounded-xs border border-border-control bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-teal-accent hover:bg-surface-elevated">
+                    <button key={id} type="button" onClick={onJumpToPm} className="rounded-xs border border-border-control bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-accent hover:bg-surface-elevated">
                       {id}
                     </button>
                   ))}
@@ -637,7 +637,7 @@ export function ProductWorkspaceView({
             <article key={item.id} className="rounded-md border border-border bg-surface p-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-fg">{item.persona}</span>
-                <span className="font-mono text-[11px] text-teal-accent">{`Impact ${item.impactScore}/10 · ${item.linkedPrdId}`}</span>
+                <span className="font-mono text-[11px] text-accent">{`Impact ${item.impactScore}/10 · ${item.linkedPrdId}`}</span>
               </div>
               <p className="mt-1.5 text-xs text-fg-muted">{`“${item.quote}”`}</p>
             </article>

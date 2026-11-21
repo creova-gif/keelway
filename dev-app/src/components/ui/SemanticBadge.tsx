@@ -114,12 +114,12 @@ const BADGE_SPECS: Record<SemanticBadgeKind, BadgeSpec> = {
   ai: {
     glyph: "✦",
     label: "AI",
-    classes: "text-teal-accent bg-teal-surface border-teal-accent/40",
+    classes: "text-accent bg-accent-subtle border-accent/40",
   },
   opencore: {
     glyph: "▣",
     label: "OpenCore",
-    classes: "text-teal-accent bg-teal-surface border-teal-accent/40",
+    classes: "text-accent bg-accent-subtle border-accent/40",
   },
   frontier: {
     glyph: "↗",

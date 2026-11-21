@@ -146,7 +146,7 @@ export function McpInspectorPanel({
                   <div className="flex flex-wrap items-center gap-2 font-mono">
                     <span className="font-semibold text-fg">{srv.name}</span>
                     {srv.id !== srv.name ? <code className="text-[10px] text-fg-muted">{srv.id}</code> : null}
-                    <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 text-[10px] text-teal-accent">
+                    <span className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 text-[10px] text-accent">
                       {`${srv.transport} · protocol: ${srv.protocol_version ?? protocolVersion}`}
                     </span>
                   </div>

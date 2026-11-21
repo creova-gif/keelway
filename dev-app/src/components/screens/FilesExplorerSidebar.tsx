@@ -161,7 +161,7 @@ export function FilesExplorerSidebar({
           style={{ paddingInlineStart: `${16 + depth * 12}px` }}
           className={`flex min-h-row w-full items-center justify-between gap-1.5 rounded-xs pe-2 py-1 text-start text-xs transition-colors duration-fast ease-state ${
             isCurrent
-              ? "bg-teal-surface text-fg"
+              ? "bg-accent-subtle text-fg"
               : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
           }`}
         >
@@ -238,7 +238,7 @@ export function FilesExplorerSidebar({
               onClick={() => onSelectFile(node.path)}
               className={`flex min-h-row w-full items-center justify-between gap-2 rounded-xs px-2 py-1 text-start text-xs ${
                 node.path === activePath
-                  ? "bg-teal-surface text-fg"
+                  ? "bg-accent-subtle text-fg"
                   : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
               }`}
             >
@@ -281,7 +281,7 @@ export function FilesExplorerSidebar({
               >
                 <div className="flex items-center justify-between gap-1.5">
                   <span className="inline-flex min-w-0 items-center gap-1.5 font-mono font-medium text-fg">
-                    <span className="rounded-xs border border-border-control/50 bg-surface px-1 text-[10px] text-teal-accent">
+                    <span className="rounded-xs border border-border-control/50 bg-surface px-1 text-[10px] text-accent">
                       {SYMBOL_KIND_SHORT[sym.kind]}
                     </span>
                     <code dir="ltr" className="unicode-bidi-isolate truncate">

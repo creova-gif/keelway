@@ -173,7 +173,7 @@ export function FlightTapeDebuggerPanel({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {activeTape ? (
-            <code title={activeTape.tape_sha256} className="max-w-[240px] truncate rounded-xs border border-border bg-canvas px-2 py-0.5 font-mono text-[11px] text-teal-accent">
+            <code title={activeTape.tape_sha256} className="max-w-[240px] truncate rounded-xs border border-border bg-canvas px-2 py-0.5 font-mono text-[11px] text-accent">
               {activeTape.tape_sha256}
             </code>
           ) : null}
@@ -197,13 +197,13 @@ export function FlightTapeDebuggerPanel({
           {replayReceipt ? (
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span>{`Counterfactual Fork Ready: ${forkBadgeId} · cached_steps_reused: ${replayReceipt.cached_steps_reused} · cost_delta_usd: ${replayReceipt.cost_delta_usd >= 0 ? "+" : ""}${replayReceipt.cost_delta_usd.toFixed(4)}`}</span>
-              <code className="max-w-[240px] truncate text-[11px] text-teal-accent">{replayReceipt.tape_sha256}</code>
+              <code className="max-w-[240px] truncate text-[11px] text-accent">{replayReceipt.tape_sha256}</code>
             </div>
           ) : null}
           {promotedCase ? (
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span>{`Promoted Golden Eval Case: ${evalBadgeId} · source: ${promotedCase.trace_id} (${promotedCase.step_count} steps)`}</span>
-              <code className="max-w-[240px] truncate text-[11px] text-teal-accent">{promotedCase.case_sha256}</code>
+              <code className="max-w-[240px] truncate text-[11px] text-accent">{promotedCase.case_sha256}</code>
             </div>
           ) : null}
         </div>
@@ -231,7 +231,7 @@ export function FlightTapeDebuggerPanel({
                   <div className="flex flex-wrap items-center gap-1.5 font-mono">
                     <span className="rounded-xs border border-border bg-canvas px-1.5 py-0.5 text-[10px] text-fg">{`#${st.step_index}`}</span>
                     <span className="font-semibold text-fg">{st.node_name}</span>
-                    <span className="text-[11px] text-teal-accent">{`${st.span_kind} · ${st.model_id}`}</span>
+                    <span className="text-[11px] text-accent">{`${st.span_kind} · ${st.model_id}`}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
                     {st.cached_reuse ? <SemanticBadge kind="passed" labelOverride="Cached Upstream · $0" /> : <span className="text-fg-muted">{`$${st.cost_usd.toFixed(4)}`}</span>}
@@ -241,7 +241,7 @@ export function FlightTapeDebuggerPanel({
                 <p className="truncate font-mono text-[11px] text-fg-muted">{st.prompt}</p>
                 <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-fg-muted">
                   <span>{`${st.duration_ms}ms · ${st.input_tokens + st.output_tokens} tok`}</span>
-                  <code title={st.step_sha256} className="max-w-[240px] truncate text-teal-accent">{st.step_sha256}</code>
+                  <code title={st.step_sha256} className="max-w-[240px] truncate text-accent">{st.step_sha256}</code>
                 </div>
               </li>
             ))}
@@ -280,7 +280,7 @@ export function FlightTapeDebuggerPanel({
                 {evalCases.slice(0, 4).map((c) => (
                   <li key={c.case_id} className="flex items-center justify-between gap-2 rounded-xs border border-border bg-canvas px-2 py-1 text-fg">
                     <span className="truncate">{`${c.case_id} · ${c.title}`}</span>
-                    <code title={c.case_sha256} className="max-w-[240px] truncate text-[10px] text-teal-accent">{c.case_sha256}</code>
+                    <code title={c.case_sha256} className="max-w-[240px] truncate text-[10px] text-accent">{c.case_sha256}</code>
                   </li>
                 ))}
               </ul>

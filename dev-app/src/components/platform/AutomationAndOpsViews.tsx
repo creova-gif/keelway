@@ -224,7 +224,7 @@ export function AutomationWorkspaceView({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-teal-accent">{wf.id}</span>
+                    <span className="font-mono text-xs font-semibold text-accent">{wf.id}</span>
                     <h3 className="text-sm font-semibold text-fg">{wf.name}</h3>
                     <span className={`inline-flex items-center gap-1.5 text-[11px] ${wfStatus.text}`}>
                       <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${wfStatus.dot}`} />
@@ -395,14 +395,14 @@ export function OperationsWorkspaceView({
         <h2 className="sr-only">Spend, Quotas and Reliability SLOs</h2>
         <article className="space-y-2 rounded-md border border-border-strong bg-surface p-3.5">
           <h3 className="text-xs font-semibold text-fg">OpenCore vs BYOM Spend</h3>
-          <div className="font-mono text-sm font-semibold text-teal-accent">Local OpenCore: $0.00 / tok</div>
+          <div className="font-mono text-sm font-semibold text-accent">Local OpenCore: $0.00 / tok</div>
           <div className="font-mono text-xs text-fg-muted">Authorized BYOM API: $4.18 vendor · $0.00 Keelway markup</div>
         </article>
         <article className="space-y-2 rounded-md border border-border-strong bg-surface p-3.5">
           <h3 className="text-xs font-semibold text-fg">Daily Open-Weight Pool Quota</h3>
           <div className="font-mono text-xs text-fg">{`${dailyUsed.toLocaleString()} / ${dailyCap.toLocaleString()} tokens (${tier.rpmLimit} RPM cap)`}</div>
           <div role="progressbar" aria-label="Daily open-weight token quota" aria-valuenow={quotaPct} aria-valuemin={0} aria-valuemax={100} className="h-2 w-full overflow-hidden rounded-xs bg-chrome">
-            <div className="h-full bg-teal-accent" style={{ width: `${quotaPct}%` }} />
+            <div className="h-full bg-accent" style={{ width: `${quotaPct}%` }} />
           </div>
         </article>
         <article className="space-y-2 rounded-md border border-border-strong bg-surface p-3.5">
@@ -456,7 +456,7 @@ export function OperationsWorkspaceView({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <h3 className="text-xs font-semibold text-fg">{dep.environment}</h3>
-                    <code className="font-mono text-xs text-teal-accent">{dep.version}</code>
+                    <code className="font-mono text-xs text-accent">{dep.version}</code>
                     <span className={`inline-flex items-center gap-1.5 text-[11px] ${dep.status === "rolled_back" ? "text-warning" : dep.status === "staging_ready" ? "text-ok" : "text-fg-muted"}`}>
                       <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${dep.status === "rolled_back" ? "bg-warning" : dep.status === "staging_ready" ? "bg-ok" : "bg-fg-muted"}`} />
                       {dep.status === "rolled_back" ? "Rolled back with P-10 receipt" : dep.status === "staging_ready" ? "Staging Verified" : "Healthy"}
@@ -546,7 +546,7 @@ export function OperationsWorkspaceView({
             <span className="text-xs font-semibold text-fg">Model Canary Traffic Weights:</span>
             {modelCanaries.map((canary) => (
               <span key={canary.modelId} className="inline-flex items-center gap-1.5 rounded-xs border border-border-strong bg-chrome px-2.5 py-1 font-mono text-xs text-fg">
-                <span className="text-teal-accent">{canary.modelId}</span>
+                <span className="text-accent">{canary.modelId}</span>
                 <span className="text-fg-muted">{`${canary.trafficWeightPct}% ${canary.stage}`}</span>
               </span>
             ))}
@@ -573,7 +573,7 @@ export function OperationsWorkspaceView({
           </div>
           <div className="rounded-sm border border-border bg-chrome p-2.5">
             <div className="text-[11px] text-fg-muted">Creator Payout (85% Split)</div>
-            <div className="mt-0.5 font-mono text-sm font-semibold text-teal-accent">{`$${settlement.creatorPayoutUsd.toFixed(2)} USD`}</div>
+            <div className="mt-0.5 font-mono text-sm font-semibold text-accent">{`$${settlement.creatorPayoutUsd.toFixed(2)} USD`}</div>
           </div>
           <div className="rounded-sm border border-border bg-chrome p-2.5">
             <div className="text-[11px] text-fg-muted">Platform Fee (15% Split)</div>

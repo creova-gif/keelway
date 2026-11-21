@@ -58,7 +58,7 @@ export function BrandMark({
           >
             <path d={KEELWAY_K_STEM_PATH} fill="currentColor" />
             <path d={KEELWAY_K_ARM_PATH} fill="currentColor" />
-            <circle cx={KEELWAY_DOT_SPEC.cx} cy={KEELWAY_DOT_SPEC.cy} r={KEELWAY_DOT_SPEC.r} fill="var(--teal-accent)" />
+            <circle cx={KEELWAY_DOT_SPEC.cx} cy={KEELWAY_DOT_SPEC.cy} r={KEELWAY_DOT_SPEC.r} fill="var(--accent)" />
           </svg>
         );
       default: {

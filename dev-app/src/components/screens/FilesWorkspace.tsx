@@ -612,7 +612,7 @@ export function FilesWorkspace({
                   type="button"
                   aria-pressed={viewMode === mode}
                   onClick={() => setViewMode(mode)}
-                  className={`rounded-xs px-2 py-1 text-xs font-medium transition-colors duration-fast ease-state ${viewMode === mode ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}
+                  className={`rounded-xs px-2 py-1 text-xs font-medium transition-colors duration-fast ease-state ${viewMode === mode ? "bg-accent-subtle text-accent" : "text-fg-muted hover:text-fg"}`}
                 >
                   {label}
                 </button>
@@ -692,7 +692,7 @@ export function FilesWorkspace({
                 const showAi = ln === 1 && typeof activeAiSeq === "number";
                 return (
                   <div key={ln} className="flex items-center justify-between gap-1">
-                    <span className="truncate text-[10px] text-teal-accent">{showAi ? `AI #${activeAiSeq}` : ""}</span>
+                    <span className="truncate text-[10px] text-accent">{showAi ? `AI #${activeAiSeq}` : ""}</span>
                     <span className={`tabular-nums ${ln === activeLine ? "font-bold text-fg" : ""}`}>{ln}</span>
                   </div>
                 );

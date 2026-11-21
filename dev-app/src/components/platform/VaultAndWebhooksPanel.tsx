@@ -195,7 +195,7 @@ export function VaultAndWebhooksPanel({
                 <div className="space-y-0.5">
                   <div className="flex flex-wrap items-center gap-2 font-mono">
                     <span className="font-semibold text-fg">{item.name}</span>
-                    <span className="rounded-xs border border-border-strong bg-chrome px-1.5 py-0.5 text-[10px] text-teal-accent">{item.maskedPreview}</span>
+                    <span className="rounded-xs border border-border-strong bg-chrome px-1.5 py-0.5 text-[10px] text-accent">{item.maskedPreview}</span>
                     <span className="text-[10px] text-fg-muted">{`v${item.version} · ${item.cipher}`}</span>
                   </div>
                   <div className="font-mono text-[10px] text-fg-muted">{`ns:${item.namespace} · ${item.fingerprintSha256}`}</div>

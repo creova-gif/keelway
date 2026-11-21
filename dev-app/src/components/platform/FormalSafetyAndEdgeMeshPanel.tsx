@@ -155,7 +155,7 @@ function SafetyVerifierSubCard({
 
           <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
             <span className="text-fg-muted">proof_sha256:</span>
-            <code data-testid="safety-proof-sha256" title={verification.proof_sha256} className="max-w-[220px] truncate text-teal-accent">
+            <code data-testid="safety-proof-sha256" title={verification.proof_sha256} className="max-w-[220px] truncate text-accent">
               {formatDigestPrefix(verification.proof_sha256)}
             </code>
           </div>
@@ -206,7 +206,7 @@ function FederatedEdgeMeshSubCard({
               </div>
               <div className="flex items-center gap-2 text-fg-muted">
                 <span>{`${node.vram_gb} GB VRAM`}</span>
-                <code title={node.attestation_sha256} className="text-teal-accent">{formatDigestPrefix(node.attestation_sha256)}</code>
+                <code title={node.attestation_sha256} className="text-accent">{formatDigestPrefix(node.attestation_sha256)}</code>
               </div>
             </li>
           );
@@ -253,7 +253,7 @@ function FederatedEdgeMeshSubCard({
               <SemanticBadge kind={handoffBadge.kind} labelOverride={handoffBadge.labelOverride} />
               {allZeroRawPii ? <SemanticBadge kind="locked" labelOverride="zero_raw_pii_egress" /> : null}
             </div>
-            <span className="font-semibold text-teal-accent">{`total_cost_usd: $${handoff.total_cost_usd.toFixed(2)}`}</span>
+            <span className="font-semibold text-accent">{`total_cost_usd: $${handoff.total_cost_usd.toFixed(2)}`}</span>
           </div>
 
           <ul aria-label="Mesh handoff stage placements" className="space-y-1 border-t border-border pt-1.5 text-[10px]">
@@ -273,7 +273,7 @@ function FederatedEdgeMeshSubCard({
 
           <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
             <span className="text-fg-muted">attestation_sha256:</span>
-            <code data-testid="mesh-handoff-attestation-sha256" title={handoff.attestation_sha256} className="max-w-[220px] truncate text-teal-accent">
+            <code data-testid="mesh-handoff-attestation-sha256" title={handoff.attestation_sha256} className="max-w-[220px] truncate text-accent">
               {formatDigestPrefix(handoff.attestation_sha256)}
             </code>
           </div>

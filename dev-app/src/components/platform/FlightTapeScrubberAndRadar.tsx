@@ -29,7 +29,7 @@ function resolveRiskBadgeStyle(tier: BlastRadiusRiskTier): { classes: string; la
     case "nominal_confined":
       return { classes: "border-ok/45 bg-ok-subtle text-ok", label: "nominal_confined" };
     case "contained_guarded":
-      return { classes: "border-teal-accent/50 bg-teal-surface text-teal-accent", label: "contained_guarded" };
+      return { classes: "border-accent/50 bg-accent-subtle text-accent", label: "contained_guarded" };
     case "elevated_review":
       return { classes: "border-danger/55 bg-danger-subtle text-danger", label: "elevated_review" };
     default: {
@@ -183,7 +183,7 @@ export function FlightTapeScrubberAndRadar({
             <h3 className="text-xs font-semibold text-fg">
               Tactile Flame Waterfall &amp; Time-Travel Scrubber
             </h3>
-            <span className="rounded-xs border border-teal-accent/45 bg-teal-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-teal-accent">
+            <span className="rounded-xs border border-accent/45 bg-accent-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-accent">
               {`Playhead @ Step #${forkStepIndex}`}
             </span>
           </div>
@@ -199,7 +199,7 @@ export function FlightTapeScrubberAndRadar({
               value={clampedPlayhead}
               disabled={!canMutate}
               onChange={(e) => onChangeForkStepIndex(Number(e.target.value))}
-              className="w-28 accent-teal-accent disabled:opacity-55"
+              className="w-28 accent-accent disabled:opacity-55"
             />
           </label>
         </div>
@@ -217,11 +217,11 @@ export function FlightTapeScrubberAndRadar({
                   aria-label={`Scrub waterfall to step ${step.step_index} ${step.node_name}`}
                   aria-pressed={isForkAnchor}
                   onClick={() => onChangeForkStepIndex(step.step_index)}
-                  className={`group flex w-full flex-col gap-1 rounded-xs border p-1.5 text-left transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent disabled:cursor-not-allowed disabled:opacity-75 ${
+                  className={`group flex w-full flex-col gap-1 rounded-xs border p-1.5 text-left transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-75 ${
                     isForkAnchor
                       ? "border-ochre bg-ochre-subtle/60"
                       : isCachedUpstream
-                        ? "border-teal-accent/40 bg-canvas hover:border-teal-accent"
+                        ? "border-accent/40 bg-canvas hover:border-accent"
                         : "border-ochre/40 bg-canvas hover:border-ochre"
                   }`}
                 >
@@ -232,7 +232,7 @@ export function FlightTapeScrubberAndRadar({
                     <span
                       className={`rounded-xs border px-1.5 py-0.2 text-[10px] font-semibold ${
                         isCachedUpstream
-                          ? "border-teal-accent/45 bg-teal-surface text-teal-accent"
+                          ? "border-accent/45 bg-accent-subtle text-accent"
                           : "border-ochre/50 bg-ochre-subtle text-ochre"
                       }`}
                     >
@@ -244,7 +244,7 @@ export function FlightTapeScrubberAndRadar({
                     <div
                       style={{ marginLeft: `${startPct}%`, width: `${widthPct}%` }}
                       className={`h-full rounded-xs transition-all duration-base ease-settle ${
-                        isCachedUpstream ? "bg-teal-accent/80" : "bg-ochre/85"
+                        isCachedUpstream ? "bg-accent/80" : "bg-ochre/85"
                       }`}
                     />
                   </div>
@@ -335,7 +335,7 @@ export function FlightTapeScrubberAndRadar({
             <div className="rounded-xs border border-border bg-canvas p-2">
               <div className="text-[10px] text-fg-dim">FS Reads &amp; Writes</div>
               <div className="mt-0.5 truncate text-fg">{activeAudit.fs_reads.join(", ")}</div>
-              <div className="truncate text-[10px] text-teal-accent">{`write: ${activeAudit.fs_writes.join(", ")}`}</div>
+              <div className="truncate text-[10px] text-accent">{`write: ${activeAudit.fs_writes.join(", ")}`}</div>
             </div>
 
             <div className="rounded-xs border border-border bg-canvas p-2">
@@ -358,7 +358,7 @@ export function FlightTapeScrubberAndRadar({
               {activeAudit.zero_unapproved_egress ? "● Zero Unapproved Egress" : "! Egress Review Needed"}
             </span>
             <span className="text-fg-muted">{`${activeAudit.audit_id} · Syscalls Audited: ${activeAudit.syscalls_audited}`}</span>
-            <code title={activeAudit.audit_sha256} className="max-w-[220px] truncate text-teal-accent">
+            <code title={activeAudit.audit_sha256} className="max-w-[220px] truncate text-accent">
               {activeAudit.audit_sha256}
             </code>
           </div>
@@ -401,13 +401,13 @@ export function FlightTapeScrubberAndRadar({
                     {`Pass Rate: ${Math.round(latestGate.pass_rate * 100)}% (${latestGate.passed_cases}/${latestGate.cases_evaluated})`}
                   </span>
                 </div>
-                <span className="text-teal-accent">
+                <span className="text-accent">
                   {`cost_delta_usd: ${latestGate.cost_delta_usd >= 0 ? "+" : ""}${latestGate.cost_delta_usd.toFixed(4)}`}
                 </span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-fg-muted">
                 <span>{`${latestGate.gate_run_id} · Schema Valid: ${latestGate.schema_valid_count}/${latestGate.cases_evaluated} · DLP Violations: ${latestGate.dlp_violations}`}</span>
-                <code title={latestGate.gate_sha256} className="max-w-[220px] truncate text-teal-accent">
+                <code title={latestGate.gate_sha256} className="max-w-[220px] truncate text-accent">
                   {latestGate.gate_sha256}
                 </code>
               </div>

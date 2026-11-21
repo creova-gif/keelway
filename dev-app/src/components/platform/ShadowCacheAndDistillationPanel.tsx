@@ -129,7 +129,7 @@ function ShadowRouterTabContent(props: ShadowRouterTabProps): React.JSX.Element 
           <div className="space-y-1.5 rounded-xs border border-border bg-canvas p-2.5 font-mono text-[11px]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg" data-testid="shadow-match-type">{`match_type: ${shadowEval.match_type}`}</span>
-              <span className="text-teal-accent" data-testid="shadow-cost-saved-usd">{`cost_saved_usd: $${shadowEval.cost_saved_usd.toFixed(4)}`}</span>
+              <span className="text-accent" data-testid="shadow-cost-saved-usd">{`cost_saved_usd: $${shadowEval.cost_saved_usd.toFixed(4)}`}</span>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
               <span className="text-fg" data-testid="shadow-parity-score">{`parity_score: ${shadowEval.parity_score.toFixed(2)} · sim: ${shadowEval.similarity_score.toFixed(2)}`}</span>
@@ -138,7 +138,7 @@ function ShadowRouterTabContent(props: ShadowRouterTabProps): React.JSX.Element 
             <div className="truncate text-[10px] text-fg-muted" data-testid="shadow-scrubbed-prompt">{`prompt: ${shadowEval.scrubbed_prompt}`}</div>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
               <span className="text-fg-muted">event_sha256:</span>
-              <code data-testid="shadow-event-sha256" title={shadowEval.event_sha256} className="max-w-[220px] truncate text-teal-accent">{formatDigestPrefix(shadowEval.event_sha256)}</code>
+              <code data-testid="shadow-event-sha256" title={shadowEval.event_sha256} className="max-w-[220px] truncate text-accent">{formatDigestPrefix(shadowEval.event_sha256)}</code>
             </div>
           </div>
         ) : (
@@ -151,7 +151,7 @@ function ShadowRouterTabContent(props: ShadowRouterTabProps): React.JSX.Element 
             <li key={pair.pair_id} className="space-y-0.5 border-b border-border pb-1.5 last:border-b-0 last:pb-0">
               <div className="flex flex-wrap items-center justify-between gap-1.5">
                 <span className="font-semibold text-fg">{`${pair.pair_id} · ${pair.task_tag}`}</span>
-                <span className="text-teal-accent">{`parity ${pair.parity_score.toFixed(2)} · ${pair.local_model}`}</span>
+                <span className="text-accent">{`parity ${pair.parity_score.toFixed(2)} · ${pair.local_model}`}</span>
               </div>
               <div className="truncate text-fg-muted">{pair.scrubbed_prompt}</div>
             </li>
@@ -212,7 +212,7 @@ function QloraDistillTabContent(props: QloraDistillTabProps): React.JSX.Element 
           <div className="space-y-1.5 rounded-xs border border-border bg-canvas p-2.5 font-mono text-[11px]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg" data-testid="distill-dataset-id">{compiledDataset.dataset_id}</span>
-              <span className="text-teal-accent" data-testid="distill-export-format">{compiledDataset.export_format}</span>
+              <span className="text-accent" data-testid="distill-export-format">{compiledDataset.export_format}</span>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
               <span className="text-fg" data-testid="distill-record-count">{`records: ${compiledDataset.record_count} · avg_parity: ${compiledDataset.avg_parity_score.toFixed(2)}`}</span>
@@ -223,7 +223,7 @@ function QloraDistillTabContent(props: QloraDistillTabProps): React.JSX.Element 
             </pre>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
               <span className="text-fg-muted">dataset_sha256:</span>
-              <code data-testid="distill-dataset-sha256" title={compiledDataset.dataset_sha256} className="max-w-[220px] truncate text-teal-accent">{formatDigestPrefix(compiledDataset.dataset_sha256)}</code>
+              <code data-testid="distill-dataset-sha256" title={compiledDataset.dataset_sha256} className="max-w-[220px] truncate text-accent">{formatDigestPrefix(compiledDataset.dataset_sha256)}</code>
             </div>
           </div>
         ) : null}
@@ -238,12 +238,12 @@ function QloraDistillTabContent(props: QloraDistillTabProps): React.JSX.Element 
           <div className="space-y-2 rounded-xs border border-border bg-canvas p-2.5 font-mono text-[11px]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg" data-testid="promo-avg-parity">{`avg_parity_score: ${promotionEval.avg_parity_score.toFixed(2)} (${promotionEval.pair_count}/${promotionEval.min_pairs} pairs)`}</span>
-              <span className="font-semibold text-teal-accent" data-testid="promo-monthly-savings">{`$${promotionEval.projected_monthly_savings_usd.toFixed(2)} / mo saved`}</span>
+              <span className="font-semibold text-accent" data-testid="promo-monthly-savings">{`$${promotionEval.projected_monthly_savings_usd.toFixed(2)} / mo saved`}</span>
             </div>
             <p className="font-sans text-xs text-fg" data-testid="promo-recommendation">{promotionEval.recommendation}</p>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
               <span className="text-fg-muted">gate_sha256:</span>
-              <code data-testid="promo-gate-sha256" title={promotionEval.gate_sha256} className="max-w-[220px] truncate text-teal-accent">{formatDigestPrefix(promotionEval.gate_sha256)}</code>
+              <code data-testid="promo-gate-sha256" title={promotionEval.gate_sha256} className="max-w-[220px] truncate text-accent">{formatDigestPrefix(promotionEval.gate_sha256)}</code>
             </div>
           </div>
         ) : (
@@ -356,17 +356,17 @@ export function ShadowCacheAndDistillationPanel({
       {errorAlert ? <div role="alert" className="rounded-xs border border-danger/55 bg-danger-subtle px-3 py-2 font-mono text-xs text-fg"><span className="font-semibold text-danger">{errorAlert}</span></div> : null}
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Semantic cache and distillation KPI summary">
-        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Cache Hit Rate</div><div className="text-xs font-semibold text-teal-accent" data-testid="kpi-cache-hit-rate">{`${hitRatePct.toFixed(1)}%`}</div></div>
-        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Total USD Saved</div><div className="text-xs font-semibold text-teal-accent" data-testid="kpi-total-usd-saved">{`$${(cacheStats?.total_cost_saved_usd ?? 0).toFixed(4)}`}</div></div>
+        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Cache Hit Rate</div><div className="text-xs font-semibold text-accent" data-testid="kpi-cache-hit-rate">{`${hitRatePct.toFixed(1)}%`}</div></div>
+        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Total USD Saved</div><div className="text-xs font-semibold text-accent" data-testid="kpi-total-usd-saved">{`$${(cacheStats?.total_cost_saved_usd ?? 0).toFixed(4)}`}</div></div>
         <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Latency Saved</div><div className="text-xs font-semibold text-fg" data-testid="kpi-latency-saved-ms">{`${Math.round(cacheStats?.total_latency_saved_ms ?? 0)} ms`}</div></div>
         <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Captured Shadow Pairs</div><div className="text-xs font-semibold text-fg" data-testid="kpi-captured-shadow-pairs">{pairCount}</div></div>
       </div>
 
       <div role="tablist" aria-label="Shadow cache and QLoRA distillation tabs" className="flex flex-wrap gap-2 border-b border-border pb-2">
-        <button type="button" role="tab" id={shadowTabId} aria-selected={activeTab === "shadow_router"} aria-controls={tabPanelId} onClick={() => setActiveTab("shadow_router")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "shadow_router" ? "border-teal-accent bg-teal-surface text-teal-accent" : "border-border bg-chrome text-fg-muted"}`}>
+        <button type="button" role="tab" id={shadowTabId} aria-selected={activeTab === "shadow_router"} aria-controls={tabPanelId} onClick={() => setActiveTab("shadow_router")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "shadow_router" ? "border-accent bg-accent-subtle text-accent" : "border-border bg-chrome text-fg-muted"}`}>
           Semantic Cache &amp; Shadow Router
         </button>
-        <button type="button" role="tab" id={distillTabId} aria-selected={activeTab === "qlora_distill"} aria-controls={tabPanelId} onClick={() => setActiveTab("qlora_distill")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "qlora_distill" ? "border-teal-accent bg-teal-surface text-teal-accent" : "border-border bg-chrome text-fg-muted"}`}>
+        <button type="button" role="tab" id={distillTabId} aria-selected={activeTab === "qlora_distill"} aria-controls={tabPanelId} onClick={() => setActiveTab("qlora_distill")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "qlora_distill" ? "border-accent bg-accent-subtle text-accent" : "border-border bg-chrome text-fg-muted"}`}>
           QLoRA Distillation &amp; Promotion Gate
         </button>
       </div>

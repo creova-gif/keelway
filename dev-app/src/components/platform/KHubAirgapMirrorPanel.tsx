@@ -80,7 +80,7 @@ export function KHubAirgapMirrorPanel({
             KHub Air-Gapped Skill Registry &amp; Bundle Mirror Verifier
           </h2>
           <p className="text-xs text-fg-muted">
-            Offline-verified <code className="font-mono text-teal-accent">kstack_builtin</code> role skill bundles with deterministic SHA-256 tar roundtrip attestation and zero external egress.
+            Offline-verified <code className="font-mono text-accent">kstack_builtin</code> role skill bundles with deterministic SHA-256 tar roundtrip attestation and zero external egress.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -102,7 +102,7 @@ export function KHubAirgapMirrorPanel({
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
           <span className="text-fg-muted">Catalog Digest:</span>
           <code
-            className="max-w-[240px] truncate font-mono text-xs text-teal-accent"
+            className="max-w-[240px] truncate font-mono text-xs text-accent"
             title={catalogDigest}
           >
             {catalogDigest}
@@ -142,7 +142,7 @@ export function KHubAirgapMirrorPanel({
             {` · skills_verified: ${verification.skills_verified} · air_gap_compliant`}
           </span>
           <code
-            className="max-w-[240px] truncate font-mono text-xs text-teal-accent"
+            className="max-w-[240px] truncate font-mono text-xs text-accent"
             title={verification.mirror_digest_sha256}
           >
             {verification.mirror_digest_sha256}
@@ -158,7 +158,7 @@ export function KHubAirgapMirrorPanel({
           >
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-1.5">
-                <code className="font-mono text-[11px] font-semibold text-teal-accent">
+                <code className="font-mono text-[11px] font-semibold text-accent">
                   {skill.skill_id}
                 </code>
                 {skill.source_type !== "kstack_builtin" ? (

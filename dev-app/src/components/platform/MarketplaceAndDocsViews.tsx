@@ -213,7 +213,7 @@ export function MarketplaceWorkspaceView({
               aria-pressed={publisherFilter === tier.id}
               onClick={() => setPublisherFilter(tier.id)}
               className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-                publisherFilter === tier.id ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
+                publisherFilter === tier.id ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
               }`}
             >
               {tier.label}
@@ -228,7 +228,7 @@ export function MarketplaceWorkspaceView({
           aria-pressed={selectedCategory === "all"}
           onClick={() => setSelectedCategory("all")}
           className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-            selectedCategory === "all" ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
+            selectedCategory === "all" ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
           }`}
         >
           All Categories
@@ -240,7 +240,7 @@ export function MarketplaceWorkspaceView({
             aria-pressed={selectedCategory === cat.id}
             onClick={() => setSelectedCategory(cat.id)}
             className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-              selectedCategory === cat.id ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
+              selectedCategory === cat.id ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
             }`}
           >
             {cat.label}
@@ -260,7 +260,7 @@ export function MarketplaceWorkspaceView({
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-xs font-semibold text-fg">{pkg.name}</h3>
-                  <span className="font-mono text-xs font-semibold text-teal-accent">{pkg.priceLabel}</span>
+                  <span className="font-mono text-xs font-semibold text-accent">{pkg.priceLabel}</span>
                 </div>
                 <p className="text-xs text-fg-muted">{pkg.summary}</p>
                 <div className="flex flex-wrap items-center gap-1.5 pt-1 font-mono text-[10px]">
@@ -273,7 +273,7 @@ export function MarketplaceWorkspaceView({
                   <code className="text-fg-dim">{pkg.manifestSha256}</code>
                 </div>
                 {isInstalled ? (
-                  <div className="mt-1.5 rounded-xs border border-teal-accent/35 bg-teal-surface px-2 py-1 font-mono text-[10px] text-teal-accent">
+                  <div className="mt-1.5 rounded-xs border border-accent/35 bg-accent-subtle px-2 py-1 font-mono text-[10px] text-accent">
                     {`Receipt ${pkg.manifestSha256} · SPDX License · 85/15 Creator Settlement Verified`}
                   </div>
                 ) : null}
@@ -348,7 +348,7 @@ export function MarketplaceWorkspaceView({
               Scans manifests and prompts for prompt-injection, dangerous shell/eval hooks, wildcard permissions, and leaked secrets before listing.
             </p>
           </div>
-          <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-2 py-0.5 font-mono text-[11px] text-teal-accent">
+          <span className="rounded-xs border border-accent/40 bg-accent-subtle px-2 py-0.5 font-mono text-[11px] text-accent">
             Verified Split: 85% Creator / 15% Platform
           </span>
         </div>

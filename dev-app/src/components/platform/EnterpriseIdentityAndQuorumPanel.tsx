@@ -160,7 +160,7 @@ export function EnterpriseIdentityAndQuorumPanel({
             <div>
               <h3 className="text-xs font-semibold text-fg">OIDC Federation &amp; SCIM 2.0 User Provisioning</h3>
               <p className="font-mono text-[11px] text-fg-muted">
-                Issuer: <span className="text-teal-accent">{issuerDisplay}</span>
+                Issuer: <span className="text-accent">{issuerDisplay}</span>
               </p>
             </div>
             <SemanticBadge
@@ -214,7 +214,7 @@ export function EnterpriseIdentityAndQuorumPanel({
                 <li key={user.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-1 last:border-b-0 last:pb-0">
                   <span className="max-w-[220px] truncate text-fg" title={user.userName}>{user.userName}</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 text-[10px] text-teal-accent">
+                    <span className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 text-[10px] text-accent">
                       {user.mapped_role}
                     </span>
                     <SemanticBadge
@@ -299,7 +299,7 @@ export function EnterpriseIdentityAndQuorumPanel({
                 activeQuorum.approvers.map((signer) => (
                   <span
                     key={signer}
-                    className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 text-[10px] text-teal-accent"
+                    className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 text-[10px] text-accent"
                   >
                     {signer}
                   </span>
@@ -311,7 +311,7 @@ export function EnterpriseIdentityAndQuorumPanel({
               <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[11px]">
                 <span className="text-fg-muted">Quorum Receipt:</span>
                 <code
-                  className="max-w-[240px] truncate font-mono text-xs text-teal-accent"
+                  className="max-w-[240px] truncate font-mono text-xs text-accent"
                   title={activeQuorum.quorum_receipt_sha256}
                 >
                   {activeQuorum.quorum_receipt_sha256}

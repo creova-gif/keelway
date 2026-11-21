@@ -186,12 +186,12 @@ export function StepDebuggerAndBridgePanel({
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-xs border border-teal-accent/45 bg-teal-surface px-2 py-1 font-mono text-[11px]">
+        <div className="flex items-center gap-1.5 rounded-xs border border-accent/45 bg-accent-subtle px-2 py-1 font-mono text-[11px]">
           <span className="text-fg-muted">frame_sha256:</span>
           <code
             data-testid="debugger-frame-sha256"
             title={session?.frame_sha256 ?? "awaiting-session"}
-            className="max-w-[220px] truncate font-semibold text-teal-accent"
+            className="max-w-[220px] truncate font-semibold text-accent"
           >
             {session?.frame_sha256 ?? "awaiting-session"}
           </code>
@@ -278,7 +278,7 @@ export function StepDebuggerAndBridgePanel({
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-semibold text-fg">{`Step ${session.current_step_index + 1}/${session.total_steps} · Depth ${session.step_depth}`}</span>
-                  <span className="text-teal-accent">{`${activeFrame.node_id} · ${activeFrame.tool_name} · ${activeFrame.agent_id} ($${activeFrame.cost_usd.toFixed(2)})`}</span>
+                  <span className="text-accent">{`${activeFrame.node_id} · ${activeFrame.tool_name} · ${activeFrame.agent_id} ($${activeFrame.cost_usd.toFixed(2)})`}</span>
                 </div>
                 <div className="text-fg-muted">{`Hit Reason: ${session.hit_reason ?? "Execution completed cleanly"}`}</div>
                 <ol aria-label="Debugger call stack" className="space-y-1 border-t border-border pt-1.5">
@@ -299,7 +299,7 @@ export function StepDebuggerAndBridgePanel({
         <div className="space-y-3 rounded-sm border border-border bg-chrome p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-xs font-semibold text-fg">In-Place Variable Mutator (DLP-Guarded)</h3>
-            <span className="rounded-xs border border-border-strong bg-canvas px-1.5 py-0.5 font-mono text-[10px] text-teal-accent">
+            <span className="rounded-xs border border-border-strong bg-canvas px-1.5 py-0.5 font-mono text-[10px] text-accent">
               {`Mutations: ${session?.mutation_count ?? 0}`}
             </span>
           </div>
@@ -332,7 +332,7 @@ export function StepDebuggerAndBridgePanel({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-xs font-semibold text-fg">4D Routing CodeLens &amp; IDE Bridge</h3>
               <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-                <a href={effectiveCursorUri} className="rounded-xs border border-teal-accent/50 bg-teal-surface px-2 py-0.5 font-semibold text-teal-accent hover:underline">
+                <a href={effectiveCursorUri} className="rounded-xs border border-accent/50 bg-accent-subtle px-2 py-0.5 font-semibold text-accent hover:underline">
                   Attach in Cursor
                 </a>
                 <a href={effectiveVscodeUri} className="rounded-xs border border-border-strong bg-canvas px-2 py-0.5 font-semibold text-fg hover:underline">
@@ -346,7 +346,7 @@ export function StepDebuggerAndBridgePanel({
                 <li key={`${lens.file_path}:${lens.symbol}`} className="rounded-xs border border-border bg-canvas px-2.5 py-1.5 font-mono text-[11px]">
                   <div className="flex flex-wrap items-center justify-between gap-1.5">
                     <span className="font-semibold text-fg">{lens.symbol}</span>
-                    <span className="text-teal-accent">{`${lens.model_checkpoint} · P50 ${lens.p50_latency_ms}ms · $${lens.avg_cost_usd.toFixed(2)}`}</span>
+                    <span className="text-accent">{`${lens.model_checkpoint} · P50 ${lens.p50_latency_ms}ms · $${lens.avg_cost_usd.toFixed(2)}`}</span>
                   </div>
                   <div className="mt-0.5 truncate text-[10px] text-fg-muted">{lens.provenance_4d}</div>
                 </li>

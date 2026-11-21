@@ -35,10 +35,10 @@ const config: Config = {
           dim: "var(--fg-dim)",
           disabled: "var(--fg-disabled)",
         },
-        teal: {
-          accent: "var(--teal-accent)",
-          ink: "var(--teal-ink)",
-          surface: "var(--teal-surface)",
+        accent: {
+          DEFAULT: "var(--accent)",
+          subtle: "var(--accent-subtle)",
+          ink: "var(--accent-ink)",
         },
         ok: {
           DEFAULT: "var(--status-ok)",

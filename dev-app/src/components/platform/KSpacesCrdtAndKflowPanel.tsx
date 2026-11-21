@@ -152,7 +152,7 @@ export function KSpacesCrdtAndKflowPanel({
               </div>
               <div className="flex items-center justify-between gap-2 font-mono text-[11px]">
                 <span className="text-fg-muted">Receipt:</span>
-                <code className="max-w-[240px] truncate font-mono text-xs text-teal-accent">{dagRun.receipt_sha256}</code>
+                <code className="max-w-[240px] truncate font-mono text-xs text-accent">{dagRun.receipt_sha256}</code>
               </div>
 
               {dagRun.status === "awaiting_p10" && dagRun.held_node_id ? (
@@ -180,7 +180,7 @@ export function KSpacesCrdtAndKflowPanel({
         <div role="region" aria-label="KSpaces CRDT state synchronization" className="space-y-3 rounded-sm border border-border bg-chrome p-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-xs font-semibold text-fg">KSpaces Multi-Peer CRDT State Sync</h3>
-            <span className="font-mono text-[11px] text-teal-accent">{`Active CRDT Keys: ${crdtState?.active_keys_count ?? 0}`}</span>
+            <span className="font-mono text-[11px] text-accent">{`Active CRDT Keys: ${crdtState?.active_keys_count ?? 0}`}</span>
           </div>
 
           <form onSubmit={(e) => { void handleSyncCrdt(e); }} className="grid gap-2 sm:grid-cols-2">
@@ -215,13 +215,13 @@ export function KSpacesCrdtAndKflowPanel({
                 <span className="font-mono text-[11px] text-fg-dim">0 peers synced</span>
               ) : (
                 vectorEntries.map(([peer, lamport]) => (
-                  <span key={peer} className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 font-mono text-[10px] text-teal-accent">{`${peer}: ${lamport}`}</span>
+                  <span key={peer} className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 font-mono text-[10px] text-accent">{`${peer}: ${lamport}`}</span>
                 ))
               )}
             </div>
             <div className="flex items-center justify-between gap-2 font-mono text-[11px]">
               <span className="text-fg-muted">State Digest:</span>
-              <code className="max-w-[240px] truncate font-mono text-xs text-teal-accent">{crdtState?.state_digest_sha256 ?? "sha256:pending"}</code>
+              <code className="max-w-[240px] truncate font-mono text-xs text-accent">{crdtState?.state_digest_sha256 ?? "sha256:pending"}</code>
             </div>
             {crdtState && crdtState.entries.length > 0 ? (
               <ul aria-label="Synced CRDT entries" className="space-y-1 border-t border-border pt-1.5 font-mono text-[11px]">

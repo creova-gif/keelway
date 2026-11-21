@@ -285,7 +285,7 @@ export function CommandPalette({
           </Dialog.Description>
 
           <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
-            <span aria-hidden="true" className="font-mono text-xs text-teal-accent">⌘K</span>
+            <span aria-hidden="true" className="font-mono text-xs text-accent">⌘K</span>
             <input
               ref={inputRef} type="text" role="combobox"
               aria-label="Search commands, tasks, files, symbols, and settings"
@@ -318,7 +318,7 @@ export function CommandPalette({
                       <div
                         key={entry.key} id={`${baseId}-opt-${idx}`} role="option" aria-selected={isSelected}
                         onMouseEnter={() => setSelectedIndex(idx)} onClick={() => entry.onActivate()}
-                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-sm px-2.5 py-2 text-xs transition-colors duration-fast ease-state ${isSelected ? "bg-teal-surface text-fg" : "text-fg hover:bg-surface-elevated"}`}
+                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-sm px-2.5 py-2 text-xs transition-colors duration-fast ease-state ${isSelected ? "bg-accent-subtle text-fg" : "text-fg hover:bg-surface-elevated"}`}
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
