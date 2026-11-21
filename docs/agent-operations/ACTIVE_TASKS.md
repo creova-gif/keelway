@@ -147,3 +147,4 @@
 
 All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tri-Language SDK (`Python`, `TypeScript`, `Go`) backlog items are `VERIFIED_COMPLETE`.
 | **KEEL-APP-061** | Files workspace honest empty state — no phantom `core/main.py` fetch/404 on empty workspaces | `APP` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `fix/keel-app-061-files-empty-workspace` |
+| **KEEL-APP-062** | Settings shell wired to Paper anatomy 17.1 (`2AQ-0`): rail grammar, active-rule-no-fill, quiet drift count, content padding | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-062-settings-shell-anatomy` |
