@@ -4,6 +4,8 @@ import type {
   GovernancePersistenceInfo, ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
   P10DiffLine, RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem,
   TenantGovernancePolicy, WorkspaceFileNode,
+  BackendTierSpec,
+  SettlementSummary,
 } from "./types";
 import { inferLanguageFromPath } from "./apiFallbacks";
 
@@ -782,4 +784,46 @@ export function decodeApprovalRuleList(raw: unknown): ApprovalRulesListResponse 
     .map((item) => decodeApprovalRule(item))
     .filter((item): item is ApprovalRuleItem => item !== null);
   return { rules, workspace: asString(raw.workspace, "workspace") };
+}
+
+export function decodeSubscriptionTiers(raw: unknown): BackendTierSpec[] | null {
+  if (!isRecord(raw) || !Array.isArray(raw.tiers)) return null;
+  const tiers: BackendTierSpec[] = [];
+  for (const item of raw.tiers) {
+    if (!isRecord(item)) continue;
+    tiers.push({
+      id: asString(item.id, "community"),
+      name: asString(item.name, "Unnamed tier"),
+      badgeLabel: asString(item.badge_label, ""),
+      monthlyPriceUsd: typeof item.monthly_price_usd === "number" ? item.monthly_price_usd : null,
+      annualMonthlyPriceUsd:
+        typeof item.annual_monthly_price_usd === "number" ? item.annual_monthly_price_usd : null,
+      pricingLabel: typeof item.pricing_label === "string" ? item.pricing_label : undefined,
+      dailyOpenWeightTokens: asNumber(item.daily_open_weight_tokens, 0),
+      rpmLimit: asNumber(item.rpm_limit, 0),
+      maxConcurrentAgents: asNumber(item.max_concurrent_agents, 0),
+      maxActiveWorkflows: asNumber(item.max_active_workflows, 0),
+      capabilities: Array.isArray(item.capabilities)
+        ? item.capabilities.filter((c): c is string => typeof c === "string")
+        : [],
+      streamKind: typeof item.stream_kind === "string" ? item.stream_kind : undefined,
+      consumerSubscriptionNotice:
+        typeof item.consumer_subscription_notice === "string"
+          ? item.consumer_subscription_notice
+          : undefined,
+    });
+  }
+  return tiers.length > 0 ? tiers : null;
+}
+
+export function decodeSettlementSummary(raw: unknown): SettlementSummary | null {
+  if (!isRecord(raw)) return null;
+  const totals = isRecord(raw.totals) ? raw.totals : {};
+  return {
+    count: asNumber(totals.count, 0),
+    grossUsd: asNumber(totals.gross_usd, 0),
+    creatorPayoutUsd: asNumber(totals.creator_payout_usd, 0),
+    platformFeeUsd: asNumber(totals.platform_fee_usd, 0),
+    receiptSigned: true,
+  };
 }

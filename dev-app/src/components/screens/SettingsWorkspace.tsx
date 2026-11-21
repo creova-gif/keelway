@@ -14,6 +14,7 @@ import {
   SettingsLabsPanel,
   SettingsNetworkPanel,
 } from "@/components/screens/settings/SettingsSystemPanels";
+import { SettingsBillingPanel } from "@/components/screens/settings/SettingsBillingPanel";
 import {
   explainRouting,
   fetchAgentManifests,
@@ -37,6 +38,7 @@ import type {
   LocaleCode,
   SettingsSubSection,
   ThemeMode,
+  SubscriptionTierId,
 } from "@/lib/types";
 
 export { ORLA_UNMEASURED_NETWORK_COPY };
@@ -51,6 +53,7 @@ export const SETTINGS_SUB_SECTIONS: ReadonlyArray<{
   { id: "network", label: "Network & Egress" },
   { id: "appearance", label: "Appearance & Density" },
   { id: "labs", label: "Labs" },
+  { id: "billing", label: "Plan & Billing" },
   { id: "general", label: "General & Workspace" },
   { id: "keyboard", label: "Keyboard Shortcuts" },
 ];
@@ -191,6 +194,8 @@ export interface SettingsWorkspaceProps {
   toggleAirGapFn?: typeof toggleAirGap;
   fetchAirGapAuditFn?: typeof fetchAirGapAudit;
   onOpenRecordAudit?: () => void;
+  subscriptionTier?: SubscriptionTierId;
+  onChangeSubscriptionTier?: (tier: SubscriptionTierId) => void;
   runBenchmarkFn?: typeof runLabsBenchmark;
 }
 
@@ -233,6 +238,8 @@ export function SettingsWorkspace({
   toggleAirGapFn,
   fetchAirGapAuditFn,
   onOpenRecordAudit,
+    subscriptionTier = "pro",
+    onChangeSubscriptionTier,
   runBenchmarkFn,
 }: SettingsWorkspaceProps): React.JSX.Element {
   const mountedRef = useRef(true);
@@ -496,6 +503,11 @@ export function SettingsWorkspace({
             />
           ) : currentSubSection === "labs" ? (
             <SettingsLabsPanel runBenchmarkFn={runBenchmarkFn} />
+          ) : currentSubSection === "billing" ? (
+            <SettingsBillingPanel
+              subscriptionTier={subscriptionTier}
+              onChangeSubscriptionTier={onChangeSubscriptionTier}
+            />
           ) : currentSubSection === "general" ? (
             <SettingsGeneralPanel
               workspacePath={workspacePath}

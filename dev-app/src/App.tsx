@@ -721,6 +721,8 @@ export function App({
             workspaceBranch={workspaceBranch}
             onOpenOnboarding={() => setOnboardingOpen(true)}
             onOpenRecordAudit={() => handleSelectPlatformView("security")}
+            subscriptionTier={subscriptionTier}
+            onChangeSubscriptionTier={setSubscriptionTier}
           />
         )}
       </DevAppShell>

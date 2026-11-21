@@ -5,6 +5,8 @@ import type {
   MintedScopedApiKeyResult, OpenCoreWeightItem, RecordLedgerEntry,
   RoutingExplainRequest, RoutingExplainResult, ScopedApiKeyItem, ScopedKeyVerifyResult,
   TenantGovernancePolicy, WorkspaceFileNode,
+  BackendTierSpec,
+  SettlementSummary,
 } from "./types";
 
 const INITIAL_DOCTOR_CHECKS: DoctorCheckItem[] = [
@@ -672,4 +674,47 @@ export function getFallbackApprovalRules(): ApprovalRulesListResponse {
 export function getFallbackRevokedRule(rawId: string): ApprovalRuleItem | null {
   const found = FALLBACK_APPROVAL_RULES.find((r) => r.id === rawId);
   return found ? { ...found } : null;
+}
+
+export function getFallbackSubscriptionTiers(): BackendTierSpec[] {
+  return [
+    {
+      id: "community", name: "Free / Community", badgeLabel: "OPEN-CORE · APACHE-2.0",
+      monthlyPriceUsd: 0, annualMonthlyPriceUsd: 0,
+      dailyOpenWeightTokens: 150_000, rpmLimit: 20, maxConcurrentAgents: 2,
+      maxActiveWorkflows: 3,
+      capabilities: ["open_core_local_platform", "unlimited_local_hardware_inference", "p10_human_approval_gates"],
+      streamKind: "open_core_community",
+    },
+    {
+      id: "pro", name: "Keelway Pro", badgeLabel: "MOST POPULAR · FULL STACK",
+      monthlyPriceUsd: 35, annualMonthlyPriceUsd: 29,
+      dailyOpenWeightTokens: 2_500_000, rpmLimit: 120, maxConcurrentAgents: 12,
+      maxActiveWorkflows: 100,
+      capabilities: ["advanced_lifecycle_agents", "multi_agent_orchestration", "zero_token_markup_byom_included"],
+      streamKind: "saas_seat_subscription",
+    },
+    {
+      id: "byom", name: "Bring Your Own Model (BYOM)", badgeLabel: "BYOM · 0% TOKEN MARKUP",
+      monthlyPriceUsd: 19, annualMonthlyPriceUsd: 15,
+      dailyOpenWeightTokens: 500_000, rpmLimit: 120, maxConcurrentAgents: 12,
+      maxActiveWorkflows: 100,
+      capabilities: ["zero_token_markup", "authorized_provider_api_keys", "model_license_compliance_checks"],
+      streamKind: "byom_orchestration_seat",
+      consumerSubscriptionNotice:
+        "Consumer ChatGPT Plus/Pro or Claude Pro/Max web subscriptions do NOT grant third-party API access; BYOM requires authorized developer API keys or official vendor integrations.",
+    },
+    {
+      id: "enterprise", name: "Keelway Enterprise", badgeLabel: "SOVEREIGN VPC & SLA",
+      monthlyPriceUsd: null, annualMonthlyPriceUsd: null, pricingLabel: "Dedicated VPC · Air-Gap · SLA",
+      dailyOpenWeightTokens: 50_000_000, rpmLimit: 2_000, maxConcurrentAgents: 128,
+      maxActiveWorkflows: 10_000,
+      capabilities: ["dedicated_sovereign_vpc", "air_gap_certified", "dual_human_quorum"],
+      streamKind: "enterprise_custom_vpc",
+    },
+  ];
+}
+
+export function getFallbackSettlementSummary(): SettlementSummary {
+  return { count: 0, grossUsd: 0, creatorPayoutUsd: 0, platformFeeUsd: 0, receiptSigned: true };
 }

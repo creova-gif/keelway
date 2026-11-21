@@ -38,6 +38,7 @@ export type SettingsSubSection =
   | "network"
   | "appearance"
   | "labs"
+  | "billing"
   | "general"
   | "keyboard";
 
@@ -543,4 +544,30 @@ export function isTrustedUserEvent(
   }
 
   return false;
+}
+
+/** Backend-published subscription tier specification (`/v1/subscriptions/tiers`). */
+export interface BackendTierSpec {
+  id: string;
+  name: string;
+  badgeLabel: string;
+  monthlyPriceUsd: number | null;
+  annualMonthlyPriceUsd: number | null;
+  pricingLabel?: string;
+  dailyOpenWeightTokens: number;
+  rpmLimit: number;
+  maxConcurrentAgents: number;
+  maxActiveWorkflows: number;
+  capabilities: string[];
+  streamKind?: string;
+  consumerSubscriptionNotice?: string;
+}
+
+/** Marketplace settlement ledger summary (`/v1/marketplace/settlements`). */
+export interface SettlementSummary {
+  count: number;
+  grossUsd: number;
+  creatorPayoutUsd: number;
+  platformFeeUsd: number;
+  receiptSigned: boolean;
 }
