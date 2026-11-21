@@ -1,7 +1,7 @@
 # KEEL-APP-073 — Plan & Billing settings subsection (Paper `18.2`)
 
 ## Status
-READY_FOR_REVIEW
+MERGED — PR #173, all checks green
 
 ## Canonical decision
 **4 tiers canonical** — the app's `SubscriptionTierId` union, the workspace-bar combobox,
