@@ -162,4 +162,6 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-APP-073** | Plan & Billing settings panel per Paper `18.2` — 4-tier canonical decision, live tier specs, cost-ledger usage, settlement summary | `UI / DESIGN-SYSTEM` | `MERGED` (PR #173) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-074** | Inbox security-events row kind — denied actions from real `/v1/audit` feed, lazy fetch, honest unavailable state | `UI / TRUST` | `MERGED` (PR #176) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-075** | Accent token rename — canonical --accent, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
+| **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-001-web-next` |
 | **KEEL-APP-075** | Accent token rename — canonical `--accent`, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
+| **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-001-web-next` |
