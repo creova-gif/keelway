@@ -49,12 +49,45 @@ tables, one modal, and a subsection rail — none previously artboarded.
 - Token hash remains `3cc7b891` — no token changes needed; new artboards consumed
   existing tokens (`--surface-elevated`, `--accent-ring`, `--r-panel` from Phase 1).
 
-## Remaining in this task
+## Completed increment 2 — full Settings coverage + Missing Surfaces page
 
-- [ ] 17.4 Models & 4D Routing deep-dive (VRAM meter, weights table, connector cards, dry-run simulator)
-- [ ] 17.5 Network & Egress deep-dive (posture, air-gap lock, SC-7 checklist)
-- [ ] 17.6 Appearance & Density + 17.7 Labs + 17.8 General/Workspace + 17.9 Keyboard — lighter panels, one combined artboard acceptable
-- [ ] User review of 17.1–17.3 before the remaining artboards and any implementation
+Owner directive: "design all our keelway screens on paper". Scope expanded from
+Settings-only to the full remaining screen inventory.
+
+- [x] 17.4 Models & 4D Routing (`2H0-0`) — OpenCore runtime, VRAM meter, pinned
+  weights table, cloud/VPC connectors, dry-run simulator
+- [x] 17.5 Network & Egress (`2JZ-0`) — posture, air-gap lock, SC-7 boundary
+  checklist, unmeasured-network honesty copy, egress audit preview
+- [x] 17.6 Light panels (`2LS-0`) — Appearance / Labs / General / Keyboard in one
+  2×2 board (the four lighter panels share one grammar)
+- [x] 18.1 P-10 approval card + Tasks run lane (`2O0-0`) — pending (brass ring,
+  the one loud state), approved 2-of-2, denied w/ reason, expired; scope +
+  quorum + inspect-payload + gate id + expiry; every outcome writes a receipt
+- [x] 18.2 Billing & tiers (`2PV-0`) — plan/usage/settlement; tier entitlements
+  mapped to governance ceilings; measured-vs-projected labeling; verified-split
+  ledger. Open: 4-tier (app) vs 5-tier (website) canonical set
+- [x] 18.3 Overlays (`2RP-0`) — onboarding modal (provenance markers kept) +
+  command palette (P-10 actions ranked first)
+- [x] 18.4 Workspace views + state matrix (`2TC-0`) — Automation / Security /
+  Documentation / PM boards + the cross-view state render contract
+  (empty/loading/error/offline/denied/P-10-pending × never-rules)
+
+## Paper ops evidence (increment 2)
+
+- `create_page` → `p-I-0` (page `18 - Missing Surfaces`)
+- `create_artboard` ×7 → `2H0-0`, `2JZ-0`, `2LS-0`, `2O0-0`, `2PV-0`, `2RP-0`, `2TC-0`
+- `write_html` ×7; `get_screenshot` checkpoints (P-10 board verified: brass ring
+  pending card reads unmissably; all four outcomes carry receipt copy)
+- `finish_working_on_nodes` on all seven
+- Token hash unchanged `3cc7b891` — Phase-1 tokens covered all new surfaces
+- `SCREEN_INVENTORY.md` updated: every shipped screen now maps to an artboard id
+
+## Remaining gaps (post-Phase-2)
+
+- [ ] Drawers (review-changes, live-execution) — the only undesigned surfaces left
+- [ ] Agents registry grid artboard (run detail already covered by 12.4)
+- [ ] 4-tier vs 5-tier billing canonical-set decision (before implementation)
+- [ ] Owner review of pages 17–18 before Phase 4 wiring
 
 ## Out of scope
 
