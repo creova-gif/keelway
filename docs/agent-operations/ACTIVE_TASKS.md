@@ -121,6 +121,7 @@
 | **KEEL-APP-058** | Maritime Instrument v3 motion layer: shared tokens, interactive gate figure, dev-app choreography | `APP / WEB / MOTION` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `feature/keel-app-058-maritime-motion` |
 | **KEEL-SEC-065** | RBAC publisher-role gate on `/marketplace/publish` — new `marketplace:publish` permission (owner/admin/builder), viewer+operator → 403 before scanner | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `fix/keel-sec-065-marketplace-publish-rbac` |
 | **KEEL-SEC-066** | RBAC gate on `/marketplace/install` + `/uninstall` — new `marketplace:install` permission (owner/admin/builder), viewer+operator → 403 | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `fix/keel-sec-066-marketplace-install-rbac` |
+| **KEEL-ENG-054** | `tests/__init__.py` — make `tests` a regular package so `from tests.package_a_profile` can't be shadowed by site-packages; whole-dir `pytest tests/` clean (1552 passed) | `ENGINEERING / TESTING` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `fix/keel-eng-054-tests-package-init` |
 
 ---
 
