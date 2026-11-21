@@ -7,7 +7,8 @@ import {
   DEFAULT_WORKSPACES, fetchWorkspacesList, postCreateWorkspace,
   type RbacRoleId, type WorkspaceDirectoryItem,
 } from "@/lib/platformRuntimeApi";
-import type { ExperienceMode, PlatformViewId, SubscriptionTierId } from "@/lib/types";
+import type { ExperienceMode, PlatformViewId, SidebarTaskItem, SubscriptionTierId } from "@/lib/types";
+import { InboxPopover } from "@/components/shell/InboxPopover";
 
 export interface PlatformWorkspaceBarProps {
   activeView: PlatformViewId;
@@ -27,6 +28,10 @@ export interface PlatformWorkspaceBarProps {
   activeRbacRole?: RbacRoleId;
   onChangeRbacRole?: (role: RbacRoleId) => void;
   platformHydration?: "loading" | "live" | "example";
+  inboxTasks?: SidebarTaskItem[];
+  onInboxSelectTask?: (taskId: string) => void;
+  onInboxJumpToApproval?: () => void;
+  onOpenRecordAudit?: () => void;
 }
 
 const PLATFORM_VIEWS: Array<{ id: PlatformViewId; label: string; capability: string }> = [
@@ -47,6 +52,7 @@ export function PlatformWorkspaceBar({
   workspacePath, workspaceBranch, activeModelLabel, pendingApprovalCount,
   activeWorkspaceId, workspaces, onSelectWorkspaceId, onCreateWorkspace, activeRbacRole, onChangeRbacRole,
   platformHydration = "loading",
+  inboxTasks, onInboxSelectTask, onInboxJumpToApproval, onOpenRecordAudit,
 }: PlatformWorkspaceBarProps): React.JSX.Element {
   const [localWorkspaces, setLocalWorkspaces] = useState<WorkspaceDirectoryItem[]>(workspaces ?? DEFAULT_WORKSPACES);
   const [localWsId, setLocalWsId] = useState<string>(activeWorkspaceId ?? "default");
@@ -174,6 +180,15 @@ export function PlatformWorkspaceBar({
               <span className="hidden font-mono text-[10px] text-fg-dim xl:inline">{tierMeta.priceLabel}</span>
             </span>
           </div>
+
+          {inboxTasks ? (
+            <InboxPopover
+              tasks={inboxTasks}
+              onSelectTask={onInboxSelectTask}
+              onJumpToApprovalHeading={onInboxJumpToApproval}
+              onOpenRecord={onOpenRecordAudit}
+            />
+          ) : null}
 
           {experienceMode === "non_coder" && activeView !== "nocode" ? (
             <Button size="sm" variant="primary" onClick={() => onSelectView("nocode")}>Open No-Code Builder</Button>

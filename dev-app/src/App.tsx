@@ -592,6 +592,13 @@ export function App({
             activeRbacRole={activeRbacRole}
             onChangeRbacRole={setActiveRbacRole}
             platformHydration={platformHydration}
+            inboxTasks={tasks}
+            onInboxSelectTask={(id) => {
+              setActiveTaskId(id);
+              handleSelectSection("tasks");
+            }}
+            onInboxJumpToApproval={handleJumpToApprovalHeading}
+            onOpenRecordAudit={() => handleSelectPlatformView("security")}
           />
         }
         reviewDrawerOpen={reviewOpen}

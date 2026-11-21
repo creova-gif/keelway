@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { DevAppShell } from "@/components/shell/DevAppShell";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { OnboardingModal } from "@/components/shell/OnboardingModal";
+import { InboxPopover } from "@/components/shell/InboxPopover";
 import type {
   CodeSymbolItem,
   EgressTelemetryState,
@@ -661,5 +662,49 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
       document.documentElement.setAttribute("dir", "ltr");
       document.documentElement.setAttribute("data-theme", "dark");
     }
+  });
+});
+
+describe("InboxPopover — what needs you (Paper 19.3)", () => {
+  it("lists needs_approval P-10 rows and run outcomes from real task state, Review jumps to gate, Tape opens Record", async () => {
+    const user = userEvent.setup();
+    const onSelectTask = vi.fn();
+    const onJump = vi.fn();
+    const onOpenRecord = vi.fn();
+    render(
+      <InboxPopover
+        tasks={SAMPLE_TASKS}
+        onSelectTask={onSelectTask}
+        onJumpToApprovalHeading={onJump}
+        onOpenRecord={onOpenRecord}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", { name: /Inbox — 2 pending approvals/i });
+    await user.click(trigger);
+    const dialog = screen.getByRole("dialog", { name: /Inbox — what needs you/i });
+
+    const p10Rows = within(dialog).getAllByText(/^P-10 · /);
+    expect(p10Rows).toHaveLength(2);
+    expect(within(dialog).getByText(/Run finished — Refactor loopback token middleware/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/No marketing pings, ever/i)).toBeInTheDocument();
+
+    await user.click(within(dialog).getAllByRole("button", { name: "Review" })[0]);
+    expect(onSelectTask).toHaveBeenCalledWith("task-approval-1");
+    expect(onJump).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Inbox — 2 pending approvals/i }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Tape ↗" }));
+    expect(onOpenRecord).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an honest empty state with no pending gate and no fabricated rows", async () => {
+    const user = userEvent.setup();
+    render(<InboxPopover tasks={[]} />);
+    await user.click(screen.getByRole("button", { name: /Inbox — nothing pending/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/Nothing needs you/i)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/^P-10 · /)).toBeNull();
   });
 });
