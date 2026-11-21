@@ -190,6 +190,7 @@ export interface SettingsWorkspaceProps {
   fetchSbomFn?: typeof fetchSbom;
   toggleAirGapFn?: typeof toggleAirGap;
   fetchAirGapAuditFn?: typeof fetchAirGapAudit;
+  onOpenRecordAudit?: () => void;
   runBenchmarkFn?: typeof runLabsBenchmark;
 }
 
@@ -231,6 +232,7 @@ export function SettingsWorkspace({
   fetchSbomFn,
   toggleAirGapFn,
   fetchAirGapAuditFn,
+  onOpenRecordAudit,
   runBenchmarkFn,
 }: SettingsWorkspaceProps): React.JSX.Element {
   const mountedRef = useRef(true);
@@ -479,6 +481,7 @@ export function SettingsWorkspace({
               airGapEnabled={currentAirGap}
               onToggleAirGap={() => void triggerToggleAirGap()}
               fetchAirGapAuditFn={fetchAirGapAuditFn}
+              onOpenRecordAudit={onOpenRecordAudit}
             />
           ) : currentSubSection === "appearance" ? (
             <SettingsAppearancePanel
