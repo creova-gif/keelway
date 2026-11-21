@@ -1,0 +1,49 @@
+/* Keelway canonical tokens — mirror of dev-app tokens.css (KEEL-APP-075).
+   --accent is canonical; legacy alias vars intentionally omitted in new code. */
+:root {
+  --canvas: #0a0b0c;
+  --surface: #121416;
+  --surface-raised: #1a1d20;
+  --border-subtle: #26292d;
+  --border-strong: #3a3e44;
+  --fg-primary: #f4f5f5;
+  --fg-muted: #9ba1a6;
+  --fg-dim: #5d6268;
+
+  --accent: #c9a45c;
+  --accent-ink: #08090a;
+  --accent-subtle: rgba(201, 164, 92, 0.12);
+
+  --status-ok: #6fae8e;
+  --status-ok-subtle: rgba(111, 174, 142, 0.12);
+  --status-ok-ink: #08090a;
+  --status-warning: #c9a45c;
+  --status-warning-subtle: rgba(201, 164, 92, 0.12);
+  --red-danger: #d96d6d;
+  --red-surface: rgba(217, 109, 109, 0.12);
+  --red-ink: #f4f5f5;
+}
+
+.light {
+  --canvas: #f6f6f4;
+  --surface: #ffffff;
+  --surface-raised: #fbfbf9;
+  --border-subtle: #e4e4e0;
+  --border-strong: #c9c9c4;
+  --fg-primary: #09090b;
+  --fg-muted: #52525b;
+  --fg-dim: #71717a;
+
+  --accent: #a8854a;
+  --accent-ink: #ffffff;
+  --accent-subtle: rgba(168, 133, 74, 0.10);
+
+  --status-ok: #3d7a5c;
+  --status-ok-subtle: rgba(61, 122, 92, 0.10);
+  --status-ok-ink: #ffffff;
+  --status-warning: #a8854a;
+  --status-warning-subtle: rgba(168, 133, 74, 0.10);
+  --red-danger: #b04444;
+  --red-surface: rgba(176, 68, 68, 0.10);
+  --red-ink: #09090b;
+}
