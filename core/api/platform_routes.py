@@ -312,10 +312,13 @@ async def publish_marketplace_package(
 
 @router.post("/marketplace/install")
 async def install_marketplace_package(
+    request: Request,
     req: MarketplaceInstallRequest,
-    _: Principal = Depends(current_principal),
+    principal: Principal = Depends(current_principal),
+    rbac: WorkspaceRbacController = Depends(get_rbac_controller),
     mp: MarketplaceRegistry = Depends(get_marketplace_registry),
 ) -> Dict[str, Any]:
+    _enforce_workspace_permission(request, principal, rbac, req.workspace_id, "marketplace:install")
     try:
         return mp.install_package(
             package_id=req.package_id,
@@ -328,10 +331,13 @@ async def install_marketplace_package(
 
 @router.post("/marketplace/uninstall")
 async def uninstall_marketplace_package(
+    request: Request,
     req: MarketplaceInstallRequest,
-    _: Principal = Depends(current_principal),
+    principal: Principal = Depends(current_principal),
+    rbac: WorkspaceRbacController = Depends(get_rbac_controller),
     mp: MarketplaceRegistry = Depends(get_marketplace_registry),
 ) -> Dict[str, Any]:
+    _enforce_workspace_permission(request, principal, rbac, req.workspace_id, "marketplace:install")
     return mp.uninstall_package(package_id=req.package_id, workspace_id=req.workspace_id)
 
 
