@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsGovernancePanel } from "@/components/screens/settings/SettingsGovernancePanel";
 import { SettingsModelsPanel } from "@/components/screens/settings/SettingsModelsPanel";
 import {
@@ -122,11 +121,11 @@ export function SettingsSubNav({
   driftedRulesCount = 0,
 }: SettingsSubNavProps): React.JSX.Element {
   return (
-    <nav aria-label="Settings sections" className="flex h-full flex-col overflow-y-auto p-2">
-      <div className="px-2.5 py-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+    <nav aria-label="Settings sections" className="flex h-full flex-col overflow-y-auto py-5">
+      <div className="px-5 pb-3.5 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-dim">
         Settings
       </div>
-      <div className="space-y-0.5">
+      <div>
         {SETTINGS_SUB_SECTIONS.map((item) => {
           const isActive = item.id === activeSubSection;
           return (
@@ -135,15 +134,15 @@ export function SettingsSubNav({
               type="button"
               aria-current={isActive ? "page" : undefined}
               onClick={() => onSelectSubSection(item.id)}
-              className={`flex min-h-row w-full items-center justify-between gap-2 rounded-xs px-2.5 py-1.5 text-start text-xs font-medium transition-colors duration-fast ease-state ${
+              className={`flex w-full items-center justify-between gap-2 border-s-2 pe-5 ps-[18px] py-[7px] text-start text-[13px] transition-colors duration-fast ease-state ${
                 isActive
-                  ? "border-s-2 border-s-teal-accent bg-teal-surface text-fg"
-                  : "border-s-2 border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
+                  ? "border-s-teal-accent text-fg"
+                  : "border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
               }`}
             >
               <span className="truncate">{item.label}</span>
               {item.id === "permissions" && driftedRulesCount > 0 ? (
-                <SemanticBadge kind="reconfirm" labelOverride={String(driftedRulesCount)} />
+                <span className="font-mono text-[11px] text-ochre">{driftedRulesCount}</span>
               ) : null}
             </button>
           );
@@ -440,14 +439,14 @@ export function SettingsWorkspace({
       {!renderSidebarInShell ? (
         <aside
           aria-label="Settings navigation"
-          className="flex w-full shrink-0 flex-col overflow-x-auto border-b border-border bg-chrome md:w-sidebar md:overflow-hidden md:border-b-0 md:border-e"
+          className="flex w-full shrink-0 flex-col overflow-x-auto border-b border-border bg-surface md:w-sidebar md:overflow-hidden md:border-b-0 md:border-e"
         >
           {sidebarNode}
         </aside>
       ) : null}
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-5">
-        <div className="mx-auto max-w-4xl">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 py-7">
+        <div>
           {currentSubSection === "permissions" ? (
             <SettingsPermissionsPanel
               scopedRules={controlledScopedRules}
