@@ -4,9 +4,10 @@
 MERGED — PR #173, all checks green
 
 ## Canonical decision
-**4 tiers canonical** — the app's `SubscriptionTierId` union, the workspace-bar combobox,
-and backend `SUBSCRIPTION_TIERS` (community/pro/byom/enterprise) are authoritative.
-The website's 5-tier copy is marketing drift to be reconciled against this.
+**4 seat tiers + marketplace revenue stream** — `SubscriptionTierId` union and the workspace-bar
+combobox cover the 4 seat plans (community/pro/byom/enterprise); the backend spec also publishes a
+5th `marketplace` stream (`ecosystem_revenue_share`, 85/15) which renders honestly as a non-seat
+card with no Switch affordance. The website's 5-seat-tier copy is marketing drift to reconcile.
 
 ## Delta
 New `billing` `SettingsSubSection` + `SettingsBillingPanel` (9th rail item, "Plan & Billing"):

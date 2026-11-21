@@ -712,6 +712,13 @@ export function getFallbackSubscriptionTiers(): BackendTierSpec[] {
       capabilities: ["dedicated_sovereign_vpc", "air_gap_certified", "dual_human_quorum"],
       streamKind: "enterprise_custom_vpc",
     },
+    {
+      id: "marketplace", name: "Keelway Marketplace", badgeLabel: "CREATOR MARKETPLACE · 85/15",
+      monthlyPriceUsd: 0, annualMonthlyPriceUsd: 0,
+      dailyOpenWeightTokens: 0, rpmLimit: 0, maxConcurrentAgents: 0, maxActiveWorkflows: 0,
+      capabilities: ["paid_agents_and_swarms", "verified_skills_and_plugins", "pre_publish_security_validation"],
+      streamKind: "ecosystem_revenue_share",
+    },
   ];
 }
 

@@ -126,13 +126,14 @@ export function SettingsBillingPanel({
         <div className="flex items-baseline justify-between">
           <h3 className="text-[15px] font-medium text-fg">Tiers — quota ceilings</h3>
           <span className="font-mono text-[11px] text-fg-dim">
-            {tiers ? `${tiers.length} tiers · from /v1/subscriptions/tiers` : "specs cached"}
+            {tiers ? `${tiers.length} tiers · live spec` : "specs cached"}
           </span>
         </div>
         <div className="grid gap-2.5 md:grid-cols-2">
           {(tiers ?? []).map((tier) => {
             const isCurrent = tier.id === subscriptionTier;
             const meta = SUBSCRIPTION_TIERS[tier.id as SubscriptionTierId];
+            const isSeatPlan = tier.id in SUBSCRIPTION_TIERS;
             return (
               <div
                 key={tier.id}
@@ -172,8 +173,14 @@ export function SettingsBillingPanel({
                     </dd>
                   </div>
                 </dl>
-                {meta ? <p className="text-[11px] leading-4 text-fg-dim">{meta.summary}</p> : null}
-                {!isCurrent && onChangeSubscriptionTier ? (
+                {meta ? (
+                  <p className="text-[11px] leading-4 text-fg-dim">{meta.summary}</p>
+                ) : (
+                  <p className="text-[11px] leading-4 text-fg-dim">
+                    Not a seat plan — {tier.streamKind ?? "ecosystem stream"}.
+                  </p>
+                )}
+                {isSeatPlan && !isCurrent && onChangeSubscriptionTier ? (
                   <button
                     type="button"
                     onClick={() => onChangeSubscriptionTier(tier.id as SubscriptionTierId)}

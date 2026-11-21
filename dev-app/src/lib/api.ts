@@ -959,7 +959,7 @@ export async function revokeApprovalRule(ruleId: string): Promise<ApprovalRuleIt
 /** Backend-published subscription tiers — canonical plan specs and quota ceilings. */
 export async function fetchSubscriptionTiers(): Promise<BackendTierSpec[]> {
   return requestSameOriginDecoded(
-    "/v1/subscriptions/tiers",
+    "/v1/platform/subscriptions/tiers",
     { method: "GET" },
     decodeSubscriptionTiers,
     getFallbackSubscriptionTiers,
@@ -969,7 +969,7 @@ export async function fetchSubscriptionTiers(): Promise<BackendTierSpec[]> {
 /** Marketplace settlement ledger summary — receipt-signed gross/payout/fee totals. */
 export async function fetchSettlementSummary(): Promise<SettlementSummary> {
   return requestSameOriginDecoded(
-    "/v1/marketplace/settlements",
+    "/v1/platform/marketplace/settlements",
     { method: "GET" },
     decodeSettlementSummary,
     getFallbackSettlementSummary,

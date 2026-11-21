@@ -806,7 +806,7 @@ describe("Plan & Billing panel (Paper 18.2)", () => {
     expect(await screen.findByRole("heading", { name: "Plan & Billing" })).toBeInTheDocument();
     expect(screen.getByText(/Tiers map to governance ceilings, not marketing claims/i)).toBeInTheDocument();
 
-    // 4-tier canonical set — app spec is authoritative (not the website's 5-tier copy)
+    // 4 seat tiers + marketplace revenue stream — live /v1/platform/subscriptions/tiers spec
     for (const name of ["Free / Community", "Keelway Pro", "Bring Your Own Model (BYOM)", "Keelway Enterprise"]) {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0);
     }
@@ -822,6 +822,11 @@ describe("Plan & Billing panel (Paper 18.2)", () => {
 
     // Settlement — honest empty state with receipt guarantee
     expect(await screen.findByText(/No marketplace settlements yet/i)).toBeInTheDocument();
+
+    // Marketplace card is honest about not being a seat plan — no Switch affordance
+    const switchButtons = screen.getAllByRole("button", { name: /^Switch to /i });
+    expect(switchButtons).toHaveLength(3); // 4 seat tiers minus current
+    expect(screen.getByText(/Not a seat plan/i)).toBeInTheDocument();
 
     // Tier switch flows through the same callback the workspace bar uses
     await user.click(screen.getByRole("button", { name: /Switch to BYOM/i }));
