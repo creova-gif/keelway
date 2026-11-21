@@ -677,6 +677,7 @@ describe("InboxPopover — what needs you (Paper 19.3)", () => {
         onSelectTask={onSelectTask}
         onJumpToApprovalHeading={onJump}
         onOpenRecord={onOpenRecord}
+        fetchAuditEntriesFn={async () => []}
       />,
     );
 
@@ -701,10 +702,53 @@ describe("InboxPopover — what needs you (Paper 19.3)", () => {
 
   it("shows an honest empty state with no pending gate and no fabricated rows", async () => {
     const user = userEvent.setup();
-    render(<InboxPopover tasks={[]} />);
+    render(<InboxPopover tasks={[]} fetchAuditEntriesFn={async () => []} />);
     await user.click(screen.getByRole("button", { name: /Inbox — nothing pending/i }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText(/Nothing needs you/i)).toBeInTheDocument();
     expect(within(dialog).queryByText(/^P-10 · /)).toBeNull();
+  });
+
+  it("lists recent denied actions from the Record as security events, newest first, with a Tape link", async () => {
+    const user = userEvent.setup();
+    const onOpenRecord = vi.fn();
+    const denials = [
+      { seq: 41, action: "git_local_commit", target: "main", outcome: "passed" },
+      { seq: 42, action: "manifest_denied", target: "task-1 shell_exec: NETWORK_EGRESS [abc123]", outcome: "denied" },
+      { seq: 43, action: "git_local_commit_rejected", target: "dirty worktree", outcome: "denied" },
+    ] as unknown as import("@/lib/types").RecordLedgerEntry[];
+    render(
+      <InboxPopover
+        tasks={[]}
+        onOpenRecord={onOpenRecord}
+        fetchAuditEntriesFn={async () => denials}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Inbox — nothing pending/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(await within(dialog).findByText(/Security events — from the Record/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/manifest_denied/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/git_local_commit_rejected/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Record #43/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/Record #41/)).toBeNull();
+
+    const tapeButtons = within(dialog).getAllByRole("button", { name: "Tape ↗" });
+    await user.click(tapeButtons[0]);
+    expect(onOpenRecord).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("shows an honest unavailable state when the Record endpoint fails", async () => {
+    const user = userEvent.setup();
+    render(
+      <InboxPopover
+        tasks={[]}
+        fetchAuditEntriesFn={async () => { throw new Error("unreachable"); }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: /Inbox — nothing pending/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(await within(dialog).findByText(/Security events unavailable/i)).toBeInTheDocument();
   });
 });
