@@ -199,7 +199,7 @@ export function SettingsNetworkPanel({
         className="space-y-3 rounded-md border border-border-strong bg-surface p-4"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+          <h3 className="text-[15px] font-semibold text-fg">
             NIST SP 800-53 SC-7 Boundary Protection Audit (<code dir="ltr" className="unicode-bidi-isolate font-mono">/v1/airgap/audit</code>)
           </h3>
           {audit.sc7Compliant === true ? (
@@ -291,7 +291,7 @@ export function SettingsAppearancePanel({
 
       {/* Theme Selector */}
       <section aria-label="Color theme" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">Color Theme</h3>
+        <h3 className="text-[15px] font-semibold text-fg">Color Theme</h3>
         <div role="group" aria-label="Theme mode" className="flex flex-wrap gap-2">
           {(
             [
@@ -323,7 +323,7 @@ export function SettingsAppearancePanel({
       {/* 3-Up Live Density Preview */}
       <section aria-label="Interface density" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+          <h3 className="text-[15px] font-semibold text-fg">
             Row &amp; Control Density
           </h3>
           <p className="mt-0.5 text-xs text-fg-muted">
