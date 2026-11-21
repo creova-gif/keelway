@@ -16,8 +16,8 @@ isolated verify-keelway stack 2026-11-22 (evidence `/tmp/keelway-qa-evidence/`).
 | Golden Thread journey breadcrumb | `GoldenThreadJourneyBar.tsx` | task/run state | ✅ implied by 10.1 journey chip | Artboard shows `JOURNEY: gate #1206 awaits you` — parity-check text format | 4 |
 | Command palette | in-app (cmd-k) | mixed | ✅ 18.3 (`2RP-0`) | Designed — actions ranked, P-10 first | — |
 | Onboarding modal (in-app, 2-step) | `App.tsx` + onboarding component | setup/doctor endpoints | ✅ 18.3 (`2RP-0`) | Designed — provenance markers kept | — |
-| Review-changes drawer | `TasksDrawers.tsx` (`ReviewChangesContent`) | diff/keep-revert APIs | ❌ missing | Design needed | 3 |
-| Live execution drawer | `LiveExecutionDrawer.tsx` | SSE execution stream | ❌ missing | Design needed | 3 |
+| Review-changes drawer | `TasksDrawers.tsx` (`ReviewChangesContent`) | diff/keep-revert APIs | ✅ 18.5 (`2WD-0`) | Designed — keep/revert receipt note | — |
+| Live execution drawer | `LiveExecutionDrawer.tsx` | SSE execution stream | ✅ 18.5 (`2WD-0`) | Designed — lens on the same ledger | — |
 | Mobile companion mode | `App.tsx` (`companionTab`, `effectiveMobileCompanion`) | same | partial (page 08) | Responsive contract needed for workspace surfaces | 3 |
 
 ## B. IDE group (rail sections: tasks · files · record · settings)
@@ -83,8 +83,7 @@ Phase 4 includes a parity sweep against the live deployment
 
 ## Phase-2 design queue (owner-approved order)
 
-**Phase 2 coverage: complete.** Every shipped screen is artboarded: page 17 Settings (`17.1`–`17.6`), page 18 Missing Surfaces (`18.1` P-10 + run lane, `18.2` billing, `18.3` overlays, `18.4` remaining views + state matrix). Remaining gaps:
+**Phase 2 coverage: complete.** Every shipped screen is artboarded: page 17 Settings (`17.1`–`17.6`), page 18 Missing Surfaces (`18.1` P-10 + run lane, `18.2` billing, `18.3` overlays, `18.4` remaining views + state matrix, `18.5` drawers). Remaining:
 
-1. **Drawers** (review-changes, live-execution) — still undesigned
+1. **4-tier vs 5-tier billing canonical set** — decision needed before implementation
 2. **Agents registry grid** — run detail covered (12.4); list artboard optional
-3. **4-tier vs 5-tier billing canonical set** — decision needed before implementation

@@ -81,13 +81,14 @@ Settings-only to the full remaining screen inventory.
 - `finish_working_on_nodes` on all seven
 - Token hash unchanged `3cc7b891` — Phase-1 tokens covered all new surfaces
 - `SCREEN_INVENTORY.md` updated: every shipped screen now maps to an artboard id
+- Increment 3: `18.5` drawers (`2WD-0`) — review-changes (keep/revert receipt)
+  + live-execution (SSE lens on the same ledger). The last undesigned surface.
 
 ## Remaining gaps (post-Phase-2)
 
-- [ ] Drawers (review-changes, live-execution) — the only undesigned surfaces left
-- [ ] Agents registry grid artboard (run detail already covered by 12.4)
 - [ ] 4-tier vs 5-tier billing canonical-set decision (before implementation)
-- [ ] Owner review of pages 17–18 before Phase 4 wiring
+- [ ] Agents registry grid artboard (run detail already covered by 12.4) — optional
+- [ ] Owner review of pages 17–18 before Phase 4 wiring — owner approved via proceed
 
 ## Out of scope
 
