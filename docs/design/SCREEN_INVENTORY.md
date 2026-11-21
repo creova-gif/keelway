@@ -28,15 +28,15 @@ isolated verify-keelway stack 2026-11-22 (evidence `/tmp/keelway-qa-evidence/`).
 | P-10 approval card — state family (pending/allowed-once/allowed-always/denied/edited/expired) | `P10ApprovalCard.tsx` | P-10 gate API | ❌ missing | Safety-critical component; needs all 6+ states artboarded | 2 |
 | Files — tree + editor + tabs + footer | `FilesWorkspace.tsx`, `FilesExplorerSidebar.tsx`, `FilesDiffAndCommit.tsx` | `/v1/files/*` | ✅ artboard 12.1 | Compare detail (editor chrome, tab bar, footer contract) | 4 |
 | Record — audit ledger + inspector + chain banner + Merkle expander | `RecordAuditLedger.tsx`, `RecordEntryInspector.tsx` | audit ledger, inclusion proofs | ✅ artboard 10.2 | Compare detail; keep `data-callout-variant` contract | 4 |
-| Settings — overview | `SettingsWorkspace.tsx` | mixed | spec only (13.3) | Needs artboard | 2 |
-| Settings · Permissions (manifest table, kill-switch, grant rule) | `settings/SettingsPermissionsPanel.tsx` | `/v1/agents/registry`, toggle | spec only | Needs artboard | 2 |
-| Settings · Models | `settings/SettingsModelsPanel.tsx` | model registry/BYOM | spec only | Needs artboard | 2 |
-| Settings · Governance (DLP, persistence, key verify) | `settings/SettingsGovernancePanel.tsx`, `SettingsKeyMintModal.tsx` | `/v1/governance/*` | spec only | Needs artboard + mint-modal states | 2 |
-| Settings · Network | `settings/SettingsSystemPanels.tsx` | egress posture | spec only | Needs artboard | 2 |
-| Settings · Appearance (theme/density/locale) | `settings/SettingsSystemPanels.tsx` | local prefs | spec only | Needs artboard | 2 |
-| Settings · Labs | `settings/SettingsSystemPanels.tsx` | feature flags | spec only | Needs artboard | 2 |
-| Settings · General | `settings/SettingsSystemPanels.tsx` | local prefs | spec only | Needs artboard | 2 |
-| Settings · Keyboard (shortcuts) | `settings/SettingsSystemPanels.tsx` | local prefs | spec only | Needs artboard | 2 |
+| Settings — overview + IA | `SettingsWorkspace.tsx` | mixed | ✅ 17.1 anatomy (`2AQ-0`) | Rail + panel grammar designed | — |
+| Settings · Permissions (manifest table, kill-switch, grant rule) | `settings/SettingsPermissionsPanel.tsx` | `/v1/agents/registry`, toggle | ✅ 17.2 (`2CG-0`) | Designed | — |
+| Settings · Models | `settings/SettingsModelsPanel.tsx` | model registry/BYOM | spec only | Needs artboard 17.4 | 2 |
+| Settings · Governance (DLP, persistence, key verify) | `settings/SettingsGovernancePanel.tsx`, `SettingsKeyMintModal.tsx` | `/v1/governance/*` | ✅ 17.3 (`2EL-0`) incl. mint modal | Designed | — |
+| Settings · Network | `settings/SettingsSystemPanels.tsx` | egress posture | spec only | Needs artboard 17.5 | 2 |
+| Settings · Appearance (theme/density/locale) | `settings/SettingsSystemPanels.tsx` | local prefs | spec only | Needs artboard 17.6 | 2 |
+| Settings · Labs | `settings/SettingsSystemPanels.tsx` | feature flags | spec only | Needs artboard 17.7 | 2 |
+| Settings · General | `settings/SettingsSystemPanels.tsx` | local prefs | spec only | Needs artboard 17.8 | 2 |
+| Settings · Keyboard (shortcuts) | `settings/SettingsSystemPanels.tsx` | local prefs | spec only | Needs artboard 17.9 | 2 |
 
 ## C. Platform views (rail sections 2–10)
 
@@ -83,7 +83,7 @@ Phase 4 includes a parity sweep against the live deployment
 
 ## Phase-2 design queue (owner-approved order)
 
-1. **Settings** — all 8 subsections + overview + key-mint modal
+1. **Settings** — 17.1–17.3 done (anatomy, Permissions, Governance+mint modal); remaining: Models (17.4), Network (17.5), Appearance (17.6), Labs (17.7), General (17.8), Keyboard (17.9)
 2. **P-10 approval card** — full state family
 3. **Tasks run lane** — flagship surface artboard
 4. **Onboarding modal** — in-app 2-step flow
