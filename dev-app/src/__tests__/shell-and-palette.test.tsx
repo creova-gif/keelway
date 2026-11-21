@@ -456,6 +456,10 @@ describe("Task 2 — 4-Rail DevAppShell, Honest 24px Status Bar, Cmd+K Palette &
 
     const searchInput = within(dialog).getByRole("combobox");
 
+    // Mixed mode: pending P-10 gates outrank commands — first option must be a needs_approval task
+    const firstOption = within(dialog).getAllByRole("option")[0];
+    expect(within(firstOption).getByText("Needs approval")).toBeInTheDocument();
+
     // 1. `>` Commands & KStack skills mode
     await user.clear(searchInput);
     await user.type(searchInput, ">");
