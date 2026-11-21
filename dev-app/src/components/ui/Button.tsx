@@ -23,7 +23,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-teal-accent text-teal-ink border-transparent font-semibold hover:brightness-105",
+    "bg-accent text-accent-ink border-transparent font-semibold hover:brightness-105",
   "warning-cta":
     "bg-ochre text-ochre-ink border-transparent font-semibold hover:brightness-105",
   secondary:

@@ -136,7 +136,7 @@ export function FilesDiffView({
                       <span className="w-8 shrink-0 select-none text-end tabular-nums text-fg-dim">
                         {line.newLine ?? ""}
                       </span>
-                      <span className="w-16 shrink-0 select-none truncate text-[10px] text-teal-accent">
+                      <span className="w-16 shrink-0 select-none truncate text-[10px] text-accent">
                         {isAdd && typeof hunk.aiRecordSeq === "number"
                           ? `AI #${hunk.aiRecordSeq}`
                           : ""}
@@ -223,7 +223,7 @@ export function FilesDiffView({
                           <span className="w-7 shrink-0 select-none text-end tabular-nums text-fg-dim">
                             {row.after?.newLine ?? ""}
                           </span>
-                          <span className="w-14 shrink-0 select-none truncate text-[10px] text-teal-accent">
+                          <span className="w-14 shrink-0 select-none truncate text-[10px] text-accent">
                             {afterIsAdd && typeof hunk.aiRecordSeq === "number"
                               ? `AI #${hunk.aiRecordSeq}`
                               : ""}

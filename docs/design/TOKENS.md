@@ -13,7 +13,7 @@ needed reconciliation, not migration.
 |---|---|---|---|
 | Canvas | `#08090A` | `--bg-canvas #08090a` ✅ | `--canvas #08090a` ✅ |
 | Ink / muted | `#F4F5F5` / `#9BA1A6` | ✅ / ✅ | ✅ / ✅ |
-| Accent | `--accent #C9A45C` | `--teal-accent` + `--attn-ochre` + `--status-warning` all `#c9a45c` ✅ | `--brass #c9a45c` ✅ |
+| Accent | `--accent #C9A45C` | `--accent` canonical; `--teal-*`/`--attn-ochre`/`--status-warning` = `var(--accent)` aliases ✅ | `--brass #c9a45c` ✅ |
 | Accent deep | `#A8854A` | light-theme accent `#a8854a` ✅ | `--brass-deep` ✅ |
 | Success / error / info | `#6FAE8E` / `#B0564E` / `#6F87A3` | `--status-ok` / `--red-danger` / `--status-running` ✅ | starboard / port / flag ✅ |
 | Fonts | Inter + JetBrains Mono | ✅ | ✅ |
@@ -40,9 +40,10 @@ shared vocabulary — 30 tokens.
 
 ## Naming debt (tracked, not yet renamed)
 
-- dev-app `--teal-accent` — v1/v2 name carrying the v3 brass value. Canonical
-  name is `--accent`; `--teal-accent` / `--attn-ochre` stay as aliases until
-  Phase-4 call-site migration. Renaming mid-flight would churn ~40 files for
+- dev-app `--accent` is canonical (KEEL-APP-075). `--teal-*` and
+  `--attn-ochre` survive only as CSS-var aliases; the Tailwind `teal` scale
+  was removed and all call sites migrated to `accent` / `accent-subtle` /
+  `accent-ink`.
   zero visual gain.
 - website `--brass` — documented alias of `--accent`. Kept: brass is the
   material metaphor in the v3 spec.

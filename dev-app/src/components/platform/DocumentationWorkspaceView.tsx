@@ -65,7 +65,7 @@ function renderMarkdownPreview(markdown: string): React.ReactNode {
     }
     if (trimmed.startsWith("## ") || trimmed.startsWith("### ")) {
       blocks.push(
-        <h4 key={`h2-${idx}`} className="text-xs font-semibold text-teal-accent">
+        <h4 key={`h2-${idx}`} className="text-xs font-semibold text-accent">
           {trimmed.replace(/^#{2,3}\s+/, "")}
         </h4>,
       );
@@ -235,7 +235,7 @@ export function DocumentationWorkspaceView({
               onClick={() => setQuadrant(q)}
               className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
                 quadrant === q
-                  ? "border-teal-accent/50 bg-teal-surface text-teal-accent"
+                  ? "border-accent/50 bg-accent-subtle text-accent"
                   : "border-border bg-surface text-fg-muted hover:text-fg"
               }`}
             >
@@ -275,11 +275,11 @@ export function DocumentationWorkspaceView({
                   aria-pressed={isSelected}
                   onClick={() => setSelectedDocId(doc.id)}
                   className={`w-full space-y-1 rounded-md border p-3 text-start transition-colors duration-fast ease-state ${
-                    isSelected ? "border-teal-accent/60 bg-teal-surface" : "border-border bg-surface hover:border-border-strong"
+                    isSelected ? "border-accent/60 bg-accent-subtle" : "border-border bg-surface hover:border-border-strong"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[10px] uppercase text-teal-accent">{doc.quadrant}</span>
+                    <span className="font-mono text-[10px] uppercase text-accent">{doc.quadrant}</span>
                     <span className="font-mono text-[10px] text-fg-dim">{doc.updatedAt}</span>
                   </div>
                   <div className="text-xs font-semibold text-fg">{doc.title}</div>
@@ -305,7 +305,7 @@ export function DocumentationWorkspaceView({
                   aria-pressed={editorMode === m.id}
                   onClick={() => setEditorMode(m.id)}
                   className={`rounded-xs border px-2 py-1 text-[11px] font-medium ${
-                    editorMode === m.id ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-chrome text-fg-muted hover:text-fg"
+                    editorMode === m.id ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-chrome text-fg-muted hover:text-fg"
                   }`}
                 >
                   {m.label}
@@ -382,7 +382,7 @@ export function DocumentationWorkspaceView({
           {SDLC_STAGES.map((st) => (
             <div key={st.stageNumber} className="rounded-sm border border-border bg-surface p-2.5 text-xs">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono font-semibold text-teal-accent">{`Stage ${st.stageNumber}`}</span>
+                <span className="font-mono font-semibold text-accent">{`Stage ${st.stageNumber}`}</span>
                 <SemanticBadge
                   kind={st.gateStatus === "p10_human_gate" ? "needs-approval" : "passed"}
                   labelOverride={st.gateStatus === "p10_human_gate" ? "P-10 Gate" : "Verified"}

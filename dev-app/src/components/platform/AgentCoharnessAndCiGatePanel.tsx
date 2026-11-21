@@ -115,7 +115,7 @@ function PreToolUseCoharnessSubCard({
           <div className="space-y-1 rounded-xs border border-border bg-canvas p-2 font-mono text-[10px]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg">{hookManifest.target_config_path}</span>
-              <code data-testid="harness-hook-config-sha256" title={hookManifest.config_sha256} className="text-teal-accent">
+              <code data-testid="harness-hook-config-sha256" title={hookManifest.config_sha256} className="text-accent">
                 {formatDigestPrefix(hookManifest.config_sha256)}
               </code>
             </div>
@@ -163,7 +163,7 @@ function PreToolUseCoharnessSubCard({
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
             <span className="text-fg-muted">event_sha256:</span>
-            <code data-testid="harness-event-sha256" title={interception.event_sha256} className="max-w-[220px] truncate text-teal-accent">
+            <code data-testid="harness-event-sha256" title={interception.event_sha256} className="max-w-[220px] truncate text-accent">
               {formatDigestPrefix(interception.event_sha256)}
             </code>
           </div>
@@ -207,7 +207,7 @@ function WorktreeCiGateSubCard({ gateRun, canMutate, busyAction, onEvaluate }: W
 
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xs border border-border bg-canvas px-2.5 py-2 font-mono text-[11px]">
         <span className="text-fg">{`workflow: ${gateRun?.workflow_name ?? WORKTREE_WORKFLOW_NAME}`}</span>
-        <span className="text-teal-accent">{`min_eval_score: ${(gateRun?.min_eval_score ?? WORKTREE_MIN_EVAL_SCORE).toFixed(2)}`}</span>
+        <span className="text-accent">{`min_eval_score: ${(gateRun?.min_eval_score ?? WORKTREE_MIN_EVAL_SCORE).toFixed(2)}`}</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -223,7 +223,7 @@ function WorktreeCiGateSubCard({ gateRun, canMutate, busyAction, onEvaluate }: W
               <SemanticBadge kind={gateBadge.kind} labelOverride={gateBadge.labelOverride} />
               <span className="font-semibold text-fg">{`winner_model: ${gateRun.winner_model ?? "none"}`}</span>
             </div>
-            <span className="font-semibold text-teal-accent">{`$${gateRun.cost_saved_usd.toFixed(4)} saved vs Frontier BYOM`}</span>
+            <span className="font-semibold text-accent">{`$${gateRun.cost_saved_usd.toFixed(4)} saved vs Frontier BYOM`}</span>
           </div>
 
           <ul aria-label="Candidate worktree comparison" className="space-y-1.5 border-t border-border pt-1.5 text-[10px]">
@@ -246,7 +246,7 @@ function WorktreeCiGateSubCard({ gateRun, canMutate, busyAction, onEvaluate }: W
 
           <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
             <span className="text-fg-muted">gate_sha256:</span>
-            <code data-testid="cigate-sha256" title={gateRun.gate_sha256} className="max-w-[220px] truncate text-teal-accent">
+            <code data-testid="cigate-sha256" title={gateRun.gate_sha256} className="max-w-[220px] truncate text-accent">
               {formatDigestPrefix(gateRun.gate_sha256)}
             </code>
           </div>

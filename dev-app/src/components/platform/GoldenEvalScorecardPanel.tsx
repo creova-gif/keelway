@@ -147,7 +147,7 @@ export function GoldenEvalScorecardPanel({
             </div>
             <div className="rounded-sm border border-border bg-chrome px-3 py-2">
               <div className="font-mono text-[10px] uppercase text-fg-muted">SHA-256 Receipt</div>
-              <code className="block truncate font-mono text-xs font-semibold text-teal-accent">
+              <code className="block truncate font-mono text-xs font-semibold text-accent">
                 {evalRun.receipt_sha256}
               </code>
             </div>
@@ -183,7 +183,7 @@ export function GoldenEvalScorecardPanel({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5 font-mono">
                     <span className="font-semibold text-fg">{probe.id}</span>
-                    <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 text-[10px] text-teal-accent">
+                    <span className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 text-[10px] text-accent">
                       {probe.category}
                     </span>
                   </div>

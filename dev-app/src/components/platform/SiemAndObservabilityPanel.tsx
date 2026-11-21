@@ -130,10 +130,10 @@ export function SiemAndObservabilityPanel({
             <div className="space-y-2 rounded-xs border border-border bg-canvas p-2.5 font-mono text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
                 <span className="text-fg">
-                  Format: <strong className="uppercase text-teal-accent">{siemBatch.format}</strong> · Records: <strong>{siemBatch.record_count}</strong>
+                  Format: <strong className="uppercase text-accent">{siemBatch.format}</strong> · Records: <strong>{siemBatch.record_count}</strong>
                 </span>
                 <code
-                  className="max-w-[240px] truncate font-mono text-xs text-teal-accent"
+                  className="max-w-[240px] truncate font-mono text-xs text-accent"
                   title={siemBatch.batch_sha256}
                 >
                   {siemBatch.batch_sha256}
@@ -170,7 +170,7 @@ export function SiemAndObservabilityPanel({
             {METRIC_COUNTER_KEYS.map((metricKey) => (
               <div key={metricKey} className="rounded-xs border border-border bg-canvas px-2.5 py-1.5 font-mono">
                 <div className="truncate text-[10px] text-fg-muted" title={metricKey}>{metricKey}</div>
-                <div className="mt-0.5 text-xs font-semibold text-teal-accent">
+                <div className="mt-0.5 text-xs font-semibold text-accent">
                   {telemetry ? telemetry.counters[metricKey] : 0}
                 </div>
               </div>

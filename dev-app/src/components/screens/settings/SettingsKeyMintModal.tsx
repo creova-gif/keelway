@@ -119,7 +119,7 @@ export function SettingsKeyMintModal({
                                 : prev.filter((s) => s !== scope),
                             );
                           }}
-                          className="h-3.5 w-3.5 accent-teal-accent"
+                          className="h-3.5 w-3.5 accent-accent"
                         />
                         <code dir="ltr" className="unicode-bidi-isolate">
                           {scope}
@@ -171,7 +171,7 @@ export function SettingsKeyMintModal({
                 <code
                   dir="ltr"
                   data-testid="minted-plaintext-secret"
-                  className="unicode-bidi-isolate break-all font-mono text-xs font-semibold text-teal-accent"
+                  className="unicode-bidi-isolate break-all font-mono text-xs font-semibold text-accent"
                 >
                   {mintedResult.plaintextSecret}
                 </code>
@@ -186,7 +186,7 @@ export function SettingsKeyMintModal({
                   type="checkbox"
                   checked={savedKeyChecked}
                   onChange={(e) => onSavedKeyCheckedChange(e.target.checked)}
-                  className="h-4 w-4 accent-teal-accent"
+                  className="h-4 w-4 accent-accent"
                 />
                 <label htmlFor={savedKeyId} className="font-medium text-fg">
                   I have saved this key

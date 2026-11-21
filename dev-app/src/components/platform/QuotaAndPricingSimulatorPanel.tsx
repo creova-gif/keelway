@@ -110,7 +110,7 @@ export function QuotaAndPricingSimulatorPanel({
             key={card.id}
             className={`space-y-1.5 rounded-sm border p-3 ${
               card.highlighted
-                ? "border-teal-accent/60 bg-chrome"
+                ? "border-accent/60 bg-chrome"
                 : "border-border bg-chrome"
             }`}
           >
@@ -173,7 +173,7 @@ export function QuotaAndPricingSimulatorPanel({
             <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs text-fg">
               {`Pro P50/P95 Gross Margin: ${simResult.proGrossMarginP50Pct.toFixed(1)}% / ${simResult.proGrossMarginP95Pct.toFixed(1)}%`}
             </div>
-            <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs font-semibold text-teal-accent">
+            <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs font-semibold text-accent">
               {`Saved vs 20% Proxy Tax: +$${simResult.proxyTaxSavingsMonthlyUsd}/mo`}
             </div>
           </div>
@@ -194,7 +194,7 @@ export function QuotaAndPricingSimulatorPanel({
                     labelOverride={persona.stance === "supportive" ? "Supportive" : "Skeptical"}
                   />
                 </div>
-                <div className="font-mono text-[11px] text-teal-accent">
+                <div className="font-mono text-[11px] text-accent">
                   {`Recommended: ${persona.recommendedTier}`}
                 </div>
                 <p className="text-[11px] text-fg-muted">{persona.rationale}</p>

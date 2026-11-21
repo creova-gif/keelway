@@ -43,7 +43,7 @@ export function resolveEgressDisplay(
   if (egress.mode === "air_gapped_verified") {
     return {
       primaryLabel: `Air-gapped · verified${suffix}`,
-      primaryToneClass: "text-teal-accent",
+      primaryToneClass: "text-accent",
       bytesLabel: measuredBytesLabel,
       badgeKind: "locked",
       showCloudDetails: false,

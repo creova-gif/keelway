@@ -176,7 +176,7 @@ export function SettingsModelsPanel({
             className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
           >
             <div
-              className="h-full bg-teal-accent transition-all duration-base ease-settle"
+              className="h-full bg-accent transition-all duration-base ease-settle"
               style={{ width: `${memoryPct}%` }}
             />
           </div>
@@ -272,7 +272,7 @@ export function SettingsModelsPanel({
                       </td>
                       <td className="px-3 py-2 text-end">
                         {isActive ? (
-                          <span className="font-mono text-[11px] text-teal-accent">Selected</span>
+                          <span className="font-mono text-[11px] text-accent">Selected</span>
                         ) : (
                           <Button
                             size="sm"

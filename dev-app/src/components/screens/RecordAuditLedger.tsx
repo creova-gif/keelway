@@ -617,7 +617,7 @@ export function RecordAuditLedger({
                       onClick={() => handleSelectSeq(entry.seq)}
                       className={`h-table-row min-h-table-row cursor-pointer transition-colors duration-fast ease-state ${
                         isSelected
-                          ? "border-s-2 border-s-teal-accent bg-teal-surface"
+                          ? "border-s-2 border-s-accent bg-accent-subtle"
                           : isTamperedHere
                             ? "bg-danger-subtle"
                             : "hover:bg-surface-elevated"
@@ -651,7 +651,7 @@ export function RecordAuditLedger({
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5 text-fg">
                           {entry.approvedByHuman ? (
-                            <span aria-hidden="true" className="font-mono text-[11px] font-bold text-teal-accent">
+                            <span aria-hidden="true" className="font-mono text-[11px] font-bold text-accent">
                               ✓
                             </span>
                           ) : null}
@@ -680,7 +680,7 @@ export function RecordAuditLedger({
                               : isUntrustedAfterBreak
                                 ? "border-warning bg-warning-subtle text-warning"
                                 : isSelected
-                                  ? "border-teal-accent bg-teal-surface font-semibold text-teal-accent"
+                                  ? "border-accent bg-accent-subtle font-semibold text-accent"
                                   : "border-border-control bg-surface-elevated text-fg hover:border-fg-muted"
                           }`}
                         >

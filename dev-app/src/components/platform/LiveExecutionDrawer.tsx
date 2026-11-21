@@ -117,7 +117,7 @@ export function LiveExecutionDrawer({
   return (
     <section
       aria-label="Live streaming execution console"
-      className="kw-fade-in space-y-3 rounded-md border border-teal-accent/50 bg-surface p-4"
+      className="kw-fade-in space-y-3 rounded-md border border-accent/50 bg-surface p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
         <div className="space-y-0.5">
@@ -166,7 +166,7 @@ export function LiveExecutionDrawer({
               <li key={`${ev.runId}-${ev.seq}-${idx}`} className={`rounded-xs border px-2.5 py-1.5 ${rowTone}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-semibold">
-                    <span className={isP10Held ? "text-ochre" : isApprovedOrDone ? "text-ok" : isAborted ? "text-danger" : "text-teal-accent"}>
+                    <span className={isP10Held ? "text-ochre" : isApprovedOrDone ? "text-ok" : isAborted ? "text-danger" : "text-accent"}>
                       {formatEventTag(ev)}
                     </span>{" "}
                     <span>{ev.label}</span>

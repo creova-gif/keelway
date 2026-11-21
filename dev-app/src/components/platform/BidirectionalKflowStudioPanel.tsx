@@ -223,7 +223,7 @@ export function BidirectionalKflowStudioPanel({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SemanticBadge kind={p10LockedCount > 0 ? "needs-approval" : "passed"} labelOverride={`${p10LockedCount} P-10 Gate${p10LockedCount === 1 ? "" : "s"}`} />
-          <code title={syncSha256} className="max-w-[240px] truncate rounded-xs border border-border bg-canvas px-2 py-0.5 font-mono text-[11px] text-teal-accent">
+          <code title={syncSha256} className="max-w-[240px] truncate rounded-xs border border-border bg-canvas px-2 py-0.5 font-mono text-[11px] text-accent">
             {syncSha256}
           </code>
         </div>
@@ -322,14 +322,14 @@ export function BidirectionalKflowStudioPanel({
             {nodes.map((node) => {
               const isSelected = selectedNode?.id === node.id;
               return (
-                <div key={node.id} className={`flex items-center justify-between gap-2 rounded-sm border p-2 transition-colors duration-fast ease-state ${isSelected ? "border-teal-accent/65 bg-teal-surface" : "border-border-strong bg-chrome hover:border-border-control"}`}>
+                <div key={node.id} className={`flex items-center justify-between gap-2 rounded-sm border p-2 transition-colors duration-fast ease-state ${isSelected ? "border-accent/65 bg-accent-subtle" : "border-border-strong bg-chrome hover:border-border-control"}`}>
                   <button
                     type="button" aria-label={`Select studio node ${node.id}`} aria-pressed={isSelected}
                     onClick={() => setSelectedNodeId(node.id)}
-                    className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent"
+                    className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
                   >
                     <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
-                      <span className="rounded-xs border border-teal-accent/40 bg-canvas px-1 py-0.2 text-[10px] font-bold text-teal-accent">{`W${node.wave}`}</span>
+                      <span className="rounded-xs border border-accent/40 bg-canvas px-1 py-0.2 text-[10px] font-bold text-accent">{`W${node.wave}`}</span>
                       <span className="font-semibold text-fg">{node.id}</span>
                       <span className="rounded-xs border border-border bg-canvas px-1 py-0.2 text-[10px] text-fg-muted">{`L${node.line_start}–L${node.line_end}`}</span>
                     </div>
@@ -339,7 +339,7 @@ export function BidirectionalKflowStudioPanel({
                   <button
                     type="button" aria-label={`Toggle P-10 lock for ${node.id}`} aria-pressed={node.requires_p10}
                     disabled={!canMutate || syncing} onClick={() => { void handleToggleP10Lock(node.id); }}
-                    className={`shrink-0 rounded-xs border px-2 py-1 font-mono text-[10px] font-semibold transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-accent disabled:cursor-not-allowed disabled:opacity-55 ${node.requires_p10 ? "border-ochre/55 bg-ochre-subtle text-ochre" : "border-border-control bg-canvas text-fg-muted hover:text-fg"}`}
+                    className={`shrink-0 rounded-xs border px-2 py-1 font-mono text-[10px] font-semibold transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55 ${node.requires_p10 ? "border-ochre/55 bg-ochre-subtle text-ochre" : "border-border-control bg-canvas text-fg-muted hover:text-fg"}`}
                   >
                     {node.requires_p10 ? "⚿ P-10 Locked" : "○ Lock P-10"}
                   </button>
@@ -352,10 +352,10 @@ export function BidirectionalKflowStudioPanel({
         <div className="flex flex-col gap-3 lg:col-span-5">
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border bg-chrome px-2.5 py-2">
             <div role="group" aria-label="Studio SDK language" className="inline-flex items-center rounded-xs border border-border-control/70 bg-surface p-0.5">
-              <button type="button" aria-pressed={language === "python"} onClick={() => { void handleSwitchLanguage("python"); }} className={`rounded-xs px-2 py-0.5 font-mono text-[11px] font-medium ${language === "python" ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}>
+              <button type="button" aria-pressed={language === "python"} onClick={() => { void handleSwitchLanguage("python"); }} className={`rounded-xs px-2 py-0.5 font-mono text-[11px] font-medium ${language === "python" ? "bg-accent-subtle text-accent" : "text-fg-muted hover:text-fg"}`}>
                 python
               </button>
-              <button type="button" aria-pressed={language === "typescript"} onClick={() => { void handleSwitchLanguage("typescript"); }} className={`rounded-xs px-2 py-0.5 font-mono text-[11px] font-medium ${language === "typescript" ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:text-fg"}`}>
+              <button type="button" aria-pressed={language === "typescript"} onClick={() => { void handleSwitchLanguage("typescript"); }} className={`rounded-xs px-2 py-0.5 font-mono text-[11px] font-medium ${language === "typescript" ? "bg-accent-subtle text-accent" : "text-fg-muted hover:text-fg"}`}>
                 typescript
               </button>
             </div>
@@ -367,15 +367,15 @@ export function BidirectionalKflowStudioPanel({
           <textarea
             aria-label="Bidirectional studio source code" value={sourceCode}
             onChange={(e) => setSourceCode(e.target.value)} rows={12} spellCheck={false}
-            className="w-full rounded-sm border border-border-control bg-code p-2.5 font-mono text-xs leading-relaxed text-fg focus:outline-none focus-visible:border-teal-accent"
+            className="w-full rounded-sm border border-border-control bg-code p-2.5 font-mono text-xs leading-relaxed text-fg focus:outline-none focus-visible:border-accent"
           />
 
           <div role="group" aria-label="Highlighted AST line inspector" className="space-y-1.5 rounded-sm border border-border-strong bg-code p-2.5">
             <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-border pb-1.5 font-mono text-[11px]">
-              <span className="font-semibold text-teal-accent">
+              <span className="font-semibold text-accent">
                 {selectedNode ? `Active AST Span: ${selectedNode.id} (L${selectedNode.line_start}–L${selectedNode.line_end})` : "Active AST Span"}
               </span>
-              <span className="rounded-xs border border-teal-accent/40 bg-teal-surface px-1.5 py-0.5 text-[10px] text-teal-accent">
+              <span className="rounded-xs border border-accent/40 bg-accent-subtle px-1.5 py-0.5 text-[10px] text-accent">
                 Zero-Drift Synced
               </span>
             </div>
@@ -384,7 +384,7 @@ export function BidirectionalKflowStudioPanel({
                 const lineNum = idx + 1;
                 const inSpan = Boolean(selectedNode && lineNum >= selectedNode.line_start && lineNum <= selectedNode.line_end);
                 const highlightClasses = inSpan
-                  ? selectedNode?.requires_p10 ? "border-s-2 border-ochre bg-ochre-subtle text-fg font-medium" : "border-s-2 border-teal-accent bg-teal-surface text-fg font-medium"
+                  ? selectedNode?.requires_p10 ? "border-s-2 border-ochre bg-ochre-subtle text-fg font-medium" : "border-s-2 border-accent bg-accent-subtle text-fg font-medium"
                   : "text-fg-dim";
                 return (
                   <div key={`ast-line-${lineNum}`} data-highlighted={inSpan ? "true" : undefined} className={`flex items-baseline gap-2 px-1.5 ${highlightClasses}`}>

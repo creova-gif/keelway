@@ -139,13 +139,13 @@ export function SettingsBillingPanel({
                 key={tier.id}
                 aria-current={isCurrent ? "true" : undefined}
                 className={`flex flex-col gap-2 rounded-sm border p-3 ${
-                  isCurrent ? "border-teal-accent bg-surface" : "border-border bg-canvas"
+                  isCurrent ? "border-accent bg-surface" : "border-border bg-canvas"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-fg">{tier.name}</span>
                   {isCurrent ? (
-                    <span className="rounded-xs border border-teal-accent/50 bg-teal-surface px-1.5 py-0.5 font-mono text-[10px] text-teal-accent">
+                    <span className="rounded-xs border border-accent/50 bg-accent-subtle px-1.5 py-0.5 font-mono text-[10px] text-accent">
                       current
                     </span>
                   ) : null}
@@ -218,7 +218,7 @@ export function SettingsBillingPanel({
                 className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
               >
                 <div
-                  className="h-full bg-teal-accent transition-all duration-base ease-settle"
+                  className="h-full bg-accent transition-all duration-base ease-settle"
                   style={{
                     width: `${Math.min(
                       100,
@@ -245,7 +245,7 @@ export function SettingsBillingPanel({
               >
                 <div
                   className={`h-full transition-all duration-base ease-settle ${
-                    isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-teal-accent"
+                    isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-accent"
                   }`}
                   style={{ width: `${monthlyPct ?? 0}%` }}
                 />

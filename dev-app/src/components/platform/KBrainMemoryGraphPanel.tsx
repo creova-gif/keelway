@@ -310,7 +310,7 @@ export function KBrainMemoryGraphPanel({
                   >
                     <div className="flex flex-wrap items-center justify-between gap-1.5">
                       <div className="flex flex-wrap items-center gap-1.5 font-mono">
-                        <span className="font-semibold text-teal-accent">{fact.key}</span>
+                        <span className="font-semibold text-accent">{fact.key}</span>
                         <span className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 text-[10px] text-fg-muted">
                           {fact.scope}
                         </span>
@@ -328,7 +328,7 @@ export function KBrainMemoryGraphPanel({
 
                     <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-1.5">
                       <code
-                        className="max-w-[220px] truncate font-mono text-[11px] text-teal-accent"
+                        className="max-w-[220px] truncate font-mono text-[11px] text-accent"
                         title={fact.fact_sha256}
                       >
                         {fact.fact_sha256}

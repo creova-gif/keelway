@@ -403,7 +403,7 @@ export function SettingsGovernancePanel({
               type="checkbox"
               checked={policy.dlpEnabled ?? true}
               onChange={(e) => void handleDlpToggle(e.target.checked)}
-              className="h-4 w-4 accent-teal-accent"
+              className="h-4 w-4 accent-accent"
             />
             <label htmlFor={dlpCheckboxId} className="text-xs text-fg">
               Redact secrets &amp; PII before external egress (DLP pre-flight)
@@ -446,7 +446,7 @@ export function SettingsGovernancePanel({
               aria-valuemax={Math.max(1, dailyBudget)}
               className="h-2 w-full overflow-hidden rounded-xs border border-border bg-chrome"
             >
-              <div className="h-full bg-teal-accent transition-all duration-base ease-settle" style={{ width: `${dailyPct}%` }} />
+              <div className="h-full bg-accent transition-all duration-base ease-settle" style={{ width: `${dailyPct}%` }} />
             </div>
           </div>
 
@@ -467,7 +467,7 @@ export function SettingsGovernancePanel({
             >
               <div
                 className={`h-full transition-all duration-base ease-settle ${
-                  isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-teal-accent"
+                  isOverCap ? "bg-danger" : isWarnSpend ? "bg-warning" : "bg-accent"
                 }`}
                 style={{ width: `${spendPct}%` }}
               />
@@ -501,7 +501,7 @@ export function SettingsGovernancePanel({
             type="checkbox"
             checked={policy.fallbackToOpencoreOnBudgetExceeded}
             onChange={(e) => void handleFallbackToggle(e.target.checked)}
-            className="h-4 w-4 accent-teal-accent"
+            className="h-4 w-4 accent-accent"
           />
           <label htmlFor={fallbackCheckboxId} className="text-xs text-fg">
             Auto-fallback to local OpenCore when budget exceeded ($0.00/tok local loopback)

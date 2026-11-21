@@ -255,7 +255,7 @@ export function SecurityWorkspaceView({
                   aria-pressed={framework === fw}
                   onClick={() => setFramework(fw)}
                   className={`rounded-sm border px-2.5 py-1 font-mono text-xs font-medium ${
-                    framework === fw ? "border-teal-accent/50 bg-teal-surface text-teal-accent" : "border-border bg-chrome text-fg-muted hover:text-fg"
+                    framework === fw ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-chrome text-fg-muted hover:text-fg"
                   }`}
                 >
                   {fw}

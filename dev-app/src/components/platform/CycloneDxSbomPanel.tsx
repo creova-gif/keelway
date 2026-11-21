@@ -72,11 +72,11 @@ export function CycloneDxSbomPanel({
             </div>
             <div className="rounded-sm border border-border bg-chrome px-3 py-2">
               <div className="font-mono text-[10px] uppercase text-fg-muted">Component Inventory</div>
-              <div className="mt-0.5 font-mono text-xs font-semibold text-teal-accent">{`${sbom.component_count} components`}</div>
+              <div className="mt-0.5 font-mono text-xs font-semibold text-accent">{`${sbom.component_count} components`}</div>
             </div>
             <div className="rounded-sm border border-border bg-chrome px-3 py-2">
               <div className="font-mono text-[10px] uppercase text-fg-muted">Root Merkle Digest</div>
-              <code className="mt-0.5 block max-w-[260px] truncate font-mono text-xs font-semibold text-teal-accent">
+              <code className="mt-0.5 block max-w-[260px] truncate font-mono text-xs font-semibold text-accent">
                 {sbom.root_digest_sha256}
               </code>
             </div>

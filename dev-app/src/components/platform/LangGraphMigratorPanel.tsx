@@ -107,7 +107,7 @@ export function LangGraphMigratorPanel({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-xs font-semibold text-fg">KFlow Blueprint &amp; Static AST Diagnostics</h3>
             {result ? (
-              <code title={result.migration_sha256} className="max-w-[240px] truncate rounded-xs border border-border bg-canvas px-2 py-0.5 font-mono text-[11px] text-teal-accent">
+              <code title={result.migration_sha256} className="max-w-[240px] truncate rounded-xs border border-border bg-canvas px-2 py-0.5 font-mono text-[11px] text-accent">
                 {result.migration_sha256}
               </code>
             ) : null}

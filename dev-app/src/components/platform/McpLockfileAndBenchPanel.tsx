@@ -122,11 +122,11 @@ function LockfileFirewallTabContent(props: LockfileFirewallTabProps): React.JSX.
           <div className="space-y-1.5 rounded-xs border border-border bg-canvas p-2.5 font-mono text-[11px]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg" data-testid="lockfile-id">{`lockfile_id: ${activeLockfile.lockfile_id ?? "blocked"}`}</span>
-              <span className="text-teal-accent" data-testid="lockfile-tool-count">{`tool_count: ${activeLockfile.tool_count}`}</span>
+              <span className="text-accent" data-testid="lockfile-tool-count">{`tool_count: ${activeLockfile.tool_count}`}</span>
             </div>
             <div className="flex items-center justify-between gap-2 text-[10px]">
               <span className="text-fg-muted">merkle_root_sha256:</span>
-              <code data-testid="lockfile-merkle-root" title={activeLockfile.merkle_root_sha256} className="max-w-[230px] truncate text-teal-accent">{formatDigestPrefix(activeLockfile.merkle_root_sha256)}</code>
+              <code data-testid="lockfile-merkle-root" title={activeLockfile.merkle_root_sha256} className="max-w-[230px] truncate text-accent">{formatDigestPrefix(activeLockfile.merkle_root_sha256)}</code>
             </div>
             {activeLockfile.findings.length > 0 ? (
               <ul aria-label="Day-1 lockfile poisoning findings" className="list-inside list-disc text-[10px] text-danger">
@@ -165,7 +165,7 @@ function LockfileFirewallTabContent(props: LockfileFirewallTabProps): React.JSX.
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
               <span className="text-fg-muted">verification_sha256:</span>
-              <code data-testid="verify-receipt-sha256" title={latestVerification.verification_sha256} className="max-w-[230px] truncate text-teal-accent">{formatDigestPrefix(latestVerification.verification_sha256)}</code>
+              <code data-testid="verify-receipt-sha256" title={latestVerification.verification_sha256} className="max-w-[230px] truncate text-accent">{formatDigestPrefix(latestVerification.verification_sha256)}</code>
             </div>
           </div>
         ) : (
@@ -237,7 +237,7 @@ function ConformanceBenchTabContent(props: ConformanceBenchTabProps): React.JSX.
           <div className="space-y-1.5 rounded-xs border border-border bg-canvas p-2.5 font-mono text-[11px]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg" data-testid="bench-conformance-score">{`conformance_score: ${latestBench.conformance_score.toFixed(2)} (min ${latestBench.min_conformance_score.toFixed(2)})`}</span>
-              <span className="text-teal-accent" data-testid="bench-cost-saved-usd">{`frontier_cost_saved_usd: $${latestBench.frontier_cost_saved_usd.toFixed(3)}`}</span>
+              <span className="text-accent" data-testid="bench-cost-saved-usd">{`frontier_cost_saved_usd: $${latestBench.frontier_cost_saved_usd.toFixed(3)}`}</span>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
               <span className="text-fg" data-testid="bench-p95-latency">{`p95_latency_ms: ${latestBench.p95_latency_ms} ms (budget ${latestBench.latency_budget_ms} ms)`}</span>
@@ -245,7 +245,7 @@ function ConformanceBenchTabContent(props: ConformanceBenchTabProps): React.JSX.
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
               <span className="text-fg-muted">cert_sha256:</span>
-              <code data-testid="bench-cert-sha256" title={latestBench.cert_sha256} className="max-w-[230px] truncate text-teal-accent">{formatDigestPrefix(latestBench.cert_sha256)}</code>
+              <code data-testid="bench-cert-sha256" title={latestBench.cert_sha256} className="max-w-[230px] truncate text-accent">{formatDigestPrefix(latestBench.cert_sha256)}</code>
             </div>
           </div>
         ) : (
@@ -257,7 +257,7 @@ function ConformanceBenchTabContent(props: ConformanceBenchTabProps): React.JSX.
           {benchRuns.length > 0 ? benchRuns.slice(0, 4).map((run) => (
             <li key={run.benchmark_id} className="flex flex-wrap items-center justify-between gap-1.5 border-b border-border pb-1 last:border-b-0 last:pb-0">
               <span className="font-semibold text-fg">{`${run.target_id} (${run.target_kind})`}</span>
-              <span className="text-teal-accent">{`${run.verdict} · ${(run.conformance_score * 100).toFixed(0)}% · ${run.p95_latency_ms}ms`}</span>
+              <span className="text-accent">{`${run.verdict} · ${(run.conformance_score * 100).toFixed(0)}% · ${run.p95_latency_ms}ms`}</span>
             </li>
           )) : <li className="text-fg-muted">No conformance benchmark runs recorded in this workspace yet.</li>}
         </ul>
@@ -372,16 +372,16 @@ export function McpLockfileAndBenchPanel({
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Supply chain lockfile and benchmark KPI summary">
         <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Pinned Lockfiles</div><div className="text-xs font-semibold text-fg" data-testid="kpi-pinned-lockfiles">{lockfiles.length}</div></div>
-        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Latest Merkle Root</div><div className="truncate text-xs font-semibold text-teal-accent" data-testid="kpi-latest-merkle-root">{latestMerkle ? formatDigestPrefix(latestMerkle) : "unpinned"}</div></div>
+        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Latest Merkle Root</div><div className="truncate text-xs font-semibold text-accent" data-testid="kpi-latest-merkle-root">{latestMerkle ? formatDigestPrefix(latestMerkle) : "unpinned"}</div></div>
         <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Firewall Verifications</div><div className="text-xs font-semibold text-fg" data-testid="kpi-firewall-verifications">{verifications.length}</div></div>
-        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Certified Benchmarks</div><div className="text-xs font-semibold text-teal-accent" data-testid="kpi-certified-benchmarks">{certifiedCount}</div></div>
+        <div className="rounded-xs border border-border bg-chrome px-3 py-2 font-mono"><div className="text-[10px] text-fg-muted">Certified Benchmarks</div><div className="text-xs font-semibold text-accent" data-testid="kpi-certified-benchmarks">{certifiedCount}</div></div>
       </div>
 
       <div role="tablist" aria-label="MCP lockfile firewall and conformance benchmark tabs" className="flex flex-wrap gap-2 border-b border-border pb-2">
-        <button type="button" role="tab" id={lockTabId} aria-selected={activeTab === "lockfile_firewall"} aria-controls={tabPanelId} onClick={() => setActiveTab("lockfile_firewall")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "lockfile_firewall" ? "border-teal-accent bg-teal-surface text-teal-accent" : "border-border bg-chrome text-fg-muted"}`}>
+        <button type="button" role="tab" id={lockTabId} aria-selected={activeTab === "lockfile_firewall"} aria-controls={tabPanelId} onClick={() => setActiveTab("lockfile_firewall")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "lockfile_firewall" ? "border-accent bg-accent-subtle text-accent" : "border-border bg-chrome text-fg-muted"}`}>
           MCP Lockfile &amp; Rug-Pull Firewall
         </button>
-        <button type="button" role="tab" id={benchTabId} aria-selected={activeTab === "conformance_bench"} aria-controls={tabPanelId} onClick={() => setActiveTab("conformance_bench")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "conformance_bench" ? "border-teal-accent bg-teal-surface text-teal-accent" : "border-border bg-chrome text-fg-muted"}`}>
+        <button type="button" role="tab" id={benchTabId} aria-selected={activeTab === "conformance_bench"} aria-controls={tabPanelId} onClick={() => setActiveTab("conformance_bench")} className={`rounded-sm border px-3 py-1.5 font-mono text-xs font-medium ${activeTab === "conformance_bench" ? "border-accent bg-accent-subtle text-accent" : "border-border bg-chrome text-fg-muted"}`}>
           Agent &amp; Skill Conformance Benchmark
         </button>
       </div>

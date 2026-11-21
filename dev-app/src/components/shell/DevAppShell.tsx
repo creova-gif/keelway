@@ -123,7 +123,7 @@ function TasksQueueList({
                   isPending
                     ? "border-s-2 border-ochre bg-ochre-subtle/30 hover:bg-ochre-subtle/50"
                     : isSelected
-                      ? "border-teal-accent/45 bg-surface-elevated"
+                      ? "border-accent/45 bg-surface-elevated"
                       : "border-transparent hover:border-border-strong hover:bg-surface"
                 }`}
               >
@@ -169,7 +169,7 @@ function AgentsRailList({ agents, onSelectAgent }: AgentsRailListProps): React.J
         type="button"
         aria-expanded={!collapsed}
         onClick={() => setCollapsed((v) => !v)}
-        className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-start transition-colors duration-fast ease-state hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-accent"
+        className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-start transition-colors duration-fast ease-state hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
       >
         <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-muted">
           <span aria-hidden="true" className={`font-mono text-[9px] transition-transform ${collapsed ? "" : "rotate-90"}`}>▸</span>
@@ -472,7 +472,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                     onClick={() => onSelectSection(item.section)}
                     className={`relative flex h-9 w-9 items-center justify-center rounded-sm border transition-colors duration-fast ease-state ${
                       isActive
-                        ? "border-teal-accent/50 bg-teal-surface text-teal-accent"
+                        ? "border-accent/50 bg-accent-subtle text-accent"
                         : "border-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
                     }`}
                   >
@@ -622,7 +622,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                   if (item.tab === "approvals") onJumpToApprovalHeading?.();
                 }}
                 className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-sm px-2 text-xs font-medium ${
-                  isCurrent ? "bg-teal-surface text-teal-accent" : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
+                  isCurrent ? "bg-accent-subtle text-accent" : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
                 }`}
               >
                 <span>{item.label}</span>

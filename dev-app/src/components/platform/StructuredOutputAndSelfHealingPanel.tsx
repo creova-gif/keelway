@@ -125,7 +125,7 @@ function StructuredNormalizerColumn({
           <>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold text-fg">{`${envelope.provider_format} · ${envelope.block_count} blocks`}</span>
-              <span className="text-teal-accent">{`dlp_redactions: ${envelope.dlp_redactions}`}</span>
+              <span className="text-accent">{`dlp_redactions: ${envelope.dlp_redactions}`}</span>
             </div>
             <ul aria-label="Normalized content blocks" className="space-y-1 border-t border-border pt-1.5">
               {envelope.content_blocks.map((blk) => {
@@ -140,7 +140,7 @@ function StructuredNormalizerColumn({
             </ul>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
               <span className="text-fg-muted">envelope_sha256:</span>
-              <code data-testid="healing-envelope-sha256" title={envelope.envelope_sha256} className="max-w-[200px] truncate text-teal-accent">
+              <code data-testid="healing-envelope-sha256" title={envelope.envelope_sha256} className="max-w-[200px] truncate text-accent">
                 {envelope.envelope_sha256}
               </code>
             </div>
@@ -159,7 +159,7 @@ function StructuredNormalizerColumn({
             <SemanticBadge kind={runBadge.kind} labelOverride={runBadge.labelOverride} />
           </div>
           {activeRun.repair_actions.length > 0 ? (
-            <div className="text-[10px] text-teal-accent">{`repair_actions: ${activeRun.repair_actions.join(", ")}`}</div>
+            <div className="text-[10px] text-accent">{`repair_actions: ${activeRun.repair_actions.join(", ")}`}</div>
           ) : null}
           {activeRun.validation_errors.length > 0 ? (
             <div className="text-[10px] text-danger">{`validation_errors: ${activeRun.validation_errors.join(" | ")}`}</div>
@@ -171,7 +171,7 @@ function StructuredNormalizerColumn({
           ) : null}
           <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
             <span className="text-fg-muted">run_sha256:</span>
-            <code data-testid="structured-run-sha256" title={activeRun.run_sha256} className="max-w-[200px] truncate text-teal-accent">
+            <code data-testid="structured-run-sha256" title={activeRun.run_sha256} className="max-w-[200px] truncate text-accent">
               {activeRun.run_sha256}
             </code>
           </div>
@@ -235,7 +235,7 @@ function SelfHealingRootCauserColumn({
               {failureBadge ? <SemanticBadge kind={failureBadge.kind} labelOverride={failureBadge.labelOverride} /> : null}
               <SemanticBadge kind={statusBadge.kind} labelOverride={statusBadge.labelOverride} />
             </div>
-            <span className="font-semibold text-teal-accent">{`${confidencePct}% confidence`}</span>
+            <span className="font-semibold text-accent">{`${confidencePct}% confidence`}</span>
           </div>
 
           <p className="font-sans text-xs text-fg">{diagnosis.summary}</p>
@@ -253,7 +253,7 @@ function SelfHealingRootCauserColumn({
               {promotedCaseId ? (
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-fg-muted">Promoted Golden Eval Case:</span>
-                  <code data-testid="promoted-healing-eval-case-id" className="font-semibold text-teal-accent">{promotedCaseId}</code>
+                  <code data-testid="promoted-healing-eval-case-id" className="font-semibold text-accent">{promotedCaseId}</code>
                 </div>
               ) : null}
             </div>
@@ -261,7 +261,7 @@ function SelfHealingRootCauserColumn({
 
           <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-[10px]">
             <span className="text-fg-muted">diagnosis_sha256:</span>
-            <code data-testid="healing-diagnosis-sha256" title={diagnosis.diagnosis_sha256} className="max-w-[200px] truncate text-teal-accent">
+            <code data-testid="healing-diagnosis-sha256" title={diagnosis.diagnosis_sha256} className="max-w-[200px] truncate text-accent">
               {diagnosis.diagnosis_sha256}
             </code>
           </div>

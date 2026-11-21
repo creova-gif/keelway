@@ -368,7 +368,7 @@ export function RecordEntryInspector({
                     dir="ltr"
                     className={`unicode-bidi-isolate rounded-xs border px-1.5 py-0.5 font-mono text-[11px] ${
                       route.dataBoundary === "local_loopback"
-                        ? "border-teal-accent bg-teal-surface text-teal-accent"
+                        ? "border-accent bg-accent-subtle text-accent"
                         : route.dataBoundary === "external_vendor_api"
                           ? "border-warning bg-warning-subtle text-warning"
                           : "border-border-control bg-surface-elevated text-fg"
@@ -414,7 +414,7 @@ export function RecordEntryInspector({
                 <button
                   type="button"
                   onClick={() => onSelectPrevSeq(prevSeq)}
-                  className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-teal-accent transition-colors duration-fast ease-state hover:border-teal-accent"
+                  className="rounded-xs border border-border-control bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-accent transition-colors duration-fast ease-state hover:border-accent"
                 >
                   {`(#${prevSeq})`}
                 </button>
