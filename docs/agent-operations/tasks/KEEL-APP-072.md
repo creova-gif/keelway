@@ -1,7 +1,7 @@
 # KEEL-APP-072 — Inbox popover in workspace bar (Paper `19.3`, `35K-0`)
 
 ## Status
-READY_FOR_REVIEW
+MERGED — PR #172 (`7fdf491`). Live-verified on isolated verify-keelway stack: inbox trigger count, P-10 row + Review→gate nav (no auto-approve), New workspace → real `platform_workspaces_dir` row, switcher round-trip. Evidence: `/tmp/keelway-evidence-193/`
 
 ## Delta
 New `InboxPopover` shell component on `PlatformWorkspaceBar` — "what needs you" per
