@@ -367,7 +367,7 @@ export function SettingsGovernancePanel({
         className="space-y-3.5 rounded-md border border-border-strong bg-surface p-4"
       >
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+          <h3 className="text-[15px] font-semibold text-fg">
             Data Residency &amp; DLP Policy (<code dir="ltr" className="unicode-bidi-isolate font-mono">/v1/governance/tenants/default</code>)
           </h3>
           <p className="mt-0.5 text-xs text-fg-muted">
@@ -418,7 +418,7 @@ export function SettingsGovernancePanel({
         className="space-y-4 rounded-md border border-border-strong bg-surface p-4"
       >
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+          <h3 className="text-[15px] font-semibold text-fg">
             USD Spend Caps &amp; OpenCore Fallback
           </h3>
           <p className="mt-0.5 text-xs text-fg-muted">
@@ -534,16 +534,21 @@ export function SettingsGovernancePanel({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+            <h3 className="text-[15px] font-semibold text-fg">
               Scoped Tenant API Keys (<code dir="ltr" className="unicode-bidi-isolate font-mono">kw_live_*</code>)
             </h3>
             <p className="mt-0.5 text-xs text-fg-muted">
               Stored as salted SHA-256 digest only — plaintext secret is shown once at creation.
             </p>
           </div>
-          <Button size="sm" variant="primary" onClick={openMintDialog}>
-            + Mint scoped key
-          </Button>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[11px] text-fg-dim">
+              {keys.length} {keys.length === 1 ? "key" : "keys"}
+            </span>
+            <Button size="sm" variant="primary" onClick={openMintDialog}>
+              + Mint scoped key
+            </Button>
+          </div>
         </div>
 
         <div className="overflow-x-auto rounded-sm border border-border bg-canvas">

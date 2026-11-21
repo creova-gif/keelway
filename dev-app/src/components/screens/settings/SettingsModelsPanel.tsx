@@ -150,7 +150,7 @@ export function SettingsModelsPanel({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+            <h3 className="text-[15px] font-semibold text-fg">
               OpenCore Local Runtime (<code dir="ltr" className="unicode-bidi-isolate font-mono">/v1/opencore/weights</code>)
             </h3>
             <p className="mt-0.5 text-xs text-fg-muted">
@@ -299,7 +299,7 @@ export function SettingsModelsPanel({
         className="space-y-3 rounded-md border border-border-strong bg-surface p-4"
       >
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+          <h3 className="text-[15px] font-semibold text-fg">
             Cloud &amp; Self-Hosted VPC Connectors
           </h3>
           <p className="mt-0.5 text-xs text-fg-muted">
@@ -347,7 +347,7 @@ export function SettingsModelsPanel({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-fg">
+            <h3 className="text-[15px] font-semibold text-fg">
               Zero-Token 4D Dry-Run Simulator (<code dir="ltr" className="unicode-bidi-isolate font-mono">POST /v1/routing/explain</code>)
             </h3>
             <p className="mt-0.5 text-xs text-fg-muted">
