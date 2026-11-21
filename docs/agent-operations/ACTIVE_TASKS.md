@@ -163,7 +163,7 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-APP-074** | Inbox security-events row kind — denied actions from real `/v1/audit` feed, lazy fetch, honest unavailable state | `UI / TRUST` | `MERGED` (PR #176) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-075** | Accent token rename — canonical --accent, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `MERGED` (PR #178) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-002-ci` |
+| **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `MERGED` (PR #179) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-075** | Accent token rename — canonical `--accent`, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `MERGED` (PR #178) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-002-ci` |
+| **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `MERGED` (PR #179) | Devin | 2026-11-22 | `main` |
