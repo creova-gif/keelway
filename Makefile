@@ -1,4 +1,4 @@
-.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify package studio-css studio-css-check
+.PHONY: test test-verbose m1 bench studio desktop demo serve runner init-demo docker-up docker-down clean help infra-local infra-aws infra-k8s tier2-status tier2-verify package studio-css studio-css-check tokens-sync tokens-check
 
 PYTHON ?= python3
 
@@ -59,6 +59,16 @@ studio-css:
 studio-css-check:
 	@$(TAILWIND_BUILD) -o /tmp/studio-css-check.css >/dev/null 2>&1
 	@cmp -s /tmp/studio-css-check.css core/studio/assets/studio.css && echo "studio.css is fresh" || { echo "studio.css is STALE — run: make studio-css"; exit 1; }
+
+tokens-sync:
+	@printf '/* GENERATED from dev-app/src/styles/tokens.css — do not edit.\n   Run: make tokens-sync (then commit). Checked by: make tokens-check. */\n\n' > web-next/src/styles/tokens.css
+	@cat dev-app/src/styles/tokens.css >> web-next/src/styles/tokens.css
+	@echo "web-next tokens synced from dev-app canonical"
+
+tokens-check:
+	@printf '/* GENERATED from dev-app/src/styles/tokens.css — do not edit.\n   Run: make tokens-sync (then commit). Checked by: make tokens-check. */\n\n' > /tmp/web-next-tokens-check.css
+	@cat dev-app/src/styles/tokens.css >> /tmp/web-next-tokens-check.css
+	@cmp -s /tmp/web-next-tokens-check.css web-next/src/styles/tokens.css && echo "web-next tokens are fresh" || { echo "web-next tokens are STALE — run: make tokens-sync"; exit 1; }
 
 demo:
 	PYTHONPATH=. $(PYTHON) examples/run_developer_demo.py

@@ -106,6 +106,8 @@ jobs:
           npm --prefix web-next ci
           npm --prefix web-next run typecheck
           npm --prefix web-next run build
+      - name: Check web-next tokens are fresh vs dev-app canonical
+        run: make tokens-check
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
