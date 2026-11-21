@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ControlPlaneFigure } from "@/components/site/ControlPlaneFigure";
+import { TerminalDemo } from "@/components/site/TerminalDemo";
+import { InstallCommand } from "@/components/site/InstallCommand";
 
 const PRINCIPLES = [
   {
@@ -57,12 +59,19 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-5 pb-16 sm:px-8 sm:pb-24">
+        <figure>
+          <TerminalDemo />
+          <figcaption className="kw-figcap mt-3">
+            FIG 0.2 — A sealed session, replayed. The gate waits; approvals and denials both land on the tape.
+          </figcaption>
+        </figure>
+      </section>
+
       <section id="install" className="kw-rule">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
           <h2 className="kw-h2">One line to a running system.</h2>
-          <div className="kw-card kw-data mt-8 max-w-2xl overflow-x-auto p-5 text-[var(--ink)]">
-            <span className="text-[var(--dim)]">$ </span>curl -fsSL https://kora-sable.vercel.app/install.sh | sh &amp;&amp; keelway dev
-          </div>
+          <InstallCommand />
           <p className="kw-small mt-5">
             Apache-2.0 open core &middot; works fully offline &middot; BYOM and Pro tiers add governed frontier routing.
           </p>
