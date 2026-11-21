@@ -157,14 +157,14 @@ export function SettingsModelsPanel({
               Executes on local unified memory with zero external network egress.
             </p>
           </div>
-          <SemanticBadge kind="opencore" detail="127.0.0.1" />
+          <span className="font-mono text-[11px] text-fg-dim">127.0.0.1 · loopback only</span>
         </div>
 
         <div className="space-y-1.5 rounded-sm border border-border bg-canvas p-3">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-fg">Host Unified Memory / VRAM</span>
             <span className="font-mono tabular-nums text-fg-muted">
-              {`${usedVramGb.toFixed(1)} GB / ${HOST_TOTAL_MEMORY_GB.toFixed(1)} GB (${memoryPct}%)`}
+              {`${usedVramGb.toFixed(1)} GB / ${HOST_TOTAL_MEMORY_GB.toFixed(1)} GB · measured`}
             </span>
           </div>
           <div
@@ -354,7 +354,7 @@ export function SettingsModelsPanel({
               Evaluate privacy, latency, cost, and operator data-boundary policy before sending a single prompt token.
             </p>
           </div>
-          <SemanticBadge kind="live" labelOverride="$0.00 · 0 tokens" />
+          <SemanticBadge kind="simulated" labelOverride="Simulated · $0.00 · 0 tokens" />
         </div>
 
         <form onSubmit={(e) => void handleExplainRoute(e)} className="space-y-3">
