@@ -28,6 +28,7 @@ function isSettingsSubSection(val: string | null): val is SettingsSubSection {
     val === "network" ||
     val === "appearance" ||
     val === "labs" ||
+    val === "billing" ||
     val === "general" ||
     val === "keyboard"
   );

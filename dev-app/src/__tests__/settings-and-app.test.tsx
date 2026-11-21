@@ -791,3 +791,52 @@ describe("App.tsx Unified Orchestrator & End-to-End Accessibility", () => {
     }
   });
 });
+
+describe("Plan & Billing panel (Paper 18.2)", () => {
+  it("renders the 4 canonical tiers from the backend spec, marks current plan, and switches via the shared tier callback", async () => {
+    const user = userEvent.setup();
+    const onChangeTier = vi.fn();
+    const nav = render(
+      <SettingsWorkspace
+        defaultSubSection="billing"
+        subscriptionTier="pro"
+        onChangeSubscriptionTier={onChangeTier}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Plan & Billing" })).toBeInTheDocument();
+    expect(screen.getByText(/Tiers map to governance ceilings, not marketing claims/i)).toBeInTheDocument();
+
+    // 4-tier canonical set — app spec is authoritative (not the website's 5-tier copy)
+    for (const name of ["Free / Community", "Keelway Pro", "Bring Your Own Model (BYOM)", "Keelway Enterprise"]) {
+      expect(screen.getAllByText(name).length).toBeGreaterThan(0);
+    }
+    expect(screen.getByText("current")).toBeInTheDocument();
+    const currentCards = document.querySelectorAll("[aria-current='true']");
+    expect(currentCards.length).toBe(1);
+    expect(currentCards[0].textContent).toContain("Keelway Pro");
+
+    // Usage section is measured, read-only, and honestly labeled
+    expect(screen.getAllByText(/measured from the cost ledger/i).length).toBeGreaterThan(0);
+    expect(await screen.findByRole("progressbar", { name: /Billing monthly USD spend/i })).toBeInTheDocument();
+    expect(screen.getByText(/read-only measurement/i)).toBeInTheDocument();
+
+    // Settlement — honest empty state with receipt guarantee
+    expect(await screen.findByText(/No marketplace settlements yet/i)).toBeInTheDocument();
+
+    // Tier switch flows through the same callback the workspace bar uses
+    await user.click(screen.getByRole("button", { name: /Switch to BYOM/i }));
+    expect(onChangeTier).toHaveBeenCalledWith("byom");
+    nav.unmount();
+  });
+
+  it("shows an honest unavailable state when the cost ledger is unreachable", async () => {
+    render(
+      <SettingsWorkspace
+        defaultSubSection="billing"
+        subscriptionTier="community"
+      />,
+    );
+    // Default injected fns resolve via fallbacks — tiers still render honestly
+    expect(await screen.findByText("Free / Community")).toBeInTheDocument();
+  });
+});

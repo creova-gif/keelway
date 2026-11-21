@@ -5,6 +5,8 @@ import type {
   ManifestInspectResult, MintedScopedApiKeyResult, OpenCoreWeightItem,
   RecordLedgerEntry, RoutingExplainRequest, RoutingExplainResult,
   ScopedApiKeyItem, ScopedKeyVerifyResult, StudioWsEvent, TenantGovernancePolicy, WorkspaceFileNode,
+  BackendTierSpec,
+  SettlementSummary,
 } from "./types";
 import {
   buildAuditBundleFromEntries, createFallbackGitCommit, getFallbackAirGapAudit,
@@ -17,6 +19,8 @@ import {
   inferLanguageFromPath, inspectManifestLocally, mintFallbackScopedKey,
   saveFallbackFileContent, toggleFallbackManifest, updateFallbackGovernancePolicy,
   verifyFallbackScopedKey,
+  getFallbackSubscriptionTiers,
+  getFallbackSettlementSummary,
 } from "./apiFallbacks";
 import {
   asNumber, asString, decodeAirGapAudit, decodeApprovalRule, decodeApprovalRuleList,
@@ -26,6 +30,8 @@ import {
   decodeManifestList, decodeMerkleProof, decodeMintedScopedKey, decodeOpenCoreWeights,
   decodeRoutingExplanation, decodeScopedKey, decodeStudioDiff, decodeSymbols,
   decodeTenantPolicy, isRecord,
+  decodeSubscriptionTiers,
+  decodeSettlementSummary,
 } from "./apiDecoders";
 
 export { resetApiFallbackState } from "./apiFallbacks";
@@ -947,5 +953,25 @@ export async function revokeApprovalRule(ruleId: string): Promise<ApprovalRuleIt
       expiresAtEpoch: null,
       expired: false,
     },
+  );
+}
+
+/** Backend-published subscription tiers — canonical plan specs and quota ceilings. */
+export async function fetchSubscriptionTiers(): Promise<BackendTierSpec[]> {
+  return requestSameOriginDecoded(
+    "/v1/subscriptions/tiers",
+    { method: "GET" },
+    decodeSubscriptionTiers,
+    getFallbackSubscriptionTiers,
+  );
+}
+
+/** Marketplace settlement ledger summary — receipt-signed gross/payout/fee totals. */
+export async function fetchSettlementSummary(): Promise<SettlementSummary> {
+  return requestSameOriginDecoded(
+    "/v1/marketplace/settlements",
+    { method: "GET" },
+    decodeSettlementSummary,
+    getFallbackSettlementSummary,
   );
 }
