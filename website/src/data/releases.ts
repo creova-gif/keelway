@@ -34,7 +34,7 @@ export const RELEASES: ReleaseEntry[] = [
       "MCP 2025-06-18 control plane with SSRF guards and automatic DLP secret redaction",
       "16-probe Golden Evaluation suite with signed SHA-256 receipts",
       "Official tri-language SDK parity: Python, TypeScript (@keelway/sdk), and Go",
-      "Calibrated 5-tier pricing: Community $0, BYOM $15/seat, Pro $29/seat, Team $49/seat, Enterprise custom — 0% token markup",
+      "Calibrated pricing: four seat tiers — Community $0, BYOM $15/seat, Pro $29/seat, Enterprise custom — plus Marketplace 85/15 revenue share, all at 0% token markup",
       "Zero-friction packaging: Python wheel, Homebrew formula, hardened multi-stage Docker image",
     ],
   },
