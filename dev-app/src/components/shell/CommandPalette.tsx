@@ -222,8 +222,16 @@ export function CommandPalette({
     else if (mode === "settings") pushIfAny("Models & Settings", buildSettings());
     else {
       const [cmdItems, taskItems, fileItems] = [buildCommands(), buildTasks(), buildFiles()];
-      pushIfAny("Commands", cmdItems);
-      pushIfAny("Tasks", taskItems);
+      // P-10 ranks first in mixed mode whenever a pending gate survives the filter (Paper 18.3).
+      const approvalFirst = taskItems.length > 0
+        && sortedTasks.some((t) => t.status === "needs_approval" && matches(`${t.title} ${t.branch ?? ""} ${t.id}`));
+      if (approvalFirst) {
+        pushIfAny("Tasks", taskItems);
+        pushIfAny("Commands", cmdItems);
+      } else {
+        pushIfAny("Commands", cmdItems);
+        pushIfAny("Tasks", taskItems);
+      }
       pushIfAny("Files", fileItems);
       if (needle.length > 0 && cmdItems.length + taskItems.length + fileItems.length > 0) {
         const missing: string[] = [];
