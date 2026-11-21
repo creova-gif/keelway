@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SettingsKeyMintModal } from "@/components/screens/settings/SettingsKeyMintModal";
+import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
 import {
   fetchGovernancePersistence,
   fetchGovernancePolicy,
@@ -297,13 +298,18 @@ export function SettingsGovernancePanel({
 
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Governance, Tenant Keys &amp; Spend Caps</h2>
-        <p className="text-xs text-fg-muted">
-          Crash-safe SQLite WAL persistence, sovereign data residency, automatic OpenCore spend-cap fallback, and prefix-only{" "}
-          <code dir="ltr" className="unicode-bidi-isolate font-mono">kw_live_*</code> tenant credentials.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Governance, Tenant Keys & Spend Caps"
+        status={persistence ? `SQLite ${persistence.journalMode.toUpperCase()}` : undefined}
+        purpose={
+          <>
+            Crash-safe SQLite WAL persistence, sovereign data residency, automatic OpenCore
+            spend-cap fallback, and prefix-only{" "}
+            <code dir="ltr" className="unicode-bidi-isolate font-mono">kw_live_*</code> tenant
+            credentials.
+          </>
+        }
+      />
 
       {loadError ? (
         <div role="alert" className="rounded-sm border border-danger/55 bg-danger-subtle px-4 py-2.5 text-xs text-fg">

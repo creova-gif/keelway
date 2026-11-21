@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
 import { fetchAirGapAudit, runLabsBenchmark } from "@/lib/api";
 import type {
   DensityMode,
@@ -156,12 +157,11 @@ export function SettingsNetworkPanel({
 
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Network &amp; Egress</h2>
-        <p className="text-xs text-fg-muted">
-          Honest egress telemetry, Tier-3 Air-Gap socket lock, and NIST SP 800-53 SC-7 boundary checks.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Network & Egress"
+        status={airGapEnabled ? "Air-Gap locked" : "Egress measured"}
+        purpose="Honest egress telemetry, Tier-3 Air-Gap socket lock, and NIST SP 800-53 SC-7 boundary checks."
+      />
 
       <section
         aria-label="Network posture and Air-Gap lock"
@@ -284,12 +284,10 @@ export function SettingsAppearancePanel({
 
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Appearance, Density &amp; Locale</h2>
-        <p className="text-xs text-fg-muted">
-          WCAG 2.2 AA calibrated surface tokens, live 3-mode row density, and bidirectional locale switching.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Appearance, Density & Locale"
+        purpose="WCAG 2.2 AA calibrated surface tokens, live 3-mode row density, and bidirectional locale switching."
+      />
 
       {/* Theme Selector */}
       <section aria-label="Color theme" className="space-y-3 rounded-md border border-border-strong bg-surface p-4">
@@ -472,12 +470,10 @@ export function SettingsLabsPanel({
 
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Labs — Epistemic Workbench</h2>
-        <p className="text-xs text-fg-muted">
-          Every experimental capability carries an explicit epistemic badge (Simulated, Estimated, Prototype, or Live) so synthetic fixtures never masquerade as measured telemetry.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Labs — Epistemic Workbench"
+        purpose="Every experimental capability carries an explicit epistemic badge (Simulated, Estimated, Prototype, or Live) so synthetic fixtures never masquerade as measured telemetry."
+      />
 
       <div className="grid gap-3.5 md:grid-cols-2">
         {cards.map((card) => {
@@ -541,12 +537,10 @@ export function SettingsGeneralPanel({
 }): React.JSX.Element {
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">General &amp; Workspace</h2>
-        <p className="text-xs text-fg-muted">
-          Bound local repository root, loopback runtime address, and first-run readiness wizard.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="General & Workspace"
+        purpose="Bound local repository root, loopback runtime address, and first-run readiness wizard."
+      />
 
       <section aria-label="Workspace binding" className="space-y-3 rounded-md border border-border-strong bg-surface p-4 text-xs">
         <dl className="divide-y divide-border rounded-sm border border-border bg-canvas">
@@ -595,12 +589,10 @@ const SHORTCUT_ROWS: ReadonlyArray<{ keys: string; scope: string; behavior: stri
 export function SettingsKeyboardPanel(): React.JSX.Element {
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Keyboard Shortcuts</h2>
-        <p className="text-xs text-fg-muted">
-          Collision-free landmark navigation and P-10 human-only approval gesture boundaries.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Keyboard Shortcuts"
+        purpose="Collision-free landmark navigation and P-10 human-only approval gesture boundaries."
+      />
 
       <div className="overflow-x-auto rounded-md border border-border-strong bg-surface">
         <table aria-label="Keyboard shortcuts reference" className="w-full border-collapse text-start text-xs">

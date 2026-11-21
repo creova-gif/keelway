@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
 import {
   createApprovalRule,
   fetchAgentManifests,
@@ -458,16 +459,19 @@ export function SettingsPermissionsPanel({
 
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Permissions &amp; Agent Manifests</h2>
-        <p className="text-xs text-fg-muted">
-          Scoped human-granted P-10 standing rules, immutable gate invariants, and{" "}
-          <code dir="ltr" className="unicode-bidi-isolate font-mono">
-            keelway.agent/v1
-          </code>{" "}
-          manifest kill-switches.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Permissions & Agent Manifests"
+        status={manifestsLoading ? undefined : `${manifests.length} manifests`}
+        purpose={
+          <>
+            Scoped human-granted P-10 standing rules, immutable gate invariants, and{" "}
+            <code dir="ltr" className="unicode-bidi-isolate font-mono">
+              keelway.agent/v1
+            </code>{" "}
+            manifest kill-switches.
+          </>
+        }
+      />
 
       {driftedRules.length > 0 ? (
         <CalloutBanner
