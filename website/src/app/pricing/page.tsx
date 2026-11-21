@@ -11,7 +11,7 @@ const TIERS = [
   { name: "Community", price: "$0", cadence: "Apache-2.0 core · offline", features: ["Local inference", "Full tape + receipts", "Air-gap mode"], brass: false },
   { name: "BYOM", price: "$15", cadence: "annual · $19 monthly", features: ["Your provider keys", "0% token markup", "Team policies"], brass: false },
   { name: "Pro", price: "$29", cadence: "annual · $35 monthly", features: ["Frontier routing", "P-10 gates + SSO", "Audit exports"], brass: true },
-  { name: "Team", price: "$49", cadence: "per seat / month", features: ["Multi-agent squads", "Hosted KSpaces sync", "Unlimited boards"], brass: false },
+  { name: "Enterprise", price: "Custom", cadence: "Sovereign VPC · annual", features: ["Air-gap / dedicated VPC", "Dual-human quorum", "SAML/SSO + SLAs"], brass: false },
 ];
 
 export default function PricingPage() {
@@ -42,7 +42,7 @@ export default function PricingPage() {
         ))}
       </div>
       <div className="mt-10 flex flex-col gap-3 border-t border-[var(--rule)] pt-6 sm:flex-row sm:items-baseline sm:justify-between">
-        <p className="text-sm text-[var(--muted)]">Enterprise Sovereign VPC — dedicated deployment, annual contract.</p>
+        <p className="text-sm text-[var(--muted)]">Volume seats or a dedicated deployment — annual contract.</p>
         <Link href="/contact" className="kw-data text-[var(--brass)]">Talk to us &rarr;</Link>
       </div>
     </div>
