@@ -2,7 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
-import { fetchAirGapAudit, runLabsBenchmark } from "@/lib/api";
+import { fetchAirGapAudit, getStudioToken, runLabsBenchmark } from "@/lib/api";
 import type {
   DensityMode,
   EgressTelemetryState,
@@ -616,6 +616,22 @@ export function SettingsGeneralPanel({
             <dt className="text-fg-muted">Loopback daemon origin</dt>
             <dd className="font-mono text-teal-accent">
               <code dir="ltr" className="unicode-bidi-isolate">http://127.0.0.1:7420</code>
+            </dd>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+            <dt className="text-fg-muted">Session token</dt>
+            <dd className="font-mono text-fg">
+              {(() => {
+                const token = getStudioToken();
+                return token ? (
+                  <>
+                    <code dir="ltr" className="unicode-bidi-isolate">{`${token.slice(0, 8)}…`}</code>
+                    <span className="text-fg-muted"> · rotate via CLI</span>
+                  </>
+                ) : (
+                  <span className="text-fg-muted">not configured — unauthenticated loopback</span>
+                );
+              })()}
             </dd>
           </div>
         </dl>
