@@ -2,8 +2,10 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
-import { fetchAirGapAudit, getStudioToken, runLabsBenchmark } from "@/lib/api";
+import { fetchAirGapAudit, fetchSbom, getStudioToken, runLabsBenchmark, verifyAuditChain } from "@/lib/api";
+import appPackage from "../../../../package.json";
 import type {
+  ChainVerificationState,
   DensityMode,
   EgressTelemetryState,
   LabsExperimentItem,
@@ -586,11 +588,50 @@ export function SettingsGeneralPanel({
   workspacePath = "/workspace/keelway",
   workspaceBranch = "feat/unified-dev-app",
   onOpenOnboarding,
+  verifyChainFn = verifyAuditChain,
+  fetchSbomFn = fetchSbom,
 }: {
   workspacePath?: string;
   workspaceBranch?: string;
   onOpenOnboarding?: () => void;
+  verifyChainFn?: typeof verifyAuditChain;
+  fetchSbomFn?: typeof fetchSbom;
 }): React.JSX.Element {
+  const [chain, setChain] = useState<ChainVerificationState | null>(null);
+  const [chainFailed, setChainFailed] = useState(false);
+  const [sbom, setSbom] = useState<{ spdxVersion: string; packagesCount: number; generatedAt: string; zeroCdnVerified: boolean } | null>(null);
+  const [sbomFailed, setSbomFailed] = useState(false);
+  const verifyChainRef = useRef(verifyChainFn);
+  verifyChainRef.current = verifyChainFn;
+  const fetchSbomRef = useRef(fetchSbomFn);
+  fetchSbomRef.current = fetchSbomFn;
+
+  useEffect(() => {
+    let cancelled = false;
+    verifyChainRef.current()
+      .then((state) => { if (!cancelled) setChain(state); })
+      .catch(() => { if (!cancelled) setChainFailed(true); });
+    fetchSbomRef.current()
+      .then((state) => { if (!cancelled) setSbom(state); })
+      .catch(() => { if (!cancelled) setSbomFailed(true); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const chainLabel = chainFailed
+    ? "unavailable"
+    : chain === null
+      ? "checking…"
+      : chain.status === "verified"
+        ? `tape chain verified · ${chain.totalEntries} entries`
+        : chain.status === "broken"
+          ? `tape chain broken at seq ${chain.brokenAtSeq ?? "?"}`
+          : `tape chain ${chain.status}`;
+  const sbomLabel = sbomFailed
+    ? "unavailable"
+    : sbom === null
+      ? "checking…"
+      : `${sbom.spdxVersion} · ${sbom.packagesCount} components`;
+
   return (
     <div className="space-y-5 text-ui text-fg">
       <SettingsPanelHeader
@@ -641,6 +682,42 @@ export function SettingsGeneralPanel({
             Re-open first-run setup
           </Button>
         </div>
+      </section>
+
+      <section aria-label="About and updates" className="space-y-3 rounded-md border border-border-strong bg-surface p-4 text-xs">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="text-[15px] font-semibold text-fg">About &amp; updates</h3>
+          <span className="font-mono text-[11px] text-fg-dim">live reads</span>
+        </div>
+        <dl className="divide-y divide-border rounded-sm border border-border bg-canvas">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+            <dt className="text-fg-muted">Keelway</dt>
+            <dd className="font-mono text-fg">
+              <code dir="ltr" className="unicode-bidi-isolate">{`v${appPackage.version}`}</code>
+              <span className="text-fg-muted"> · dev channel</span>
+            </dd>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+            <dt className="text-fg-muted">Update channel</dt>
+            <dd className="text-fg-muted">none configured — dev app</dd>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+            <dt className="text-fg-muted">Runtime</dt>
+            <dd className="text-fg">
+              <code dir="ltr" className="unicode-bidi-isolate font-mono">FastAPI + SQLite WAL</code>
+              <span className={chainFailed || chain?.status === "broken" ? "text-danger" : "text-fg-muted"}>
+                {` · ${chainLabel}`}
+              </span>
+            </dd>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+            <dt className="text-fg-muted">SBOM</dt>
+            <dd className={sbomFailed ? "text-fg-muted" : "font-mono text-fg"}>{sbomLabel}</dd>
+          </div>
+        </dl>
+        <p className="text-fg-dim">
+          Unverified updates are refused — there is no &quot;trust anyway&quot; path.
+        </p>
       </section>
     </div>
   );

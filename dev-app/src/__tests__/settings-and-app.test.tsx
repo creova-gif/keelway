@@ -464,6 +464,13 @@ describe("Screen 11 — SettingsSystemPanels (Network, Appearance, Labs, General
     await user.click(within(nav).getByRole("button", { name: /General & Workspace/i }));
     expect(screen.getByRole("button", { name: /Re-open first-run setup/i })).toBeInTheDocument();
 
+    // About & updates (Paper 19.4): version, honest dev-channel update state, live chain + SBOM reads
+    const about = screen.getByRole("region", { name: /About and updates/i });
+    expect(within(about).getByText(/dev channel/i)).toBeInTheDocument();
+    expect(within(about).getByText(/none configured — dev app/i)).toBeInTheDocument();
+    expect(await within(about).findByText(/tape chain verified/i)).toBeInTheDocument();
+    expect(await within(about).findByText(/components/i)).toBeInTheDocument();
+
     await user.click(within(nav).getByRole("button", { name: /Keyboard Shortcuts/i }));
     expect(screen.getByRole("table", { name: /Keyboard shortcuts reference/i })).toBeInTheDocument();
     expect(screen.getByText(/focus open Review drawer \(⌘3\)/i)).toBeInTheDocument();
