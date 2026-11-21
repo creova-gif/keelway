@@ -132,6 +132,25 @@ describe("FilesWorkspace (Screen 05)", () => {
     );
   });
 
+  it("renders an honest empty state on an empty workspace without fetching the default path", async () => {
+    const fetchContentFn = vi.fn(async (path: string) => ({ path, language: "plaintext", content: "" }));
+    render(
+      <FilesWorkspace
+        fetchTreeFn={async () => []}
+        fetchContentFn={fetchContentFn}
+        fetchDiffFn={async () => []}
+        fetchSymbolsFn={async () => []}
+      />,
+    );
+
+    expect(await screen.findByText("No files loaded in workspace.")).toBeInTheDocument();
+    expect(await screen.findByText("No file open — select a file in the workspace tree.")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: /Open file tabs/i })).queryAllByRole("button")).toHaveLength(0);
+    expect(screen.queryByRole("textbox", { name: /Code editor/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /Open in VS Code/i })).toBeDisabled();
+    expect(fetchContentFn).not.toHaveBeenCalled();
+  });
+
   it("surfaces explicit 'Not saved · disk full' badge and persistent recovery bar, clearing on Retry save or Cmd+S", async () => {
     const user = userEvent.setup();
     const saveContentFn = vi

@@ -143,3 +143,4 @@
 ## 3. Next Candidate Backlog Tasks
 
 All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tri-Language SDK (`Python`, `TypeScript`, `Go`) backlog items are `VERIFIED_COMPLETE`.
+| **KEEL-APP-061** | Files workspace honest empty state — no phantom `core/main.py` fetch/404 on empty workspaces | `APP` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `fix/keel-app-061-files-empty-workspace` |
