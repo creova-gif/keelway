@@ -527,11 +527,36 @@ def test_platform_api_end_to_end_routes(isolated_platform_client: TestClient) ->
     )
     assert bad_role.status_code == 400
 
+    inst_body = {"package_id": pkgs_resp.json()["packages"][0]["id"], "workspace_id": "default"}
+    for denied_role in ("viewer", "operator"):
+        denied_inst = client.post(
+            "/v1/platform/marketplace/install",
+            json=inst_body,
+            headers={"X-Keelway-Role": denied_role},
+        )
+        assert denied_inst.status_code == 403, denied_role
+        assert "marketplace:install" in denied_inst.json()["detail"]
+
+        denied_uninst = client.post(
+            "/v1/platform/marketplace/uninstall",
+            json=inst_body,
+            headers={"X-Keelway-Role": denied_role},
+        )
+        assert denied_uninst.status_code == 403, denied_role
+        assert "marketplace:install" in denied_uninst.json()["detail"]
+
     inst_resp = client.post(
         "/v1/platform/marketplace/install",
-        json={"package_id": pkgs_resp.json()["packages"][0]["id"], "workspace_id": "default"},
+        json=inst_body,
     )
     assert inst_resp.status_code == 200 and inst_resp.json()["installed"] is True
+
+    builder_inst = client.post(
+        "/v1/platform/marketplace/install",
+        json=inst_body,
+        headers={"X-Keelway-Role": "builder"},
+    )
+    assert builder_inst.status_code == 200
 
     agents_resp = client.get("/v1/platform/agents")
     assert agents_resp.status_code == 200 and len(agents_resp.json()["agents"]) == 12

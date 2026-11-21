@@ -120,6 +120,7 @@
 | **KEEL-DEPS-064** | Dependabot ignore rules for dangerous majors (TS ≥7, Tailwind ≥4, vitest ≥5, python ≥3.15) | `CI / DEPENDENCIES` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `chore/keel-deps-064-dependabot-ignores` |
 | **KEEL-APP-058** | Maritime Instrument v3 motion layer: shared tokens, interactive gate figure, dev-app choreography | `APP / WEB / MOTION` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `feature/keel-app-058-maritime-motion` |
 | **KEEL-SEC-065** | RBAC publisher-role gate on `/marketplace/publish` — new `marketplace:publish` permission (owner/admin/builder), viewer+operator → 403 before scanner | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `fix/keel-sec-065-marketplace-publish-rbac` |
+| **KEEL-SEC-066** | RBAC gate on `/marketplace/install` + `/uninstall` — new `marketplace:install` permission (owner/admin/builder), viewer+operator → 403 | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `fix/keel-sec-066-marketplace-install-rbac` |
 
 ---
 
