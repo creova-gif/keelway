@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
 import { explainRouting, fetchOpenCoreWeights } from "@/lib/api";
 import type {
   OpenCoreWeightItem,
@@ -130,13 +131,17 @@ export function SettingsModelsPanel({
 
   return (
     <div className="space-y-5 text-ui text-fg">
-      <header className="space-y-1 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold text-fg">Models &amp; 4D Hybrid Routing</h2>
-        <p className="text-xs text-fg-muted">
-          Local OpenCore weights on <code dir="ltr" className="unicode-bidi-isolate font-mono">127.0.0.1</code>,
-          sovereign VPC boundaries, and zero-token 4D policy dry-run simulation.
-        </p>
-      </header>
+      <SettingsPanelHeader
+        title="Models & 4D Hybrid Routing"
+        status={loadingWeights ? undefined : `${weights.length} local weights`}
+        purpose={
+          <>
+            Local OpenCore weights on{" "}
+            <code dir="ltr" className="unicode-bidi-isolate font-mono">127.0.0.1</code>, sovereign
+            VPC boundaries, and zero-token 4D policy dry-run simulation.
+          </>
+        }
+      />
 
       {/* Card 1: OpenCore Local Runtime */}
       <section
