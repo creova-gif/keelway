@@ -5,12 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "var(--canvas)",
-        surface: "var(--surface)",
-        "surface-raised": "var(--surface-raised)",
+        canvas: "var(--bg-canvas)",
+        surface: "var(--bg-surface)",
+        "surface-raised": "var(--bg-surface-elevated)",
         border: {
           DEFAULT: "var(--border-subtle)",
           strong: "var(--border-strong)",
+          control: "var(--border-control)",
+          focus: "var(--border-focus)",
         },
         fg: {
           DEFAULT: "var(--fg-primary)",

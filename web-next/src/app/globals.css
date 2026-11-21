@@ -5,6 +5,6 @@
 @tailwind utilities;
 
 body {
-  background: var(--canvas);
+  background: var(--bg-canvas);
   color: var(--fg-primary);
 }
