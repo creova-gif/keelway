@@ -1,11 +1,20 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import type { SidebarTaskItem } from "@/lib/types";
+import { fetchAuditEntries } from "@/lib/api";
+import type { RecordLedgerEntry, SidebarTaskItem } from "@/lib/types";
+
+const DENIAL_ACTION_MARKER = /denied|rejected|blocked|refused/i;
+const DENIAL_ROW_LIMIT = 4;
+
+export function isDenialEntry(entry: RecordLedgerEntry): boolean {
+  return entry.outcome === "denied" || DENIAL_ACTION_MARKER.test(entry.action);
+}
 
 export interface InboxPopoverProps {
   tasks: SidebarTaskItem[];
   onSelectTask?: (taskId: string) => void;
   onJumpToApprovalHeading?: () => void;
   onOpenRecord?: () => void;
+  fetchAuditEntriesFn?: () => Promise<RecordLedgerEntry[]>;
 }
 
 export function InboxPopover({
@@ -13,14 +22,38 @@ export function InboxPopover({
   onSelectTask,
   onJumpToApprovalHeading,
   onOpenRecord,
+  fetchAuditEntriesFn = fetchAuditEntries,
 }: InboxPopoverProps): React.JSX.Element {
   const panelId = useId();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
+  const [denials, setDenials] = useState<RecordLedgerEntry[] | null>(null);
+  const [denialsError, setDenialsError] = useState(false);
 
   const pendingApprovals = tasks.filter((t) => t.status === "needs_approval");
   const runOutcomes = tasks.filter((t) => t.status === "done" || t.status === "failed");
   const unreadCount = pendingApprovals.length;
+
+  useEffect(() => {
+    if (!open || denials !== null || denialsError) return;
+    let mounted = true;
+    fetchAuditEntriesFn()
+      .then((entries) => {
+        if (!mounted) return;
+        setDenials(
+          entries
+            .filter(isDenialEntry)
+            .sort((a, b) => b.seq - a.seq)
+            .slice(0, DENIAL_ROW_LIMIT),
+        );
+      })
+      .catch(() => {
+        if (mounted) setDenialsError(true);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [open, denials, denialsError, fetchAuditEntriesFn]);
 
   useEffect(() => {
     if (!open) return;
@@ -67,9 +100,9 @@ export function InboxPopover({
             <span className="font-semibold text-fg">Inbox — what needs you</span>
             <span className="font-mono text-[10px] text-fg-dim">rail button, unread dot only</span>
           </div>
-          {pendingApprovals.length === 0 && runOutcomes.length === 0 ? (
+          {pendingApprovals.length === 0 && runOutcomes.length === 0 && (denials ?? []).length === 0 ? (
             <p className="px-3 py-3 text-fg-muted">
-              Nothing needs you — no pending gates or finished runs.
+              Nothing needs you — no pending gates, finished runs, or denied actions on the tape.
             </p>
           ) : (
             <ul className="divide-y divide-border">
@@ -129,8 +162,46 @@ export function InboxPopover({
               ))}
             </ul>
           )}
+          {denials && denials.length > 0 ? (
+            <div className="border-t border-border">
+              <div className="px-3 pt-2 font-mono text-[10px] uppercase tracking-wide text-fg-dim">
+                Security events — from the Record
+              </div>
+              <ul className="divide-y divide-border">
+                {denials.map((entry) => (
+                  <li key={`denial-${entry.seq}`} className="flex items-center justify-between gap-2 px-3 py-2.5">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-danger" />
+                        <span className="truncate font-semibold text-fg">{`${entry.action} — ${entry.target}`}</span>
+                      </div>
+                      <p className="mt-0.5 truncate font-mono text-[10px] text-fg-dim">
+                        {`Record #${entry.seq} · ${entry.actorLabel} · ${entry.timestampEt}`}
+                      </p>
+                    </div>
+                    {onOpenRecord ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onOpenRecord();
+                          setOpen(false);
+                        }}
+                        className="shrink-0 rounded-xs px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg-muted hover:bg-canvas hover:text-fg"
+                      >
+                        Tape ↗
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : denialsError ? (
+            <p className="border-t border-border px-3 py-2 text-[10px] text-fg-dim">
+              Security events unavailable — Record endpoint unreachable.
+            </p>
+          ) : null}
           <p className="border-t border-border px-3 py-2 text-[10px] text-fg-dim">
-            P-10 requests (actionable) and run outcomes (tape link). No marketing pings, ever.
+            P-10 requests (actionable), run outcomes and denied actions (tape links). No marketing pings, ever.
           </p>
         </div>
       ) : null}
