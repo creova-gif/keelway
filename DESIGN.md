@@ -283,3 +283,36 @@ Paper kit page 07.
   no scroll reveals beyond `kw-rise` first-paint, no cursor effects.
 - Reduced motion: every duration collapses via the existing guards; state
   still lands so meaning survives.
+
+## 10. Paper Design is the canonical visual workspace (2026-11-22)
+
+**Keelway's UI/UX is designed in
+[Paper](https://app.paper.design/file/01M7T488WTKN3AQNQ2K9DB40TN) first, then
+implemented.** This document remains the engineering specification; the Paper
+file is the visual source of truth.
+
+### Authority split (owner-ratified, KEEL-DSN-001)
+
+- **Paper wins**: chrome, layout, visual system, component styling, spacing,
+  typography, color application.
+- **Code wins**: honesty markers (`EXAMPLE DATA`, `[Simulated]`, `Locked`,
+  `No counter yet`, sealed/verified provenance), ARIA contracts, RBAC gates,
+  backend wiring, state truth. A design that conflicts with a behavioral
+  contract is implemented *with* the contract, not instead of it.
+- **Never implemented from Paper**: states the backend cannot produce, data
+  the API cannot supply, or removal of honesty/audit affordances.
+
+### Working rules
+
+- Screens are artboarded in Paper and reviewed via `get_screenshot`
+  checkpoints before implementation.
+- Implementation values come from `get_jsx` / `get_computed_styles` — never
+  estimated from screenshots.
+- `docs/design/` holds the program doc, screen inventory, and canonical
+  `tokens.json` registry; drift between Paper and code is tracked there.
+- Tokens: `docs/design/TOKENS.md` documents the reconciliation — Paper and
+  code agree on all core values; shell geometry, density, motion durations,
+  diff colors, and the light theme remain code-authoritative.
+
+See: `docs/design/DESIGN_PROGRAM.md`, `docs/design/SCREEN_INVENTORY.md`,
+`docs/design/TOKENS.md`, `docs/design/tokens.json`.

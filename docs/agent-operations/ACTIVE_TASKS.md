@@ -122,6 +122,7 @@
 | **KEEL-SEC-065** | RBAC publisher-role gate on `/marketplace/publish` — new `marketplace:publish` permission (owner/admin/builder), viewer+operator → 403 before scanner | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-21 | `fix/keel-sec-065-marketplace-publish-rbac` |
 | **KEEL-SEC-066** | RBAC gate on `/marketplace/install` + `/uninstall` — new `marketplace:install` permission (owner/admin/builder), viewer+operator → 403 | `SECURITY / SUPPLY-CHAIN / RBAC` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `fix/keel-sec-066-marketplace-install-rbac` |
 | **KEEL-ENG-054** | `tests/__init__.py` — make `tests` a regular package so `from tests.package_a_profile` can't be shadowed by site-packages; whole-dir `pytest tests/` clean (1552 passed) | `ENGINEERING / TESTING` | `VERIFIED_COMPLETE` | Devin | 2026-11-20 | `fix/keel-eng-054-tests-package-init` |
+| **KEEL-DSN-001** | Paper Design program ratified (Phase 0/1): verified MCP integration, `docs/design/` program + screen inventory + canonical `tokens.json` registry, DESIGN.md §10 declares Paper canonical | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-dsn-001-paper-design-system` |
 
 ---
 
@@ -143,4 +144,4 @@
 ## 3. Next Candidate Backlog Tasks
 
 All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tri-Language SDK (`Python`, `TypeScript`, `Go`) backlog items are `VERIFIED_COMPLETE`.
-| **KEEL-APP-061** | Files workspace honest empty state — no phantom `core/main.py` fetch/404 on empty workspaces | `APP` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `fix/keel-app-061-files-empty-workspace` |
+| **KEEL-APP-061** | Files workspace honest empty state — no phantom `core/main.py` fetch/404 on empty workspaces | `APP` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `fix/keel-app-061-files-empty-workspace` |
