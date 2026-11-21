@@ -713,6 +713,7 @@ export function App({
             workspacePath={workspacePath}
             workspaceBranch={workspaceBranch}
             onOpenOnboarding={() => setOnboardingOpen(true)}
+            onOpenRecordAudit={() => handleSelectPlatformView("security")}
           />
         )}
       </DevAppShell>

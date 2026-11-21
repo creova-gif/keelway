@@ -2,7 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
-import { fetchAirGapAudit, runLabsBenchmark } from "@/lib/api";
+import { fetchAirGapAudit, getStudioToken, runLabsBenchmark } from "@/lib/api";
 import type {
   DensityMode,
   EgressTelemetryState,
@@ -123,12 +123,14 @@ export interface SettingsNetworkPanelProps {
   airGapEnabled: boolean;
   onToggleAirGap: () => void;
   fetchAirGapAuditFn?: typeof fetchAirGapAudit;
+  onOpenRecordAudit?: () => void;
 }
 
 export function SettingsNetworkPanel({
   airGapEnabled,
   onToggleAirGap,
   fetchAirGapAuditFn = fetchAirGapAudit,
+  onOpenRecordAudit,
 }: SettingsNetworkPanelProps): React.JSX.Element {
   const [audit, setAudit] = useState<EgressTelemetryState>(INITIAL_UNVERIFIED_AUDIT);
   const [auditLoading, setAuditLoading] = useState(true);
@@ -192,6 +194,19 @@ export function SettingsNetworkPanel({
             {airGapEnabled ? "Air-Gap Lock: Enabled" : "Enable Air-Gap Lock"}
           </Button>
         </div>
+
+        <details className="rounded-sm border border-border bg-canvas px-3 py-2.5 text-xs">
+          <summary className="cursor-pointer select-none font-semibold text-fg">
+            {airGapEnabled
+              ? "Active — what locking is enforcing right now"
+              : "Preview — what locking changes right now"}
+          </summary>
+          <ul className="mt-2 space-y-1.5 font-mono text-[11px] text-fg-muted">
+            <li>cloud connectors → refused</li>
+            <li>telemetry → buffered local</li>
+            <li>models → OpenCore only</li>
+          </ul>
+        </details>
       </section>
 
       <section
@@ -252,6 +267,47 @@ export function SettingsNetworkPanel({
               {`${audit.endpoints.length} endpoints`}
             </span>
           </li>
+        </ul>
+      </section>
+
+      <section
+        aria-label="Recent egress decisions"
+        className="space-y-3 rounded-md border border-border-strong bg-surface p-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-[15px] font-semibold text-fg">
+            Recent egress decisions
+          </h3>
+          {onOpenRecordAudit ? (
+            <Button size="sm" variant="ghost" onClick={onOpenRecordAudit}>
+              Open full audit in Record
+            </Button>
+          ) : null}
+        </div>
+
+        <ul className="divide-y divide-border rounded-sm border border-border bg-canvas text-xs">
+          {auditError ? (
+            <li className="px-3 py-2 font-mono text-fg-muted">
+              Egress log unavailable — telemetry error above.
+            </li>
+          ) : audit.endpoints.length === 0 ? (
+            <li className="px-3 py-2 font-mono text-fg-muted">
+              No cloud endpoints recorded — egress ledger is empty.
+            </li>
+          ) : (
+            audit.endpoints.map((ep) => (
+              <li key={ep.host} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                <span className="font-mono text-fg">
+                  <code dir="ltr" className="unicode-bidi-isolate">{ep.host}</code>
+                  <span className="text-fg-muted">{` · ${ep.purpose}`}</span>
+                </span>
+                <span className="font-mono tabular-nums text-fg-muted">
+                  {`${ep.calls} ${ep.calls === 1 ? "call" : "calls"}`}
+                  {ep.bytesSent !== null ? ` · ${ep.bytesSent} B` : " · bytes unmeasured"}
+                </span>
+              </li>
+            ))
+          )}
         </ul>
       </section>
     </div>
@@ -560,6 +616,22 @@ export function SettingsGeneralPanel({
             <dt className="text-fg-muted">Loopback daemon origin</dt>
             <dd className="font-mono text-teal-accent">
               <code dir="ltr" className="unicode-bidi-isolate">http://127.0.0.1:7420</code>
+            </dd>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+            <dt className="text-fg-muted">Session token</dt>
+            <dd className="font-mono text-fg">
+              {(() => {
+                const token = getStudioToken();
+                return token ? (
+                  <>
+                    <code dir="ltr" className="unicode-bidi-isolate">{`${token.slice(0, 8)}…`}</code>
+                    <span className="text-fg-muted"> · rotate via CLI</span>
+                  </>
+                ) : (
+                  <span className="text-fg-muted">not configured — unauthenticated loopback</span>
+                );
+              })()}
             </dd>
           </div>
         </dl>
