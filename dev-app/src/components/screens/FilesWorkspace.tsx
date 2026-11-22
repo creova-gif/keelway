@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import appPackage from "../../../package.json";
 import { FilesCommitModal, FilesDiffView, type FilesCommitModalProps, type FilesDiffViewProps } from "@/components/screens/FilesDiffAndCommit";
 import { FilesExplorerSidebar, flattenFiles, type FilesExplorerSidebarProps, type FilesExplorerTab } from "@/components/screens/FilesExplorerSidebar";
 import { Button } from "@/components/ui/Button";
@@ -37,6 +38,7 @@ interface MonacoEditorInstance {
   revealLineInCenter?(lineNumber: number): void;
   setPosition?(pos: { lineNumber: number; column: number }): void;
   onDidChangeModelContent(listener: () => void): MonacoDisposable;
+  onDidChangeCursorPosition?(listener: (e: { position: { lineNumber: number; column: number } }) => void): MonacoDisposable;
   dispose(): void;
 }
 
@@ -76,6 +78,7 @@ export interface FilesWorkspaceProps {
   onTreeLoaded?: (nodes: WorkspaceFileNode[]) => void;
   onSymbolsLoaded?: (symbols: CodeSymbolItem[]) => void;
   onCommitted?: (result: GitCommitResult) => void;
+  egressMode?: string;
   fetchTreeFn?: typeof fetchFilesTree;
   fetchContentFn?: typeof fetchFileContent;
   saveContentFn?: typeof saveFileContent;
@@ -101,6 +104,7 @@ export function FilesWorkspace({
   onSidebarStateChange,
   onTreeLoaded,
   onSymbolsLoaded,
+  egressMode,
   onCommitted,
   fetchTreeFn = fetchFilesTree,
   fetchContentFn = fetchFileContent,
@@ -124,6 +128,7 @@ export function FilesWorkspace({
   const [activePath, setActivePath] = useState<string>(resolvedInitialPath);
   const [seedErrorPath, setSeedErrorPath] = useState<string>(resolvedInitialPath);
   const [activeLine, setActiveLine] = useState<number>(resolvedInitialLine);
+  const [cursorPos, setCursorPos] = useState<{ line: number; column: number } | null>(null);
   const [openPaths, setOpenPaths] = useState<string[]>([resolvedInitialPath]);
 
   const [buffers, setBuffers] = useState<Record<string, string>>({});
@@ -452,6 +457,9 @@ export function FilesWorkspace({
         if (isSyncingMonacoRef.current) return;
         updateBufferContent(activePath, instance.getValue());
       });
+      const cursorSub = instance.onDidChangeCursorPosition?.((e) => {
+        setCursorPos({ line: e.position.lineNumber, column: e.position.column });
+      });
       const themeObserver = new MutationObserver(() => {
         monaco.editor.setTheme(
           document.documentElement.getAttribute("data-theme") === "light" ? "keelway-light" : "keelway-dark",
@@ -461,6 +469,7 @@ export function FilesWorkspace({
       return () => {
         themeObserver.disconnect();
         sub.dispose();
+        cursorSub?.dispose();
         instance.dispose();
         monacoEditorRef.current = null;
       };
@@ -585,10 +594,10 @@ export function FilesWorkspace({
                   type="button"
                   aria-current={isCurrent ? "true" : undefined}
                   onClick={() => openFileTab(path, 1)}
-                  className={`inline-flex min-h-ctrl-sm items-center gap-1.5 rounded-xs border px-2.5 py-1 text-xs transition-colors duration-fast ease-state ${
+                  className={`inline-flex min-h-ctrl-sm items-center gap-1.5 border-b-2 px-2.5 py-1 text-xs transition-colors duration-fast ease-state ${
                     isCurrent
-                      ? "border-border-strong bg-surface text-fg"
-                      : "border-transparent bg-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
+                      ? "border-b-accent text-fg"
+                      : "border-b-transparent text-fg-muted hover:text-fg"
                   }`}
                 >
                   <code dir="ltr" className="unicode-bidi-isolate font-mono">{basenameOf(path)}</code>
@@ -725,8 +734,11 @@ export function FilesWorkspace({
             <code dir="ltr" className="unicode-bidi-isolate text-fg">{activePath || "No file open"}</code>
             {activePath ? (
               <>
-                <span className="tabular-nums">{`Ln ${activeLine}`}</span>
+                <span className="tabular-nums">
+                  {cursorPos ? `ln ${cursorPos.line}, col ${cursorPos.column}` : `ln ${activeLine}`}
+                </span>
                 <span>{activeLanguage}</span>
+                {egressMode ? <span className="text-fg-dim">{`egress: ${egressMode}`}</span> : null}
               </>
             ) : null}
             {typeof activeAiSeq === "number" ? <SemanticBadge kind="ai" detail={`#${activeAiSeq}`} /> : null}
@@ -738,6 +750,7 @@ export function FilesWorkspace({
                 ? "Esc armed: next Tab moves focus (Tab indents · Esc then Tab moves focus)"
                 : "Tab indents · Esc then Tab moves focus"}
             </span>
+            <span className="font-mono text-fg-dim">{`keelway dev · v${appPackage.version}`}</span>
           </div>
         </div>
       </div>
