@@ -50,7 +50,7 @@ export function PolicyDemo() {
                 type="checkbox"
                 checked={flags[t.key]}
                 onChange={() => setFlags({ ...flags, [t.key]: !flags[t.key] })}
-                className="accent-[var(--brass)]"
+                className="accent-[var(--accent)]"
               />
               {t.label}
             </label>
@@ -59,7 +59,7 @@ export function PolicyDemo() {
         <div className="mt-4 flex items-center gap-3">
           <button
             type="button"
-            className="kw-fig-btn bg-[var(--brass)] text-[var(--brass-ink)] hover:bg-[var(--brass-deep)]"
+            className="kw-fig-btn bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-[var(--accent-deep)]"
             onClick={decide}
           >
             ▸ evaluate
