@@ -130,6 +130,7 @@
 | **KEEL-WEB-044** | Interactive marginal-cost comparison (workload slider → $0 open_weight vs ≈$10/1M frontier) FIG 2.1 on /pricing | `WEB / MOTION` | `MERGED` (PR #188) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-046** | /about Sorvex Labs parent section — company description + flagship relationship + endorsement line | `WEB / BRAND` | `MERGED` (PR #190) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-043** | Footer brand split — Keelway product label + quiet "A Sorvex Labs company." endorsement | `WEB / BRAND` | `MERGED` (PR #184) | Devin | 2026-11-22 | `main` |
+| **KEEL-WEB-047** | Paper pages 05-09 parity audit — canonical Sorvex endorsement wording + 'most common' tag on recommended tier; motion/CLI/site grammar verified compliant | `WEB / DESIGN` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-047-pages05-09-parity` |
 
 ---
 
