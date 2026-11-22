@@ -3,7 +3,7 @@
 ### TASK HANDOFF RECORD
 - **TASK ID**: KEEL-WEB-008
 - **TASK TITLE**: /product (instruments + PolicyDemo) and /changelog ports on web-next
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: MERGED (PR #191)
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-22
 - **BRANCH**: feature/keel-web-008-product-changelog
