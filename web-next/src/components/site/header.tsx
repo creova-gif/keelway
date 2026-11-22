@@ -8,8 +8,10 @@ import { Mark } from "@/components/site/mark";
 const REPO_URL = "https://github.com/creova-gif/keelway";
 
 const NAV = [
+  { href: "/product", label: "Product" },
   { href: "/pricing", label: "Pricing" },
   { href: "/docs", label: "Docs" },
+  { href: "/changelog", label: "Changelog" },
 ] as const;
 
 export function SiteHeader() {

@@ -14,8 +14,14 @@ export function SiteFooter() {
             <p className="mt-4 font-mono text-[10px] text-fg-muted">A Sorvex Labs company.</p>
           </div>
           <nav className="flex gap-6 text-[13px]" aria-label="Footer">
+            <Link href="/product" className="text-fg-muted transition-colors hover:text-fg">
+              Product
+            </Link>
             <Link href="/pricing" className="text-fg-muted transition-colors hover:text-fg">
               Pricing
+            </Link>
+            <Link href="/changelog" className="text-fg-muted transition-colors hover:text-fg">
+              Changelog
             </Link>
             <Link href="/docs" className="text-fg-muted transition-colors hover:text-fg">
               Docs
