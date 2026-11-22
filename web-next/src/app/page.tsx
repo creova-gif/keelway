@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const FACTS = [
@@ -9,7 +10,7 @@ const FACTS = [
 
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 px-6 py-16">
       <header className="space-y-3">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-fg-muted">
           Keelway · sovereign AI developer platform
@@ -22,8 +23,14 @@ export default function Home() {
           Record ledger, and fail-closed air-gap controls — measured, not marketed.
         </p>
         <div className="flex gap-2 pt-2">
-          <Button>Get started</Button>
-          <Button variant="secondary">Read the docs</Button>
+          <Button asChild>
+            <a href="https://github.com/creova-gif/keelway#readme" target="_blank" rel="noopener">
+              Get started
+            </a>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/docs">Read the docs</Link>
+          </Button>
         </div>
       </header>
 
