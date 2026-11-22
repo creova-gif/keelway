@@ -13,7 +13,7 @@ needed reconciliation, not migration.
 |---|---|---|---|
 | Canvas | `#08090A` | `--bg-canvas #08090a` ✅ | `--canvas #08090a` ✅ |
 | Ink / muted | `#F4F5F5` / `#9BA1A6` | ✅ / ✅ | ✅ / ✅ |
-| Accent | `--accent #C9A45C` | `--accent` canonical; `--teal-*`/`--attn-ochre`/`--status-warning` = `var(--accent)` aliases ✅ | `--brass #c9a45c` ✅ |
+| Accent | `--accent #C9A45C` | `--accent` canonical; `--teal-*`/`--attn-ochre`/`--status-warning` = `var(--accent)` aliases ✅ | `--accent #c9a45c` ✅ (renamed from --brass, KEEL-WEB-004) |
 | Accent deep | `#A8854A` | light-theme accent `#a8854a` ✅ | `--brass-deep` ✅ |
 | Success / error / info | `#6FAE8E` / `#B0564E` / `#6F87A3` | `--status-ok` / `--red-danger` / `--status-running` ✅ | starboard / port / flag ✅ |
 | Fonts | Inter + JetBrains Mono | ✅ | ✅ |

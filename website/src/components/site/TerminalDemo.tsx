@@ -66,7 +66,7 @@ export function TerminalDemo() {
     setOutcome(null);
   };
 
-  const toneCls = { dim: "text-[var(--dim)]", muted: "text-[var(--muted)]", info: "text-[var(--brass)]" };
+  const toneCls = { dim: "text-[var(--dim)]", muted: "text-[var(--muted)]", info: "text-[var(--accent)]" };
 
   return (
     <div className="kw-figure bg-[var(--fog-4)]" role="group" aria-label="Keelway terminal session replay: run a task, hit a P-10 gate, decide, and watch the receipt seal.">
@@ -76,7 +76,7 @@ export function TerminalDemo() {
       </div>
       <div className="px-4 py-4 sm:px-5" aria-live={phase === "running" ? "polite" : "off"}>
         <div className="kw-data text-[12px] text-[var(--ink)]">
-          <span className="text-[var(--brass)]">$ </span>
+          <span className="text-[var(--accent)]">$ </span>
           {phase === "idle" ? <span className="text-[var(--dim)]">ready — press run</span> : CMD.slice(0, typed)}
           {phase === "typing" && <span aria-hidden="true">▍</span>}
         </div>
@@ -102,7 +102,7 @@ export function TerminalDemo() {
         </ul>
         <div className="mt-4 flex items-center gap-3">
           {phase === "idle" && (
-            <button type="button" className="kw-fig-btn bg-[var(--brass)] text-[var(--brass-ink)] hover:bg-[var(--brass-deep)]" onClick={run}>
+            <button type="button" className="kw-fig-btn bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-[var(--accent-deep)]" onClick={run}>
               ▸ run session
             </button>
           )}
@@ -111,7 +111,7 @@ export function TerminalDemo() {
           ) : null}
           {phase === "gate" && (
             <>
-              <button type="button" className="kw-fig-btn bg-[var(--brass)] text-[var(--brass-ink)] hover:bg-[var(--brass-deep)]" onClick={() => decide("sealed")}>
+              <button type="button" className="kw-fig-btn bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-[var(--accent-deep)]" onClick={() => decide("sealed")}>
                 Allow once
               </button>
               <button type="button" className="kw-fig-btn border border-[var(--rule-strong)] text-[var(--ink)] hover:bg-[var(--fog-8)]" onClick={() => decide("denied")}>

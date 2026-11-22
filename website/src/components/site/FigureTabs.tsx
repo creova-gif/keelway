@@ -22,7 +22,7 @@ const TABS = [
 ];
 
 /**
- * Kit 09.3 feature carousel — brass-underlined tab switcher over the three
+ * Kit 09.3 feature carousel — accent-underlined tab switcher over the three
  * figure variants. No auto-advance; manual control only, reduced-motion safe.
  */
 export function FigureTabs() {

@@ -52,7 +52,7 @@ export default function HomePage() {
         <div className="grid gap-10 border-t border-[var(--rule)] pt-12 sm:grid-cols-3">
           {PRINCIPLES.map((p) => (
             <div key={p.label}>
-              <p className={`kw-label ${p.accent ? "kw-label-brass" : ""}`}>{p.label}</p>
+              <p className={`kw-label ${p.accent ? "kw-label-accent" : ""}`}>{p.label}</p>
               <p className="mt-4 text-[15px] leading-relaxed text-[var(--muted)]">{p.body}</p>
             </div>
           ))}

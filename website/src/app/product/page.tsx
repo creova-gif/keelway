@@ -34,7 +34,7 @@ export default function ProductPage() {
         {INSTRUMENTS.map((i, idx) => (
           <Reveal key={i.label} delay={idx as 0 | 1 | 2}>
             <div className="kw-card h-full p-7 transition-colors duration-fast ease-state hover:border-[var(--rule-strong)]">
-              <p className="kw-label kw-label-brass">{i.label}</p>
+              <p className="kw-label kw-label-accent">{i.label}</p>
               <h2 className="kw-h3 mt-4">{i.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{i.body}</p>
             </div>

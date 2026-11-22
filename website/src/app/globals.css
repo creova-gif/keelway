@@ -22,13 +22,13 @@
   --muted: #9ba1a6;
   --dim: #8a9096;
 
-  /* brass — rare, meaningful */
-  --brass: #c9a45c;
-  --brass-deep: #a8854a;
-  --brass-ink: #08090a;
-  --brass-8: rgba(201, 164, 92, 0.08);
-  --brass-40: rgba(201, 164, 92, 0.4);
-  --brass-ring: rgba(201, 164, 92, 0.35);
+  /* accent — rare, meaningful */
+  --accent: #c9a45c;
+  --accent-deep: #a8854a;
+  --accent-ink: #08090a;
+  --accent-8: rgba(201, 164, 92, 0.08);
+  --accent-40: rgba(201, 164, 92, 0.4);
+  --accent-ring: rgba(201, 164, 92, 0.35);
 
   /* semantic — port / starboard / flag */
   --green: #6fae8e;
@@ -69,8 +69,8 @@ body {
 }
 
 ::selection {
-  background: var(--brass);
-  color: var(--brass-ink);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* ---------- type ---------- */
@@ -110,7 +110,7 @@ body {
   text-transform: uppercase;
   color: var(--muted);
 }
-.kw-label-brass { color: var(--brass); }
+.kw-label-accent { color: var(--accent); }
 .kw-data {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 0.8125rem;
@@ -135,11 +135,11 @@ body {
 .kw-input:focus-visible,
 .kw-link:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--brass-ring);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 .kw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.kw-btn-primary { background: var(--brass); color: var(--brass-ink); }
-.kw-btn-primary:hover:not(:disabled) { background: var(--brass-deep); }
+.kw-btn-primary { background: var(--accent); color: var(--accent-ink); }
+.kw-btn-primary:hover:not(:disabled) { background: var(--accent-deep); }
 .kw-btn-secondary {
   color: var(--ink);
   border: 1px solid var(--rule-strong);
@@ -163,7 +163,7 @@ body {
   transition: border-color var(--dur-fast) var(--ease-state), box-shadow var(--dur-fast) var(--ease-state);
 }
 .kw-input::placeholder { color: var(--dim); }
-.kw-input:focus { border-color: var(--brass); box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15); outline: none; }
+.kw-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15); outline: none; }
 
 /* ---------- chips ---------- */
 .kw-chip {
@@ -175,7 +175,7 @@ body {
   border: 1px solid var(--rule);
   color: var(--dim);
 }
-.kw-chip-brass { color: var(--brass); border-color: var(--brass-40); background: var(--brass-8); }
+.kw-chip-accent { color: var(--accent); border-color: var(--accent-40); background: var(--accent-8); }
 .kw-chip-green { color: var(--green); border-color: var(--green-35); background: var(--green-8); }
 .kw-chip-red { color: var(--red); border-color: var(--red-40); background: var(--red-8); }
 .kw-chip-blue { color: var(--blue); border-color: var(--blue-35); background: var(--blue-8); }
@@ -201,7 +201,7 @@ body {
 .kw-row-hover { transition: background-color var(--dur-snap) var(--ease-state); }
 .kw-row-hover:hover { background: rgba(255, 255, 255, 0.015); }
 
-/* nav link — brass underline slides in (kit 07: route → underline) */
+/* nav link — accent underline slides in (kit 07: route → underline) */
 .kw-navlink {
   position: relative;
   font-size: 0.8125rem;
@@ -215,7 +215,7 @@ body {
   right: 0;
   bottom: -4px;
   height: 1px;
-  background: var(--brass);
+  background: var(--accent);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform var(--dur-base) var(--ease-settle);
@@ -235,7 +235,7 @@ body {
     border-color var(--dur-fast) var(--ease-state), color var(--dur-fast) var(--ease-state);
   cursor: pointer;
 }
-.kw-fig-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--brass-ring); }
+.kw-fig-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
 .kw-fig-btn:disabled { cursor: default; }
 
 /* chip state transitions — tone change settles, never pops */
@@ -251,12 +251,12 @@ body {
   to { opacity: 1; transform: none; }
 }
 @keyframes kw-seal-ring {
-  from { box-shadow: 0 0 0 0 var(--brass-40); }
+  from { box-shadow: 0 0 0 0 var(--accent-40); }
   to { box-shadow: 0 0 0 14px transparent; }
 }
 
-/* figure state washes — gated brass, sealed green, denied port */
-.kw-fig-state-gated { background: var(--brass-8); }
+/* figure state washes — gated accent, sealed green, denied port */
+.kw-fig-state-gated { background: var(--accent-8); }
 .kw-fig-state-denied { background: var(--red-8); }
 
 /* motion — fade-rise, reduced-motion safe */
