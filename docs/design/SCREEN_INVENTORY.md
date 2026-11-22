@@ -18,7 +18,7 @@ isolated verify-keelway stack 2026-11-22 (evidence `/tmp/keelway-qa-evidence/`).
 | Onboarding modal (in-app, 2-step) | `App.tsx` + onboarding component | setup/doctor endpoints | ✅ 18.3 (`2RP-0`) | Designed — provenance markers kept | — |
 | Review-changes drawer | `TasksDrawers.tsx` (`ReviewChangesContent`) | diff/keep-revert APIs | ✅ 18.5 (`2WD-0`) | Designed — keep/revert receipt note | — |
 | Live execution drawer | `LiveExecutionDrawer.tsx` | SSE execution stream | ✅ 18.5 (`2WD-0`) | Designed — lens on the same ledger | — |
-| Mobile companion mode | `App.tsx` (`companionTab`, `effectiveMobileCompanion`) | same | partial (page 08) | Responsive contract needed for workspace surfaces | 3 |
+| Mobile companion mode | `App.tsx` (`companionTab`, `effectiveMobileCompanion`) | same | ✅ page 08 contract wired | Responsive contract landed (APP-078): no terminal/shell, no composer, 44px tabs; RN offline read-only (MOB-003) | — |
 
 ## B. IDE group (rail sections: tasks · files · record · settings)
 
@@ -70,7 +70,7 @@ panels inherit the section template unless individually flagged.
 |---|---|---|---|
 | Billing / tier management | partial (workspace-bar tier switcher only) | ✅ 18.2 (`2PV-0`) — plan/usage/settlement designed. Open: 4-tier (app) vs 5-tier (website) canonical set resolution | — |
 | State matrix — every view × {empty, loading, error, offline, denied, P-10-pending} | ✅ 18.4 (`2TC-0`) — cross-view render contract designed (empty/loading/error/offline/denied/P-10-pending × never-rules) | — |
-| Responsive contract — workspace at <1024px | mobile companion exists, undocumented | Define which views collapse to companion vs stay desktop-only | 3 |
+| Responsive contract — workspace at <1024px | ✅ wired + documented | Companion = watch/gates/receipts only: Tasks inline-review, Record, Status, Approvals; Files/Terminal/composer stay desktop (APP-078) | — |
 | Auth/sign-in inside app context | magic-link stub on website only | App is token-gated today; design the in-app auth surface if it ships | 3+ |
 | Dashboard/home inside app | absent | Is there a "home" beyond the 10 views? Open question for Phase-2 IA pass | 2 |
 
@@ -93,7 +93,7 @@ Phase 4 includes a parity sweep against the live deployment
 | Surface | Component | Artboard | Status |
 |---|---|---|---|
 | Component primitives spec | all `dev-app` controls | `19.1` (`322-0`) | designed |
-| Agent composer deep-dive | `AgentComposer.tsx` | `19.2` (`35J-0`) | designed — pending impl review |
+| Agent composer deep-dive | `AgentComposer.tsx` | `19.2` (`35J-0`) | implemented (APP-079) — model/route selector, explainRouting pre-flight strip, @-cite, Plan run |
 | Workspace switcher + Inbox | `PlatformWorkspaceBar.tsx` + new inbox surface | `19.3` (`35K-0`) | designed — new surface |
 | App auth + About & updates | new surfaces | `19.4` (`35L-0`) | designed — new surface |
 
