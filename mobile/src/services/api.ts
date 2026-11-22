@@ -39,6 +39,31 @@ export interface WhoAmI {
   permissions: string[];
 }
 
+export interface PhoneReceipt {
+  seq: number;
+  timestamp: string;
+  actor: string;
+  role: string;
+  action: string;
+  resource: string;
+  allowed: boolean;
+  prev_hash: string;
+  entry_hash: string;
+}
+
+export interface MerkleRoot {
+  merkle_root: string;
+  total_events: number;
+  tip_hash: string;
+}
+
+export interface MerkleProof {
+  seq: number;
+  entry_hash: string;
+  proof: { direction: 'left' | 'right'; hash: string }[];
+  merkle_root: string;
+}
+
 export class KeelwayError extends Error {
   constructor(message: string, public status: number) {
     super(message);
@@ -126,5 +151,17 @@ export class KeelwayClient {
 
   setAirGap(enabled: boolean) {
     return this.request('/v1/studio/airgap', { method: 'POST', body: JSON.stringify({ enabled }) });
+  }
+
+  receipts(limit = 8) {
+    return this.request<PhoneReceipt[]>(`/v1/phone/receipts?limit=${limit}`);
+  }
+
+  merkleRoot() {
+    return this.request<MerkleRoot>('/v1/audit/merkle/root');
+  }
+
+  merkleProof(seq: number) {
+    return this.request<MerkleProof>(`/v1/audit/merkle/proof/${seq}`);
   }
 }

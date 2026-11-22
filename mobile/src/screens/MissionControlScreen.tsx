@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { AgentRun, Connection, KeelwayClient, KeelwayError, PendingApproval, StudioStatus, WhoAmI } from '../services/api';
+import { AppState, RefreshControl, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AgentRun, Connection, KeelwayClient, KeelwayError, PendingApproval, PhoneReceipt, StudioStatus, WhoAmI } from '../services/api';
+import { verifyMerkleProof } from '../services/sha256';
 import { confirmLocally } from '../services/biometrics';
 import { color, mono } from '../theme';
 import { Lang, isRTL, strings } from '../i18n';
@@ -29,14 +30,18 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
   const [syncedAt, setSyncedAt] = useState<Date | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [receipts, setReceipts] = useState<PhoneReceipt[]>([]);
+  const [openReceipt, setOpenReceipt] = useState<number | null>(null);
+  const [verifyState, setVerifyState] = useState<Record<number, 'busy' | 'ok' | 'bad' | 'err'>>({});
   const failures = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
-      const [s, r] = await Promise.all([client.status(), client.runs()]);
+      const [s, r, rc] = await Promise.all([client.status(), client.runs(), client.receipts(6).catch(() => [] as PhoneReceipt[])]);
       if (!me) setMe(await client.whoami());
       setStatus(s);
       setRuns(r);
+      setReceipts(rc);
       setOnline(true);
       setSyncedAt(new Date());
       failures.current = 0;
@@ -94,6 +99,24 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
         setNotice(e instanceof KeelwayError ? e.message : t.unreachable);
       }
     }
+  };
+
+  const verifyOnDevice = async (r: PhoneReceipt) => {
+    setVerifyState((v) => ({ ...v, [r.seq]: 'busy' }));
+    try {
+      const proof = await client.merkleProof(r.seq);
+      const ok = verifyMerkleProof(proof.entry_hash, proof.proof, proof.merkle_root)
+        && proof.entry_hash === r.entry_hash;
+      setVerifyState((v) => ({ ...v, [r.seq]: ok ? 'ok' : 'bad' }));
+    } catch {
+      setVerifyState((v) => ({ ...v, [r.seq]: 'err' }));
+    }
+  };
+
+  const shareReceipt = (r: PhoneReceipt) => {
+    Share.share({
+      message: `Keelway receipt #${r.seq}\n${r.action} — ${r.resource}\nsealed ${r.timestamp}\nhash ${r.entry_hash}`,
+    });
   };
 
   const waiting = runs.filter((r) => r.pending_approval);
@@ -209,6 +232,55 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
         </View>
       ))}
 
+      <Text style={[styles.section, align]} accessibilityRole="header">{t.receipts}</Text>
+      {receipts.length === 0 && <Text style={[styles.muted, align]}>{t.noReceipts}</Text>}
+      {receipts.map((r) => {
+        const open = openReceipt === r.seq;
+        const vs = verifyState[r.seq];
+        return (
+          <View key={r.seq} style={styles.receipt} testID={`receipt-${r.seq}`}>
+            <TouchableOpacity
+              onPress={() => setOpenReceipt(open ? null : r.seq)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: open }}
+              style={styles.receiptHead}
+            >
+              <Text style={[styles.receiptTitle, align]} numberOfLines={1}>#{r.seq} · {r.action}</Text>
+              <Text style={[styles.receiptChip, { color: r.allowed ? color.success : color.error }]}>
+                {r.allowed ? t.sealed : t.denied}
+              </Text>
+            </TouchableOpacity>
+            {open && (
+              <View style={styles.receiptDetail}>
+                <Text style={[styles.sealedLine, { color: r.allowed ? color.success : color.error }]}>{r.allowed ? `● ${t.sealedDot}` : `● ${t.denied}`}</Text>
+                <View style={styles.gateDetail}>
+                  <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.exec}{'   '}</Text><Text style={styles.gateVal}>{r.action} · {r.resource}</Text></Text>
+                  <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.actor}{'  '}</Text><Text style={styles.gateVal}>{r.actor}</Text></Text>
+                  <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.proof}{'  '}</Text><Text style={styles.gateVal} numberOfLines={1}>sha256 {r.entry_hash.slice(0, 12)}…{r.entry_hash.slice(-2)}</Text></Text>
+                  <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.chain}{'  '}</Text><Text style={styles.gateVal} numberOfLines={1}>prev {r.prev_hash.slice(0, 12)}…{r.prev_hash.slice(-2)}</Text></Text>
+                  <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.sealedAt}{' '}</Text><Text style={styles.gateVal}>{r.timestamp}</Text></Text>
+                </View>
+                {vs && (
+                  <Text style={[styles.verifyLine, { color: vs === 'ok' ? color.success : vs === 'busy' ? color.muted : color.error }]}>
+                    {vs === 'busy' ? `… ${t.verifying}` : vs === 'ok' ? `✓ ${t.verifiedOnDevice}` : vs === 'bad' ? `✗ ${t.verifyFailed}` : `✗ ${t.verifyUnavailable}`}
+                  </Text>
+                )}
+                <View style={[styles.actions, rtl && styles.rowReverse]}>
+                  {!vs && (
+                    <TouchableOpacity style={[styles.btn, styles.deny]} onPress={() => verifyOnDevice(r)} accessibilityRole="button" testID="verify-receipt">
+                      <Text style={styles.denyText}>{t.verifyOnDevice}</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={[styles.btn, styles.deny]} onPress={() => shareReceipt(r)} accessibilityRole="button" testID="share-receipt">
+                    <Text style={styles.denyText}>{t.shareReceipt}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        );
+      })}
+
       {status && (
         <Text style={[styles.footer, align]}>{t.localModel}: {status.local_model} · v{status.version}</Text>
       )}
@@ -259,6 +331,13 @@ const styles = StyleSheet.create({
   bar: { height: 4, borderRadius: 2, backgroundColor: color.raised, overflow: 'hidden' },
   barFill: { height: 4, backgroundColor: color.accent },
   muted: { color: color.muted, fontSize: 13 },
+  receipt: { borderWidth: 1, borderColor: color.line, borderRadius: 10, marginBottom: 8, overflow: 'hidden' },
+  receiptHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, minHeight: 44 },
+  receiptTitle: { color: color.ink, fontFamily: mono, fontSize: 13, flex: 1, marginEnd: 8 },
+  receiptChip: { fontFamily: mono, fontSize: 11 },
+  receiptDetail: { borderTopWidth: 1, borderTopColor: color.line, padding: 12 },
+  sealedLine: { fontSize: 14, fontWeight: '600', marginBottom: 10 },
+  verifyLine: { fontFamily: mono, fontSize: 12, marginBottom: 10 },
   footer: { color: color.muted, fontSize: 12, marginTop: 16, marginBottom: 12 },
   disconnect: { alignItems: 'center', paddingVertical: 14, minHeight: 48 },
   rtl: { textAlign: 'right', writingDirection: 'rtl' },

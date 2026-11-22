@@ -80,3 +80,24 @@ describe('mobile api service: pairing links', () => {
     expect(parseStudioLink('http://192.168.1.20:7420/?token=abc')?.pairCode).toBe('');
   });
 });
+
+describe('mobile sha256 + merkle verification', () => {
+  const { sha256Hex, verifyMerkleProof } = require('./sha256');
+
+  it('matches published SHA-256 vectors', () => {
+    expect(sha256Hex('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+    expect(sha256Hex('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+    expect(sha256Hex('a'.repeat(1000))).toBe('41edece42d63e8d9bf515a9ba6932e1c20cbc9f5a5d134645adb5db1b9737ea3');
+  });
+
+  it('folds an inclusion proof the way AuditMerkleTree.verify_proof does', () => {
+    // 2-leaf tree: root = sha256(leafA + leafB); proof for A is sibling B on the right.
+    const leafA = sha256Hex('entry-a');
+    const leafB = sha256Hex('entry-b');
+    const root = sha256Hex(leafA + leafB);
+    expect(verifyMerkleProof(leafA, [{ direction: 'right', hash: leafB }], root)).toBe(true);
+    expect(verifyMerkleProof(leafB, [{ direction: 'left', hash: leafA }], root)).toBe(true);
+    expect(verifyMerkleProof(leafA, [{ direction: 'left', hash: leafB }], root)).toBe(false);
+    expect(verifyMerkleProof(leafA, [], root)).toBe(false);
+  });
+});

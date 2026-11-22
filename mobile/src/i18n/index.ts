@@ -38,6 +38,19 @@ const en = {
   proof: 'proof',
   sealedEitherWay: 'sealed either way',
   action: 'action',
+  receipts: 'Receipts',
+  noReceipts: 'No sealed entries yet.',
+  sealedDot: 'Sealed · verified',
+  verifyOnDevice: 'Verify proof on device',
+  verifying: 'Verifying…',
+  verifiedOnDevice: 'Signature verifies on device',
+  verifyFailed: 'Proof does not fold to the current root',
+  verifyUnavailable: 'Could not fetch the proof right now',
+  shareReceipt: 'Share receipt',
+  exec: 'exec',
+  actor: 'actor',
+  chain: 'chain',
+  sealedAt: 'sealed',
 };
 type Strings = typeof en;
 
@@ -78,6 +91,19 @@ const sw: Strings = {
   proof: 'ushahidi',
   sealedEitherWay: 'hufungwa vyovyote',
   action: 'hatua',
+  receipts: 'Risiti',
+  noReceipts: 'Hakuna viingilio vilivyofungwa bado.',
+  sealedDot: 'Imefungwa · imethibitishwa',
+  verifyOnDevice: 'Thibitisha ushahidi kwenye kifaa',
+  verifying: 'Inathibitisha…',
+  verifiedOnDevice: 'Sahihi inathibitika kwenye kifaa',
+  verifyFailed: 'Ushahidi haufanani na mzizi wa sasa',
+  verifyUnavailable: 'Haikuweza kupata ushahidi sasa hivi',
+  shareReceipt: 'Sambaza risiti',
+  exec: 'amri',
+  actor: 'mtendaji',
+  chain: 'minyororo',
+  sealedAt: 'imefungwa',
 };
 
 const fr: Strings = {
@@ -117,6 +143,19 @@ const fr: Strings = {
   proof: 'preuve',
   sealedEitherWay: 'scellé dans tous les cas',
   action: 'action',
+  receipts: 'Reçus',
+  noReceipts: 'Aucune entrée scellée pour le moment.',
+  sealedDot: 'Scellé · vérifié',
+  verifyOnDevice: 'Vérifier la preuve sur l’appareil',
+  verifying: 'Vérification…',
+  verifiedOnDevice: 'La signature se vérifie sur l’appareil',
+  verifyFailed: 'La preuve ne correspond pas à la racine actuelle',
+  verifyUnavailable: 'Impossible de récupérer la preuve pour l’instant',
+  shareReceipt: 'Partager le reçu',
+  exec: 'exec',
+  actor: 'acteur',
+  chain: 'chaîne',
+  sealedAt: 'scellé',
 };
 
 const ar: Strings = {
@@ -156,6 +195,19 @@ const ar: Strings = {
   proof: 'إثبات',
   sealedEitherWay: 'يُختم في كل الحالات',
   action: 'إجراء',
+  receipts: 'الإيصالات',
+  noReceipts: 'لا توجد إدخالات مختومة بعد.',
+  sealedDot: 'مختوم · تم التحقق',
+  verifyOnDevice: 'التحقق من الإثبات على الجهاز',
+  verifying: 'جارٍ التحقق…',
+  verifiedOnDevice: 'يتم التحقق من التوقيع على الجهاز',
+  verifyFailed: 'الإثبات لا يطابق الجذر الحالي',
+  verifyUnavailable: 'تعذر جلب الإثبات الآن',
+  shareReceipt: 'مشاركة الإيصال',
+  exec: 'تنفيذ',
+  actor: 'الفاعل',
+  chain: 'السلسلة',
+  sealedAt: 'مختوم',
 };
 
 export const strings: Record<Lang, Strings> = { en, sw, fr, ar };

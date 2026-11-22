@@ -42,6 +42,10 @@ PHONE_ROUTES = (
     ("GET", re.compile(r"/v1/agent/runs")),
     ("GET", re.compile(r"/v1/agent/status/[^/]+")),
     ("POST", re.compile(r"/v1/agent/approve/[^/]+")),
+    # Bridge-watch receipt reads: latest tape entries + merkle inclusion proofs.
+    ("GET", re.compile(r"/v1/phone/receipts")),
+    ("GET", re.compile(r"/v1/audit/merkle/root")),
+    ("GET", re.compile(r"/v1/audit/merkle/proof/[^/]+")),
 )
 
 

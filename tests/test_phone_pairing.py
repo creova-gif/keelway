@@ -84,6 +84,25 @@ def test_phone_can_view_runs_and_status(client, owner):
     assert client.get("/v1/studio/status", headers=phone).status_code == 200
 
 
+def test_phone_reads_receipts_and_merkle_proofs(client, owner):
+    phone = bearer(pair(client, owner)[1]["token"])
+    receipts = client.get("/v1/phone/receipts", headers=phone)
+    assert receipts.status_code == 200, receipts.text
+    entries = receipts.json()
+    assert entries, "pairing should itself be on the tape"
+    first = entries[0]
+    for field in ("seq", "timestamp", "actor", "action", "resource", "allowed", "prev_hash", "entry_hash"):
+        assert field in first, field
+
+    root = client.get("/v1/audit/merkle/root", headers=phone)
+    assert root.status_code == 200, root.text
+    assert root.json()["merkle_root"]
+
+    proof = client.get(f"/v1/audit/merkle/proof/{first['seq']}", headers=phone)
+    assert proof.status_code == 200, proof.text
+    assert proof.json()["entry_hash"] == first["entry_hash"]
+
+
 @pytest.mark.parametrize("method,path,body", [
     ("GET", "/v1/files/tree", None),
     ("GET", "/v1/git/status", None),
