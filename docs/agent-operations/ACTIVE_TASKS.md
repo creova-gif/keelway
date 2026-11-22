@@ -126,6 +126,7 @@
 
 | **KEEL-DSN-001** | Paper Design program ratified (Phase 0/1): verified MCP integration, `docs/design/` program + screen inventory + canonical `tokens.json` registry, DESIGN.md §10 declares Paper canonical | `UI / DESIGN-SYSTEM` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `main` @ `60fd5cf` (PR #159) |
 | **KEEL-WEB-041** | Homepage session-replay terminal demo (typewriter k′ run → P-10 gate → seal/deny) + copyable install command | `APP / WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-041-terminal-demo` |
+| **KEEL-WEB-042** | Interactive policy evaluator (tenant/airgap/spendcap toggles → route + ALLOW/DENY) FIG 1.3 on /product | `APP / WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-042-policy-demo` |
 
 ---
 
