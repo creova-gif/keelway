@@ -308,6 +308,13 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
     !hideSidebar &&
     activeSection !== "record";
 
+  // Paper 08.1: no free-text terminal on mobile — buttons never shells.
+  const visibleLogsTabs: readonly LogsDrawerTab[] = effectiveMobileCompanion
+    ? ["logs", "network"]
+    : ["logs", "terminal", "network"];
+  const effectiveLogsTab: LogsDrawerTab =
+    effectiveMobileCompanion && currentLogsTab === "terminal" ? "logs" : currentLogsTab;
+
   const resolvedSidebarLabel =
     contextSidebarLabel ??
     (activeSection === "tasks" ? "Tasks" : activeSection === "files" ? "Files" : "Settings");
@@ -552,10 +559,10 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
               data-programmatic-focus="true"
               className="flex h-[300px] shrink-0 flex-col border-t border-border-strong bg-chrome"
             >
-              <Tabs.Root value={currentLogsTab} onValueChange={handleTabChange} className="flex min-h-0 flex-1 flex-col">
+              <Tabs.Root value={effectiveLogsTab} onValueChange={handleTabChange} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex items-center justify-between border-b border-border px-3 py-1">
                   <Tabs.List aria-label="Workspace output tabs" className="flex items-center gap-1">
-                    {(["logs", "terminal", "network"] as const).map((tab) => (
+                    {visibleLogsTabs.map((tab) => (
                       <Tabs.Trigger
                         key={tab}
                         value={tab}
@@ -569,7 +576,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                     Close
                   </Button>
                 </div>
-                {(["logs", "terminal", "network"] as const).map((tab) => (
+                {visibleLogsTabs.map((tab) => (
                   <Tabs.Content key={tab} value={tab} className="min-h-0 flex-1 overflow-y-auto bg-code p-3">
                     {renderLogsTabBody(tab)}
                   </Tabs.Content>

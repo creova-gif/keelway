@@ -144,6 +144,7 @@ export interface TasksWorkspaceProps {
   reviewOpen?: boolean;
   onToggleReview?: (open: boolean) => void;
   renderReviewInShell?: boolean;
+  isCompanion?: boolean;
   defaultLogsOpen?: boolean;
   logsOpen?: boolean;
   onToggleLogs?: (open: boolean) => void;
@@ -190,6 +191,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     reviewOpen: controlledReviewOpen,
     onToggleReview,
     renderReviewInShell = false,
+    isCompanion = false,
     defaultLogsOpen = false,
     logsOpen: controlledLogsOpen,
     onToggleLogs,
@@ -851,13 +853,19 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
             })}
           </div>
 
-          <AgentComposer
-            value={effectiveComposerValue}
-            onChange={updateComposerValue}
-            onSubmitPrompt={submitComposerPrompt}
-            runtimeReachable={runtimeReachable}
-            textareaRef={activeComposerRef}
-          />
+          {isCompanion ? (
+            <p className="border-t border-border px-2 py-2 text-[11px] text-fg-dim">
+              Authoring stays on the desktop — the watch is for gates and reads.
+            </p>
+          ) : (
+            <AgentComposer
+              value={effectiveComposerValue}
+              onChange={updateComposerValue}
+              onSubmitPrompt={submitComposerPrompt}
+              runtimeReachable={runtimeReachable}
+              textareaRef={activeComposerRef}
+            />
+          )}
         </section>
 
         {!renderLogsInShell && isLogsOpen ? (
