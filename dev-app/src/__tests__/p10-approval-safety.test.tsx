@@ -546,10 +546,10 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
     await user.click(within(passReceipt).getByRole("button"));
     expect(within(passReceipt).getByText("4 passed in 0.18s")).toBeInTheDocument();
 
-    // 3. Review changes pane (520px w-review) with Keep changes, Revert all, and Ask for changes citation prefill
+    // 3. Review changes pane (520px w-review) with Keep all, Revert all, and Ask for changes citation prefill
     const reviewPane = screen.getByRole("complementary", { name: /Review changes/i });
     expect(reviewPane).toHaveClass("w-review");
-    expect(within(reviewPane).getByRole("button", { name: /Keep changes/i })).toBeInTheDocument();
+    expect(within(reviewPane).getByRole("button", { name: /Keep all/i })).toBeInTheDocument();
     expect(within(reviewPane).getByRole("button", { name: /Revert all/i })).toBeInTheDocument();
 
     await user.click(within(reviewPane).getByRole("button", { name: /Ask for changes/i }));

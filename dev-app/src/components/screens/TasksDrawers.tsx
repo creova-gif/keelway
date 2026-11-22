@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import React, { useId, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import type { LogsDrawerTab } from "@/components/shell/DevAppShell";
 import { DiffLinesView } from "@/components/screens/P10ApprovalCard";
@@ -32,31 +32,27 @@ export function ReviewChangesContent({
 }: ReviewChangesContentProps): React.JSX.Element {
   const totalAdded = hunks.reduce((sum, h) => sum + h.additions, 0);
   const totalDeleted = hunks.reduce((sum, h) => sum + h.deletions, 0);
+  const agentWrote = hunks.some((h) => typeof h.aiRecordSeq === "number");
+  const [openDiffs, setOpenDiffs] = useState<Record<string, boolean>>({});
+  const fileCount = `${hunks.length} ${hunks.length === 1 ? "file" : "files"}`;
 
   return (
-    <div className="space-y-3 text-ui text-fg">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border bg-canvas/60 px-2.5 py-2 text-xs">
-        <div className="font-mono tabular-nums text-fg-muted">
-          <span>{`${hunks.length} ${hunks.length === 1 ? "file" : "files"}`}</span>
-          <span aria-hidden="true" className="mx-1.5 text-fg-dim">·</span>
+    <div className="flex h-full flex-col text-ui text-fg">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2 text-xs">
+        <span className="font-mono tabular-nums text-fg-muted">
+          {`${fileCount}${agentWrote ? " · agent wrote" : ""}`}
+        </span>
+        <span className="font-mono tabular-nums text-fg-muted">
           <span className="text-ok">{`+${totalAdded}`}</span>
           <span aria-hidden="true" className="mx-1 text-fg-dim">/</span>
           <span className="text-danger">{`-${totalDeleted}`}</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Button size="sm" variant="primary" onClick={onKeepChanges}>
-            ✓ Keep changes
-          </Button>
-          <Button size="sm" variant="danger-ghost" onClick={onRevertAll}>
-            Revert all
-          </Button>
-        </div>
+        </span>
       </div>
 
       {reviewStatus !== "pending" ? (
         <div
           role="status"
-          className="rounded-sm border border-border-strong bg-surface-elevated px-2.5 py-1.5 text-xs text-fg-muted"
+          className="mt-2 rounded-sm border border-border-strong bg-surface-elevated px-2.5 py-1.5 text-xs text-fg-muted"
         >
           {reviewStatus === "kept"
             ? "Changes kept in working tree."
@@ -67,30 +63,65 @@ export function ReviewChangesContent({
       {hunks.length === 0 ? (
         <p className="py-4 text-xs text-fg-muted">No uncommitted changes in working tree.</p>
       ) : (
-        <div className="space-y-3">
-          {hunks.map((hunk) => (
-            <div
-              key={`${hunk.path}-${hunk.newStart}`}
-              className="overflow-hidden rounded-sm border border-border-strong bg-canvas"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-elevated px-2.5 py-1.5 text-xs">
-                <div className="flex min-w-0 items-center gap-2">
-                  <code dir="ltr" className="unicode-bidi-isolate truncate font-mono text-fg">
-                    {hunk.path}
-                  </code>
-                  {typeof hunk.aiRecordSeq === "number" ? (
-                    <SemanticBadge kind="ai" detail={`#${hunk.aiRecordSeq}`} />
-                  ) : null}
+        <ul className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
+          {hunks.map((hunk) => {
+            const hunkKey = `${hunk.path}-${hunk.newStart}`;
+            const isOpen = Boolean(openDiffs[hunkKey]);
+            return (
+              <li key={hunkKey}>
+                <div className="flex flex-wrap items-center justify-between gap-2 py-2 text-xs">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <code dir="ltr" className="unicode-bidi-isolate truncate font-mono text-fg">
+                      {hunk.path}
+                    </code>
+                    {typeof hunk.aiRecordSeq === "number" ? (
+                      <SemanticBadge kind="ai" detail={`#${hunk.aiRecordSeq}`} />
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <span className="font-mono tabular-nums text-fg-muted">
+                      <span className="text-ok">{`+${hunk.additions}`}</span>{" "}
+                      <span className="text-danger">{`-${hunk.deletions}`}</span>
+                    </span>
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() =>
+                        setOpenDiffs((prev) => ({ ...prev, [hunkKey]: !isOpen }))
+                      }
+                      className="kw-underline text-xs text-fg-muted transition-colors duration-fast ease-state hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+                    >
+                      {isOpen ? "hide diff" : "view diff"}
+                    </button>
+                    <Button size="sm" variant="ghost" onClick={() => onAskForChanges(hunk)}>
+                      Ask for changes
+                    </Button>
+                  </div>
                 </div>
-                <Button size="sm" variant="secondary" onClick={() => onAskForChanges(hunk)}>
-                  Ask for changes
-                </Button>
-              </div>
-              <DiffLinesView lines={hunk.lines} />
-            </div>
-          ))}
-        </div>
+                {isOpen ? (
+                  <div className="mb-2 overflow-hidden rounded-sm border border-border-strong bg-canvas">
+                    <DiffLinesView lines={hunk.lines} />
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
       )}
+
+      <div className="mt-auto space-y-2 border-t border-border pt-2.5">
+        <p className="text-[11px] text-fg-dim">
+          keep/revert writes a receipt — reviewed changes are audited, not silent
+        </p>
+        <div className="flex items-center justify-between gap-2">
+          <Button size="sm" variant="ghost" onClick={onRevertAll}>
+            Revert all
+          </Button>
+          <Button size="sm" variant="primary" onClick={onKeepChanges}>
+            Keep all
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
