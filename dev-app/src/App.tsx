@@ -687,6 +687,7 @@ export function App({
         ) : activeSection === "files" ? (
           <FilesWorkspace
             navigationTarget={filesNavTarget}
+            egressMode={egress.mode}
             renderSidebarInShell={!effectiveMobileCompanion}
             onSidebarStateChange={setFilesSidebarProps}
             onTreeLoaded={setWorkspaceFiles}
