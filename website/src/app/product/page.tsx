@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FigureTabs } from "@/components/site/FigureTabs";
+import { PolicyDemo } from "@/components/site/PolicyDemo";
 import { Reveal } from "@/components/motion/Reveal";
 
 export const metadata: Metadata = {
@@ -43,6 +44,14 @@ export default function ProductPage() {
       </div>
       <div className="mt-16">
         <FigureTabs />
+      </div>
+      <div className="mt-10">
+        <figure>
+          <PolicyDemo />
+          <figcaption className="kw-figcap mt-3">
+            FIG 1.3 — Policy evaluator, interactive. Set the request conditions; the engine decides before egress.
+          </figcaption>
+        </figure>
       </div>
     </div>
   );
