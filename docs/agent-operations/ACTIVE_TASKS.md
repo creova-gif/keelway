@@ -130,7 +130,7 @@
 | **KEEL-WEB-044** | Interactive marginal-cost comparison (workload slider → $0 open_weight vs ≈$10/1M frontier) FIG 2.1 on /pricing | `WEB / MOTION` | `MERGED` (PR #188) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-046** | /about Sorvex Labs parent section — company description + flagship relationship + endorsement line | `WEB / BRAND` | `MERGED` (PR #190) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-043** | Footer brand split — Keelway product label + quiet "A Sorvex Labs company." endorsement | `WEB / BRAND` | `MERGED` (PR #184) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-047** | Paper pages 05-09 parity audit — canonical Sorvex endorsement wording + 'most common' tag on recommended tier; motion/CLI/site grammar verified compliant | `WEB / DESIGN` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-047-pages05-09-parity` |
+| **KEEL-WEB-047** | Paper pages 05-09 parity audit — canonical Sorvex endorsement wording + 'most common' tag on recommended tier; motion/CLI/site grammar verified compliant | `WEB / DESIGN` | `MERGED` (PR #205) | Devin | 2026-11-22 | `main` |
 
 ---
 
@@ -170,7 +170,7 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-APP-075** | Accent token rename — canonical --accent, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-076** | Paper 10-19 parity audit — active-view nav = brass leading rule/underline, never a filled chip (rail, view nav, companion tabs, file tree) | `UI / DESIGN` | `MERGED` (PR #203) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-077** | Drawers conformance vs Paper 18.5 (`2WD-0`) — review-changes file rows + footer actions + receipt footnote; live-execution ledger rows + lens footnote | `UI / DESIGN` | `MERGED` (PR #204) | Devin | 2026-11-22 | `main` |
-| **KEEL-APP-078** | Companion responsive contract vs Paper 08.1 — terminal tab + AgentComposer gated off mobile (buttons never shells, authoring stays desktop) | `UI / MOBILE` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-078-companion-contract` |
+| **KEEL-APP-078** | Companion responsive contract vs Paper 08.1 — terminal tab + AgentComposer gated off mobile (buttons never shells, authoring stays desktop) | `UI / MOBILE` | `MERGED` (PR #206) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `MERGED` (PR #178) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `MERGED` (PR #179) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-003** | Shared tokens — web-next consumes generated copy of dev-app canonical, make tokens-check in CI | `DESIGN-TOKENS / CI` | `MERGED` (PR #181) | Devin | 2026-11-22 | `main` |
