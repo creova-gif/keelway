@@ -44,7 +44,22 @@ phone, with merkle inclusion proofs folded **on device**.
   root, per-seq proof) + the full refusal matrix still enforced.
 - `mobile`: `tsc --noEmit` clean; `bun test` 12/12 — SHA-256 matches
   published vectors, fold matches the Python tree semantics.
-- Not verified against a live studio or on device — recorded honestly.
+- Not verified on a physical device/simulator — recorded honestly.
+- **Live-stack verification (2026-11-22, verify-keelway isolated stack):**
+  - `POST /v1/auth/pairing-codes` (admin) → `POST /v1/auth/pair` issued a
+    `phone`-role token; single-use code returned 401 on reuse.
+  - Refusal matrix held live: phone token → `GET /v1/audit` = 403,
+    `POST /v1/auth/tokens` = 403.
+  - `GET /v1/phone/receipts` returned 3 real tape entries
+    (`manage_keys` → `phone_paired` → `phone_route`); `prev_hash` chain
+    continuity verified, genesis prev = zeros.
+  - `GET /v1/audit/merkle/root` + `/v1/audit/merkle/proof/3` reachable by
+    the phone token.
+  - The app's own `verifyMerkleProof`/`sha256.ts` (bun) verified the live
+    server proof: `live_proof_verifies: true`; rejected flipped sibling
+    direction and wrong leaf. (Step-0 sibling equals the leaf hash for
+    odd-leaf duplication — a flip there is a no-op by tree design.)
+  - Evidence: `/tmp/keelway-evidence-phone/*.json`
 
 ## Follow-ups
 
