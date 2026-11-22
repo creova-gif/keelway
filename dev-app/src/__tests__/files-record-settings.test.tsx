@@ -454,8 +454,8 @@ describe("RecordAuditLedger (Screen 06)", () => {
     expect(alertBanner).toHaveTextContent("Entries after #1279 can't be trusted.");
 
     const brokenTable = screen.getByRole("table", { name: /Record SHA-256 audit ledger/i });
-    expect(within(brokenTable).getByRole("button", { name: /Chain broken · #1279/i })).toBeInTheDocument();
-    expect(within(brokenTable).getByRole("button", { name: /Untrusted · #1283/i })).toBeInTheDocument();
+    expect(within(brokenTable).getByRole("button", { name: /Chain broken ·\s*#1279/i })).toBeInTheDocument();
+    expect(within(brokenTable).getByRole("button", { name: /Untrusted ·\s*#1283/i })).toBeInTheDocument();
 
     // Filter out #1279 first, then verify Open entry #1279 clears filters and focuses #1279 row button
     await user.selectOptions(screen.getByLabelText(/Outcome/i), "passed");

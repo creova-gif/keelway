@@ -6,10 +6,10 @@ export default defineConfig({
   base: "/app/",
   plugins: [react()],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: { "@": path.resolve(import.meta.dirname, "./src") },
   },
   build: {
-    outDir: path.resolve(__dirname, "../core/dev_app_dist"),
+    outDir: path.resolve(import.meta.dirname, "../core/dev_app_dist"),
     emptyOutDir: true,
     sourcemap: false,
     assetsDir: "assets",
