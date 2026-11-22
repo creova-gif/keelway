@@ -176,5 +176,4 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-WEB-007** | web-next shared header/footer + /docs port (15 doc rows → GitHub) | `WEB` | `MERGED` (PR #189) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-008** | web-next /product + /changelog — instruments, interactive PolicyDemo, release log | `WEB` | `MERGED` (PR #191) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-009** | web-next /about + /contact + /sign-in — completes informational page parity | `WEB` | `MERGED` (PR #192) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-010** | web-next interactive demo port — ControlPlaneFigure, FigureTabs, TerminalDemo, InstallCommand, CostCompare, Reveal | `WEB` | `OPEN` (PR #193) | Devin | 2026-11-22 | `feature/keel-web-009-web-next-demos` |
-| **KEEL-WEB-011** | web-next V3 brand kit homepage — Paper V3 "Keel Black & Brass" comp: display hero, Install CTA, FIG 0.1 control-plane panel, hardware/policy/records triptych | `WEB / DESIGN` | `MERGED` (PR #194 `5e95169`) | Devin | 2026-11-22 | `main` |
+| **KEEL-WEB-010** | web-next interactive demo port — ControlPlaneFigure/FigureTabs/TerminalDemo/InstallCommand/CostCompare/Reveal on canonical tokens; axe-clean | `WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-009-web-next-demos` |
