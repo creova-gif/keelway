@@ -49,6 +49,9 @@ export function SiteHeader() {
           >
             GitHub
           </a>
+          <Link href="/sign-in" className={linkClass("/sign-in")}>
+            Sign in
+          </Link>
         </nav>
         <button
           type="button"
@@ -79,6 +82,9 @@ export function SiteHeader() {
             <a href={REPO_URL} target="_blank" rel="noopener" className="text-fg">
               GitHub
             </a>
+            <Link href="/sign-in" className="text-fg" onClick={() => setOpen(false)}>
+              Sign in
+            </Link>
           </div>
         </nav>
       )}
