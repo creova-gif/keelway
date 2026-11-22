@@ -147,7 +147,7 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
     expect(onSendPrompt).toHaveBeenCalledTimes(1);
     expect(onSubmitDecision).not.toHaveBeenCalled();
 
-    // Runtime unreachable keeps textarea editable while soft-disabling Send so drafts are preserved
+    // Runtime unreachable keeps textarea editable while soft-disabling Plan run so drafts are preserved
     const offlineView = render(
       <TasksWorkspace
         taskTitle="Offline draft check"
@@ -160,7 +160,7 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
     });
     await user.type(offlineTextarea, "Draft saved locally");
     expect(offlineTextarea).toHaveValue("Draft saved locally");
-    const sendBtn = within(offlineView.container).getByRole("button", { name: /^Send/i });
+    const sendBtn = within(offlineView.container).getByRole("button", { name: /^Plan run/i });
     expect(sendBtn).toHaveAttribute("aria-disabled", "true");
     fireEvent.keyDown(offlineTextarea, { key: "Enter", metaKey: true });
     expect(offlineTextarea).toHaveValue("Draft saved locally");
@@ -521,7 +521,7 @@ describe("Task 3 — Inline P-10 Human-Only Gate & TasksWorkspace Safety Invaria
     );
 
     // 1. PlanCard auto-collapsed to 1-line summary when pending P-10 proposal exists, still manually toggleable
-    const planToggle = screen.getByRole("button", { name: /Plan/i });
+    const planToggle = screen.getByRole("button", { name: /^Plan ·/i });
     expect(planToggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByText("Inspect core/main.py headers")).toBeNull();
     await user.click(planToggle);
