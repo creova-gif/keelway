@@ -168,7 +168,7 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-APP-074** | Inbox security-events row kind — denied actions from real `/v1/audit` feed, lazy fetch, honest unavailable state | `UI / TRUST` | `MERGED` (PR #176) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-075** | Accent token rename — canonical --accent, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-076** | Paper 10-19 parity audit — active-view nav = brass leading rule/underline, never a filled chip (rail, view nav, companion tabs, file tree) | `UI / DESIGN` | `MERGED` (PR #203) | Devin | 2026-11-22 | `main` |
-| **KEEL-APP-077** | Drawers conformance vs Paper 18.5 (`2WD-0`) — review-changes file rows + footer actions + receipt footnote; live-execution ledger rows + lens footnote | `UI / DESIGN` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-app-077-drawer-conformance` |
+| **KEEL-APP-077** | Drawers conformance vs Paper 18.5 (`2WD-0`) — review-changes file rows + footer actions + receipt footnote; live-execution ledger rows + lens footnote | `UI / DESIGN` | `MERGED` (PR #204) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `MERGED` (PR #178) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `MERGED` (PR #179) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-003** | Shared tokens — web-next consumes generated copy of dev-app canonical, make tokens-check in CI | `DESIGN-TOKENS / CI` | `MERGED` (PR #181) | Devin | 2026-11-22 | `main` |
