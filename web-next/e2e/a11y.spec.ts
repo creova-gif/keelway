@@ -16,6 +16,18 @@ for (const route of ROUTES) {
   });
 }
 
+
+test("a11y: 404 page has no WCAG 2.2 AA violations", async ({ page }) => {
+  await page.goto("/__not-found-test__", { waitUntil: "networkidle" });
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const summary = results.violations.map(
+    (v) => `${v.id} (${v.impact}): ${v.nodes.length} node(s) — ${v.help}`,
+  );
+  expect(summary, `axe violations on 404:\n${summary.join("\n")}`).toEqual([]);
+});
+
 test("perf smoke: homepage loads within budget", async ({ page }) => {
   await page.goto("/", { waitUntil: "load" });
   const metrics = await page.evaluate(() => {
