@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-16">
       <header className="space-y-3">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-fg-dim">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-fg-muted">
           Keelway · sovereign AI developer platform
         </p>
         <h1 className="text-4xl font-semibold tracking-tight text-fg">
@@ -30,7 +30,7 @@ export default function Home() {
       <section aria-label="Platform facts" className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-4">
         {FACTS.map((fact) => (
           <div key={fact.label} className="bg-surface px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-wide text-fg-dim">{fact.label}</p>
+            <p className="font-mono text-[10px] uppercase tracking-wide text-fg-muted">{fact.label}</p>
             <p className="mt-1 text-sm font-medium text-fg">{fact.value}</p>
           </div>
         ))}

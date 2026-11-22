@@ -108,6 +108,10 @@ jobs:
           npm --prefix web-next run build
       - name: Check web-next tokens are fresh vs dev-app canonical
         run: make tokens-check
+      - name: web-next a11y (axe-core WCAG 2.2 AA) & perf smoke (Playwright)
+        run: |
+          npx --prefix web-next playwright install --with-deps chromium
+          npm --prefix web-next run test:e2e
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
