@@ -36,6 +36,17 @@ export default function AboutPage() {
           </Reveal>
         ))}
       </div>
+      <div className="mt-16 border-t border-[var(--rule)] pt-10">
+        <p className="kw-label">Sorvex Labs</p>
+        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-[var(--muted)]">
+          Sorvex Labs is the company behind Keelway. We build sovereign AI
+          infrastructure — systems that keep models, keys, and records under the
+          operator&apos;s control. Keelway is our flagship platform: an open-core
+          agent runtime with governed frontier routing and a signed receipt for
+          every action.
+        </p>
+        <p className="kw-data mt-6 text-[10px] text-[var(--dim)]">Keelway — a Sorvex Labs product.</p>
+      </div>
     </div>
   );
 }
