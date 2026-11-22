@@ -181,4 +181,4 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-WEB-012** | web-next V3 component grammar + /product — Chip + ReceiptTable primitives, V3 hero/triptych/figures, demos integrated post-#193 | `WEB / DESIGN` | `MERGED` (PR #195 `afe3044`) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-013** | web-next V3 404 "off the chart" — not-found.tsx per Paper 03.3c, honest client-side trace, 404 axe coverage | `WEB / DESIGN` | `MERGED` (PR #196 `feefc82`) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-014** | web-next V3 mobile rules — 44px thumb targets + 390px axe/tap-target gate (Paper p-8-0); RN app 08.2A-C port deferred | `WEB / DESIGN` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-014-v3-mobile` |
-| **KEEL-WEB-015** | web-next SEO/discovery surfaces — sitemap, robots, manifest, feed.xml, OG metadata, favicon | `WEB` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-015-seo-surfaces` |
+| **KEEL-WEB-015** | web-next SEO/discovery surfaces — sitemap, robots, manifest, feed.xml, OG metadata, favicon | `WEB` | `MERGED` (PR #198) | Devin | 2026-11-22 | `main` |
