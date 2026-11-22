@@ -127,6 +127,7 @@
 | **KEEL-DSN-001** | Paper Design program ratified (Phase 0/1): verified MCP integration, `docs/design/` program + screen inventory + canonical `tokens.json` registry, DESIGN.md §10 declares Paper canonical | `UI / DESIGN-SYSTEM` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `main` @ `60fd5cf` (PR #159) |
 | **KEEL-WEB-041** | Homepage session-replay terminal demo (typewriter k′ run → P-10 gate → seal/deny) + copyable install command | `APP / WEB / MOTION` | `MERGED` (PR #180) | Devin | 2026-11-22 | `feature/keel-web-041-terminal-demo` |
 | **KEEL-WEB-042** | Interactive policy evaluator (tenant/airgap/spendcap toggles → route + ALLOW/DENY) FIG 1.3 on /product | `APP / WEB / MOTION` | `MERGED` (PR #182) | Devin | 2026-11-22 | `feature/keel-web-042-policy-demo` |
+| **KEEL-WEB-044** | Interactive marginal-cost comparison (workload slider → $0 open_weight vs ≈$10/1M frontier) FIG 2.1 on /pricing | `WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-045-cost-compare` |
 | **KEEL-WEB-043** | Footer brand split — Keelway product label + quiet "A Sorvex Labs company." endorsement | `WEB / BRAND` | `MERGED` (PR #184) | Devin | 2026-11-22 | `main` |
 
 ---
