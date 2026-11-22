@@ -3,7 +3,7 @@
 ### TASK HANDOFF RECORD
 - **TASK ID**: KEEL-WEB-006
 - **TASK TITLE**: First real web-next screen — /pricing on the canonical 4-seat + marketplace model
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: MERGED (PR #187)
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-22
 - **BRANCH**: feature/keel-web-006-web-next-pricing
