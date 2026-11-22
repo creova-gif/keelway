@@ -55,7 +55,7 @@ export function SiteHeader() {
         </nav>
         <button
           type="button"
-          className="text-fg md:hidden"
+          className="-mr-3 flex h-[44px] w-[44px] items-center justify-center text-fg md:hidden"
           aria-expanded={open}
           aria-label="Toggle navigation"
           onClick={() => setOpen((v) => !v)}
@@ -72,17 +72,17 @@ export function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-fg"
+                className="-my-1 flex min-h-[44px] items-center text-fg"
                 aria-current={pathname.startsWith(item.href) ? "page" : undefined}
                 onClick={() => setOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
-            <a href={REPO_URL} target="_blank" rel="noopener" className="text-fg">
+            <a href={REPO_URL} target="_blank" rel="noopener" className="-my-1 flex min-h-[44px] items-center text-fg">
               GitHub
             </a>
-            <Link href="/sign-in" className="text-fg" onClick={() => setOpen(false)}>
+            <Link href="/sign-in" className="-my-1 flex min-h-[44px] items-center text-fg" onClick={() => setOpen(false)}>
               Sign in
             </Link>
           </div>
