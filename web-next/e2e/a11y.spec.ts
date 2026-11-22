@@ -46,3 +46,31 @@ test("perf smoke: homepage loads within budget", async ({ page }) => {
   expect(metrics.loadMs).toBeLessThan(8_000);
   expect(metrics.transferBytes).toBeLessThan(4 * 1024 * 1024);
 });
+
+test.describe("mobile viewport (390px)", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("a11y: / has no WCAG 2.2 AA violations on mobile", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+      .analyze();
+    const summary = results.violations.map(
+      (v) => `${v.id} (${v.impact}): ${v.nodes.length} node(s) — ${v.help}`,
+    );
+    expect(summary, `axe violations on mobile /:\n${summary.join("\n")}`).toEqual([]);
+  });
+
+  test("mobile nav opens and meets the 44px thumb-target rule", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    const toggle = page.getByRole("button", { name: "Toggle navigation" });
+    const box = await toggle.boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    await toggle.click();
+    const links = page.getByRole("navigation", { name: "Mobile" }).getByRole("link");
+    for (const link of await links.all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+});
