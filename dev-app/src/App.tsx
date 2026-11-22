@@ -671,6 +671,7 @@ export function App({
             reviewOpen={reviewOpen}
             onToggleReview={setReviewOpen}
             renderReviewInShell={!effectiveMobileCompanion}
+            isCompanion={effectiveMobileCompanion}
             logsOpen={logsOpen}
             onToggleLogs={setLogsOpen}
             renderLogsInShell={true}
