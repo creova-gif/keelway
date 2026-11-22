@@ -3,7 +3,7 @@
 ### TASK HANDOFF RECORD
 - **TASK ID**: KEEL-WEB-007
 - **TASK TITLE**: Shared header/footer + /docs port on web-next
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: MERGED (PR #189)
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-22
 - **BRANCH**: feature/keel-web-007-site-chrome-docs
