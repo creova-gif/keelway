@@ -66,7 +66,7 @@ export default function PairScreen({ lang, setLang, onPaired, initialLink = '', 
       />
       {error && <Text style={[styles.error, rtl && styles.rtl]} accessibilityLiveRegion="polite">{error}</Text>}
       <TouchableOpacity style={[styles.button, busy && styles.dim]} onPress={connect} disabled={busy} accessibilityRole="button" testID="pair-connect">
-        {busy ? <ActivityIndicator color={color.ink} /> : <Text style={styles.buttonText}>{t.connect}</Text>}
+        {busy ? <ActivityIndicator color={color.accentInk} /> : <Text style={styles.buttonText}>{t.connect}</Text>}
       </TouchableOpacity>
       {onCancel && (
         <TouchableOpacity style={styles.cancel} onPress={onCancel} accessibilityRole="button" testID="pair-cancel">
@@ -78,19 +78,19 @@ export default function PairScreen({ lang, setLang, onPaired, initialLink = '', 
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: color.ink, padding: 24, justifyContent: 'center', maxWidth: 520, width: '100%', alignSelf: 'center' },
+  root: { flex: 1, backgroundColor: color.canvas, padding: 24, justifyContent: 'center', maxWidth: 520, width: '100%', alignSelf: 'center' },
   mark: { alignItems: 'center', marginBottom: 12 },
-  hull: { width: 56, height: 6, borderRadius: 3, backgroundColor: color.teal },
-  keel: { width: 6, height: 22, backgroundColor: color.teal, borderBottomLeftRadius: 3, borderBottomRightRadius: 3 },
-  brand: { color: color.text, fontSize: 28, fontWeight: '700', textAlign: 'center' },
+  hull: { width: 56, height: 6, borderRadius: 3, backgroundColor: color.accent },
+  keel: { width: 6, height: 22, backgroundColor: color.accent, borderBottomLeftRadius: 3, borderBottomRightRadius: 3 },
+  brand: { color: color.ink, fontSize: 28, fontWeight: '700', textAlign: 'center' },
   by: { color: color.muted, fontSize: 12, textAlign: 'center', marginBottom: 28 },
-  title: { color: color.text, fontSize: 18, fontWeight: '600', marginBottom: 8 },
+  title: { color: color.ink, fontSize: 18, fontWeight: '600', marginBottom: 8 },
   help: { color: color.muted, fontSize: 13, lineHeight: 19, marginBottom: 20 },
   label: { color: color.muted, fontSize: 12, marginBottom: 6 },
-  input: { backgroundColor: color.surface, color: color.text, borderColor: color.line, borderWidth: 1, borderRadius: 10, padding: 14, fontFamily: mono, fontSize: 13 },
-  error: { color: color.danger, fontSize: 13, marginTop: 10 },
-  button: { backgroundColor: color.teal, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 16, minHeight: 48, justifyContent: 'center' },
-  buttonText: { color: color.ink, fontWeight: '700', fontSize: 15 },
+  input: { backgroundColor: color.surface, color: color.ink, borderColor: color.line, borderWidth: 1, borderRadius: 10, padding: 14, fontFamily: mono, fontSize: 13 },
+  error: { color: color.error, fontSize: 13, marginTop: 10 },
+  button: { backgroundColor: color.accent, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 16, minHeight: 48, justifyContent: 'center' },
+  buttonText: { color: color.accentInk, fontWeight: '700', fontSize: 15 },
   dim: { opacity: 0.6 },
   cancel: { alignItems: 'center', paddingVertical: 14, minHeight: 48, justifyContent: 'center' },
   cancelText: { color: color.muted, fontSize: 14 },

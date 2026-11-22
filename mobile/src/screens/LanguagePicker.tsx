@@ -24,7 +24,7 @@ export default function LanguagePicker({ lang, setLang }: { lang: Lang; setLang:
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 16 },
   chip: { minWidth: 44, minHeight: 32, paddingHorizontal: 10, borderRadius: 16, borderWidth: 1, borderColor: color.line, alignItems: 'center', justifyContent: 'center' },
-  on: { borderColor: color.teal, backgroundColor: 'rgba(45,212,191,0.12)' },
+  on: { borderColor: color.accent, backgroundColor: 'rgba(201,164,92,0.12)' },
   text: { color: color.muted, fontSize: 12, fontWeight: '600' },
-  onText: { color: color.teal },
+  onText: { color: color.accent },
 });

@@ -30,6 +30,14 @@ const en = {
   denied: 'Denied',
   authPrompt: 'Approve this agent action',
   noPermission: 'Your token cannot approve actions.',
+  gate: 'Gate',
+  gateFoot: 'Biometric required · sealed as receipt',
+  gated: 'gated',
+  sealed: 'sealed',
+  mutation: 'mutation',
+  proof: 'proof',
+  sealedEitherWay: 'sealed either way',
+  action: 'action',
 };
 type Strings = typeof en;
 
@@ -62,6 +70,14 @@ const sw: Strings = {
   denied: 'Imekataliwa',
   authPrompt: 'Idhinisha kitendo hiki cha wakala',
   noPermission: 'Tokeni yako haiwezi kuidhinisha.',
+  gate: 'Mlango',
+  gateFoot: 'Uthibitishaji wa kibayolojia unahitajika · hufungwa kama risiti',
+  gated: 'imesubiri',
+  sealed: 'imefungwa',
+  mutation: 'mabadiliko',
+  proof: 'ushahidi',
+  sealedEitherWay: 'hufungwa vyovyote',
+  action: 'hatua',
 };
 
 const fr: Strings = {
@@ -93,6 +109,14 @@ const fr: Strings = {
   denied: 'Refusé',
   authPrompt: 'Approuver cette action de l\'agent',
   noPermission: 'Votre jeton ne peut pas approuver.',
+  gate: 'Porte',
+  gateFoot: 'Biométrie requise · scellé comme reçu',
+  gated: 'bloqué',
+  sealed: 'scellé',
+  mutation: 'mutation',
+  proof: 'preuve',
+  sealedEitherWay: 'scellé dans tous les cas',
+  action: 'action',
 };
 
 const ar: Strings = {
@@ -124,6 +148,14 @@ const ar: Strings = {
   denied: 'تم الرفض',
   authPrompt: 'وافق على إجراء الوكيل هذا',
   noPermission: 'رمزك لا يملك صلاحية الموافقة.',
+  gate: 'بوابة',
+  gateFoot: 'يتطلب التحقق بالبصمة · يُختم كإيصال',
+  gated: 'موقوف',
+  sealed: 'مختوم',
+  mutation: 'تعديل',
+  proof: 'إثبات',
+  sealedEitherWay: 'يُختم في كل الحالات',
+  action: 'إجراء',
 };
 
 export const strings: Record<Lang, Strings> = { en, sw, fr, ar };
