@@ -67,6 +67,7 @@ class AuditEventResponse(BaseModel):
     action: str
     resource: str
     allowed: bool
+    prev_hash: str
     entry_hash: str
 
     model_config = {"from_attributes": True}
@@ -133,6 +134,22 @@ async def revoke_token(
         raise HTTPException(status_code=404, detail="Token not found.")
     if record.revoked_at is None:
         record.revoked_at = datetime.now(timezone.utc)
+
+
+@router.get("/v1/phone/receipts", response_model=List[AuditEventResponse])
+async def phone_receipts(
+    limit: int = 20,
+    _: Principal = Depends(current_principal),
+    db: AsyncSession = Depends(get_db),
+) -> List[AuditEventResponse]:
+    """Read-only tape view for the bridge watch: the most recent sealed audit entries.
+
+    Phones reach this via the PHONE_ROUTES allowlist rather than VIEW_AUDIT_LOGS;
+    it returns the same redacted entry fields the audit list exposes, newest first.
+    """
+    limit = max(1, min(limit, 100))
+    rows = (await db.execute(select(AuditEventRecord).order_by(AuditEventRecord.seq.desc()).limit(limit))).scalars().all()
+    return [AuditEventResponse.model_validate(r) for r in rows]
 
 
 @router.get("/v1/audit", response_model=List[AuditEventResponse])
