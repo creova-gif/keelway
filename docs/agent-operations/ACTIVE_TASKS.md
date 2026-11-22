@@ -125,8 +125,10 @@
 | **KEEL-DSN-002** | Full-screen Paper design (Phase 2): page `17 - Settings` (17.1–17.6, all 8 subsections) + page `18 - Missing Surfaces` (18.1 P-10+run lane, 18.2 billing/tiers, 18.3 overlays, 18.4 views+state matrix). Remaining: drawers only | `UI / DESIGN-SYSTEM` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-dsn-002-settings-design` |
 
 | **KEEL-DSN-001** | Paper Design program ratified (Phase 0/1): verified MCP integration, `docs/design/` program + screen inventory + canonical `tokens.json` registry, DESIGN.md §10 declares Paper canonical | `UI / DESIGN-SYSTEM` | `VERIFIED_COMPLETE` | Devin | 2026-11-22 | `main` @ `60fd5cf` (PR #159) |
-| **KEEL-WEB-041** | Homepage session-replay terminal demo (typewriter k′ run → P-10 gate → seal/deny) + copyable install command | `APP / WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-041-terminal-demo` |
-| **KEEL-WEB-042** | Interactive policy evaluator (tenant/airgap/spendcap toggles → route + ALLOW/DENY) FIG 1.3 on /product | `APP / WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-042-policy-demo` |
+| **KEEL-WEB-041** | Homepage session-replay terminal demo (typewriter k′ run → P-10 gate → seal/deny) + copyable install command | `APP / WEB / MOTION` | `MERGED` (PR #180) | Devin | 2026-11-22 | `feature/keel-web-041-terminal-demo` |
+| **KEEL-WEB-042** | Interactive policy evaluator (tenant/airgap/spendcap toggles → route + ALLOW/DENY) FIG 1.3 on /product | `APP / WEB / MOTION` | `MERGED` (PR #182) | Devin | 2026-11-22 | `feature/keel-web-042-policy-demo` |
+| **KEEL-WEB-044** | Interactive marginal-cost comparison (workload slider → $0 open_weight vs ≈$10/1M frontier) FIG 2.1 on /pricing | `WEB / MOTION` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-045-cost-compare` |
+| **KEEL-WEB-043** | Footer brand split — Keelway product label + quiet "A Sorvex Labs company." endorsement | `WEB / BRAND` | `MERGED` (PR #184) | Devin | 2026-11-22 | `main` |
 
 ---
 

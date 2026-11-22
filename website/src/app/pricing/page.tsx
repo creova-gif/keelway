@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
+import { CostCompare } from "@/components/site/CostCompare";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -40,6 +41,14 @@ export default function PricingPage() {
             </div>
           </Reveal>
         ))}
+      </div>
+      <div className="mt-12">
+        <figure>
+          <CostCompare />
+          <figcaption className="kw-figcap mt-3">
+            FIG 2.1 — Marginal cost comparison, interactive. Seat price buys the platform; tokens stay at provider cost.
+          </figcaption>
+        </figure>
       </div>
       <div className="mt-10 flex flex-col gap-3 border-t border-[var(--rule)] pt-6 sm:flex-row sm:items-baseline sm:justify-between">
         <p className="text-sm text-[var(--muted)]">Volume seats or a dedicated deployment — annual contract.</p>
