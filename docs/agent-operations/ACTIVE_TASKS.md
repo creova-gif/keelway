@@ -183,4 +183,4 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-WEB-014** | web-next V3 mobile rules — 44px thumb targets + 390px axe/tap-target gate (Paper p-8-0); RN app 08.2A-C port deferred | `WEB / DESIGN` | `MERGED` (PR #197) | Devin | 2026-11-22 | `main` |
 | **KEEL-MOB-001** | RN mobile app V3 theme + gate/watch grammar (Paper p-8-0) — brass palette, gate detail block, status chips, tsc-6 tsconfig repair | `MOBILE / DESIGN` | `MERGED` (PR #200) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-015** | web-next SEO/discovery surfaces — sitemap, robots, manifest, feed.xml, OG metadata, favicon | `WEB` | `MERGED` (PR #198) | Devin | 2026-11-22 | `main` |
-| **KEEL-ENG-055** | dev-app grouped toolchain upgrade — vite 8 + plugin-react 6 + jsdom 31 (supersedes dependabot #144/#145/#147); jsdom-31 a11y-name fix | `DEV-APP / DEPS` | `IN_REVIEW` | Devin | 2026-11-22 | `feature/keel-eng-055-vite8-stack` |
+| **KEEL-ENG-055** | dev-app grouped toolchain upgrade — vite 8 + plugin-react 6 + jsdom 31 (superseded dependabot #144/#145/#147); jsdom-31 a11y-name fix | `DEV-APP / DEPS` | `MERGED` (PR #199) | Devin | 2026-11-22 | `main` |
