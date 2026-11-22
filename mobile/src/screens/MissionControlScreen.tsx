@@ -99,11 +99,21 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
   const waiting = runs.filter((r) => r.pending_approval);
   const align = rtl ? styles.rtl : null;
 
+  const watchStatus = (run: AgentRun, tt: typeof t): { label: string; style: { color: string } } => {
+    if (run.pending_approval) return { label: tt.gated, style: { color: color.accent } };
+    const st = run.status.toLowerCase();
+    if (st === 'done' || st === 'completed' || st === 'sealed' || st === 'success')
+      return { label: tt.sealed, style: { color: color.success } };
+    if (st === 'denied' || st === 'failed' || st === 'error')
+      return { label: run.status, style: { color: color.error } };
+    return { label: run.status, style: { color: color.info } };
+  };
+
   return (
     <ScrollView
       style={styles.root}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.teal} />}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.accent} />}
     >
       <View style={[styles.header, rtl && styles.rowReverse]}>
         <View>
@@ -120,7 +130,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
             accessibilityHint={t.airGapHint}
             testID="airgap"
           >
-            <Text style={[styles.badgeText, { color: status.air_gapped ? color.teal : color.amber }]}>
+            <Text style={[styles.badgeText, { color: status.air_gapped ? color.accent : color.accent }]}>
               {status.air_gapped ? t.airGapped : t.hybrid}
             </Text>
           </TouchableOpacity>
@@ -141,11 +151,20 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
 
       {waiting.map((run) => (
         <View key={run.task_id} style={styles.approval} testID="approval-card">
-          <Text style={[styles.approvalTitle, align]} accessibilityRole="header">{t.needsYou}</Text>
-          <Text style={[styles.goal, align]}>{run.goal}</Text>
-          <Text style={[styles.tool, align]}>
-            {run.pending_approval!.tool_name}{run.pending_approval!.is_mutation ? ' · mutation' : ''}
-          </Text>
+          <Text style={[styles.gateEyebrow, align]}>{`${t.gate} · ${run.task_id} · NOW`}</Text>
+          <Text style={[styles.goal, align]} accessibilityRole="header">{run.goal}</Text>
+          <View style={styles.gateDetail} testID="gate-detail">
+            <Text style={styles.gateRow}>
+              <Text style={styles.gateKey}>{t.action}{'  '}</Text>
+              <Text style={styles.gateVal}>
+                {run.pending_approval!.tool_name}{run.pending_approval!.is_mutation ? ` · ${t.mutation}` : ''}
+              </Text>
+            </Text>
+            <Text style={styles.gateRow}>
+              <Text style={styles.gateKey}>{t.proof}{'  '}</Text>
+              <Text style={[styles.gateVal, { color: color.accent }]}>{t.sealedEitherWay}</Text>
+            </Text>
+          </View>
           {!!preview(run.pending_approval!) && <Text style={styles.code} numberOfLines={10}>{preview(run.pending_approval!)}</Text>}
           {canApprove ? (
             <View style={[styles.actions, rtl && styles.rowReverse]}>
@@ -171,6 +190,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
           ) : (
             <Text style={[styles.muted, align]}>{t.noPermission}</Text>
           )}
+          <Text style={styles.gateFoot}>{t.gateFoot}</Text>
         </View>
       ))}
 
@@ -180,7 +200,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
         <View key={run.task_id} style={styles.run}>
           <Text style={[styles.goal, align]} numberOfLines={2}>{run.goal}</Text>
           <View style={[styles.runMeta, rtl && styles.rowReverse]}>
-            <Text style={[styles.status, run.pending_approval ? { color: color.amber } : null]}>{run.status}</Text>
+            <Text style={[styles.status, watchStatus(run, t).style]}>{watchStatus(run, t).label}</Text>
             <Text style={styles.muted}>{run.steps_done}/{run.steps_total} {t.steps}</Text>
           </View>
           <View style={styles.bar} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: run.steps_total || 1, now: run.steps_done }}>
@@ -201,38 +221,43 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: color.ink },
+  root: { flex: 1, backgroundColor: color.canvas },
   content: { padding: 16, paddingTop: 56, maxWidth: 720, width: '100%', alignSelf: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   rowReverse: { flexDirection: 'row-reverse' },
-  brand: { color: color.text, fontSize: 22, fontWeight: '700' },
+  brand: { color: color.ink, fontSize: 22, fontWeight: '700' },
   host: { color: color.muted, fontFamily: mono, fontSize: 11 },
   badge: { paddingHorizontal: 12, minHeight: 36, justifyContent: 'center', borderRadius: 18, borderWidth: 1 },
-  badgeGap: { borderColor: color.teal, backgroundColor: 'rgba(45,212,191,0.10)' },
-  badgeHybrid: { borderColor: color.amber, backgroundColor: 'rgba(245,181,71,0.10)' },
+  badgeGap: { borderColor: color.accent, backgroundColor: color.accentWash },
+  badgeHybrid: { borderColor: color.accent, backgroundColor: color.accentWash },
   badgeText: { fontWeight: '700', fontSize: 12 },
   sync: { paddingVertical: 6, marginBottom: 12 },
-  syncOff: { backgroundColor: 'rgba(248,113,113,0.10)', borderRadius: 8, paddingHorizontal: 10 },
+  syncOff: { backgroundColor: 'rgba(176,86,78,0.12)', borderRadius: 8, paddingHorizontal: 10 },
   syncText: { color: color.muted, fontSize: 12 },
   notice: { backgroundColor: color.raised, borderRadius: 10, padding: 12, marginBottom: 12 },
-  noticeText: { color: color.text, fontSize: 13 },
-  approval: { borderColor: color.amber, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 14, backgroundColor: 'rgba(245,181,71,0.06)' },
-  approvalTitle: { color: color.amber, fontWeight: '700', fontSize: 13, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
-  goal: { color: color.text, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  noticeText: { color: color.ink, fontSize: 13 },
+  approval: { borderColor: color.accent, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 14, backgroundColor: 'rgba(201,164,92,0.06)' },
+  gateEyebrow: { color: color.accent, fontFamily: mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 },
+  gateDetail: { backgroundColor: color.surface, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, marginBottom: 12 },
+  gateRow: { fontFamily: mono, fontSize: 12, lineHeight: 20 },
+  gateKey: { color: color.dim },
+  gateVal: { color: color.ink },
+  gateFoot: { color: color.dim, fontFamily: mono, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center', marginTop: 12 },
+  goal: { color: color.ink, fontSize: 15, fontWeight: '600', marginBottom: 4 },
   tool: { color: color.muted, fontFamily: mono, fontSize: 12, marginBottom: 8 },
-  code: { color: color.text, fontFamily: mono, fontSize: 12, backgroundColor: color.ink, borderRadius: 8, padding: 10, marginBottom: 12 },
+  code: { color: color.ink, fontFamily: mono, fontSize: 12, backgroundColor: color.canvas, borderRadius: 8, padding: 10, marginBottom: 12 },
   actions: { flexDirection: 'row', gap: 10 },
   btn: { flex: 1, minHeight: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  approve: { backgroundColor: color.amber },
-  approveText: { color: color.ink, fontWeight: '700' },
+  approve: { backgroundColor: color.accent },
+  approveText: { color: color.accentInk, fontWeight: '700' },
   deny: { borderWidth: 1, borderColor: color.line },
-  denyText: { color: color.text, fontWeight: '600' },
+  denyText: { color: color.ink, fontWeight: '600' },
   section: { color: color.muted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8, marginBottom: 8 },
   run: { backgroundColor: color.surface, borderRadius: 12, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: color.line },
   runMeta: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  status: { color: color.teal, fontFamily: mono, fontSize: 12 },
+  status: { color: color.accent, fontFamily: mono, fontSize: 12 },
   bar: { height: 4, borderRadius: 2, backgroundColor: color.raised, overflow: 'hidden' },
-  barFill: { height: 4, backgroundColor: color.teal },
+  barFill: { height: 4, backgroundColor: color.accent },
   muted: { color: color.muted, fontSize: 13 },
   footer: { color: color.muted, fontSize: 12, marginTop: 16, marginBottom: 12 },
   disconnect: { alignItems: 'center', paddingVertical: 14, minHeight: 48 },
