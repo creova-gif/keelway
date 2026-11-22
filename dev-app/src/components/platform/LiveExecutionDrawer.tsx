@@ -148,36 +148,39 @@ export function LiveExecutionDrawer({
         role="log"
         aria-live="polite"
         aria-label="Live execution SSE event log"
-        className="rounded-sm border border-border bg-canvas p-3 font-mono text-xs"
+        className="rounded-sm border border-border bg-canvas px-3 font-mono text-xs"
       >
-        <ol className="space-y-1.5">
+        <ol className="divide-y divide-border">
           {events.map((ev, idx) => {
             const isP10Held = ev.type === "p10.held";
             const isApprovedOrDone = ev.type === "p10.approved" || ev.type === "run.completed";
             const isAborted = ev.type === "p10.denied" || ev.type === "run.aborted";
-            const rowTone = isP10Held
-              ? "border-ochre/45 bg-ochre-subtle text-fg"
+            const tagTone = isP10Held
+              ? "text-accent"
               : isApprovedOrDone
-                ? "border-ok/40 bg-ok-subtle text-fg"
+                ? "text-ok"
                 : isAborted
-                  ? "border-danger/45 bg-danger-subtle text-fg"
-                  : "border-border bg-chrome text-fg";
+                  ? "text-danger"
+                  : "text-fg-muted";
             return (
-              <li key={`${ev.runId}-${ev.seq}-${idx}`} className={`rounded-xs border px-2.5 py-1.5 ${rowTone}`}>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold">
-                    <span className={isP10Held ? "text-ochre" : isApprovedOrDone ? "text-ok" : isAborted ? "text-danger" : "text-accent"}>
-                      {formatEventTag(ev)}
-                    </span>{" "}
-                    <span>{ev.label}</span>
+              <li key={`${ev.runId}-${ev.seq}-${idx}`} className="py-1.5">
+                <div className="flex items-baseline gap-2.5">
+                  <span className="shrink-0 tabular-nums text-fg-dim">{ev.timestamp}</span>
+                  <span className="min-w-0">
+                    <span className={tagTone}>{formatEventTag(ev)}</span>{" "}
+                    <span className={isP10Held ? "font-semibold text-accent" : "text-fg"}>
+                      {ev.label}
+                    </span>
                   </span>
-                  <span className="text-[10px] text-fg-muted">{ev.timestamp}</span>
                 </div>
-                <div className="mt-0.5 font-sans text-[11px] text-fg-muted">{ev.detail}</div>
+                <div className="mt-0.5 ps-[4.5rem] font-sans text-[11px] text-fg-muted">{ev.detail}</div>
               </li>
             );
           })}
         </ol>
+        <p className="border-t border-border py-2 font-sans text-[11px] text-fg-dim">
+          same tape as Record — this drawer is a lens on the ledger, not a second log
+        </p>
       </div>
 
       {status === "awaiting_p10_approval" ? (
