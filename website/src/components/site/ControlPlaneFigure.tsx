@@ -37,8 +37,8 @@ const RULES = [
   { rule: "BYOM key scoped kw_live_***", route: "frontier · 0% markup", verdict: "ALLOW" },
 ];
 
-function Chip({ tone, children }: { tone: "brass" | "green" | "red" | "blue" | "dim"; children: React.ReactNode }) {
-  const cls = { brass: "kw-chip-brass", green: "kw-chip-green", red: "kw-chip-red", blue: "kw-chip-blue", dim: "" }[tone];
+function Chip({ tone, children }: { tone: "accent" | "green" | "red" | "blue" | "dim"; children: React.ReactNode }) {
+  const cls = { accent: "kw-chip-accent", green: "kw-chip-green", red: "kw-chip-red", blue: "kw-chip-blue", dim: "" }[tone];
   return <span className={`kw-chip ${cls}`}>{children}</span>;
 }
 
@@ -56,7 +56,7 @@ function GatePanel() {
 
   const gateChip =
     gate === "gated"
-      ? { tone: "brass" as const, text: "P-10 GATE · QUORUM 1/2" }
+      ? { tone: "accent" as const, text: "P-10 GATE · QUORUM 1/2" }
       : gate === "sealed"
         ? { tone: "green" as const, text: "P-10 GATE · APPROVED" }
         : { tone: "red" as const, text: "P-10 GATE · DENIED" };
@@ -95,7 +95,7 @@ function GatePanel() {
                 <span
                   className={`kw-data text-[10px] ${
                     st === "gate"
-                      ? "text-[var(--brass)]"
+                      ? "text-[var(--accent)]"
                       : st === "done"
                         ? "text-[var(--green)]"
                         : st === "denied"
@@ -124,7 +124,7 @@ function GatePanel() {
                 <span className="kw-data text-[11px] text-[var(--muted)]">
                   <span className="text-[var(--dim)]">{r.id}</span> {r.action}
                 </span>
-                <Chip tone={st === "sealed" ? "green" : st === "denied" ? "red" : "brass"}>{st.toUpperCase()}</Chip>
+                <Chip tone={st === "sealed" ? "green" : st === "denied" ? "red" : "accent"}>{st.toUpperCase()}</Chip>
               </li>
             );
           })}
@@ -134,7 +134,7 @@ function GatePanel() {
             <>
               <button
                 type="button"
-                className="kw-fig-btn bg-[var(--brass)] text-[var(--brass-ink)] hover:bg-[var(--brass-deep)]"
+                className="kw-fig-btn bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-[var(--accent-deep)]"
                 onClick={() => setGate("sealed")}
               >
                 Allow once
@@ -177,7 +177,7 @@ function FlowPanel() {
   const nodes = [
     { name: "ingest", sub: "spec parse", tone: "dim" as const },
     { name: "plan", sub: "KFlow DAG", tone: "dim" as const },
-    { name: "P-10", sub: "human gate", tone: "brass" as const },
+    { name: "P-10", sub: "human gate", tone: "accent" as const },
     { name: "execute", sub: "sandboxed", tone: "blue" as const },
     { name: "seal", sub: "tape #1283", tone: "green" as const },
   ];
@@ -185,13 +185,13 @@ function FlowPanel() {
     <div className="px-4 py-6 sm:px-6">
       <div className="flex items-center justify-between">
         <span className="kw-label">KFlow run · langgraph-refund-cycle</span>
-        <Chip tone="brass">AWAITING GATE</Chip>
+        <Chip tone="accent">AWAITING GATE</Chip>
       </div>
       <div className="mt-8 flex flex-wrap items-center gap-y-6">
         {nodes.map((n, i) => (
           <div key={n.name} className="flex items-center">
-            <div className={`kw-card px-4 py-3 ${n.tone === "brass" ? "border-[var(--brass-40)]" : ""}`}>
-              <p className={`kw-data text-[11px] ${n.tone === "brass" ? "text-[var(--brass)]" : "text-[var(--ink)]"}`}>{n.name}</p>
+            <div className={`kw-card px-4 py-3 ${n.tone === "accent" ? "border-[var(--accent-40)]" : ""}`}>
+              <p className={`kw-data text-[11px] ${n.tone === "accent" ? "text-[var(--accent)]" : "text-[var(--ink)]"}`}>{n.name}</p>
               <p className="mt-1 text-[10px] text-[var(--dim)]">{n.sub}</p>
             </div>
             {i < nodes.length - 1 && (

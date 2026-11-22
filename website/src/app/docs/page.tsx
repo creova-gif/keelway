@@ -57,7 +57,7 @@ export default function DocsPage() {
       </p>
       {GROUPS.map((g) => (
         <section key={g.label} className="mt-12">
-          <p className="kw-label kw-label-brass">{g.label}</p>
+          <p className="kw-label kw-label-accent">{g.label}</p>
           <ul className="mt-4 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
             {g.rows.map((r) => (
               <li key={r.title}>
@@ -68,7 +68,7 @@ export default function DocsPage() {
                   className="kw-row-hover group flex items-baseline justify-between gap-4 px-1 py-3.5"
                 >
                   <span>
-                    <span className="text-[14px] font-medium text-[var(--ink)] group-hover:text-[var(--brass)]">
+                    <span className="text-[14px] font-medium text-[var(--ink)] group-hover:text-[var(--accent)]">
                       {r.title}
                     </span>
                     <span className="mt-0.5 block text-[12px] text-[var(--muted)]">{r.note}</span>
