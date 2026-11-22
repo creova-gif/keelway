@@ -173,12 +173,4 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-WEB-004** | Website --brass → --accent unification — all three surfaces on canonical token naming | `DESIGN-TOKENS` | `MERGED` (PR #183) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-005** | web-next a11y+perf e2e — axe WCAG 2.2 AA gate in CI; fixed real fg-dim contrast defect | `QA / A11Y` | `MERGED` (PR #185) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-006** | web-next /pricing — first real screen, canonical 4-seat + marketplace spec with backend quotas | `WEB` | `MERGED` (PR #187) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-007** | web-next shared header/footer + /docs port (15 doc rows → GitHub) | `WEB` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-007-site-chrome-docs` |
-| **KEEL-APP-075** | Accent token rename — canonical `--accent`, teal scale removed, ~245 call sites migrated, zero visual delta | `REFACTOR / DESIGN-TOKENS` | `MERGED` (PR #177) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-001** | web-next scaffold — Next.js + shadcn structure on canonical --accent tokens, honest landing page | `WEB / SCAFFOLD` | `MERGED` (PR #178) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-002** | web-next CI coverage — typecheck+build step in website-devapp-and-sdks | `CI` | `MERGED` (PR #179) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-003** | Shared tokens — web-next consumes generated copy of dev-app canonical, make tokens-check in CI | `DESIGN-TOKENS / CI` | `MERGED` (PR #181) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-004** | Website --brass → --accent unification — all three surfaces on canonical token naming | `DESIGN-TOKENS` | `MERGED` (PR #183) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-005** | web-next a11y+perf e2e — axe WCAG 2.2 AA gate in CI; fixed real fg-dim contrast defect | `QA / A11Y` | `MERGED` (PR #185) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-006** | web-next /pricing — first real screen, canonical 4-seat + marketplace spec with backend quotas | `WEB` | `MERGED` (PR #187) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-007** | web-next shared header/footer + /docs port (15 doc rows → GitHub) | `WEB` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-007-site-chrome-docs` |
+| **KEEL-WEB-007** | web-next shared header/footer + /docs port (15 doc rows → GitHub) | `WEB` | `MERGED` (PR #189) | Devin | 2026-11-22 | `main` |
