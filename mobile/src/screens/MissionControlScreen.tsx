@@ -76,7 +76,12 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
 
   const decide = async (run: AgentRun, approved: boolean) => {
     if (!run.pending_approval) return;
-    if (approved && !(await confirmLocally(`${t.authPrompt}: ${run.pending_approval.tool_name}`))) return;
+    // Paper 08.1: offline = read-only — actions queue-never, they refuse.
+    if (!online) {
+      setNotice(t.offline);
+      return;
+    }
+    if (!(await confirmLocally(`${approved ? t.authPrompt : t.denyPrompt}: ${run.pending_approval.tool_name}`))) return;
     setBusy(run.task_id);
     try {
       await client.decide(run.task_id, approved);
@@ -90,7 +95,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
   };
 
   const toggleAirGap = async () => {
-    if (!status || !canSetAirGap) return;
+    if (!status || !canSetAirGap || !online) return;
     if (!status.air_gapped || (await confirmLocally(t.hybrid))) {
       try {
         await client.setAirGap(!status.air_gapped);
@@ -146,10 +151,10 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
         {status && (
           <TouchableOpacity
             onPress={toggleAirGap}
-            disabled={!canSetAirGap}
+            disabled={!canSetAirGap || !online}
             style={[styles.badge, status.air_gapped ? styles.badgeGap : styles.badgeHybrid]}
             accessibilityRole="switch"
-            accessibilityState={{ checked: status.air_gapped, disabled: !canSetAirGap }}
+            accessibilityState={{ checked: status.air_gapped, disabled: !canSetAirGap || !online }}
             accessibilityHint={t.airGapHint}
             testID="airgap"
           >
@@ -193,7 +198,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
             <View style={[styles.actions, rtl && styles.rowReverse]}>
               <TouchableOpacity
                 style={[styles.btn, styles.approve]}
-                disabled={busy === run.task_id}
+                disabled={busy === run.task_id || !online}
                 onPress={() => decide(run, true)}
                 accessibilityRole="button"
                 testID="approve"
@@ -202,7 +207,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.btn, styles.deny]}
-                disabled={busy === run.task_id}
+                disabled={busy === run.task_id || !online}
                 onPress={() => decide(run, false)}
                 accessibilityRole="button"
                 testID="deny"
