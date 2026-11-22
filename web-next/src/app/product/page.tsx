@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Chip } from "@/components/ui/chip";
 import { ReceiptTable, type ReceiptRow } from "@/components/site/receipt-table";
 import { PolicyDemo } from "@/components/site/policy-demo";
+import { FigureTabs } from "@/components/site/figure-tabs";
 
 const INSTRUMENTS = [
   {
@@ -52,13 +53,17 @@ export default function Product() {
         ))}
       </div>
 
+      <div className="mt-16">
+        <FigureTabs />
+      </div>
+
       <div className="mt-20">
-        <ReceiptTable rows={RECEIPTS} caption="Fig 1.1 — execution receipts, sample render" />
+        <ReceiptTable rows={RECEIPTS} caption="Fig 1.2 — execution receipts, sample render" />
       </div>
 
       <div className="mt-20 border-t border-border pt-12">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-fg-muted">
-          Fig 1.2 — policy verdict, try it
+          Fig 1.3 — policy verdict, try it
         </p>
         <h2 className="mt-4 text-2xl font-semibold tracking-tight text-fg">
           Route decided at policy time, not runtime.

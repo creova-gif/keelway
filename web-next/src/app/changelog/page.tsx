@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RELEASES } from "@/data/releases";
+import { Reveal } from "@/components/motion/reveal";
 
 export const metadata: Metadata = {
   title: "Changelog — Keelway",
@@ -13,7 +14,8 @@ export default function ChangelogPage() {
       <h1 className="mt-4 text-4xl font-semibold tracking-tight text-fg">The logbook, public.</h1>
       <div className="mt-14 border-t border-border">
         {RELEASES.map((r) => (
-          <article key={r.version} className="border-b border-border py-8">
+          <Reveal key={r.version}>
+          <article className="border-b border-border py-8">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-lg font-semibold tracking-tight text-fg">v{r.version}</h2>
               <p className="font-mono text-[11px] text-fg-muted">{r.date}</p>
@@ -24,6 +26,7 @@ export default function ChangelogPage() {
               ))}
             </ul>
           </article>
+          </Reveal>
         ))}
       </div>
     </main>
