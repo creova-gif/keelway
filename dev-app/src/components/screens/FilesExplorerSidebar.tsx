@@ -159,10 +159,10 @@ export function FilesExplorerSidebar({
           aria-current={isCurrent ? "true" : undefined}
           onClick={() => onSelectFile(node.path)}
           style={{ paddingInlineStart: `${16 + depth * 12}px` }}
-          className={`flex min-h-row w-full items-center justify-between gap-1.5 rounded-xs pe-2 py-1 text-start text-xs transition-colors duration-fast ease-state ${
+          className={`flex min-h-row w-full items-center justify-between gap-1.5 rounded-xs border-s-2 pe-2 py-1 text-start text-xs transition-colors duration-fast ease-state ${
             isCurrent
-              ? "bg-accent-subtle text-fg"
-              : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
+              ? "border-s-accent text-fg"
+              : "border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
           }`}
         >
           <code dir="ltr" className="unicode-bidi-isolate truncate font-mono">
@@ -236,10 +236,10 @@ export function FilesExplorerSidebar({
               type="button"
               aria-current={node.path === activePath ? "true" : undefined}
               onClick={() => onSelectFile(node.path)}
-              className={`flex min-h-row w-full items-center justify-between gap-2 rounded-xs px-2 py-1 text-start text-xs ${
+              className={`flex min-h-row w-full items-center justify-between gap-2 rounded-xs border-s-2 px-2 py-1 text-start text-xs ${
                 node.path === activePath
-                  ? "bg-accent-subtle text-fg"
-                  : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
+                  ? "border-s-accent text-fg"
+                  : "border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
               }`}
             >
               <code dir="ltr" className="unicode-bidi-isolate truncate font-mono">

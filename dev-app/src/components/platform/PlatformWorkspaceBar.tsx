@@ -221,8 +221,8 @@ export function PlatformWorkspaceBar({
                 title={`${view.label} — ${view.capability}`}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => onSelectView(view.id)}
-                className={`kw-underline rounded-sm border px-2 py-0.5 text-xs font-medium transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
-                  isActive ? "border-accent/50 bg-accent-subtle font-semibold text-accent" : "border-transparent text-fg-muted hover:border-border-strong hover:bg-surface hover:text-fg"
+                className={`kw-underline rounded-xs px-2 py-0.5 text-xs transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
+                  isActive ? "font-semibold text-accent" : "font-medium text-fg-muted hover:text-fg"
                 }`}
               >
                 {view.label}

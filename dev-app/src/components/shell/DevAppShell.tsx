@@ -470,10 +470,10 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                     aria-current={isActive ? "page" : undefined}
                     title={item.label}
                     onClick={() => onSelectSection(item.section)}
-                    className={`relative flex h-9 w-9 items-center justify-center rounded-sm border transition-colors duration-fast ease-state ${
+                    className={`relative flex h-9 w-9 items-center justify-center rounded-xs border-s-2 transition-colors duration-fast ease-state ${
                       isActive
-                        ? "border-accent/50 bg-accent-subtle text-accent"
-                        : "border-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
+                        ? "border-s-accent text-accent"
+                        : "border-s-transparent text-fg-muted hover:bg-surface-elevated hover:text-fg"
                     }`}
                   >
                     <span aria-hidden="true" className="font-mono text-sm leading-none">{item.glyph}</span>
@@ -621,8 +621,8 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                   onSelectSection(item.section);
                   if (item.tab === "approvals") onJumpToApprovalHeading?.();
                 }}
-                className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-sm px-2 text-xs font-medium ${
-                  isCurrent ? "bg-accent-subtle text-accent" : "text-fg-muted hover:bg-surface-elevated hover:text-fg"
+                className={`kw-underline flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xs px-2 text-xs ${
+                  isCurrent ? "font-semibold text-accent" : "font-medium text-fg-muted hover:bg-surface-elevated hover:text-fg"
                 }`}
               >
                 <span>{item.label}</span>
