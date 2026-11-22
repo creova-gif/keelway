@@ -3,7 +3,7 @@
 ### TASK HANDOFF RECORD
 - **TASK ID**: KEEL-WEB-009
 - **TASK TITLE**: Remaining informational pages — /about, /contact, /sign-in
-- **CURRENT STATUS**: READY_FOR_REVIEW
+- **CURRENT STATUS**: MERGED (PR #192)
 - **LAST AGENT**: Devin
 - **DATE**: 2026-11-22
 - **BRANCH**: feature/keel-web-009-about-contact-signin

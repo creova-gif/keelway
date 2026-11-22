@@ -175,4 +175,4 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-WEB-006** | web-next /pricing — first real screen, canonical 4-seat + marketplace spec with backend quotas | `WEB` | `MERGED` (PR #187) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-007** | web-next shared header/footer + /docs port (15 doc rows → GitHub) | `WEB` | `MERGED` (PR #189) | Devin | 2026-11-22 | `main` |
 | **KEEL-WEB-008** | web-next /product + /changelog — instruments, interactive PolicyDemo, release log | `WEB` | `MERGED` (PR #191) | Devin | 2026-11-22 | `main` |
-| **KEEL-WEB-009** | web-next /about + /contact + /sign-in — completes informational page parity | `WEB` | `READY_FOR_REVIEW` | Devin | 2026-11-22 | `feature/keel-web-009-about-contact-signin` |
+| **KEEL-WEB-009** | web-next /about + /contact + /sign-in — completes informational page parity | `WEB` | `MERGED` (PR #192) | Devin | 2026-11-22 | `main` |
