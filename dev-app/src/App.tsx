@@ -672,6 +672,7 @@ export function App({
             onToggleReview={setReviewOpen}
             renderReviewInShell={!effectiveMobileCompanion}
             isCompanion={effectiveMobileCompanion}
+            onSelectActiveModel={handleSelectActiveModel}
             logsOpen={logsOpen}
             onToggleLogs={setLogsOpen}
             renderLogsInShell={true}

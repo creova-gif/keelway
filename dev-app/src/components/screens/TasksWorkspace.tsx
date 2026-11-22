@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { LogsDrawerTab } from "@/components/shell/DevAppShell";
-import { AgentComposer } from "@/components/screens/AgentComposer";
+import { AgentComposer, type ComposerPreflight } from "@/components/screens/AgentComposer";
 import { P10ApprovalCard } from "@/components/screens/P10ApprovalCard";
 import {
   buildLogsDrawerTabPanels,
@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
-import { execSandboxTerminal, toggleAirGap } from "@/lib/api";
+import { execSandboxTerminal, explainRouting, toggleAirGap } from "@/lib/api";
 import {
   approveAgentStep,
   cancelAgentTask,
@@ -145,6 +145,7 @@ export interface TasksWorkspaceProps {
   onToggleReview?: (open: boolean) => void;
   renderReviewInShell?: boolean;
   isCompanion?: boolean;
+  onSelectActiveModel?: (modelId: string, modelLabel: string) => void;
   defaultLogsOpen?: boolean;
   logsOpen?: boolean;
   onToggleLogs?: (open: boolean) => void;
@@ -192,6 +193,7 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     onToggleReview,
     renderReviewInShell = false,
     isCompanion = false,
+    onSelectActiveModel,
     defaultLogsOpen = false,
     logsOpen: controlledLogsOpen,
     onToggleLogs,
@@ -488,7 +490,9 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
     [livePending, liveRun, onSubmitDecision],
   );
 
-  const submitComposerPrompt = () => {
+  const [composerPreflight, setComposerPreflight] = useState<ComposerPreflight | null>(null);
+
+  const submitComposerPrompt = async () => {
     const trimmed = effectiveComposerValue.trim();
     if (!runtimeReachable || trimmed.length === 0 || liveRunBusy) return;
     onSendPrompt?.(trimmed);
@@ -497,6 +501,19 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
       { id: `msg-${++seqRef.current}`, role: "user", content: trimmed },
     ]);
     updateComposerValue("");
+
+    // Paper 19.2 pre-flight honesty: simulate routing before the run launches.
+    try {
+      const route = await explainRouting({
+        taskKind: "agent_run",
+        privacy: airGapEnabled ? "private" : "standard",
+        maxLatencyMs: 30_000,
+        maxCostUsd: 1.0,
+      });
+      setComposerPreflight({ status: "simulated", result: route });
+    } catch {
+      setComposerPreflight({ status: "unavailable" });
+    }
 
     setLiveRunBusy(true);
     void runAgentTask({ goal: trimmed, modelId: activeModelLabel })
@@ -861,9 +878,12 @@ export function TasksWorkspace(props: TasksWorkspaceProps): React.JSX.Element {
             <AgentComposer
               value={effectiveComposerValue}
               onChange={updateComposerValue}
-              onSubmitPrompt={submitComposerPrompt}
+              onSubmitPrompt={() => void submitComposerPrompt()}
               runtimeReachable={runtimeReachable}
               textareaRef={activeComposerRef}
+              activeModelLabel={activeModelLabel}
+              onSelectActiveModel={onSelectActiveModel}
+              preflight={composerPreflight}
             />
           )}
         </section>
