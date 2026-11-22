@@ -11,7 +11,7 @@ export function SiteFooter() {
               Apache-2.0 open core &middot; BYOM from $15/seat/mo &middot; Pro from
               $29/seat/mo &middot; 0% token markup
             </p>
-            <p className="mt-4 font-mono text-[10px] text-fg-muted">A Sorvex Labs company.</p>
+            <p className="mt-4 font-mono text-[10px] text-fg-muted">A Sorvex Labs product.</p>
           </div>
           <nav className="flex gap-6 text-[13px]" aria-label="Footer">
             <Link href="/product" className="text-fg-muted transition-colors hover:text-fg">

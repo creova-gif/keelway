@@ -91,8 +91,9 @@ export default function PricingPage() {
               t.accent ? "border-accent/40 bg-accent-subtle" : "border-border bg-surface"
             }`}
           >
-            <p className={`font-mono text-[11px] uppercase tracking-wide ${t.accent ? "text-accent" : "text-fg-muted"}`}>
+            <p className={`flex items-baseline justify-between font-mono text-[11px] uppercase tracking-wide ${t.accent ? "text-accent" : "text-fg-muted"}`}>
               {t.name}
+              {t.accent && <span className="font-normal normal-case tracking-normal text-fg-muted">most common</span>}
             </p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-fg">
               {t.annualMonthlyUsd === null ? "Custom" : `$${t.annualMonthlyUsd}`}
