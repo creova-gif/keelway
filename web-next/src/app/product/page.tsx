@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PolicyDemo } from "@/components/site/policy-demo";
+import { FigureTabs } from "@/components/site/figure-tabs";
 
 export const metadata: Metadata = {
   title: "Product — Keelway",
@@ -43,6 +44,9 @@ export default function ProductPage() {
             <p className="mt-3 text-sm leading-relaxed text-fg-muted">{i.body}</p>
           </section>
         ))}
+      </div>
+      <div className="mt-12">
+        <FigureTabs />
       </div>
       <figure className="mt-12">
         <PolicyDemo />

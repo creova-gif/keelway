@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { TerminalDemo } from "@/components/site/terminal-demo";
+import { InstallCommand } from "@/components/site/install-command";
 
 const TASKS = [
   "Harden loopback CSP",
@@ -53,6 +55,8 @@ export default function Home() {
           Read the docs →
         </Link>
       </div>
+
+      <InstallCommand />
 
       <figure className="mt-20">
         <div className="overflow-hidden rounded-md border border-border bg-surface-raised">
@@ -115,6 +119,13 @@ export default function Home() {
         </div>
         <figcaption className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
           Fig 0.1 — Keelway control plane, dev app surface
+        </figcaption>
+      </figure>
+
+      <figure className="mt-16">
+        <TerminalDemo />
+        <figcaption className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-muted">
+          Fig 0.2 — session replay, live: run a task, hit the P-10 gate, decide — the receipt seals either way
         </figcaption>
       </figure>
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { CostCompare } from "@/components/site/cost-compare";
 
 export const metadata: Metadata = {
   title: "Pricing — Keelway",
@@ -139,6 +140,13 @@ export default function PricingPage() {
         (Anthropic, Gemini, OpenAI, self-hosted vLLM). Consumer ChatGPT Plus/Pro or
         Claude Pro/Max web subscriptions do not provide third-party API access.
       </p>
+
+      <figure className="mt-8">
+        <CostCompare />
+        <figcaption className="mt-3 font-mono text-[10px] text-fg-muted">
+          FIG 2.1 — Marginal cost comparison, interactive. Seat price buys the platform; tokens stay at provider cost.
+        </figcaption>
+      </figure>
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
         <p className="text-sm text-fg-muted">Volume seats or a dedicated deployment — annual contract.</p>
