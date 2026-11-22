@@ -23,6 +23,9 @@ export function SiteFooter() {
             <Link href="/changelog" className="text-fg-muted transition-colors hover:text-fg">
               Changelog
             </Link>
+            <Link href="/contact" className="text-fg-muted transition-colors hover:text-fg">
+              Contact
+            </Link>
             <Link href="/docs" className="text-fg-muted transition-colors hover:text-fg">
               Docs
             </Link>
