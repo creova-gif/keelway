@@ -10,8 +10,10 @@ Note on scope: This module implements application/HTTP-level draft-and-verify
 orchestration across model provider adapters (plus a deterministic simulation harness in
 `SpeculativeDecoder` / `SpeculativeBenchmark`), rather than low-level GPU token-logit
 or shared-KV-cache kernel speculative decoding. Over remote HTTP providers, serial
-draft + verify round-trips primarily optimize target output-token spend rather than
-single-GPU decode latency.
+draft + verify round-trips can reduce target output-token spend in verification-prompt
+mode (where the target can emit a short `ACCEPT` reply); in `prefix` mode, the target
+generates the full completion, so the draft call adds overhead without reducing target
+output tokens.
 """
 
 from __future__ import annotations

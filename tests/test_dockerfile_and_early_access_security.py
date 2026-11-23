@@ -81,8 +81,11 @@ def test_early_access_serverless_never_leaks_pii_to_github_issues() -> None:
     assert "https://api.github.com/repos/" not in early_access_src
     assert "EARLY_ACCESS_WEBHOOK_URL" in early_access_src
 
+
+def test_early_access_node_security_suite() -> None:
     node_bin = shutil.which("node")
-    assert node_bin is not None, "node is required to execute api/early-access.js security suite"
+    if node_bin is None:
+        pytest.skip("node runtime unavailable; covered by website-devapp-and-sdks CI job")
     proc = subprocess.run(
         [node_bin, "--test", str(REPO_ROOT / "tests" / "js" / "early_access.test.mjs")],
         cwd=str(REPO_ROOT),

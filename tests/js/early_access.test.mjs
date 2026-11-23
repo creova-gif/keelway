@@ -215,11 +215,25 @@ test("enforces POST method, strict Origin allowlist, payload byte cap, and input
     assert.equal(res.statusCode, 413);
   }
 
-  // 5. Invalid JSON or array payload rejected with 400
+  // 5. Invalid JSON, array payload, or throwing req.body getter rejected with 400
   for (const invalidBody of ["{malformed", ["array"], null]) {
     earlyAccessHandler._resetRateLimitForTests();
     const res = createMockRes();
     await earlyAccessHandler(createReq({ body: invalidBody, ip: "203.0.113.22" }), res);
+    assert.equal(res.statusCode, 400);
+  }
+  {
+    earlyAccessHandler._resetRateLimitForTests();
+    const throwingReq = {
+      method: "POST",
+      headers: { origin: "https://keelway.dev", "x-forwarded-for": "203.0.113.22" },
+      socket: { remoteAddress: "203.0.113.22" },
+      get body() {
+        throw new SyntaxError("Invalid JSON");
+      },
+    };
+    const res = createMockRes();
+    await earlyAccessHandler(throwingReq, res);
     assert.equal(res.statusCode, 400);
   }
 

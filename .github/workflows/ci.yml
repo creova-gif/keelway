@@ -125,6 +125,7 @@ jobs:
         run: |
           ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
           npm --prefix sdk/typescript test
+          node --test tests/js/early_access.test.mjs
           ./website/node_modules/.bin/tsc -p extensions/vscode-keelway/tsconfig.json
           npm --prefix extensions/vscode-keelway test
       - name: Vet & test official keelway-go SDK with race detector

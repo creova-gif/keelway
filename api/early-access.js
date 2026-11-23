@@ -272,38 +272,49 @@ async function readBoundedJsonBody(req) {
   }
 
   let rawText = null;
-  if (typeof req?.body === 'string') {
-    if (Buffer.byteLength(req.body, 'utf8') > MAX_BODY_BYTES) {
-      return { status: 413, error: 'payload too large' };
-    }
-    rawText = req.body;
-  } else if (Buffer.isBuffer(req?.body)) {
-    if (req.body.length > MAX_BODY_BYTES) {
-      return { status: 413, error: 'payload too large' };
-    }
-    rawText = req.body.toString('utf8');
-  } else if (req?.body !== undefined && req?.body !== null) {
-    if (typeof req.body !== 'object' || Array.isArray(req.body)) {
-      return { status: 400, error: 'invalid json payload' };
-    }
-    const serialized = JSON.stringify(req.body);
-    if (Buffer.byteLength(serialized, 'utf8') > MAX_BODY_BYTES) {
-      return { status: 413, error: 'payload too large' };
-    }
-    return { status: 200, data: req.body };
-  } else if (req && typeof req[Symbol.asyncIterator] === 'function') {
-    const chunks = [];
-    let totalBytes = 0;
-    for await (const chunk of req) {
-      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), 'utf8');
-      totalBytes += buf.length;
-      if (totalBytes > MAX_BODY_BYTES) {
+  let candidateBody;
+  try {
+    candidateBody = req?.body;
+  } catch {
+    return { status: 400, error: 'invalid json payload' };
+  }
+
+  try {
+    if (typeof candidateBody === 'string') {
+      if (Buffer.byteLength(candidateBody, 'utf8') > MAX_BODY_BYTES) {
         return { status: 413, error: 'payload too large' };
       }
-      chunks.push(buf);
+      rawText = candidateBody;
+    } else if (Buffer.isBuffer(candidateBody)) {
+      if (candidateBody.length > MAX_BODY_BYTES) {
+        return { status: 413, error: 'payload too large' };
+      }
+      rawText = candidateBody.toString('utf8');
+    } else if (candidateBody !== undefined && candidateBody !== null) {
+      if (typeof candidateBody !== 'object' || Array.isArray(candidateBody)) {
+        return { status: 400, error: 'invalid json payload' };
+      }
+      const serialized = JSON.stringify(candidateBody);
+      if (Buffer.byteLength(serialized, 'utf8') > MAX_BODY_BYTES) {
+        return { status: 413, error: 'payload too large' };
+      }
+      return { status: 200, data: candidateBody };
+    } else if (req && typeof req[Symbol.asyncIterator] === 'function') {
+      const chunks = [];
+      let totalBytes = 0;
+      for await (const chunk of req) {
+        const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), 'utf8');
+        totalBytes += buf.length;
+        if (totalBytes > MAX_BODY_BYTES) {
+          return { status: 413, error: 'payload too large' };
+        }
+        chunks.push(buf);
+      }
+      rawText = Buffer.concat(chunks).toString('utf8');
+    } else {
+      return { status: 400, error: 'invalid json payload' };
     }
-    rawText = Buffer.concat(chunks).toString('utf8');
-  } else {
+  } catch {
     return { status: 400, error: 'invalid json payload' };
   }
 
