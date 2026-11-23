@@ -236,16 +236,25 @@ export function OnboardingModal({
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                <Button
-                  size="md"
-                  variant="ghost"
-                  onClick={() => {
-                    onOpenSettingsLater?.();
-                    onOpenChange?.(false);
-                  }}
-                >
-                  Change in Settings later
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="md"
+                    variant="ghost"
+                    onClick={() => onOpenChange?.(false)}
+                  >
+                    Skip — workspace stays local
+                  </Button>
+                  <Button
+                    size="md"
+                    variant="ghost"
+                    onClick={() => {
+                      onOpenSettingsLater?.();
+                      onOpenChange?.(false);
+                    }}
+                  >
+                    Change in Settings later
+                  </Button>
+                </div>
                 <Button
                   size="md"
                   variant="primary"
