@@ -63,10 +63,18 @@ def test_operator_passthrough_keeps_only_the_named_variables():
 
 
 def test_every_secret_listed_in_env_example_is_covered():
-    text = (Path(__file__).resolve().parent.parent / "env.example").read_text()
-    names = re.findall(r"^([A-Z][A-Z0-9_]*)=", text, re.M)
-    harmless = {"LOCAL_MODEL_BASE_URL", "LOCAL_MODEL_NAME", "DEFAULT_MODEL_PROVIDER", "DEFAULT_MODEL", "AUTH_REQUIRED", "GOOGLE_CLOUD_PROJECT",
-                "OTEL_EXPORTER_OTLP_ENDPOINT", "ALLOWED_ORIGINS", "GOOGLE_MODEL", "NVIDIA_MODEL", "OPENAI_MODEL", "ANTHROPIC_MODEL", "OIDC_CLIENT_ID"}
+    repo_root = Path(__file__).resolve().parent.parent
+    dot_env_example = (repo_root / ".env.example").read_text(encoding="utf-8")
+    legacy_env_example = (repo_root / "env.example").read_text(encoding="utf-8")
+    assert dot_env_example == legacy_env_example, ".env.example and env.example must remain in sync"
+
+    names = re.findall(r"^([A-Z][A-Z0-9_]*)=", dot_env_example, re.M)
+    harmless = {
+        "LOCAL_MODEL_BASE_URL", "LOCAL_MODEL_NAME", "DEFAULT_MODEL_PROVIDER", "DEFAULT_MODEL",
+        "AUTH_REQUIRED", "GOOGLE_CLOUD_PROJECT", "OTEL_EXPORTER_OTLP_ENDPOINT", "ALLOWED_ORIGINS",
+        "EARLY_ACCESS_ALLOWED_ORIGINS", "GOOGLE_MODEL", "NVIDIA_MODEL", "OPENAI_MODEL",
+        "ANTHROPIC_MODEL", "OIDC_CLIENT_ID",
+    }
     secret_looking = [n for n in names if n not in harmless]
     assert secret_looking, "env.example parsing found nothing"
     assert all(is_secret(n, "x") for n in secret_looking), [n for n in secret_looking if not is_secret(n, "x")]

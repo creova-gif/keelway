@@ -6,7 +6,19 @@
 
 ---
 
-## 1. MISSION & ARCHITECTURAL FOUNDATION
+## 1. MISSION, DECISION HIERARCHY & ARCHITECTURAL FOUNDATION
+
+### Authoritative Decision Hierarchy (`Shared Engineering Governance Standard v1.0`)
+1. **Verified Repository State**: Actual committed code, lockfiles (`requirements.lock`, `package-lock.json`), and passing automated tests.
+2. **Accepted ADRs**: Architectural Decision Records in `docs/decisions/` (`ADR-001` through `ADR-0045`).
+3. **Repository-Specific Constraints**: Rules and security invariants in this `AGENTS.md` and `pyproject.toml`.
+4. **Shared Engineering Governance Standard (`v1.0`)**: Cross-portfolio epistemic honesty, fail-closed security, and PR verification discipline.
+
+### Cross-Agent Hard Invariants (Antigravity, Devin, Claude Code, Codex, Cursor, gstack)
+- **Epistemic Honesty**: Never claim a feature, model kernel, compliance standard, or cloud integration is implemented if backed by mocks, timers, or software simulations. Label simulations and HTTP-level orchestrators explicitly.
+- **No Unapproved Runtime Dependencies**: Do not add runtime packages without explicit task approval and synchronized lockfile updates (`./scripts/check_python_lock.sh`). Zero-dependency posture in `@keelway/sdk` and `keelway-go` is locked.
+- **No Harness or PII Pollution**: Never commit `.env` files, `dist/` build artifacts (outside `sdk/typescript/dist/`), or raw user PII; never route public waitlist/contact submissions to public GitHub Issues.
+- **Canonical Git & PR Discipline**: Author commits as `Justin Mafie <244837074+creova-gif@users.noreply.github.com>`, place imports at module top unless circular dependencies are documented, run lint/typecheck/tests locally, and merge via Conventional Commit pull requests.
 
 **Keelway** is an enterprise-grade sovereign AI platform providing:
 1. **Unified AI Model Gateway**: First-class support for both open-weight models (Qwen 2.5, Llama 3.3, DeepSeek R1/V3 via local Ollama or private vLLM/TGI clusters) and proprietary frontier models (Claude 3.5/3.7, GPT-4o, Gemini 1.5/2.0).
@@ -197,13 +209,6 @@ make studio-css        # regenerate core/studio/assets/studio.css (committed)
 make studio-css-check  # fails if the committed css is stale
 ```
 
-If you change classes in `core/studio/index.html` or `core/studio/assets/studio.js`,
-rebuild the generated stylesheet and verify freshness:
-
-```bash
-make studio-css        # regenerate core/studio/assets/studio.css (committed)
-make studio-css-check  # fails if the committed css is stale
-```
 ## 10. DESIGN SYSTEM
 
 Read DESIGN.md before visual or UI work: it defines the fonts, colors, spacing,

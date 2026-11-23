@@ -7,6 +7,7 @@ from __future__ import annotations
 import inspect
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -266,6 +267,15 @@ def test_dockerfile_compose_and_github_actions_release_hardening() -> None:
         "USER 10001:10001",
     ):
         assert required in dockerfile, f"Missing '{required}' in Dockerfile"
+
+    from_versions = re.findall(r"^FROM\s+python:(\d+\.\d+)-slim", dockerfile, flags=re.MULTILINE)
+    site_pkg_versions = re.findall(r"/usr/local/lib/python(\d+\.\d+)/site-packages", dockerfile)
+    assert len(from_versions) >= 2 and len(set(from_versions)) == 1, (
+        f"Dockerfile FROM python versions must match across stages: {from_versions}"
+    )
+    assert site_pkg_versions and set(site_pkg_versions) == set(from_versions), (
+        f"Dockerfile site-packages versions {site_pkg_versions} must match FROM {from_versions}"
+    )
 
     compose_path = REPO_ROOT / "docker-compose.yml"
     compose_raw = compose_path.read_text(encoding="utf-8")

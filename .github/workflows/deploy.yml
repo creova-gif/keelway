@@ -8,11 +8,16 @@ on:
       - 'Dockerfile'
       - 'docker-compose.yml'
       - '.github/workflows/deploy.yml'
+  pull_request:
+    paths:
+      - 'deploy/**'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   validate-infrastructure:

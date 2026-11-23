@@ -27,7 +27,7 @@ _SECRET_NAME = re.compile(
 )
 # Whole families that belong to Keelway or to model/cloud providers, whatever the suffix.
 _SECRET_PREFIXES = ("KEELWAY_", "ANTHROPIC_", "OPENAI_", "NVIDIA_", "GEMINI_", "AWS_", "AZURE_", "OIDC_")
-_SECRET_NAMES = frozenset({"GOOGLE_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS"})
+_SECRET_NAMES = frozenset({"GOOGLE_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS", "EARLY_ACCESS_WEBHOOK_URL"})
 # Values that are credentials no matter what the variable is called.
 _SECRET_VALUE = re.compile(
     r"(://[^/\s:@]*:[^/\s@]+@)"            # user:password@host in any URL (DATABASE_URL, REDIS_URL, ...)
