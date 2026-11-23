@@ -646,6 +646,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
         </nav>
       ) : null}
 
+      {!effectiveMobileCompanion ? (
       <footer
         id="keelway-status-bar"
         ref={statusBarRef}
@@ -698,6 +699,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
           />
         </div>
       </footer>
+      ) : null}
     </div>
   );
 }

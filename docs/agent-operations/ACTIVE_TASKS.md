@@ -195,3 +195,4 @@ All v1.0 Unified Platform, Cluster Control Plane, Marketplace Settlement, and Tr
 | **KEEL-APP-081** | Onboarding skip affordance (Paper 18.3) + 4-tier pricing canon doc fix (18.2) | `DEV-APP / DESIGN` | `MERGED` (PR #210) | Devin | 2026-11-22 | `main` |
 | **KEEL-APP-082** | Shell decongestion — VIEWS nav to sidebar (12.1 grammar), journey bar retained, agents roster collapsed | `DEV-APP / DESIGN` | `MERGED` (PR #211) | Devin | 2026-11-22 | `main` |
 | **KEEL-MOB-004** | RN 0.74.5 + Android device verify — Expo-Go-incompatible scripts → `run:*`, prebuild gitignore; paired→Mission Control→receipts→on-device proof fold on live stack | `MOBILE / QA` | `MERGED` (PR #214) | Devin | 2026-11-23 | `main` |
+| **KEEL-APP-083** | Companion chrome cleanup — desktop status bar hidden in mobile companion (Paper 08.1) | `DEV-APP / DESIGN` | `READY_FOR_REVIEW` | Devin | 2026-11-23 | `feature/keel-app-083-statusbar` |
