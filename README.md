@@ -9,6 +9,17 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-indigo.svg)](./LICENSE)
 [![CI](https://github.com/creova-gif/keelway/actions/workflows/ci.yml/badge.svg)](https://github.com/creova-gif/keelway/actions/workflows/ci.yml)
 
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo-000020?logo=expo&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white)
+
 </div>
 
 Keelway `v1.1.0` unifies local open-weight model serving (**OpenCore** via Ollama/vLLM), 4D provenance-routed frontier APIs, an explicit deterministic task state machine, separation-of-duty human-approval governance (**P-10 Gate** & 2-human quorum), OS-confined tool sandboxes (**Linux `bubblewrap`** & **macOS Seatbelt**), Model Context Protocol (**MCP `2025-06-18`**), **KFlow** topological DAG automation, **KSpaces** CRDT state sync, SHA-256 flight recorder tapes, and tri-language zero-dependency SDKs in a single customer-managed stack.
