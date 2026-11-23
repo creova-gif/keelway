@@ -31,8 +31,8 @@ needed reconciliation, not migration.
 | `--rule-strong` | absent | Added `12%` | ✅ `create_tokens` |
 | `--accent-ring` | absent | Added `35%` (website focus-ring role) | ✅ `create_tokens` |
 | `--r-panel` | absent | Added `10px` — product panels; `--r-tile 14px` now marketing-only | ✅ `create_tokens` |
-| `--dim` | `#5D6268` | Open — website `#8a9096` divergence flagged; converge or record as intentional exception | — |
-| `--fs-body` | `17px` | Open — website `.kw-body` is `16px`; recommend adopting 17px | — |
+| `--dim` | `#5D6268` | **Exception recorded** — website keeps `#8a9096`: `--dim` there colors content-bearing captions (dates, prices, placeholders) where 3.5:1 decorative-only dim would fail AA | — |
+| `--fs-body` | `17px` | **Resolved** — website `.kw-body` adopted 17px (`1.0625rem`), 2026-11-23 | — |
 | `--fs-heading`/`--fs-display` | `28/44px` | Resolved by convention — fluid `clamp()` wins; Paper values are 1440-grid reference points | — |
 
 New Paper token hash: `3cc7b891` (was `7101589d`). Paper now carries the full
