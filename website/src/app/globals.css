@@ -116,7 +116,7 @@ body {
   font-size: 0.8125rem;
   line-height: 1.6;
 }
-.kw-body { font-size: 1rem; line-height: 1.6; color: var(--muted); }
+.kw-body { font-size: 1.0625rem; line-height: 1.6; color: var(--muted); }
 .kw-small { font-size: 0.75rem; line-height: 1.5; color: var(--muted); }
 
 /* ---------- controls ---------- */
