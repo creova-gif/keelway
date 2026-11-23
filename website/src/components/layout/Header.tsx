@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import { Mark } from "@/components/site/Mark";
 
 const NAV = [
@@ -48,9 +49,11 @@ export function Header() {
           aria-label="Toggle navigation"
           onClick={() => setOpen((v) => !v)}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-            {open ? <path d="M5 5l10 10M15 5L5 15" /> : <path d="M3 6h14M3 10h14M3 14h14" />}
-          </svg>
+          {open ? (
+            <X size={20} strokeWidth={1.5} aria-hidden="true" />
+          ) : (
+            <Menu size={20} strokeWidth={1.5} aria-hidden="true" />
+          )}
         </button>
       </div>
       {open && (

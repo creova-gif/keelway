@@ -107,7 +107,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     >
       {loading ? (
         <span aria-hidden="true" className="font-mono text-xs leading-none">
-          ↻
+          ⓘ
         </span>
       ) : null}
       <span>{children}</span>
