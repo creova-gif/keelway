@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlatformWorkspaceBar } from "@/components/platform/PlatformWorkspaceBar";
+import { PlatformViewList } from "@/components/platform/PlatformViewList";
 import { useUnifiedPlatformState } from "@/components/platform/useUnifiedPlatformState";
 import { CommandPalette, type CommandPaletteSettingItem } from "@/components/shell/CommandPalette";
 import { DevAppShell, type CompanionTab, type LogsDrawerTab } from "@/components/shell/DevAppShell";
@@ -571,6 +572,9 @@ export function App({
         onJumpToApprovalHeading={handleJumpToApprovalHeading}
         contextSidebarContent={contextSidebarContent}
         contextSidebarLabel={contextSidebarLabel}
+        viewNavContent={
+          <PlatformViewList activeView={platformView} onSelectView={handleSelectPlatformView} />
+        }
         agents={agents}
         onSelectAgent={() => handleSelectPlatformView("agents")}
         topWorkspaceBar={

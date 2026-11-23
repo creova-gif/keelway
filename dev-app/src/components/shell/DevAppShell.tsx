@@ -29,6 +29,7 @@ export interface DevAppShellProps {
   onJumpToApprovalHeading?: () => void;
   contextSidebarContent?: React.ReactNode;
   contextSidebarLabel?: string;
+  viewNavContent?: React.ReactNode;
   reviewDrawerOpen?: boolean;
   onToggleReviewDrawer?: (open: boolean) => void;
   reviewDrawerContent?: React.ReactNode;
@@ -161,7 +162,7 @@ const AGENT_STATUS_DOT: Record<TaskStatus, { label: string; dot: string } | null
 };
 
 function AgentsRailList({ agents, onSelectAgent }: AgentsRailListProps): React.JSX.Element {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const attentionCount = agents.filter((a) => AGENT_STATUS_DOT[a.status] !== null).length;
   return (
     <section aria-label="Agents" className="flex max-h-[45%] shrink-0 flex-col border-t border-border">
@@ -214,7 +215,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
   const {
     activeSection, onSelectSection, tasks = [], activeTaskId, onSelectTask, onNewTask,
     agents = [], onSelectAgent,
-    pendingApprovalCount, onJumpToApprovalHeading, contextSidebarContent, contextSidebarLabel,
+    pendingApprovalCount, onJumpToApprovalHeading, contextSidebarContent, contextSidebarLabel, viewNavContent,
     reviewDrawerOpen = false, onToggleReviewDrawer, reviewDrawerContent, reviewDrawerTitle = "Review",
     logsDrawerOpen: controlledLogsOpen, defaultLogsDrawerOpen = false, onToggleLogsDrawer,
     logsTab: controlledLogsTab, onSelectLogsTab, logsDrawerContent, egress = DEFAULT_EGRESS,
@@ -303,10 +304,8 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
     [controlledLogsTab, onSelectLogsTab],
   );
 
-  const shouldRenderSidebar =
-    !effectiveMobileCompanion &&
-    !hideSidebar &&
-    activeSection !== "record";
+  const shouldRenderViewNav = !effectiveMobileCompanion && !hideSidebar;
+  const shouldRenderSidebar = shouldRenderViewNav && activeSection !== "record";
 
   // Paper 08.1: no free-text terminal on mobile — buttons never shells.
   const visibleLogsTabs: readonly LogsDrawerTab[] = effectiveMobileCompanion
@@ -510,7 +509,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
           </nav>
         ) : null}
 
-        {shouldRenderSidebar ? (
+        {(shouldRenderViewNav && viewNavContent) || shouldRenderSidebar ? (
           <aside
             ref={sidebarRef}
             aria-label={resolvedSidebarLabel}
@@ -518,23 +517,26 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
             data-programmatic-focus="true"
             className="flex w-sidebar shrink-0 flex-col overflow-hidden border-e border-border bg-chrome"
           >
-            {contextSidebarContent !== undefined ? (
-              contextSidebarContent
-            ) : (
-              <div className="flex h-full flex-col overflow-hidden">
-                <div className="min-h-0 flex-1">
-                  <TasksQueueList
-                    tasks={sortedTasks}
-                    activeTaskId={activeTaskId}
-                    onSelectTask={onSelectTask}
-                    onNewTask={onNewTask}
-                  />
+            {viewNavContent}
+            {shouldRenderSidebar ? (
+              contextSidebarContent !== undefined ? (
+                contextSidebarContent
+              ) : (
+                <div className="flex h-full flex-col overflow-hidden">
+                  <div className="min-h-0 flex-1">
+                    <TasksQueueList
+                      tasks={sortedTasks}
+                      activeTaskId={activeTaskId}
+                      onSelectTask={onSelectTask}
+                      onNewTask={onNewTask}
+                    />
+                  </div>
+                  {agents.length > 0 ? (
+                    <AgentsRailList agents={agents} onSelectAgent={onSelectAgent} />
+                  ) : null}
                 </div>
-                {agents.length > 0 ? (
-                  <AgentsRailList agents={agents} onSelectAgent={onSelectAgent} />
-                ) : null}
-              </div>
-            )}
+              )
+            ) : null}
           </aside>
         ) : null}
 
