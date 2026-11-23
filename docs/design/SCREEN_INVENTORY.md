@@ -43,9 +43,9 @@ isolated verify-keelway stack 2026-11-22 (evidence `/tmp/keelway-qa-evidence/`).
 | Screen | Code | Backend | Paper | Gap | Phase |
 |---|---|---|---|---|---|
 | Agents — registry grid + lifecycle + run detail | `AgentsWorkspaceView.tsx` | `/v1/agents/*` | run detail ✅ 12.4; registry grid ✅ artboard 12.7 (new 2026-11-23) | Registry list artboard landed — compare detail | 2/4 |
-| Agents — Home · Overview dashboard | new surface, no code counterpart yet | mixed (reads existing APIs) | ✅ artboard 12.8 (new 2026-11-23) | Not a shipped screen — a proposed Phase-2 IA addition answering "Dashboard/home inside app" (section E, open question). Product decision needed before implementation | 2 |
-| Agents — agent profile | new surface, no code counterpart yet | `/v1/agents/*` | ✅ artboard 12.9 (new 2026-11-23) | Proposed — profile view for a single agent (run history, permissions, cost) | 2 |
-| Agents — agent builder / creation flow | new surface, no code counterpart yet | `/v1/agents/registry` | ✅ artboard 12.10 (new 2026-11-23) | Proposed — creation flow for registering a new agent | 2 |
+| Agents — Home · Overview dashboard | new surface, no code counterpart yet | mixed (reads existing APIs) | ✅ artboard 12.8 (new 2026-11-23) | **SIGNED OFF 2026-11-23** — answers "Dashboard/home inside app" (section E); approved for Phase-4 implementation | 2/4 |
+| Agents — agent profile | new surface, no code counterpart yet | `/v1/agents/*` | ✅ artboard 12.9 (new 2026-11-23) | **SIGNED OFF 2026-11-23** — profile view for a single agent (run history, permissions, cost); approved | 2/4 |
+| Agents — agent builder / creation flow | new surface, no code counterpart yet | `/v1/agents/registry` | ✅ artboard 12.10 (new 2026-11-23) | **SIGNED OFF 2026-11-23** — creation flow for registering a new agent, backed by the shipped AgentSpec v1 compiler; approved | 2/4 |
 | Project Manager — kanban/delegation board | `PmAndProductViews.tsx` | PM data | ✅ 18.4c (`3X9-0`, split from `2TC-0` 2026-11-23) | Designed — lanes + delegated markers; now its own spacious board, not combined | — |
 | Product — PRDs / roadmap | `PmAndProductViews.tsx` | product data | ✅ 18.4c (`3X9-0`) | Designed — folded into Project Manager board | — |
 | Automation — KFlow DAGs, workflow runs, autopilot | `AutomationAndOpsViews.tsx`, `CyclicKflowAndAutopilotPanel.tsx`, `BidirectionalKflowStudioPanel.tsx` | `/v1/kflow`, autopilot | ✅ 18.4a (`3WS-0`, split from `2TC-0` 2026-11-23) | Designed — DAG list + P-10-locked node; now its own board | — |
@@ -75,10 +75,10 @@ panels inherit the section template unless individually flagged.
 | State matrix — every view × {empty, loading, error, offline, denied, P-10-pending} | ✅ 18.4e (`3XK-0`, split from `2TC-0` 2026-11-23) — cross-view render contract designed (empty/loading/error/offline/denied/P-10-pending × never-rules); now its own standalone board | — |
 | Responsive contract — workspace at <1024px | ✅ wired + documented | Companion = watch/gates/receipts only: Tasks inline-review, Record, Status, Approvals; Files/Terminal/composer stay desktop (APP-078) | — |
 | Auth/sign-in inside app context | magic-link stub on website only | App is token-gated today; design the in-app auth surface if it ships | 3+ |
-| Dashboard/home inside app | **RESOLVED 2026-11-23** (proposed, not implemented) — artboard 12.8 "Home · Overview" answers this; product decision still needed on whether to build it | Proposed home surface replacing the 10-view rail's lack of a landing dashboard | 2 |
+| Dashboard/home inside app | **SIGNED OFF 2026-11-23** — artboard 12.8 "Home · Overview" answers this; approved for Phase-4 implementation planning alongside 12.9/12.10 | Home surface sitting above IDE in the rail, surfacing attention-required items/gates/cost across every view | 2 |
 | New developer → first gate journey | missing → **artboard added 2026-11-23** | ✅ page 20 artboard 20.1 (`3MP-0`) — end-to-end journey diagram, no clickable prototype (explicitly not required) | — |
 | Sealed agent → marketplace settlement journey | missing → **artboard added 2026-11-23** | ✅ page 20 artboard 20.2 (`3OG-0`) — includes corrected 80/20 Enterprise Solution Partner split, verified against `MARKETPLACE_PUBLISHER_SPLITS` in `pricing.ts` | — |
-| Desktop app — per-OS native chrome (macOS/Windows/Linux) | absent (previously ruled out by page 11's own "never ships OS-specific chrome" note) | ✅ page 11 artboard "T-E" (`3TH-0`) — explicit user-directed override of the prior rule, documented inline on the page; plus flagship macOS build at `19.5` (`3UM-0`) | Overrides a previously-approved design constraint — flag for product sign-off | — |
+| Desktop app — per-OS native chrome (macOS/Windows/Linux) | **SIGNED OFF 2026-11-23** — explicit product direction to override page 11's own "never ships OS-specific chrome" rule | ✅ page 11 artboard "T-E" (`3TH-0`), documented inline on the page as a deliberate override; flagship macOS build at `19.5` (`3UM-0`) — window-chrome height fixed from a hardcoded 1100px (left a dead void below content) to `fit-content` in this pass | Approved; ready for Windows/Linux flagship builds + Phase-4 implementation | — |
 | CLI surface | shipped (`cli.py`, `keelway`/`keelway-ops` console scripts) | spec only — no dedicated CLI artboard | Not artboarded this session despite being requested; CLI is argument-parsing only (`core/cli_tui.py` confirmed NOT an interactive TUI — see README TUI-claim fix in PR #218). Candidate for a terminal-output-style artboard if prioritized | 2 |
 
 ## F. Marketing surfaces (parity check only — already both-sided)
@@ -103,8 +103,8 @@ Phase 4 includes a parity sweep against the live deployment
 
 1. ~~4-tier vs 5-tier billing canonical set~~ **RESOLVED 2026-11-23** — see section E.
 2. ~~Agents registry grid~~ **RESOLVED 2026-11-23** — artboard 12.7 landed.
-3. **Dashboard/home, agent profile, agent builder** (12.8/12.9/12.10) — artboarded as proposals this session; still need a product go/no-go before Phase 4 implementation.
-4. **Per-OS desktop chrome** (page 11 "T-E", flagship 19.5) — overrides a prior design constraint; needs explicit sign-off before Phase 4.
+3. ~~**Dashboard/home, agent profile, agent builder** (12.8/12.9/12.10)~~ **SIGNED OFF 2026-11-23** — product go-ahead given (agent UI/UX, including onboarding and profiles, was explicitly requested as in-scope for this kit). All three move from "proposed" to approved Phase-2 deliverables; ready for Phase-4 implementation planning.
+4. ~~**Per-OS desktop chrome** (page 11 "T-E", flagship 19.5)~~ **SIGNED OFF 2026-11-23** — explicit product direction to override the prior "never ships OS-specific chrome" rule (page 11's own documented constraint) and build real macOS/Windows/Linux native window chrome. Flagship macOS build (`19.5`) QA'd this pass: fixed a layout bug where the window chrome's fixed height (1100px) left a large empty void below the Home dashboard it wraps — changed to `height: fit-content` so the window hugs its content like a real native app.
 
 ## Page 19 — Desktop Completeness additions (KEEL-DSN-003)
 
