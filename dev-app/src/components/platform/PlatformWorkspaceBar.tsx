@@ -34,7 +34,7 @@ export interface PlatformWorkspaceBarProps {
   onOpenRecordAudit?: () => void;
 }
 
-const PLATFORM_VIEWS: Array<{ id: PlatformViewId; label: string; capability: string }> = [
+export const PLATFORM_VIEWS: Array<{ id: PlatformViewId; label: string; capability: string }> = [
   { id: "ide", label: "IDE", capability: "Tasks, Diff Review & Sandbox" },
   { id: "agents", label: "Agents", capability: "12 Lifecycle Agents & Squads" },
   { id: "pm", label: "Project Manager", capability: "Kanban, Sprints & Delegation" },
@@ -211,25 +211,6 @@ export function PlatformWorkspaceBar({
           experienceMode={experienceMode}
         />
 
-        <nav aria-label="Unified platform views" className="flex flex-wrap items-center gap-0.5">
-          {PLATFORM_VIEWS.map((view) => {
-            const isActive = activeView === view.id;
-            return (
-              <button
-                key={view.id}
-                type="button"
-                title={`${view.label} — ${view.capability}`}
-                aria-current={isActive ? "page" : undefined}
-                onClick={() => onSelectView(view.id)}
-                className={`kw-underline rounded-xs px-2 py-0.5 text-xs transition-colors duration-fast ease-state focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
-                  isActive ? "font-semibold text-accent" : "font-medium text-fg-muted hover:text-fg"
-                }`}
-              >
-                {view.label}
-              </button>
-            );
-          })}
-        </nav>
       </div>
     </section>
   );
