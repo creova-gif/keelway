@@ -355,7 +355,7 @@ export function FlightTapeScrubberAndRadar({
 
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xs border border-border bg-canvas px-2.5 py-1.5 font-mono text-[10px]">
             <span className="font-semibold text-ok">
-              {activeAudit.zero_unapproved_egress ? "● Zero Unapproved Egress" : "! Egress Review Needed"}
+              {activeAudit.zero_unapproved_egress ? "✓ Zero Unapproved Egress" : "! Egress Review Needed"}
             </span>
             <span className="text-fg-muted">{`${activeAudit.audit_id} · Syscalls Audited: ${activeAudit.syscalls_audited}`}</span>
             <code title={activeAudit.audit_sha256} className="max-w-[220px] truncate text-accent">

@@ -38,22 +38,22 @@ interface BadgeSpec {
 const BADGE_SPECS: Record<SemanticBadgeKind, BadgeSpec> = {
   // Status badges
   "needs-approval": {
-    glyph: "◆",
+    glyph: "●",
     label: "Needs approval",
     classes: "text-ochre bg-ochre-subtle border-ochre/40",
   },
   running: {
-    glyph: "↻",
+    glyph: "ⓘ",
     label: "Running",
     classes: "text-running bg-running-subtle border-running/40",
   },
   queued: {
-    glyph: "⋯",
+    glyph: "○",
     label: "Queued",
     classes: "text-fg-muted bg-surface-elevated border-border-control/50",
   },
   done: {
-    glyph: "●",
+    glyph: "✓",
     label: "Done",
     classes: "text-fg-muted bg-surface-elevated border-border-strong",
   },
@@ -68,7 +68,7 @@ const BADGE_SPECS: Record<SemanticBadgeKind, BadgeSpec> = {
     classes: "text-ok bg-ok-subtle border-ok/40",
   },
   failed: {
-    glyph: "✕",
+    glyph: "✗",
     label: "Failed",
     classes: "text-danger bg-danger-subtle border-danger/45",
   },
@@ -85,7 +85,7 @@ const BADGE_SPECS: Record<SemanticBadgeKind, BadgeSpec> = {
 
   // Epistemic honesty badges
   live: {
-    glyph: "●",
+    glyph: "✓",
     label: "Live",
     classes: "text-ok bg-ok-subtle border-ok/40",
   },

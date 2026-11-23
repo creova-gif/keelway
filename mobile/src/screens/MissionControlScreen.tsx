@@ -257,7 +257,7 @@ export default function MissionControlScreen({ conn, lang, setLang, onDisconnect
             </TouchableOpacity>
             {open && (
               <View style={styles.receiptDetail}>
-                <Text style={[styles.sealedLine, { color: r.allowed ? color.success : color.error }]}>{r.allowed ? `● ${t.sealedDot}` : `● ${t.denied}`}</Text>
+                <Text style={[styles.sealedLine, { color: r.allowed ? color.success : color.error }]}>{r.allowed ? `✓ ${t.sealedDot}` : `✗ ${t.denied}`}</Text>
                 <View style={styles.gateDetail}>
                   <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.exec}{'   '}</Text><Text style={styles.gateVal}>{r.action} · {r.resource}</Text></Text>
                   <Text style={styles.gateRow}><Text style={styles.gateKey}>{t.actor}{'  '}</Text><Text style={styles.gateVal}>{r.actor}</Text></Text>
