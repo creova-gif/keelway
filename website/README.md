@@ -13,7 +13,7 @@ Built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, **Tailwind
 | `/brand` | Official geometric `'K'` mark, click-to-copy dark/light tokens, self-hosted variable font specimens, and usage guardrails |
 | `/docs` | 5-minute quickstart, 4 operational surfaces, OpenCore weight workflow, runnable SDK snippets, and honest v1 vs. roadmap matrix |
 | `/api-reference` | Server-parsed OpenAPI 3.1 workbench + searchable 183-endpoint directory with 4-language live code tabs |
-| `/api/early-access` | Serverless intake filing structured GitHub issues when `EARLY_ACCESS_GH_TOKEN` is configured |
+| `/api/early-access` | Serverless intake routing validated requests exclusively to a private HTTPS webhook (`EARLY_ACCESS_WEBHOOK_URL`), failing closed (`503`) when unconfigured |
 
 Legacy static paths (`/index.html`, `/docs.html`, `/api.html`, `/brand.html`) permanently `308`-redirect to their App Router counterparts via [`next.config.ts`](./next.config.ts).
 

@@ -47,7 +47,7 @@
     },
     "four_dimension_routing_and_responses_api": {
       "status": "AVAILABLE",
-      "claim": "Stateful /v1/responses API with turn chaining, speculative decoding, and 4-dimension routing provenance inspector (license, hosting, operator, data boundary)",
+      "claim": "Stateful /v1/responses API with turn chaining, HTTP-level speculative draft/prefix orchestration, and 4-dimension routing provenance inspector (license, hosting, operator, data boundary)",
       "code_path": "core/api/responses_routes.py",
       "evidence_test": "tests/test_responses_and_routing_api.py"
     },

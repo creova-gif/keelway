@@ -21,7 +21,7 @@ RUN groupadd -g 10001 keelway && \
     chown -R 10001:10001 /app /data
 
 WORKDIR /app
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --chown=10001:10001 pyproject.toml README.md cli.py ./
 COPY --chown=10001:10001 core core/

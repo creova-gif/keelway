@@ -25,25 +25,19 @@ then flip to `--mode enforce` once the team trusts the verdict stream.
 
 ### 2.1 Submission path
 
-`POST /api/early-access` (`website/src/app/api/early-access/route.ts`):
+`POST /api/early-access` (`api/early-access.js`):
 
-1. Rate-limits per IP (15 / 10 min) → 429 beyond that.
-2. Validates email + maps `interest`/`role`/`region` to labels.
-3. Mints reference ID `KW-XXXXXX`.
-4. **If `EARLY_ACCESS_GH_TOKEN` + `EARLY_ACCESS_GH_REPO` are set** (repo slug
-   must match `owner/repo`): files a GitHub issue titled
-   `Onboarding (KW-…): REGION · ROLE` with label `early-access`.
-5. **Otherwise**: emits a structured JSON log event
-   `keelway_onboarding_request` — this is the *only* record; someone must
-   be watching logs or the intake is silently lost.
-6. Always returns `{ ok: true, referenceId }` — never leaks internals.
+1. Enforces strict `Origin` allowlist checks (`403` on untrusted origins), bounded JSON payload caps (`4 KB` max, `413` beyond that), and per-IP sliding-window rate limits (`5 / 10 min` → `429`).
+2. Validates RFC-safe work email syntax and allowlisted `interest`/`role`/`region` fields (`400` on invalid input).
+3. Mints opaque reference ID `KW-XXXXXXXX`.
+4. **If `EARLY_ACCESS_WEBHOOK_URL` is set to a valid private HTTPS sink** (GitHub Issues endpoints and loopback/private SSRF addresses are structurally rejected): delivers a signed JSON intake event (`X-Keelway-Signature-256` when `EARLY_ACCESS_WEBHOOK_SECRET` is configured) and returns `200 { ok: true, referenceId }`.
+5. **Otherwise**: fails closed with `503 { ok: false, error: "early access intake is temporarily unavailable" }` without logging submitter PII or writing to any public repository.
 
 ### 2.2 Required configuration (production checklist)
 
-- [ ] `EARLY_ACCESS_GH_TOKEN` — fine-grained PAT, **Issues: write** on the intake repo only.
-- [ ] `EARLY_ACCESS_GH_REPO` — e.g. `creova-gif/keelway`.
-- [ ] Confirm the `early-access` label exists in that repo.
-- [ ] Confirm a human monitors the log stream for the no-token fallback.
+- [ ] `EARLY_ACCESS_WEBHOOK_URL` — private HTTPS CRM/intake webhook endpoint (never a public GitHub repository issue API).
+- [ ] `EARLY_ACCESS_WEBHOOK_SECRET` — HMAC-SHA256 shared secret verified by the private intake receiver.
+- [ ] `EARLY_ACCESS_ALLOWED_ORIGINS` — comma-separated production origins allowed to submit the form.
 
 ### 2.3 Triage SLA (proposed, founder to confirm)
 

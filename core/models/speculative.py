@@ -1,10 +1,17 @@
 """
-Keelway Speculative Decoding Engine for Edge Hardware Acceleration & Hybrid Orchestration.
+Keelway HTTP-Level Speculative Route & Prefix Orchestration Engine.
 
-Executes fast/cheap draft models (e.g. local open-weight Qwen 2.5 7B) in tandem with
-larger target models (e.g. DeepSeek R1, Claude 3.5 Sonnet) to validate/verify candidate
-proposals, achieving significant latency speedups (2.0x - 3.8x) and avoiding costly
-cloud output token billing.
+Coordinates fast/low-cost draft model adapters (e.g. local open-weight Qwen 2.5)
+with target model adapters (e.g. DeepSeek R1, Claude Sonnet) over `ChatCompletionRequest`
+boundaries via verification prompts or lexical prefix alignment, recording token-cost
+deltas to `CostLedger`.
+
+Note on scope: This module implements application/HTTP-level draft-and-verify
+orchestration across model provider adapters (plus a deterministic simulation harness in
+`SpeculativeDecoder` / `SpeculativeBenchmark`), rather than low-level GPU token-logit
+or shared-KV-cache kernel speculative decoding. Over remote HTTP providers, serial
+draft + verify round-trips primarily optimize target output-token spend rather than
+single-GPU decode latency.
 """
 
 from __future__ import annotations
