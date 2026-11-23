@@ -38,6 +38,58 @@ needed reconciliation, not migration.
 New Paper token hash: `3cc7b891` (was `7101589d`). Paper now carries the full
 shared vocabulary — 30 tokens.
 
+## 2026-11-23 update (KEEL-DSN-004) — spacing scale + density pass
+
+A follow-on session added a 6-step spacing scale to Paper (`create_tokens`) to
+fix a density/congestion finding: several product and marketing screens read
+as cluttered because of uniform thin spacing, border-overuse on cards, and
+unrelated views combined onto single boards.
+
+| Token | Value | Role |
+|---|---|---|
+| `--space-xs` | `8px` | tight control padding |
+| `--space-sm` | `14px` | inline/list gaps |
+| `--space-md` | `24px` | section padding, card gaps |
+| `--space-lg` | `40px` | dashboard/billing outer padding |
+| `--space-xl` | `56px` | artboard-level breathing room |
+| `--space-2xl` | `80px` | hero/landing sections |
+
+These are **Paper-only** — no `dev-app/tokens.css` or `website/globals.css`
+equivalent exists yet. Record the sync task when adopted; do not treat the
+absence as a drift bug.
+
+New Paper token hash: `f8e761be` (was `3cc7b891`). Paper now carries 33
+shared tokens (27 color/type/radius + 6 spacing).
+
+Boards re-spaced in this pass (all applied in Paper, not yet re-exported to
+code): Home · Overview (12.8), Agents registry grid (12.7), Agent profile
+(12.9), Agent builder (12.10), Billing & tiers (18.2 — also fixed a
+3-vs-4-tier content bug, see below), and the former combined board
+"18.4 — Remaining views" (split into 18.4a–e: Automation, Security,
+Documentation, Project Manager, state matrix — each now a standalone,
+spacious board). `12.4 — Agents view · run detail` deliberately kept its
+dense IDE-style row heights; only its outer artboard padding was widened.
+
+### Billing tier content fix (same pass)
+
+The pre-existing Billing board (`18.2`) showed 3 tiers ("Solo / Pro /
+Enterprise") with no BYOM tier — stale relative to the real 4-tier model in
+`website/src/data/pricing.ts` and `website/src/app/pricing/page.tsx`
+(Community / BYOM / Pro / Enterprise). Fixed by renaming Solo → Community and
+cloning in a BYOM card. See the `COMPLETENESS_AUDIT.md` correction — the
+README (not the website) was the actual source of a false "5-tier" claim,
+fixed separately in PR #218.
+
+### Type-system correction (same pass)
+
+52 headline/stat text nodes created across this and the prior session used
+`font-weight: 700`, which violates this file's own documented type system
+(`--font-sans` is Inter, weights 400–640 only — "precision, not force," per
+DESIGN.md §8/§9 and the `--fs-display` token note). All 52 corrected to
+`640` via a batched `update_styles` call. No code-side audit was run; if
+`dev-app` or `website` use `font-weight: 700` on Inter anywhere, flag it the
+same way.
+
 ## Naming debt (tracked, not yet renamed)
 
 - dev-app `--accent` is canonical (KEEL-APP-075). `--teal-*` and

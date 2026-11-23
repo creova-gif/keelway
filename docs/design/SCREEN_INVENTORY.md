@@ -42,13 +42,16 @@ isolated verify-keelway stack 2026-11-22 (evidence `/tmp/keelway-qa-evidence/`).
 
 | Screen | Code | Backend | Paper | Gap | Phase |
 |---|---|---|---|---|---|
-| Agents — registry grid + lifecycle + run detail | `AgentsWorkspaceView.tsx` | `/v1/agents/*` | run detail ✅ 12.4; registry grid spec only | Registry list artboard needed | 2/4 |
-| Project Manager — kanban/delegation board | `PmAndProductViews.tsx` | PM data | ✅ 18.4 (`2TC-0`) | Designed — lanes + delegated markers | — |
-| Product — PRDs / roadmap | `PmAndProductViews.tsx` | product data | ✅ 18.4 (`2TC-0`) | Designed — combined board | — |
-| Automation — KFlow DAGs, workflow runs, autopilot | `AutomationAndOpsViews.tsx`, `CyclicKflowAndAutopilotPanel.tsx`, `BidirectionalKflowStudioPanel.tsx` | `/v1/kflow`, autopilot | ✅ 18.4 (`2TC-0`) | Designed — DAG list + P-10-locked node | — |
+| Agents — registry grid + lifecycle + run detail | `AgentsWorkspaceView.tsx` | `/v1/agents/*` | run detail ✅ 12.4; registry grid ✅ artboard 12.7 (new 2026-11-23) | Registry list artboard landed — compare detail | 2/4 |
+| Agents — Home · Overview dashboard | new surface, no code counterpart yet | mixed (reads existing APIs) | ✅ artboard 12.8 (new 2026-11-23) | Not a shipped screen — a proposed Phase-2 IA addition answering "Dashboard/home inside app" (section E, open question). Product decision needed before implementation | 2 |
+| Agents — agent profile | new surface, no code counterpart yet | `/v1/agents/*` | ✅ artboard 12.9 (new 2026-11-23) | Proposed — profile view for a single agent (run history, permissions, cost) | 2 |
+| Agents — agent builder / creation flow | new surface, no code counterpart yet | `/v1/agents/registry` | ✅ artboard 12.10 (new 2026-11-23) | Proposed — creation flow for registering a new agent | 2 |
+| Project Manager — kanban/delegation board | `PmAndProductViews.tsx` | PM data | ✅ 18.4c (`3X9-0`, split from `2TC-0` 2026-11-23) | Designed — lanes + delegated markers; now its own spacious board, not combined | — |
+| Product — PRDs / roadmap | `PmAndProductViews.tsx` | product data | ✅ 18.4c (`3X9-0`) | Designed — folded into Project Manager board | — |
+| Automation — KFlow DAGs, workflow runs, autopilot | `AutomationAndOpsViews.tsx`, `CyclicKflowAndAutopilotPanel.tsx`, `BidirectionalKflowStudioPanel.tsx` | `/v1/kflow`, autopilot | ✅ 18.4a (`3WS-0`, split from `2TC-0` 2026-11-23) | Designed — DAG list + P-10-locked node; now its own board | — |
 | Marketplace — catalog, trust, install, publish, settlement | `MarketplaceAndDocsViews.tsx` | `/v1/marketplace/*` | ✅ artboard 12.5 | Compare detail (install/publish RBAC gates shipped SEC-065/066) | 4 |
-| Security — permissions surface + safety mesh | `SecurityWorkspaceView.tsx`, `FormalSafetyAndEdgeMeshPanel.tsx`, `VaultAndWebhooksPanel.tsx` | vault, webhooks, safety | ✅ 18.4 (`2TC-0`) | Designed — posture/scan/chain rows | — |
-| Documentation — docs browser | `DocumentationWorkspaceView.tsx` | docs index | ✅ 18.4 (`2TC-0`) | Designed — repo-docs list + search index | — |
+| Security — permissions surface + safety mesh | `SecurityWorkspaceView.tsx`, `FormalSafetyAndEdgeMeshPanel.tsx`, `VaultAndWebhooksPanel.tsx` | vault, webhooks, safety | ✅ 18.4b (`3WZ-0`, split from `2TC-0` 2026-11-23) | Designed — posture/scan/chain rows; now its own board | — |
+| Documentation — docs browser | `DocumentationWorkspaceView.tsx` | docs index | ✅ 18.4d (`3XG-0`, split from `2TC-0` 2026-11-23) | Designed — repo-docs list + search index; now its own board | — |
 | Operations — deployments, nodes, tape verify, settlement | `AutomationAndOpsViews.tsx` | ops/cluster APIs | ✅ artboard 12.2 | Compare detail | 4 |
 | No-Code Builder — workflow canvas | `NoCodeBuilderView.tsx` | builder APIs | ✅ artboard 12.6 | Compare detail | 4 |
 
@@ -68,11 +71,15 @@ panels inherit the section template unless individually flagged.
 
 | Surface | Status | Notes | Phase |
 |---|---|---|---|
-| Billing / tier management | partial (workspace-bar tier switcher only) | ✅ 18.2 (`2PV-0`) — plan/usage/settlement designed. Open: 4-tier (app) vs 5-tier (website) canonical set resolution | — |
-| State matrix — every view × {empty, loading, error, offline, denied, P-10-pending} | ✅ 18.4 (`2TC-0`) — cross-view render contract designed (empty/loading/error/offline/denied/P-10-pending × never-rules) | — |
+| Billing / tier management | partial (workspace-bar tier switcher only) | ✅ 18.2 (`2PV-0`) — plan/usage/settlement designed. **RESOLVED 2026-11-23**: app and website both have 4 tiers (Community/BYOM/Pro/Enterprise); the "5-tier" figure was a stale README claim, fixed in PR #218. The Paper board itself was also corrected (was showing a 3rd, wrong set: Solo/Pro/Enterprise with no BYOM) | — |
+| State matrix — every view × {empty, loading, error, offline, denied, P-10-pending} | ✅ 18.4e (`3XK-0`, split from `2TC-0` 2026-11-23) — cross-view render contract designed (empty/loading/error/offline/denied/P-10-pending × never-rules); now its own standalone board | — |
 | Responsive contract — workspace at <1024px | ✅ wired + documented | Companion = watch/gates/receipts only: Tasks inline-review, Record, Status, Approvals; Files/Terminal/composer stay desktop (APP-078) | — |
 | Auth/sign-in inside app context | magic-link stub on website only | App is token-gated today; design the in-app auth surface if it ships | 3+ |
-| Dashboard/home inside app | absent | Is there a "home" beyond the 10 views? Open question for Phase-2 IA pass | 2 |
+| Dashboard/home inside app | **RESOLVED 2026-11-23** (proposed, not implemented) — artboard 12.8 "Home · Overview" answers this; product decision still needed on whether to build it | Proposed home surface replacing the 10-view rail's lack of a landing dashboard | 2 |
+| New developer → first gate journey | missing → **artboard added 2026-11-23** | ✅ page 20 artboard 20.1 (`3MP-0`) — end-to-end journey diagram, no clickable prototype (explicitly not required) | — |
+| Sealed agent → marketplace settlement journey | missing → **artboard added 2026-11-23** | ✅ page 20 artboard 20.2 (`3OG-0`) — includes corrected 80/20 Enterprise Solution Partner split, verified against `MARKETPLACE_PUBLISHER_SPLITS` in `pricing.ts` | — |
+| Desktop app — per-OS native chrome (macOS/Windows/Linux) | absent (previously ruled out by page 11's own "never ships OS-specific chrome" note) | ✅ page 11 artboard "T-E" (`3TH-0`) — explicit user-directed override of the prior rule, documented inline on the page; plus flagship macOS build at `19.5` (`3UM-0`) | Overrides a previously-approved design constraint — flag for product sign-off | — |
+| CLI surface | shipped (`cli.py`, `keelway`/`keelway-ops` console scripts) | spec only — no dedicated CLI artboard | Not artboarded this session despite being requested; CLI is argument-parsing only (`core/cli_tui.py` confirmed NOT an interactive TUI — see README TUI-claim fix in PR #218). Candidate for a terminal-output-style artboard if prioritized | 2 |
 
 ## F. Marketing surfaces (parity check only — already both-sided)
 
@@ -81,12 +88,23 @@ Website v3 routes (`/`, `/about`, `/product`, `/pricing`, `/changelog`,
 Phase 4 includes a parity sweep against the live deployment
 (`kora-sable.vercel.app`), not a redesign.
 
+## G. Sorvex Labs (parent/maker engineering lab — new pages, added 2026-11-23)
+
+| Surface | Code | Backend | Paper | Gap / note | Phase |
+|---|---|---|---|---|---|
+| Sorvex Labs — homepage | none (no separate Sorvex site exists in the repo) | n/a | ✅ artboard 05.3 (`3KU-0`) | Proposed marketing surface — Sorvex is Keelway's maker/parent lab, confirmed via direct repo inspection (not an independent or ambiguous entity) | 2 |
+| Sorvex Labs — Research | none | grounded in `docs/research/AI_RESEARCH_ROADMAP.md` (real 3-phase roadmap: Data/Eval Harness, Supervised LoRA/QLoRA, Speculative Edge Inference) | ✅ artboard 05.4 (`3PJ-0`) | Proposed — content is fact-grounded, not invented | 2 |
+| Sorvex Labs — Posture | none | grounded in `docs/SECURITY_INVARIANTS_AND_AUDIT_REPORT.md` (12 Non-Negotiable Security Invariants, 79/79 tests passing) | ✅ artboard 05.5 (`3QQ-0`) | Proposed — "no standing egress by default" claim informs the ad-tech-posture recommendation in `COMPLETENESS_AUDIT.md` | 2 |
+| Sorvex Labs — Careers | none | n/a | ✅ artboard 05.6 (`3S3-0`) | Proposed | 2 |
+
 ## Phase-2 design queue (owner-approved order)
 
-**Phase 2 coverage: complete.** Every shipped screen is artboarded: page 17 Settings (`17.1`–`17.6`), page 18 Missing Surfaces (`18.1` P-10 + run lane, `18.2` billing, `18.3` overlays, `18.4` remaining views + state matrix, `18.5` drawers). Remaining:
+**Phase 2 coverage: complete**, plus the 2026-11-23 additions above. Every shipped screen is artboarded: page 17 Settings (`17.1`–`17.6`), page 18 Missing Surfaces (`18.1` P-10 + run lane, `18.2` billing, `18.3` overlays, `18.4a`–`18.4e` remaining views + state matrix (split from the former combined `18.4`), `18.5` drawers). Remaining:
 
-1. **4-tier vs 5-tier billing canonical set** — decision needed before implementation
-2. **Agents registry grid** — run detail covered (12.4); list artboard optional
+1. ~~4-tier vs 5-tier billing canonical set~~ **RESOLVED 2026-11-23** — see section E.
+2. ~~Agents registry grid~~ **RESOLVED 2026-11-23** — artboard 12.7 landed.
+3. **Dashboard/home, agent profile, agent builder** (12.8/12.9/12.10) — artboarded as proposals this session; still need a product go/no-go before Phase 4 implementation.
+4. **Per-OS desktop chrome** (page 11 "T-E", flagship 19.5) — overrides a prior design constraint; needs explicit sign-off before Phase 4.
 
 ## Page 19 — Desktop Completeness additions (KEEL-DSN-003)
 

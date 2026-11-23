@@ -5,7 +5,7 @@ Reference set audited: **Devin/Cognition** (agent chat, secrets, billing seats),
 ## What the kit already covered
 
 - Brand system (logo, color, type, iconography, voice) — page 04
-- Tokens synced code↔design (hash `3cc7b891`) — `docs/design/tokens.json`
+- Tokens synced code↔design (hash `f8e761be`, updated 2026-11-23 — see `docs/design/TOKENS.md`) — `docs/design/tokens.json`
 - Product screens (app shell, Record), interfaces (IDE, Ops, Agents run detail, Marketplace, Builder) — pages 10–12
 - All 8 Settings panels — page 17 (`17.1`–`17.6`)
 - P-10 card + Tasks lane, billing, onboarding, command palette, remaining views + state matrix, drawers — page 18 (`18.1`–`18.5`)
@@ -24,6 +24,11 @@ Reference set audited: **Devin/Cognition** (agent chat, secrets, billing seats),
 
 1. **Light-theme token set** — app ships light mode; Paper tokens are dark-only. Next kit task.
 2. **Chat thread as a first-class view** — `AgentComposer.tsx` exists in code; 19.2 defines its grammar. If it becomes a full view (not just composer+lane), needs its own rail entry — product decision.
-3. **Billing tier count** — app 4 tiers vs website 5; still awaiting canonical decision.
+3. ~~**Billing tier count** — app 4 tiers vs website 5; still awaiting canonical decision.~~ **RESOLVED 2026-11-23**: this was backwards. Direct verification of `website/src/data/pricing.ts` and `website/src/app/pricing/page.tsx` confirms the website has exactly **4 tiers** (Community/BYOM/Pro/Enterprise), matching the app. The false "5-tier" figure came from `README.md`, which wrongly listed a 5th "$49/seat Team" tier that exists nowhere in code. Fixed in PR #218 (two README corrections: tier count, and a false "TUI" capability claim). The pre-existing Paper billing board (`18.2`) was also stale in a third direction — it showed only 3 tiers ("Solo/Pro/Enterprise") with no BYOM — and has been corrected to the real 4-tier model (see `TOKENS.md` 2026-11-23 update).
 4. **Diff-review full view** — 18.5 covers the drawer; a standalone review view (Devin-style side-by-side) is a candidate if usage justifies it.
-5. **Wappalyzer exports** (`Downloads/build-fw/*.csv`) — reviewed; tech-stack fingerprints only, no design signal beyond the competitor set itself.
+5. ~~**Wappalyzer exports** (`Downloads/build-fw/*.csv`) — reviewed; tech-stack fingerprints only, no design signal beyond the competitor set itself.~~ **EXPANDED 2026-11-23**: re-reviewed all 7 CSV exports individually (not just the aggregate), then cross-validated against live computed CSS on two sites via browser DevTools. Real findings:
+   - The full competitor set (capy.ai and others) converges on Next.js/React/Tailwind/Radix-UI/shadcn/Base-UI/Vercel — this is the category-standard stack, not an outlier pattern.
+   - **Linear.app is a styling outlier, not an implementation one**: it runs styled-components + MobX on Google Cloud (not the Tailwind/Radix norm), but its *live computed* CSS values (spacing, radii, type weights) closely validate our existing maritime-v3 tokens — e.g. its variable-weight type sits in the same ~510–640 range our `--font-sans` cap documents, which is what motivated the font-weight-700→640 correction made this session (see `TOKENS.md`).
+   - **Conductor.build, not Linear, is the closest real stack analog** to Keelway (Tailwind + Radix + shadcn + Base-UI).
+   - **Motion-library recommendation**: Framer Motion for Keelway's own app/product UI (state-heavy); reserve GSAP for marketing-site scroll choreography only, consistent with how the competitor set itself splits by site type.
+   - **Ad-tech posture correlates with audience type**: consumer/paid-acquisition sites in the set run heavy tracking stacks; dev-tool/organic sites run lean. Recommend keeping Keelway's marketing site in the lean group — consistent with the Sorvex Labs Posture page's "no standing egress by default" claim (page 05.5).
