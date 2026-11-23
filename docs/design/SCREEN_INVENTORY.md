@@ -43,6 +43,7 @@ isolated verify-keelway stack 2026-11-22 (evidence `/tmp/keelway-qa-evidence/`).
 | Screen | Code | Backend | Paper | Gap | Phase |
 |---|---|---|---|---|---|
 | Agents — registry grid + lifecycle + run detail | `AgentsWorkspaceView.tsx` | `/v1/agents/*` | run detail ✅ 12.4; registry grid ✅ artboard 12.7 (new 2026-11-23) | Registry list artboard landed — compare detail | 2/4 |
+| Chat — first-class view (new rail entry) | `AgentComposer.tsx` carries the composer logic today; no standalone Chat view exists | `/v1/agent` | ✅ artboard 12.11 (new 2026-11-23) | **DECIDED 2026-11-23**: own rail entry, not nested in Agents — see `COMPLETENESS_AUDIT.md`. Implementation adds an 11th `PlatformViewId` and requires a README naming update away from "Unified 10-View" | 2/4 |
 | Agents — Home · Overview dashboard | new surface, no code counterpart yet | mixed (reads existing APIs) | ✅ artboard 12.8 (new 2026-11-23) | **SIGNED OFF 2026-11-23** — answers "Dashboard/home inside app" (section E); approved for Phase-4 implementation | 2/4 |
 | Agents — agent profile | new surface, no code counterpart yet | `/v1/agents/*` | ✅ artboard 12.9 (new 2026-11-23) | **SIGNED OFF 2026-11-23** — profile view for a single agent (run history, permissions, cost); approved | 2/4 |
 | Agents — agent builder / creation flow | new surface, no code counterpart yet | `/v1/agents/registry` | ✅ artboard 12.10 (new 2026-11-23) | **SIGNED OFF 2026-11-23** — creation flow for registering a new agent, backed by the shipped AgentSpec v1 compiler; approved | 2/4 |
