@@ -151,7 +151,7 @@ function isValidWorkEmail(email) {
 }
 
 function isForbiddenWebhookHost(hostname) {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.+$/, '');
   if (
     !host ||
     host === 'localhost' ||
@@ -159,25 +159,38 @@ function isForbiddenWebhookHost(hostname) {
     host.endsWith('.local') ||
     host === 'github.com' ||
     host === 'api.github.com' ||
-    host.endsWith('.github.com') ||
-    host === '0.0.0.0' ||
-    host === '::1' ||
-    host === '169.254.169.254' ||
-    host.startsWith('127.') ||
-    host.startsWith('10.') ||
-    host.startsWith('192.168.') ||
-    host.startsWith('169.254.') ||
-    host.startsWith('fe80:') ||
-    host.startsWith('fc') ||
-    host.startsWith('fd')
+    host.endsWith('.github.com')
   ) {
     return true;
   }
+
+  // IPv6 literals always contain ':' after URL normalization
+  if (host.includes(':')) {
+    return (
+      host === '::' ||
+      host === '::1' ||
+      host.startsWith('::ffff:') ||
+      /^fe[89ab][0-9a-f]*:/.test(host) ||
+      host.startsWith('fc') ||
+      host.startsWith('fd')
+    );
+  }
+
+  // IPv4 literals normalize to dotted-quad decimal octets in WHATWG URL
   const octets = host.split('.');
   if (octets.length === 4 && octets.every((part) => /^\d+$/.test(part))) {
     const first = Number(octets[0]);
     const second = Number(octets[1]);
-    if (first === 172 && second >= 16 && second <= 31) {
+    if (
+      first === 0 ||
+      first === 10 ||
+      first === 127 ||
+      (first === 100 && second >= 64 && second <= 127) ||
+      (first === 169 && second === 254) ||
+      (first === 172 && second >= 16 && second <= 31) ||
+      (first === 192 && second === 168) ||
+      first >= 224
+    ) {
       return true;
     }
   }

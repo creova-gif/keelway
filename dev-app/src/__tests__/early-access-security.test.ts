@@ -76,7 +76,15 @@ describe("api/early-access.js PII & security boundary", () => {
     expect(getStatus()).toBe(503);
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(earlyAccessHandler.validatePrivateWebhookUrl("https://169.254.169.254/latest/meta-data")).toBeNull();
+    expect(earlyAccessHandler.validatePrivateWebhookUrl("https://[fc00::1]/intake")).toBeNull();
+    expect(earlyAccessHandler.validatePrivateWebhookUrl("https://[fd12:3456::1]/intake")).toBeNull();
     expect(earlyAccessHandler.validatePrivateWebhookUrl("http://hooks.example.com/intake")).toBeNull();
+    expect(earlyAccessHandler.validatePrivateWebhookUrl("https://fc-intake.example.com/webhook")).toBe(
+      "https://fc-intake.example.com/webhook"
+    );
+    expect(earlyAccessHandler.validatePrivateWebhookUrl("https://fd-crm.example.com/webhook")).toBe(
+      "https://fd-crm.example.com/webhook"
+    );
   });
 
   it("enforces Origin allowlist (403), 4KB payload cap (413), and strict email/field bounds (400)", async () => {

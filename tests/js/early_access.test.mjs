@@ -112,6 +112,7 @@ test("fails closed with 503 when EARLY_ACCESS_WEBHOOK_URL is unset even if legac
 test("rejects GitHub Issues URLs, HTTP URLs, and SSRF loopback/private targets as EARLY_ACCESS_WEBHOOK_URL", async () => {
   const forbiddenUrls = [
     "https://api.github.com/repos/creova-gif/keelway/issues",
+    "https://api.github.com./repos/creova-gif/keelway/issues",
     "https://github.com/creova-gif/keelway/issues",
     "https://enterprise.github.com/repos/org/repo/issues",
     "http://hooks.internal.example.com/early-access",
@@ -121,6 +122,11 @@ test("rejects GitHub Issues URLs, HTTP URLs, and SSRF loopback/private targets a
     "https://10.0.0.12/intake",
     "https://172.16.5.4/intake",
     "https://192.168.1.20/intake",
+    "https://[::1]/intake",
+    "https://[fc00::1]/intake",
+    "https://[fd12:3456:789a::1]/intake",
+    "https://[fe80::1]/intake",
+    "https://[::ffff:127.0.0.1]/intake",
     "https://user:pass@hooks.example.com/intake",
   ];
 
@@ -129,6 +135,19 @@ test("rejects GitHub Issues URLs, HTTP URLs, and SSRF loopback/private targets a
       earlyAccessHandler.validatePrivateWebhookUrl(badUrl),
       null,
       `Expected ${badUrl} to be rejected`
+    );
+  }
+
+  // Valid DNS hostnames starting with 'fc', 'fd', or numeric labels must NOT be misclassified as private IPs
+  for (const validUrl of [
+    "https://fc-intake.example.com/webhook",
+    "https://fd.crm.example.com/intake",
+    "https://10.hooks.example.com/intake",
+  ]) {
+    assert.equal(
+      earlyAccessHandler.validatePrivateWebhookUrl(validUrl),
+      validUrl,
+      `Expected ${validUrl} to be accepted`
     );
   }
 
