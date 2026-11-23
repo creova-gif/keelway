@@ -3,3 +3,7 @@ node_modules/
 dist/
 web-build/
 *.log
+
+# Expo prebuild output (run:android / run:ios regenerate these)
+android/
+ios/
