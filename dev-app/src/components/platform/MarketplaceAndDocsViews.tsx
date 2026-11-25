@@ -264,9 +264,15 @@ export function MarketplaceWorkspaceView({
                 </div>
                 <p className="text-xs text-fg-muted">{pkg.summary}</p>
                 <div className="flex flex-wrap items-center gap-1.5 pt-1 font-mono text-[10px]">
-                  <span className="rounded-xs border border-ok/40 bg-ok-subtle px-1.5 py-0.5 text-ok">
-                    SHA-256 + Prompt-Injection Verified
-                  </span>
+                  {pkg.securityVerified ? (
+                    <span className="rounded-xs border border-ok/40 bg-ok-subtle px-1.5 py-0.5 text-ok">
+                      SHA-256 + Prompt-Injection Verified
+                    </span>
+                  ) : (
+                    <span className="rounded-xs border border-danger/40 bg-danger-subtle px-1.5 py-0.5 text-danger">
+                      Unsigned — scan finding open
+                    </span>
+                  )}
                   <span className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 text-fg-muted">
                     {pkg.revenueSplitLabel}
                   </span>
@@ -329,9 +335,11 @@ export function MarketplaceWorkspaceView({
                     size="sm"
                     variant={isInstalled ? "secondary" : "primary"}
                     aria-label={`${isInstalled ? "Uninstall" : "Install"} package ${pkg.name}`}
+                    disabled={!pkg.securityVerified && !isInstalled}
+                    title={!pkg.securityVerified && !isInstalled ? "Install inert — unsigned package" : undefined}
                     onClick={() => handleToggleInstall(pkg)}
                   >
-                    {isInstalled ? "Installed · Uninstall" : "Install"}
+                    {isInstalled ? "Installed · Uninstall" : pkg.securityVerified ? "Install" : "Install (inert)"}
                   </Button>
                 </div>
               </div>
