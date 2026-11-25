@@ -5,10 +5,12 @@ import { useUnifiedPlatformState } from "@/components/platform/useUnifiedPlatfor
 import { CommandPalette, type CommandPaletteSettingItem } from "@/components/shell/CommandPalette";
 import { DevAppShell, type CompanionTab, type LogsDrawerTab } from "@/components/shell/DevAppShell";
 import { OnboardingModal } from "@/components/shell/OnboardingModal";
+import { ToastViewport } from "@/components/shell/ToastViewport";
 import {
   FilesExplorerSidebar, FilesWorkspace,
   type FilesExplorerSidebarProps, type FilesNavigationTarget,
 } from "@/components/screens/FilesWorkspace";
+import { P10ApprovalCard } from "@/components/screens/P10ApprovalCard";
 import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import {
   applyDensityToDocument, applyLocaleToDocument, applyReduceMotionToDocument, applyThemeToDocument,
@@ -24,6 +26,7 @@ import {
   fetchFilesTree, fetchOpenCoreWeights, fetchStudioDiff, toggleAirGap,
 } from "@/lib/api";
 import { getFallbackDiffHunks } from "@/lib/apiFallbacks";
+import { pushToast } from "@/lib/toasts";
 import {
   buildApprovalReceipt, buildPaletteModelsAndSettings,
   INITIAL_PROPOSALS, INITIAL_TASKS,
@@ -360,6 +363,11 @@ export function App({
             : t,
         ),
       );
+      pushToast(
+        payload.decision === "deny" ? "danger" : "ok",
+        payload.decision === "deny" ? "P-10 denied — run aborted" : "P-10 approved — receipt sealed",
+        `seq ${nextSeq} · ${payload.decision}`,
+      );
       return receipt;
     },
     [recordSeqLatest],
@@ -493,6 +501,12 @@ export function App({
     () => INITIAL_PROPOSALS.filter((p) => p.taskId === activeTask.id),
     [activeTask.id],
   );
+  const pendingGateProposal = useMemo(
+    () => activeTaskProposals.find((p) => receiptsByProposalId[p.id] === undefined),
+    [activeTaskProposals, receiptsByProposalId],
+  );
+  const ideGateActive =
+    platformView === "ide" && activeSection === "files" && pendingGateProposal !== undefined;
   const driftedRulesCount = useMemo(
     () =>
       scopedRules.filter((r) => isRuleDrifted(r, activeModelId, CURRENT_PROMPT_VERSION)).length,
@@ -605,25 +619,40 @@ export function App({
             onOpenRecordAudit={() => handleSelectPlatformView("security")}
           />
         }
-        reviewDrawerOpen={reviewOpen}
-        onToggleReviewDrawer={setReviewOpen}
-        reviewDrawerTitle="Review changes"
+        reviewDrawerOpen={reviewOpen || ideGateActive}
+        onToggleReviewDrawer={(next) => {
+          if (ideGateActive && !next) return;
+          setReviewOpen(next);
+        }}
+        reviewDrawerTitle={ideGateActive ? "P-10 gate — decision required" : "Review changes"}
         reviewDrawerContent={
-          <ReviewChangesContent
-            hunks={diffHunks}
-            reviewStatus={reviewStatus}
-            onKeepChanges={() => setReviewStatus("kept")}
-            onRevertAll={() => {
-              setDiffHunks([]);
-              setReviewStatus("reverted");
-            }}
-            onAskForChanges={(hunk) => {
-              const endLine = Math.max(hunk.newStart, hunk.newStart + Math.max(hunk.additions - 1, 0));
-              setComposerValue(`Please revise ${hunk.path}:${hunk.newStart}-${endLine} — `);
-              handleSelectSection("tasks");
-              setTimeout(() => composerTextareaRef.current?.focus(), 0);
-            }}
-          />
+          <>
+            {ideGateActive && pendingGateProposal ? (
+              <div className="sticky top-0 z-10 mb-3">
+                <P10ApprovalCard
+                  proposal={pendingGateProposal}
+                  receipt={receiptsByProposalId[pendingGateProposal.id] ?? null}
+                  onSubmitDecision={handleProposalDecision}
+                  onCreateScopedRule={handleCreateScopedRule}
+                />
+              </div>
+            ) : null}
+            <ReviewChangesContent
+              hunks={diffHunks}
+              reviewStatus={reviewStatus}
+              onKeepChanges={() => setReviewStatus("kept")}
+              onRevertAll={() => {
+                setDiffHunks([]);
+                setReviewStatus("reverted");
+              }}
+              onAskForChanges={(hunk) => {
+                const endLine = Math.max(hunk.newStart, hunk.newStart + Math.max(hunk.additions - 1, 0));
+                setComposerValue(`Please revise ${hunk.path}:${hunk.newStart}-${endLine} — `);
+                handleSelectSection("tasks");
+                setTimeout(() => composerTextareaRef.current?.focus(), 0);
+              }}
+            />
+          </>
         }
         logsDrawerOpen={logsOpen}
         onToggleLogsDrawer={setLogsOpen}
@@ -689,14 +718,19 @@ export function App({
             onCreateScopedRule={handleCreateScopedRule}
           />
         ) : activeSection === "files" ? (
-          <FilesWorkspace
-            navigationTarget={filesNavTarget}
-            egressMode={egress.mode}
-            renderSidebarInShell={!effectiveMobileCompanion}
-            onSidebarStateChange={setFilesSidebarProps}
-            onTreeLoaded={setWorkspaceFiles}
-            onSymbolsLoaded={setWorkspaceSymbols}
-          />
+          <div
+            className={ideGateActive ? "h-full opacity-60" : "h-full"}
+            data-ide-gated={ideGateActive || undefined}
+          >
+            <FilesWorkspace
+              navigationTarget={filesNavTarget}
+              egressMode={egress.mode}
+              renderSidebarInShell={!effectiveMobileCompanion}
+              onSidebarStateChange={setFilesSidebarProps}
+              onTreeLoaded={setWorkspaceFiles}
+              onSymbolsLoaded={setWorkspaceSymbols}
+            />
+          </div>
         ) : activeSection === "record" ? (
           <RecordAuditLedger
             selectedSeq={recordSelectedSeq}
@@ -774,6 +808,8 @@ export function App({
           handleSelectSection("settings");
         }}
       />
+
+      <ToastViewport />
     </>
   );
 }

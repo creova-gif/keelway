@@ -3,6 +3,7 @@ import { KBrainMemoryGraphPanel } from "@/components/platform/KBrainMemoryGraphP
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SDLC_STAGES, type DocGuideItem, type ExperienceMode } from "@/lib/platformData";
+import { pushToast } from "@/lib/toasts";
 import type { WorkspaceRbacRole } from "@/lib/platformKbrainApi";
 
 export interface DocumentationWorkspaceViewProps {
@@ -208,6 +209,7 @@ export function DocumentationWorkspaceView({
     };
     setDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
     setSavedDocId(updated.id);
+    pushToast("ok", "Doc sealed to record", updated.title);
     setDirtyDocIds((prev) => {
       if (!prev.has(updated.id)) return prev;
       const next = new Set(prev);

@@ -144,6 +144,42 @@ export function LiveExecutionDrawer({
         </div>
       </div>
 
+      {status === "awaiting_p10_approval" ? (
+        <div className="sticky top-0 z-10 space-y-2 rounded-sm border border-ochre/45 bg-ochre-subtle p-3">
+          <div className="text-xs font-semibold text-fg">
+            P-10 Human-Only Checkpoint Active — Explicit pointer/touch confirmation required to mutate workspace or resume DAG.
+          </div>
+          {!canApprove ? (
+            <div role="status" className="font-mono text-[11px] text-fg-muted">
+              {rbacTooltip}
+            </div>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="warning-cta"
+              clickOnly
+              loading={resolvingP10}
+              disabled={!canApprove}
+              title={rbacTooltip ?? "Explicit human P-10 approval"}
+              onClick={() => { void handleP10Decision("approve"); }}
+            >
+              Approve P-10 &amp; Resume Stream
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              clickOnly
+              disabled={!canApprove || resolvingP10}
+              title={rbacTooltip ?? "Explicit human P-10 denial"}
+              onClick={() => { void handleP10Decision("deny"); }}
+            >
+              Deny &amp; Abort Run
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       <div
         role="log"
         aria-live="polite"
@@ -182,42 +218,6 @@ export function LiveExecutionDrawer({
           same tape as Record — this drawer is a lens on the ledger, not a second log
         </p>
       </div>
-
-      {status === "awaiting_p10_approval" ? (
-        <div className="space-y-2 rounded-sm border border-ochre/45 bg-ochre-subtle p-3">
-          <div className="text-xs font-semibold text-fg">
-            P-10 Human-Only Checkpoint Active — Explicit pointer/touch confirmation required to mutate workspace or resume DAG.
-          </div>
-          {!canApprove ? (
-            <div role="status" className="font-mono text-[11px] text-fg-muted">
-              {rbacTooltip}
-            </div>
-          ) : null}
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="warning-cta"
-              clickOnly
-              loading={resolvingP10}
-              disabled={!canApprove}
-              title={rbacTooltip ?? "Explicit human P-10 approval"}
-              onClick={() => { void handleP10Decision("approve"); }}
-            >
-              Approve P-10 &amp; Resume Stream
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              clickOnly
-              disabled={!canApprove || resolvingP10}
-              title={rbacTooltip ?? "Explicit human P-10 denial"}
-              onClick={() => { void handleP10Decision("deny"); }}
-            >
-              Deny &amp; Abort Run
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
