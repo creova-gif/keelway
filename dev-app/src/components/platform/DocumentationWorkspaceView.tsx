@@ -120,6 +120,7 @@ export function DocumentationWorkspaceView({
   const [selectedDocId, setSelectedDocId] = useState<string>(() => guides[0]?.id ?? "doc-1");
   const [editorMode, setEditorMode] = useState<EditorViewMode>("split");
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
+  const [dirtyDocIds, setDirtyDocIds] = useState<ReadonlySet<string>>(() => new Set());
 
   useEffect(() => {
     setDocs((prev) => {
@@ -152,6 +153,7 @@ export function DocumentationWorkspaceView({
   const updateActiveDoc = (patch: Partial<RichDocItem>) => {
     if (!activeDoc) return;
     setSavedDocId(null);
+    setDirtyDocIds((prev) => (prev.has(activeDoc.id) ? prev : new Set(prev).add(activeDoc.id)));
     setDocs((prev) => prev.map((doc) => (doc.id === activeDoc.id ? { ...doc, ...patch } : doc)));
   };
 
@@ -170,6 +172,7 @@ export function DocumentationWorkspaceView({
     setDocs((prev) => [created, ...prev]);
     setSelectedDocId(newId);
     setSavedDocId(null);
+    setDirtyDocIds((prev) => new Set(prev).add(newId));
   };
 
   const handleSyncFromPrd = () => {
@@ -205,6 +208,12 @@ export function DocumentationWorkspaceView({
     };
     setDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
     setSavedDocId(updated.id);
+    setDirtyDocIds((prev) => {
+      if (!prev.has(updated.id)) return prev;
+      const next = new Set(prev);
+      next.delete(updated.id);
+      return next;
+    });
     onSaveDoc?.(updated);
   };
 
@@ -282,7 +291,12 @@ export function DocumentationWorkspaceView({
                     <span className="font-mono text-[10px] uppercase text-accent">{doc.quadrant}</span>
                     <span className="font-mono text-[10px] text-fg-dim">{doc.updatedAt}</span>
                   </div>
-                  <div className="text-xs font-semibold text-fg">{doc.title}</div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-fg">
+                    {doc.title}
+                    {dirtyDocIds.has(doc.id) ? (
+                      <span aria-hidden="true" title="Unsaved edits" className="text-accent">●</span>
+                    ) : null}
+                  </div>
                   <p className="line-clamp-2 text-[11px] text-fg-muted">{doc.summary}</p>
                 </button>
               );

@@ -129,6 +129,15 @@ export function StatusBarEgress({
           >
             {`API error: ${apiError.path}${apiError.kind === "http" && apiError.status ? ` (${apiError.status})` : ` (${apiError.kind})`}`}
           </span>
+          {apiError.kind === "network" ? (
+            <span
+              role="status"
+              className="rounded-xs border border-danger/40 bg-danger-subtle px-1.5 py-0.5 font-mono text-[10px] text-danger"
+              title="Local API unreachable — writes are inert until it responds."
+            >
+              offline — read-only
+            </span>
+          ) : null}
         </>
       ) : null}
       {fallbackResponseCount > 0 ? (
