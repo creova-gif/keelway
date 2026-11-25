@@ -220,150 +220,6 @@ export function AgentsWorkspaceView({
         />
       </div>
 
-      <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
-
-      <StructuredOutputAndSelfHealingPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
-
-      <section aria-label="Coordinated multi-agent teams" className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-fg">Coordinated Multi-Agent Teams</h2>
-          {!supervisedAgent ? (
-            <Button size="sm" variant="secondary" onClick={() => handleLaunchLiveStream()}>
-              Stream Live Execution
-            </Button>
-          ) : null}
-        </div>
-        <div className="grid gap-3 lg:grid-cols-3">
-          {localTeams.map((team) => (
-            <article key={team.id} className="flex flex-col justify-between gap-3 rounded-md border border-border-strong bg-surface p-3.5">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-xs font-semibold text-fg">{team.name}</h3>
-                  <SemanticBadge
-                    kind={
-                      team.lastRunStatus === "needs_approval"
-                        ? "needs-approval"
-                        : team.lastRunStatus === "running"
-                          ? "running"
-                          : "ready"
-                    }
-                  />
-                </div>
-                <p className="text-xs text-fg-muted">{team.description}</p>
-                <div className="flex flex-wrap gap-1">
-                  {team.memberAgentIds.map((m) => (
-                    <span key={m} className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-accent">{m}</span>
-                  ))}
-                </div>
-                <div className="rounded-xs border border-ochre/35 bg-ochre-subtle/30 px-2 py-1 font-mono text-[10px] text-ochre">
-                  {team.p10CheckpointLabel}
-                </div>
-                <ol className="space-y-1 pt-1 text-[11px] text-fg-muted">
-                  {team.executionSteps.map((step) => (
-                    <li key={step.id} className="flex items-center justify-between gap-2">
-                      <span className="truncate"><code className="font-mono text-fg">{step.agentId}</code>: {step.action}</span>
-                      <span className="shrink-0 font-mono text-[10px] uppercase text-fg-dim">{step.status.replace("_", " ")}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-              <div className="flex items-center justify-between gap-2 border-t border-border pt-2.5">
-                <Button size="sm" variant="primary" aria-label={`Dispatch team ${team.name}`} onClick={() => handleTeamDispatch(team.id)}>
-                  Dispatch team
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => onJumpToIdeTask(`Coordinate ${team.name} on current branch: `)}>
-                  Open in IDE
-                </Button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {supervisedAgent ? (
-        <section aria-label="Agent session supervisor and manifest inspector" className="space-y-3 rounded-md border border-accent/50 bg-surface p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
-            <div>
-              <h2 className="text-sm font-semibold text-fg">
-                {`Agent Session Supervisor & keelway.agent/v1 Manifest · ${supervisedAgent.name}`}
-              </h2>
-              <p className="text-xs text-fg-muted">
-                Inspect signed capability manifest and execute a sandboxed dry-run trace prior to IDE dispatch.
-              </p>
-            </div>
-            <Button size="sm" variant="ghost" onClick={() => setSupervisedAgentId(null)}>Close Supervisor</Button>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-1">
-              <div className="font-mono text-[11px] text-accent">Canonical keelway.agent/v1 Manifest (Ed25519 Verified)</div>
-              <pre className="overflow-x-auto rounded-xs border border-border bg-code p-3 font-mono text-[11px] text-fg">
-                <code>{manifestJson}</code>
-              </pre>
-            </div>
-
-            <div className="space-y-3">
-              <form onSubmit={handleRunDryRun} className="space-y-2.5">
-                <label className="flex flex-col gap-1 text-xs text-fg-muted">
-                  <span>Supervised dry-run objective</span>
-                  <input
-                    type="text"
-                    aria-label="Agent dry-run objective"
-                    value={dryRunObjective}
-                    onChange={(e) => setDryRunObjective(e.target.value)}
-                    className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg"
-                  />
-                </label>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button type="submit" size="sm" variant="primary">Run Supervised Dry-Run</Button>
-                  <Button type="button" size="sm" variant="secondary" onClick={() => handleLaunchLiveStream(supervisedAgent)}>
-                    Stream Live Execution
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onJumpToIdeTask(`[${supervisedAgent.name}] ${dryRunObjective.trim()}`)}
-                  >
-                    Send to IDE Composer
-                  </Button>
-                </div>
-              </form>
-
-              {dryRunTrace ? (
-                <ol aria-label="Supervised dry-run execution trace" className="space-y-1.5 rounded-xs border border-border bg-chrome p-2.5 text-xs">
-                  {dryRunTrace.map((st) => (
-                    <li
-                      key={st.id}
-                      className={`rounded-xs border px-2.5 py-1.5 ${
-                        st.heldForP10 ? "border-ochre/45 bg-ochre-subtle text-ochre" : "border-ok/35 bg-ok-subtle text-fg"
-                      }`}
-                    >
-                      <div className="font-mono text-[11px] font-semibold">{st.label}</div>
-                      <div className="mt-0.5 text-[11px] text-fg-muted">{st.detail}</div>
-                    </li>
-                  ))}
-                </ol>
-              ) : null}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {liveStreamSpec ? (
-        <LiveExecutionDrawer
-          kind="agent"
-          targetId={liveStreamSpec.targetId}
-          targetName={liveStreamSpec.targetName}
-          objective={liveStreamSpec.objective}
-          requiresP10={liveStreamSpec.requiresP10}
-          workspaceId={workspaceId}
-          activeRbacRole={activeRbacRole}
-          runNonce={liveStreamSpec.nonce}
-          onClose={() => setLiveStreamSpec(null)}
-        />
-      ) : null}
-
       <section aria-label="Lifecycle agents catalog" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-fg">{`Lifecycle Agents (${filteredAgents.length})`}</h2>
@@ -475,6 +331,148 @@ export function AgentsWorkspaceView({
         </div>
       </section>
 
+      {supervisedAgent ? (
+        <section aria-label="Agent session supervisor and manifest inspector" className="space-y-3 rounded-md border border-accent/50 bg-surface p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
+            <div>
+              <h2 className="text-sm font-semibold text-fg">
+                {`Agent Session Supervisor & keelway.agent/v1 Manifest · ${supervisedAgent.name}`}
+              </h2>
+              <p className="text-xs text-fg-muted">
+                Inspect signed capability manifest and execute a sandboxed dry-run trace prior to IDE dispatch.
+              </p>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setSupervisedAgentId(null)}>Close Supervisor</Button>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-1">
+              <div className="font-mono text-[11px] text-accent">Canonical keelway.agent/v1 Manifest (Ed25519 Verified)</div>
+              <pre className="overflow-x-auto rounded-xs border border-border bg-code p-3 font-mono text-[11px] text-fg">
+                <code>{manifestJson}</code>
+              </pre>
+            </div>
+
+            <div className="space-y-3">
+              <form onSubmit={handleRunDryRun} className="space-y-2.5">
+                <label className="flex flex-col gap-1 text-xs text-fg-muted">
+                  <span>Supervised dry-run objective</span>
+                  <input
+                    type="text"
+                    aria-label="Agent dry-run objective"
+                    value={dryRunObjective}
+                    onChange={(e) => setDryRunObjective(e.target.value)}
+                    className="min-h-ctrl-sm rounded-sm border border-border-control bg-canvas px-2.5 py-1 text-xs text-fg"
+                  />
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button type="submit" size="sm" variant="primary">Run Supervised Dry-Run</Button>
+                  <Button type="button" size="sm" variant="secondary" onClick={() => handleLaunchLiveStream(supervisedAgent)}>
+                    Stream Live Execution
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onJumpToIdeTask(`[${supervisedAgent.name}] ${dryRunObjective.trim()}`)}
+                  >
+                    Send to IDE Composer
+                  </Button>
+                </div>
+              </form>
+
+              {dryRunTrace ? (
+                <ol aria-label="Supervised dry-run execution trace" className="space-y-1.5 rounded-xs border border-border bg-chrome p-2.5 text-xs">
+                  {dryRunTrace.map((st) => (
+                    <li
+                      key={st.id}
+                      className={`rounded-xs border px-2.5 py-1.5 ${
+                        st.heldForP10 ? "border-ochre/45 bg-ochre-subtle text-ochre" : "border-ok/35 bg-ok-subtle text-fg"
+                      }`}
+                    >
+                      <div className="font-mono text-[11px] font-semibold">{st.label}</div>
+                      <div className="mt-0.5 text-[11px] text-fg-muted">{st.detail}</div>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-label="Coordinated multi-agent teams" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-fg">Coordinated Multi-Agent Teams</h2>
+          {!supervisedAgent ? (
+            <Button size="sm" variant="secondary" onClick={() => handleLaunchLiveStream()}>
+              Stream Live Execution
+            </Button>
+          ) : null}
+        </div>
+        <div className="grid gap-3 lg:grid-cols-3">
+          {localTeams.map((team) => (
+            <article key={team.id} className="flex flex-col justify-between gap-3 rounded-md border border-border-strong bg-surface p-3.5">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-xs font-semibold text-fg">{team.name}</h3>
+                  <SemanticBadge
+                    kind={
+                      team.lastRunStatus === "needs_approval"
+                        ? "needs-approval"
+                        : team.lastRunStatus === "running"
+                          ? "running"
+                          : "ready"
+                    }
+                  />
+                </div>
+                <p className="text-xs text-fg-muted">{team.description}</p>
+                <div className="flex flex-wrap gap-1">
+                  {team.memberAgentIds.map((m) => (
+                    <span key={m} className="rounded-xs border border-border bg-chrome px-1.5 py-0.5 font-mono text-[10px] text-accent">{m}</span>
+                  ))}
+                </div>
+                <div className="rounded-xs border border-ochre/35 bg-ochre-subtle/30 px-2 py-1 font-mono text-[10px] text-ochre">
+                  {team.p10CheckpointLabel}
+                </div>
+                <ol className="space-y-1 pt-1 text-[11px] text-fg-muted">
+                  {team.executionSteps.map((step) => (
+                    <li key={step.id} className="flex items-center justify-between gap-2">
+                      <span className="truncate"><code className="font-mono text-fg">{step.agentId}</code>: {step.action}</span>
+                      <span className="shrink-0 font-mono text-[10px] uppercase text-fg-dim">{step.status.replace("_", " ")}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="flex items-center justify-between gap-2 border-t border-border pt-2.5">
+                <Button size="sm" variant="primary" aria-label={`Dispatch team ${team.name}`} onClick={() => handleTeamDispatch(team.id)}>
+                  Dispatch team
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => onJumpToIdeTask(`Coordinate ${team.name} on current branch: `)}>
+                  Open in IDE
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {liveStreamSpec ? (
+        <LiveExecutionDrawer
+          kind="agent"
+          targetId={liveStreamSpec.targetId}
+          targetName={liveStreamSpec.targetName}
+          objective={liveStreamSpec.objective}
+          requiresP10={liveStreamSpec.requiresP10}
+          workspaceId={workspaceId}
+          activeRbacRole={activeRbacRole}
+          runNonce={liveStreamSpec.nonce}
+          onClose={() => setLiveStreamSpec(null)}
+        />
+      ) : null}
+
+
       <section aria-label="Create custom lifecycle agent" className="rounded-md border border-border-strong bg-surface p-4">
         <h2 className="text-sm font-semibold text-fg">Create Custom Agent</h2>
         <form onSubmit={handleCreate} className="mt-3 grid gap-3 md:grid-cols-2">
@@ -553,6 +551,10 @@ export function AgentsWorkspaceView({
       <StepDebuggerAndBridgePanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
       <McpInspectorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
+      <FlightTapeDebuggerPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
+
+      <StructuredOutputAndSelfHealingPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
     </div>
   );
 }
