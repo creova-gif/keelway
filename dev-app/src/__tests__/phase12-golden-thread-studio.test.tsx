@@ -56,6 +56,7 @@ describe("Phase 12C — Golden-Thread Journey Bar, Bidirectional SVG KFlow ↔ C
     expect(screen.getByRole("heading", { name: /Security Governance & Sovereign Posture/i })).toBeInTheDocument();
 
     // Guided Non-Coder mode routes Stage 01 to No-Code Builder
+    await user.click(screen.getByRole("button", { name: /Workspace menu/i }));
     const personaGroup = screen.getByRole("group", { name: /Experience persona/i });
     await user.click(within(personaGroup).getByRole("button", { name: /^Guided Non-Coder$/i }));
     await user.click(stage1Btn);

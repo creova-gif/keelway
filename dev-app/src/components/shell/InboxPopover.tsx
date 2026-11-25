@@ -94,7 +94,7 @@ export function InboxPopover({
           id={panelId}
           role="dialog"
           aria-label="Inbox — what needs you"
-          className="absolute end-0 top-full z-50 mt-1 w-80 rounded-md border border-border-strong bg-surface text-xs text-fg shadow-modal"
+          className="absolute end-0 top-full z-50 mt-1 w-80 rounded-md border border-border-strong bg-chrome text-xs text-fg shadow-modal"
         >
           <div className="flex items-baseline justify-between gap-2 border-b border-border px-3 py-2">
             <span className="font-semibold text-fg">Inbox — what needs you</span>
