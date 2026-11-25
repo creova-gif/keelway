@@ -59,7 +59,13 @@ shared vocabulary — 30 tokens.
   code, not as Paper tokens)
 - **Diff colors, shadows, control borders, `--fg-disabled`**
 - **Light theme**: full parallel token set in `tokens.css` `[data-theme="light"]`
-  — Paper is dark-native; light values derive from this mapping.
+  — Paper is dark-native; light values derive from this mapping. Paper page 04
+  board `02.5 — Light-theme reference` (added 2026-11-23) now records the six
+  core light values (canvas `#fafafa`, surface `#ffffff`, ink `#09090b`,
+  muted `#52525b`, rule `rgba(9,9,11,0.08)`, accent `#a8854a`) — verified
+  1:1 against shipped `tokens.css`; the board is documentation of shipped
+  reality, not a new design decision. Extended light roles (chrome, dim,
+  status colors) remain code-authoritative.
 
 ## Sync workflow going forward
 
