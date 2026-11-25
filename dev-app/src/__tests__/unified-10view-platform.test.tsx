@@ -99,6 +99,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
+    await user.click(screen.getByRole("button", { name: /Workspace menu/i }));
     const personaGroup = screen.getByRole("group", { name: /Experience persona/i });
     const builderBtn = within(personaGroup).getByRole("button", { name: /^Builder$/i });
     const nonCoderBtn = within(personaGroup).getByRole("button", { name: /^Guided Non-Coder$/i });
