@@ -60,6 +60,12 @@ jobs:
           pytest tests/test_agent_sandbox.py -v
       - name: Lint check
         run: ruff check .
+      # Dependency CVE gate: audits the canonical locked pins (kept honest by
+      # check_python_lock.sh). Pinned tool for deterministic CI.
+      - name: Dependency vulnerability audit (pip-audit on requirements.lock)
+        run: |
+          pip install pip-audit==2.10.1
+          pip-audit -r requirements.lock --disable-pip
       # KEEL-SEC-057 follow-on: tracked-tree secret gate. Scans committed files
       # only; .gitleaks.toml allowlists synthetic fixture markers. Binary pinned
       # by sha256 — bump both fields together when upgrading.
