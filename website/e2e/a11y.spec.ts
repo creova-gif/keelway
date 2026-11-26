@@ -12,6 +12,7 @@ const ROUTES = [
   "/contact",
   "/docs",
   "/sign-in",
+  "/legal",
 ] as const;
 
 for (const route of ROUTES) {
