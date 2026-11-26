@@ -394,8 +394,8 @@ def _handle_governance(args: argparse.Namespace) -> int:
             lines = [f"[+] Governance Audit Chain Verified: valid={is_valid} | entries={len(entries)}"]
             return _emit(payload, as_json, lines)
     except Exception as exc:
-        payload = {"status": "governance_fallback", "detail": str(exc)}
-        return _emit(payload, as_json, [f"[-] Governance module unavailable: {exc}"])
+        fb_payload = {"status": "governance_fallback", "detail": str(exc)}
+        return _emit(fb_payload, as_json, [f"[-] Governance module unavailable: {exc}"])
     return 1
 
 

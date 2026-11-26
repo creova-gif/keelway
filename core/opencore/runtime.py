@@ -388,7 +388,7 @@ class OllamaRuntimeBridge:
     async def generate(
         self, request: ChatCompletionRequest, resolved_base_model: Optional[str] = None, system_override: Optional[str] = None
     ) -> ChatCompletionResponse:
-        target_model = resolved_base_model or request.model
+        target_model = resolved_base_model or request.model or "keelway-core:7b"
         payload = self._build_chat_payload(request, target_model, stream=False, system_override=system_override)
         data, latency_ms = await _post_local_json(self.base_url, "/api/chat", payload, self.transport, self.timeout_s, "Ollama", target_model)
         msg = data.get("message") or {}
@@ -399,7 +399,7 @@ class OllamaRuntimeBridge:
             id=f"chatcmpl-ollama-{int(time.time() * 1000)}",
             object="chat.completion",
             created=int(time.time()),
-            model=request.model,
+            model=request.model or target_model,
             provider=Provider.LOCAL,
             category=ModelCategory.OPEN_WEIGHT,
             content=content,
@@ -413,7 +413,7 @@ class OllamaRuntimeBridge:
     async def stream_generate(
         self, request: ChatCompletionRequest, resolved_base_model: Optional[str] = None, system_override: Optional[str] = None
     ) -> AsyncIterator[StreamChunk]:
-        target_model = resolved_base_model or request.model
+        target_model = resolved_base_model or request.model or "keelway-core:7b"
         payload = self._build_chat_payload(request, target_model, stream=True, system_override=system_override)
         chunk_id, created_ts = f"chatcmpl-ollama-stream-{int(time.time() * 1000)}", int(time.time())
         try:
@@ -430,7 +430,7 @@ class OllamaRuntimeBridge:
                         yield StreamChunk(
                             id=chunk_id,
                             created=created_ts,
-                            model=request.model,
+                            model=request.model or target_model,
                             provider=Provider.LOCAL,
                             delta_content=str(msg.get("content", "")) if isinstance(msg, dict) else "",
                             finish_reason=str(item.get("done_reason") or "stop") if done else None,
@@ -455,7 +455,7 @@ class VLLMRuntimeBridge:
         self.timeout_s = timeout_s
 
     async def generate(self, request: ChatCompletionRequest, resolved_model: Optional[str] = None) -> ChatCompletionResponse:
-        target_model = resolved_model or request.model
+        target_model = resolved_model or request.model or "keelway-core:7b"
         payload: Dict[str, Any] = {
             "model": target_model,
             "messages": [{"role": m.role, "content": m.content} for m in request.messages],
@@ -476,7 +476,7 @@ class VLLMRuntimeBridge:
             id=str(data.get("id") or f"chatcmpl-vllm-{int(time.time() * 1000)}"),
             object="chat.completion",
             created=int(data.get("created") or time.time()),
-            model=request.model,
+            model=request.model or target_model,
             provider=Provider.LOCAL,
             category=ModelCategory.OPEN_WEIGHT,
             content=str((first.get("message") or {}).get("content") or ""),

@@ -116,7 +116,7 @@ async def list_models(
     installed_local: List[str] = []
     try:
         local_adapter = gateway.adapters.get(Provider.LOCAL)
-        rt = local_adapter.local_runtime() if hasattr(local_adapter, "local_runtime") else None
+        rt = local_adapter.local_runtime() if local_adapter is not None and hasattr(local_adapter, "local_runtime") else None
         installed_local = list(rt.models) if rt is not None and rt.up else []
     except Exception:
         installed_local = []
@@ -318,10 +318,11 @@ async def send_chat_message(payload: dict, principal: Principal = Depends(curren
         target_file=target_file,
     )
     # If chat created an active agent task, register it for Studio tracking & approval workflows
-    if result.get("agent_task", {}).get("task_id") and getattr(session, "_last_agent", None):
+    last_agent = getattr(session, "_last_agent", None)
+    if result.get("agent_task", {}).get("task_id") and last_agent is not None:
         t_id = result["agent_task"]["task_id"]
-        _active_agent_loops[t_id] = session._last_agent
-        await _publish_agent(session._last_agent)
+        _active_agent_loops[t_id] = last_agent
+        await _publish_agent(last_agent)
     await record_audit(principal, f"chat_message_{mode.value}", message[:100], True)
     return result
 
@@ -699,6 +700,9 @@ async def websocket_studio_endpoint(websocket: WebSocket):
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="API token revoked.")
                 return False
             principal = current
+        if principal is None:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Unauthenticated.")
+            return False
         allowed = principal.can(permission)
         await record_audit(principal, permission.value, f"WS {resource}", allowed)
         if not allowed:
@@ -1037,7 +1041,7 @@ async def fork_flight_tape(
 ):
     """Fork an execution timeline at a specific step index to explore alternative solutions."""
     from core.orchestration.flight_recorder import FlightPlayer
-    task_id = payload.get("task_id")
+    task_id = str(payload.get("task_id") or "")
     at_index = int(payload.get("at_index", 0))
     new_task_id = payload.get("new_task_id") or f"{(task_id or '')[:200]}_fork_{time.time_ns()}"
 
@@ -1139,7 +1143,7 @@ async def mesh_delegate(payload: dict):
 
 
 @router.post("/v1/mesh/prune", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Local Team Mesh"])
-async def mesh_prune(payload: dict = None):
+async def mesh_prune(payload: Optional[dict] = None):
     """Prunes expired peer workstations from the mesh registry."""
     mesh = get_shared_mesh()
     timeout = float((payload or {}).get("timeout_sec", 30.0))
@@ -1610,6 +1614,7 @@ async def _checked_manifest(raw: Any, principal: Principal, task_id: str) -> Tup
         await record_audit(principal, "agent_run_manifest", f"{task_id} invalid manifest: {report.errors[0]}", False)
         raise HTTPException(status_code=422, detail={"message": "Invalid agent manifest.", "errors": report.errors})
     manifest = report.manifest
+    assert manifest is not None
     state, reason = _signature_state(manifest)
     if state in ("invalid", "no_key"):
         await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} signature {state}", False)
@@ -1704,7 +1709,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         "goal": goal,
         "policy": agent.policy.value,
     }
-    if manifest is not None:
+    if manifest is not None and agent.guard is not None:
         await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} {agent.guard.manifest_digest}", True)
         response["manifest"] = agent.guard.summary()
         response["not_enforced"] = not_enforced(manifest)
@@ -1884,6 +1889,7 @@ async def validate_agent_manifest(payload: dict):
     if not report.ok:
         return out
     manifest = report.manifest
+    assert manifest is not None
     state, reason = _signature_state(manifest)
     reason_not_runnable = await asyncio.to_thread(preflight, manifest, Path(_workspace_fs.root))
     out.update(
@@ -2860,6 +2866,8 @@ async def compare_evaluation_drift(
         if not other_r:
             raise HTTPException(status_code=400, detail="No historical baseline receipt available for comparison.")
         baseline = store.get_receipt(other_r[0]["eval_run_id"])
+        if baseline is None:
+            raise HTTPException(status_code=404, detail=f"Baseline receipt '{other_r[0]['eval_run_id']}' not found.")
 
     analysis = DriftDetector.compare(
         baseline=baseline,

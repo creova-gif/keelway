@@ -289,7 +289,7 @@ class GovernedRunCoordinator:
             title=title,
             description=description,
         )
-        if not ok:
+        if not ok or res is None:
             self.audit.record_event("PR_CREATION_FAILED", {"reason": msg})
             return False, None, msg
 
@@ -308,7 +308,7 @@ class GovernedRunCoordinator:
             current_patch_hash=current_patch_hash,
             webhook_url=webhook_url,
         )
-        if not ok:
+        if not ok or res is None:
             self.audit.record_event("DEPLOYMENT_FAILED", {"reason": msg})
             return False, None, msg
 

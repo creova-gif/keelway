@@ -117,7 +117,7 @@ def evaluate_pricing_cli(schedule: str = "compare", seats: int = 8, api_spend: f
         out["schedule"] = schedule
         out.setdefault("seats", int(seats))
         out.setdefault("monthly_api_spend_usd", float(api_spend))
-        nested = out.get("schedules") if isinstance(out.get("schedules"), dict) else {}
+        nested = sd if isinstance((sd := out.get("schedules")), dict) else {}
         cal_dict = out.get("calibrated") if isinstance(out.get("calibrated"), dict) else nested.get("calibrated", {})
         leg_dict = out.get("legacy") if isinstance(out.get("legacy"), dict) else nested.get("legacy", {})
         out["calibrated"] = {**_FALLBACK_CALIBRATED, **(cal_dict if isinstance(cal_dict, dict) else {})}

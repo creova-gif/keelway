@@ -182,7 +182,7 @@ class SelfHealingLoop:
         )
         stdout, stderr = await proc.communicate()
         return (
-            proc.returncode,
+            proc.returncode if proc.returncode is not None else -1,
             stdout.decode(errors="replace"),
             stderr.decode(errors="replace"),
         )

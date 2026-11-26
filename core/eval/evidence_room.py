@@ -173,7 +173,7 @@ class EvidenceRoomPipeline:
                 evidence_path_or_receipt=evidence,
                 reproduce_command=command,
             )
-        tasks = bench_res.get("tasks") if isinstance(bench_res.get("tasks"), list) else []
+        tasks = t if isinstance((t := bench_res.get("tasks")), list) else []
         task_ids = [
             item.get("task_id")
             for item in tasks

@@ -50,8 +50,9 @@ async def _git(*args: str, limit: int = MAX_DIFF_BYTES) -> Tuple[int, str]:
     except FileNotFoundError:
         return 127, ""
     out = b""
-    while len(out) <= limit:
-        chunk = await proc.stdout.read(65536)
+    stdout_reader = proc.stdout
+    while len(out) <= limit and stdout_reader is not None:
+        chunk = await stdout_reader.read(65536)
         if not chunk:
             break
         out += chunk
@@ -60,7 +61,7 @@ async def _git(*args: str, limit: int = MAX_DIFF_BYTES) -> Tuple[int, str]:
         await proc.wait()
         return 0, out.decode(errors="replace")
     await proc.wait()
-    return proc.returncode, out.decode(errors="replace")
+    return proc.returncode if proc.returncode is not None else -1, out.decode(errors="replace")
 
 
 def parse_unified_diff(text: str) -> List[Dict[str, Any]]:
@@ -363,7 +364,7 @@ async def studio_status(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     sha_rc, sha = await _git("rev-parse", "--short", "HEAD")
     tapes = len(list(FLIGHT_RECORDINGS_DIR.glob("*.flight.json"))) if FLIGHT_RECORDINGS_DIR.exists() else 0
     local_adapter = gateway.adapters.get(Provider.LOCAL)
-    local = (await asyncio.to_thread(local_adapter.describe) if hasattr(local_adapter, "describe")
+    local = (await asyncio.to_thread(local_adapter.describe) if local_adapter is not None and hasattr(local_adapter, "describe")
              else {"up": bool(local_adapter), "available": bool(local_adapter), "api": None, "model": None})
     from core.models.cost_ledger import cost_ledger
     economics = cost_ledger.get_summary()

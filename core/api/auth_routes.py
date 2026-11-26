@@ -3,7 +3,7 @@ Token management and audit log API.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -120,7 +120,7 @@ async def pair_phone(request: PairRequest, db: AsyncSession = Depends(get_db)) -
     record, token = redeemed
     await db.commit()
     await record_audit(Principal(actor=record.name, role=Role.PHONE, token_id=record.id), "phone_paired", f"token {record.id}", True)
-    return PairedTokenResponse(token=token, role=Role.PHONE, expires_at=record.expires_at)
+    return PairedTokenResponse(token=token, role=Role.PHONE, expires_at=cast(datetime, record.expires_at))
 
 
 @router.delete("/v1/auth/tokens/{token_id}", status_code=status.HTTP_204_NO_CONTENT)

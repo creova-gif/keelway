@@ -829,6 +829,7 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
         print(f"[-] {path} is not a valid agent manifest ({len(report.errors)} problem(s)).")
         return 1
     agent_manifest = report.manifest
+    assert agent_manifest is not None
 
     if action == "validate":
         from core.agents.guard import not_enforced
@@ -854,19 +855,21 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
                         return 1
         return asyncio.run(_register())
 
-    key = am.load_or_create_key(Path.cwd()) if action == "sign" else None
     if action == "sign":
+        key = am.load_or_create_key(Path.cwd())
         signed = am.sign(agent_manifest, key, by or os.environ.get("USER", "unknown"))
         target = out or path
         target.write_text(am.to_json(signed), encoding="utf-8")
-        print(f"[+] Signed {agent_manifest.name}@{agent_manifest.version} with key {signed.signature.key_id}; wrote {target}")
+        sig_id = signed.signature.key_id if signed.signature is not None else "unknown"
+        print(f"[+] Signed {agent_manifest.name}@{agent_manifest.version} with key {sig_id}; wrote {target}")
         return 0
     key_path = Path.cwd() / ".keelway" / am.KEY_FILE
     if not key_path.exists():
         print("[-] No signing key in this workspace (.keelway/agent_signing.key), so nothing can be verified here.")
         return 1
     ok, reason = am.verify(agent_manifest, bytes.fromhex(key_path.read_text().strip()))
-    print(f"[+] Signature valid ({agent_manifest.signature.signed_by}, {agent_manifest.signature.signed_at})" if ok else f"[-] Signature check failed: {reason}")
+    sig = agent_manifest.signature
+    print(f"[+] Signature valid ({sig.signed_by}, {sig.signed_at})" if ok and sig is not None else f"[-] Signature check failed: {reason}")
     return 0 if ok else 1
 
 
@@ -1504,13 +1507,13 @@ async def cmd_token(action: str, name: str = "", role: str = "engineer", token_i
                     state += f", expires {r.expires_at:%Y-%m-%d %H:%M}"
                 print(f"{r.id}  {r.role:<9} {r.name:<24} {state}")
         elif action == "revoke":
-            record = await db.get(ApiTokenRecord, token_id)
-            if record is None:
+            tok_record = await db.get(ApiTokenRecord, token_id)
+            if tok_record is None:
                 print(f"No token with id {token_id}")
                 sys.exit(1)
-            record.revoked_at = record.revoked_at or datetime.now(timezone.utc)
+            tok_record.revoked_at = tok_record.revoked_at or datetime.now(timezone.utc)
             await db.commit()
-            print(f"Revoked token '{record.name}'")
+            print(f"Revoked token '{tok_record.name}'")
 
 
 async def cmd_tier2(action: str, subsystem: str = "all") -> int:
@@ -1600,7 +1603,7 @@ async def cmd_tier2(action: str, subsystem: str = "all") -> int:
             w_validator = DualWormReceiptValidator()
             w_res = w_validator.validate_dual_receipts(base_sha, p_rec, s_rec, require_physical_hardware=True)
             if w_res.is_valid:
-                print(f"        Dual-WORM receipts verified (cert: {w_res.publication_cert[:16]}...): [PASS]")
+                print(f"        Dual-WORM receipts verified (cert: {(w_res.publication_cert or '')[:16]}...): [PASS]")
             else:
                 print(f"        Dual-WORM failed: {w_res.error_message} [FAIL]")
                 all_passed = False
@@ -1865,7 +1868,7 @@ async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, targe
         )
         res = dispatcher.dispatch(req, pref)
         channel_name = res.get("channel")
-        channel_str = channel_name.value.upper() if hasattr(channel_name, "value") else str(channel_name).upper()
+        channel_str = channel_name.value.upper() if channel_name is not None and hasattr(channel_name, "value") else str(channel_name).upper()
         print(f"  • Channel:     {channel_str}")
         print("  • Status:      DELIVERED [OK]")
         payload = res.get("payload", {})
@@ -2036,35 +2039,35 @@ async def cmd_pilot(
         return 0
 
     elif action == "interview":
-        c = get_pilot_candidate(candidate_id)
-        if not c:
+        cand = get_pilot_candidate(candidate_id)
+        if not cand:
             print(f"[✗] Error: Candidate '{candidate_id}' not found.")
             return 1
         print("\n" + "=" * 70)
-        print(f"  📋 WORKFLOW INTERVIEW PROTOCOL: {c.name.upper()} ({c.organization.upper()})")
+        print(f"  📋 WORKFLOW INTERVIEW PROTOCOL: {cand.name.upper()} ({cand.organization.upper()})")
         print("  Methodology: The Mom Test (Behavioral Reality vs Hypothetical Opinion)")
         print("=" * 70)
         print("\n  Candidate Background:")
-        print(f"  • Title       : {c.title}")
-        print(f"  • Observed    : {c.observed_workflow}")
-        print(f"  • Wedge Focus : {c.wedge_capability}")
+        print(f"  • Title       : {cand.title}")
+        print(f"  • Observed    : {cand.observed_workflow}")
+        print(f"  • Wedge Focus : {cand.wedge_capability}")
         print("\n  Target Interview Questions (Ask in sequence, capture exact phrasing):")
-        for idx, q in enumerate(c.interview_questions, 1):
+        for idx, q in enumerate(cand.interview_questions, 1):
             print(f"    {idx}. \"{q}\"")
         print("\n  Concrete Commitment Goal:")
-        print(f"  👉 \"{c.commitment_ask}\"")
+        print(f"  👉 \"{cand.commitment_ask}\"")
         print("=" * 70 + "\n")
         return 0
 
     elif action == "run":
-        c = get_pilot_candidate(candidate_id)
-        if not c:
+        cand = get_pilot_candidate(candidate_id)
+        if not cand:
             print(f"[✗] Error: Candidate '{candidate_id}' not found.")
             return 1
 
         sim_dir = Path(target_dir) if target_dir else Path(tempfile.mkdtemp(prefix=f"keelway_pilot_{candidate_id}_"))
         print("\n" + "=" * 70)
-        print(f"  🚀 RUNNING ZERO-RISK PILOT SIMULATION: {c.name} ({c.organization})")
+        print(f"  🚀 RUNNING ZERO-RISK PILOT SIMULATION: {cand.name} ({cand.organization})")
         print(f"  Workspace: {sim_dir}")
         print("=" * 70)
 
@@ -2101,7 +2104,7 @@ async def cmd_pilot(
     return 1
 
 
-async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
+async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
     """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
     if air_gapped:
@@ -2282,6 +2285,9 @@ def cmd_models_offline(action: str, model: str = "", path: Optional[Path] = None
             print(f"\n[✓] Saved {bundle}")
             print(f"    On the other machine: keelway models import {bundle.name}")
         else:
+            if path is None:
+                print("[-] Provide a bundle path: keelway models import <path>")
+                return 1
             print(f"[+] Checking {path} and installing it into Ollama at {settings.ollama_base_url} ...")
             res = import_bundle(path, name=name, ollama_url=settings.ollama_base_url, progress=progress)
             note = "uploaded" if res.uploaded else "Ollama already had this file"

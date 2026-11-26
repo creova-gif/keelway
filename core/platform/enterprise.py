@@ -116,7 +116,7 @@ class EnterpriseGovernanceManager:
         if audit_retention_days < 0:
             raise EnterprisePolicyValidationError("audit_retention_days must be >= 0.")
 
-        incoming_caps = payload.get("resource_caps") if isinstance(payload.get("resource_caps"), dict) else {}
+        incoming_caps = rc if isinstance((rc := payload.get("resource_caps")), dict) else {}
         max_sandboxes = int(
             payload.get(
                 "max_concurrent_sandboxes",
@@ -144,7 +144,7 @@ class EnterpriseGovernanceManager:
             )
         )
 
-        incoming_branding = payload.get("branding") if isinstance(payload.get("branding"), dict) else {}
+        incoming_branding = rb if isinstance((rb := payload.get("branding")), dict) else {}
         merged_branding = {
             "logo_url": str(incoming_branding.get("logo_url", payload.get("logo_url", current["branding"]["logo_url"]))),
             "accent_hex": str(

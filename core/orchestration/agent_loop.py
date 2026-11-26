@@ -104,7 +104,7 @@ class AutonomousAgentLoop:
         self.semantic_index = CodebaseSemanticIndex(self.fs)
 
         if flight_recorder is not None:
-            self.flight_recorder = flight_recorder
+            self.flight_recorder: Optional[FlightRecorder] = flight_recorder
         else:
             self.flight_recorder = FlightRecorder(task_id=task_id) if record_flight else None
         self.tools: Dict[str, AgentTool] = {}

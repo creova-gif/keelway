@@ -105,7 +105,7 @@ def _extract_text_or_json_blocks(raw_text: str) -> List[Dict[str, Any]]:
 
 
 def _parse_tool_call_entry(tc: Dict[str, Any]) -> Dict[str, Any]:
-    fn = tc.get("function") if isinstance(tc.get("function"), dict) else {}
+    fn = f if isinstance((f := tc.get("function")), dict) else {}
     t_name, raw_a = str(fn.get("name") or tc.get("name") or "tool"), (fn.get("arguments") if "arguments" in fn else tc.get("arguments"))
     loaded = _try_json_dict(raw_a) if isinstance(raw_a, str) and raw_a.strip() else None
     t_args = dict(raw_a) if isinstance(raw_a, dict) else (loaded if loaded is not None else ({"raw_arguments": raw_a} if isinstance(raw_a, str) and raw_a.strip() else {}))
@@ -180,7 +180,7 @@ def _extract_provider_blocks(fmt: str, raw_payload: Any) -> List[Dict[str, Any]]
         elif isinstance(part.get("thought"), str) and part["thought"].strip():
             blocks.append(_blk("reasoning", part["thought"].strip()))
         elif isinstance(part.get("functionCall") or part.get("function_call"), dict):
-            fc = part.get("functionCall") or part.get("function_call")
+            fc = (part.get("functionCall") or part.get("function_call")) or {}
             t_name, raw_a = str(fc.get("name") or "tool"), (fc.get("args") if "args" in fc else fc.get("arguments"))
             t_args = dict(raw_a) if isinstance(raw_a, dict) else {}
             blocks.append(_blk("tool_call", _canonical_json(t_args), tool_name=t_name, tool_call_id=str(fc.get("id") or f"call_{t_name}"), tool_args=t_args))
@@ -224,7 +224,7 @@ def _validate_schema_spec(schema: Any) -> Dict[str, Any]:
 def _coerce_scalars(value: Any, schema: Dict[str, Any]) -> Tuple[Any, bool]:
     stype = schema.get("type")
     if stype == "object" and isinstance(value, dict):
-        props, out, changed = (schema.get("properties") if isinstance(schema.get("properties"), dict) else {}), dict(value), False
+        props, out, changed = (schema.get("properties") if isinstance(schema.get("properties"), dict) else {}) or {}, dict(value), False
         for k, v in list(out.items()):
             if k in props and isinstance(props[k], dict):
                 nv, c = _coerce_scalars(v, props[k])
@@ -270,7 +270,7 @@ def _validate_value_against_schema(value: Any, schema: Dict[str, Any], path: str
         for idx, item in enumerate(value) if isinstance(schema.get("items"), dict) else ():
             errors.extend(_validate_value_against_schema(item, schema["items"], f"{path}[{idx}]"))
     if isinstance(value, dict):
-        props, add_p = (schema.get("properties") if isinstance(schema.get("properties"), dict) else {}), schema.get("additionalProperties")
+        props, add_p = (schema.get("properties") if isinstance(schema.get("properties"), dict) else {}) or {}, schema.get("additionalProperties")
         errors.extend(f"{path}: missing required property '{req}'" for req in (schema.get("required") or []) if req not in value)
         for k, p_s in props.items():
             if k in value and isinstance(p_s, dict):
@@ -426,7 +426,7 @@ class SQLiteStructuredHealingEngine:
             eff_wf = str(tape["workflow_name"]) if eff_wf == "invoice-triage-agent" and tape.get("workflow_name") else eff_wf
             steps = tape.get("steps") or []
             target = next((s for s in reversed(steps) if any(t in f"{s.get('output_text', '')} {s.get('state_json', '')}".lower() for t in ("error", "fail", "blocked", "conflict", "truncat", "invalid"))), steps[-1] if steps else {})
-            st_obj = target.get("state") if isinstance(target.get("state"), dict) else {}
+            st_obj = so if isinstance((so := target.get("state")), dict) else {}
             step_data = {"node_name": target.get("node_name") or "agent_step", "prompt_text": target.get("prompt_text") or "", "output_text": target.get("output_text") or "", "error_message": str(st_obj.get("error_message") or st_obj.get("error") or target.get("output_text") or ""), "expected_schema": st_obj.get("expected_schema") if isinstance(st_obj.get("expected_schema"), dict) else None}
         elif not step_data:
             step_data = {"node_name": "extract_invoice_fields", "prompt_text": "Extract invoice fields as strict JSON.", "output_text": '{"amount": "invalid"}', "error_message": "JSON schema validation failed: missing required field currency"}

@@ -136,7 +136,8 @@ async def seed(root: Path) -> None:
     await agent.approve_pending(True)
     await agent.execute_tool("run_command", {"command": "python3 -m unittest -q"}, step_id="step_3")
     await agent.approve_pending(True)
-    agent.flight_recorder.save_tape()
+    if agent.flight_recorder is not None:
+        agent.flight_recorder.save_tape()
     _git(root, "add", "money.py")
     _git(root, "commit", "-q", "-m", "agent: add format_cents (approved by maya)")
     (root / SEEDED_MARKER).write_text("1\n", encoding="utf-8")

@@ -284,7 +284,7 @@ class OpenCoreServingEngine:
 
     @staticmethod
     def _synthesize_mock_reply(request: ChatCompletionRequest) -> str:
-        model_id = request.model
+        model_id = request.model or "keelway-core:7b"
         last_message = request.messages[-1].content if request.messages else "Hello"
         full_prompt = "\n".join(m.content for m in request.messages)
         resp_fmt = getattr(request, "response_format", None)
@@ -353,7 +353,7 @@ class OpenCoreServingEngine:
         base_model_override: Optional[str] = None,
     ) -> ChatCompletionResponse:
         """Execute inference against a resident OpenCore model (mock, Ollama, or vLLM)."""
-        model_id = request.model
+        model_id = request.model or "keelway-core:7b"
         model_info = await self._ensure_ready(model_id, backend, base_model_override)
         attached = self.adapter_registry.get_attached_adapter(model_id)
 
@@ -399,7 +399,7 @@ class OpenCoreServingEngine:
         base_model_override: Optional[str] = None,
     ) -> AsyncIterator[StreamChunk]:
         """Stream token chunks from a resident OpenCore model while tracking cluster telemetry."""
-        model_id = request.model
+        model_id = request.model or "keelway-core:7b"
         model_info = await self._ensure_ready(model_id, backend, base_model_override)
 
         if model_info.backend == OpenCoreWorkerBackend.OLLAMA:

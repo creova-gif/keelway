@@ -133,6 +133,8 @@ class CostLedger:
             self._load_from_disk()
 
     def _load_from_disk(self) -> None:
+        if self.persistence_path is None:
+            return
         try:
             with open(self.persistence_path, "r", encoding="utf-8") as f:
                 for line in f:

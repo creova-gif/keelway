@@ -261,10 +261,10 @@ def _parse_python_langgraph(
             sources = _resolve_ast_endpoint_list(stmt.args[0])
             target = _resolve_ast_endpoint(stmt.args[1])
             if target:
-                for src in sources:
-                    _ensure_node(src)
+                for src_name in sources:
+                    _ensure_node(src_name)
                     _ensure_node(target)
-                    raw_edges.append({"source": src, "target": target, "conditional": False, "condition": None})
+                    raw_edges.append({"source": src_name, "target": target, "conditional": False, "condition": None})
 
         elif method == "set_entry_point" and stmt.args:
             target = _resolve_ast_endpoint(stmt.args[0])

@@ -308,7 +308,7 @@ class SQLiteFlightTapeEngine:
         if not isinstance(raw_span, dict):
             raise ValueError(f"Span at index {idx} must be a JSON object.")
         attrs = _decode_otlp_attributes(raw_span.get("attributes"))
-        for ev in raw_span.get("events") if isinstance(raw_span.get("events"), list) else []:
+        for ev in evs if isinstance((evs := raw_span.get("events")), list) else []:
             if isinstance(ev, dict):
                 for k, v in _decode_otlp_attributes(ev.get("attributes")).items():
                     attrs.setdefault(k, v)
