@@ -41,3 +41,12 @@ routes shipped under KEEL-WEB-048.
 - **Next 16 major bump** — only remaining path would be for the nested
   postcss, which the `$postcss` override already pins; a 16.x migration is a
   separate scoped task (React 19.2 floor, App Router changes)
+
+## Follow-up — `website` sweep (same finding class)
+
+`website` (the marketing Next app, `next@^15.2.4` → resolves 15.5.29)
+carried the same nested `postcss@8.4.31` via `next`'s exact pin — the only
+remaining advisory there. Same remedy applied:
+`"overrides": {"next": {"postcss": "$postcss"}}` → dedupes to top-level
+`postcss@8.5.32`. `npm audit --omit=dev`: 0. `tsc --noEmit` clean.
+`dev-app` audited at 0 vulnerabilities (no change needed).
