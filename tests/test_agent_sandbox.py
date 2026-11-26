@@ -603,6 +603,68 @@ def test_live_bubblewrap_confinement_under_home_workspace(ws, monkeypatch):
         listener.close()
 
 
+@needs_bubblewrap
+def test_bubblewrap_subprocesses_stay_confined(ws):
+    code = f"import subprocess;r=subprocess.run(['/bin/cat','{ws}/secret.txt'],capture_output=True,text=True);print('OUT:'+r.stdout);print('RC:'+str(r.returncode))"
+    res = Sandbox(ws / "ws", backend="bubblewrap").run(f"{PY} -c \"{code}\"")
+    assert "TOPSECRET" not in res.stdout and "RC:0" not in res.stdout
+
+
+@needs_bubblewrap
+def test_bubblewrap_commands_are_not_run_through_a_shell(ws):
+    res = Sandbox(ws / "ws", backend="bubblewrap").run("/bin/echo a; touch pwned.txt")
+    assert res.exit_code == 0 and res.stdout.strip() == "a; touch pwned.txt"
+    assert not (ws / "ws" / "pwned.txt").exists()
+    res = Sandbox(ws / "ws", backend="bubblewrap").run("/bin/echo $HOME")
+    assert res.stdout.strip() == "$HOME"
+
+
+@needs_bubblewrap
+def test_bubblewrap_timeout_kills_the_whole_process_group(ws):
+    sb = Sandbox(ws / "ws", backend="bubblewrap")
+    marker = ws / "ws" / "still_running.txt"
+    code = f"import subprocess,time;subprocess.Popen(['/bin/sh','-c','sleep 3; echo x > still_running.txt']);time.sleep(30)"
+    start = time.time()
+    res = sb.run(f"{PY} -c \"{code}\"", timeout=1)
+    assert res.timed_out and time.time() - start < 10
+    time.sleep(3.5)
+    assert not marker.exists()  # the grandchild was killed too
+
+
+@needs_bubblewrap
+def test_bubblewrap_output_is_capped_and_missing_commands_are_reported(ws):
+    res = Sandbox(ws / "ws", backend="bubblewrap").run(f"{PY} -c \"print('x'*500000)\"")
+    assert len(res.stdout) <= 200_000
+    res = Sandbox(ws / "ws", backend="bubblewrap").run("/no/such/binary")
+    assert res.exit_code == 127 and "not found" in res.stderr
+
+
+@needs_bubblewrap
+@pytest.mark.asyncio
+async def test_bubblewrap_loop_runs_allowed_commands_confined_with_a_scrubbed_env(ws, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-must-not-leak")
+    m = manifest(permissions__commands=["/usr/bin/env"])
+    agent = loop_from_manifest(m, "t", WorkspaceFilesystem(str(ws / "ws")), record_flight=False)
+    pending = await agent.execute_tool("run_command", {"command": "/usr/bin/env"})
+    assert pending["status"] == "paused_for_approval"  # confined AND still human-approved
+    done = await agent.approve_pending(True)
+    assert done["status"] == "success" and done["result"]["sandbox"] == "bubblewrap"
+    assert "must-not-leak" not in done["result"]["stdout"]
+
+
+@needs_bubblewrap
+@pytest.mark.asyncio
+async def test_bubblewrap_workspace_sandbox_cannot_fall_back_to_a_host_command(ws):
+    m = manifest(sandbox="workspace", permissions__commands=["/bin/echo hi"])
+    agent = loop_from_manifest(m, "t", WorkspaceFilesystem(str(ws / "ws")), record_flight=False)
+    assert agent.command_runner is None
+    pending = await agent.execute_tool("run_command", {"command": "/bin/echo hi"})
+    assert pending["status"] == "paused_for_approval"
+    done = await agent.approve_pending(True)
+    assert done["status"] == "error"
+    assert "unavailable" in done["error"].lower()
+
+
 def test_verified_command_runner_refuses_without_a_backend(tmp_path, monkeypatch):
     import core.agents.sandbox as sbx
 
