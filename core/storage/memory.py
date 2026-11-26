@@ -4,12 +4,13 @@ Provides persistent storage, vector embedding generation, and hybrid relevance s
 """
 
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any, Tuple, cast
 
 from core.storage.embedding import EmbeddingProvider, cosine_similarity, compute_lexical_score
 
 try:
     from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.engine import CursorResult
     from sqlalchemy import select, delete, func
     from core.storage.models import MemoryRecord, utc_now
 except ImportError:
@@ -192,7 +193,7 @@ class MemoryService:
             MemoryRecord.scope == scope,
             MemoryRecord.key == key,
         )
-        result = await self.db.execute(stmt)
+        result = cast(CursorResult[Any], await self.db.execute(stmt))
         await self.db.flush()
         return result.rowcount > 0
 
