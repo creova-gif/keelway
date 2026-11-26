@@ -8,8 +8,11 @@ const ROUTES = [
   "/docs",
   "/changelog",
   "/about",
+  "/blog",
   "/contact",
+  "/legal",
   "/sign-in",
+  "/signup",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

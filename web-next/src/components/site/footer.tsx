@@ -23,11 +23,20 @@ export function SiteFooter() {
             <Link href="/changelog" className="text-fg-muted transition-colors hover:text-fg">
               Changelog
             </Link>
+            <Link href="/blog" className="text-fg-muted transition-colors hover:text-fg">
+              Blog
+            </Link>
+            <Link href="/about" className="text-fg-muted transition-colors hover:text-fg">
+              About
+            </Link>
             <Link href="/contact" className="text-fg-muted transition-colors hover:text-fg">
               Contact
             </Link>
             <Link href="/docs" className="text-fg-muted transition-colors hover:text-fg">
               Docs
+            </Link>
+            <Link href="/legal" className="text-fg-muted transition-colors hover:text-fg">
+              Legal
             </Link>
             <a
               href="https://github.com/creova-gif/keelway"
