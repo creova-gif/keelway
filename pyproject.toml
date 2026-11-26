@@ -61,6 +61,12 @@ filterwarnings = [
     # streaming semantics that break SSE reconnection (test_studio_realtime_events),
     # so it cannot be adopted yet - scoped suppression (KEEL-REL-063 / D-007).
     "ignore::starlette.exceptions.StarletteDeprecationWarning",
+    # pydantic >=2.12 warns when a Field(alias=...) lands in a non-field context.
+    # FastAPI's param-model construction attaches FieldInfo(alias=<param name>)
+    # to union-typed params, which upstream itself suppresses on its internal
+    # TypeAdapter rebuild path - the alias was already a no-op there. Scoped to
+    # the 'alias' attribute only; other Field() misuse still warns.
+    "ignore:The 'alias' attribute:pydantic.warnings.UnsupportedFieldAttributeWarning",
 ]
 
 [tool.ruff.lint]
