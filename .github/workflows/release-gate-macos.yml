@@ -23,8 +23,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      # Release gate installs the same pinned, hash-verified dependency set
+      # as PR CI — release verification must not drift from the locked
+      # resolution that pull-request testing proved green.
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: |
+          pip install -r requirements.lock
+          pip install -e . --no-deps
       - name: Start Ollama with a small coding model
         run: |
           brew install ollama

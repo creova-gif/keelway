@@ -35,14 +35,22 @@ jobs:
           cache-dependency-path: |
             pyproject.toml
             requirements.txt
+            requirements.lock
       - name: Install bubblewrap (Linux command sandbox)
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
           # Ubuntu 24.04 blocks unprivileged user namespaces, which bubblewrap needs.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+      # Install the pinned, hash-verified dependency set — the lock is the
+      # canonical resolution (check_python_lock.sh gates its freshness).
+      # uv is pinned so the lock-freshness gate below actually executes and
+      # resolves deterministically instead of silently skipping.
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: |
+          pip install uv==0.11.7
+          pip install -r requirements.lock
+          pip install -e . --no-deps
       - name: Verify Linux Bubblewrap Sandbox Confinement
         env:
           DATABASE_URL: sqlite+aiosqlite:///${{ runner.temp }}/keelway-ci.db
