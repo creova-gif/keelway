@@ -142,7 +142,7 @@ class HardwareProfiler:
         # Estimate RAM
         total_ram_gb = 16.0
         try:
-            import psutil  # type: ignore
+            import psutil
             total_ram_gb = round(psutil.virtual_memory().total / (1024 ** 3), 1)
         except Exception:
             pass

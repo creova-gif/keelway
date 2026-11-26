@@ -8,7 +8,7 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 from core.api.schemas import (
     CompletionRequestSchema,
@@ -18,6 +18,7 @@ from core.api.schemas import (
 )
 from core.models.gateway import ModelGateway, gateway as default_gateway
 from core.models.adapters.base import ModelAdapter
+from core.models.provider import ChatCompletionRequest, ChatCompletionResponse
 
 PROMPT = """You are a Keelway engineering assistant.
 
@@ -67,7 +68,7 @@ def evaluate_content_quality(content: str) -> Dict[str, Any]:
     has_actions = "action" in content.lower() or "next" in content.lower()
     has_citations = "state.py" in content or "engine.py" in content or "test_state.py" in content
 
-    score = 0
+    score: float = 0
     if has_summary:
         score += 1
     if has_risks:
@@ -108,15 +109,25 @@ async def run_eval_comparison(gw: ModelGateway, providers_to_test: List[Provider
             continue
 
         print(f"[*] Executing benchmark on {provider.value.upper()}...")
-        request = CompletionRequestSchema(
+        request = ChatCompletionRequest(
             messages=[MessageSchema(role="user", content=PROMPT)],
             preferred_provider=provider,
             temperature=0.2,
             max_tokens=2500,
         )
 
+        resp: Union[CompletionResponseSchema, ChatCompletionResponse]
         try:
-            resp = await adapter.complete(request)
+            if isinstance(adapter, ModelAdapter):
+                legacy_request = CompletionRequestSchema(
+                    messages=request.messages,
+                    preferred_provider=provider,
+                    temperature=request.temperature,
+                    max_tokens=request.max_tokens,
+                )
+                resp = await adapter.complete(legacy_request)
+            else:
+                resp = await adapter.complete(request)
             evaluation = evaluate_content_quality(resp.content)
 
             results[provider.value] = {

@@ -2,7 +2,7 @@
 Database connection and session lifecycle for Keelway Core.
 """
 
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator, Dict
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from pathlib import Path
 from sqlalchemy import text
@@ -14,7 +14,7 @@ from core.storage.models import Base
 # Dynamic engine configuration (SQLite for local/test, PostgreSQL for production)
 is_sqlite = settings.database_url.startswith("sqlite")
 
-engine_kwargs = {
+engine_kwargs: Dict[str, Any] = {
     "echo": (settings.log_level.upper() == "DEBUG"),
 }
 

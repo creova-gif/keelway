@@ -28,7 +28,6 @@ from core.models.provider import (
     ContextLengthExceededError,
     ProviderTimeoutError,
 )
-from core.models.adapters.base import ModelAdapter
 
 
 # Standard OpenAI rate card per million tokens (input, output) in USD
@@ -43,7 +42,7 @@ OPENAI_RATES: Dict[str, tuple[float, float]] = {
 }
 
 
-class OpenAIProviderAdapter(BaseModelProvider, ModelAdapter):
+class OpenAIProviderAdapter(BaseModelProvider):
     """Proprietary Model Provider Adapter for OpenAI."""
 
     provider_id = Provider.OPENAI
@@ -56,7 +55,7 @@ class OpenAIProviderAdapter(BaseModelProvider, ModelAdapter):
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
         base_url: Optional[str] = None,
-        transport: Optional[httpx.BaseTransport] = None,
+        transport: Optional[httpx.AsyncBaseTransport] = None,
     ):
         self._explicit_api_key = api_key
         self.default_model = default_model or self.DEFAULT_MODEL

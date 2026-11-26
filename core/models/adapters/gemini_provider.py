@@ -30,7 +30,6 @@ from core.models.provider import (
     ContextLengthExceededError,
     ProviderTimeoutError,
 )
-from core.models.adapters.base import ModelAdapter
 
 
 # Gemini pricing rate card per million tokens (input, output) in USD
@@ -58,7 +57,7 @@ def _extract_non_thought_text(parts: List[Any]) -> str:
     return "".join(p.get("text", "") for p in dict_parts)
 
 
-class GeminiProviderAdapter(BaseModelProvider, ModelAdapter):
+class GeminiProviderAdapter(BaseModelProvider):
     """Native Model Provider Adapter for Google Gemini REST API."""
 
     provider_id = Provider.GEMINI
@@ -71,7 +70,7 @@ class GeminiProviderAdapter(BaseModelProvider, ModelAdapter):
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
         base_url: Optional[str] = None,
-        transport: Optional[httpx.BaseTransport] = None,
+        transport: Optional[httpx.AsyncBaseTransport] = None,
     ):
         self._explicit_api_key = api_key
         self.default_model = default_model or self.DEFAULT_MODEL

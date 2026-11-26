@@ -13,13 +13,13 @@ try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
 except ImportError:
     # Minimal fallback dataclass when pydantic is not installed
-    def Field(default=None, default_factory=None, description="", **kwargs):
+    def Field(default=None, default_factory=None, description="", **kwargs):  # type: ignore[no-redef]
         if default_factory is not None:
             return default_factory()
         return default
-    class BaseSettings:
+    class BaseSettings:  # type: ignore[no-redef]
         pass
-    class SettingsConfigDict:
+    class SettingsConfigDict:  # type: ignore[no-redef]
         def __init__(self, **kwargs): pass
 
 

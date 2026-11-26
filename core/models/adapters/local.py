@@ -8,7 +8,7 @@ local when something is actually listening, and uses a model that is actually in
 import functools
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
 import httpx
 
@@ -54,7 +54,7 @@ class LocalAdapter(ModelAdapter):
         base_url: Optional[str] = None,
         default_model: Optional[str] = None,
         api: Optional[str] = None,
-        transport: Optional[httpx.BaseTransport] = None,
+        transport: Optional[Union[httpx.BaseTransport, httpx.AsyncBaseTransport]] = None,
     ):
         self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
         self.default_model = default_model or settings.default_local_model
@@ -64,7 +64,7 @@ class LocalAdapter(ModelAdapter):
 
     def _probe(self) -> LocalRuntime:
         kinds = ["ollama", "openai"] if self.api == "auto" else [self.api]
-        with httpx.Client(timeout=PROBE_TIMEOUT_S, transport=self._transport) as client:
+        with httpx.Client(timeout=PROBE_TIMEOUT_S, transport=cast(Optional[httpx.BaseTransport], self._transport)) as client:
             for kind in kinds:
                 try:
                     if kind == "ollama":
@@ -142,7 +142,7 @@ class LocalAdapter(ModelAdapter):
         start_time = time.perf_counter()
         timeout_val = max(settings.default_timeout_seconds, 180.0)
         try:
-            async with httpx.AsyncClient(timeout=timeout_val, transport=self._transport) as client:
+            async with httpx.AsyncClient(timeout=timeout_val, transport=cast(Optional[httpx.AsyncBaseTransport], self._transport)) as client:
                 resp = await client.post(url, json=payload)
         except httpx.TimeoutException as exc:
             raise RuntimeError(f"Local model generation timed out after {timeout_val:.0f}s.") from exc

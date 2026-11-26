@@ -15,7 +15,7 @@ import json
 import os
 import secrets
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 try:
     from cryptography.hazmat.primitives import serialization
@@ -156,7 +156,7 @@ def _seed_to_keypair(seed: bytes) -> Tuple[bytes, str]:
     return pem, _b64_encode(_rfc8032_pub_from_seed(seed))
 
 
-def _seed_from_pem(private_key_pem: bytes) -> bytes:
+def _seed_from_pem(private_key_pem: Union[bytes, str]) -> bytes:
     raw_pem = private_key_pem.encode("utf-8") if isinstance(private_key_pem, str) else bytes(private_key_pem)
     lines = [ln.strip() for ln in raw_pem.decode("ascii").splitlines() if ln.strip() and not ln.startswith("-----")]
     der = base64.b64decode("".join(lines))
@@ -309,7 +309,7 @@ class Ed25519ManifestSigner:
     def list_trusted_keys(self) -> Dict[str, str]:
         return dict(self._trusted_keys)
 
-    def sign_manifest(self, manifest: Dict[str, Any], private_key_pem: bytes, key_id: str) -> Dict[str, Any]:
+    def sign_manifest(self, manifest: Dict[str, Any], private_key_pem: Union[bytes, str], key_id: str) -> Dict[str, Any]:
         clean_key_id = str(key_id or "").strip()
         if not clean_key_id:
             raise ValueError("Signing 'key_id' must be non-empty.")

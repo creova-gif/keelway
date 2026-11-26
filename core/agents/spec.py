@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from core.agents import manifest as am
 
 
-SPEC_SCHEMA_ID = "keelway.spec/v1"
+SPEC_SCHEMA_ID: Literal["keelway.spec/v1"] = "keelway.spec/v1"
 
 
 class AgentParam(BaseModel):
@@ -89,7 +89,7 @@ class AgentSpec(BaseModel):
             "sandbox": "worktree" if self.deployment_target in ("worktree", "local") else "container",
         }
 
-    def validate_manifest(self) -> am.ValidationReport:
+    def validate_manifest(self) -> am.Report:
         """Validate the compiled manifest against Keelway AgentManifest v1 schema."""
         return am.validate(self.to_manifest_dict())
 

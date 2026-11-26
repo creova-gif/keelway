@@ -242,7 +242,7 @@ class PilotSimulationEngine:
         """Executes the complete pilot workflow simulation."""
         self.setup_sandbox()
 
-        fs = WorkspaceFilesystem(root_dir=self.workspace_dir)
+        fs = WorkspaceFilesystem(root_dir=str(self.workspace_dir))
         flight_dir = self.workspace_dir / ".keelway" / "recordings"
         recorder = FlightRecorder(task_id=self.task_id, recordings_dir=flight_dir)
         bridge = ExternalEditorSyncBridge(workspace_root=self.workspace_dir, debounce_ms=10)

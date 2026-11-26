@@ -43,7 +43,7 @@ _SECRET_KEY = re.compile(r"(?i)(^|[_.-])" + _SECRET_WORD + r"($|[_.-])|(^|[_.-])
 def redact_text(text: str) -> Tuple[str, int]:
     """Return (clean text, number of replacements). Re-redacting clean text changes nothing and counts nothing."""
     clean, findings = DLPScanner.redact(text)
-    count = 0 if clean == text else sum(int(re.search(r"\((\d+) occurrences\)", f).group(1)) for f in findings)  # type: ignore[union-attr]
+    count = 0 if clean == text else sum(int(re.search(r"\((\d+) occurrences\)", f).group(1)) for f in findings)
     for name, pattern in _EXTRA:
         placeholder = f"[REDACTED_{name}]"
         for m in reversed(list(pattern.finditer(clean))):

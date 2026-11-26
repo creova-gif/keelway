@@ -38,7 +38,7 @@ try:
         ResearchSummaryWorkflow,
         SandboxedFailureAnalysisWorkflow,
     )
-    from core.orchestration.chat import InteractiveChatSession
+    from core.orchestration.chat import ConversationMode, InteractiveChatSession, MODE_SYSTEM_PROMPTS
 except ImportError:
     pass
 
@@ -828,13 +828,13 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
     if not report.ok:
         print(f"[-] {path} is not a valid agent manifest ({len(report.errors)} problem(s)).")
         return 1
-    manifest = report.manifest
+    agent_manifest = report.manifest
 
     if action == "validate":
         from core.agents.guard import not_enforced
 
-        print(f"[+] {manifest.name}@{manifest.version} is valid. digest {am.digest(manifest)}")
-        for note in not_enforced(manifest):
+        print(f"[+] {agent_manifest.name}@{agent_manifest.version} is valid. digest {am.digest(agent_manifest)}")
+        for note in not_enforced(agent_manifest):
             print(f"  note: {note}")
         return 0
 
@@ -856,17 +856,17 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
 
     key = am.load_or_create_key(Path.cwd()) if action == "sign" else None
     if action == "sign":
-        signed = am.sign(manifest, key, by or os.environ.get("USER", "unknown"))
+        signed = am.sign(agent_manifest, key, by or os.environ.get("USER", "unknown"))
         target = out or path
         target.write_text(am.to_json(signed), encoding="utf-8")
-        print(f"[+] Signed {manifest.name}@{manifest.version} with key {signed.signature.key_id}; wrote {target}")
+        print(f"[+] Signed {agent_manifest.name}@{agent_manifest.version} with key {signed.signature.key_id}; wrote {target}")
         return 0
     key_path = Path.cwd() / ".keelway" / am.KEY_FILE
     if not key_path.exists():
         print("[-] No signing key in this workspace (.keelway/agent_signing.key), so nothing can be verified here.")
         return 1
-    ok, reason = am.verify(manifest, bytes.fromhex(key_path.read_text().strip()))
-    print(f"[+] Signature valid ({manifest.signature.signed_by}, {manifest.signature.signed_at})" if ok else f"[-] Signature check failed: {reason}")
+    ok, reason = am.verify(agent_manifest, bytes.fromhex(key_path.read_text().strip()))
+    print(f"[+] Signature valid ({agent_manifest.signature.signed_by}, {agent_manifest.signature.signed_at})" if ok else f"[-] Signature check failed: {reason}")
     return 0 if ok else 1
 
 
@@ -2109,7 +2109,7 @@ async def cmd_chat(provider_name: str, system_prompt: str = None, air_gapped: bo
         prov = Provider.LOCAL
 
     style_directive = StyleEngine.get_style_prompt(VoiceStyle(voice_style))
-    combined_prompt = f"{system_prompt or InteractiveChatSession.DEFAULT_SYSTEM_PROMPT}\n\n{style_directive}"
+    combined_prompt = f"{system_prompt or MODE_SYSTEM_PROMPTS[ConversationMode.ASK]}\n\n{style_directive}"
 
     await init_db()
 
@@ -2709,9 +2709,9 @@ def cmd_hub(
                 print(f"    Total Imported: {res.get('total_imported', 0)}")
                 print(f"    Destination:    {res.get('destination_dir')}")
                 print(f"    Catalog Digest: {res.get('catalog_digest_sha256', '')[:16]}…")
-                for s in res.get("imported_skills", []):
-                    appr_str = "APPROVED" if s.get("approved") else "PENDING"
-                    print(f"    • {s['id']:<20} -> {s['destination']} [{appr_str}]")
+                for skill_entry in res.get("imported_skills", []):
+                    appr_str = "APPROVED" if skill_entry.get("approved") else "PENDING"
+                    print(f"    • {skill_entry['id']:<20} -> {skill_entry['destination']} [{appr_str}]")
                 return 0
             except Exception as e:
                 print(f"[-] Mirror import failed: {e}")
@@ -2959,8 +2959,8 @@ def cmd_build(
             desc = plan.modules.get(f, "")
             print(f"  • {f:<24} - {desc}")
         print("\n[+] Verification Plan:")
-        for t in plan.test_plan:
-            print(f"  ✓ {t}")
+        for test_item in plan.test_plan:
+            print(f"  ✓ {test_item}")
         print("=" * 76)
         return 0
 

@@ -17,10 +17,11 @@ import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -122,10 +123,13 @@ async def redeem_pairing_code(
     if record is None or record.used_at is not None or _aware(record.expires_at) <= now:
         return None
     # Conditional on used_at still being empty, so two phones racing on one code can't both win.
-    claimed = await db.execute(
-        update(PairingCodeRecord)
-        .where(PairingCodeRecord.id == record.id, PairingCodeRecord.used_at.is_(None))
-        .values(used_at=now)
+    claimed = cast(
+        CursorResult[Any],
+        await db.execute(
+            update(PairingCodeRecord)
+            .where(PairingCodeRecord.id == record.id, PairingCodeRecord.used_at.is_(None))
+            .values(used_at=now)
+        ),
     )
     if claimed.rowcount != 1:
         return None

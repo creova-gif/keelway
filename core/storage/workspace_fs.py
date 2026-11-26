@@ -433,7 +433,8 @@ class WorkspaceFilesystem:
     def list_worktrees(self) -> Dict[str, Any]:
         """Lists git worktrees; entries under .keelway/worktrees are agent-isolated."""
         res = self._git(["worktree", "list", "--porcelain"])
-        trees, current = [], {}
+        trees: List[Dict[str, Any]] = []
+        current: Dict[str, Any] = {}
         for line in res.stdout.splitlines():
             if line.startswith("worktree "):
                 if current:

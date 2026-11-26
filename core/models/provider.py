@@ -176,7 +176,7 @@ class BaseModelProvider(ABC):
         pass
 
     @abstractmethod
-    async def stream_complete(self, request: ChatCompletionRequest) -> AsyncIterator[StreamChunk]:
+    def stream_complete(self, request: ChatCompletionRequest) -> AsyncIterator[StreamChunk]:
         """Stream generation tokens as an asynchronous generator of StreamChunks."""
         pass
 

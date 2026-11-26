@@ -20,7 +20,7 @@ import re
 import sqlite3
 import threading
 import time
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from core.orchestration.mcp import MCPProtocolServer, PROTOCOL_VERSION
 from core.platform.mcp_client import McpClientError, call_remote_tool
@@ -52,7 +52,7 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _run_coro_sync(coro_factory: Callable[[], Awaitable[_T]]) -> _T:
+def _run_coro_sync(coro_factory: Callable[[], Coroutine[Any, Any, _T]]) -> _T:
     try:
         asyncio.get_running_loop()
     except RuntimeError:

@@ -19,7 +19,7 @@ import tarfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, IO, List, Optional, Set, Tuple, cast
 
 
 EXCLUDED_DIR_NAMES: Set[str] = {
@@ -334,7 +334,7 @@ def build_release_bundle(
             fileobj=raw_f,
             mtime=mtime if deterministic else None,
         ) as gz_f:
-            with tarfile.open(mode="w", fileobj=gz_f) as tar:
+            with tarfile.open(mode="w", fileobj=cast(IO[bytes], gz_f)) as tar:
                 # Add all bundled files in sorted order
                 for b_file in bundled_files:
                     src_path = files_map[b_file.rel_path]

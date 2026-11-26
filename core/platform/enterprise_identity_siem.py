@@ -689,7 +689,7 @@ class EnterpriseIdentitySiemManager:
             row = conn.execute("SELECT * FROM platform_scim_users WHERE workspace_id=? AND id=?", (ws, scim_id)).fetchone()
         if rbac is not None:
             rbac.upsert_member(ws, clean_user, mapped_role if active else "viewer")
-        return self._scim_resource(row)  # type: ignore[arg-type]
+        return self._scim_resource(row)
 
     def patch_scim_user(
         self, workspace_id: str, scim_user_id: str, active: Optional[bool] = None,
@@ -717,7 +717,7 @@ class EnterpriseIdentitySiemManager:
             row = conn.execute("SELECT * FROM platform_scim_users WHERE workspace_id=? AND id=?", (ws, clean_id)).fetchone()
         if rbac is not None:
             rbac.upsert_member(ws, str(existing["user_name"]), next_role if next_active else "viewer")
-        return self._scim_resource(row)  # type: ignore[arg-type]
+        return self._scim_resource(row)
 
     _SCIM_USERNAME_EQ_RE = re.compile(r'^userName\s+eq\s+"([^"]+)"$', re.IGNORECASE)
 

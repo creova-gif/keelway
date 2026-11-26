@@ -23,6 +23,7 @@ from core.api.schemas import MessageSchema
 from core.models.cost_ledger import CostLedger
 from core.models.gateway import ModelGateway
 from core.models.provider import BaseModelProvider, ChatCompletionRequest
+from core.models.registry import ModelCategory
 from core.models.speculative import SpeculativeConfig, SpeculativeDecodingEngine
 from core.security.airgap import AirGapEnforcer
 from core.security.firewall import SecurityGateway
@@ -368,7 +369,7 @@ class MiroFishSwarmHarness:
         )
         cloud_only_req = ChatCompletionRequest(
             model=self.frontier_model,
-            category_preference="closed_proprietary",
+            category_preference=ModelCategory.CLOSED_PROPRIETARY,
             messages=[MessageSchema(role="user", content="Attempt external cloud call during air-gap.")],
         )
         try:

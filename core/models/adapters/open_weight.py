@@ -28,11 +28,10 @@ from core.models.provider import (
     ProviderTimeoutError,
     ModelNotFoundError,
 )
-from core.models.adapters.base import ModelAdapter
 from core.models.adapters.local import LocalAdapter, _recommended_model
 
 
-class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
+class OpenWeightProviderAdapter(BaseModelProvider):
     """Unified Open-Weight Provider Adapter supporting Ollama and vLLM/OpenAI-compatible runtimes."""
 
     provider_id = Provider.LOCAL
@@ -44,7 +43,7 @@ class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
         base_url: Optional[str] = None,
         default_model: Optional[str] = None,
         api: Optional[str] = None,
-        transport: Optional[httpx.BaseTransport] = None,
+        transport: Optional[httpx.AsyncBaseTransport] = None,
     ):
         self._local_adapter = LocalAdapter(base_url=base_url, default_model=default_model, api=api, transport=transport)
         self.base_url = self._local_adapter.base_url
@@ -177,6 +176,7 @@ class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
             yield StreamChunk(
                 id=res.id,
                 model=res.model,
+                provider=self.provider_id,
                 delta_content=res.content,
                 finish_reason="stop",
                 usage=res.usage,

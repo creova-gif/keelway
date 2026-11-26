@@ -225,7 +225,7 @@ class MilestoneM1Runner:
         # Stage 10: View actual results, changed files, logs, and task history
         # -------------------------------------------------------------
         if agent.flight_recorder:
-            tape_path = agent.flight_recorder.save_tape()
+            tape_path = str(agent.flight_recorder.save_tape())
             tape_hash = agent.flight_recorder.tape_sha256
         else:
             tape_path, tape_hash = "none", ""

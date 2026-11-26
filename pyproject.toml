@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 postgres = ["asyncpg"]
-dev = ["pytest", "pytest-asyncio", "ruff"]
+dev = ["pytest", "pytest-asyncio", "ruff", "mypy"]
 
 [project.scripts]
 keelway = "cli:main"
@@ -78,3 +78,13 @@ extend-immutable-calls = [
     "fastapi.Body",
     "core.security.auth.require",
 ]
+
+[tool.mypy]
+# First-gate posture: type errors within core/ are checked with followed
+# imports; third-party without stubs resolves to Any; Optional-handling
+# strictness is a follow-on ratchet (adds ~100 errors of noise today).
+packages = ["core"]
+mypy_path = "."
+ignore_missing_imports = true
+strict_optional = false
+warn_unused_ignores = true

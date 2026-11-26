@@ -492,7 +492,7 @@ class UnifiedWorkspaceHub:
         acceptance_criteria: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
-        prd = {
+        prd: Dict[str, Any] = {
             "id": _next_record_id("PRD", ws["prds"]),
             "title": title.strip(),
             "summary": summary.strip(),
@@ -554,7 +554,7 @@ class UnifiedWorkspaceHub:
         if not (0.0 <= score <= 10.0):
             raise ValueError("Feedback 'impact_score' must be between 0.0 and 10.0.")
         ws = self._ensure_workspace(workspace_id)
-        entry = {
+        entry: Dict[str, Any] = {
             "id": _next_record_id("FB", ws["feedback"]), "persona": clean_persona, "quote": clean_quote,
             "impact_score": score, "linked_prd_id": linked_prd_id, "created_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -597,7 +597,7 @@ class UnifiedWorkspaceHub:
         workspace_id: str = "default",
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
-        wf = {
+        wf: Dict[str, Any] = {
             "id": _next_record_id("WF", ws["workflows"]),
             "name": name.strip(),
             "trigger": trigger,
