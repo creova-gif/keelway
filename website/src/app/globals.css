@@ -50,6 +50,11 @@
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-state: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-release: cubic-bezier(0.7, 0, 0.84, 0);
+
+  /* radii — tailwind borderRadius aliases (dev-app scale: sm=6, md=10, lg=12) */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
 }
 
 html {
