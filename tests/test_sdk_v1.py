@@ -25,7 +25,6 @@ from core.sdk import (
     AsyncKeelwayClient,
     AuthenticationError,
     BudgetExceededError,
-    ConnectionError,
     KeelwayClient,
     KeelwayError,
     PermissionDeniedError,

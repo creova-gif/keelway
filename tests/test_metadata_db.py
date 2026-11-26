@@ -12,8 +12,8 @@ def test_metadata_database_tenant_isolation():
         db = MetadataDatabase(db_path=db_path)
 
         # Create two separate orgs
-        org1 = db.create_organization("org_alpha", region="us-east-1")
-        org2 = db.create_organization("org_beta", region="eu-west-1")
+        db.create_organization("org_alpha", region="us-east-1")
+        db.create_organization("org_beta", region="eu-west-1")
 
         # Create projects in Org 1
         db.create_project("proj_a1", "org_alpha", "github.com/alpha/repo1")

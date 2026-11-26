@@ -8,7 +8,7 @@ import datetime
 import hashlib
 import hmac
 import uuid
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, Optional, Set
 
 from keelway.core.models import DecisionEnum, PolicyDecision, ToolAuthorizationRequest
 

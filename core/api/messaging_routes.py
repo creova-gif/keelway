@@ -57,7 +57,7 @@ async def messaging_test(principal: Principal = Depends(current_principal)) -> D
     try:
         result = await relay.send_test()
     except RelayBlocked as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
     delivered = [name for name, r in result["sent"].items() if r.get("ok")]
     await record_audit(principal, "messaging_test", ",".join(result["sent"]), bool(delivered))
     if not delivered:
@@ -84,8 +84,8 @@ async def whatsapp_webhook(request: Request) -> Dict[str, Any]:
         raise HTTPException(status_code=401, detail="Bad signature.")
     try:
         payload = await request.json()
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid JSON.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON.") from exc
     return {"outcomes": await relay.handle_whatsapp(payload)}
 
 

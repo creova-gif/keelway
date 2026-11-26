@@ -27,7 +27,6 @@ from core.security.tenant_governance import (
     TenantGovernanceEngine,
     TenantPolicy,
     get_governance_controller,
-    tenant_governance,
 )
 
 

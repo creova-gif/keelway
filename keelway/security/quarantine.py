@@ -5,7 +5,7 @@ Implements fail-closed quarantine, credential revocation, and forensic audit ret
 from __future__ import annotations
 
 import datetime
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Optional, Set
 from pydantic import BaseModel
 
 from keelway.audit.recorder import AuditRecorder

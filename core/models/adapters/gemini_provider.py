@@ -196,10 +196,10 @@ class GeminiProviderAdapter(BaseModelProvider, ModelAdapter):
         try:
             async with httpx.AsyncClient(timeout=timeout_val, transport=self._transport) as client:
                 resp = await client.post(url, headers=headers, json=payload)
-        except httpx.TimeoutException:
-            raise ProviderTimeoutError(f"Gemini generation timed out after {timeout_val:.0f}s", provider=self.provider_id)
+        except httpx.TimeoutException as exc:
+            raise ProviderTimeoutError(f"Gemini generation timed out after {timeout_val:.0f}s", provider=self.provider_id) from exc
         except httpx.HTTPError as e:
-            raise ProviderError(f"Failed to connect to Gemini API: {e}", provider=self.provider_id)
+            raise ProviderError(f"Failed to connect to Gemini API: {e}", provider=self.provider_id) from e
 
         latency_ms = (time.perf_counter() - start_time) * 1000.0
 
@@ -306,12 +306,12 @@ class GeminiProviderAdapter(BaseModelProvider, ModelAdapter):
                             finish_reason=finish,
                             usage=usage_dict,
                         )
-        except httpx.TimeoutException:
-            raise ProviderTimeoutError(f"Gemini streaming timed out after {timeout_val:.0f}s", provider=self.provider_id)
+        except httpx.TimeoutException as exc:
+            raise ProviderTimeoutError(f"Gemini streaming timed out after {timeout_val:.0f}s", provider=self.provider_id) from exc
         except (ProviderError, ProviderAuthenticationError, ProviderRateLimitError, ContextLengthExceededError, ProviderTimeoutError):
             raise
         except httpx.HTTPError as e:
-            raise ProviderError(f"Failed to stream from Gemini API: {e}", provider=self.provider_id)
+            raise ProviderError(f"Failed to stream from Gemini API: {e}", provider=self.provider_id) from e
 
     async def health_check(self) -> Dict[str, Any]:
         """Verify provider health, latency, and reachable endpoint."""

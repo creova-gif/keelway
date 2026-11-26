@@ -5,7 +5,6 @@ Unit tests for the Model Gateway and policy routing.
 import sys
 
 import pytest
-from unittest.mock import AsyncMock
 
 from core.api.schemas import (
     CompletionRequestSchema,

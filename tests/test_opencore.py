@@ -19,11 +19,9 @@ from core.opencore.weights import (
     QuantizationLevel,
     WeightFormat,
     WeightManager,
-    weight_manager,
 )
 from core.opencore.serving import (
     OpenCoreServingEngine,
-    OpenCoreWorkerBackend,
     OpenCoreWorkerStatus,
     opencore_serving_engine,
 )

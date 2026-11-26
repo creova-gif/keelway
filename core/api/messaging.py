@@ -4,13 +4,10 @@ Enables developers worldwide to monitor, review, and approve autonomous agent ta
 via Telegram, WhatsApp, USSD/SMS fallback, and the native Keelway Mobile App.
 """
 
-import hmac
-import hashlib
-import json
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
 
 class MessagingChannel(str, Enum):

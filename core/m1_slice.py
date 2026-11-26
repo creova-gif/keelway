@@ -15,20 +15,15 @@ Executes and validates all 10 stages of the end-to-end developer workflow:
 
 from __future__ import annotations
 
-import asyncio
-import os
-import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 from core.storage.workspace_fs import WorkspaceFilesystem
-from core.storage.ast_index import CodebaseSemanticIndex
 from core.storage.database import check_db_health, init_db
-from core.orchestration.flight_recorder import FlightRecorder
 from core.orchestration.project_adapter import ProjectAdapter
 
 
@@ -115,7 +110,7 @@ class MilestoneM1Runner:
             await init_db()
             db_ok = await check_db_health()
         assert db_ok is True, "Keelway database connection failed."
-        self.log(1, "Launch Keelway", f"Core engine initialized. Database: healthy. WAL mode active.")
+        self.log(1, "Launch Keelway", "Core engine initialized. Database: healthy. WAL mode active.")
         self.results["stage_1_launch"] = {"status": "ok", "db_connected": db_ok}
 
         # -------------------------------------------------------------
@@ -199,7 +194,7 @@ class MilestoneM1Runner:
         approval_res = await agent.approve_pending(approved=True)
         assert approval_res["status"] == "success"
         assert approval_res["tool"] == "edit_file"
-        self.log(7, "Authorize Edit", f"Human approval granted. Mutating tool authorized for execution.")
+        self.log(7, "Authorize Edit", "Human approval granted. Mutating tool authorized for execution.")
         self.results["stage_7_approval"] = {"approved": True, "result": approval_res["status"]}
 
         # -------------------------------------------------------------

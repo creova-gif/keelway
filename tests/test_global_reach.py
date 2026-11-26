@@ -1,5 +1,5 @@
 import pytest
-from core.storage.crdt import LocalFirstSyncEngine, CRDTMutation
+from core.storage.crdt import LocalFirstSyncEngine
 from core.api.telephony import TelephonyAdapter
 from core.orchestration.mesh import AgentMeshDispatcher, AgentRole
 

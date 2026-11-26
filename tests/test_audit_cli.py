@@ -2,10 +2,8 @@
 Tests for unified Keelway Audit CLI: export, verify, and head anchoring commands.
 """
 import pytest
-from pathlib import Path
 
 from cli import cmd_record
-from core.security import record_format as rf
 
 
 @pytest.mark.asyncio

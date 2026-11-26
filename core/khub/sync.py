@@ -187,10 +187,10 @@ class KHubBundlePacker:
                 if not mf_file:
                     raise ValueError("skill_manifest.json not found in archive.")
                 manifest: Dict[str, Any] = json.loads(mf_file.read().decode("utf-8"))
-            except (KeyError, AttributeError):
-                raise ValueError("skill_manifest.json not found in archive.")
+            except (KeyError, AttributeError) as exc:
+                raise ValueError("skill_manifest.json not found in archive.") from exc
             except Exception as e:
-                raise ValueError(f"Corrupted or invalid skill_manifest.json: {e}")
+                raise ValueError(f"Corrupted or invalid skill_manifest.json: {e}") from e
 
             # 3. Extract all files safely
             for member in tar.getmembers():

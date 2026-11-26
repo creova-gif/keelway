@@ -3,8 +3,6 @@ Unit and integration tests for Keelway Multi-Agent Crew Orchestration.
 """
 
 import pytest
-import tempfile
-from pathlib import Path
 from httpx import ASGITransport, AsyncClient
 
 from core.main import app
@@ -16,7 +14,6 @@ from core.orchestration.multi_agent import (
     MultiAgentCoordinator,
 )
 from core.storage.workspace_fs import WorkspaceFilesystem
-from core.security.firewall import SecurityGateway
 
 
 def test_plan_team_workflow_acyclic_topological_sort(tmp_path):

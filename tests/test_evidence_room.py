@@ -3,13 +3,10 @@ Unit and Integration Tests for Keelway Investor & Audit Evidence Room (WP21).
 """
 import copy
 import json
-import pytest
-from pathlib import Path
 from fastapi.testclient import TestClient
 
 from core.main import app
 from core.eval.evidence_room import (
-    EvidenceMetric,
     EvidenceRoomPackage,
     EvidenceRoomPipeline,
 )

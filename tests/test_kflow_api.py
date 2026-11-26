@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.main import app
-from core.kflow import kflow_engine, FlowNode, FlowStatus
+from core.kflow import kflow_engine
 
 
 @pytest.fixture(autouse=True)

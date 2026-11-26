@@ -14,14 +14,11 @@ from pydantic import BaseModel
 from keelway.api.governance_auth import require_governance_actor
 from keelway.approvals.service import ApprovalDecision
 from keelway.audit.export import AuditExporter, ExportBundle
-from keelway.audit.recorder import verify_audit_chain
 from keelway.audit.store import SQLiteAuditStore
 from keelway.core.models import (
-    ApprovalRequest,
     AuditEvent,
     DeploymentRequest,
     DeploymentResult,
-    EvalResult,
     PolicyDecision,
     PullRequestRequest,
     PullRequestResult,
@@ -98,7 +95,7 @@ def create_run(req: CreateRunRequest, _actor: str = Depends(require_governance_a
             "message": "Run started successfully" if ok else msg,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/runs/{run_id}", response_model=RunManifest)
@@ -263,8 +260,8 @@ async def github_webhook(
 
     try:
         payload = json.loads(body_bytes.decode("utf-8"))
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
 
     ok, kind, data = SHARED_WEBHOOK_HANDLER.process_event(x_github_event or "ping", payload)
     return {

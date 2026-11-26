@@ -4,14 +4,10 @@ Verifies registration, querying, filtering, and metadata validation for both
 Open-Weight and Closed/Proprietary models.
 """
 
-import pytest
 from core.models.registry import (
     ModelRegistry,
-    ModelMetadata,
     ModelCategory,
     ModelFamily,
-    DeploymentType,
-    CANONICAL_MODELS,
 )
 from core.api.schemas import Provider
 

@@ -6,8 +6,6 @@ Enforces 150ms debouncing and Pessimistic Pause & Prompt on concurrent agent/hum
 
 from __future__ import annotations
 
-import asyncio
-import os
 import shutil
 import subprocess
 import time
@@ -73,8 +71,8 @@ class ExternalEditorSyncBridge:
         target = (self.workspace_root / relative_path).resolve()
         try:
             target.relative_to(self.workspace_root)
-        except ValueError:
-            raise ValueError(f"Path traversal detected: '{relative_path}' escapes workspace root.")
+        except ValueError as exc:
+            raise ValueError(f"Path traversal detected: '{relative_path}' escapes workspace root.") from exc
         return target
 
     def detect_available_editors(self) -> List[str]:

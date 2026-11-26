@@ -6,10 +6,9 @@ Enables autonomous collaboration between specialized agent personas:
 - VerificationEngineerAgent (Isolated test validation)
 """
 
-import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import uuid
 
 

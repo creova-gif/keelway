@@ -146,7 +146,7 @@ class KFlowEngine:
                     node.result = {"error": str(e)}
                     dag.status = FlowStatus.FAILED
                     self._checkpoint(dag)
-                    raise e
+                    raise e from e
                 finally:
                     node.completed_at_epoch = time.time()
                     self._checkpoint(dag)

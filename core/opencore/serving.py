@@ -15,7 +15,7 @@ from enum import Enum
 from typing import AsyncIterator, Dict, List, Optional
 from pydantic import BaseModel
 
-from core.api.schemas import Provider, MessageSchema
+from core.api.schemas import Provider
 from core.models.registry import ModelCategory
 from core.models.provider import (
     ChatCompletionRequest,
@@ -27,7 +27,6 @@ from core.opencore.weights import (
     HardwareProfiler,
     QuantizationLevel,
     WeightManager,
-    WeightManifest,
     weight_manager,
 )
 from core.opencore.runtime import (

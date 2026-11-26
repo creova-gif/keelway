@@ -2,7 +2,6 @@
 Validates human-in-the-loop gating, agent self-approval prevention, patch hash binding,
 and single-use consumption.
 """
-import time
 from keelway.approvals.service import ApprovalDecision, ApprovalService
 
 _FIXTURE_KEY = b"package-c-explicit-approval-fixture-key"

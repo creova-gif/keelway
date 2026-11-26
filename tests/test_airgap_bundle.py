@@ -3,15 +3,13 @@ Tests for Keelway Sovereign Air-Gap & Zero-Egress Suite (WP15 / Section 15).
 Verifies 5-point pre-flight compliance audit, cryptographic attestation generation,
 self-contained bundle packaging, SHA256SUMS root digests, and tamper detection.
 """
-import os
-import json
 from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
 from core.security.airgap import AirGapEnforcer, AirGapViolationError
-from core.security.airgap_auditor import AirGapAuditor, AirGapAuditReport
-from core.security.bundle_exporter import AirGapBundleExporter, BundleExportReceipt, BundleVerificationResult
+from core.security.airgap_auditor import AirGapAuditor
+from core.security.bundle_exporter import AirGapBundleExporter
 from core.api.schemas import Provider
 from core.main import app
 

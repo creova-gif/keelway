@@ -5,8 +5,6 @@ and CycloneDX SBOM / Supply Chain Provenance (WP16, WP17, WP20).
 import hashlib
 import json
 import time
-import pytest
-from pathlib import Path
 
 from core.billing.entitlements import (
     EntitlementCertificate,

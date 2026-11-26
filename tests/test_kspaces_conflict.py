@@ -6,7 +6,6 @@ REST API (/conflicts/check, /conflicts/resolve, /timeline), and CLI dispatch.
 
 from __future__ import annotations
 
-import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -15,7 +14,7 @@ from httpx import ASGITransport, AsyncClient
 
 from cli import build_parser, cmd_space
 from core.api import routes
-from core.kspaces.conflict import ConflictDetector, ConflictHunk, ConflictReport
+from core.kspaces.conflict import ConflictDetector
 from core.kspaces.manager import KSpacesManager, kspaces_manager
 from core.main import app
 from core.storage.workspace_fs import WorkspaceFilesystem

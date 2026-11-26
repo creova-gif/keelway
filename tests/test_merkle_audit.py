@@ -10,7 +10,6 @@ import hashlib
 import json
 import shutil
 import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -20,7 +19,6 @@ from core.api import routes
 from core.main import app
 from core.security.merkle_audit import AuditMerkleTree, EnterpriseAuditExporter
 from core.storage.database import AsyncSessionLocal, init_db
-from core.storage.models import AuditEventRecord
 from core.storage.workspace_fs import WorkspaceFilesystem
 
 

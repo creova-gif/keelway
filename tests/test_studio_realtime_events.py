@@ -16,7 +16,6 @@ import asyncio
 import json
 import threading
 import time
-from pathlib import Path
 from typing import List, Dict, Any
 
 import pytest
@@ -27,9 +26,7 @@ from core.api.routes import (
     ws_manager,
     PROOF_STRIP_STAGES,
     map_to_proof_stage,
-    _active_agent_loops,
 )
-from core.models.gateway import gateway
 from core.security.auth import launch_token
 from core.storage.workspace_fs import WorkspaceFilesystem
 

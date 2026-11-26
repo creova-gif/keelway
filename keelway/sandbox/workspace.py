@@ -54,7 +54,7 @@ class WorkspaceManager:
             )
             return res.stdout.strip()
         except subprocess.SubprocessError as e:
-            raise WorkspaceError(f"Failed to resolve HEAD commit: {e}")
+            raise WorkspaceError(f"Failed to resolve HEAD commit: {e}") from e
 
     def create_worktree(self, run_id: str) -> str:
         """Creates an isolated git workspace attached to the immutable base commit.
@@ -86,7 +86,7 @@ class WorkspaceManager:
                 return self.worktree_path
 
             # 2. Fallback: standard git worktree add
-            res_wt = subprocess.run(
+            subprocess.run(
                 ["git", "worktree", "add", "--detach", temp_dir, self.base_commit_sha],
                 cwd=self.repo_path,
                 capture_output=True,
@@ -100,7 +100,7 @@ class WorkspaceManager:
         except subprocess.SubprocessError as e:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir, ignore_errors=True)
-            raise WorkspaceError(f"Failed to create isolated workspace at {self.base_commit_sha}: {e}")
+            raise WorkspaceError(f"Failed to create isolated workspace at {self.base_commit_sha}: {e}") from e
 
     def write_file(self, relative_path: str, content: str) -> None:
         """Writes a file within the isolated worktree directory."""
@@ -138,7 +138,7 @@ class WorkspaceManager:
             )
             return res.stdout
         except subprocess.SubprocessError as e:
-            raise WorkspaceError(f"Failed to generate git diff: {e}")
+            raise WorkspaceError(f"Failed to generate git diff: {e}") from e
 
     def get_patch_hash(self) -> str:
         """Computes SHA-256 hash of the unified git diff."""

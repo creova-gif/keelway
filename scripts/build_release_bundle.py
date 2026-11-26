@@ -13,11 +13,10 @@ import gzip
 import hashlib
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tarfile
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple

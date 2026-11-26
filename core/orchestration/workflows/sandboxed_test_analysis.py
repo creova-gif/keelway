@@ -6,9 +6,8 @@ Executes tests in an isolated execution sandbox and performs LLM failure root-ca
 
 import asyncio
 import os
-import sys
 import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +19,7 @@ from core.api.schemas import (
 )
 from core.models.gateway import gateway as default_gateway, ModelGateway
 from core.orchestration.state import TaskState
-from core.storage.models import TaskRecord, EvidenceRecord
+from core.storage.models import TaskRecord
 
 
 class SandboxExecutionError(Exception):
@@ -59,10 +58,10 @@ class SandboxedFailureAnalysisWorkflow:
                 process.communicate(),
                 timeout=timeout_seconds,
             )
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as exc:
             process.kill()
             await process.wait()
-            raise SandboxExecutionError(f"Test execution exceeded {timeout_seconds}s sandbox timeout.")
+            raise SandboxExecutionError(f"Test execution exceeded {timeout_seconds}s sandbox timeout.") from exc
 
         duration_ms = (time.perf_counter() - start_time) * 1000.0
 

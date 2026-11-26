@@ -8,18 +8,16 @@ import difflib
 import hashlib
 import json
 import re
-import shlex
 import subprocess
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable, Awaitable
 
 from core.agents.sandbox import CommandExecutionUnavailable
-from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
+from core.storage.workspace_fs import WorkspaceFilesystem
 from core.storage.ast_index import CodebaseSemanticIndex
-from core.orchestration.flight_recorder import FlightRecorder, FlightEvent
+from core.orchestration.flight_recorder import FlightRecorder
 from keelway.core.models import DecisionEnum, ToolAuthorizationRequest
 
 

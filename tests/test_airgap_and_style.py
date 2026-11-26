@@ -1,10 +1,8 @@
 import pytest
-from core.api.schemas import Provider, CompletionResponseSchema, CompletionRequestSchema, MessageSchema
+from core.api.schemas import Provider
 from core.security.airgap import AirGapEnforcer, AirGapViolationError
-from core.security.style import StyleEngine, VoiceStyle
+from core.security.style import StyleEngine
 from core.storage.ledger import SovereignLedger
-from core.models.gateway import ModelGateway
-from unittest.mock import AsyncMock
 
 
 def test_airgap_enforcer_blocks_cloud_providers():

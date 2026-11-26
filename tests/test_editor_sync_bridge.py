@@ -11,11 +11,10 @@ Verifies:
 
 import time
 import pytest
-from pathlib import Path
 from starlette.testclient import TestClient
 
 from core.main import app
-from core.sync.bridge import ExternalEditorSyncBridge, ConcurrentEditConflict
+from core.sync.bridge import ExternalEditorSyncBridge
 from core.orchestration.flight_recorder import FlightRecorder
 
 

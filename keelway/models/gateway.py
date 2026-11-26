@@ -109,7 +109,7 @@ class ModelGateway:
                         "provider": self.provider.value,
                     }
             except Exception as e:
-                raise ModelGatewayError(f"Ollama generation failed: {e}")
+                raise ModelGatewayError(f"Ollama generation failed: {e}") from e
 
         elif self.provider in (ProviderKind.LOCAL_VLLM, ProviderKind.OPENAI_COMPATIBLE):
             url = f"{self.endpoint_url}/v1/chat/completions"
@@ -139,6 +139,6 @@ class ModelGateway:
                         "provider": self.provider.value,
                     }
             except Exception as e:
-                raise ModelGatewayError(f"OpenAI/vLLM completion failed: {e}")
+                raise ModelGatewayError(f"OpenAI/vLLM completion failed: {e}") from e
 
         raise ModelGatewayError(f"Unsupported provider: {self.provider}")

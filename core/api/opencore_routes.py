@@ -36,7 +36,6 @@ from core.opencore.runtime import (
     LoRAAdapterRecord,
     OpenCoreModelfileCompiler,
     build_ollama_create_command,
-    lora_adapter_registry,
 )
 
 router = APIRouter(prefix="/v1/opencore", tags=["OpenCore"])
@@ -148,7 +147,7 @@ async def load_model_checkpoint(req: LoadModelRequest) -> LoadedModelInfo:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to load OpenCore model '{req.model_id}': {str(e)}",
-        )
+        ) from e
 
 
 @router.post("/models/unload")

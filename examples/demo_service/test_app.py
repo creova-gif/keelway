@@ -1,4 +1,3 @@
-import pytest
 from app import health_check, calculate_discount
 
 def test_health_check():

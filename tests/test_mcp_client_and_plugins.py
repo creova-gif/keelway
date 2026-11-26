@@ -3,18 +3,14 @@ Tests for Keelway Universal Model Context Protocol (MCP) Client & Plugin Extensi
 Validates JSON-RPC handshake, tool discovery, tool invocation, stdio transports,
 PluginManifest digest integrity, PluginManager lifecycle, agent loop tool mounting, and API endpoints.
 """
-import asyncio
-import json
-import os
 import sys
-from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
 from core.orchestration.mcp import MCPProtocolServer
-from core.orchestration.mcp_client import MCPClient, MCPClientManager, DiscoveredMCPTool
+from core.orchestration.mcp_client import MCPClient, MCPClientManager
 from core.plugins.manifest import PluginManifest, PluginPermissions
-from core.plugins.manager import PluginManager, PluginRecord
+from core.plugins.manager import PluginManager
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 from core.storage.workspace_fs import WorkspaceFilesystem
 from core.main import app

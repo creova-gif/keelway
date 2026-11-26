@@ -13,8 +13,6 @@ criterion "launch produces a normalized event stream" requires.
 
 from __future__ import annotations
 
-import json
-import queue
 import subprocess
 import threading
 import time

@@ -3,8 +3,6 @@ Unit tests for Keelway AutonomousAgentLoop.
 Tests tool execution, planning state machine, human-in-the-loop approval, and flight recording.
 """
 
-import asyncio
-import os
 import shutil
 import tempfile
 import unittest

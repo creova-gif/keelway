@@ -26,7 +26,7 @@ from core.models.provider import (
     ProviderRateLimitError,
     ContextLengthExceededError,
 )
-from core.models.adapters.anthropic_provider import AnthropicProviderAdapter, ANTHROPIC_RATES
+from core.models.adapters.anthropic_provider import AnthropicProviderAdapter
 
 
 @pytest.mark.asyncio

@@ -17,10 +17,8 @@ from core.models.provider import (
     ProviderAuthenticationError,
     ProviderRateLimitError,
     ContextLengthExceededError,
-    ProviderTimeoutError,
-    ProviderError,
 )
-from core.models.adapters.gemini_provider import GeminiProviderAdapter, GEMINI_RATES
+from core.models.adapters.gemini_provider import GeminiProviderAdapter
 
 
 @pytest.mark.asyncio

@@ -4,7 +4,7 @@ Standard library unit tests for Keelway Peer-to-Peer Local Team Mesh.
 
 import time
 import unittest
-from core.orchestration.p2p_mesh import LocalTeamMesh, MeshPeer
+from core.orchestration.p2p_mesh import LocalTeamMesh
 
 
 """
@@ -12,10 +12,8 @@ Standard library unit tests for Keelway Peer-to-Peer Local Team Mesh.
 """
 
 import tempfile
-import time
-import unittest
 from pathlib import Path
-from core.orchestration.p2p_mesh import LocalTeamMesh, MeshPeer, get_shared_mesh
+from core.orchestration.p2p_mesh import get_shared_mesh
 
 
 class TestLocalTeamMesh(unittest.TestCase):
@@ -86,7 +84,7 @@ class TestLocalTeamMesh(unittest.TestCase):
 
     def test_prune_expired_peers(self):
         mesh = LocalTeamMesh()
-        p1 = mesh.register_peer("peer_alive", "alive.local", "192.168.1.2", 7420, 8192)
+        mesh.register_peer("peer_alive", "alive.local", "192.168.1.2", 7420, 8192)
         p2 = mesh.register_peer("peer_dead", "dead.local", "192.168.1.3", 7420, 8192)
         p2.last_heartbeat = time.time() - 60.0
 

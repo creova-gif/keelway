@@ -9,7 +9,6 @@ against real data. Read-only; never executes scanned code.
 from __future__ import annotations
 
 import ast
-import json
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path

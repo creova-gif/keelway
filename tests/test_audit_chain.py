@@ -1,7 +1,6 @@
 """Tests for Keelway Audit Chain (FR-05, FR-09).
 Validates tamper-evident hash chaining, payload digests, and fail-closed integrity checks.
 """
-import copy
 from keelway.audit.recorder import AuditRecorder, verify_audit_chain, GENESIS_PREV_HASH
 
 

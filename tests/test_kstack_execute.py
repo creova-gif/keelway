@@ -162,7 +162,6 @@ def test_sync_dispatch_fails_closed_on_awaitable():
     )
     assert proof.success is False
     assert "awaitable" in proof.outputs["error"]
-    coro = None
     # ensure no leaked coroutine warnings path: the recorded error is the honest result
     assert len(proof.signature_sha256) == 64
 

@@ -8,16 +8,13 @@ path containment and security verification.
 from __future__ import annotations
 
 import json
-import os
-import subprocess
-import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
+from core.storage.workspace_fs import WorkspaceSecurityError
 from core.orchestration.project_adapter import ProjectAdapter
 
 

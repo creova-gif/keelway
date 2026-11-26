@@ -3,7 +3,6 @@ Tests for Keelway Terminal Execution, Dynamic Plan Formulation, and Task Cancell
 """
 
 import time
-import pytest
 from starlette.testclient import TestClient
 
 from core.main import app

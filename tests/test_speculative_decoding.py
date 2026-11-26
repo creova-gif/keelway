@@ -15,7 +15,7 @@ import pytest
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from core.api.schemas import MessageSchema, Provider
-from core.models.cost_ledger import CostLedger, MODEL_RATE_CARDS
+from core.models.cost_ledger import CostLedger
 from core.models.provider import (
     BaseModelProvider,
     ChatCompletionRequest,

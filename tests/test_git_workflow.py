@@ -2,7 +2,6 @@
 Tests for Keelway Local Git Governance, Semantic Commit Proposals, and PR Preparation (WP12).
 """
 import subprocess
-from pathlib import Path
 import pytest
 from starlette.testclient import TestClient
 

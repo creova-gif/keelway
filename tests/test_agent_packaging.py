@@ -1,6 +1,5 @@
 """Unit and integration tests for Keelway Agent Bundle Packaging and Verification."""
 import json
-import os
 import shutil
 import tarfile
 import tempfile
@@ -8,7 +7,7 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from core.agents.builder import AgentBuilder, AgentBundlePacker
+from core.agents.builder import AgentBundlePacker
 from core.main import app
 from core.api.routes import set_workspace_fs
 from core.storage.workspace_fs import WorkspaceFilesystem

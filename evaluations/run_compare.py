@@ -7,8 +7,6 @@ Compares frontier models against local/open-weight models on a standardized engi
 import argparse
 import asyncio
 import json
-import os
-import sys
 from pathlib import Path
 from typing import Dict, Any, List
 

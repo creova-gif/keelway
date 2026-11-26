@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient
 
 from core.main import app
 from core.api.schemas import Provider
-from core.models.cost_ledger import CostLedger, LedgerEntry, cost_ledger
+from core.models.cost_ledger import CostLedger, cost_ledger
 
 
 def test_local_model_inference_zero_cloud_cost_with_arbitrage_savings():

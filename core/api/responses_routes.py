@@ -360,7 +360,7 @@ async def create_response(request: ResponsesCreateRequest):
         raise
     except Exception as exc:
         logger.warning("Responses inference failure", exc_info=exc)
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=public_inference_detail(exc))
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=public_inference_detail(exc)) from exc
 
     if request.store:
         response_store.save(resp_id, resp_obj, full_messages + [MessageSchema(role="assistant", content=resp_obj["output_text"])])
@@ -462,7 +462,7 @@ async def run_swarm_evaluation(request: SwarmEvalRequest) -> Dict[str, Any]:
         report = await harness.run_full_experiment(seed_text=request.seed_text, simulation_goal=request.simulation_goal, entities_spec=request.entities_spec, rounds=request.rounds, injected_event=request.injected_event)
     except Exception as exc:
         logger.warning("Swarm evaluation failed", exc_info=exc)
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=public_inference_detail(exc))
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=public_inference_detail(exc)) from exc
     clean_eps = [{**ep, "content": _clean_text(ep["content"][0] if isinstance(ep.get("content"), (tuple, list)) and ep["content"] else str(ep.get("content", "")))} for ep in report.episodes]
     return {
         "mode": request.mode, "graph_id": report.graph_id, "ontology": report.ontology,

@@ -7,9 +7,8 @@ by attaching isolated disposable worktrees to the local repository.
 import asyncio
 import os
 import shutil
-import tempfile
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Optional, Tuple
 
 
 class WorktreeSession:

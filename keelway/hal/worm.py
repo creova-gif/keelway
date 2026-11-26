@@ -4,11 +4,9 @@ Implements ADR-076 through ADR-080, and the normative schema defined in
 """
 from __future__ import annotations
 
-import datetime
 import hashlib
-import hmac
-from typing import Dict, List, Optional, Tuple
-from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import BaseModel
 
 
 class SignedWormDurableReceipt(BaseModel):

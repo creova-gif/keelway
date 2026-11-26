@@ -3,17 +3,10 @@ Tests for Keelway Prompt-to-App Guided Builder (WP09 / Section 12).
 Verifies template catalog, architecture plan synthesis, step formulation,
 end-to-end project scaffolding, automated pytest verification, and flight tape sealing.
 """
-import json
 from pathlib import Path
-import pytest
 from fastapi.testclient import TestClient
 
 from core.orchestration.guided_builder import (
-    APP_TEMPLATES,
-    AppArchitecturePlan,
-    AppTaskStep,
-    AppVerificationResult,
-    AppBuildReceipt,
     GuidedAppBuilder,
 )
 from core.main import app

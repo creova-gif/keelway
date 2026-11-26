@@ -82,7 +82,7 @@ def _seg(value: str, field_name: str) -> str:
 
 def _http_client(keelway_client: Any) -> Any:
     http = getattr(keelway_client, "_http", None)
-    return http if http is not None else getattr(keelway_client, "_client")
+    return http if http is not None else keelway_client._client
 
 
 def _raise_stream_error(res: httpx.Response) -> None:

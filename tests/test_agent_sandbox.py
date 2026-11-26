@@ -235,7 +235,7 @@ def test_commands_are_not_run_through_a_shell(ws):
 def test_timeout_kills_the_whole_process_group(ws):
     sb = Sandbox(ws / "ws")
     marker = ws / "ws" / "still_running.txt"
-    code = f"import subprocess,time;subprocess.Popen(['/bin/sh','-c','sleep 3; echo x > still_running.txt']);time.sleep(30)"
+    code = "import subprocess,time;subprocess.Popen(['/bin/sh','-c','sleep 3; echo x > still_running.txt']);time.sleep(30)"
     start = time.time()
     res = sb.run(f"{PY} -c \"{code}\"", timeout=1)
     assert res.timed_out and time.time() - start < 10
@@ -623,7 +623,7 @@ def test_bubblewrap_commands_are_not_run_through_a_shell(ws):
 def test_bubblewrap_timeout_kills_the_whole_process_group(ws):
     sb = Sandbox(ws / "ws", backend="bubblewrap")
     marker = ws / "ws" / "still_running.txt"
-    code = f"import subprocess,time;subprocess.Popen(['/bin/sh','-c','sleep 3; echo x > still_running.txt']);time.sleep(30)"
+    code = "import subprocess,time;subprocess.Popen(['/bin/sh','-c','sleep 3; echo x > still_running.txt']);time.sleep(30)"
     start = time.time()
     res = sb.run(f"{PY} -c \"{code}\"", timeout=1)
     assert res.timed_out and time.time() - start < 10

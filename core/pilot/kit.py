@@ -8,7 +8,7 @@ import hashlib
 import json
 import subprocess
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -298,7 +298,7 @@ class PilotSimulationEngine:
         tests_passed = (test_rc == 0)
 
         # Stage 6: Seal flight recorder tape
-        tape_path = recorder.save_tape()
+        recorder.save_tape()
         sealed_recorder = recorder.seal_tape()
 
         now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())

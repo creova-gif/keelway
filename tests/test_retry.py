@@ -5,7 +5,6 @@ import pytest
 
 from keelway.core.retry import (
     IdempotentRetryHandler,
-    MaxRetriesExceededError,
     NonIdempotentRetryError,
 )
 

@@ -6,7 +6,6 @@ auto-detecting hardware capabilities to run $0.00 local inference on any laptop.
 
 import os
 import platform
-import shutil
 import urllib.request
 from dataclasses import dataclass
 from enum import Enum
@@ -70,13 +69,10 @@ class EdgeRuntimeManager:
 
         # Select model tier based on RAM
         if ram_gb < 8:
-            tier = "budget"
             model_tag = "qwen2.5-coder:1.5b"
         elif ram_gb < 24:
-            tier = "standard"
             model_tag = "qwen2.5-coder:7b"
         else:
-            tier = "workstation"
             model_tag = "qwen2.5-coder:14b"
 
         return HardwareProfile(

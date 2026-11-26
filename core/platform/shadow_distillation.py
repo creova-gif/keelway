@@ -146,8 +146,8 @@ def _compute_parity_score(scrubbed_frontier: str, scrubbed_local: str) -> float:
     token_jaccard = (len(tokens_f & tokens_l) / token_union) if token_union else 0.0
     len_ratio = min(len(f_clean), len(l_clean)) / max(len(f_clean), len(l_clean))
     vec_f, vec_l = [f_clean.count(s) for s in _STRUCT_SYMBOLS], [l_clean.count(s) for s in _STRUCT_SYMBOLS]
-    denom = sum(max(a, b) for a, b in zip(vec_f, vec_l))
-    struct_score = 1.0 if denom == 0 else (1.0 - (sum(abs(a - b) for a, b in zip(vec_f, vec_l)) / denom))
+    denom = sum(max(a, b) for a, b in zip(vec_f, vec_l, strict=True))
+    struct_score = 1.0 if denom == 0 else (1.0 - (sum(abs(a - b) for a, b in zip(vec_f, vec_l, strict=True)) / denom))
     return round(max(0.0, min(1.0, (0.55 * token_jaccard) + (0.25 * len_ratio) + (0.20 * struct_score))), 4)
 
 

@@ -5,19 +5,18 @@ manifest compilation, test harness execution, and evaluation receipt issuance.
 """
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import os
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from core.agents import manifest as am
-from core.agents.spec import AgentParam, AgentSpec, EvaluationCriteria, StateContract
+from core.agents.spec import AgentSpec, EvaluationCriteria
 from core.agents.registry import register_manifest
 from core.storage.database import init_db, AsyncSessionLocal
 from core.security.env_scrub import scrub_env
@@ -463,7 +462,7 @@ class AgentBundlePacker:
                     raise ValueError("bundle_manifest.json not found in archive.")
                 bundle_manifest = json.loads(bm_file.read().decode("utf-8"))
             except Exception as e:
-                raise ValueError(f"Corrupted or missing bundle_manifest.json: {e}")
+                raise ValueError(f"Corrupted or missing bundle_manifest.json: {e}") from e
 
             try:
                 if sys.version_info >= (3, 12):

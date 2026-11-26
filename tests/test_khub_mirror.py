@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import pytest
 
-from core.khub.sync import KHubBundlePacker, KHubMirror
+from core.khub.sync import KHubMirror
 from cli import cmd_hub
 
 

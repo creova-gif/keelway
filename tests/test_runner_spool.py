@@ -15,7 +15,7 @@ from starlette.testclient import TestClient
 from cli import build_parser, cmd_runner
 from core.api import routes
 from core.main import app
-from core.runner import RunnerSpoolManager, SpoolBatchReceipt, SpoolItem
+from core.runner import RunnerSpoolManager, SpoolBatchReceipt
 from core.storage.workspace_fs import WorkspaceFilesystem
 
 

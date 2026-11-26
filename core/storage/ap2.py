@@ -5,9 +5,8 @@ and offline/regional voucher settlement without requiring USD credit cards.
 """
 
 import hashlib
-import json
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Any, List, Optional
 

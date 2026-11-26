@@ -10,7 +10,7 @@ import time
 import uuid
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 from core.kbrain.models import FactRecord, FactStatus, KnowledgeScope
 
