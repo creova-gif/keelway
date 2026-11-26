@@ -6,10 +6,9 @@ Safely imports skills from .claude/skills, .cursor/skills, .cursor/rules, .agent
 from __future__ import annotations
 
 import hashlib
-import os
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from core.khub.models import ImportedSkill, SkillSourceType
 

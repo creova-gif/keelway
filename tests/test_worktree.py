@@ -3,11 +3,9 @@ Tests for Keelway Ephemeral Git Worktree Manager (core/orchestration/worktree.py
 Ensures safe, isolated execution for parallel AI agent tasks.
 """
 
-import os
 import subprocess
 import pytest
-from pathlib import Path
-from core.orchestration.worktree import EphemeralWorktreeManager, WorktreeSession
+from core.orchestration.worktree import EphemeralWorktreeManager
 
 
 @pytest.mark.asyncio

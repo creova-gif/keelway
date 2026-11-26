@@ -11,7 +11,6 @@ import json
 import os
 import stat
 import sys
-import textwrap
 from pathlib import Path
 
 import pytest

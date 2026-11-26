@@ -4,7 +4,7 @@ Conforms strictly to PRD-001 and API/Data Contracts specification.
 from __future__ import annotations
 
 import enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 

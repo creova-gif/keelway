@@ -5,7 +5,6 @@ Tests active credentials against Anthropic, Google Gemini, and OpenAI endpoints.
 """
 
 import asyncio
-import os
 import sys
 from pathlib import Path
 
@@ -16,7 +15,6 @@ from core.config import settings
 from core.api.schemas import (
     CompletionRequestSchema,
     MessageSchema,
-    Provider,
 )
 from core.models.adapters.anthropic import AnthropicAdapter
 from core.models.adapters.gemini import GeminiAdapter

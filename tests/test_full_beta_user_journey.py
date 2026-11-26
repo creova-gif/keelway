@@ -24,8 +24,6 @@ Full Beta Autonomous Engineering Directive:
 20. Export or retain ownership of project source code.
 """
 
-import os
-import json
 import uuid
 import subprocess
 from pathlib import Path

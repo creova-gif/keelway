@@ -5,10 +5,8 @@ Implements vendor-neutral observability conforming to OpenTelemetry 2026 specs:
 - Privacy-safe tracing (scrubs prompt text unless explicitly opted-in)
 """
 
-import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 
 

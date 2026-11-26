@@ -4,7 +4,6 @@ Covers cross-file references, call hierarchy, module dependency graphs, symbol s
 """
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from core.main import app

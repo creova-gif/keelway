@@ -5,9 +5,7 @@ and strict 72-hour maximum CRL staleness cap from thisUpdate.
 from __future__ import annotations
 
 import datetime
-import hashlib
-import hmac
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Optional, Set, Tuple
 from pydantic import BaseModel, Field
 
 MAX_CRL_AGE_SECONDS = 72 * 3600  # 259,200 seconds (ADR-053 strict cap)

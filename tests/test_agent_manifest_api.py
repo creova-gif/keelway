@@ -7,7 +7,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.agents import manifest as am
-from core.agents.sandbox import SeatbeltBackend
 from core.config import settings
 from core.main import app
 from core.security.auth import launch_token
@@ -67,7 +66,7 @@ def test_manifest_run_binds_the_agent_and_audits_the_start_with_the_digest(clien
     assert body["state"]["manifest"]["name"] == "test-fixer"
     started = audit(client, "agent_run_manifest")
     assert started and started[0]["allowed"] is True and digest in started[0]["resource"]
-    assert client.get(f"/v1/agent/status/m1").json()["manifest"]["digest"] == digest
+    assert client.get("/v1/agent/status/m1").json()["manifest"]["digest"] == digest
     assert client.get("/v1/audit/verify").json()["valid"] is True
 
 

@@ -12,7 +12,6 @@ from core.models.cost_ledger import (
     CostLedger,
     cost_ledger,
     resolve_model_rates,
-    MODEL_RATE_CARDS,
 )
 from cli import cmd_cost
 

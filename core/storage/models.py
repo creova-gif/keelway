@@ -4,7 +4,6 @@ SQLAlchemy ORM models for Keelway Core.
 
 from datetime import datetime, timezone
 import uuid
-from typing import Any, Dict, Optional
 
 from sqlalchemy import (
     Boolean,

@@ -120,7 +120,7 @@ class _StdlibAESGCM:
         prefix, ctr, out = icb[:12], int.from_bytes(icb[12:], "big"), bytearray()
         for off in range(0, len(data), 16):
             ks = _aes256_encrypt_block(self._rk, prefix + ctr.to_bytes(4, "big"))
-            out.extend(b ^ k for b, k in zip(data[off : off + 16], ks))
+            out.extend(b ^ k for b, k in zip(data[off : off + 16], ks, strict=False))
             ctr = (ctr + 1) & 0xFFFFFFFF
         return bytes(out)
 

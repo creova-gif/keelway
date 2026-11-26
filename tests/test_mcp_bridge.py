@@ -3,7 +3,7 @@ Validates MCP tool call interception, fail-closed policy checks, and audit loggi
 """
 from keelway.audit.recorder import AuditRecorder
 from keelway.mcp.bridge import MCPGovernanceBridge
-from keelway.policy.engine import PolicyEngine, PolicyRule
+from keelway.policy.engine import PolicyEngine
 
 
 def test_mcp_bridge_blocks_unauthorized_tool():

@@ -4,12 +4,9 @@ Discovers, installs, activates, and verifies plugins and their underlying MCP se
 """
 from __future__ import annotations
 
-import asyncio
-import json
-import os
 import shutil
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -66,7 +63,7 @@ class PluginManager:
                     )
                     self.installed_plugins[manifest.name] = record
                     discovered.append(record)
-                except Exception as e:
+                except Exception:
                     pass
         return discovered
 

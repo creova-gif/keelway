@@ -10,9 +10,9 @@ import fnmatch
 import json
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Callable, Awaitable, IO
+from typing import Dict, Any, Optional, Callable, Awaitable, IO
 
 PROTOCOL_VERSION = "2025-06-18"
 SUPPORTED_VERSIONS = {"2025-06-18", "2025-03-26", "2024-11-05"}

@@ -15,10 +15,6 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
 from core.api.schemas import CompletionRequestSchema, CompletionResponseSchema, Provider, MessageSchema
 from core.models.adapters.base import ModelAdapter
-from core.models.adapters.anthropic import AnthropicAdapter
-from core.models.adapters.local import LocalAdapter
-from core.models.adapters.gemini import GeminiAdapter
-from core.models.adapters.openai import OpenAIAdapter
 from core.models.adapters.open_weight import OpenWeightProviderAdapter
 from core.models.adapters.openai_provider import OpenAIProviderAdapter
 from core.models.adapters.anthropic_provider import AnthropicProviderAdapter
@@ -29,9 +25,6 @@ from core.models.provider import (
     ChatCompletionRequest,
     ChatCompletionResponse,
     StreamChunk,
-    ProviderError,
-    ProviderAuthenticationError,
-    ModelNotFoundError,
 )
 from core.security.firewall import SecurityGateway
 from core.security.airgap import AirGapEnforcer

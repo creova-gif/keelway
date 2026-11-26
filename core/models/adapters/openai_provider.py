@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, Optional
 import httpx
 
 from core.api.schemas import Provider, CompletionRequestSchema, CompletionResponseSchema
@@ -119,10 +119,10 @@ class OpenAIProviderAdapter(BaseModelProvider, ModelAdapter):
         try:
             async with httpx.AsyncClient(timeout=timeout_val, transport=self._transport) as client:
                 resp = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
-        except httpx.TimeoutException:
-            raise ProviderTimeoutError(f"OpenAI generation timed out after {timeout_val:.0f}s", provider=self.provider_id)
+        except httpx.TimeoutException as exc:
+            raise ProviderTimeoutError(f"OpenAI generation timed out after {timeout_val:.0f}s", provider=self.provider_id) from exc
         except httpx.HTTPError as e:
-            raise ProviderError(f"Failed to connect to OpenAI API: {e}", provider=self.provider_id)
+            raise ProviderError(f"Failed to connect to OpenAI API: {e}", provider=self.provider_id) from e
 
         latency_ms = (time.perf_counter() - start_time) * 1000.0
 

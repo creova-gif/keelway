@@ -10,7 +10,6 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict
 
-import pytest
 from fastapi.testclient import TestClient
 
 from core.agents import manifest as am

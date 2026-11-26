@@ -58,11 +58,11 @@ async def open_in_external_editor(
         res = bridge.open_in_editor(editor=req.editor, relative_path=req.relative_path)
         return res
     except ValueError as ve:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve)) from ve
     except FileNotFoundError as fe:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(fe))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(fe)) from fe
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to launch editor: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to launch editor: {str(e)}") from e
 
 
 @router.post("/resolve-conflict", tags=["External Editor Sync"])
@@ -75,6 +75,6 @@ async def resolve_concurrent_conflict(
     try:
         return bridge.resolve_conflict(file_path=req.file_path, resolution=req.resolution)
     except KeyError as ke:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ke))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ke)) from ke
     except ValueError as ve:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve)) from ve

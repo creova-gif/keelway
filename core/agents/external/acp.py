@@ -117,8 +117,8 @@ class AcpClient:
                 raise TimeoutError(f"ACP request {rid} timed out after {self.rpc_timeout}s")
             try:
                 line = self._lines.get(timeout=remaining)
-            except queue.Empty:
-                raise TimeoutError(f"ACP request {rid} timed out")
+            except queue.Empty as exc:
+                raise TimeoutError(f"ACP request {rid} timed out") from exc
             if line is None:
                 raise EOFError("ACP agent closed stdout")
             if not line.strip():

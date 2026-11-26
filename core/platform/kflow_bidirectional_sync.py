@@ -112,7 +112,7 @@ def _ast_const_val(node: Optional[ast.AST]) -> Any:
     if isinstance(node, ast.Dict):
         return {
             k_val: _ast_const_val(v_node)
-            for k_node, v_node in zip(node.keys, node.values)
+            for k_node, v_node in zip(node.keys, node.values, strict=True)
             if isinstance((k_val := _ast_const_val(k_node)), str)
         }
     return None

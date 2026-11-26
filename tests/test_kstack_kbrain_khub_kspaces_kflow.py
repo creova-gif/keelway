@@ -3,7 +3,6 @@ Comprehensive Unit & Integration Test Suite for KStack, KBrain, KHub, KSpaces, a
 Verifies all 5 priority extension components under Conductor.
 """
 
-import json
 import tempfile
 import time
 from pathlib import Path
@@ -11,23 +10,20 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from core.main import app
-from core.kstack import kstack_registry, parse_skill_markdown, KStackRegistry
+from core.kstack import kstack_registry
 from core.kbrain import (
-    kbrain_store,
     KBrainStore,
     KnowledgeScope,
     FactStatus,
     SecretLeakDetectedError,
 )
-from core.khub import khub_importer, KHubImporter, SkillSourceType
+from core.khub import KHubImporter, SkillSourceType
 from core.kspaces import (
-    kspaces_manager,
     KSpacesManager,
     SpaceRole,
     TaskStatus,
 )
 from core.kflow import (
-    kflow_engine,
     KFlowEngine,
     FlowNode,
     FlowStatus,
@@ -198,7 +194,7 @@ def test_kbrain_acl_revisions_conflicts_and_withdrawal():
         )
 
         # 3. Record team fact
-        f_team = store.record_fact(
+        store.record_fact(
             key="deploy_policy",
             statement="Deploy requires 2 signers",
             scope=KnowledgeScope.TEAM,
@@ -294,7 +290,7 @@ def test_khub_rule_only_separation_and_drift_tracking():
 def test_kspaces_roles_agent_identities_and_merge_gate():
     with tempfile.TemporaryDirectory() as tmpdir:
         manager = KSpacesManager(persistence_path=Path(tmpdir) / "spaces.json")
-        space = manager.create_space("space_checkout", "Checkout Service", owner_id="alice")
+        manager.create_space("space_checkout", "Checkout Service", owner_id="alice")
 
         # Add member with CONTRIBUTOR role
         manager.add_member("space_checkout", user_id="bob", role=SpaceRole.CONTRIBUTOR, caller_id="alice")

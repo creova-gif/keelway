@@ -103,13 +103,6 @@ class ProjectAdapter:
         pkg_manager = "pip"
 
         # Check virtualenv
-        venv_python: Optional[str] = None
-        for venv_name in [".venv", "venv", "env"]:
-            bin_py = root / venv_name / "bin" / "python"
-            if bin_py.exists():
-                venv_python = str(bin_py)
-                break
-
         # Check requirements or pyproject
         req_file = root / "requirements.txt"
         if req_file.exists():

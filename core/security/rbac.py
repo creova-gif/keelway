@@ -4,7 +4,7 @@ Provides enterprise-grade access control, team isolation, and audit logging.
 """
 
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from datetime import datetime, timezone
 import hashlib
 

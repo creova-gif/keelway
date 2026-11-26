@@ -3,9 +3,6 @@ Keelway Memory Service with Hybrid Semantic & Lexical Retrieval (RAG).
 Provides persistent storage, vector embedding generation, and hybrid relevance scoring.
 """
 
-import math
-import re
-import hashlib
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 

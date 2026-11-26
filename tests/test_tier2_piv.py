@@ -3,7 +3,6 @@ Implements ADR-051 and ADR-053: Hardware-held PIV signature verification
 and strict 72-hour maximum CRL staleness cap from thisUpdate.
 """
 import datetime
-import pytest
 from keelway.hal.piv import (
     MAX_CRL_AGE_SECONDS,
     PIVCertificate,

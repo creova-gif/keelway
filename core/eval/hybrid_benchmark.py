@@ -18,11 +18,11 @@ from __future__ import annotations
 import time
 import json
 import re
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from core.api.schemas import MessageSchema, Provider
-from core.models.registry import model_registry, ModelCategory, ModelMetadata
+from core.api.schemas import MessageSchema
+from core.models.registry import model_registry, ModelCategory
 from core.models.provider import ChatCompletionRequest, ChatCompletionResponse
 
 

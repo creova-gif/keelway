@@ -5,7 +5,6 @@ scaffolding demo repositories, and exporting/verifying cryptographic audit logs.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import subprocess
 import sys
@@ -144,7 +143,7 @@ def main():
             print(f"❌ Run failed: {msg}")
             sys.exit(1)
 
-        print(f"✅ Governed run reached approval gate.")
+        print("✅ Governed run reached approval gate.")
         print(f"   Run ID: {coord.run_id}")
         print(f"   Classification: {coord.classification.upper()}")
         print(f"   Approval ID: {msg}")

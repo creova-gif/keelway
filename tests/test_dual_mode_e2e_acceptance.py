@@ -15,24 +15,15 @@ Workstream E: Negative Security & Containment:
 """
 from __future__ import annotations
 
-import asyncio
-import hashlib
 import json
-import os
-import shutil
 from pathlib import Path
 import pytest
 
 from core.agents.builder import AgentBuilder, AgentBundlePacker
-from core.agents.spec import AgentSpec
 from core.agents import manifest as am
 from core.agents.guard import loop_from_manifest
 from core.storage.workspace_fs import WorkspaceFilesystem
-from core.security.firewall import SecurityGateway
 from core.orchestration.state import TaskStateMachine, TaskState, InvalidStateTransitionError
-from core.models.gateway import ModelGateway
-from core.models.adapters.local import LocalAdapter
-from core.api.schemas import Provider, CompletionRequestSchema
 from tests.package_a_profile import skip_unless_live_os_isolation
 
 

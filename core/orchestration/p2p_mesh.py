@@ -8,7 +8,6 @@ with zero cloud intermediary. Supports optional Tailscale overlays for remote te
 import hashlib
 import hmac
 import json
-import os
 import socket
 import time
 import uuid
@@ -270,7 +269,7 @@ class LocalTeamMesh:
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
             count = 0
-            for k, d in raw.items():
+            for _k, d in raw.items():
                 self.register_peer(
                     node_id=d["node_id"],
                     hostname=d["hostname"],

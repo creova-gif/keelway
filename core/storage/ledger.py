@@ -5,13 +5,8 @@ and prepaid voucher redemption for regions with USD card or banking restrictions
 """
 
 import hashlib
-import json
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Dict, Any
 
-from core.storage.models import MemoryRecord, utc_now
 
 
 class SovereignLedger:

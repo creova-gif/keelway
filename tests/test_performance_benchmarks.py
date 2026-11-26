@@ -9,8 +9,6 @@ Measures and asserts SLAs for core Keelway subsystems:
 """
 
 import time
-import pytest
-from pathlib import Path
 from typing import List, Tuple
 
 from core.orchestration.state import TaskStateMachine, TaskState

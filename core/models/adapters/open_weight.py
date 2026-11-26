@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import time
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, Optional
 import httpx
 
 from core.api.schemas import Provider, CompletionRequestSchema, CompletionResponseSchema
@@ -29,7 +29,7 @@ from core.models.provider import (
     ModelNotFoundError,
 )
 from core.models.adapters.base import ModelAdapter
-from core.models.adapters.local import LocalAdapter, LocalRuntime, _recommended_model
+from core.models.adapters.local import LocalAdapter, _recommended_model
 
 
 class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
@@ -124,10 +124,10 @@ class OpenWeightProviderAdapter(BaseModelProvider, ModelAdapter):
         try:
             async with httpx.AsyncClient(timeout=timeout_val, transport=self._transport) as client:
                 resp = await client.post(url, json=payload)
-        except httpx.TimeoutException:
-            raise ProviderTimeoutError(f"Open-weight model inference timed out after {timeout_val:.0f}s", provider=self.provider_id)
+        except httpx.TimeoutException as exc:
+            raise ProviderTimeoutError(f"Open-weight model inference timed out after {timeout_val:.0f}s", provider=self.provider_id) from exc
         except httpx.HTTPError as e:
-            raise ProviderError(f"Open-weight server connection error: {e}", provider=self.provider_id)
+            raise ProviderError(f"Open-weight server connection error: {e}", provider=self.provider_id) from e
 
         latency_ms = (time.perf_counter() - start_time) * 1000.0
 

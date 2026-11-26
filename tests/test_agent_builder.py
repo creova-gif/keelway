@@ -7,14 +7,12 @@ Verifies:
 4. End-to-end scaffolding, manifest registry recording, and test execution receipt.
 5. REST API routes for templates and agent scaffolding.
 """
-import json
-from pathlib import Path
 import pytest
 from starlette.testclient import TestClient
 
 from core.main import app
-from core.agents.spec import AgentParam, AgentSpec
-from core.agents.builder import AgentBuilder, BUILTIN_TEMPLATES
+from core.agents.spec import AgentSpec
+from core.agents.builder import AgentBuilder
 from core.storage.workspace_fs import WorkspaceFilesystem
 from core.api import routes
 

@@ -10,7 +10,7 @@ import json
 import pytest
 import httpx
 
-from core.api.schemas import MessageSchema, Provider
+from core.api.schemas import MessageSchema
 from core.models.registry import ModelCategory
 from core.models.provider import (
     ChatCompletionRequest,
@@ -18,9 +18,6 @@ from core.models.provider import (
     StreamChunk,
     ProviderAuthenticationError,
     ProviderRateLimitError,
-    ModelNotFoundError,
-    ContextLengthExceededError,
-    ProviderTimeoutError,
 )
 from core.models.adapters.open_weight import OpenWeightProviderAdapter
 from core.models.adapters.openai_provider import OpenAIProviderAdapter

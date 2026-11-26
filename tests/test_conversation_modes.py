@@ -9,7 +9,6 @@ import pytest
 from starlette.testclient import TestClient
 
 from core.main import app
-from core.orchestration.chat import ConversationMode, InteractiveChatSession
 from core.orchestration.state import TaskState, can_transition, validate_transition, InvalidStateTransitionError
 
 _FAKE_OFFLINE_MODELS = {

@@ -18,7 +18,6 @@ from core.system.doctor import SystemDoctor
 from core.security.auth import launch_token
 from core.agents.builder import AgentBuilder
 from core.agents.sandbox import verified_command_runner, CommandExecutionUnavailable
-from core.eval.evidence_room import EvidenceRoomPipeline
 
 
 @pytest.mark.asyncio

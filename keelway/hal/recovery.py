@@ -8,9 +8,8 @@ and DENY_OLD before ENABLE_NEW transition state machines.
 from __future__ import annotations
 
 import hashlib
-import hmac
 import json
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 from pydantic import BaseModel, Field
 
 

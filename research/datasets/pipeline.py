@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from core.storage.models import TaskRecord, TraceRecord, EvidenceRecord, TaskState
+from core.storage.models import TaskRecord, TaskState
 from core.security.firewall import DLPScanner, PromptInjectionDetector
 
 

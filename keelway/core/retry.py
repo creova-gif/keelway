@@ -5,7 +5,7 @@ and strict prevention of duplicate execution for side-effecting tools.
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, Dict, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Optional, Set
 
 
 class NonIdempotentRetryError(Exception):

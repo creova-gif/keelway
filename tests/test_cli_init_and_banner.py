@@ -1,12 +1,9 @@
 """Unit tests for Keelway CLI banner artwork and top-level `keelway init` workflow."""
 
 import json
-import os
-import subprocess
 from pathlib import Path
-import pytest
 
-from cli import get_banner, print_banner, cmd_init, main, build_parser
+from cli import get_banner, cmd_init, main, build_parser
 
 
 def test_banner_ascii_fallback_and_unicode():

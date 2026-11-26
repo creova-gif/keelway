@@ -5,7 +5,6 @@ and conflict-free bidirectional delta synchronization for intermittent networks.
 """
 
 import time
-import json
 import hashlib
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional, Tuple

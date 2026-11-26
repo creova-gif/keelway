@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from core.orchestration.self_healing import SelfHealingLoop, DiagnosticFailure
+from core.orchestration.self_healing import SelfHealingLoop
 
 
 class TestSelfHealingLoop(unittest.TestCase):

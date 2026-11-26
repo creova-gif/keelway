@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import datetime
 import uuid
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 from keelway.approvals.quorum import QUORUM_SECRET_KEY, TwoHumanQuorumService
 from keelway.approvals.service import APPROVAL_SECRET_KEY, ApprovalDecision, ApprovalService
@@ -14,10 +14,8 @@ from keelway.security.source_defaults import configured_signing_key
 from keelway.audit.recorder import AuditRecorder
 from keelway.audit.store import SQLiteAuditStore
 from keelway.core.models import (
-    ApprovalRequest,
     DecisionEnum,
     DeploymentResult,
-    EvalResult,
     PullRequestResult,
     RunManifest,
     RunStatus,
@@ -188,7 +186,7 @@ class GovernedRunCoordinator:
                 },
             )
             # Also create backing standard approval request for PR compatibility
-            base_appr = self.approvals.create_request(
+            self.approvals.create_request(
                 run_id=self.run_id,
                 patch_hash=patch_hash,
                 diff_content=diff_text,

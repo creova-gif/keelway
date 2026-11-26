@@ -11,21 +11,19 @@ Validates:
 
 from __future__ import annotations
 
-import json
 import pytest
 import httpx
 from httpx import AsyncClient, ASGITransport
 
 from core.main import app
 from core.api.schemas import MessageSchema, Provider
-from core.models.registry import model_registry, ModelCategory
+from core.models.registry import ModelCategory
 from core.models.provider import (
     ChatCompletionRequest,
     ChatCompletionResponse,
     StreamChunk,
 )
 from core.models.adapters.open_weight import OpenWeightProviderAdapter
-from core.models.adapters.openai_provider import OpenAIProviderAdapter
 from core.models.gateway import ModelGateway
 
 

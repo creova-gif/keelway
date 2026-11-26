@@ -4,13 +4,11 @@ Verifies golden benchmark receipt issuance, cryptographic seals, historic storag
 and drift detection for both Pass@1 accuracy drops and latency percentiles.
 """
 import copy
-from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
 from evals.drift_detector import (
     EvaluationReceipt,
-    DriftAnalysis,
     EvaluationReceiptStore,
     DriftDetector,
 )

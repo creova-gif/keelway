@@ -4,7 +4,7 @@ Permission Level: READ ONLY (with optional user-approved memory storage)
 Summarizes research documents/ADRs and maps them directly to Keelway architecture components.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -8,8 +8,8 @@ import datetime
 import hashlib
 import hmac
 import json
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Tuple
+from pydantic import BaseModel
 
 BUNDLE_AUTHORITY_KEY = b"keelway_enterprise_policy_authority_key_2026_v1"
 

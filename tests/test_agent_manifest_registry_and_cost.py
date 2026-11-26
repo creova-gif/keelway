@@ -11,7 +11,6 @@ from fastapi.testclient import TestClient
 
 from core.main import app
 from core.config import settings
-from core.security.auth import launch_token
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "docs" / "spec" / "examples" / "test-fixer.agent.json"
 

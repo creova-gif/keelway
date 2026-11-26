@@ -8,7 +8,6 @@ from core.sync.engine import (
     SovereignSyncEngine,
     encrypt_payload,
     decrypt_payload,
-    EncryptedSyncEnvelope,
     DEFAULT_SYNC_SECRET,
 )
 from cli import cmd_sync

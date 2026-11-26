@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 from httpx import ASGITransport
 
-from core.api.schemas import MessageSchema, Provider
+from core.api.schemas import MessageSchema
 from core.models.cost_ledger import CostLedger
 from core.models.gateway import ModelGateway
 from core.models.provider import BaseModelProvider, ChatCompletionRequest

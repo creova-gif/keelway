@@ -4,14 +4,10 @@ Executes SWE-style golden coding challenges against Keelway's local agent engine
 measuring Pass@1 success rate, latency, token costs, and self-healing iterations.
 """
 
-import ast
-import json
-import os
 import shutil
 import sys
 import tempfile
 import time
-import unittest
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -22,7 +18,7 @@ from core.storage.workspace_fs import WorkspaceFilesystem
 from core.storage.ast_index import CodebaseSemanticIndex
 from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 from core.security.firewall import SecurityGateway
-from core.models.speculative import SpeculativeDecoder, SpeculativeResult
+from core.models.speculative import SpeculativeDecoder
 from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
 
 

@@ -257,7 +257,7 @@ async def test_async_python_sdk_live_asgi_debugger_roundtrip_rbac_and_dlp(tmp_pa
         token=token,
         transport=ASGITransport(app=app),
     ) as viewer_client:
-        http_attr = getattr(viewer_client, "_http", None) or getattr(viewer_client, "_client")
+        http_attr = getattr(viewer_client, "_http", None) or viewer_client._client
         http_attr.headers["X-Keelway-Role"] = "viewer"
         http_attr.headers["X-Keelway-Actor"] = "viewer-actor"
         with pytest.raises(PermissionDeniedError):

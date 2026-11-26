@@ -5,7 +5,6 @@ subprocess, read-only/missing paths, and a torn database page — all verified
 against the actual SQLiteAgentCoharnessEngine, not mocks.
 """
 
-import os
 import shutil
 import signal
 import sqlite3

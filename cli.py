@@ -29,12 +29,10 @@ sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
 from core.config import settings
 try:
-    from core.storage.database import check_db_health, init_db, AsyncSessionLocal
+    from core.storage.database import init_db, AsyncSessionLocal
     from core.models.gateway import gateway
     from core.api.schemas import Provider
-    from core.security.airgap import AirGapEnforcer
     from core.security.style import StyleEngine, VoiceStyle
-    from core.storage.ledger import SovereignLedger
     from core.orchestration.workflows import (
         EngineeringBriefWorkflow,
         ResearchSummaryWorkflow,
@@ -221,7 +219,7 @@ async def cmd_heal(test_cmd: str, max_attempts: int = 3):
     print("\n" + "=" * 65)
     print("  🔧 KEELWAY AUTONOMOUS REPAIR LOOP")
     print(f"  Command:   {test_cmd}")
-    print(f"  Isolation: Ephemeral Git Worktree")
+    print("  Isolation: Ephemeral Git Worktree")
     print(f"  Attempts:  Up to {max_attempts}")
     print("=" * 65 + "\n")
     print("[+] Executing initial verification run...")
@@ -528,14 +526,13 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
     print(f"[+] Action Request:      {action} (Task: {task_id})")
     print(f"[+] Biometrics Required: {result['payload'].get('data', {}).get('requires_biometric', False)}")
     print("[+] Dispatch Status:     PREVIEW ONLY (not sent; no channel transport configured)")
-    print(f"\nPayload Preview:")
+    print("\nPayload Preview:")
     print(json.dumps(result['payload'], indent=2))
     print("\n" + "=" * 65 + "\n")
 
 
 async def cmd_repomap(max_tokens: int = 1500):
     """Generate condensed codebase repository map for prompt augmentation."""
-    import json
     from core.storage.ast_index import CodebaseSemanticIndex
     idx = CodebaseSemanticIndex()
     stats = idx.index_workspace(max_files=150)
@@ -549,7 +546,6 @@ async def cmd_repomap(max_tokens: int = 1500):
 
 async def cmd_search(query: str, top_k: int = 10):
     """Search workspace symbols using hybrid semantic vector and lexical matching."""
-    import json
     from core.storage.ast_index import CodebaseSemanticIndex
     idx = CodebaseSemanticIndex()
     idx.index_workspace(max_files=150)
@@ -631,7 +627,7 @@ def cmd_code(
             print(json.dumps(graph, indent=2))
             return 0
         print("\n" + "=" * 70)
-        print(f"  🕸️  KEELWAY MODULE DEPENDENCY GRAPH")
+        print("  🕸️  KEELWAY MODULE DEPENDENCY GRAPH")
         print(f"  Nodes: {len(graph['nodes'])} | Edges: {len(graph['edges'])} | Cycles: {len(graph['cycles'])}")
         print("=" * 70 + "\n")
         for edge in graph["edges"][:30]:
@@ -686,7 +682,7 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
     print("\n" + "=" * 65)
     print("  📦 KEELWAY ZERO-CONFIG MODEL STREAMING DOWNLOADER")
     print(f"  Target Model: {model}")
-    print(f"  Ollama Host:  http://localhost:11434")
+    print("  Ollama Host:  http://localhost:11434")
     print("=" * 65 + "\n")
 
     try:
@@ -1338,7 +1334,7 @@ def cmd_git(action: str, msg: str = "", path: Optional[str] = None, base: str = 
             print(f"[✓] Created local commit {res['commit_sha'][:8]} on branch {res['branch']}")
             print(f"    Message: {res['message'].splitlines()[0]}")
             print(f"    Author:  {res['author']}")
-            print(f"    [Safeguard active: Commit is local; not pushed to remote]\n")
+            print("    [Safeguard active: Commit is local; not pushed to remote]\n")
             return 0
         except Exception as exc:
             print(f"[-] Commit failed: {exc}")
@@ -1670,7 +1666,7 @@ async def cmd_tier2(action: str, subsystem: str = "all") -> int:
                 trusted_now=now,
             )
             if piv_res.is_valid:
-                print(f"        PIV token valid (CRL age: 24h <= 72h cap): [PASS]")
+                print("        PIV token valid (CRL age: 24h <= 72h cap): [PASS]")
             else:
                 print(f"        PIV token check failed: {piv_res.error_message} [FAIL]")
                 all_passed = False
@@ -1725,7 +1721,7 @@ async def cmd_tier2(action: str, subsystem: str = "all") -> int:
             )
             rec_res = rec_verifier.verify_recovery_envelope(envelope)
             if rec_res.is_valid and rec_res.new_root_enabled:
-                print(f"        2-of-3 Root Recovery verified (DENY_OLD cutover): [PASS]")
+                print("        2-of-3 Root Recovery verified (DENY_OLD cutover): [PASS]")
             else:
                 print(f"        Root Recovery failed: {rec_res.error_message} [FAIL]")
                 all_passed = False
@@ -1871,7 +1867,7 @@ async def cmd_mobile(action: str, host: str = "0.0.0.0", port: int = 7420, targe
         channel_name = res.get("channel")
         channel_str = channel_name.value.upper() if hasattr(channel_name, "value") else str(channel_name).upper()
         print(f"  • Channel:     {channel_str}")
-        print(f"  • Status:      DELIVERED [OK]")
+        print("  • Status:      DELIVERED [OK]")
         payload = res.get("payload", {})
         print(f"  • Push Target: {payload.get('to', target or 'push_token_mobile_default')}")
         print("\n[+] Mobile notification dispatched successfully.\n")
@@ -2048,14 +2044,14 @@ async def cmd_pilot(
         print(f"  📋 WORKFLOW INTERVIEW PROTOCOL: {c.name.upper()} ({c.organization.upper()})")
         print("  Methodology: The Mom Test (Behavioral Reality vs Hypothetical Opinion)")
         print("=" * 70)
-        print(f"\n  Candidate Background:")
+        print("\n  Candidate Background:")
         print(f"  • Title       : {c.title}")
         print(f"  • Observed    : {c.observed_workflow}")
         print(f"  • Wedge Focus : {c.wedge_capability}")
         print("\n  Target Interview Questions (Ask in sequence, capture exact phrasing):")
         for idx, q in enumerate(c.interview_questions, 1):
             print(f"    {idx}. \"{q}\"")
-        print(f"\n  Concrete Commitment Goal:")
+        print("\n  Concrete Commitment Goal:")
         print(f"  👉 \"{c.commitment_ask}\"")
         print("=" * 70 + "\n")
         return 0
@@ -2476,7 +2472,7 @@ def cmd_skill(
             return 1
     elif action == "validate":
         if not path or not path.exists():
-            print(f"[-] Error: Valid path to SKILL.md required.")
+            print("[-] Error: Valid path to SKILL.md required.")
             return 1
         ok, errors = kstack_registry.validate_skill(path.read_text(encoding="utf-8"))
         if ok:
@@ -2487,7 +2483,7 @@ def cmd_skill(
             return 1
     elif action == "import":
         if not path or not path.exists():
-            print(f"[-] Error: Valid path to SKILL.md required.")
+            print("[-] Error: Valid path to SKILL.md required.")
             return 1
         try:
             sk = kstack_registry.import_skill(path)
@@ -2752,7 +2748,7 @@ def cmd_space(
     limit: int = 50,
 ) -> int:
     """KSpaces: Collaborative team workspaces & agent governance."""
-    from core.kspaces import kspaces_manager, SpaceRole
+    from core.kspaces import kspaces_manager
     if action == "create":
         if not space_id:
             print("[-] Error: space_id is required.")
@@ -2861,7 +2857,7 @@ def cmd_flow(action: str = "demo", flow_id: str = "demo_flow") -> int:
         print(f"[+] Created Flow DAG '{dag.flow_id}' (nodes: {len(dag.nodes)}, max_fanout: {dag.max_fanout})")
         print("  Executing DAG in topological order...")
         proof = kflow_engine.execute_dag(dag.flow_id, current_git_head_sha="523566c66529e786")
-        print(f"[+] Flow completed successfully! Proof Packet Sealed:")
+        print("[+] Flow completed successfully! Proof Packet Sealed:")
         print(f"    Proof SHA-256:  {proof.proof_sha256}")
         print(f"    Nodes Executed: {proof.nodes_executed} / {len(dag.nodes)}")
         print(f"    Tests Passed:   {proof.all_tests_passed}")
@@ -2908,7 +2904,7 @@ async def cmd_team(action: str, goal: str, auto_approve: bool = True) -> int:
     print("\n" + "=" * 76)
     print(f"  CREW EXECUTION RESULT: {status_tag} ({res.nodes_executed}/{len(plan.nodes)} nodes executed in {res.duration_ms:.1f}ms)")
     print("=" * 76)
-    for nid, node in plan.nodes.items():
+    for _nid, node in plan.nodes.items():
         state_icon = "✓" if node.state.value == "succeeded" else "✗"
         print(f"  [{state_icon}] {node.id:<10} ({node.role.value:<16}): {node.state.value.upper()} ({node.duration_ms}ms)")
         if node.error:
@@ -4139,7 +4135,7 @@ def _main(argv=None):
         if not ok:
             print(f"[-] Run failed: {msg}")
             sys.exit(1)
-        print(f"[+] Governed run reached approval gate.")
+        print("[+] Governed run reached approval gate.")
         print(f"    Run ID:         {coord.run_id}")
         print(f"    Classification: {coord.classification.upper()}")
         print(f"    Approval ID:    {msg}")

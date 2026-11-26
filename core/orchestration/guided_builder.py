@@ -5,7 +5,6 @@ and flight-recorded application codebases with automated test harnesses.
 """
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import os
@@ -13,9 +12,9 @@ import re
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from core.orchestration.flight_recorder import FlightRecorder
 
@@ -917,7 +916,7 @@ def test_service_run():
                 if not (target_dir / ".git").exists():
                     subprocess.run(["git", "init", "-q"], cwd=str(target_dir), check=False)
                     subprocess.run(["git", "add", "."], cwd=str(target_dir), check=False)
-                    proc = subprocess.run(
+                    subprocess.run(
                         ["git", "-c", "user.name=Keelway Builder", "-c", "user.email=builder@keelway.internal", "commit", "-m", f"feat(init): scaffold {plan.app_name} via Keelway Guided Builder", "-q"],
                         cwd=str(target_dir),
                         capture_output=True,

@@ -258,7 +258,7 @@ async def test_python_async_sdk_live_asgi_safety_verifier_and_edge_mesh() -> Non
         assert handoff_list["count"] >= 1
 
     async with AsyncKeelwayClient(base_url="http://127.0.0.1:7420", token=token, transport=ASGITransport(app=app)) as auditor_client:
-        http_attr = getattr(auditor_client, "_http", None) or getattr(auditor_client, "_client")
+        http_attr = getattr(auditor_client, "_http", None) or auditor_client._client
         http_attr.headers["X-Keelway-Role"] = "auditor"
         http_attr.headers["X-Keelway-Actor"] = "auditor-actor"
         read_nodes = await auditor_client.platform.list_mesh_nodes(workspace_id=ws_id)

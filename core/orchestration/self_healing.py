@@ -10,7 +10,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple
 
 from core.security.env_scrub import scrub_env
 from core.orchestration.worktree import EphemeralWorktreeManager, WorktreeSession

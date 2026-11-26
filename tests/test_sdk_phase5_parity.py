@@ -420,7 +420,6 @@ async def test_live_asgi_phase4_workspace_endpoints_roundtrip():
 
 @pytest.mark.asyncio
 async def test_live_asgi_phase5_vault_rbac_webhooks_and_sse_roundtrip(tmp_path):
-    import time
     from httpx import ASGITransport
 
     from core.api.platform_runtime_routes import (

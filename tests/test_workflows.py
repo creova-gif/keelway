@@ -17,7 +17,6 @@ from core.api.schemas import (
     CompletionRequestSchema,
     CompletionResponseSchema,
 )
-from core.orchestration.workflows.engineering_brief import EngineeringBriefWorkflow
 
 
 class MockWorkflowAdapter(ModelAdapter):

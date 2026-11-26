@@ -13,9 +13,7 @@ import json
 import secrets
 import socket
 import time
-import uuid
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 DEFAULT_SYNC_SECRET = b"keelway_cross_machine_sync_v1_secret"

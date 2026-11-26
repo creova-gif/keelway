@@ -144,11 +144,11 @@ class LocalAdapter(ModelAdapter):
         try:
             async with httpx.AsyncClient(timeout=timeout_val, transport=self._transport) as client:
                 resp = await client.post(url, json=payload)
-        except httpx.TimeoutException:
-            raise RuntimeError(f"Local model generation timed out after {timeout_val:.0f}s.")
+        except httpx.TimeoutException as exc:
+            raise RuntimeError(f"Local model generation timed out after {timeout_val:.0f}s.") from exc
         except httpx.HTTPError as e:
             self._runtime = None
-            raise RuntimeError(f"Local model server unreachable: {e}")
+            raise RuntimeError(f"Local model server unreachable: {e}") from e
         latency_ms = (time.perf_counter() - start_time) * 1000.0
 
         if resp.status_code == 404 and rt.api == "ollama":

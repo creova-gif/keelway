@@ -1,4 +1,3 @@
-import pytest
 import tempfile
 import shutil
 from pathlib import Path

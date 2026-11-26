@@ -7,9 +7,6 @@ Validates:
 4. CLI commands 'project info', 'agent register', and 'agent list'.
 """
 import json
-import os
-import subprocess
-import sys
 from pathlib import Path
 import pytest
 from starlette.testclient import TestClient

@@ -3,7 +3,6 @@ Implements ADR-061, ADR-062, ADR-064, and Document 309 normative attestation alg
 """
 import hashlib
 import hmac
-import pytest
 from keelway.hal.tpm import (
     TPMEventLogEntry,
     TPMQuotePayload,

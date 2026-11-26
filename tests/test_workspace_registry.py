@@ -3,14 +3,13 @@ Tests for Keelway Enterprise Workspace Registry & Multi-Workspace Manager.
 """
 
 import pytest
-import tempfile
 from pathlib import Path
 from httpx import ASGITransport, AsyncClient
 
 from core.main import app
 from core.security.auth import launch_token
 from core.storage.workspace_fs import WorkspaceSecurityError
-from core.storage.workspace_registry import WorkspaceRegistry, get_shared_workspace_registry
+from core.storage.workspace_registry import WorkspaceRegistry
 
 
 @pytest.fixture

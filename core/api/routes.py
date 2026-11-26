@@ -3,7 +3,6 @@ FastAPI Routes for Keelway Core.
 """
 
 import asyncio
-import os
 import json
 import re
 import subprocess
@@ -39,7 +38,6 @@ from core.security.auth import LOCAL_OWNER, Principal, current_principal, princi
 from core.runner.environments import DockerRunnerBackend
 from keelway.runner.enrollment import verify_enrolled_runner_token
 from keelway.security.source_defaults import InsecureDefaultConfiguration
-from core.security.env_scrub import scrub_env
 from core.security.origin import origin_allowed
 from core.security.rbac import Permission, Role
 from core.orchestration.state import TaskState, validate_transition, InvalidStateTransitionError
@@ -85,7 +83,7 @@ async def create_completion(request: CompletionRequestSchema) -> CompletionRespo
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=public_inference_detail(e),
-        )
+        ) from e
 
 
 @router.get("/v1/models", dependencies=[Depends(current_principal)], tags=["Inference"])
@@ -202,7 +200,7 @@ async def chat_completions(request_raw: Request):
         body = await request_raw.json()
         request = ChatCompletionRequest(**body)
     except Exception as parse_err:
-        raise HTTPException(status_code=400, detail=f"Invalid chat completion payload: {parse_err}")
+        raise HTTPException(status_code=400, detail=f"Invalid chat completion payload: {parse_err}") from parse_err
 
     if request.stream:
         async def event_generator():
@@ -234,7 +232,7 @@ async def chat_completions(request_raw: Request):
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=public_inference_detail(e),
-            )
+            ) from e
 
 
 @router.get("/v1/usage", dependencies=[Depends(current_principal)], tags=["Inference"])
@@ -296,8 +294,8 @@ async def send_chat_message(payload: dict, principal: Principal = Depends(curren
     mode_str = payload.get("mode", "ask").lower()
     try:
         mode = ConversationMode(mode_str)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid mode '{mode_str}'. Must be one of: ask, plan, edit, agent.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid mode '{mode_str}'. Must be one of: ask, plan, edit, agent.") from exc
 
     provider_str = payload.get("provider", "local").lower()
     try:
@@ -394,7 +392,7 @@ async def transition_task(
     try:
         validate_transition(current=task.state, target=request.target_state)
     except InvalidStateTransitionError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
 
     if task.state == TaskState.AWAITING_APPROVAL and request.target_state == TaskState.RUNNING:
         approved = principal.can(Permission.APPROVE_TIER3)
@@ -441,7 +439,7 @@ async def generate_engineering_brief(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Workflow execution failed: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -472,7 +470,7 @@ async def generate_research_summary(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Research summary workflow failed: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -501,17 +499,17 @@ async def execute_sandboxed_tests(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(pe),
-        )
+        ) from pe
     except SandboxExecutionError as se:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=str(se),
-        )
+        ) from se
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Sandbox test workflow failed: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/v1/memories", dependencies=[Depends(current_principal)], response_model=List[MemoryResponse], tags=["Memory"])
@@ -959,8 +957,8 @@ async def create_payment_intent(payload: dict):
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
     try:
         rail = GlobalRail(payload.get("rail", "mpesa"))
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid payment rail")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid payment rail") from exc
     
     amount = float(payload.get("amount", 0.0))
     currency = payload.get("currency", "USD")
@@ -970,11 +968,11 @@ async def create_payment_intent(payload: dict):
     broker = GlobalPaymentBroker()
     try:
         intent = broker.create_intent(rail=rail, amount=amount, currency=currency, recipient=recipient, description=description)
-    except InsecureDefaultConfiguration:
+    except InsecureDefaultConfiguration as exc:
         raise HTTPException(
             status_code=503,
             detail="payment configuration is unavailable: source-default broker secret is refused",
-        )
+        ) from exc
     return {
         "simulated": True,
         "intent_id": intent.intent_id,
@@ -1073,7 +1071,7 @@ async def fork_flight_tape(
 # Local Team Mesh & Pooled Compute Endpoints (Section 13)
 # =====================================================================
 
-from core.orchestration.p2p_mesh import get_shared_mesh, MeshPeer, MeshDelegationReceipt
+from core.orchestration.p2p_mesh import get_shared_mesh
 
 
 @router.get("/v1/mesh/status", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
@@ -1155,7 +1153,7 @@ async def mesh_prune(payload: dict = None):
 # =====================================================================
 
 from core.storage.workspace_fs import WorkspaceFilesystem, WorkspaceSecurityError
-from core.storage.workspace_registry import get_shared_workspace_registry, WorkspaceEntry
+from core.storage.workspace_registry import get_shared_workspace_registry
 from core.orchestration.project_adapter import ProjectAdapter
 
 _workspace_fs = WorkspaceFilesystem()
@@ -1198,9 +1196,9 @@ async def register_workspace(payload: dict, principal: Principal = Depends(curre
             await record_audit(principal, "workspace_register", entry.path, True)
         return {"status": "registered", "workspace": entry.to_dict()}
     except (FileNotFoundError, NotADirectoryError) as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except WorkspaceSecurityError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
 
 
 @router.post("/v1/workspaces/{workspace_id}/activate", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
@@ -1217,8 +1215,8 @@ async def activate_workspace(workspace_id: str, principal: Principal = Depends(c
             "workspace": entry.to_dict(),
             "project": meta.to_dict(),
         }
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Workspace '{workspace_id}' not found in registry.")
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Workspace '{workspace_id}' not found in registry.") from exc
 
 
 @router.delete("/v1/workspaces/{workspace_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Workspace Filesystem"])
@@ -1291,9 +1289,9 @@ async def get_workspace_file_tree(subpath: str = ".", max_depth: int = 4):
     try:
         return _workspace_fs.get_file_tree(subpath=subpath, max_depth=max_depth)
     except WorkspaceSecurityError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/v1/files/content", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
@@ -1302,11 +1300,11 @@ async def read_workspace_file(path: str):
     try:
         return _workspace_fs.read_file(path)
     except WorkspaceSecurityError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"File not found: {path}") from exc
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/v1/files/save", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
@@ -1319,9 +1317,9 @@ async def save_workspace_file(payload: dict):
     try:
         return _workspace_fs.write_file(path, content)
     except WorkspaceSecurityError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}") from e
 
 
 @router.post("/v1/files/upload", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
@@ -1365,7 +1363,7 @@ async def upload_workspace_file(request: Request):
                         dst.write(src.read())
                     extracted_files.append(member.filename)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to unpack zip archive: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Failed to unpack zip archive: {str(e)}") from e
 
         try:
             _semantic_index.index_workspace(max_files=150)
@@ -1385,9 +1383,9 @@ async def upload_workspace_file(request: Request):
             target_path.parent.mkdir(parents=True, exist_ok=True)
             target_path.write_bytes(raw_bytes)
         except WorkspaceSecurityError as e:
-            raise HTTPException(status_code=403, detail=str(e))
+            raise HTTPException(status_code=403, detail=str(e)) from e
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to save uploaded file: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to save uploaded file: {str(e)}") from e
 
         try:
             _semantic_index.index_workspace(max_files=150)
@@ -1414,7 +1412,7 @@ async def get_workspace_git_diff(path: Optional[str] = None):
     try:
         return _workspace_fs.get_git_diff(path=path)
     except WorkspaceSecurityError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
 
 
 @router.get("/v1/git/proposal", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
@@ -1423,7 +1421,7 @@ async def get_git_commit_proposal():
     try:
         return _workspace_fs.prepare_commit_proposal()
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/v1/git/commit", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
@@ -1443,11 +1441,11 @@ async def create_local_git_commit(payload: dict, principal: Principal = Depends(
         return res
     except ValueError as e:
         await record_audit(principal, "git_local_commit_rejected", str(e), False)
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except subprocess.CalledProcessError as e:
         err = e.stderr.decode() if isinstance(e.stderr, bytes) else str(e)
         await record_audit(principal, "git_local_commit_failed", err, False)
-        raise HTTPException(status_code=500, detail=f"Git commit failed: {err}")
+        raise HTTPException(status_code=500, detail=f"Git commit failed: {err}") from e
 
 
 @router.get("/v1/git/pr/proposal", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
@@ -1456,7 +1454,7 @@ async def get_git_pr_proposal(base_branch: str = "main"):
     try:
         return _workspace_fs.prepare_pr_proposal(base_branch=base_branch)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 # =====================================================================
@@ -1640,7 +1638,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
                 manifest_data = json.loads(reg_record.manifest_json)
             except ManifestRegistryError as exc:
                 await record_audit(principal, "agent_run_manifest", f"{task_id} registry ref {payload['manifest_ref']}: {exc}", False)
-                raise HTTPException(status_code=400, detail=str(exc))
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
     if manifest_data is not None:
         manifest, manifest_signed = await _checked_manifest(manifest_data, principal, task_id)
         if payload.get("policy") not in (None, manifest.permissions.autonomy):
@@ -1662,7 +1660,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
             agent = await asyncio.to_thread(loop_from_manifest, manifest, task_id, _workspace_fs, True, ApprovalRuleStore(_workspace_fs.root))
         except ManifestNotRunnable as exc:
             await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} not runnable: {exc}", False)
-            raise HTTPException(status_code=422, detail=str(exc))
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
         agent.guard.signed = manifest_signed
 
     # No await between this check and registration, so concurrent runs can't both claim the id.
@@ -1775,7 +1773,7 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
             "agent_state": state,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/v1/agent/approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_AGENT_STEPS))], tags=["Autonomous Agent Loop"])
@@ -1805,7 +1803,7 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
             default = args.get("path") or args.get("command")
             scope = validate_scope(pending["tool_name"], default if requested is None else requested)
         except ApprovalRuleError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=str(e)) from e
         rule, created = ApprovalRuleStore(_workspace_fs.root).add(
             pending["tool_name"],
             scope,
@@ -1939,7 +1937,7 @@ async def register_agent_manifest(payload: dict, principal: Principal = Depends(
             "enabled": record.enabled,
         }
     except ManifestRegistryError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/v1/agents/registry/{name}/{version}", dependencies=[Depends(current_principal)], tags=["Agent Manifest Registry"])
@@ -1976,7 +1974,7 @@ async def toggle_registry_manifest(name: str, version: str, payload: dict, princ
             "updated_at": record.updated_at.isoformat() if record.updated_at else None,
         }
     except ManifestRegistryError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 # =====================================================================
@@ -2008,7 +2006,7 @@ async def scaffold_agent(payload: dict, principal: Principal = Depends(current_p
         try:
             spec = AgentSpec.from_json(payload["spec"])
         except Exception as exc:
-            raise HTTPException(status_code=422, detail=f"Invalid agent spec: {exc}")
+            raise HTTPException(status_code=422, detail=f"Invalid agent spec: {exc}") from exc
     elif template_id:
         try:
             spec = AgentBuilder.create_from_template(
@@ -2018,7 +2016,7 @@ async def scaffold_agent(payload: dict, principal: Principal = Depends(current_p
                 overrides=payload.get("overrides"),
             )
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc))
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
     else:
         raise HTTPException(status_code=400, detail="Either 'template_id' or 'spec' must be provided.")
 
@@ -2045,7 +2043,7 @@ async def pack_agent_bundle(payload: dict, principal: Principal = Depends(curren
     try:
         source_dir = _workspace_fs.resolve_safe_path(source_dir_str)
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid source directory: {exc}")
+        raise HTTPException(status_code=400, detail=f"Invalid source directory: {exc}") from exc
 
     if not source_dir.is_dir():
         raise HTTPException(status_code=404, detail=f"Source directory '{source_dir_str}' does not exist.")
@@ -2055,7 +2053,7 @@ async def pack_agent_bundle(payload: dict, principal: Principal = Depends(curren
         try:
             output_archive = _workspace_fs.resolve_safe_path(out_archive_str)
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Invalid output archive path: {exc}")
+            raise HTTPException(status_code=400, detail=f"Invalid output archive path: {exc}") from exc
     else:
         output_archive = source_dir.parent / f"{source_dir.name}.tar.gz"
 
@@ -2070,7 +2068,7 @@ async def pack_agent_bundle(payload: dict, principal: Principal = Depends(curren
         }
     except Exception as exc:
         await record_audit(principal, "agent_pack", f"{source_dir_str}", False)
-        raise HTTPException(status_code=500, detail=f"Packaging failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Packaging failed: {exc}") from exc
 
 
 @router.post("/v1/agent/builder/unpack", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
@@ -2092,7 +2090,7 @@ async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(curr
             if archive_p.is_file():
                 archive_path = archive_p.resolve()
             else:
-                raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
+                raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}") from exc
 
     if not archive_path.is_file():
         raise HTTPException(status_code=404, detail=f"Archive file '{archive_str}' does not exist.")
@@ -2102,7 +2100,7 @@ async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(curr
         try:
             destination_dir = _workspace_fs.resolve_safe_path(dest_str)
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Invalid destination directory: {exc}")
+            raise HTTPException(status_code=400, detail=f"Invalid destination directory: {exc}") from exc
     else:
         bundle_stem = archive_path.name.replace(".tar.gz", "").replace(".tar", "")
         destination_dir = _workspace_fs.root / "agents" / bundle_stem
@@ -2118,7 +2116,7 @@ async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(curr
         }
     except Exception as exc:
         await record_audit(principal, "agent_unpack", f"{archive_str}", False)
-        raise HTTPException(status_code=400, detail=f"Unpacking verification failed: {exc}")
+        raise HTTPException(status_code=400, detail=f"Unpacking verification failed: {exc}") from exc
 
 
 # =====================================================================
@@ -2257,8 +2255,8 @@ async def create_approval_rule(request: Request, principal: Principal = Depends(
     """Create a standing approval for the open workspace (Studio 'Allow always' grant path)."""
     try:
         payload = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Expected a JSON body.")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Expected a JSON body.") from exc
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Expected a JSON object.")
     try:
@@ -2272,7 +2270,7 @@ async def create_approval_rule(request: Request, principal: Principal = Depends(
             ttl_seconds=payload.get("ttl_seconds") if isinstance(payload.get("ttl_seconds"), (int, float)) else None,
         )
     except ApprovalRuleError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     if created:
         await record_audit(principal, "approval_rule_create", f"{rule.tool_name}:{rule.scope}", True)
     return {"created": created, "rule": rule.to_dict()}
@@ -2355,7 +2353,7 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
             res = DualWormReceiptValidator.validate_publication(primary, secondary, cert_raw)
             return {"valid": res.valid, "subsystem": "worm", "reason": res.reason, "primary_id": res.primary_receipt_id}
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"WORM verification failed: {exc}")
+            raise HTTPException(status_code=400, detail=f"WORM verification failed: {exc}") from exc
 
     elif subsystem == "tpm":
         from keelway.hal.tpm import TPMQuoteVerifier, TPMQuotePayload, TPMEventLogEntry
@@ -2365,7 +2363,7 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
             res = TPMQuoteVerifier.verify_measured_boot(quote, entries)
             return {"valid": res.valid, "subsystem": "tpm", "computed_pcr": res.computed_pcr, "reason": res.reason}
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"TPM verification failed: {exc}")
+            raise HTTPException(status_code=400, detail=f"TPM verification failed: {exc}") from exc
 
     elif subsystem == "piv":
         from keelway.hal.piv import PIVSmartcardVerifier, PIVCertificate, SignedCRL
@@ -2375,7 +2373,7 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
             res = PIVSmartcardVerifier.verify_smartcard_token(cert, crl)
             return {"valid": res.valid, "subsystem": "piv", "serial_number": res.serial_number, "reason": res.reason}
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"PIV verification failed: {exc}")
+            raise HTTPException(status_code=400, detail=f"PIV verification failed: {exc}") from exc
 
     elif subsystem == "recovery":
         from keelway.hal.recovery import OfflineRootRecoveryVerifier, RecoveryEnvelopeV1
@@ -2403,7 +2401,7 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
                 "error": res.error_message,
             }
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Recovery verification failed: {exc}")
+            raise HTTPException(status_code=400, detail=f"Recovery verification failed: {exc}") from exc
 
     raise HTTPException(status_code=400, detail=f"Unknown subsystem '{subsystem}'")
 
@@ -2530,7 +2528,7 @@ async def plan_team_workflow(
         plan = coordinator.plan_team_workflow(request.goal, custom_subtasks=request.custom_subtasks)
         return plan.to_dict()
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise HTTPException(status_code=400, detail=str(ve)) from ve
 
 
 @router.post("/v1/orchestration/team/execute", tags=["Multi-Agent Orchestration"])
@@ -2546,9 +2544,9 @@ async def execute_team_workflow(
         result = await coordinator.execute_team_workflow(plan, auto_approve=request.auto_approve)
         return result.to_dict()
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise HTTPException(status_code=400, detail=str(ve)) from ve
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Multi-agent execution failure: {exc}")
+        raise HTTPException(status_code=500, detail=f"Multi-agent execution failure: {exc}") from exc
 
 
 # ==============================================================================
@@ -2594,7 +2592,7 @@ async def synthesize_app_plan(
         )
         return plan.to_dict()
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"App plan synthesis failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"App plan synthesis failed: {exc}") from exc
 
 
 @router.post("/v1/builder/app/generate", tags=["Guided App Builder"])
@@ -2616,7 +2614,7 @@ async def generate_app(
         )
         return receipt.to_dict()
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"App generation failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"App generation failed: {exc}") from exc
 
 
 # ==============================================================================
@@ -2664,7 +2662,7 @@ async def install_plugin(
         record = await pm.install_plugin(request.manifest, activate=request.activate)
         return record.to_dict()
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Plugin installation failed: {exc}")
+        raise HTTPException(status_code=400, detail=f"Plugin installation failed: {exc}") from exc
 
 
 @router.post("/v1/plugins/{plugin_name}/activate", tags=["Plugins & MCP Extensions"])
@@ -2677,10 +2675,10 @@ async def activate_plugin(
     try:
         record = await pm.activate_plugin(plugin_name)
         return record.to_dict()
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.")
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.") from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Activation error: {exc}")
+        raise HTTPException(status_code=500, detail=f"Activation error: {exc}") from exc
 
 
 @router.post("/v1/plugins/{plugin_name}/deactivate", tags=["Plugins & MCP Extensions"])
@@ -2693,10 +2691,10 @@ async def deactivate_plugin(
     try:
         record = await pm.deactivate_plugin(plugin_name)
         return record.to_dict()
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.")
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' not found.") from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Deactivation error: {exc}")
+        raise HTTPException(status_code=500, detail=f"Deactivation error: {exc}") from exc
 
 
 @router.delete("/v1/plugins/{plugin_name}", tags=["Plugins & MCP Extensions"])
@@ -2726,7 +2724,7 @@ async def call_mcp_tool(
         res = await client.call_tool(request.tool_name, request.arguments)
         return {"server_id": request.server_id, "tool_name": request.tool_name, "result": res}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"MCP tool invocation failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"MCP tool invocation failed: {exc}") from exc
 
 
 # ==============================================================================
@@ -2769,7 +2767,7 @@ async def export_airgap_bundle(
         )
         return receipt.to_dict()
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Bundle export failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Bundle export failed: {exc}") from exc
 
 
 @router.post("/v1/airgap/bundle/verify", tags=["Air-Gap & Sovereign Deployment"])
@@ -2786,7 +2784,7 @@ async def verify_airgap_bundle(
         result = AirGapBundleExporter.verify_bundle(target_path)
         return result.to_dict()
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Bundle verification error: {exc}")
+        raise HTTPException(status_code=500, detail=f"Bundle verification error: {exc}") from exc
 
 
 # ==============================================================================
@@ -3059,7 +3057,7 @@ async def inspect_kstack_skill(
     try:
         return kstack_registry.inspect_skill(name)
     except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 class KStackExecuteRequest(BaseModel):
@@ -3099,9 +3097,9 @@ async def execute_kstack_skill(
             handler=handler,
         )
     except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
     return {"proof": proof.to_dict()}
 
 
@@ -3151,7 +3149,7 @@ async def record_kbrain_fact(
         )
         return fact.to_dict()
     except SecretLeakDetectedError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @router.get("/v1/khub/skills", tags=["KHub"])
@@ -3191,7 +3189,7 @@ async def approve_khub_skill(
         khub_importer.approve_imported_skill(skill_id)
         return {"status": "ok", "skill_id": skill_id, "approved": True}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/v1/khub/bundle/export", tags=["KHub Universal Skills"])
@@ -3209,7 +3207,7 @@ async def export_khub_skill_bundle(
     try:
         skill_path = _workspace_fs.resolve_safe_path(skill_path_str)
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid skill path: {exc}")
+        raise HTTPException(status_code=400, detail=f"Invalid skill path: {exc}") from exc
 
     if not skill_path.exists():
         raise HTTPException(status_code=404, detail=f"Skill path '{skill_path_str}' does not exist.")
@@ -3219,7 +3217,7 @@ async def export_khub_skill_bundle(
         try:
             output_archive = _workspace_fs.resolve_safe_path(out_archive_str)
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Invalid output archive path: {exc}")
+            raise HTTPException(status_code=400, detail=f"Invalid output archive path: {exc}") from exc
     else:
         stem = skill_path.name if skill_path.is_dir() else skill_path.stem
         output_archive = skill_path.parent / f"{stem}.skill.tar.gz"
@@ -3235,7 +3233,7 @@ async def export_khub_skill_bundle(
             "bundle_digest_sha256": manifest.get("bundle_digest_sha256", ""),
         }
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Packaging failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Packaging failed: {exc}") from exc
 
 
 @router.post("/v1/khub/bundle/import", tags=["KHub Universal Skills"])
@@ -3260,7 +3258,7 @@ async def import_khub_skill_bundle(
             if archive_p.is_file():
                 archive_path = archive_p.resolve()
             else:
-                raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}")
+                raise HTTPException(status_code=400, detail=f"Invalid archive path: {exc}") from exc
 
     if not archive_path.is_file():
         raise HTTPException(status_code=404, detail=f"Archive file '{archive_str}' does not exist.")
@@ -3270,7 +3268,7 @@ async def import_khub_skill_bundle(
         try:
             destination_dir = _workspace_fs.resolve_safe_path(dest_str)
         except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Invalid destination directory: {exc}")
+            raise HTTPException(status_code=400, detail=f"Invalid destination directory: {exc}") from exc
     else:
         bundle_stem = archive_path.name.replace(".skill.tar.gz", "").replace(".tar.gz", "").replace(".tar", "")
         destination_dir = _workspace_fs.root / "skills" / bundle_stem
@@ -3289,11 +3287,11 @@ async def import_khub_skill_bundle(
             "bundle_digest_sha256": res.get("bundle_digest_sha256", ""),
         }
     except PermissionError as exc:
-        raise HTTPException(status_code=400, detail=f"Directory traversal attack detected: {exc}")
+        raise HTTPException(status_code=400, detail=f"Directory traversal attack detected: {exc}") from exc
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=f"Integrity verification failed: {exc}")
+        raise HTTPException(status_code=400, detail=f"Integrity verification failed: {exc}") from exc
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Unpack failed: {exc}")
+        raise HTTPException(status_code=400, detail=f"Unpack failed: {exc}") from exc
 
 
 @router.get("/v1/kspaces", tags=["KSpaces"])
@@ -3323,7 +3321,7 @@ async def create_kspace(
         space = kspaces_manager.create_space(space_id, name, owner_id)
         return space.to_dict()
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.post("/v1/kspaces/{space_id}/conflicts/check", tags=["KSpaces Multi-Tenant"])
@@ -3383,7 +3381,7 @@ async def resolve_kspace_conflicts(
         )
         return {"status": "resolved", "resolved_text": resolved_text}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Conflict resolution failed: {e}")
+        raise HTTPException(status_code=400, detail=f"Conflict resolution failed: {e}") from e
 
 
 @router.get("/v1/kspaces/{space_id}/timeline", tags=["KSpaces Multi-Tenant"])
@@ -3442,7 +3440,7 @@ async def create_kflow_dag(
         dag = kflow_engine.create_dag(flow_id=flow_id, goal=goal, nodes=flow_nodes, max_fanout=max_fanout)
         return dag.to_dict()
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.get("/v1/kflow/dag/{flow_id}", tags=["KFlow"])
@@ -3479,7 +3477,7 @@ async def run_kflow_dag(
             "dag": dag.to_dict(),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/v1/kflow/dag/{flow_id}/cancel", tags=["KFlow"])
@@ -3527,7 +3525,7 @@ async def get_audit_merkle_proof(
         try:
             return await EnterpriseAuditExporter.get_inclusion_proof_for_seq(session, seq)
         except KeyError as e:
-            raise HTTPException(status_code=404, detail=str(e))
+            raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/v1/audit/merkle/verify", tags=["Enterprise Audit"])
@@ -3618,8 +3616,8 @@ async def create_token_endpoint(
     from core.security.auth import create_api_token
     try:
         role = Role(request.role)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Unknown role '{request.role}'. Valid: {[r.value for r in Role]}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Unknown role '{request.role}'. Valid: {[r.value for r in Role]}") from exc
     expires_at = None
     if request.expires_in_days:
         expires_at = datetime.now(timezone.utc) + timedelta(days=request.expires_in_days)
@@ -3677,9 +3675,9 @@ async def create_schedule(
     try:
         sched = flow_scheduler.add(request.flow_id, request.interval_seconds)
     except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     return sched.to_dict()
 
 
@@ -3706,7 +3704,7 @@ async def create_agent_worktree(payload: dict, principal: Principal = Depends(cu
         await record_audit(principal, "worktree_create", res["branch"], True)
         return res
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/v1/worktrees", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
@@ -3723,7 +3721,7 @@ async def remove_agent_worktree(task_id: str, force: bool = False, principal: Pr
         await record_audit(principal, "worktree_remove", task_id, True)
         return res
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/v1/checkpoints", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
@@ -3734,7 +3732,7 @@ async def create_checkpoint(payload: dict, principal: Principal = Depends(curren
         await record_audit(principal, "checkpoint_create", res["id"], True)
         return res
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/v1/checkpoints", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
@@ -3750,7 +3748,7 @@ async def restore_checkpoint(checkpoint_id: str, principal: Principal = Depends(
         await record_audit(principal, "checkpoint_restore", checkpoint_id, True)
         return res
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/v1/git/ci/status", dependencies=[Depends(current_principal)], tags=["Workspace Git"])

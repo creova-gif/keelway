@@ -7,9 +7,8 @@ and vector-indexed symbol search for prompt context augmentation.
 
 import ast
 import hashlib
-import json
 import re
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Set, Tuple
 

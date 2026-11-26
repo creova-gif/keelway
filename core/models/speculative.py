@@ -29,8 +29,6 @@ from core.models.cost_ledger import CostLedger, cost_ledger, resolve_model_rates
 from core.models.provider import (
     BaseModelProvider,
     ChatCompletionRequest,
-    ChatCompletionResponse,
-    ProviderError,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +44,7 @@ def _tokenize(text: str) -> List[str]:
 def _count_prefix_matches(tokens_a: List[str], tokens_b: List[str]) -> int:
     """Count contiguous matching tokens from the start."""
     count = 0
-    for a, b in zip(tokens_a, tokens_b):
+    for a, b in zip(tokens_a, tokens_b, strict=False):
         if a == b:
             count += 1
         else:
@@ -146,12 +144,9 @@ class SpeculativeDecodingEngine:
         draft_resp = None
         draft_text = ""
         draft_tokens_total = 0
-        draft_latency_ms = 0.0
 
         try:
-            d_start = time.perf_counter()
             draft_resp = await self.draft_adapter.complete(draft_req)
-            draft_latency_ms = (time.perf_counter() - d_start) * 1000.0
             draft_text = draft_resp.content or ""
             draft_tokens_total = draft_resp.usage.get("completion_tokens", len(_tokenize(draft_text)))
             if draft_tokens_total == 0 and draft_text:
@@ -165,9 +160,7 @@ class SpeculativeDecodingEngine:
         # Handle draft failure with fallback to target model
         if draft_failed:
             target_fallback_req = request.model_copy(update={"model": config.target_model_id})
-            t_start = time.perf_counter()
             target_resp = await self.target_adapter.complete(target_fallback_req)
-            target_latency_ms = (time.perf_counter() - t_start) * 1000.0
             target_tokens_used = target_resp.usage.get("total_tokens", len(_tokenize(target_resp.content)))
 
             total_elapsed_ms = (time.perf_counter() - start_time) * 1000.0
@@ -208,9 +201,7 @@ class SpeculativeDecodingEngine:
         if config.verification_mode == "prefix":
             # Target completes original prompt directly for token alignment
             target_req = request.model_copy(update={"model": config.target_model_id})
-            t_start = time.perf_counter()
             target_resp = await self.target_adapter.complete(target_req)
-            target_latency_ms = (time.perf_counter() - t_start) * 1000.0
             target_tokens_used = target_resp.usage.get("total_tokens", len(_tokenize(target_resp.content)))
             target_cost = getattr(target_resp, "cost_usd", 0.0)
 
@@ -247,9 +238,7 @@ class SpeculativeDecodingEngine:
                 "max_tokens": request.max_tokens,
             })
 
-            t_start = time.perf_counter()
             target_resp = await self.target_adapter.complete(target_verify_req)
-            target_latency_ms = (time.perf_counter() - t_start) * 1000.0
             target_content = (target_resp.content or "").strip()
             target_tokens_used = target_resp.usage.get("total_tokens", len(_tokenize(target_content)))
             target_cost = getattr(target_resp, "cost_usd", 0.0)
@@ -452,7 +441,7 @@ class SpeculativeDecoder:
         verdicts = target_validator_fn(draft_tokens)
         accepted: List[str] = []
 
-        for token, is_valid in zip(draft_tokens, verdicts):
+        for token, is_valid in zip(draft_tokens, verdicts, strict=True):
             if is_valid:
                 accepted.append(token)
             else:
@@ -511,7 +500,7 @@ class SpeculativeDecoder:
 
             accepted: List[str] = []
             prefix_valid = True
-            for tok_idx, (tok, is_valid) in enumerate(zip(draft_tokens, verdicts)):
+            for tok_idx, (tok, is_valid) in enumerate(zip(draft_tokens, verdicts, strict=True)):
                 if prefix_valid and is_valid:
                     accepted.append(tok)
                     token_stream.append({

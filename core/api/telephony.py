@@ -4,7 +4,7 @@ Enables AI agent interaction across emerging markets on 2G feature phones
 via Africa's Talking, Twilio, or generic telecom signaling gateways.
 """
 
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Tuple
 
 
 class TelephonyAdapter:

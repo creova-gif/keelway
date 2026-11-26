@@ -10,7 +10,6 @@ until run against pinned real binaries.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import stat
@@ -21,7 +20,6 @@ import pytest
 
 from core.agents.external import (
     EXTERNAL_AGENT_ADAPTERS,
-    detect_external_agents,
     evaluate_hook_payload,
     get_adapter,
 )

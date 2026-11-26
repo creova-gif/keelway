@@ -5,11 +5,10 @@ KHub Universal Skills & Tools Importer Data Models.
 from __future__ import annotations
 
 import hashlib
-import json
 import time
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class SkillSourceType(str, Enum):

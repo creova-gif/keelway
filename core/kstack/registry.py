@@ -6,7 +6,6 @@ Provides inspect, import, validate, list, pin, export, and revoke operations.
 from __future__ import annotations
 
 import json
-import os
 import re
 import inspect
 import time
@@ -31,7 +30,6 @@ def parse_skill_markdown(content: str, source_uri: str = "") -> SkillDefinition:
 
     # Lightweight robust parser for key-value and list frontmatter
     metadata: Dict[str, Any] = {}
-    current_key: Optional[str] = None
     current_dict: Optional[Dict[str, str]] = None
     current_list: Optional[List[str]] = None
 
@@ -43,7 +41,6 @@ def parse_skill_markdown(content: str, source_uri: str = "") -> SkillDefinition:
         if re.match(r"^[a-zA-Z0-9_-]+:\s*$", line):
             # Start of dict or list section
             k = line.split(":")[0].strip()
-            current_key = k
             if k in ("inputs", "outputs"):
                 current_dict = {}
                 metadata[k] = current_dict
@@ -58,7 +55,6 @@ def parse_skill_markdown(content: str, source_uri: str = "") -> SkillDefinition:
         elif current_list is not None and line.strip().startswith("- "):
             current_list.append(line.strip()[2:].strip())
         elif ":" in line:
-            current_key = None
             current_dict = None
             current_list = None
             k, v = line.split(":", 1)
@@ -200,15 +196,6 @@ class KStackRegistry:
             raise KeyError(f"Skill '{name}' not found")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         # Reconstruct standard SKILL.md
-        frontmatter = {
-            "name": skill.name,
-            "version": skill.version,
-            "role": skill.role,
-            "description": skill.description,
-            "permissions": skill.permissions,
-            "inputs": skill.contract.inputs,
-            "outputs": skill.contract.outputs,
-        }
         yaml_lines = ["---"]
         yaml_lines.append(f"name: {skill.name}")
         yaml_lines.append(f"version: {skill.version}")

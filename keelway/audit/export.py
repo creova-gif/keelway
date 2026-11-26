@@ -6,8 +6,7 @@ from __future__ import annotations
 import datetime
 import hashlib
 import hmac
-import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from pydantic import BaseModel
 
 from keelway.audit.recorder import verify_audit_chain

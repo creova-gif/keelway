@@ -162,10 +162,10 @@ class AnthropicProviderAdapter(BaseModelProvider, ModelAdapter):
         try:
             async with httpx.AsyncClient(timeout=timeout_val, transport=self._transport) as client:
                 resp = await client.post(f"{self.base_url}/messages", headers=headers, json=payload)
-        except httpx.TimeoutException:
-            raise ProviderTimeoutError(f"Anthropic generation timed out after {timeout_val:.0f}s", provider=self.provider_id)
+        except httpx.TimeoutException as exc:
+            raise ProviderTimeoutError(f"Anthropic generation timed out after {timeout_val:.0f}s", provider=self.provider_id) from exc
         except httpx.HTTPError as e:
-            raise ProviderError(f"Failed to connect to Anthropic API: {e}", provider=self.provider_id)
+            raise ProviderError(f"Failed to connect to Anthropic API: {e}", provider=self.provider_id) from e
 
         latency_ms = (time.perf_counter() - start_time) * 1000.0
 

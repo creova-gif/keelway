@@ -8,9 +8,8 @@ for Unsloth and Hugging Face PEFT.
 
 from __future__ import annotations
 
-import json
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from pydantic import BaseModel, Field
 
 from core.opencore.weights import QuantizationLevel
@@ -165,8 +164,6 @@ def generate_peft_config(config: AdaptationConfig) -> Dict[str, Any]:
 
 def generate_unsloth_recipe(config: AdaptationConfig) -> str:
     """Generates an end-to-end executable Python script for QLoRA fine-tuning using Unsloth."""
-    peft_dict = generate_peft_config(config)
-    peft_json = json.dumps(peft_dict, indent=4)
 
     return f'''#!/usr/bin/env python3
 """
