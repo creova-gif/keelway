@@ -17,6 +17,7 @@ export function Footer() {
             <Link href="/pricing" className="kw-navlink">Pricing</Link>
             <Link href="/changelog" className="kw-navlink">Changelog</Link>
             <Link href="/contact" className="kw-navlink">Contact</Link>
+            <Link href="/legal" className="kw-navlink">Legal</Link>
           </nav>
         </div>
       </div>
