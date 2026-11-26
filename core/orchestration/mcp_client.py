@@ -76,6 +76,8 @@ class MCPClient:
 
     async def _start_subprocess(self) -> None:
         """Spawn external MCP server with scrubbed environment."""
+        if not self.command:
+            raise ValueError("Either command or in_process_server must be provided to MCPClient.")
         clean_env, _ = scrub_env(os.environ)
         clean_env.update(self.env)
         cmd_list = [self.command] + self.args

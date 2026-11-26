@@ -440,7 +440,7 @@ class UnifiedWorkspaceHub:
         assignee_agent: str = "feature-coder", prd_id: Optional[str] = None, sprint_id: str = "SPR-01",
     ) -> Dict[str, Any]:
         ws = self._ensure_workspace(workspace_id)
-        issue = {
+        issue: Dict[str, Any] = {
             "id": _next_record_id("KEEL", ws["issues"]),
             "title": title.strip(),
             "status": status,

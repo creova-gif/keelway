@@ -229,8 +229,8 @@ def _extract_python_code_to_graph(source_code: str) -> Tuple[List[Dict[str, Any]
         elif method in ("cycle", "add_cycle_policy", "addCycle"):
             has_graph_api = True
             kw_map = {kw.arg: _ast_const_val(kw.value) for kw in call.keywords if kw.arg}
-            src = str(kw_map.get("from_node") or kw_map.get("from") or "").strip()
-            dst = str(kw_map.get("to_node") or kw_map.get("to") or "").strip()
+            src: Optional[str] = str(kw_map.get("from_node") or kw_map.get("from") or "").strip()
+            dst: Optional[str] = str(kw_map.get("to_node") or kw_map.get("to") or "").strip()
             if src and dst:
                 lg_edges.append((src, dst))
         elif method == "add_node" and call.args:

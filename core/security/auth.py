@@ -120,7 +120,10 @@ async def redeem_pairing_code(
         select(PairingCodeRecord).where(PairingCodeRecord.code_hash == hash_token(code))
     )).scalar_one_or_none()
     now = datetime.now(timezone.utc)
-    if record is None or record.used_at is not None or _aware(record.expires_at) <= now:
+    if record is None or record.used_at is not None:
+        return None
+    expires_at = _aware(record.expires_at)
+    if expires_at is None or expires_at <= now:
         return None
     # Conditional on used_at still being empty, so two phones racing on one code can't both win.
     claimed = cast(
@@ -153,7 +156,8 @@ async def principal_for_token(token: Optional[str]) -> Optional[Principal]:
         if record is None:
             return None
         now = datetime.now(timezone.utc)
-        if record.expires_at is not None and _aware(record.expires_at) <= now:
+        expires_at = _aware(record.expires_at)
+        if expires_at is not None and expires_at <= now:
             return None
         record.last_used_at = now
         await db.commit()

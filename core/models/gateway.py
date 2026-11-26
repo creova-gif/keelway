@@ -176,7 +176,7 @@ class ModelGateway:
                 continue
 
             adapter = self.adapters.get(provider)
-            if not await self._provider_ready(provider, adapter, sanitized_request):
+            if adapter is None or not await self._provider_ready(provider, adapter, sanitized_request):
                 continue
 
             try:
@@ -238,7 +238,7 @@ class ModelGateway:
                 continue
 
             adapter = self.adapters.get(provider)
-            if not await self._provider_ready(provider, adapter, sanitized_request):
+            if adapter is None or not await self._provider_ready(provider, adapter, sanitized_request):
                 continue
 
             try:
@@ -316,7 +316,7 @@ class ModelGateway:
                 selected_adapter = adapter
                 break
 
-        if not selected_adapter:
+        if selected_adapter is None or selected_provider is None:
             raise RuntimeError("No available model provider reachable for streaming.")
 
         if hasattr(selected_adapter, "stream_complete"):

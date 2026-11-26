@@ -323,6 +323,8 @@ python3 run_{spec.name.replace('-', '_')}.py "Your task description"
         # 2. Register manifest in DB
         manifest_dict = spec.to_manifest_dict()
         compiled_manifest = am.validate(manifest_dict).manifest
+        if compiled_manifest is None:
+            raise ValueError("manifest validation produced no manifest")
         manifest_digest = am.digest(compiled_manifest)
 
         if register_in_db:

@@ -36,6 +36,8 @@ class AnthropicAdapter(ModelAdapter):
             else:
                 messages_payload.append({"role": msg.role, "content": msg.content})
 
+        if not self.api_key:
+            raise RuntimeError("Anthropic API key not configured")
         headers = {
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",

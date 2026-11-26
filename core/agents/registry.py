@@ -29,6 +29,8 @@ async def register_manifest(
         raise ManifestRegistryError(f"Invalid manifest: {'; '.join(report.errors)}")
 
     manifest = report.manifest
+    if manifest is None:
+        raise ManifestRegistryError("manifest validation produced no manifest")
     record_id = f"{manifest.name}@{manifest.version}"
     digest = am.digest(manifest)
     owner = owner_override or manifest.owner

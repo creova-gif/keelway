@@ -300,6 +300,7 @@ class PilotSimulationEngine:
         # Stage 6: Seal flight recorder tape
         recorder.save_tape()
         sealed_recorder = recorder.seal_tape()
+        assert sealed_recorder.tape_sha256 is not None
 
         now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         receipt = PilotReceipt(
