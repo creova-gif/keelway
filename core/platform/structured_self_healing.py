@@ -304,8 +304,10 @@ class SQLiteStructuredHealingEngine:
     """Thread-safe SQLite WAL engine for `.content_blocks` normalization, JSON-Schema enforcement, and self-healing."""
 
     def __init__(self, db_path: Optional[Union[str, Path]] = None) -> None:
-        self._lock, self._explicit_db_path, self._conn, self._active_target = threading.RLock(), db_path, None, None
-        self._db_path, self._closed = ":memory:", False
+        self._lock, self._explicit_db_path, self._closed = threading.RLock(), db_path, False
+        self._conn: Optional[sqlite3.Connection] = None
+        self._active_target: Optional[str] = None
+        self._db_path: Union[str, Path] = ":memory:"
         with self._lock:
             self._ensure_conn()
 
@@ -370,21 +372,20 @@ class SQLiteStructuredHealingEngine:
             scrubbed_str, r_s = scrub_flight_text(raw_output)
             total_red, cand = total_red + r_s, scrubbed_str.strip()
             if not strict_mode:
-                if _THINK_RE.search(cand):
-                    cand, _ = _THINK_RE.sub("", cand).strip(), repair_actions.append("strip_think_tags")
+                think_hit = bool(_THINK_RE.search(cand))
+                cand = _THINK_RE.sub("", cand).strip() if think_hit else cand
                 fence_m = _FENCE_JSON_RE.search(cand)
-                if fence_m:
-                    cand, _ = fence_m.group(1).strip(), repair_actions.append("strip_markdown_fences")
+                cand = fence_m.group(1).strip() if fence_m else cand
                 no_commas = cand
-                while _TRAILING_COMMA_RE.search(no_commas):
-                    no_commas = _TRAILING_COMMA_RE.sub(r"\1", no_commas)
-                if no_commas != cand:
-                    cand, _ = no_commas, repair_actions.append("remove_trailing_commas")
+                while _TRAILING_COMMA_RE.search(no_commas): no_commas = _TRAILING_COMMA_RE.sub(r"\1", no_commas)
+                repair_actions += ["strip_think_tags"] * think_hit + ["strip_markdown_fences"] * bool(fence_m) + ["remove_trailing_commas"] * (no_commas != cand)
+                cand = no_commas
             try:
                 parsed_val, r_o = scrub_flight_payload(json.loads(cand))
                 total_red += r_o
             except json.JSONDecodeError as exc:
-                parsed_ok, _ = False, validation_errors.append(f"$: invalid JSON syntax ({exc.msg})")
+                parsed_ok = False
+                validation_errors.append(f"$: invalid JSON syntax ({exc.msg})")
         else:
             parsed_val, r_o = scrub_flight_payload(raw_output)
             total_red += r_o

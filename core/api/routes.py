@@ -622,7 +622,7 @@ class ConnectionManager:
     """Manages active WebSocket connections and SSE stream subscriptions for Keelway Studio."""
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
-        self.sse_subscribers: Set[asyncio.Queue] = set()
+        self.sse_subscribers: Set[asyncio.Queue[Dict[str, Any]]] = set()
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -632,11 +632,11 @@ class ConnectionManager:
         self.active_connections.discard(websocket)
 
     def register_sse(self) -> asyncio.Queue:
-        q = asyncio.Queue(maxsize=256)
+        q: asyncio.Queue[Dict[str, Any]] = asyncio.Queue(maxsize=256)
         self.sse_subscribers.add(q)
         return q
 
-    def unregister_sse(self, q: asyncio.Queue):
+    def unregister_sse(self, q: asyncio.Queue[Dict[str, Any]]):
         self.sse_subscribers.discard(q)
 
     async def broadcast(self, message: dict):
@@ -2347,21 +2347,25 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
         try:
             primary = SignedWormDurableReceipt(**payload["primary_receipt"])
             secondary = SignedWormDurableReceipt(**payload["secondary_receipt"])
-            cert_raw = payload.get("certificate_bytes", b"")
-            if isinstance(cert_raw, str):
-                cert_raw = cert_raw.encode("utf-8")
-            res = DualWormReceiptValidator.validate_publication(primary, secondary, cert_raw)
-            return {"valid": res.valid, "subsystem": "worm", "reason": res.reason, "primary_id": res.primary_receipt_id}
+            res = DualWormReceiptValidator().validate_dual_receipts(
+                str(payload.get("base_final_sha256", "")),
+                primary,
+                secondary,
+                require_physical_hardware=bool(payload.get("require_physical_hardware", True)),
+            )
+            return {"valid": res.is_valid, "subsystem": "worm", "reason": res.error_message or res.status_code, "primary_id": res.receipt_a_digest}
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"WORM verification failed: {exc}") from exc
 
     elif subsystem == "tpm":
-        from keelway.hal.tpm import TPMQuoteVerifier, TPMQuotePayload, TPMEventLogEntry
+        from keelway.hal.tpm import TPMQuoteVerifier, TPMQuotePayload
         try:
             quote = TPMQuotePayload(**payload["quote"])
-            entries = [TPMEventLogEntry(**e) for e in payload.get("event_log", [])]
-            res = TPMQuoteVerifier.verify_measured_boot(quote, entries)
-            return {"valid": res.valid, "subsystem": "tpm", "computed_pcr": res.computed_pcr, "reason": res.reason}
+            golden_profile = {int(k): str(v) for k, v in payload.get("golden_boot_profile", {}).items()}
+            tpm_res = TPMQuoteVerifier(customer_golden_boot_profile=golden_profile).verify_quote(
+                quote, str(payload.get("expected_nonce", ""))
+            )
+            return {"valid": tpm_res.is_valid, "subsystem": "tpm", "computed_pcr": tpm_res.recomputed_pcr_digest, "reason": tpm_res.error_message or tpm_res.status_code}
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"TPM verification failed: {exc}") from exc
 
@@ -2370,8 +2374,13 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
         try:
             cert = PIVCertificate(**payload["certificate"])
             crl = SignedCRL(**payload["crl"])
-            res = PIVSmartcardVerifier.verify_smartcard_token(cert, crl)
-            return {"valid": res.valid, "subsystem": "piv", "serial_number": res.serial_number, "reason": res.reason}
+            signed_data = payload.get("signed_data", b"")
+            if isinstance(signed_data, str):
+                signed_data = signed_data.encode("utf-8")
+            piv_res = PIVSmartcardVerifier().verify_piv_certificate_and_signature(
+                cert, crl, signed_data, str(payload.get("signature", ""))
+            )
+            return {"valid": piv_res.is_valid, "subsystem": "piv", "serial_number": cert.serial_number, "reason": piv_res.error_message or piv_res.status_code}
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"PIV verification failed: {exc}") from exc
 
@@ -2392,13 +2401,13 @@ async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal =
                 initial_recovery_epoch=epoch,
                 initial_root_spki_sha256=old_root,
             )
-            res = verifier.verify_recovery_envelope(envelope)
+            recovery_res = verifier.verify_recovery_envelope(envelope)
             return {
-                "valid": res.is_valid,
+                "valid": recovery_res.is_valid,
                 "subsystem": "recovery",
-                "status_code": res.status_code,
-                "new_root_enabled": res.new_root_enabled,
-                "error": res.error_message,
+                "status_code": recovery_res.status_code,
+                "new_root_enabled": recovery_res.new_root_enabled,
+                "error": recovery_res.error_message,
             }
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"Recovery verification failed: {exc}") from exc

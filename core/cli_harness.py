@@ -347,7 +347,7 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                                     "ticket_id": rec.get("ticket_id"), "record": rec}
                         return rec
 
-                    result = run_acp_session(
+                    acp_result = run_acp_session(
                         spec.argv, str(getattr(args, "prompt", "")),
                         agent_id=agent_id, workspace_id=ws_id,
                         permission_evaluator=_permission_eval,
@@ -355,14 +355,14 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                         rpc_timeout=float(getattr(args, "timeout", 30.0)),
                     )
                     res = {
-                        "agent_id": result.agent_id, "stop_reason": result.stop_reason,
-                        "returncode": result.returncode, "error": result.error,
-                        "events": len(result.events),
+                        "agent_id": acp_result.agent_id, "stop_reason": acp_result.stop_reason,
+                        "returncode": acp_result.returncode, "error": acp_result.error,
+                        "events": len(acp_result.events),
                         "permission_decisions": [
                             {"outcome": d.outcome, "option_id": d.option_id,
                              "verdict": d.verdict, "reason_code": d.reason_code,
                              "ticket_id": d.ticket_id}
-                            for d in result.permission_decisions
+                            for d in acp_result.permission_decisions
                         ],
                     }
                     if getattr(args, "tape", False):
@@ -377,11 +377,11 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                                     "span_type": "agent_session",
                                     "attributes": {
                                         "agent_id": agent_id,
-                                        "stop_reason": result.stop_reason or "",
-                                        "returncode": result.returncode,
-                                        "error": (result.error or "")[:200],
-                                        "event_count": len(result.events),
-                                        "permission_count": len(result.permission_decisions),
+                                        "stop_reason": acp_result.stop_reason or "",
+                                        "returncode": acp_result.returncode,
+                                        "error": (acp_result.error or "")[:200],
+                                        "event_count": len(acp_result.events),
+                                        "permission_count": len(acp_result.permission_decisions),
                                     },
                                 }],
                                 trace_id=str(getattr(args, "trace_id", "") or "") or None,
@@ -391,9 +391,9 @@ def dispatch_harness_cli(args: argparse.Namespace) -> Optional[int]:
                         finally:
                             tape_engine.close()
                     print(json.dumps(res, indent=2) if as_json else
-                          f"[{agent_id}] acp stop={result.stop_reason} events={len(result.events)} "
-                          f"permissions={len(result.permission_decisions)} error={result.error}")
-                    return 0 if result.error is None else 1
+                          f"[{agent_id}] acp stop={acp_result.stop_reason} events={len(acp_result.events)} "
+                          f"permissions={len(acp_result.permission_decisions)} error={acp_result.error}")
+                    return 0 if acp_result.error is None else 1
 
                 if agents_act == "event":
                     raw = str(getattr(args, "payload", "") or "")

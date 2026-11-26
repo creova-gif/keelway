@@ -42,17 +42,10 @@ from core.security.airgap import AirGapEnforcer
 class _OfflineMockCloudProvider(BaseModelProvider):
     """Deterministic zero-network closed-model mock for fast offline CLI swarm checks."""
 
-    @property
-    def provider_id(self) -> Provider:
-        return Provider.GEMINI
-
-    @property
-    def category(self) -> ModelCategory:
-        return ModelCategory.CLOSED_PROPRIETARY
-
-    @property
-    def default_model(self) -> str:
-        return "gemini-3.5-flash-lite"
+    provider = Provider.GEMINI
+    provider_id = Provider.GEMINI
+    category = ModelCategory.CLOSED_PROPRIETARY
+    default_model = "gemini-3.5-flash-lite"
 
     def is_available(self) -> bool:
         return True
@@ -182,7 +175,7 @@ def _build_provenance(primary: Optional[Provider], model_id: Optional[str]) -> D
     meta = model_registry.get(model_id) if model_id else None
     if primary == Provider.LOCAL or (meta and meta.category == ModelCategory.OPEN_WEIGHT):
         return {
-            "weight_ownership_license": meta.license_name if meta else "Apache-2.0 (Open-Weight)",
+            "weight_ownership_license": meta.license if meta else "Apache-2.0 (Open-Weight)",
             "hosting_location": "local_on_device_or_self_hosted_vpc",
             "service_operator": "customer_self_operated",
             "data_processing_boundary": "zero_external_egress",
@@ -195,7 +188,7 @@ def _build_provenance(primary: Optional[Provider], model_id: Optional[str]) -> D
             "data_processing_boundary": "rejected_by_policy",
         }
     return {
-        "weight_ownership_license": meta.license_name if meta else "Proprietary Commercial Terms",
+        "weight_ownership_license": meta.license if meta else "Proprietary Commercial Terms",
         "hosting_location": f"{primary.value}_managed_cloud_region",
         "service_operator": f"{primary.value}_commercial_api",
         "data_processing_boundary": "external_commercial_inference_endpoint",
@@ -212,9 +205,19 @@ def _handle_opencore(args: argparse.Namespace) -> int:
         telemetry = opencore_serving_engine.get_cluster_telemetry().model_dump(mode="json")
         runtimes: Any = {}
         try:
-            from core.opencore import runtime as oc_rt  # type: ignore
-            if hasattr(oc_rt, "runtime_discovery"):
-                runtimes = asyncio.run(oc_rt.runtime_discovery.discover_all())
+            from core.opencore import runtime as oc_rt
+
+            async def _probe() -> Dict[str, Any]:
+                discovery = oc_rt.runtime_discovery
+                ollama, vllm = await asyncio.gather(
+                    discovery.discover_ollama(), discovery.discover_vllm()
+                )
+                return {
+                    "ollama": ollama.model_dump(mode="json"),
+                    "vllm": vllm.model_dump(mode="json"),
+                }
+
+            runtimes = asyncio.run(_probe())
         except Exception:
             runtimes = {"in_process_opencore": "ready"}
         payload = {"hardware": hw.model_dump(mode="json"), "models": oc_models, "telemetry": telemetry, "runtimes": runtimes}
@@ -242,11 +245,13 @@ def _handle_opencore(args: argparse.Namespace) -> int:
         manifest = weight_manager.get_manifest(args.model, quant)
         modelfile_text = ""
         try:
-            from core.opencore import runtime as oc_rt  # type: ignore
-            if hasattr(oc_rt, "OpenCoreModelfileCompiler"):
-                modelfile_text = oc_rt.OpenCoreModelfileCompiler.compile_modelfile(
-                    model_id=args.model, quantization=quant, system_prompt=args.system
-                )
+            from core.opencore import runtime as oc_rt
+
+            compiler = oc_rt.OpenCoreModelfileCompiler(manager=weight_manager)
+            spec = compiler.build_spec(
+                model_id=args.model, quantization=quant, system_prompt=args.system
+            )
+            modelfile_text = compiler.render(spec)
         except Exception:
             modelfile_text = ""
         if not modelfile_text:
@@ -322,9 +327,12 @@ def _handle_route(args: argparse.Namespace) -> int:
 
 def _handle_swarm(args: argparse.Namespace) -> int:
     local_adapter = OpenWeightProviderAdapter(base_url="http://127.0.0.1:9")
+    target_adapter: BaseModelProvider
     if args.live:
         gw = ModelGateway()
-        target_adapter = gw.adapters[Provider.GEMINI]
+        live_adapter = gw.adapters[Provider.GEMINI]
+        assert isinstance(live_adapter, BaseModelProvider)
+        target_adapter = live_adapter
     else:
         mock_cloud = _OfflineMockCloudProvider()
         gw = ModelGateway(adapters={Provider.LOCAL: local_adapter, Provider.GEMINI: mock_cloud, Provider.GOOGLE: mock_cloud})

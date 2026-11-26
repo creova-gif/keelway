@@ -60,6 +60,10 @@ jobs:
           pytest tests/test_agent_sandbox.py -v
       - name: Lint check
         run: ruff check .
+      # Static typecheck gate (KEEL-ENG-062): mypy comes from requirements.lock
+      # (dev extras), so the version is pinned and lock-freshness-gated.
+      - name: Typecheck (mypy)
+        run: python -m mypy
       # Dependency CVE gate: audits the canonical locked pins (kept honest by
       # check_python_lock.sh). Pinned tool for deterministic CI.
       - name: Dependency vulnerability audit (pip-audit on requirements.lock)

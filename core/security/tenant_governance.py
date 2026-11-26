@@ -254,12 +254,14 @@ class ScopedAPIKeyManager:
             base = {"key_id": matched.key_id, "tenant_id": matched.tenant_id}
             if matched.revoked:
                 return KeyAuthenticationResult(
-                    valid=False, reason="API key has been revoked.", status_code=401, **base
+                    valid=False, reason="API key has been revoked.", status_code=401,
+                    key_id=matched.key_id, tenant_id=matched.tenant_id,
                 )
             now = _ensure_utc(self._now_fn()) or _utc_now()
             if matched.expires_at is not None and now >= matched.expires_at:
                 return KeyAuthenticationResult(
-                    valid=False, reason="API key has expired.", status_code=401, **base
+                    valid=False, reason="API key has expired.", status_code=401,
+                    key_id=matched.key_id, tenant_id=matched.tenant_id,
                 )
             if (
                 required_scope

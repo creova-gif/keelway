@@ -29,7 +29,6 @@ from core.models.provider import (
     ContextLengthExceededError,
     ProviderTimeoutError,
 )
-from core.models.adapters.base import ModelAdapter
 
 
 # Standard Anthropic rate card per million tokens (input, output) in USD
@@ -42,7 +41,7 @@ ANTHROPIC_RATES: Dict[str, tuple[float, float]] = {
 }
 
 
-class AnthropicProviderAdapter(BaseModelProvider, ModelAdapter):
+class AnthropicProviderAdapter(BaseModelProvider):
     """Proprietary Model Provider Adapter for Anthropic Claude."""
 
     provider_id = Provider.ANTHROPIC
@@ -55,7 +54,7 @@ class AnthropicProviderAdapter(BaseModelProvider, ModelAdapter):
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
         base_url: Optional[str] = None,
-        transport: Optional[httpx.BaseTransport] = None,
+        transport: Optional[httpx.AsyncBaseTransport] = None,
     ):
         self._explicit_api_key = api_key
         self.default_model = default_model or self.DEFAULT_MODEL

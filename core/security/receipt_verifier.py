@@ -42,13 +42,13 @@ class ReceiptVerifier:
         """
         # 1. Handle tar.gz air-gap bundle archive
         if isinstance(target, (str, Path)):
-            target_path = Path(target)
+            target_path: Optional[Path] = Path(target)
             if target_path.exists() and (target_path.suffix == ".gz" or target_path.name.endswith(".tar.gz")):
                 return cls._verify_bundle_archive(target_path)
 
         # 2. Parse JSON if string or path
         data: Dict[str, Any] = {}
-        target_path: Optional[Path] = None
+        target_path = None
         if isinstance(target, (str, Path)):
             p = Path(target)
             if p.exists() and p.is_file():

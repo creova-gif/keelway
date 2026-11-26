@@ -201,10 +201,10 @@ class SQLiteCyclicKFlowEngine:
     """Thread-safe SQLite WAL engine for cyclic KFlow execution, saga compensation, and cost-privacy autopilot."""
 
     def __init__(self, db_path: Optional[Union[str, Path]] = None) -> None:
-        self._lock = threading.RLock()
-        self._explicit_db_path, self._conn, self._active_target = db_path, None, None
+        self._lock, self._explicit_db_path, self._closed = threading.RLock(), db_path, False
+        self._conn: Optional[sqlite3.Connection] = None
+        self._active_target: Optional[str] = None
         self._db_path: Union[str, Path] = ":memory:"
-        self._closed = False
         with self._lock:
             self._ensure_conn()
 

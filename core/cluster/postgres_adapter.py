@@ -183,10 +183,10 @@ class PostgresGovernanceAdapter:
         if not self.dsn:
             raise RuntimeError("POSTGRES_DSN is not configured.")
         try:
-            import psycopg  # type: ignore[import-not-found]
+            import psycopg
             return psycopg.connect(self.dsn)
         except ImportError:
-            import psycopg2  # type: ignore[import-not-found]
+            import psycopg2
             return psycopg2.connect(self.dsn)
 
     def configure_tenant_budget(
@@ -309,7 +309,9 @@ class PostgresGovernanceAdapter:
         candidate = round(cur_spent + amt, 6)
         if candidate <= limit_val + 1e-9:
             return True, "reserved", 200, candidate
-        return (False, "fallback_opencore", 200, cur_spent) if fallback else (False, "deny_http_402", 402, cur_spent)
+        if fallback:
+            return False, "fallback_opencore", 200, cur_spent
+        return False, "deny_http_402", 402, cur_spent
 
     def verify_audit_chain(self, tenant_id: Optional[str] = None) -> AuditChainVerification:
         """Verify Genesis-anchored SHA-256 hash chain continuity and tamper resistance."""

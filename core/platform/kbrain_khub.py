@@ -304,7 +304,7 @@ class SQLiteKBrainEngine(_SQLiteWalBase):
                 "SELECT * FROM platform_kbrain_facts WHERE workspace_id=? AND id=?",
                 (ws, fact_id),
             ).fetchone()
-        return self._row_to_fact(inserted)  # type: ignore[arg-type]
+        return self._row_to_fact(inserted)
 
     def search_facts(
         self,
@@ -465,7 +465,7 @@ class SQLiteKBrainEngine(_SQLiteWalBase):
                 "SELECT * FROM platform_kbrain_facts WHERE workspace_id=? AND id=?",
                 (ws, clean_id),
             ).fetchone()
-        return self._row_to_fact(updated)  # type: ignore[arg-type]
+        return self._row_to_fact(updated)
 
 
 class SQLiteKHubRegistry(_SQLiteWalBase):

@@ -4,7 +4,7 @@ from __future__ import annotations
 import json, logging, re, time, uuid
 from collections import OrderedDict
 from dataclasses import asdict
-from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -453,10 +453,13 @@ async def run_swarm_evaluation(request: SwarmEvalRequest) -> Dict[str, Any]:
     if request.mode == "mock":
         mock_f, loc_p = _MockSwarmFrontierProvider(), OpenWeightProviderAdapter()
         eval_gw = ModelGateway(adapters={Provider.LOCAL: loc_p, Provider.GEMINI: mock_f, Provider.GOOGLE: mock_f})
+        draft_prov: BaseModelProvider
+        target_prov: BaseModelProvider
         draft_prov, target_prov = loc_p, mock_f
     else:
-        eval_gw, draft_prov = gateway, gateway.adapters[Provider.LOCAL]
-        target_prov = gateway.adapters.get(Provider.GEMINI) or gateway.adapters[Provider.OPENAI]
+        eval_gw = gateway
+        draft_prov = cast(BaseModelProvider, gateway.adapters[Provider.LOCAL])
+        target_prov = cast(BaseModelProvider, gateway.adapters.get(Provider.GEMINI) or gateway.adapters[Provider.OPENAI])
     try:
         harness = MiroFishSwarmHarness(gateway=eval_gw, draft_provider=draft_prov, target_provider=target_prov, frontier_model=request.frontier_model, opencore_model=request.opencore_model, draft_model=request.draft_model)
         report = await harness.run_full_experiment(seed_text=request.seed_text, simulation_goal=request.simulation_goal, entities_spec=request.entities_spec, rounds=request.rounds, injected_event=request.injected_event)

@@ -7,7 +7,7 @@ SkillExecutionProof always reflects a real service result (or a real service
 failure recorded as success=False).
 """
 
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Coroutine, Dict, Union
 
 from core.kbrain import KnowledgeScope, kbrain_store
 from core.models.cost_ledger import cost_ledger
@@ -178,7 +178,7 @@ async def _golden_eval(inputs: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-BUILTIN_HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
+BUILTIN_HANDLERS: Dict[str, Callable[[Dict[str, Any]], Union[Dict[str, Any], Coroutine[Any, Any, Dict[str, Any]]]]] = {
     "kstack/airgap-verify": _airgap_verify,
     "kstack/flight-tape-verify": _flight_tape_verify,
     "kstack/cost-ledger": _cost_ledger,

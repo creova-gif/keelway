@@ -203,8 +203,11 @@ class SQLiteAgentCoharnessEngine:
     """Thread-safe SQLite WAL engine for PreToolUse Agent Co-Harness, Single-Use P-10 Tickets & Worktree CI Gate."""
 
     def __init__(self, db_path: Optional[Union[str, Path]] = None) -> None:
-        self._lock, self._explicit_db_path, self._conn, self._active_target = threading.RLock(), db_path, None, None
-        self._db_path, self._closed = ":memory:", False
+        self._lock, self._explicit_db_path = threading.RLock(), db_path
+        self._conn: Optional[sqlite3.Connection] = None
+        self._active_target: Optional[str] = None
+        self._db_path: Union[str, Path] = ":memory:"
+        self._closed = False
         with self._lock:
             self._ensure_conn()
 

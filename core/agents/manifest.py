@@ -88,7 +88,7 @@ class Permissions(BaseModel):
     @field_validator("commands")
     @classmethod
     def _commands(cls, value: List[str]) -> List[str]:
-        out = []
+        out: List[str] = []
         for cmd in value:
             cmd = cmd.strip()
             if not cmd:

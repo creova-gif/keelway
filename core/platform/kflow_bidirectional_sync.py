@@ -176,7 +176,8 @@ def _extract_python_code_to_graph(source_code: str) -> Tuple[List[Dict[str, Any]
 
     bp_list = _find_python_blueprint_list(tree)
     if bp_list is not None and bp_list.elts and all(isinstance(e, ast.Dict) for e in bp_list.elts):
-        extracted_nodes, directed_edges = [], []
+        extracted_nodes: List[Dict[str, Any]] = []
+        directed_edges: List[Tuple[str, str]] = []
         for idx, elt in enumerate(bp_list.elts):
             parsed = _ast_const_val(elt)
             if not isinstance(parsed, dict):
@@ -206,7 +207,7 @@ def _extract_python_code_to_graph(source_code: str) -> Tuple[List[Dict[str, Any]
             lg_nodes[nid]["requires_p10"] = True
 
     for call in sorted((c for c in ast.walk(tree) if isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)), key=lambda c: int(getattr(c, "lineno", 0))):
-        method = call.func.attr
+        method = getattr(call.func, "attr", "")
         c_start = int(getattr(call, "lineno", 1))
         c_end = int(getattr(call, "end_lineno", None) or c_start)
 
@@ -235,7 +236,8 @@ def _extract_python_code_to_graph(source_code: str) -> Tuple[List[Dict[str, Any]
         elif method == "add_node" and call.args:
             has_graph_api = True
             if len(call.args) == 1 and isinstance(call.args[0], ast.Name):
-                nid, handler_name, handler_node = call.args[0].id, call.args[0].id, call.args[0]
+                nid, handler_name = call.args[0].id, call.args[0].id
+                handler_node: Optional[ast.expr] = call.args[0]
             else:
                 cand_nid = _ast_endpoint_name(call.args[0])
                 if not cand_nid:
@@ -638,7 +640,9 @@ class KFlowBidirectionalSyncEngine:
     @property
     def db_path(self) -> Union[str, Path]:
         with self._lock:
-            return self._ensure_conn() and self._db_path if not self._closed else self._db_path
+            if not self._closed:
+                self._ensure_conn()
+            return self._db_path
 
     def close(self) -> None:
         with self._lock:

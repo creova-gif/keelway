@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple, Union
 
 from core.api.schemas import CompletionRequestSchema, CompletionResponseSchema, Provider, MessageSchema
 from core.models.adapters.base import ModelAdapter
@@ -50,7 +50,7 @@ class ModelGateway:
 
     def __init__(
         self,
-        adapters: Optional[Dict[Provider, ModelAdapter]] = None,
+        adapters: Optional[Dict[Provider, Union[ModelAdapter, BaseModelProvider]]] = None,
         security_gateway: Optional[SecurityGateway] = None,
         air_gap_enforcer: Optional[AirGapEnforcer] = None,
     ):
@@ -67,7 +67,7 @@ class ModelGateway:
         self.security = security_gateway or SecurityGateway(block_on_injection=True, redact_secrets=True)
         self.air_gap = air_gap_enforcer or AirGapEnforcer(enabled=False)
 
-    def register_adapter(self, provider: Provider, adapter: ModelAdapter) -> None:
+    def register_adapter(self, provider: Provider, adapter: Union[ModelAdapter, BaseModelProvider]) -> None:
         self.adapters[provider] = adapter
 
     def estimate_cost_usd(self, provider: Provider, request: Any) -> float:
@@ -101,18 +101,22 @@ class ModelGateway:
                     explicit_provider = Provider.LOCAL
 
         needs_frontier = sorted(set(request.required_capabilities) & FRONTIER_CAPABILITIES)
-        cloud = [p for p in self.adapters if p != Provider.LOCAL]
+        cloud: List[Provider] = [p for p in self.adapters if p != Provider.LOCAL]
 
         # Category preference filter
         if category_pref == ModelCategory.OPEN_WEIGHT:
             cloud = []
         elif category_pref == ModelCategory.CLOSED_PROPRIETARY:
-            local = []
+            local: List[Provider] = []
 
         if request.max_cost_usd is not None and cloud:
             cloud = [p for p in cloud if self.estimate_cost_usd(p, request) <= request.max_cost_usd]
         cloud.sort(key=lambda p: self.estimate_cost_usd(p, request))
-        local = [Provider.LOCAL] if Provider.LOCAL in self.adapters and category_pref != ModelCategory.CLOSED_PROPRIETARY else []
+        local = (
+            [Provider.LOCAL]
+            if Provider.LOCAL in self.adapters and category_pref != ModelCategory.CLOSED_PROPRIETARY
+            else []
+        )
 
         # Privacy invariant: private requests NEVER egress to cloud
         if request.privacy_level == "private":
@@ -162,6 +166,7 @@ class ModelGateway:
 
         sanitized_request = request.model_copy(update={"messages": sanitized_messages})
         provider_order, reason = self.explain_route(sanitized_request)
+        chat_request = ChatCompletionRequest.model_validate(sanitized_request.model_dump())
         last_error: Optional[Exception] = None
 
         for provider in provider_order:
@@ -176,7 +181,12 @@ class ModelGateway:
 
             try:
                 logger.info(f"Routing request to provider: {provider.value}")
-                response = await adapter.complete(sanitized_request)
+                if isinstance(adapter, BaseModelProvider):
+                    response = CompletionResponseSchema.model_validate(
+                        (await adapter.complete(chat_request)).model_dump()
+                    )
+                else:
+                    response = await adapter.complete(sanitized_request)
 
                 # De-slop output text
                 clean_content, slop_found = StyleEngine.de_slop(response.content)
@@ -232,10 +242,10 @@ class ModelGateway:
                 continue
 
             try:
-                if hasattr(adapter, "complete") and isinstance(adapter, BaseModelProvider):
+                if isinstance(adapter, BaseModelProvider):
                     resp = await adapter.complete(sanitized_request)
                 else:
-                    # Fallback for adapters only implementing legacy complete
+                    # Legacy ModelAdapter interface (CompletionRequestSchema)
                     legacy_req = CompletionRequestSchema(
                         messages=sanitized_request.messages,
                         temperature=sanitized_request.temperature,
@@ -314,7 +324,15 @@ class ModelGateway:
                 yield chunk
         else:
             # Emulate streaming chunk if provider lacks native streaming
-            resp = await selected_adapter.complete(sanitized_request)
+            if isinstance(selected_adapter, BaseModelProvider):
+                resp = await selected_adapter.complete(sanitized_request)
+            else:
+                legacy_req = CompletionRequestSchema(
+                    messages=sanitized_request.messages,
+                    temperature=sanitized_request.temperature,
+                    max_tokens=sanitized_request.max_tokens,
+                )
+                resp = await selected_adapter.complete(legacy_req)
             yield StreamChunk(
                 model=resp.model,
                 provider=selected_provider,
