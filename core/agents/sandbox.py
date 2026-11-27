@@ -123,7 +123,8 @@ class SeatbeltBackend:
     def available(cls) -> bool:
         if cls._available is not None:
             return cls._available
-        if sys.platform != "darwin" or shutil.which("sandbox-exec") is None:
+        this_platform = sys.platform
+        if this_platform != "darwin" or shutil.which("sandbox-exec") is None:
             cls._available = False
             return False
         try:
