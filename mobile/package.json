@@ -14,7 +14,7 @@
   "dependencies": {
     "@babel/runtime": "^7.29.0",
     "@expo/metro-runtime": "~6.1.2",
-    "expo": "~54.0.38",
+    "expo": "~58.0.26",
     "expo-build-properties": "~1.0.10",
     "expo-haptics": "~15.0.8",
     "expo-linking": "~8.0.12",
