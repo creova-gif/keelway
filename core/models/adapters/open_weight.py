@@ -28,7 +28,7 @@ from core.models.provider import (
     ProviderTimeoutError,
     ModelNotFoundError,
 )
-from core.models.adapters.local import LocalAdapter, _recommended_model
+from core.models.adapters.local import LocalAdapter, LocalRuntime, _recommended_model
 
 
 class OpenWeightProviderAdapter(BaseModelProvider):
@@ -44,7 +44,7 @@ class OpenWeightProviderAdapter(BaseModelProvider):
         default_model: Optional[str] = None,
         api: Optional[str] = None,
         transport: Optional[httpx.AsyncBaseTransport] = None,
-    ):
+    ) -> None:
         self._local_adapter = LocalAdapter(base_url=base_url, default_model=default_model, api=api, transport=transport)
         self.base_url = self._local_adapter.base_url
         self.default_model = self._local_adapter.default_model
@@ -53,7 +53,7 @@ class OpenWeightProviderAdapter(BaseModelProvider):
     def is_available(self) -> bool:
         return self._local_adapter.is_available()
 
-    def local_runtime(self):
+    def local_runtime(self) -> LocalRuntime:
         """Expose the underlying local runtime probe (installed models, API kind)."""
         return self._local_adapter.runtime()
 

@@ -18,7 +18,7 @@ from core.sdk.cluster_client import AsyncClusterClient, SyncClusterClient
 from core.sdk.platform_client import AsyncPlatformClient, SyncPlatformClient
 
 
-def _handle_response_error(res: httpx.Response):
+def _handle_response_error(res: httpx.Response) -> None:
     """Translates HTTP error status codes and JSON payloads into typed KeelwayError instances."""
     if res.is_success:
         return
@@ -142,7 +142,7 @@ class AsyncKeelwayClient:
         token: Optional[str] = None,
         timeout: float = 30.0,
         transport: Optional[httpx.AsyncBaseTransport] = None,
-    ):
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.timeout = timeout
@@ -158,13 +158,13 @@ class AsyncKeelwayClient:
         self.platform = AsyncPlatformClient(self)
         self.cluster = AsyncClusterClient(self)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "AsyncKeelwayClient":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self.close()
 
-    async def close(self):
+    async def close(self) -> None:
         await self._client.aclose()
 
     async def _req(self, method: str, path: str, json: Optional[Dict[str, Any]] = None, params: Optional[Dict[str, Any]] = None) -> Any:
@@ -533,7 +533,7 @@ class KeelwayClient:
         token: Optional[str] = None,
         timeout: float = 30.0,
         transport: Optional[httpx.BaseTransport] = None,
-    ):
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.timeout = timeout
@@ -549,13 +549,13 @@ class KeelwayClient:
         self.platform = SyncPlatformClient(self)
         self.cluster = SyncClusterClient(self)
 
-    def __enter__(self):
+    def __enter__(self) -> "KeelwayClient":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         self._client.close()
 
     def _req(self, method: str, path: str, json: Optional[Dict[str, Any]] = None, params: Optional[Dict[str, Any]] = None) -> Any:

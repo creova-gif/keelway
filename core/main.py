@@ -4,8 +4,8 @@ Keelway Core — FastAPI Application Entrypoint.
 
 from contextlib import asynccontextmanager
 import logging
-from typing import AsyncGenerator
-from fastapi import FastAPI, Request
+from typing import AsyncGenerator, Awaitable, Callable
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -121,7 +121,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def reject_foreign_origins(request: Request, call_next):
+async def reject_foreign_origins(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     # CORS only hides responses from foreign pages; this stops the request from executing at all.
     if not origin_allowed(request.headers.get("origin"), request.headers.get("host")):
         return JSONResponse(status_code=403, content={"detail": "Origin not allowed."})
@@ -195,7 +195,7 @@ _STUDIO_CSP = (
 
 @app.get("/app", response_class=HTMLResponse, tags=["Studio"], include_in_schema=False)
 @app.get("/app/{subpath:path}", response_class=HTMLResponse, tags=["Studio"], include_in_schema=False)
-async def serve_unified_dev_app(subpath: str = ""):
+async def serve_unified_dev_app(subpath: str = "") -> Response:
     headers = {
         "Content-Security-Policy": _STUDIO_CSP,
         "X-Content-Type-Options": "nosniff",
@@ -216,7 +216,7 @@ async def serve_unified_dev_app(subpath: str = ""):
 
 @app.get("/studio", response_class=HTMLResponse, tags=["Studio"])
 @app.get("/", response_class=HTMLResponse, tags=["Studio"])
-async def serve_studio():
+async def serve_studio() -> HTMLResponse:
     headers = {
         "Content-Security-Policy": _STUDIO_CSP,
         "X-Content-Type-Options": "nosniff",
@@ -231,7 +231,7 @@ async def serve_studio():
 
 @app.get("/console", response_class=HTMLResponse, tags=["Web Console"])
 @app.get("/web-console", response_class=HTMLResponse, tags=["Web Console"])
-async def serve_web_console():
+async def serve_web_console() -> HTMLResponse:
     if web_console_file.exists():
         return HTMLResponse(content=web_console_file.read_text(encoding="utf-8"))
     return HTMLResponse(content="<h1>Keelway Web Console</h1><p>Web Console loading...</p>")

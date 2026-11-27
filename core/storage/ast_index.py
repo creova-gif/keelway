@@ -134,23 +134,23 @@ class PythonASTExtractor:
             return calls
 
         class CallVisitor(ast.NodeVisitor):
-            def __init__(self):
+            def __init__(self) -> None:
                 self.current_caller: Optional[str] = None
                 self.found_calls: List[Dict[str, Any]] = []
 
-            def visit_FunctionDef(self, node):
+            def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
                 prev = self.current_caller
                 self.current_caller = node.name
                 self.generic_visit(node)
                 self.current_caller = prev
 
-            def visit_AsyncFunctionDef(self, node):
+            def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
                 prev = self.current_caller
                 self.current_caller = node.name
                 self.generic_visit(node)
                 self.current_caller = prev
 
-            def visit_Call(self, node):
+            def visit_Call(self, node: ast.Call) -> None:
                 callee_name = ""
                 if isinstance(node.func, ast.Name):
                     callee_name = node.func.id
@@ -246,7 +246,7 @@ class TypeScriptRegexExtractor:
 class CodebaseSemanticIndex:
     """Maintains indexed AST symbols, vector embeddings, call hierarchy, and dependency graphs across workspace files."""
 
-    def __init__(self, workspace_fs: Optional[WorkspaceFilesystem] = None):
+    def __init__(self, workspace_fs: Optional[WorkspaceFilesystem] = None) -> None:
         self.fs = workspace_fs or WorkspaceFilesystem()
         self.symbols: Dict[str, List[CodeSymbol]] = {}  # file_path -> symbols
         self.file_hashes: Dict[str, str] = {}           # file_path -> sha256
@@ -302,7 +302,7 @@ class CodebaseSemanticIndex:
         total_files = 0
         indexed_symbols_count = 0
 
-        def _walk(node: Dict[str, Any]):
+        def _walk(node: Dict[str, Any]) -> None:
             nonlocal total_files, indexed_symbols_count
             if total_files >= code_budget:
                 return
@@ -486,7 +486,7 @@ class CodebaseSemanticIndex:
         cycles: List[List[str]] = []
         visited: Dict[str, int] = {n: 0 for n in nodes}
 
-        def dfs(curr: str, path: List[str]):
+        def dfs(curr: str, path: List[str]) -> None:
             visited[curr] = 1
             path.append(curr)
             for neighbor in adjacency.get(curr, []):

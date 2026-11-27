@@ -13,10 +13,10 @@ import subprocess
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Coroutine, Dict, List, Optional, Tuple
 
 
-def _run_coroutine_safely(coro):
+def _run_coroutine_safely(coro: Coroutine[Any, Any, Any]) -> Any:
     """Executes a coroutine safely whether or not an event loop is already running."""
     try:
         loop = asyncio.get_running_loop()

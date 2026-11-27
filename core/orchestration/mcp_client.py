@@ -10,7 +10,7 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from core.security.env_scrub import scrub_env
 from core.orchestration.mcp import MCPProtocolServer
@@ -45,7 +45,7 @@ class MCPClient:
         env: Optional[Dict[str, str]] = None,
         cwd: Optional[str] = None,
         in_process_server: Optional[MCPProtocolServer] = None,
-    ):
+    ) -> None:
         self.server_id = server_id
         self.command = command
         self.args = args or []
@@ -226,7 +226,7 @@ class MCPClient:
 class MCPClientManager:
     """Manages active MCP client connections and mounts external tools into Agent Loops."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.clients: Dict[str, MCPClient] = {}
 
     def register_client(self, client: MCPClient) -> None:
@@ -261,7 +261,7 @@ class MCPClientManager:
                 bound_name = f"{server_id}__{tool_name}" if prefix_server else tool_name
 
                 # Create closure for tool invocation
-                def _make_handler(cl: MCPClient, tname: str):
+                def _make_handler(cl: MCPClient, tname: str) -> Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]:
                     async def _handler(args: Dict[str, Any]) -> Dict[str, Any]:
                         return await cl.call_tool(tname, args)
                     return _handler

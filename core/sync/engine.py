@@ -103,7 +103,7 @@ class SyncRecord:
     payload_sha256: str = ""
     timestamp_utc: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.timestamp_utc:
             self.timestamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         if not self.payload_sha256:

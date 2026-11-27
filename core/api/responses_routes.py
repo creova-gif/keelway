@@ -41,7 +41,7 @@ class StoredResponseEntry(BaseModel):
 
 class ResponseStore:
     """Bounded FIFO/LRU in-memory store (max 500) for stateful `/v1/responses` chaining."""
-    def __init__(self, max_entries: int = 500):
+    def __init__(self, max_entries: int = 500) -> None:
         self.max_entries = max_entries
         self._entries: "OrderedDict[str, StoredResponseEntry]" = OrderedDict()
 
@@ -69,7 +69,7 @@ class ResponseStore:
 
 class RoutingDecisionLedger:
     """Bounded ledger of explainable hybrid routing decisions and 4D provenance."""
-    def __init__(self, max_entries: int = 500):
+    def __init__(self, max_entries: int = 500) -> None:
         self.max_entries = max_entries
         self._records: List[Dict[str, Any]] = []
 
@@ -261,8 +261,8 @@ async def _run_inference(
     return clean_out, target_model, in_tok, out_tok, meta
 
 
-@router.post("/v1/responses", dependencies=[Depends(require(Permission.EXECUTE_AGENT))])
-async def create_response(request: ResponsesCreateRequest):
+@router.post("/v1/responses", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], response_model=None)
+async def create_response(request: ResponsesCreateRequest) -> Union[StreamingResponse, Dict[str, Any]]:
     """Unified stateful & stateless Responses endpoint supporting OpenCore, Cloud, SSE, and Speculative Decoding."""
     history: List[MessageSchema] = []
     if request.previous_response_id:

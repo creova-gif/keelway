@@ -13,7 +13,7 @@ import asyncio
 import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from core.api.schemas import CompletionRequestSchema, MessageSchema, Provider
 from core.eval.mirofish_swarm import MiroFishSwarmHarness
@@ -87,7 +87,7 @@ class _OfflineMockCloudProvider(BaseModelProvider):
             routing_reason="cli_offline_mock",
         )
 
-    async def stream_complete(self, request: ChatCompletionRequest):
+    async def stream_complete(self, request: ChatCompletionRequest) -> AsyncGenerator[StreamChunk, None]:
         resp = await self.complete(request)
         yield StreamChunk(id=resp.id, model=resp.model, provider=resp.provider, delta_content=resp.content, finish_reason="stop")
 
@@ -137,7 +137,7 @@ class _OfflineMockLocalProvider(BaseModelProvider):
             simulated=True,
         )
 
-    async def stream_complete(self, request: ChatCompletionRequest):
+    async def stream_complete(self, request: ChatCompletionRequest) -> AsyncGenerator[StreamChunk, None]:
         resp = await self.complete(request)
         yield StreamChunk(id=resp.id, model=resp.model, provider=resp.provider, delta_content=resp.content, finish_reason="stop")
 

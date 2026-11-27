@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 try:
     from dotenv import load_dotenv
     _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
@@ -13,14 +13,14 @@ try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
 except ImportError:
     # Minimal fallback dataclass when pydantic is not installed
-    def Field(default=None, default_factory=None, description="", **kwargs):  # type: ignore[no-redef]
+    def Field(default: Any = None, default_factory: Any = None, description: str = "", **kwargs: Any) -> Any:  # type: ignore[no-redef]
         if default_factory is not None:
             return default_factory()
         return default
     class BaseSettings:  # type: ignore[no-redef]
         pass
     class SettingsConfigDict:  # type: ignore[no-redef]
-        def __init__(self, **kwargs): pass
+        def __init__(self, **kwargs: Any) -> None: pass
 
 
 

@@ -198,7 +198,7 @@ class PrivacyPreservingMeter:
     strictly without persisting prompts, diffs, filenames, or sensitive source code.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Maps org_id -> aggregated metrics
         self.aggregates: Dict[str, Dict[str, Any]] = {}
 
@@ -257,7 +257,7 @@ class BillingWebhookHandler:
     Prevents double-charging, duplicate seat additions, and replayed events.
     """
 
-    def __init__(self, secret: str = "KEELWAY_BILLING_WEBHOOK_SECRET_2026"):
+    def __init__(self, secret: str = "KEELWAY_BILLING_WEBHOOK_SECRET_2026") -> None:
         self.secret = secret
         self.processed_events: Set[str] = set()
         self.event_history: List[Dict[str, Any]] = []
@@ -309,7 +309,7 @@ class BillingWebhookHandler:
 class EntitlementManager:
     """Manages active organization licenses, feature gating, and seat allocations."""
 
-    def __init__(self, storage_path: Optional[Path] = None, trusted_keys: Optional[Dict[str, str]] = None):
+    def __init__(self, storage_path: Optional[Path] = None, trusted_keys: Optional[Dict[str, str]] = None) -> None:
         self.storage_path = Path(storage_path or ".keelway/entitlements.json")
         self.trusted_keys: Dict[str, str] = dict(TRUSTED_LICENCE_KEYS if trusted_keys is None else trusted_keys)
         self.active_certificates: Dict[str, EntitlementCertificate] = {}

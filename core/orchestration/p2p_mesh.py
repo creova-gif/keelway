@@ -97,7 +97,7 @@ class LocalTeamMesh:
         self.peers: Dict[str, MeshPeer] = {}
         self.delegation_history: List[MeshDelegationReceipt] = []
 
-    def set_tailscale_overlay(self, ts_ip: str):
+    def set_tailscale_overlay(self, ts_ip: str) -> None:
         """Attaches a secure Tailscale WireGuard overlay address for hybrid remote peering."""
         self.tailscale_ip = ts_ip
 

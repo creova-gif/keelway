@@ -12,9 +12,12 @@ import copy
 import re
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from core.agents.manifest import PROTECTED_PREFIXES, AgentManifest, digest
+
+if TYPE_CHECKING:
+    from core.orchestration.agent_loop import AutonomousAgentLoop
 
 ENFORCED = (
     "tools: only the listed tools are registered and callable",
@@ -59,7 +62,7 @@ def _glob_to_regex(pattern: str) -> "re.Pattern[str]":
 
 
 class ManifestGuard:
-    def __init__(self, manifest: AgentManifest, workspace_root: Path):
+    def __init__(self, manifest: AgentManifest, workspace_root: Path) -> None:
         self.manifest = manifest
         self.manifest_digest = digest(manifest)
         self.root = Path(workspace_root).resolve()
@@ -232,7 +235,7 @@ def loop_from_manifest(
     workspace_fs: Optional[Any] = None,
     record_flight: bool = True,
     approval_rules: Optional[Any] = None,
-):
+) -> "AutonomousAgentLoop":
     """Build an AutonomousAgentLoop that can only do what the manifest allows."""
     from core.orchestration.agent_loop import AutonomousAgentLoop, AutonomyPolicy
 

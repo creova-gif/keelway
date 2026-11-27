@@ -52,7 +52,7 @@ PermissionEvaluator = Callable[[str, str, Optional[str]], Dict[str, Any]]
 """(tool_name, command, ticket_id) -> intercept record dict."""
 
 
-def _reader(stream, lines: "queue.Queue[Optional[str]]") -> None:
+def _reader(stream: Any, lines: "queue.Queue[Optional[str]]") -> None:
     try:
         for line in iter(stream.readline, ""):
             lines.put(line)

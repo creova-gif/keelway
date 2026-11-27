@@ -37,7 +37,7 @@ class MCPResourceDefinition:
 class MCPProtocolServer:
     """Lightweight, zero-overhead Model Context Protocol server for Keelway tools & resources."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.tools: Dict[str, MCPToolDefinition] = {}
         self.resources: Dict[str, MCPResourceDefinition] = {}
 

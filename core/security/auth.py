@@ -17,7 +17,7 @@ import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional, Tuple, cast
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select, update
@@ -164,7 +164,7 @@ async def principal_for_token(token: Optional[str]) -> Optional[Principal]:
         return Principal(actor=record.name, role=Role(record.role), token_id=record.id)
 
 
-def token_from_headers(headers) -> Optional[str]:
+def token_from_headers(headers: Mapping[str, str]) -> Optional[str]:
     scheme, _, value = headers.get("authorization", "").partition(" ")
     if scheme.lower() == "bearer" and value.strip():
         return value.strip()
@@ -190,7 +190,7 @@ async def current_principal(request: Request) -> Principal:
     return principal
 
 
-def require(permission: Permission):
+def require(permission: Permission) -> Callable[..., Awaitable[Principal]]:
     """Route dependency: authenticate, check the role's permission, and audit the decision."""
 
     async def dependency(request: Request, principal: Principal = Depends(current_principal)) -> Principal:
