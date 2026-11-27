@@ -265,10 +265,10 @@ export function BidirectionalKflowStudioPanel({
                   <circle cx="2" cy="2" r="1" fill="rgba(148, 163, 184, 0.18)" />
                 </pattern>
                 <marker id={`arrow-fwd-${uid}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#2dd4bf" />
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
                 </marker>
                 <marker id={`arrow-cyc-${uid}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#e4e4e7" />
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--fg-primary)" />
                 </marker>
               </defs>
               <rect x="0" y="0" width={svgViewWidth} height="214" fill={`url(#kflow-grid-${uid})`} />
@@ -286,9 +286,9 @@ export function BidirectionalKflowStudioPanel({
                   const midX = (startX + endX) / 2;
                   return (
                     <g key={`cyc-${edge.from}-${edge.to}-${idx}`}>
-                      <path d={`M ${startX} ${startY} C ${startX} ${arcY}, ${endX} ${arcY}, ${endX} ${endY}`} fill="none" stroke="#e4e4e7" strokeWidth="2" strokeDasharray="5 3" markerEnd={`url(#arrow-cyc-${uid})`} />
-                      <rect x={midX - 58} y={arcY - 18} width="116" height="18" rx="4" fill="#09090b" stroke="#e4e4e7" strokeWidth="1" />
-                      <text x={midX} y={arcY - 6} textAnchor="middle" fill="#e4e4e7" fontSize="9.5" fontFamily="monospace">↻ Cycle (Bounded)</text>
+                      <path d={`M ${startX} ${startY} C ${startX} ${arcY}, ${endX} ${arcY}, ${endX} ${endY}`} fill="none" stroke="var(--fg-primary)" strokeWidth="2" strokeDasharray="5 3" markerEnd={`url(#arrow-cyc-${uid})`} />
+                      <rect x={midX - 58} y={arcY - 18} width="116" height="18" rx="4" fill="var(--bg-canvas)" stroke="var(--fg-primary)" strokeWidth="1" />
+                      <text x={midX} y={arcY - 6} textAnchor="middle" fill="var(--fg-primary)" fontSize="9.5" fontFamily="monospace">↻ Cycle (Bounded)</text>
                     </g>
                   );
                 }
@@ -298,20 +298,20 @@ export function BidirectionalKflowStudioPanel({
                 const y2 = dst.y + NODE_H / 2;
                 const dx = Math.max(36, Math.abs(x2 - x1) * 0.45);
                 return (
-                  <path key={`fwd-${edge.from}-${edge.to}-${idx}`} d={`M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`} fill="none" stroke="#2dd4bf" strokeWidth="2" markerEnd={`url(#arrow-fwd-${uid})`} />
+                  <path key={`fwd-${edge.from}-${edge.to}-${idx}`} d={`M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`} fill="none" stroke="var(--accent)" strokeWidth="2" markerEnd={`url(#arrow-fwd-${uid})`} />
                 );
               })}
 
               {nodes.map((node) => {
                 const isSelected = selectedNode?.id === node.id;
-                const strokeColor = node.requires_p10 ? "#e4e4e7" : isSelected ? "#2dd4bf" : "#71717a";
+                const strokeColor = node.requires_p10 ? "var(--fg-primary)" : isSelected ? "var(--accent)" : "var(--fg-muted)";
                 return (
                   <g key={`svg-node-${node.id}`} transform={`translate(${node.x}, ${node.y})`}>
-                    <rect x="0" y="0" width={NODE_W} height={NODE_H} rx="6" fill={isSelected ? "rgba(45, 212, 191, 0.14)" : "#121215"} stroke={strokeColor} strokeWidth={isSelected ? "2.2" : "1.2"} />
-                    <text x="8" y="16" fill="#2dd4bf" fontSize="9.5" fontFamily="monospace" fontWeight="bold">{`W${node.wave} · L${node.line_start}–L${node.line_end}`}</text>
-                    {node.requires_p10 ? <text x={NODE_W - 8} y="16" textAnchor="end" fill="#e4e4e7" fontSize="9.5" fontFamily="monospace">⚿ P-10</text> : null}
-                    <text x="8" y="34" fill="#fafafa" fontSize="10.5" fontFamily="monospace" fontWeight="600">{node.id.slice(0, 18)}</text>
-                    <text x="8" y="50" fill="#a1a1aa" fontSize="9.5" fontFamily="sans-serif">{node.agent_id.slice(0, 20)}</text>
+                    <rect x="0" y="0" width={NODE_W} height={NODE_H} rx="6" fill={isSelected ? "var(--accent-subtle)" : "var(--bg-chrome)"} stroke={strokeColor} strokeWidth={isSelected ? "2.2" : "1.2"} />
+                    <text x="8" y="16" fill="var(--accent)" fontSize="9.5" fontFamily="monospace" fontWeight="bold">{`W${node.wave} · L${node.line_start}–L${node.line_end}`}</text>
+                    {node.requires_p10 ? <text x={NODE_W - 8} y="16" textAnchor="end" fill="var(--fg-primary)" fontSize="9.5" fontFamily="monospace">⚿ P-10</text> : null}
+                    <text x="8" y="34" fill="var(--fg-primary)" fontSize="10.5" fontFamily="monospace" fontWeight="600">{node.id.slice(0, 18)}</text>
+                    <text x="8" y="50" fill="var(--fg-muted)" fontSize="9.5" fontFamily="sans-serif">{node.agent_id.slice(0, 20)}</text>
                   </g>
                 );
               })}

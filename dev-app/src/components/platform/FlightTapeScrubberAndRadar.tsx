@@ -297,10 +297,10 @@ export function FlightTapeScrubberAndRadar({
                 viewBox="0 0 36 36"
                 className="h-7 w-7 shrink-0"
               >
-                <circle cx="18" cy="18" r="16" fill="none" stroke="#2dd4bf" strokeOpacity="0.3" strokeWidth="1.5" />
-                <circle cx="18" cy="18" r="10" fill="none" stroke="#2dd4bf" strokeOpacity="0.55" strokeWidth="1.5" />
-                <circle cx="18" cy="18" r="3.5" fill="#2dd4bf" />
-                <line x1="18" y1="18" x2="31" y2="10" stroke="#e4e4e7" strokeWidth="1.5" />
+                <circle cx="18" cy="18" r="16" fill="none" stroke="var(--accent)" strokeOpacity="0.3" strokeWidth="1.5" />
+                <circle cx="18" cy="18" r="10" fill="none" stroke="var(--accent)" strokeOpacity="0.55" strokeWidth="1.5" />
+                <circle cx="18" cy="18" r="3.5" fill="var(--accent)" />
+                <line x1="18" y1="18" x2="31" y2="10" stroke="var(--fg-primary)" strokeWidth="1.5" />
               </svg>
               <div>
                 <h3 className="text-xs font-semibold text-fg">Live Sandbox Blast-Radius Radar</h3>
