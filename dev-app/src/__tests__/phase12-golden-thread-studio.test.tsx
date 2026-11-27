@@ -24,11 +24,11 @@ describe("Phase 12C — Golden-Thread Journey Bar, Bidirectional SVG KFlow ↔ C
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const journeyRegion = screen.getByRole("region", { name: "Golden-thread lifecycle journey" });
-    const stage1Btn = within(journeyRegion).getByRole("button", { name: /01 Plan & Import/i });
-    const stage2Btn = within(journeyRegion).getByRole("button", { name: /02 Build & Sync Studio/i });
-    const stage3Btn = within(journeyRegion).getByRole("button", { name: /03 Scrub & Blast-Radius/i });
-    const stage4Btn = within(journeyRegion).getByRole("button", { name: /04 Govern & Ship/i });
+    const journeyRegion = await screen.findByRole("region", { name: "Golden-thread lifecycle journey" });
+    const stage1Btn = await within(journeyRegion).findByRole("button", { name: /01 Plan & Import/i });
+    const stage2Btn = await within(journeyRegion).findByRole("button", { name: /02 Build & Sync Studio/i });
+    const stage3Btn = await within(journeyRegion).findByRole("button", { name: /03 Scrub & Blast-Radius/i });
+    const stage4Btn = await within(journeyRegion).findByRole("button", { name: /04 Govern & Ship/i });
 
     // Boots in IDE -> Stage 02 (Build & Sync Studio) is active
     expect(stage2Btn).toHaveAttribute("aria-current", "step");
@@ -36,31 +36,31 @@ describe("Phase 12C — Golden-Thread Journey Bar, Bidirectional SVG KFlow ↔ C
     // Click Stage 01 in Builder mode -> jumps to Product
     await user.click(stage1Btn);
     expect(stage1Btn).toHaveAttribute("aria-current", "step");
-    expect(screen.getByRole("heading", { name: /Product Discovery, PRDs & Release Plans/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Product Discovery, PRDs & Release Plans/i })).toBeInTheDocument();
 
     // Advance 1 -> Stage 02 (Build & Sync Studio -> Automation)
-    const advanceBtn = within(journeyRegion).getByRole("button", { name: "Advance golden thread stage" });
+    const advanceBtn = await within(journeyRegion).findByRole("button", { name: "Advance golden thread stage" });
     expect(advanceBtn).toHaveTextContent(/Next in Golden Thread: Build & Sync Studio/i);
     await user.click(advanceBtn);
     expect(stage2Btn).toHaveAttribute("aria-current", "step");
-    expect(screen.getByRole("heading", { name: /Automation · KFlow DAG & Scheduled Workflows/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Automation · KFlow DAG & Scheduled Workflows/i })).toBeInTheDocument();
 
     // Advance 2 -> Stage 03 (Scrub & Blast-Radius -> Agents)
-    await user.click(within(journeyRegion).getByRole("button", { name: "Advance golden thread stage" }));
+    await user.click(await within(journeyRegion).findByRole("button", { name: "Advance golden thread stage" }));
     expect(stage3Btn).toHaveAttribute("aria-current", "step");
-    expect(screen.getByRole("heading", { name: /Specialized Lifecycle Agents & Coordinated Teams/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Specialized Lifecycle Agents & Coordinated Teams/i })).toBeInTheDocument();
 
     // Advance 3 -> Stage 04 (Govern & Ship -> Security)
-    await user.click(within(journeyRegion).getByRole("button", { name: "Advance golden thread stage" }));
+    await user.click(await within(journeyRegion).findByRole("button", { name: "Advance golden thread stage" }));
     expect(stage4Btn).toHaveAttribute("aria-current", "step");
-    expect(screen.getByRole("heading", { name: /Security Governance & Sovereign Posture/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Security Governance & Sovereign Posture/i })).toBeInTheDocument();
 
     // Guided Non-Coder mode routes Stage 01 to No-Code Builder
-    await user.click(screen.getByRole("button", { name: /Workspace menu/i }));
-    const personaGroup = screen.getByRole("group", { name: /Experience persona/i });
-    await user.click(within(personaGroup).getByRole("button", { name: /^Guided Non-Coder$/i }));
+    await user.click(await screen.findByRole("button", { name: /Workspace menu/i }));
+    const personaGroup = await screen.findByRole("group", { name: /Experience persona/i });
+    await user.click(await within(personaGroup).findByRole("button", { name: /^Guided Non-Coder$/i }));
     await user.click(stage1Btn);
-    expect(screen.getByRole("heading", { name: /No-Code Builder · Natural-Language Idea to Governed App/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /No-Code Builder · Natural-Language Idea to Governed App/i })).toBeInTheDocument();
 
     expect((await axe(container)).violations).toHaveLength(0);
     document.documentElement.setAttribute("data-theme", "light");
@@ -72,56 +72,56 @@ describe("Phase 12C — Golden-Thread Journey Bar, Bidirectional SVG KFlow ↔ C
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
-    await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Automation$/i }));
 
-    const studioSec = screen.getByRole("region", {
+    const studioSec = (await screen.findByRole("region", {
       name: "Bidirectional KFlow visual and AST code studio",
-    });
-    const svgGraph = within(studioSec).getByRole("img", { name: "KFlow topological SVG graph" });
+    }));
+    const svgGraph = await within(studioSec).findByRole("img", { name: "KFlow topological SVG graph" });
     expect(svgGraph.querySelectorAll("path").length).toBeGreaterThanOrEqual(3);
-    expect(within(studioSec).getAllByText(/Cycle \(Bounded\)/i).length).toBeGreaterThan(0);
+    expect((await within(studioSec).findAllByText(/Cycle \(Bounded\)/i)).length).toBeGreaterThan(0);
 
     // Selecting patch_synth illuminates L13-L19 in the AST inspector
-    await user.click(within(studioSec).getByRole("button", { name: "Select studio node patch_synth" }));
-    const astInspector = within(studioSec).getByRole("group", { name: "Highlighted AST line inspector" });
-    expect(within(astInspector).getByText(/Active AST Span: patch_synth \(L13–L19\)/i)).toBeInTheDocument();
+    await user.click(await within(studioSec).findByRole("button", { name: "Select studio node patch_synth" }));
+    const astInspector = await within(studioSec).findByRole("group", { name: "Highlighted AST line inspector" });
+    expect(await within(astInspector).findByText(/Active AST Span: patch_synth \(L13–L19\)/i)).toBeInTheDocument();
 
-    const codeArea = within(studioSec).getByLabelText("Bidirectional studio source code") as HTMLTextAreaElement;
-    const shaBefore = within(studioSec).getByText(/^sha256:[0-9a-f]+/i).textContent;
+    const codeArea = await within(studioSec).findByLabelText("Bidirectional studio source code") as HTMLTextAreaElement;
+    const shaBefore = (await within(studioSec).findByText(/^sha256:[0-9a-f]+/i)).textContent;
 
     // Toggling P-10 lock on patch_synth triggers graph_to_code sync & updates code + SHA-256
-    const toggleP10Btn = within(studioSec).getByRole("button", { name: "Toggle P-10 lock for patch_synth" });
+    const toggleP10Btn = await within(studioSec).findByRole("button", { name: "Toggle P-10 lock for patch_synth" });
     expect(toggleP10Btn).toHaveAttribute("aria-pressed", "false");
     await user.click(toggleP10Btn);
     expect(toggleP10Btn).toHaveAttribute("aria-pressed", "true");
     expect(codeArea.value).toMatch(/id="patch_synth"[\s\S]*?requires_p10=True/);
-    const shaAfterToggle = within(studioSec).getByText(/^sha256:[0-9a-f]+/i).textContent;
+    const shaAfterToggle = (await within(studioSec).findByText(/^sha256:[0-9a-f]+/i)).textContent;
     expect(shaAfterToggle).not.toBe(shaBefore);
 
     // + Add Studio Node triggers graph_to_code sync & injects node into code + SVG topology
-    await user.type(within(studioSec).getByLabelText("New studio node label"), "SBOM Signer");
-    await user.click(within(studioSec).getByRole("button", { name: /\+ Add Studio Node/i }));
-    expect(within(studioSec).getByRole("button", { name: "Select studio node sbom_signer" })).toBeInTheDocument();
+    await user.type(await within(studioSec).findByLabelText("New studio node label"), "SBOM Signer");
+    await user.click(await within(studioSec).findByRole("button", { name: /\+ Add Studio Node/i }));
+    expect(await within(studioSec).findByRole("button", { name: "Select studio node sbom_signer" })).toBeInTheDocument();
     expect(codeArea.value).toContain('id="sbom_signer"');
 
     // Switch to TypeScript SDK and edit code -> Sync Code -> Graph adds custom node visually
-    const langGroup = within(studioSec).getByRole("group", { name: "Studio SDK language" });
-    await user.click(within(langGroup).getByRole("button", { name: "typescript" }));
+    const langGroup = await within(studioSec).findByRole("group", { name: "Studio SDK language" });
+    await user.click(await within(langGroup).findByRole("button", { name: "typescript" }));
     expect(codeArea.value).toContain("@keelway/kflow-sdk");
 
     const appendedTs = `${codeArea.value}\n\nstudio.node({\n  id: "canary_verify",\n  label: "Verify Canary Metrics",\n  agentId: "qa-verifier",\n  dependsOn: ["p10_release_gate"],\n  requiresP10: true,\n});`;
     fireEvent.change(codeArea, { target: { value: appendedTs } });
-    await user.click(within(studioSec).getByRole("button", { name: "Sync code to visual KFlow graph" }));
+    await user.click(await within(studioSec).findByRole("button", { name: "Sync code to visual KFlow graph" }));
 
-    expect(within(studioSec).getByRole("button", { name: "Select studio node canary_verify" })).toBeInTheDocument();
+    expect(await within(studioSec).findByRole("button", { name: "Select studio node canary_verify" })).toBeInTheDocument();
 
     // Viewer RBAC locks graph_to_code mutations while preserving read-only inspection
-    await user.selectOptions(screen.getByLabelText(/Active RBAC role/i), "viewer");
-    expect(within(studioSec).getByText(/Studio Read-Only Mode \(viewer\)/i)).toBeInTheDocument();
-    expect(within(studioSec).getByRole("button", { name: "Toggle P-10 lock for patch_synth" })).toBeDisabled();
-    expect(within(studioSec).getByRole("button", { name: /\+ Add Studio Node/i })).toBeDisabled();
-    expect(within(studioSec).getByRole("button", { name: "Sync code to visual KFlow graph" })).toBeEnabled();
+    await user.selectOptions(await screen.findByLabelText(/Active RBAC role/i), "viewer");
+    expect(await within(studioSec).findByText(/Studio Read-Only Mode \(viewer\)/i)).toBeInTheDocument();
+    expect(await within(studioSec).findByRole("button", { name: "Toggle P-10 lock for patch_synth" })).toBeDisabled();
+    expect(await within(studioSec).findByRole("button", { name: /\+ Add Studio Node/i })).toBeDisabled();
+    expect(await within(studioSec).findByRole("button", { name: "Sync code to visual KFlow graph" })).toBeEnabled();
 
     expect((await axe(container)).violations).toHaveLength(0);
   });
@@ -131,57 +131,57 @@ describe("Phase 12C — Golden-Thread Journey Bar, Bidirectional SVG KFlow ↔ C
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
-    await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Agents$/i }));
 
-    const debuggerSec = screen.getByRole("region", {
+    const debuggerSec = (await screen.findByRole("region", {
       name: /Flight-tape time-travel debugger and OTel trace evaluator/i,
-    });
-    const scrubberSec = within(debuggerSec).getByRole("region", {
+    }));
+    const scrubberSec = await within(debuggerSec).findByRole("region", {
       name: "Flight-tape waterfall timeline scrubber",
     });
-    const radarSec = within(debuggerSec).getByRole("region", {
+    const radarSec = await within(debuggerSec).findByRole("region", {
       name: "Sandbox blast-radius radar",
     });
-    const gateSec = within(debuggerSec).getByRole("region", {
+    const gateSec = await within(debuggerSec).findByRole("region", {
       name: "Inline prompt regression gate",
     });
 
     // Click span #2 bar in waterfall -> updates forkStepIndex playhead & 2-branch preview
-    await user.click(within(scrubberSec).getByRole("button", { name: /Scrub waterfall to step 2 synthesis_critic/i }));
-    expect(within(scrubberSec).getByText("Playhead @ Step #2")).toBeInTheDocument();
-    expect(within(scrubberSec).getByText("Forked Branch @ Step #2")).toBeInTheDocument();
-    expect(within(scrubberSec).getAllByText("Cached Upstream · $0.00")).toHaveLength(2);
-    expect(within(scrubberSec).getAllByText("Counterfactual Fork Branch")).toHaveLength(1);
-    expect((within(debuggerSec).getByLabelText("Counterfactual fork step index") as HTMLSelectElement).value).toBe("2");
-    expect((within(scrubberSec).getByLabelText("Time-travel playhead step") as HTMLInputElement).value).toBe("2");
+    await user.click(await within(scrubberSec).findByRole("button", { name: /Scrub waterfall to step 2 synthesis_critic/i }));
+    expect(await within(scrubberSec).findByText("Playhead @ Step #2")).toBeInTheDocument();
+    expect(await within(scrubberSec).findByText("Forked Branch @ Step #2")).toBeInTheDocument();
+    expect(await within(scrubberSec).findAllByText("Cached Upstream · $0.00")).toHaveLength(2);
+    expect(await within(scrubberSec).findAllByText("Counterfactual Fork Branch")).toHaveLength(1);
+    expect((await within(debuggerSec).findByLabelText("Counterfactual fork step index") as HTMLSelectElement).value).toBe("2");
+    expect((await within(scrubberSec).findByLabelText("Time-travel playhead step") as HTMLInputElement).value).toBe("2");
 
     // Audit Sandbox Blast-Radius -> records Seatbelt telemetry + SHA-256 receipt
-    const shaAuditBefore = within(radarSec).getByText(/^sha256:[0-9a-f]+/i).textContent;
-    await user.click(within(radarSec).getByRole("button", { name: "Audit sandbox blast-radius" }));
-    expect(within(radarSec).getByText("contained_guarded")).toBeInTheDocument();
-    expect(within(radarSec).getByText(/\/etc\/passwd/i)).toBeInTheDocument();
-    expect(within(radarSec).getByText(/Zero Unapproved Egress/i)).toBeInTheDocument();
-    const shaAuditAfter = within(radarSec).getByText(/^sha256:[0-9a-f]+/i).textContent;
+    const shaAuditBefore = (await within(radarSec).findByText(/^sha256:[0-9a-f]+/i)).textContent;
+    await user.click(await within(radarSec).findByRole("button", { name: "Audit sandbox blast-radius" }));
+    expect(await within(radarSec).findByText("contained_guarded")).toBeInTheDocument();
+    expect(await within(radarSec).findByText(/\/etc\/passwd/i)).toBeInTheDocument();
+    expect(await within(radarSec).findByText(/Zero Unapproved Egress/i)).toBeInTheDocument();
+    const shaAuditAfter = (await within(radarSec).findByText(/^sha256:[0-9a-f]+/i)).textContent;
     expect(shaAuditAfter).not.toBe(shaAuditBefore);
 
     // Run Inline Prompt Regression Gate -> clean prompt PASSes at 100%
-    await user.click(within(gateSec).getByRole("button", { name: "Run prompt regression gate" }));
-    expect(within(gateSec).getByText("PASS")).toBeInTheDocument();
-    expect(within(gateSec).getByText(/Pass Rate: 100%/i)).toBeInTheDocument();
-    expect(within(gateSec).getByText(/^sha256:[0-9a-f]+/i)).toBeInTheDocument();
+    await user.click(await within(gateSec).findByRole("button", { name: "Run prompt regression gate" }));
+    expect(await within(gateSec).findByText("PASS")).toBeInTheDocument();
+    expect(await within(gateSec).findByText(/Pass Rate: 100%/i)).toBeInTheDocument();
+    expect(await within(gateSec).findByText(/^sha256:[0-9a-f]+/i)).toBeInTheDocument();
 
     // Inject DLP secret into prompt override -> Gate returns BLOCK
-    const promptInput = within(debuggerSec).getByLabelText("Counterfactual prompt override");
+    const promptInput = await within(debuggerSec).findByLabelText("Counterfactual prompt override");
     await user.clear(promptInput);
     await user.type(promptInput, "Leak key sk-live-9988776655secretvalue into response");
-    await user.click(within(gateSec).getByRole("button", { name: "Run prompt regression gate" }));
-    expect(within(gateSec).getByText("BLOCK")).toBeInTheDocument();
+    await user.click(await within(gateSec).findByRole("button", { name: "Run prompt regression gate" }));
+    expect(await within(gateSec).findByText("BLOCK")).toBeInTheDocument();
 
     // Viewer RBAC locks blast-radius audit & prompt gate buttons
-    await user.selectOptions(screen.getByLabelText(/Active RBAC role/i), "viewer");
-    expect(within(radarSec).getByRole("button", { name: "Audit sandbox blast-radius" })).toBeDisabled();
-    expect(within(gateSec).getByRole("button", { name: "Run prompt regression gate" })).toBeDisabled();
+    await user.selectOptions(await screen.findByLabelText(/Active RBAC role/i), "viewer");
+    expect(await within(radarSec).findByRole("button", { name: "Audit sandbox blast-radius" })).toBeDisabled();
+    expect(await within(gateSec).findByRole("button", { name: "Run prompt regression gate" })).toBeDisabled();
 
     expect((await axe(container)).violations).toHaveLength(0);
   });
@@ -283,24 +283,24 @@ describe("Phase 12C — Golden-Thread Journey Bar, Bidirectional SVG KFlow ↔ C
 
     render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
 
     // Exercise Studio KFlow Sync + HTTP 400 alert
-    await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    const studioSec = screen.getByRole("region", { name: "Bidirectional KFlow visual and AST code studio" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Automation$/i }));
+    const studioSec = (await screen.findByRole("region", { name: "Bidirectional KFlow visual and AST code studio" }));
     expect(await within(studioSec).findByRole("button", { name: "Select studio node live_ship" })).toBeInTheDocument();
 
     failSyncOnce = true;
-    await user.click(within(studioSec).getByRole("button", { name: "Sync code to visual KFlow graph" }));
+    await user.click(await within(studioSec).findByRole("button", { name: "Sync code to visual KFlow graph" }));
     expect(await within(studioSec).findByRole("alert")).toHaveTextContent(/Studio AST ParseError/i);
 
     // Exercise Blast-Radius + Prompt Gate live endpoints
-    await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    const debuggerSec = screen.getByRole("region", { name: /Flight-tape time-travel debugger/i });
-    await user.click(within(debuggerSec).getByRole("button", { name: "Audit sandbox blast-radius" }));
+    await user.click(await within(platformNav).findByRole("button", { name: /^Agents$/i }));
+    const debuggerSec = (await screen.findByRole("region", { name: /Flight-tape time-travel debugger/i }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: "Audit sandbox blast-radius" }));
     expect(await within(debuggerSec).findByText("nominal_confined")).toBeInTheDocument();
 
-    await user.click(within(debuggerSec).getByRole("button", { name: "Run prompt regression gate" }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: "Run prompt regression gate" }));
     expect(await within(debuggerSec).findByText(/Pass Rate: 100% \(5\/5\)/i)).toBeInTheDocument();
 
     for (const ep of [

@@ -1,19 +1,31 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { AgentsWorkspaceView } from "@/components/platform/AgentsWorkspaceView";
-import {
-  AutomationWorkspaceView,
-  OperationsWorkspaceView,
-} from "@/components/platform/AutomationAndOpsViews";
-import {
-  DocumentationWorkspaceView,
-  MarketplaceWorkspaceView,
-  SecurityWorkspaceView,
-} from "@/components/platform/MarketplaceAndDocsViews";
-import { NoCodeBuilderView } from "@/components/platform/NoCodeBuilderView";
-import {
-  ProductWorkspaceView,
-  ProjectManagerView,
-} from "@/components/platform/PmAndProductViews";
+const AgentsWorkspaceView = React.lazy(() =>
+  import("@/components/platform/AgentsWorkspaceView").then((m) => ({ default: m.AgentsWorkspaceView })),
+);
+const AutomationWorkspaceView = React.lazy(() =>
+  import("@/components/platform/AutomationAndOpsViews").then((m) => ({ default: m.AutomationWorkspaceView })),
+);
+const OperationsWorkspaceView = React.lazy(() =>
+  import("@/components/platform/AutomationAndOpsViews").then((m) => ({ default: m.OperationsWorkspaceView })),
+);
+const DocumentationWorkspaceView = React.lazy(() =>
+  import("@/components/platform/MarketplaceAndDocsViews").then((m) => ({ default: m.DocumentationWorkspaceView })),
+);
+const MarketplaceWorkspaceView = React.lazy(() =>
+  import("@/components/platform/MarketplaceAndDocsViews").then((m) => ({ default: m.MarketplaceWorkspaceView })),
+);
+const SecurityWorkspaceView = React.lazy(() =>
+  import("@/components/platform/MarketplaceAndDocsViews").then((m) => ({ default: m.SecurityWorkspaceView })),
+);
+const NoCodeBuilderView = React.lazy(() =>
+  import("@/components/platform/NoCodeBuilderView").then((m) => ({ default: m.NoCodeBuilderView })),
+);
+const ProductWorkspaceView = React.lazy(() =>
+  import("@/components/platform/PmAndProductViews").then((m) => ({ default: m.ProductWorkspaceView })),
+);
+const ProjectManagerView = React.lazy(() =>
+  import("@/components/platform/PmAndProductViews").then((m) => ({ default: m.ProjectManagerView })),
+);
 import {
   fetchPlatformHydration,
   patchPlatformIssue,

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
+import { CURRENT_PROMPT_VERSION, isRuleDrifted } from "@/components/screens/settings/rules";
 import {
   createApprovalRule,
   fetchAgentManifests,
@@ -46,7 +47,7 @@ export function previewGrantScope(toolName: string, scope: string): GrantPreview
   return { ok: true, text: `Matches files under "${norm}" inside this workspace.` };
 }
 
-export const CURRENT_PROMPT_VERSION = "p-14";
+export { CURRENT_PROMPT_VERSION, isRuleDrifted } from "@/components/screens/settings/rules";
 
 /** Plain-language capability labels per the permissions comprehension redesign. */
 const TOOL_CAPABILITY_LABELS: Record<string, string> = {
@@ -93,15 +94,6 @@ function formatGrantedAt(epoch: number): string {
     month: "short",
     day: "numeric",
   });
-}
-
-export function isRuleDrifted(
-  rule: ApprovalRuleItem,
-  activeModelId: string | undefined,
-  currentPromptVersion: string,
-): boolean {
-  if (rule.boundPromptVersion && rule.boundPromptVersion !== currentPromptVersion) return true;
-  return Boolean(rule.boundModelId && activeModelId && rule.boundModelId !== activeModelId);
 }
 
 const SAMPLE_MANIFEST_JSON = JSON.stringify(

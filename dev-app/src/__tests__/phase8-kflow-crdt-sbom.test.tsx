@@ -25,9 +25,9 @@ describe("Phase 8C — Live KFlow Topological Runner, KSpaces CRDT Sync & Cyclon
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
 
-    const kflowSection = screen.getByRole("region", {
+    const kflowSection = (await screen.findByRole("region", {
       name: /Topological KFlow DAG runner and KSpaces CRDT sync/i,
-    });
+    }));
     const p10Checkbox = within(kflowSection).getByLabelText("Require P-10 gate on final DAG step") as HTMLInputElement;
     if (!p10Checkbox.checked) await user.click(p10Checkbox);
     expect(p10Checkbox.checked).toBe(true);
@@ -73,7 +73,7 @@ describe("Phase 8C — Live KFlow Topological Runner, KSpaces CRDT Sync & Cyclon
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
 
-    const crdtRegion = screen.getByRole("region", { name: /KSpaces CRDT state synchronization/i });
+    const crdtRegion = (await screen.findByRole("region", { name: /KSpaces CRDT state synchronization/i }));
     const peerInput = within(crdtRegion).getByLabelText("CRDT peer ID") as HTMLInputElement;
     const keyInput = within(crdtRegion).getByLabelText("CRDT entry key") as HTMLInputElement;
     const valInput = within(crdtRegion).getByLabelText("CRDT entry value") as HTMLInputElement;
@@ -153,9 +153,9 @@ describe("Phase 8C — Live KFlow Topological Runner, KSpaces CRDT Sync & Cyclon
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
 
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
-    const sbomSection = screen.getByRole("region", {
+    const sbomSection = (await screen.findByRole("region", {
       name: /CycloneDX 1.5 SBOM and supply-chain provenance/i,
-    });
+    }));
     await user.click(within(sbomSection).getByRole("button", { name: /Generate & Verify CycloneDX 1.5 SBOM/i }));
 
     expect(await within(sbomSection).findByText("CycloneDX · v1.5")).toBeInTheDocument();
@@ -170,7 +170,7 @@ describe("Phase 8C — Live KFlow Topological Runner, KSpaces CRDT Sync & Cyclon
     // Verify HTTP 400 from backend is surfaced via alert and never masked by offline fallback
     rejectNextKflow = true;
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    const kflowSection = screen.getByRole("region", { name: /Topological KFlow DAG runner and KSpaces CRDT sync/i });
+    const kflowSection = (await screen.findByRole("region", { name: /Topological KFlow DAG runner and KSpaces CRDT sync/i }));
     await user.click(within(kflowSection).getByRole("button", { name: /Execute Topological DAG/i }));
     expect(await within(kflowSection).findByRole("alert")).toHaveTextContent(/Cycle detected in workflow graph/i);
 

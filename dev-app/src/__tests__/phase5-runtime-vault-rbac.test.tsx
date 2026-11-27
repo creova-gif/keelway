@@ -30,8 +30,8 @@ describe("Phase 5 — Live SSE Execution, Encrypted Secret Vault, Multi-Workspac
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
 
-    const vaultSec = screen.getByRole("region", { name: /Encrypted local secret vault/i });
-    expect(within(vaultSec).getByText(/AES-256-GCM · hipaa-intake/i)).toBeInTheDocument();
+    const vaultSec = (await screen.findByRole("region", { name: /Encrypted local secret vault/i }));
+    expect(await within(vaultSec).findByText(/AES-256-GCM · hipaa-intake/i)).toBeInTheDocument();
 
     const secretNameInput = within(vaultSec).getByLabelText(/^Secret name$/i);
     const secretValInput = within(vaultSec).getByLabelText(/Plaintext secret value/i) as HTMLInputElement;
@@ -90,13 +90,13 @@ describe("Phase 5 — Live SSE Execution, Encrypted Secret Vault, Multi-Workspac
 
     // 1. Agents View -> Stream Live Execution -> pauses at [p10.held]
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    await user.click(screen.getAllByRole("button", { name: /Stream Live Execution/i })[0]!);
+    await user.click((await screen.findAllByRole("button", { name: /Stream Live Execution/i }))[0]!);
 
     const execConsole = await screen.findByRole("region", { name: /Live streaming execution console/i });
     expect(await within(execConsole).findByText("[p10.held]")).toBeInTheDocument();
 
     // Builder role cannot approve P-10 human checkpoint
-    const rbacSelect = screen.getByLabelText(/Active RBAC role/i);
+    const rbacSelect = (await screen.findByLabelText(/Active RBAC role/i));
     await user.selectOptions(rbacSelect, "builder");
     expect(within(execConsole).getByRole("button", { name: /Approve P-10 & Resume Stream/i })).toBeDisabled();
 
@@ -110,11 +110,11 @@ describe("Phase 5 — Live SSE Execution, Encrypted Secret Vault, Multi-Workspac
 
     // 2. Automation View -> Stream Live DAG -> Deny & Abort Run
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    await user.click(screen.getAllByRole("button", { name: /Stream Live DAG/i })[0]!);
+    await user.click((await screen.findAllByRole("button", { name: /Stream Live DAG/i }))[0]!);
 
     const dagConsole = await screen.findByRole("region", { name: /Live streaming execution console/i });
     expect(await within(dagConsole).findByText("[p10.held]")).toBeInTheDocument();
-    await user.click(within(dagConsole).getByRole("button", { name: /Deny & Abort Run/i }));
+    await user.click(await within(dagConsole).findByRole("button", { name: /Deny & Abort Run/i }));
     expect(await within(dagConsole).findByText("[run.aborted]")).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });

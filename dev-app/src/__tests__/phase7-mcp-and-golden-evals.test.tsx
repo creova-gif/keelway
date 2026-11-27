@@ -23,9 +23,9 @@ describe("Phase 7D — Live MCP Inspector & 16-Probe Golden Eval Scorecard", () 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
 
-    const mcpSection = screen.getByRole("region", {
+    const mcpSection = (await screen.findByRole("region", {
       name: /Model Context Protocol server and tool inspector/i,
-    });
+    }));
     expect(within(mcpSection).getByText("keelway-core-mcp")).toBeInTheDocument();
     expect(within(mcpSection).getAllByText(/protocol: 2025-06-18/i).length).toBeGreaterThan(0);
 
@@ -95,9 +95,9 @@ describe("Phase 7D — Live MCP Inspector & 16-Probe Golden Eval Scorecard", () 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
 
-    const evalSection = screen.getByRole("region", {
+    const evalSection = (await screen.findByRole("region", {
       name: /Golden benchmark and adversarial red-team suite/i,
-    });
+    }));
     const runBtn = within(evalSection).getByRole("button", { name: /Run 16-Probe Golden Suite/i });
     const categorySelect = within(evalSection).getByLabelText("Golden eval category") as HTMLSelectElement;
     expect(categorySelect.value).toBe("all");
@@ -203,7 +203,7 @@ describe("Phase 7D — Live MCP Inspector & 16-Probe Golden Eval Scorecard", () 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
 
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    const mcpSection = screen.getByRole("region", { name: /Model Context Protocol server and tool inspector/i });
+    const mcpSection = (await screen.findByRole("region", { name: /Model Context Protocol server and tool inspector/i }));
     await user.selectOptions(within(mcpSection).getByLabelText("MCP tool selector"), "vault.list_metadata");
     await user.click(within(mcpSection).getByRole("button", { name: /Invoke MCP Tool/i }));
 
@@ -212,7 +212,7 @@ describe("Phase 7D — Live MCP Inspector & 16-Probe Golden Eval Scorecard", () 
     expect(within(execResult).getByText("sha256:abcdef0123456789")).toBeInTheDocument();
 
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
-    const evalSection = screen.getByRole("region", { name: /Golden benchmark and adversarial red-team suite/i });
+    const evalSection = (await screen.findByRole("region", { name: /Golden benchmark and adversarial red-team suite/i }));
     await user.click(within(evalSection).getByRole("button", { name: /Run 16-Probe Golden Suite/i }));
     expect(await within(evalSection).findByText("100% (16/16)")).toBeInTheDocument();
     expect(within(evalSection).getByText("sha256:fedcba9876543210")).toBeInTheDocument();

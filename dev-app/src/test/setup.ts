@@ -1,7 +1,12 @@
 import "@testing-library/jest-dom/vitest";
+import { configure } from "@testing-library/dom";
 import axeCore, { type AxeResults, type RunOptions } from "axe-core";
 import { afterEach, expect } from "vitest";
 import { resetApiFallbackState } from "@/lib/apiFallbacks";
+
+// View chunks are React.lazy code-splits; the import + hydration legitimately
+// exceeds the 1s asyncUtilTimeout default under parallel test load.
+configure({ asyncUtilTimeout: 4000 });
 
 afterEach(() => {
   resetApiFallbackState();

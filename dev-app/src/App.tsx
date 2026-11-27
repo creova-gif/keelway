@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlatformWorkspaceBar } from "@/components/platform/PlatformWorkspaceBar";
 import { PlatformViewList } from "@/components/platform/PlatformViewList";
 import { useUnifiedPlatformState } from "@/components/platform/useUnifiedPlatformState";
@@ -7,19 +7,18 @@ import { DevAppShell, type CompanionTab, type LogsDrawerTab } from "@/components
 import { OnboardingModal } from "@/components/shell/OnboardingModal";
 import { ToastViewport } from "@/components/shell/ToastViewport";
 import {
-  FilesExplorerSidebar, FilesWorkspace,
-  type FilesExplorerSidebarProps, type FilesNavigationTarget,
-} from "@/components/screens/FilesWorkspace";
+  FilesExplorerSidebar, type FilesExplorerSidebarProps,
+} from "@/components/screens/FilesExplorerSidebar";
+import type { FilesNavigationTarget } from "@/components/screens/FilesWorkspace";
 import { P10ApprovalCard } from "@/components/screens/P10ApprovalCard";
-import { RecordAuditLedger } from "@/components/screens/RecordAuditLedger";
 import {
   applyDensityToDocument, applyLocaleToDocument, applyReduceMotionToDocument, applyThemeToDocument,
-  isEditableKeyboardTarget, SettingsSubNav, SettingsWorkspace,
-} from "@/components/screens/SettingsWorkspace";
-import { CURRENT_PROMPT_VERSION, isRuleDrifted } from "@/components/screens/settings/SettingsPermissionsPanel";
+  isEditableKeyboardTarget, SettingsSubNav,
+} from "@/components/screens/settings/navigation";
+import { CURRENT_PROMPT_VERSION, isRuleDrifted } from "@/components/screens/settings/rules";
 import {
-  buildLogsDrawerTabPanels, ReviewChangesContent, TasksWorkspace, type TerminalExecEntry,
-} from "@/components/screens/TasksWorkspace";
+  buildLogsDrawerTabPanels, ReviewChangesContent, type TerminalExecEntry,
+} from "@/components/screens/TasksDrawers";
 import {
   connectStudioWebSocket, createApprovalRule, execSandboxTerminal, fetchAirGapAudit,
   fetchApprovalRules, fetchCodebaseSymbols,
@@ -38,6 +37,25 @@ import type {
   PlatformViewId, RailSection, ApprovalRuleItem, SettingsSubSection, SidebarTaskItem, ThemeMode,
   WorkspaceFileNode,
 } from "@/lib/types";
+
+const TasksWorkspace = lazy(() =>
+  import("@/components/screens/TasksWorkspace").then((m) => ({ default: m.TasksWorkspace })),
+);
+const FilesWorkspace = lazy(() =>
+  import("@/components/screens/FilesWorkspace").then((m) => ({ default: m.FilesWorkspace })),
+);
+const RecordAuditLedger = lazy(() =>
+  import("@/components/screens/RecordAuditLedger").then((m) => ({ default: m.RecordAuditLedger })),
+);
+const SettingsWorkspace = lazy(() =>
+  import("@/components/screens/SettingsWorkspace").then((m) => ({ default: m.SettingsWorkspace })),
+);
+
+const lazyScreenFallback = (
+  <div className="flex h-full items-center justify-center font-mono text-[11px] uppercase tracking-[0.14em] text-fg-dim">
+    Loading
+  </div>
+);
 
 export interface AppProps {
   initialSection?: RailSection;
@@ -684,6 +702,7 @@ export function App({
         activeCompanionTab={companionTab}
         onSelectCompanionTab={setCompanionTab}
       >
+        <Suspense fallback={lazyScreenFallback}>
         {platformView !== "ide" ? (
           renderPlatformCanvas({
             selectedSeq: recordSelectedSeq,
@@ -766,6 +785,7 @@ export function App({
             onChangeSubscriptionTier={setSubscriptionTier}
           />
         )}
+        </Suspense>
       </DevAppShell>
 
       <CommandPalette
