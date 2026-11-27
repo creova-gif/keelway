@@ -24,14 +24,26 @@ No rewrites. Two scoped additions:
 | — | P0-2 golden journey: verified green on clean main (see §5) |
 | — | P0-3 compose deploy smoke: verified live (see §8) |
 | — | P0-5 onboarding path: cold-run verified (see §8) |
+| #261 | Offline swarm determinism — P1-1 (KEEL-ENG-069): measured root cause (real Ollama inference in "offline" mode, ~24s vs 30s budget); zero-network mock local provider; `swarm run` 23.8s→0.63s |
+
+**P1 verification sweep (no code needed):**
+- P1-2 usage analytics: `SettingsBillingPanel` reads real spend via
+  `GET /v1/governance/tenants/default` + marketplace settlement; ARIA
+  progressbars + honest unreachable state.
+- P1-3 file-intelligence upload: `POST /v1/files/upload` journey green
+  (3/3 tests, ZipSlip-protected); no UI surface ships a fake upload.
+- P1-4 Monaco/symbol nav: self-hosted Monaco assets present; symbol nav
+  wired `/v1/codebase/symbols` → `handleSelectSymbol` → `setPosition`.
+- P1-5 runner env contract: `GET /v1/runner/environment/status` honest
+  (docker probe + diagnostic); 12/12 tests green.
 
 ## 4. Remaining limitations
 See `11_KNOWN_LIMITATIONS.md` — all entries verified honest. Headline:
 single-operator auth model; `?token=` URL convention retained (documented,
 access-log-safe); in-memory scheduler state resets on restart; no schema
-migration framework; `keelway swarm` offline benchmark harness deadlock
-(P1-1, do not demo); desktop not packaged/signed; helm/k8s/terraform
-unverified E2E.
+migration framework; `keelway swarm` offline mode now deterministic —
+live inference only under `--live` (P1-1 resolved); desktop not
+packaged/signed; helm/k8s/terraform unverified E2E.
 
 ## 5. Test results and evidence
 - Baseline: 1,565 pytest tests; dev-app ~72 tests; both web builds green.
@@ -39,6 +51,10 @@ unverified E2E.
   (P0-2 golden journey, clean `origin/main`).
 - `pytest tests/test_conversation_persistence.py` → 7 passed (P0-1).
 - `pytest tests/test_ollama_wedge_guard.py` + related → 19 passed in 0.83s.
+- `pytest tests/test_cli_ai.py` → 5 passed in 3.91s (swarm test previously
+  timed out at 30s; run now completes in 0.63s deterministically).
+- `pytest tests/test_file_upload.py` → 3 passed; `pytest
+  tests/test_runner_environments.py` → 12 passed.
 - mypy 2.4.1 `packages=["core"]`, `strict_optional`, `check_untyped_defs`,
   `warn_unreachable` → 0 errors / 297 files; ruff clean.
 - All merged PRs green on CI: test (3.11), test (3.14),
@@ -83,8 +99,8 @@ rollback. Conversations table is additive — no forward-migration needed.
 ## 10. Go / no-go recommendation
 **GO — conditional.** All P0 items resolved or honestly documented;
 release gates green; deploy smoke verified; limitations ship-honest.
+P1 sweep complete: one real fix (P1-1), four verified-honest surfaces.
 Conditions for the release owner:
-- Do not demo `keelway swarm` offline benchmark (P1-1 deadlock).
 - Beta onboarding must use the `09` runbook path (not helm/k8s — unverified).
 - Communicate the single-operator model — this is not multi-tenant SaaS.
 Final approval rests with the release owner per `10_BETA_RELEASE_CHECKLIST`.
