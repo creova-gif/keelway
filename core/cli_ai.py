@@ -92,6 +92,56 @@ class _OfflineMockCloudProvider(BaseModelProvider):
         yield StreamChunk(id=resp.id, model=resp.model, provider=resp.provider, delta_content=resp.content, finish_reason="stop")
 
 
+class _OfflineMockLocalProvider(BaseModelProvider):
+    """Deterministic zero-network open-weight mock for offline CLI swarm checks.
+
+    Keeps `swarm run` (non-`--live`) fully environment-independent: without it,
+    citizen/draft calls route through the real OpenCore serving engine, which
+    executes live Ollama inference when a runtime happens to be installed —
+    ~3-6s per call, flaking the 30s subprocess budget in CI.
+    """
+
+    provider = Provider.LOCAL
+    provider_id = Provider.LOCAL
+    category = ModelCategory.OPEN_WEIGHT
+    default_model = "keelway-core:7b"
+
+    def is_available(self) -> bool:
+        return True
+
+    async def health_check(self) -> Dict[str, Any]:
+        return {"up": True, "provider": "local"}
+
+    async def complete(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
+        prompt_text = " ".join(m.content for m in request.messages).lower()
+        if "bio" in prompt_text and "persona" in prompt_text:
+            content = json.dumps({
+                "bio": "Open-weight systems engineer validating sovereign local inference.",
+                "persona": "Cost-conscious builder who keeps private context on open weights.",
+            })
+        elif "action" in prompt_text:
+            content = json.dumps({"action": "CREATE_POST", "content": "Local open-weight rounds kept the swarm timeline fully sovereign."})
+        else:
+            content = json.dumps({"response": "OpenCore local reply: sovereign zero-egress completion."})
+        return ChatCompletionResponse(
+            id="mock-cli-local",
+            model=request.model or "keelway-core:7b",
+            provider=Provider.LOCAL,
+            category=ModelCategory.OPEN_WEIGHT,
+            content=content,
+            finish_reason="stop",
+            usage={"prompt_tokens": 48, "completion_tokens": 32, "total_tokens": 80},
+            latency_ms=8.0,
+            cost_usd=0.0,
+            routing_reason="cli_offline_mock",
+            simulated=True,
+        )
+
+    async def stream_complete(self, request: ChatCompletionRequest):
+        resp = await self.complete(request)
+        yield StreamChunk(id=resp.id, model=resp.model, provider=resp.provider, delta_content=resp.content, finish_reason="stop")
+
+
 def _emit(payload: Dict[str, Any], as_json: bool, human_lines: List[str]) -> int:
     if as_json:
         print(json.dumps(payload, indent=2, default=str))
@@ -326,14 +376,16 @@ def _handle_route(args: argparse.Namespace) -> int:
 
 
 def _handle_swarm(args: argparse.Namespace) -> int:
-    local_adapter = OpenWeightProviderAdapter(base_url="http://127.0.0.1:9")
+    local_adapter: BaseModelProvider
     target_adapter: BaseModelProvider
     if args.live:
+        local_adapter = OpenWeightProviderAdapter(base_url="http://127.0.0.1:9")
         gw = ModelGateway()
         live_adapter = gw.adapters[Provider.GEMINI]
         assert isinstance(live_adapter, BaseModelProvider)
         target_adapter = live_adapter
     else:
+        local_adapter = _OfflineMockLocalProvider()
         mock_cloud = _OfflineMockCloudProvider()
         gw = ModelGateway(adapters={Provider.LOCAL: local_adapter, Provider.GEMINI: mock_cloud, Provider.GOOGLE: mock_cloud})
         target_adapter = mock_cloud
