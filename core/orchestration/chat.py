@@ -8,6 +8,7 @@ failures stay unavailable and do not invent an offline completion.
 
 from __future__ import annotations
 
+import logging
 import re
 import time
 from enum import Enum
@@ -17,9 +18,12 @@ from core.api.schemas import CompletionRequestSchema, MessageSchema, Provider
 from core.models.gateway import ModelGateway, gateway as default_gateway
 from core.storage.memory import MemoryService
 from core.storage.database import AsyncSessionLocal
+from core.storage.models import ConversationRecord
 from core.security.firewall import SecurityGateway
 from core.storage.workspace_fs import WorkspaceFilesystem
 from core.storage.ast_index import CodebaseSemanticIndex
+
+logger = logging.getLogger(__name__)
 
 
 class ConversationMode(str, Enum):
@@ -136,6 +140,8 @@ class InteractiveChatSession:
         ]
         self.security = SecurityGateway(block_on_injection=True, redact_secrets=True)
         self._last_agent: Optional[Any] = None
+        self.conversation_id: Optional[str] = None
+        self._owner: str = "anonymous"
 
     def set_mode(self, new_mode: ConversationMode) -> None:
         """Switch conversation mode and update system instructions."""
@@ -146,6 +152,66 @@ class InteractiveChatSession:
     def reset(self) -> None:
         """Clear conversation history while preserving system prompt."""
         self.history = [MessageSchema(role="system", content=self.system_prompt)]
+
+    async def new_conversation(self, owner: str = "anonymous") -> str:
+        """Create a persisted conversation record and bind this session to it."""
+        async with AsyncSessionLocal() as db:
+            rec = ConversationRecord(
+                mode=self.mode.value,
+                provider=self.provider.value,
+                owner=owner,
+            )
+            db.add(rec)
+            await db.commit()
+            await db.refresh(rec)
+            self.conversation_id = rec.id
+            self._owner = owner
+            return rec.id
+
+    async def load_conversation(self, conversation_id: str, owner: Optional[str] = None) -> bool:
+        """Restore turn history from a persisted conversation.
+
+        Returns False if the record does not exist or belongs to a different
+        owner (when ``owner`` is supplied), so callers can treat both as
+        "not found" without disclosing existence.
+        """
+        async with AsyncSessionLocal() as db:
+            rec = await db.get(ConversationRecord, conversation_id)
+            if rec is None or (owner is not None and rec.owner != owner):
+                return False
+            self.conversation_id = rec.id
+            self._owner = rec.owner
+            restored = [
+                MessageSchema(role=str(t.get("role", "user")), content=str(t.get("content", "")))
+                for t in (rec.turns or [])
+                if isinstance(t, dict)
+            ]
+            if restored:
+                self.history = restored
+            return True
+
+    async def _persist_conversation(self) -> None:
+        """Write current turn history to the bound conversation record."""
+        if self.conversation_id is None:
+            return
+        try:
+            async with AsyncSessionLocal() as db:
+                rec = await db.get(ConversationRecord, self.conversation_id)
+                if rec is None:
+                    self.conversation_id = None
+                    return
+                rec.turns = [{"role": m.role, "content": m.content} for m in self.history]
+                rec.mode = self.mode.value
+                rec.provider = self.provider.value
+                if rec.title is None:
+                    first_user = next((m.content for m in self.history if m.role == "user"), None)
+                    if first_user:
+                        rec.title = first_user[:80]
+                await db.commit()
+        except Exception as exc:
+            # Persistence must never break the chat path; degradation is
+            # logged so operators can detect a storage failure.
+            logger.warning("conversation persist failed for %s: %s", self.conversation_id, exc)
 
     async def step(
         self,
@@ -216,13 +282,15 @@ class InteractiveChatSession:
 
         # 4. Mode-specific handling
         if active_mode == ConversationMode.PLAN:
-            return await self._step_plan_mode(sanitized_input, context_parts, memory_citations)
+            result = await self._step_plan_mode(sanitized_input, context_parts, memory_citations)
         elif active_mode == ConversationMode.EDIT:
-            return await self._step_edit_mode(sanitized_input, target_file, context_parts, memory_citations)
+            result = await self._step_edit_mode(sanitized_input, target_file, context_parts, memory_citations)
         elif active_mode == ConversationMode.AGENT:
-            return await self._step_agent_mode(sanitized_input, context_parts, memory_citations)
+            result = await self._step_agent_mode(sanitized_input, context_parts, memory_citations)
         else:
-            return await self._step_ask_mode(sanitized_input, context_parts, memory_citations)
+            result = await self._step_ask_mode(sanitized_input, context_parts, memory_citations)
+        await self._persist_conversation()
+        return result
 
     async def _step_ask_mode(
         self,
