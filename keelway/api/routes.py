@@ -67,7 +67,7 @@ class AuditVerifyResponse(BaseModel):
 
 
 @router.post("/runs", response_model=Dict[str, Any])
-def create_run(req: CreateRunRequest, _actor: str = Depends(require_governance_actor)):
+def create_run(req: CreateRunRequest, _actor: str = Depends(require_governance_actor)) -> Dict[str, Any]:
     """Creates and starts a governed run."""
     try:
         coordinator = GovernedRunCoordinator(
@@ -99,7 +99,7 @@ def create_run(req: CreateRunRequest, _actor: str = Depends(require_governance_a
 
 
 @router.get("/runs/{run_id}", response_model=RunManifest)
-def get_run(run_id: str):
+def get_run(run_id: str) -> RunManifest:
     """Retrieves status and metadata for a run."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -108,7 +108,7 @@ def get_run(run_id: str):
 
 
 @router.get("/runs/{run_id}/events", response_model=List[AuditEvent])
-def get_run_events(run_id: str):
+def get_run_events(run_id: str) -> List[AuditEvent]:
     """Retrieves the full append-only audit event log for a run."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -117,7 +117,7 @@ def get_run_events(run_id: str):
 
 
 @router.get("/runs/{run_id}/export", response_model=ExportBundle)
-def export_run_audit_bundle(run_id: str, redact: bool = True):
+def export_run_audit_bundle(run_id: str, redact: bool = True) -> ExportBundle:
     """Exports a cryptographically verified and sealed audit bundle for a run (FR-09)."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -132,7 +132,7 @@ def export_run_audit_bundle(run_id: str, redact: bool = True):
 
 
 @router.post("/runs/{run_id}/cancel", response_model=Dict[str, str])
-def cancel_run(run_id: str, reason: str = "User requested cancellation", _actor: str = Depends(require_governance_actor)):
+def cancel_run(run_id: str, reason: str = "User requested cancellation", _actor: str = Depends(require_governance_actor)) -> Dict[str, str]:
     """Idempotently cancels a run."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -142,14 +142,14 @@ def cancel_run(run_id: str, reason: str = "User requested cancellation", _actor:
 
 
 @router.post("/policy/decide", response_model=PolicyDecision)
-def policy_decide(req: ToolAuthorizationRequest):
+def policy_decide(req: ToolAuthorizationRequest) -> PolicyDecision:
     """Decides tool authorization under deny-by-default rules."""
     decision = SHARED_POLICY_ENGINE.evaluate(req)
     return decision
 
 
 @router.post("/approvals/{approval_id}/decision", response_model=Dict[str, Any])
-def submit_approval_decision(approval_id: str, dec: ApprovalDecision, _actor: str = Depends(require_governance_actor)):
+def submit_approval_decision(approval_id: str, dec: ApprovalDecision, _actor: str = Depends(require_governance_actor)) -> Dict[str, Any]:
     """Submits a human review decision for a standard approval request."""
     target_coordinator: Optional[GovernedRunCoordinator] = None
     for coord in ACTIVE_RUNS.values():
@@ -174,7 +174,7 @@ def submit_approval_decision(approval_id: str, dec: ApprovalDecision, _actor: st
 
 
 @router.post("/quorum/{quorum_id}/approval", response_model=Dict[str, Any])
-def submit_quorum_approval(quorum_id: str, sub: QuorumApprovalSubmission, _actor: str = Depends(require_governance_actor)):
+def submit_quorum_approval(quorum_id: str, sub: QuorumApprovalSubmission, _actor: str = Depends(require_governance_actor)) -> Dict[str, Any]:
     """Submits a role approval in a two-human quorum (ADR-045)."""
     target_coordinator: Optional[GovernedRunCoordinator] = None
     for coord in ACTIVE_RUNS.values():
@@ -202,7 +202,7 @@ def submit_quorum_approval(quorum_id: str, sub: QuorumApprovalSubmission, _actor
 
 
 @router.post("/runs/{run_id}/pull-request", response_model=PullRequestResult)
-def create_pull_request(run_id: str, req: PullRequestRequest, _actor: str = Depends(require_governance_actor)):
+def create_pull_request(run_id: str, req: PullRequestRequest, _actor: str = Depends(require_governance_actor)) -> PullRequestResult:
     """Generates a governed pull request after approved human review."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -215,11 +215,12 @@ def create_pull_request(run_id: str, req: PullRequestRequest, _actor: str = Depe
     )
     if not ok:
         raise HTTPException(status_code=400, detail=msg)
+    assert res is not None
     return res
 
 
 @router.post("/deployments", response_model=DeploymentResult)
-def trigger_deployment(req: DeploymentRequest, _actor: str = Depends(require_governance_actor)):
+def trigger_deployment(req: DeploymentRequest, _actor: str = Depends(require_governance_actor)) -> DeploymentResult:
     """Triggers staging deployment through customer CI webhook."""
     coordinator = ACTIVE_RUNS.get(req.run_id)
     if not coordinator:
@@ -228,11 +229,12 @@ def trigger_deployment(req: DeploymentRequest, _actor: str = Depends(require_gov
     ok, res, msg = coordinator.deploy_to_staging(approval_id=req.approval_id)
     if not ok:
         raise HTTPException(status_code=400, detail=msg)
+    assert res is not None
     return res
 
 
 @router.get("/audit/verify", response_model=AuditVerifyResponse)
-def audit_verify(run_id: str = Query(...)):
+def audit_verify(run_id: str = Query(...)) -> AuditVerifyResponse:
     """Verifies the cryptographic integrity of the hash-chained audit log."""
     coordinator = ACTIVE_RUNS.get(run_id)
     if not coordinator:
@@ -252,7 +254,7 @@ async def github_webhook(
     request: Request,
     x_hub_signature_256: Optional[str] = Header(None),
     x_github_event: Optional[str] = Header("ping"),
-):
+) -> Dict[str, Any]:
     """Receives and verifies GitHub App webhooks, reconciling CI and PR events into the audit chain."""
     body_bytes = await request.body()
     if not SHARED_WEBHOOK_HANDLER.verify_signature(body_bytes, x_hub_signature_256):
@@ -273,7 +275,7 @@ async def github_webhook(
 
 
 @router.get("/system/hardware-status")
-def get_hardware_status():
+def get_hardware_status() -> Dict[str, Any]:
     """Returns the qualification matrix and health status for Tier 2 Enterprise Hardware (ADR-051..ADR-080).
     Explicitly reports whether hardware is qualified physical hardware or an unqualified emulator.
     """
@@ -327,7 +329,7 @@ class RunnerAckRequest(BaseModel):
 
 
 @router.post("/runner/jobs/enqueue")
-def enqueue_runner_job(job_spec: Dict[str, Any], _actor: str = Depends(require_governance_actor)):
+def enqueue_runner_job(job_spec: Dict[str, Any], _actor: str = Depends(require_governance_actor)) -> Dict[str, Any]:
     """Enqueues a job for asynchronous pickup by an outbound customer runner daemon."""
     job_id = str(uuid.uuid4())
     job_spec["job_id"] = job_id
@@ -336,7 +338,7 @@ def enqueue_runner_job(job_spec: Dict[str, Any], _actor: str = Depends(require_g
 
 
 @router.post("/runner/jobs/poll")
-def poll_runner_jobs(req: RunnerPollRequest):
+def poll_runner_jobs(req: RunnerPollRequest) -> Dict[str, Any]:
     """Outbound runner long-poll endpoint. A shape-only token is not authentication."""
     if not verify_enrolled_runner_token(req.runner_id, req.org_id, req.auth_token):
         raise HTTPException(status_code=401, detail="Invalid runner authentication token")
@@ -350,7 +352,7 @@ def poll_runner_jobs(req: RunnerPollRequest):
 
 
 @router.post("/runner/jobs/ack")
-def acknowledge_runner_job(req: RunnerAckRequest):
+def acknowledge_runner_job(req: RunnerAckRequest) -> Dict[str, Any]:
     """Receives completion receipt and patch hash from customer runner."""
     return {
         "status": "RECORDED",

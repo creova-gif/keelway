@@ -42,7 +42,7 @@ class GitHubAppWebhookHandler:
         if is_source_default(self.webhook_secret):
             return False, None, {"reason": "source-default webhook secret is refused"}
         if event_type == "pull_request":
-            action = payload.get("action")
+            action = payload.get("action", "")
             pr_data = payload.get("pull_request", {})
             pr_number = pr_data.get("number")
             head_sha = pr_data.get("head", {}).get("sha")

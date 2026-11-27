@@ -83,7 +83,7 @@ extend-immutable-calls = [
 # First-gate posture: type errors within core/ are checked with followed
 # imports; third-party without stubs resolves to Any; Optional-handling
 # strictness is a follow-on ratchet (adds ~100 errors of noise today).
-packages = ["core"]
+packages = ["core", "keelway", "evals"]
 mypy_path = "."
 ignore_missing_imports = true
 strict_optional = true
