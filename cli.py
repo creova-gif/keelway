@@ -678,11 +678,12 @@ async def cmd_pull(model: str = "qwen2.5-coder:7b"):
     import urllib.request
     import json
     
-    ollama_url = "http://localhost:11434/api/pull"
+    ollama_host = getattr(settings, "ollama_base_url", "http://localhost:11434")
+    ollama_url = f"{ollama_host.rstrip('/')}/api/pull"
     print("\n" + "=" * 65)
     print("  📦 KEELWAY ZERO-CONFIG MODEL STREAMING DOWNLOADER")
     print(f"  Target Model: {model}")
-    print("  Ollama Host:  http://localhost:11434")
+    print(f"  Ollama Host:  {ollama_host}")
     print("=" * 65 + "\n")
 
     try:

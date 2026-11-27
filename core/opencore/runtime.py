@@ -19,6 +19,7 @@ import httpx
 from pydantic import BaseModel, Field
 
 from core.api.schemas import Provider
+from core.config import settings
 from core.models.provider import ChatCompletionRequest, ChatCompletionResponse, ProviderError, StreamChunk
 from core.models.registry import ModelCategory
 from core.opencore.adaptation import AdaptationTask, TargetLanguage
@@ -67,10 +68,17 @@ async def _post_local_json(
 ) -> Tuple[Dict[str, Any], float]:
     t0 = time.perf_counter()
     try:
-        async with httpx.AsyncClient(base_url=base_url, transport=transport, timeout=timeout_s) as client:
+        timeout = httpx.Timeout(timeout_s, connect=min(timeout_s, 5.0))
+        async with httpx.AsyncClient(base_url=base_url, transport=transport, timeout=timeout) as client:
             resp = await client.post(path, json=payload)
             resp.raise_for_status()
             data = resp.json()
+    except httpx.TimeoutException as exc:
+        raise ProviderError(
+            f"{label} runtime timed out after {timeout_s}s at {base_url} for '{model}'",
+            provider=Provider.LOCAL,
+            status_code=503,
+        ) from exc
     except httpx.HTTPStatusError as exc:
         raise ProviderError(
             f"{label} runtime HTTP {exc.response.status_code} for '{model}'",
@@ -339,10 +347,10 @@ class LocalRuntimeDiscovery:
             )
 
     async def discover_ollama(
-        self, base_url: str = "http://127.0.0.1:11434", fallback_base_model: bool = True, transport: Optional[Any] = None
+        self, base_url: Optional[str] = None, fallback_base_model: bool = True, transport: Optional[Any] = None
     ) -> RuntimeProbeResult:
         return await self._probe(
-            "ollama", base_url, "/api/tags",
+            "ollama", base_url or settings.ollama_base_url, "/api/tags",
             lambda p: [str(i.get("name") or i.get("model")) for i in p.get("models", []) if isinstance(i, dict) and (i.get("name") or i.get("model"))],
             fallback_base_model, transport,
         )
@@ -360,8 +368,8 @@ class LocalRuntimeDiscovery:
 class OllamaRuntimeBridge:
     """Live neural inference bridge to local Ollama (`/api/chat`) at $0.00 sovereign cost."""
 
-    def __init__(self, base_url: str = "http://127.0.0.1:11434", transport: Optional[Any] = None, timeout_s: float = 60.0):
-        self.base_url = base_url
+    def __init__(self, base_url: Optional[str] = None, transport: Optional[Any] = None, timeout_s: float = 30.0):
+        self.base_url = base_url or settings.ollama_base_url
         self.transport = transport
         self.timeout_s = timeout_s
 
@@ -417,7 +425,8 @@ class OllamaRuntimeBridge:
         payload = self._build_chat_payload(request, target_model, stream=True, system_override=system_override)
         chunk_id, created_ts = f"chatcmpl-ollama-stream-{int(time.time() * 1000)}", int(time.time())
         try:
-            async with httpx.AsyncClient(base_url=self.base_url, transport=self.transport, timeout=self.timeout_s) as client:
+            timeout = httpx.Timeout(self.timeout_s, connect=min(self.timeout_s, 5.0))
+            async with httpx.AsyncClient(base_url=self.base_url, transport=self.transport, timeout=timeout) as client:
                 async with client.stream("POST", "/api/chat", json=payload) as resp:
                     resp.raise_for_status()
                     async for raw_line in resp.aiter_lines():
