@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 const CLS =
-  "transition-opacity transition-transform duration-[var(--dur-base)] ease-[var(--ease-settle)]";
+  "transition-[opacity,transform] [transition-duration:var(--dur-base)] [transition-timing-function:var(--ease-settle)]";
 
 /**
  * Fade-rise reveal, safe without JS and under reduced motion.
