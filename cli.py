@@ -4034,7 +4034,7 @@ def _main(argv=None):
     elif args.command == "git":
         sys.exit(cmd_git(args.git_command, msg=getattr(args, "message", ""), path=getattr(args, "path", None), base=getattr(args, "base", "main")))
     elif args.command in ("record", "audit"):
-        act = getattr(args, "record_command", None) or getattr(args, "audit_command", "export")
+        act = getattr(args, "record_command", None) or getattr(args, "audit_command", None) or "export"
         sys.exit(
             asyncio.run(
                 cmd_audit(
@@ -4130,12 +4130,12 @@ def _main(argv=None):
     elif args.command == "run":
         from keelway.audit.store import SQLiteAuditStore
         from keelway.core.runner import GovernedRunCoordinator
-        store = SQLiteAuditStore(db_path=".keelway/keelway_audit.db")
+        audit_store = SQLiteAuditStore(db_path=".keelway/keelway_audit.db")
         coord = GovernedRunCoordinator(
             actor_id=args.actor,
             repo_path=args.repo,
             classification=args.classification,
-            audit_store=store,
+            audit_store=audit_store,
         )
         ok, msg = coord.start_run(args.task)
         if not ok:
@@ -4257,33 +4257,33 @@ def _main(argv=None):
                     await db.commit()
                     print(f"[+] Memory stored: key='{rec.key}' scope='{rec.scope}' (id: {rec.id})")
                 elif args.mem_action == "get":
-                    rec = await service.get(key=args.key, scope=args.scope)
-                    if rec:
-                        print(f"\n[+] Memory: {rec.key} ({rec.scope})")
-                        print(f"    Content: {rec.content}")
-                        if rec.provenance_uri:
-                            print(f"    URI:     {rec.provenance_uri}")
+                    found = await service.get(key=args.key, scope=args.scope)
+                    if found:
+                        print(f"\n[+] Memory: {found.key} ({found.scope})")
+                        print(f"    Content: {found.content}")
+                        if found.provenance_uri:
+                            print(f"    URI:     {found.provenance_uri}")
                     else:
                         print(f"[-] Memory '{args.key}' not found in scope '{args.scope}'.")
                 elif args.mem_action == "search":
                     if args.hybrid:
-                        results = await service.search_hybrid(query_text=args.query, scope=args.scope, threshold=args.threshold)
-                        print(f"\n[+] Hybrid Search for '{args.query}' (Found {len(results)} matches):")
-                        for r, score in results:
+                        hits = await service.search_hybrid(query_text=args.query, scope=args.scope, threshold=args.threshold)
+                        print(f"\n[+] Hybrid Search for '{args.query}' (Found {len(hits)} matches):")
+                        for r, score in hits:
                             print(f"  • [{score:.2f}] [{r.scope}] {r.key}: {r.content[:100]}...")
                     else:
-                        results = await service.search(query_text=args.query, scope=args.scope)
-                        print(f"\n[+] Keyword Search for '{args.query}' ({len(results)} matches):")
-                        for r in results:
+                        recs = await service.search(query_text=args.query, scope=args.scope)
+                        print(f"\n[+] Keyword Search for '{args.query}' ({len(recs)} matches):")
+                        for r in recs:
                             print(f"  • [{r.scope}] {r.key}: {r.content[:100]}...")
                 elif args.mem_action == "ingest":
                     recs = await service.ingest_file(args.file_path, scope=args.scope, chunk_lines=args.lines)
                     await db.commit()
                     print(f"[+] Ingested {len(recs)} chunk(s) from '{args.file_path}' into scope '{args.scope}'.")
                 elif args.mem_action == "list":
-                    results = await service.list_by_scope(scope=args.scope)
-                    print(f"\n[+] Scope '{args.scope}' ({len(results)} records):")
-                    for r in results:
+                    recs = await service.list_by_scope(scope=args.scope)
+                    print(f"\n[+] Scope '{args.scope}' ({len(recs)} records):")
+                    for r in recs:
                         print(f"  • {r.key} (updated: {r.updated_at.strftime('%Y-%m-%d %H:%M:%S')}): {r.content[:80]}...")
         asyncio.run(run_memory())
     elif args.command == "dataset":
