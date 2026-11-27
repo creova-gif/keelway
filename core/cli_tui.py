@@ -86,9 +86,10 @@ def _detect_git_branch(workspace: Path) -> Optional[str]:
 
 
 def _detect_sandbox_label() -> str:
-    if sys.platform == "darwin":
+    this_platform = sys.platform
+    if this_platform == "darwin":
         return "Seatbelt (macOS)"
-    if sys.platform.startswith("linux"):
+    if this_platform.startswith("linux"):
         return "Bubblewrap (Linux)"
     return "Process Guard"
 

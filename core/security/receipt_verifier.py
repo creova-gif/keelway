@@ -10,7 +10,7 @@ import hmac
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -33,7 +33,7 @@ class ReceiptVerifier:
     @classmethod
     def verify(
         cls,
-        target: Union[str, Path, Dict[str, Any]],
+        target: Any,
         secret_key: Optional[bytes] = None,
     ) -> ReceiptVerificationReport:
         """

@@ -159,7 +159,7 @@ class RunnerSpoolManager:
             self._save()
         return marked
 
-    def process_sync_batch(self, runner_id: str, items: List[Union[Dict[str, Any], SpoolItem]]) -> SpoolBatchReceipt:
+    def process_sync_batch(self, runner_id: str, items: List[Any]) -> SpoolBatchReceipt:
         """
         Accepts a batch of incoming items from a runner, validates them,
         calculates composite batch SHA-256, marks local items synced, and returns a SpoolBatchReceipt.

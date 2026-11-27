@@ -483,5 +483,3 @@ class MultiAgentCoordinator:
                 "exit_code": exit_code,
                 "stdout_summary": stdout[:500],
             }
-
-        return {"status": "ok"}

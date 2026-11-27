@@ -123,7 +123,8 @@ class SeatbeltBackend:
     def available(cls) -> bool:
         if cls._available is not None:
             return cls._available
-        if sys.platform != "darwin" or shutil.which("sandbox-exec") is None:
+        this_platform = sys.platform
+        if this_platform != "darwin" or shutil.which("sandbox-exec") is None:
             cls._available = False
             return False
         try:
@@ -192,8 +193,9 @@ class BubblewrapBackend:
     def available(cls) -> bool:
         if cls._available is not None:
             return cls._available
-        bwrap_bin = shutil.which("bwrap") if sys.platform == "linux" else None
-        if sys.platform != "linux" or bwrap_bin is None:
+        this_platform = sys.platform
+        bwrap_bin = shutil.which("bwrap") if this_platform == "linux" else None
+        if this_platform != "linux" or bwrap_bin is None:
             cls._available = False
             return False
         try:
@@ -214,8 +216,9 @@ class BubblewrapBackend:
     @classmethod
     def diagnostic_reason(cls) -> str:
         """Return a root-cause diagnostic string explaining bubblewrap availability or failure."""
-        if sys.platform != "linux":
-            return f"unsupported platform for bubblewrap: {sys.platform} (linux required)"
+        this_platform = sys.platform
+        if this_platform != "linux":
+            return f"unsupported platform for bubblewrap: {this_platform} (linux required)"
         bwrap_bin = shutil.which("bwrap")
         if bwrap_bin is None:
             return "bwrap binary not found on PATH (install package 'bubblewrap')"

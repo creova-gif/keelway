@@ -210,7 +210,7 @@ def _decode_otlp_attributes(raw_attrs: Any) -> Dict[str, Any]:
     return {}
 
 
-def _extract_otlp_spans(resource_spans: Sequence[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Optional[str], Optional[str]]:
+def _extract_otlp_spans(resource_spans: Sequence[Any]) -> Tuple[List[Dict[str, Any]], Optional[str], Optional[str]]:
     flat: List[Dict[str, Any]] = []
     detected_service, detected_trace_id = None, None
     for rs in resource_spans:

@@ -312,14 +312,16 @@ class KStackRegistry:
         success = True
         try:
             if handler:
-                outputs = handler(inputs)
-                if inspect.isawaitable(outputs):
-                    if inspect.iscoroutine(outputs):
-                        outputs.close()
+                raw_out = handler(inputs)
+                if inspect.isawaitable(raw_out):
+                    if inspect.iscoroutine(raw_out):
+                        raw_out.close()
                     success = False
                     outputs = {
                         "error": "handler returned an awaitable; dispatch via execute_skill_async"
                     }
+                else:
+                    outputs = raw_out
             else:
                 outputs = {"status": "executed", "echo_inputs": inputs}
         except Exception as e:

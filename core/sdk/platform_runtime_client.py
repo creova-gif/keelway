@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import codecs
 import json as _json
-from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, Iterator, List, Optional
+from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, Iterator, List, Optional, Tuple
 from urllib.parse import quote
 
 import httpx
@@ -149,30 +149,32 @@ class _SseChunkDecoder:
             if nl_idx == -1:
                 if final and self._buf:
                     line, self._buf = self._buf.rstrip("\r"), ""
-                    parsed = self._parse_line(line)
+                    parsed, is_done = self._parse_line(line)
                     if parsed is not None:
                         events.append(parsed)
+                    if is_done:
+                        self.done = True
                 break
             line, self._buf = self._buf[:nl_idx].rstrip("\r"), self._buf[nl_idx + 1 :]
-            parsed = self._parse_line(line)
+            parsed, is_done = self._parse_line(line)
             if parsed is not None:
                 events.append(parsed)
-            if self.done:
+            if is_done:
+                self.done = True
                 break
         return events
 
-    def _parse_line(self, line: str) -> Optional[Dict[str, Any]]:
+    def _parse_line(self, line: str) -> Tuple[Optional[Dict[str, Any]], bool]:
         stripped = line.strip()
         if not stripped or stripped.startswith(":") or not stripped.startswith("data:"):
-            return None
+            return None, False
         data_str = stripped[5:].strip()
         if not data_str:
-            return None
+            return None, False
         if data_str == "[DONE]":
-            self.done = True
-            return None
+            return None, True
         decoded = _json.loads(data_str)
-        return decoded if isinstance(decoded, dict) else {"data": decoded}
+        return (decoded if isinstance(decoded, dict) else {"data": decoded}), False
 
 
 class AsyncPlatformRuntimeMixin(
