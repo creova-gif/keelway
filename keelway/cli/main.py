@@ -63,7 +63,7 @@ Sample repository used for evaluating and testing Keelway governance and audit c
     print(f"✅ Demo repository scaffolded and initialized at: {os.path.abspath(target_dir)}")
 
 
-def main():
+def main() -> None:
     invoked_as = os.path.basename(sys.argv[0]) or "keelway-ops"
     prog = invoked_as if invoked_as.startswith("keelway") else "keelway-ops"
     if prog == "keelway-core":

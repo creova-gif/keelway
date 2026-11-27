@@ -8,6 +8,8 @@ import os
 import re
 from urllib.parse import urlsplit
 
+from typing import Awaitable, Callable
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 
@@ -49,7 +51,7 @@ app.include_router(api_router)
 
 
 @app.middleware("http")
-async def governance_origin_boundary(request: Request, call_next):
+async def governance_origin_boundary(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """Deny hostile browser origins before a route can mutate anything.
 
     Missing Origin (CLI, TestClient, same-process scripts) is allowed through
@@ -81,7 +83,7 @@ async def governance_origin_boundary(request: Request, call_next):
 
 
 @app.get("/", response_class=HTMLResponse)
-def index_dashboard(request: Request):
+def index_dashboard(request: Request) -> str:
     """Lightweight developer and reviewer web dashboard."""
     token_js = "null"
     host = request.client.host if request.client else ""
