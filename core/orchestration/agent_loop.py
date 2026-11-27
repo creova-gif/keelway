@@ -329,7 +329,7 @@ class AutonomousAgentLoop:
             "steps": [s.to_dict() for s in self.plan],
         }
 
-    async def propose_diff(self, file_path: str, old_content: Any, new_content: str) -> Dict[str, Any]:
+    async def propose_diff(self, file_path: str, old_content: Any, new_content: Any) -> Dict[str, Any]:
         """Generates a unified diff for human inspection and records diff_proposed event."""
         if isinstance(old_content, dict):
             old_content = old_content.get("content", "")

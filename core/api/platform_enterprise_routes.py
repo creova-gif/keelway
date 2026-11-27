@@ -130,9 +130,6 @@ def _extract_scim_patch_fields(
     ignored: List[str] = []
     name_parts: Dict[str, str] = {}
     for op in payload.Operations or []:
-        if not isinstance(op, dict):
-            ignored.append("<malformed-op>")
-            continue
         verb = str(op.get("op") or "replace").strip().lower()
         path = str(op.get("path") or "").strip().lower()
         val = op.get("value")

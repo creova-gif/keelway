@@ -98,7 +98,7 @@ def _scan_tool_poisoning(*raw_texts: str) -> List[str]:
 
 
 def _normalize_and_hash_tools(raw_tools: Sequence[Any], *, allow_empty: bool = False) -> Tuple[List[Dict[str, str]], str, List[str], int]:
-    if not isinstance(raw_tools, (list, tuple)) or isinstance(raw_tools, (str, bytes)):
+    if not isinstance(raw_tools, (list, tuple)):
         raise SupplyChainValidationError("tools must be a list of tool specifications.")
     if len(raw_tools) == 0 and not allow_empty:
         raise SupplyChainValidationError("tools must be a non-empty list.")
@@ -375,7 +375,7 @@ class SQLiteSupplyChainLockEngine:
             raise SupplyChainValidationError("min_conformance_score must be between 0.0 and 1.0.")
 
         eff_scenarios = [dict(s) for s in DEFAULT_CONFORMANCE_SCENARIOS] if scenarios is None else scenarios
-        if not isinstance(eff_scenarios, (list, tuple)) or isinstance(eff_scenarios, (str, bytes)) or len(eff_scenarios) == 0:
+        if not isinstance(eff_scenarios, (list, tuple)) or len(eff_scenarios) == 0:
             raise SupplyChainValidationError("scenarios must be a non-empty list.")
 
         norm_scenarios: List[Dict[str, Any]] = []

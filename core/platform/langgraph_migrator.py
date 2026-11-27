@@ -294,8 +294,6 @@ def _parse_python_langgraph(
 
             if isinstance(map_arg, ast.Dict):
                 for k_ast, v_ast in zip(map_arg.keys, map_arg.values, strict=True):
-                    if v_ast is None:
-                        continue
                     target = _resolve_ast_endpoint(v_ast)
                     cond_key = _resolve_ast_endpoint(k_ast) if k_ast is not None else "branch"
                     if target:

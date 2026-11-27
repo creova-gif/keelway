@@ -329,7 +329,7 @@ class Ed25519ManifestSigner:
         signed["ed25519_signature"] = _b64_encode(sig_raw)
         return signed
 
-    def verify_manifest(self, manifest: Dict[str, Any]) -> Tuple[bool, str]:
+    def verify_manifest(self, manifest: Any) -> Tuple[bool, str]:
         if not isinstance(manifest, dict):
             return False, "UNSIGNED_MANIFEST"
         sig_text = str(manifest.get("ed25519_signature") or "").strip()
