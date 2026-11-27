@@ -22,17 +22,17 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
-    await user.click(within(platformNav).getByRole("button", { name: /^Documentation$/i }));
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Documentation$/i }));
 
-    const kbrainSection = screen.getByRole("region", {
+    const kbrainSection = (await screen.findByRole("region", {
       name: /KBrain scope-governed memory graph and hybrid BM25 search/i,
-    });
+    }));
 
-    const keyInput = within(kbrainSection).getByLabelText("KBrain fact key") as HTMLInputElement;
-    const scopeSelect = within(kbrainSection).getByLabelText("KBrain memory scope") as HTMLSelectElement;
-    const statementInput = within(kbrainSection).getByLabelText("KBrain fact statement") as HTMLTextAreaElement;
-    const recordBtn = within(kbrainSection).getByRole("button", { name: /Record Memory Fact/i });
+    const keyInput = await within(kbrainSection).findByLabelText("KBrain fact key") as HTMLInputElement;
+    const scopeSelect = await within(kbrainSection).findByLabelText("KBrain memory scope") as HTMLSelectElement;
+    const statementInput = await within(kbrainSection).findByLabelText("KBrain fact statement") as HTMLTextAreaElement;
+    const recordBtn = await within(kbrainSection).findByRole("button", { name: /Record Memory Fact/i });
 
     expect(keyInput.value).toBe("arch.storage_engine");
     expect(scopeSelect.value).toBe("project");
@@ -45,26 +45,26 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
     );
     await user.click(recordBtn);
 
-    const factsList = within(kbrainSection).getByRole("list", {
+    const factsList = await within(kbrainSection).findByRole("list", {
       name: /KBrain retrieved memory facts/i,
     });
     expect(
       await within(factsList).findByText(/All sovereign tables enforce SQLite WAL and SHA-256 provenance\./i),
     ).toBeInTheDocument();
-    expect(within(factsList).getByText("arch.storage_engine")).toBeInTheDocument();
+    expect(await within(factsList).findByText("arch.storage_engine")).toBeInTheDocument();
 
     // 2. Hybrid BM25 + 3-gram search filters and scores matching facts
-    const searchInput = within(kbrainSection).getByLabelText("KBrain hybrid search query") as HTMLInputElement;
-    const maxScopeSelect = within(kbrainSection).getByLabelText("Max retrieval scope") as HTMLSelectElement;
-    const searchBtn = within(kbrainSection).getByRole("button", { name: /Search KBrain Memory/i });
+    const searchInput = await within(kbrainSection).findByLabelText("KBrain hybrid search query") as HTMLInputElement;
+    const maxScopeSelect = await within(kbrainSection).findByLabelText("Max retrieval scope") as HTMLSelectElement;
+    const searchBtn = await within(kbrainSection).findByRole("button", { name: /Search KBrain Memory/i });
 
     expect(maxScopeSelect.value).toBe("org");
     await user.type(searchInput, "SQLite WAL");
     await user.click(searchBtn);
 
-    expect(within(factsList).getByText("arch.storage_engine")).toBeInTheDocument();
-    expect(within(factsList).getByText(/score:\s*[0-9]+\.[0-9]{2}/i)).toBeInTheDocument();
-    const shaEl = within(factsList).getByText(/^sha256:[0-9a-f]+/i);
+    expect(await within(factsList).findByText("arch.storage_engine")).toBeInTheDocument();
+    expect(await within(factsList).findByText(/score:\s*[0-9]+\.[0-9]{2}/i)).toBeInTheDocument();
+    const shaEl = await within(factsList).findByText(/^sha256:[0-9a-f]+/i);
     expect(shaEl).toHaveClass("max-w-[220px]", "truncate");
 
     // 3. DLP secret scanner blocks sk- / ghp_ credentials with role="alert"
@@ -80,37 +80,37 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
 
     const conflictAlert = await within(kbrainSection).findByRole("alert");
     expect(conflictAlert).toHaveTextContent(/Conflict detected on "arch\.storage_engine"/i);
-    expect(within(factsList).getByText("conflict")).toBeInTheDocument();
+    expect(await within(factsList).findByText("conflict")).toBeInTheDocument();
 
-    const resolveBtn = within(kbrainSection).getByRole("button", {
+    const resolveBtn = await within(kbrainSection).findByRole("button", {
       name: /Resolve Conflict \(P-10 Approve\)/i,
     });
     expect(resolveBtn).toBeEnabled();
 
     // 5. RBAC gating across viewer, builder, admin, and operator
-    const rbacSelect = screen.getByLabelText(/Active RBAC role/i);
+    const rbacSelect = await screen.findByLabelText(/Active RBAC role/i);
 
     await user.selectOptions(rbacSelect, "viewer");
-    expect(within(kbrainSection).getByRole("button", { name: /Record Memory Fact/i })).toBeDisabled();
+    expect(await within(kbrainSection).findByRole("button", { name: /Record Memory Fact/i })).toBeDisabled();
     expect(
-      within(kbrainSection).getByRole("button", { name: /Resolve Conflict \(P-10 Approve\)/i }),
+      await within(kbrainSection).findByRole("button", { name: /Resolve Conflict \(P-10 Approve\)/i }),
     ).toBeDisabled();
 
     await user.selectOptions(rbacSelect, "builder");
-    expect(within(kbrainSection).getByRole("button", { name: /Record Memory Fact/i })).toBeEnabled();
+    expect(await within(kbrainSection).findByRole("button", { name: /Record Memory Fact/i })).toBeEnabled();
     expect(
-      within(kbrainSection).getByRole("button", { name: /Resolve Conflict \(P-10 Approve\)/i }),
+      await within(kbrainSection).findByRole("button", { name: /Resolve Conflict \(P-10 Approve\)/i }),
     ).toBeDisabled();
 
     await user.selectOptions(rbacSelect, "admin");
-    expect(within(kbrainSection).getByRole("button", { name: /Record Memory Fact/i })).toBeEnabled();
+    expect(await within(kbrainSection).findByRole("button", { name: /Record Memory Fact/i })).toBeEnabled();
     expect(
-      within(kbrainSection).getByRole("button", { name: /Resolve Conflict \(P-10 Approve\)/i }),
+      await within(kbrainSection).findByRole("button", { name: /Resolve Conflict \(P-10 Approve\)/i }),
     ).toBeDisabled();
 
     // Operator can sign P-10 conflict resolution
     await user.selectOptions(rbacSelect, "operator");
-    const operatorResolveBtn = within(kbrainSection).getByRole("button", {
+    const operatorResolveBtn = await within(kbrainSection).findByRole("button", {
       name: /Resolve Conflict \(P-10 Approve\)/i,
     });
     expect(operatorResolveBtn).toBeEnabled();
@@ -128,22 +128,22 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
-    await user.click(within(platformNav).getByRole("button", { name: /^Marketplace$/i }));
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Marketplace$/i }));
 
-    const khubSection = screen.getByRole("region", {
+    const khubSection = (await screen.findByRole("region", {
       name: /KHub air-gapped skill registry and mirror verifier/i,
-    });
+    }));
 
     expect(await within(khubSection).findByText(/kstack_builtin · 8 Verified/i)).toBeInTheDocument();
-    expect(within(khubSection).getByText("air_gap_compliant")).toBeInTheDocument();
-    expect(within(khubSection).getByText("kstack.investigate")).toBeInTheDocument();
-    expect(within(khubSection).getByText("kstack.security")).toBeInTheDocument();
+    expect(await within(khubSection).findByText("air_gap_compliant")).toBeInTheDocument();
+    expect(await within(khubSection).findByText("kstack.investigate")).toBeInTheDocument();
+    expect(await within(khubSection).findByText("kstack.security")).toBeInTheDocument();
 
-    const catalogDigestEl = within(khubSection).getAllByText(/^sha256:[0-9a-f]+/i)[0]!;
+    const catalogDigestEl = (await within(khubSection).findAllByText(/^sha256:[0-9a-f]+/i))[0]!;
     expect(catalogDigestEl).toHaveClass("max-w-[240px]", "truncate");
 
-    const verifyBtn = within(khubSection).getByRole("button", {
+    const verifyBtn = await within(khubSection).findByRole("button", {
       name: /Verify Air-Gapped Skill Mirror/i,
     });
     expect(verifyBtn).toBeEnabled();
@@ -154,10 +154,10 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
     expect(verifyStatus).toHaveTextContent(/skills_verified:\s*8/i);
 
     // Viewer role cannot execute KHub mirror verification
-    const rbacSelect = screen.getByLabelText(/Active RBAC role/i);
+    const rbacSelect = await screen.findByLabelText(/Active RBAC role/i);
     await user.selectOptions(rbacSelect, "viewer");
     expect(
-      within(khubSection).getByRole("button", { name: /Verify Air-Gapped Skill Mirror/i }),
+      await within(khubSection).findByRole("button", { name: /Verify Air-Gapped Skill Mirror/i }),
     ).toBeDisabled();
 
     const axeResults = await axe(container);
@@ -279,13 +279,13 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
 
     render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
 
     // Documentation -> KBrain resolve + HTTP 400 DLP error propagation
-    await user.click(within(platformNav).getByRole("button", { name: /^Documentation$/i }));
-    const kbrainSection = screen.getByRole("region", {
+    await user.click(await within(platformNav).findByRole("button", { name: /^Documentation$/i }));
+    const kbrainSection = (await screen.findByRole("region", {
       name: /KBrain scope-governed memory graph and hybrid BM25 search/i,
-    });
+    }));
     const resolveBtn = await within(kbrainSection).findByRole("button", {
       name: /Resolve Conflict \(P-10 Approve\)/i,
     });
@@ -293,19 +293,19 @@ describe("Phase 10C — KBrain Scope-Governed Memory Graph & KHub Air-Gapped Mir
     expect(await within(kbrainSection).findByRole("status")).toHaveTextContent(/P-10 Conflict Resolved/i);
 
     rejectDlp = true;
-    await user.type(within(kbrainSection).getByLabelText("KBrain fact statement"), "test secret payload");
-    await user.click(within(kbrainSection).getByRole("button", { name: /Record Memory Fact/i }));
+    await user.type(await within(kbrainSection).findByLabelText("KBrain fact statement"), "test secret payload");
+    await user.click(await within(kbrainSection).findByRole("button", { name: /Record Memory Fact/i }));
     expect(await within(kbrainSection).findByRole("alert")).toHaveTextContent(
       /DLP Policy Violation: Secret token detected/i,
     );
 
     // Marketplace -> KHub catalog + mirror verify
-    await user.click(within(platformNav).getByRole("button", { name: /^Marketplace$/i }));
-    const khubSection = screen.getByRole("region", {
+    await user.click(await within(platformNav).findByRole("button", { name: /^Marketplace$/i }));
+    const khubSection = (await screen.findByRole("region", {
       name: /KHub air-gapped skill registry and mirror verifier/i,
-    });
+    }));
     expect(await within(khubSection).findByText(/kstack_builtin · 2 Verified/i)).toBeInTheDocument();
-    await user.click(within(khubSection).getByRole("button", { name: /Verify Air-Gapped Skill Mirror/i }));
+    await user.click(await within(khubSection).findByRole("button", { name: /Verify Air-Gapped Skill Mirror/i }));
     expect(await within(khubSection).findByRole("status")).toHaveTextContent(/skills_verified:\s*2/i);
 
     expect(

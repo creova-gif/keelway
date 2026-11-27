@@ -22,52 +22,52 @@ describe("Phase 11C — Flight-Tape Time-Travel Debugger, OTel GenAI Wedge & Lan
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
-    await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Agents$/i }));
 
-    const debuggerSec = screen.getByRole("region", {
+    const debuggerSec = (await screen.findByRole("region", {
       name: /Flight-tape time-travel debugger and OTel trace evaluator/i,
-    });
-    expect(within(debuggerSec).getByText("$0 Local SQLite WAL Traces")).toBeInTheDocument();
+    }));
+    expect(await within(debuggerSec).findByText("$0 Local SQLite WAL Traces")).toBeInTheDocument();
 
-    const stepSelect = within(debuggerSec).getByLabelText("Counterfactual fork step index") as HTMLSelectElement;
-    const modelInput = within(debuggerSec).getByLabelText("Counterfactual override model") as HTMLInputElement;
-    const promptInput = within(debuggerSec).getByLabelText("Counterfactual prompt override") as HTMLInputElement;
+    const stepSelect = await within(debuggerSec).findByLabelText("Counterfactual fork step index") as HTMLSelectElement;
+    const modelInput = await within(debuggerSec).findByLabelText("Counterfactual override model") as HTMLInputElement;
+    const promptInput = await within(debuggerSec).findByLabelText("Counterfactual prompt override") as HTMLInputElement;
 
     expect(stepSelect.value).toBe("1");
     expect(modelInput.value).toBe("keelway-core:7b");
     expect(promptInput.value).toBe("Synthesize concise root-cause resolution strictly from cached tool evidence.");
 
-    await user.click(within(debuggerSec).getByRole("button", { name: /^Ingest OTel GenAI Trace$/i }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: /^Ingest OTel GenAI Trace$/i }));
 
-    const stepList = within(debuggerSec).getByRole("list", { name: /Flight-tape execution steps/i });
-    expect(within(stepList).getByText("triage_router")).toBeInTheDocument();
-    expect(within(stepList).getByText("mcp_billing_lookup")).toBeInTheDocument();
-    expect(within(stepList).getByText("synthesis_critic")).toBeInTheDocument();
-    expect(within(stepList).getByText(/\[REDACTED_SECRET\]/i)).toBeInTheDocument();
+    const stepList = await within(debuggerSec).findByRole("list", { name: /Flight-tape execution steps/i });
+    expect(await within(stepList).findByText("triage_router")).toBeInTheDocument();
+    expect(await within(stepList).findByText("mcp_billing_lookup")).toBeInTheDocument();
+    expect(await within(stepList).findByText("synthesis_critic")).toBeInTheDocument();
+    expect(await within(stepList).findByText(/\[REDACTED_SECRET\]/i)).toBeInTheDocument();
 
-    const shaDigests = within(debuggerSec).getAllByText(/^sha256:[0-9a-f]+/i);
+    const shaDigests = await within(debuggerSec).findAllByText(/^sha256:[0-9a-f]+/i);
     expect(shaDigests[0]).toHaveClass("max-w-[240px]", "truncate");
 
-    await user.click(within(debuggerSec).getByRole("button", { name: /^Replay Counterfactual Fork$/i }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: /^Replay Counterfactual Fork$/i }));
 
     const statusBanner = await within(debuggerSec).findByRole("status");
     expect(statusBanner).toHaveTextContent(/fork-/i);
     expect(statusBanner).toHaveTextContent(/cached_steps_reused:\s*1/i);
     expect(statusBanner).toHaveTextContent(/cost_delta_usd:\s*-0\.0179/i);
-    expect(within(stepList).getByText("Cached Upstream · $0")).toBeInTheDocument();
+    expect(await within(stepList).findByText("Cached Upstream · $0")).toBeInTheDocument();
 
-    await user.click(within(debuggerSec).getByRole("button", { name: /^Promote Trace to Golden Eval$/i }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: /^Promote Trace to Golden Eval$/i }));
     expect(await within(debuggerSec).findByRole("status")).toHaveTextContent(/evalcase-/i);
 
-    const evalList = within(debuggerSec).getByRole("list", { name: /Promoted golden eval dataset cases/i });
-    expect(within(evalList).getByText(/evalcase-/i)).toBeInTheDocument();
+    const evalList = await within(debuggerSec).findByRole("list", { name: /Promoted golden eval dataset cases/i });
+    expect(await within(evalList).findByText(/evalcase-/i)).toBeInTheDocument();
 
-    const rbacSelect = screen.getByLabelText(/Active RBAC role/i);
+    const rbacSelect = await screen.findByLabelText(/Active RBAC role/i);
     await user.selectOptions(rbacSelect, "viewer");
-    expect(within(debuggerSec).getByRole("button", { name: /^Ingest OTel GenAI Trace$/i })).toBeDisabled();
-    expect(within(debuggerSec).getByRole("button", { name: /^Replay Counterfactual Fork$/i })).toBeDisabled();
-    expect(within(debuggerSec).getByRole("button", { name: /^Promote Trace to Golden Eval$/i })).toBeDisabled();
+    expect(await within(debuggerSec).findByRole("button", { name: /^Ingest OTel GenAI Trace$/i })).toBeDisabled();
+    expect(await within(debuggerSec).findByRole("button", { name: /^Replay Counterfactual Fork$/i })).toBeDisabled();
+    expect(await within(debuggerSec).findByRole("button", { name: /^Promote Trace to Golden Eval$/i })).toBeDisabled();
 
     expect((await axe(container)).violations).toHaveLength(0);
     document.documentElement.setAttribute("data-theme", "light");
@@ -79,33 +79,33 @@ describe("Phase 11C — Flight-Tape Time-Travel Debugger, OTel GenAI Wedge & Lan
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
-    await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
+    await user.click(await within(platformNav).findByRole("button", { name: /^Automation$/i }));
 
-    const migratorSec = screen.getByRole("region", {
+    const migratorSec = (await screen.findByRole("region", {
       name: /LangGraph to KFlow static AST migrator/i,
-    });
-    const codeArea = within(migratorSec).getByLabelText("LangGraph source code") as HTMLTextAreaElement;
+    }));
+    const codeArea = await within(migratorSec).findByLabelText("LangGraph source code") as HTMLTextAreaElement;
     expect(codeArea.value).toContain('.add_node("draft", draft_fn)');
     expect(codeArea.value).toContain('.add_node("human_review", review_fn)');
     expect(codeArea.value).toContain('interrupt({"reason": "deploy"})');
     expect(codeArea.value).toContain("from langchain.chains import LLMChain");
 
-    await user.click(within(migratorSec).getByRole("button", { name: /^Convert LangGraph to KFlow$/i }));
+    await user.click(await within(migratorSec).findByRole("button", { name: /^Convert LangGraph to KFlow$/i }));
 
     const diagStatus = await within(migratorSec).findByRole("status");
-    expect(within(diagStatus).getByText(/p10_human_gate · human_review/i)).toBeInTheDocument();
-    expect(within(diagStatus).getByText(/Bounded Cycle · max_iterations:\s*5/i)).toBeInTheDocument();
+    expect(await within(diagStatus).findByText(/p10_human_gate · human_review/i)).toBeInTheDocument();
+    expect(await within(diagStatus).findByText(/Bounded Cycle · max_iterations:\s*5/i)).toBeInTheDocument();
 
-    const warningsList = within(migratorSec).getByRole("list", { name: /Legacy LangChain deprecation advisories/i });
-    expect(within(warningsList).getByText(/LLMChain/i)).toBeInTheDocument();
+    const warningsList = await within(migratorSec).findByRole("list", { name: /Legacy LangChain deprecation advisories/i });
+    expect(await within(warningsList).findByText(/LLMChain/i)).toBeInTheDocument();
 
-    expect(within(migratorSec).getByText(/KFlowBlueprint/i)).toBeInTheDocument();
-    const shaEl = within(migratorSec).getByText(/^sha256:[0-9a-f]+/i);
+    expect(await within(migratorSec).findByText(/KFlowBlueprint/i)).toBeInTheDocument();
+    const shaEl = await within(migratorSec).findByText(/^sha256:[0-9a-f]+/i);
     expect(shaEl).toHaveClass("max-w-[240px]", "truncate");
 
-    await user.selectOptions(screen.getByLabelText(/Active RBAC role/i), "viewer");
-    expect(within(migratorSec).getByRole("button", { name: /^Convert LangGraph to KFlow$/i })).toBeDisabled();
+    await user.selectOptions(await screen.findByLabelText(/Active RBAC role/i), "viewer");
+    expect(await within(migratorSec).findByRole("button", { name: /^Convert LangGraph to KFlow$/i })).toBeDisabled();
     expect(codeArea).toBeDisabled();
 
     expect((await axe(container)).violations).toHaveLength(0);
@@ -206,28 +206,28 @@ describe("Phase 11C — Flight-Tape Time-Travel Debugger, OTel GenAI Wedge & Lan
 
     render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+    const platformNav = await screen.findByRole("navigation", { name: "Unified platform views" });
 
-    await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    const debuggerSec = screen.getByRole("region", {
+    await user.click(await within(platformNav).findByRole("button", { name: /^Agents$/i }));
+    const debuggerSec = (await screen.findByRole("region", {
       name: /Flight-tape time-travel debugger and OTel trace evaluator/i,
-    });
+    }));
 
     const sampleBtn = await within(debuggerSec).findByRole("button", { name: /^Ingest Sample OTel Trace$/i });
     await user.click(sampleBtn);
-    await user.click(within(debuggerSec).getByRole("button", { name: /^Replay Counterfactual Fork$/i }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: /^Replay Counterfactual Fork$/i }));
     expect(await within(debuggerSec).findByRole("status")).toHaveTextContent(/fork-live-88/i);
 
-    await user.click(within(debuggerSec).getByRole("button", { name: /^Promote Trace to Golden Eval$/i }));
+    await user.click(await within(debuggerSec).findByRole("button", { name: /^Promote Trace to Golden Eval$/i }));
     expect(await within(debuggerSec).findByRole("status")).toHaveTextContent(/evalcase-live-99/i);
 
-    await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    const migratorSec = screen.getByRole("region", { name: /LangGraph to KFlow static AST migrator/i });
-    await user.click(within(migratorSec).getByRole("button", { name: /^Convert LangGraph to KFlow$/i }));
+    await user.click(await within(platformNav).findByRole("button", { name: /^Automation$/i }));
+    const migratorSec = (await screen.findByRole("region", { name: /LangGraph to KFlow static AST migrator/i }));
+    await user.click(await within(migratorSec).findByRole("button", { name: /^Convert LangGraph to KFlow$/i }));
     expect(await within(migratorSec).findByRole("alert")).toHaveTextContent(/AST SyntaxError/i);
 
     rejectMigrate = false;
-    await user.click(within(migratorSec).getByRole("button", { name: /^Convert LangGraph to KFlow$/i }));
+    await user.click(await within(migratorSec).findByRole("button", { name: /^Convert LangGraph to KFlow$/i }));
     expect(await within(migratorSec).findByRole("status")).toHaveTextContent(/max_iterations:\s*4/i);
 
     for (const ep of [

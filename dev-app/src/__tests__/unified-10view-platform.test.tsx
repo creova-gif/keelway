@@ -43,50 +43,50 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 2. Visit Agents
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    expect(screen.getByRole("heading", { name: /Specialized Lifecycle Agents & Coordinated Teams/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Specialized Lifecycle Agents & Coordinated Teams/i })).toBeInTheDocument();
     expect(screen.getByText(/Idea-to-Production Squad/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "issue-triager" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "nocode-app-builder" })).toBeInTheDocument();
 
     // 3. Visit Project Manager
     await user.click(within(platformNav).getByRole("button", { name: /^Project Manager$/i }));
-    expect(screen.getByRole("heading", { name: /Project Manager · Linear-Style Issues & Sprints/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Project Manager · Linear-Style Issues & Sprints/i })).toBeInTheDocument();
     expect(screen.getByText("KEEL-101")).toBeInTheDocument();
 
     // 4. Visit Product
     await user.click(within(platformNav).getByRole("button", { name: /^Product$/i }));
-    expect(screen.getByRole("heading", { name: /Product Discovery, PRDs & Release Plans/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Product Discovery, PRDs & Release Plans/i })).toBeInTheDocument();
     expect(screen.getAllByText(/PRD-01/i).length).toBeGreaterThan(0);
 
     // 5. Visit Automation
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    expect(screen.getByRole("heading", { name: /Automation · KFlow DAG & Scheduled Workflows/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Automation · KFlow DAG & Scheduled Workflows/i })).toBeInTheDocument();
 
     // 6. Visit Marketplace
     await user.click(within(platformNav).getByRole("button", { name: /^Marketplace$/i }));
-    expect(screen.getByRole("heading", { name: /Keelway Marketplace & Security Validator/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Keelway Marketplace & Security Validator/i })).toBeInTheDocument();
 
     // 7. Visit Security (wraps RecordAuditLedger with RBAC/tenant/plugin posture)
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
-    expect(screen.getByRole("heading", { name: /Security Governance & Sovereign Posture/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Security Governance & Sovereign Posture/i })).toBeInTheDocument();
     expect(await screen.findByRole("table", { name: /Record SHA-256 audit ledger/i })).toBeInTheDocument();
 
     // 8. Visit Documentation
     await user.click(within(platformNav).getByRole("button", { name: /^Documentation$/i }));
-    expect(screen.getByRole("heading", { name: /Documentation Knowledge Base & 9-Stage SDLC/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Documentation Knowledge Base & 9-Stage SDLC/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Antigravity · Claude Code · Devin · gstack/i).length).toBeGreaterThan(0);
 
     // 9. Visit Operations
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
-    expect(screen.getByRole("heading", { name: /Operations · Deployments, Cost Governance & SLOs/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Operations · Deployments, Cost Governance & SLOs/i })).toBeInTheDocument();
 
     // 10. Visit No-Code Builder
     await user.click(within(platformNav).getByRole("button", { name: /^No-Code Builder$/i }));
-    expect(screen.getByRole("heading", { name: /No-Code Builder · Natural-Language Idea to Governed App/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /No-Code Builder · Natural-Language Idea to Governed App/i })).toBeInTheDocument();
 
     // Return to IDE -> verify composer draft, project context, and pending P-10 approval are 100% intact
     await user.click(within(platformNav).getByRole("button", { name: /^IDE$/i }));
-    const restoredComposer = screen.getByRole("textbox", { name: /Ask agent|Instruction|Composer/i });
+    const restoredComposer = (await screen.findByRole("textbox", { name: /Ask agent|Instruction|Composer/i }));
     expect(restoredComposer).toHaveValue("Preserve this draft across all 10 platform views");
     expect(screen.getByRole("heading", { name: /Run pytest Studio CSP suite/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Jump to pending approval \(1\)/i })).toBeInTheDocument();
@@ -130,19 +130,19 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     // Switch to Product -> newly generated PRD is live in the Product workspace
     await user.click(within(platformNav).getByRole("button", { name: /^Product$/i }));
     expect(
-      screen.getByRole("heading", { name: /Vendor Invoice Approval Portal with Finance Audit Trail/i }),
+      await screen.findByRole("heading", { name: /Vendor Invoice Approval Portal with Finance Audit Trail/i }),
     ).toBeInTheDocument();
 
     // Switch to Project Manager -> newly generated Sprint Issues (KEEL-201+) are live & delegatable
     await user.click(within(platformNav).getByRole("button", { name: /^Project Manager$/i }));
-    expect(screen.getByText("KEEL-201")).toBeInTheDocument();
+    expect(await screen.findByText("KEEL-201")).toBeInTheDocument();
     const delegateBtns = screen.getAllByRole("button", { name: /Delegate to Agent/i });
     await user.click(delegateBtns[0]!);
     expect(screen.getAllByText(/Delegated · In Progress|In Progress/i).length).toBeGreaterThan(0);
 
     // Switch to Automation -> generated KFlow workflow is live & failed DAG nodes can be retried
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    expect(screen.getByText(/Blueprint Delivery DAG · Vendor Invoice Approval Portal/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Blueprint Delivery DAG · Vendor Invoice Approval Portal/i)).toBeInTheDocument();
     const retryBtn = screen.getByRole("button", { name: /Retry failed step/i });
     await user.click(retryBtn);
     expect(screen.queryByRole("button", { name: /Retry failed step/i })).toBeNull();
@@ -157,7 +157,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     await user.click(within(platformNav).getByRole("button", { name: /^Marketplace$/i }));
 
     // Verify all 7 category filters and 85/15 creator split badges
-    const categoryBar = screen.getByRole("group", { name: /Marketplace categories/i });
+    const categoryBar = (await screen.findByRole("group", { name: /Marketplace categories/i }));
     for (const label of [
       "AI Agents",
       "Multi-Agent Teams",
@@ -222,7 +222,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 1. Agents: create custom agent + dispatch team + axe check
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    await user.type(screen.getByLabelText(/Custom agent name/i), "migration-guardian");
+    await user.type(await screen.findByLabelText(/Custom agent name/i), "migration-guardian");
     await user.type(screen.getByLabelText(/Custom agent role/i), "Zero-Downtime Schema Reviewer");
     await user.click(screen.getByRole("button", { name: /Create custom agent/i }));
     expect(screen.getByRole("heading", { name: "migration-guardian" })).toBeInTheDocument();
@@ -233,7 +233,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     // 2. Operations: BYOM consumer subscription compliance rejection + P-10 rollback + axe check
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
     expect(
-      screen.getByText(/consumer ChatGPT Plus\/Pro or Claude Pro\/Max web subscriptions never grant third-party API access/i),
+      await screen.findByText(/consumer ChatGPT Plus\/Pro or Claude Pro\/Max web subscriptions never grant third-party API access/i),
     ).toBeInTheDocument();
 
     const credTypeSelect = screen.getByLabelText(/BYOM credential type/i);
@@ -335,7 +335,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     expect(recordedCalls.some((c) => c.url.includes("/v1/platform/marketplace/packages"))).toBe(true);
 
     // 1. Malicious custom plugin fails scan -> Publish Verified Package to Workspace stays blocked & no publish POST fired
-    const pkgNameInput = screen.getByLabelText(/Package name/i);
+    const pkgNameInput = (await screen.findByLabelText(/Package name/i));
     const pkgCategorySelect = screen.getByLabelText(/Package category/i);
     const instructionsInput = screen.getByLabelText(/Manifest instructions & execution hooks/i);
     const writeScopeInput = screen.getByLabelText(/Declared write paths/i);
@@ -384,7 +384,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // Security posture banner surfaces Enterprise Data Retention (standard_30d / regulated_365d / worm_7y) & Ed25519 + SHA-256
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
-    const postureBanner = screen.getByRole("region", { name: /Security governance posture summary/i });
+    const postureBanner = (await screen.findByRole("region", { name: /Security governance posture summary/i }));
     expect(within(postureBanner).getByText(/Ed25519 \+ SHA-256 Verified/i)).toBeInTheDocument();
     const retentionSelect = within(postureBanner).getByLabelText(/Enterprise data retention policy/i) as HTMLSelectElement;
     expect(retentionSelect.value).toBe("regulated_365d");
@@ -413,24 +413,24 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 1. Create issue -> POST /v1/platform/pm/issues
     await user.click(within(platformNav).getByRole("button", { name: /^Project Manager$/i }));
-    await user.type(screen.getByLabelText(/New issue title/i), "Rotate Ed25519 publisher signing keys");
+    await user.type(await screen.findByLabelText(/New issue title/i), "Rotate Ed25519 publisher signing keys");
     await user.click(screen.getByRole("button", { name: /\+ Create issue/i }));
     expect(screen.getByText("Rotate Ed25519 publisher signing keys")).toBeInTheDocument();
 
     // 2. Install & uninstall package -> POST /v1/platform/marketplace/install & uninstall
     await user.click(within(platformNav).getByRole("button", { name: /^Marketplace$/i }));
-    const installBtn = screen.getAllByRole("button", { name: /^Install package /i })[0]!;
+    const installBtn = (await screen.findAllByRole("button", { name: /^Install package /i }))[0]!;
     const pkgLabel = (installBtn.getAttribute("aria-label") ?? "").replace(/^Install package /i, "");
     await user.click(installBtn);
     await user.click(screen.getByRole("button", { name: new RegExp(`^Uninstall package ${pkgLabel}`, "i") }));
 
     // 3. Dispatch team -> POST /v1/platform/agents/teams/dispatch
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    await user.click(screen.getAllByRole("button", { name: /Dispatch team/i })[0]!);
+    await user.click((await screen.findAllByRole("button", { name: /Dispatch team/i }))[0]!);
 
     // 4. No-Code blueprint -> POST /v1/platform/nocode/blueprint
     await user.click(within(platformNav).getByRole("button", { name: /^No-Code Builder$/i }));
-    await user.click(screen.getByRole("button", { name: /Generate Project Blueprint/i }));
+    await user.click(await screen.findByRole("button", { name: /Generate Project Blueprint/i }));
 
     await waitFor(() => {
       expect(mutationEndpoints).toContain("/v1/platform/pm/issues");
@@ -449,13 +449,13 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     const offlineNav = screen.getByRole("navigation", { name: "Unified platform views" });
 
     await user.click(within(offlineNav).getByRole("button", { name: /^Project Manager$/i }));
-    await user.type(screen.getByLabelText(/New issue title/i), "Offline resilient SQLite task");
+    await user.type(await screen.findByLabelText(/New issue title/i), "Offline resilient SQLite task");
     await user.click(screen.getByRole("button", { name: /\+ Create issue/i }));
     expect(screen.getByText("Offline resilient SQLite task")).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
 
     await user.click(within(offlineNav).getByRole("button", { name: /^Marketplace$/i }));
-    await user.click(screen.getAllByRole("button", { name: /^Install package /i })[0]!);
+    await user.click((await screen.findAllByRole("button", { name: /^Install package /i }))[0]!);
     expect(await axe(container)).toHaveNoViolations();
 
     await user.click(within(offlineNav).getByRole("button", { name: /^Security$/i }));
@@ -509,10 +509,10 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
-    const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
+    const platformNav = (await screen.findByRole("navigation", { name: "Unified platform views" }));
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
 
-    const clusterSec = screen.getByRole("region", { name: /Multi-node GPU cluster and model canary rollout/i });
+    const clusterSec = (await screen.findByRole("region", { name: /Multi-node GPU cluster and model canary rollout/i }));
     expect(within(clusterSec).getByText("node-metal-local-01")).toBeInTheDocument();
     expect(within(clusterSec).getByText(/Apple Metal · 32GB · airgap_local/i)).toBeInTheDocument();
     expect(within(clusterSec).getByText("node-vllm-us-01")).toBeInTheDocument();
@@ -555,7 +555,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 1. Documentation: Living Markdown Studio edit + Save Document + Sync Doc from Active PRD
     await user.click(within(platformNav).getByRole("button", { name: /^Documentation$/i }));
-    const mdEditor = screen.getByLabelText(/Markdown document editor/i);
+    const mdEditor = (await screen.findByLabelText(/Markdown document editor/i));
     await user.type(mdEditor, "\n## Live Operator Runbook Note\n- [x] Verified local loopback sync");
     await user.click(screen.getByRole("button", { name: /^Save Document$/i }));
     expect(screen.getByText(/Saved to Workspace/i)).toBeInTheDocument();
@@ -564,7 +564,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 2. Product: Author New PRD with RICE calculator + Generate Sprint Issues + Log Customer Feedback
     await user.click(within(platformNav).getByRole("button", { name: /^Product$/i }));
-    await user.type(screen.getByLabelText(/^PRD title$/i), "Zero-Trust Webhook Audit Vault");
+    await user.type(await screen.findByLabelText(/^PRD title$/i), "Zero-Trust Webhook Audit Vault");
     await user.click(screen.getByRole("button", { name: /\+ Author New PRD/i }));
     expect(screen.getByRole("heading", { name: "Zero-Trust Webhook Audit Vault" })).toBeInTheDocument();
 
@@ -579,7 +579,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 3. Project Manager: Kanban Board toggle + Issue Detail Inspector
     await user.click(within(platformNav).getByRole("button", { name: /^Project Manager$/i }));
-    expect(screen.getByText(/Implement Zero-Trust Webhook Audit Vault acceptance criteria/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Implement Zero-Trust Webhook Audit Vault acceptance criteria/i)).toBeInTheDocument();
     const layoutGroup = screen.getByRole("group", { name: /Project Manager layout/i });
     await user.click(within(layoutGroup).getByRole("button", { name: /Kanban Board/i }));
     expect(screen.getByRole("region", { name: /Kanban sprint board/i })).toBeInTheDocument();
@@ -592,7 +592,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 4. Security: HIPAA Compliance Posture Evaluator + Live Workspace Secret/Injection Scanner
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
-    const fwGroup = screen.getByRole("group", { name: /Compliance frameworks/i });
+    const fwGroup = (await screen.findByRole("group", { name: /Compliance frameworks/i }));
     await user.click(within(fwGroup).getByRole("button", { name: "HIPAA" }));
     expect(screen.getByText(/164\.312\(a\)/i)).toBeInTheDocument();
 
@@ -623,19 +623,19 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
 
     // 2. Agents: Inspect & Supervise + Run Supervised Dry-Run
     await user.click(within(platformNav).getByRole("button", { name: /^Agents$/i }));
-    await user.click(screen.getByRole("button", { name: /Inspect & Supervise feature-coder/i }));
+    await user.click(await screen.findByRole("button", { name: /Inspect & Supervise feature-coder/i }));
     await user.click(screen.getByRole("button", { name: /Run Supervised Dry-Run/i }));
     expect(screen.getByText(/HELD FOR HUMAN P-10/i)).toBeInTheDocument();
 
     // 3. Automation: Add custom DAG step + Run workflow execution trace
     await user.click(within(platformNav).getByRole("button", { name: /^Automation$/i }));
-    await user.type(screen.getByLabelText(/^Step label$/i), "Sign Ed25519 Release Attestation");
+    await user.type(await screen.findByLabelText(/^Step label$/i), "Sign Ed25519 Release Attestation");
     await user.click(screen.getByRole("button", { name: /\+ Add DAG Step/i }));
     expect(screen.getByText("Sign Ed25519 Release Attestation")).toBeInTheDocument();
 
     // 4. Operations: Interactive Workload Placement Scheduler + Canary Promotion
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
-    await user.click(screen.getByRole("button", { name: /^Schedule Workload$/i }));
+    await user.click(await screen.findByRole("button", { name: /^Schedule Workload$/i }));
     expect(screen.getByText(/Scheduled on node-metal-local-01/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Promote Canary -> 100% Stable/i }));
     expect(screen.getAllByText(/100% stable/i).length).toBeGreaterThanOrEqual(2);
@@ -644,7 +644,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     await user.click(within(platformNav).getByRole("button", { name: /^No-Code Builder$/i }));
     const previewBtn = screen.queryByRole("button", { name: /Preview Starter App/i });
     if (previewBtn) await user.click(previewBtn);
-    await user.type(screen.getByLabelText(/Preview requestor name/i), "Alex Rivera");
+    await user.type(await screen.findByLabelText(/Preview requestor name/i), "Alex Rivera");
     await user.type(screen.getByLabelText(/Preview request summary/i), "Provision HIPAA sovereign tenant");
     await user.click(screen.getByRole("button", { name: /Submit Test Entry/i }));
     expect(screen.getByText("Alex Rivera")).toBeInTheDocument();

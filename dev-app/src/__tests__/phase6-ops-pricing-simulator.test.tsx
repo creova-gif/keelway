@@ -23,9 +23,9 @@ describe("Phase 6D — Operations Quota, Calibrated Pricing & MiroFish 5-Persona
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
 
-    const simSection = screen.getByRole("region", {
+    const simSection = (await screen.findByRole("region", {
       name: /Calibrated pricing and MiroFish market simulator/i,
-    });
+    }));
 
     // Verify all 4 calibrated tier cards render cleanly without STREAM jargon
     expect(within(simSection).getByText("Community $0 · 150K tok/day")).toBeInTheDocument();
@@ -107,7 +107,7 @@ describe("Phase 6D — Operations Quota, Calibrated Pricing & MiroFish 5-Persona
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
 
-    const simSection = screen.getByRole("region", { name: /Calibrated pricing and MiroFish market simulator/i });
+    const simSection = (await screen.findByRole("region", { name: /Calibrated pricing and MiroFish market simulator/i }));
     await user.selectOptions(within(simSection).getByLabelText("Simulation monthly API spend"), "15000");
     await user.click(within(simSection).getByRole("button", { name: /Run 5-Persona MiroFish Pricing Check/i }));
 

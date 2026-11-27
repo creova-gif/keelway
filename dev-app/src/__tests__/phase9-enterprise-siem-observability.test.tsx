@@ -25,9 +25,9 @@ describe("Phase 9C — Enterprise OIDC/SCIM 2.0, Dual-Human P-10 Quorum, SIEM & 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
 
-    const entSection = screen.getByRole("region", {
+    const entSection = (await screen.findByRole("region", {
       name: /Enterprise OIDC, SCIM 2.0 directory and dual-human P-10 quorum/i,
-    });
+    }));
     expect(within(entSection).getByText("https://idp.enterprise.example")).toBeInTheDocument();
 
     // Provision SCIM 2.0 user mapped to operator via keelway-operators group
@@ -105,9 +105,9 @@ describe("Phase 9C — Enterprise OIDC/SCIM 2.0, Dual-Human P-10 Quorum, SIEM & 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
 
-    const siemObsSection = screen.getByRole("region", {
+    const siemObsSection = (await screen.findByRole("region", {
       name: /SIEM audit streaming and OpenTelemetry observability/i,
-    });
+    }));
 
     const formatSelect = within(siemObsSection).getByLabelText("SIEM export format") as HTMLSelectElement;
     const exportBtn = within(siemObsSection).getByRole("button", { name: /Export SIEM Audit Batch/i });
@@ -200,15 +200,15 @@ describe("Phase 9C — Enterprise OIDC/SCIM 2.0, Dual-Human P-10 Quorum, SIEM & 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
 
     await user.click(within(platformNav).getByRole("button", { name: /^Operations$/i }));
-    const siemObsSection = screen.getByRole("region", { name: /SIEM audit streaming and OpenTelemetry observability/i });
+    const siemObsSection = (await screen.findByRole("region", { name: /SIEM audit streaming and OpenTelemetry observability/i }));
     await user.click(within(siemObsSection).getByRole("button", { name: /Refresh Telemetry Snapshot/i }));
     expect(await within(siemObsSection).findByText(/keelway_kflow_runs_total\{workspace_id="default"\} 12/)).toBeInTheDocument();
 
     rejectQuorum = true;
     await user.click(within(platformNav).getByRole("button", { name: /^Security$/i }));
-    const entSection = screen.getByRole("region", {
+    const entSection = (await screen.findByRole("region", {
       name: /Enterprise OIDC, SCIM 2.0 directory and dual-human P-10 quorum/i,
-    });
+    }));
     await user.click(within(entSection).getByRole("button", { name: /Sign P-10 Quorum Approval/i }));
     expect(await within(entSection).findByRole("alert")).toHaveTextContent(/Initiator cannot self-approve P-10 proposal/i);
 
