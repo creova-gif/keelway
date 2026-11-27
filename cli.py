@@ -2104,7 +2104,7 @@ async def cmd_pilot(
     return 1
 
 
-async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_gapped: bool = False, voice_style: str = "human-engineer"):
+async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_gapped: bool = False, voice_style: str = "human-engineer", conversation: Optional[str] = None):
     """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
     if air_gapped:
@@ -2117,6 +2117,14 @@ async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_
     await init_db()
 
     session = InteractiveChatSession(gateway=gateway, provider=prov, system_prompt=combined_prompt)
+    if conversation:
+        if await session.load_conversation(conversation, owner="local"):
+            print(f"  Resumed conversation {session.conversation_id} ({len(session.history)} turns)")
+        else:
+            print(f"  Conversation '{conversation}' not found — starting a new one.")
+            print(f"  Conversation: {await session.new_conversation(owner='local')}")
+    else:
+        print(f"  Conversation: {await session.new_conversation(owner='local')}")
     print("\n" + "=" * 65)
     print("  KEELWAY — Sovereign Agent Interactive Workspace (REPL)")
     print(f"  Active Provider: {prov.value.upper()} | Style: {voice_style.upper()}")
@@ -3339,6 +3347,7 @@ def build_parser() -> argparse.ArgumentParser:
     chat_parser.add_argument("--system", default=None, help="Custom system prompt")
     chat_parser.add_argument("--air-gapped", action="store_true", help="Enforce 100 percent offline zero-network egress")
     chat_parser.add_argument("--style", default="human-engineer", choices=["human-engineer", "executive", "conversational"], help="Writing voice style")
+    chat_parser.add_argument("--conversation", default=None, help="Resume a persisted conversation by id")
 
     # brief
     brief_parser = subparsers.add_parser("brief", help="Generate engineering brief from PR/git changes")
@@ -4235,7 +4244,7 @@ def _main(argv=None):
         )
     elif args.command == "chat":
         print_banner()
-        asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style))
+        asyncio.run(cmd_chat(args.provider, args.system, args.air_gapped, args.style, args.conversation))
     elif args.command == "brief":
         asyncio.run(cmd_brief(args.title, args.desc, args.files, args.failing, args.provider))
     elif args.command == "summarize":

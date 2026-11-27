@@ -170,3 +170,20 @@ class AgentManifestRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
+
+
+class ConversationRecord(Base):
+    """Persisted AI workspace conversation with serialized turn history."""
+
+    __tablename__ = "keelway_conversations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    title: Mapped[Optional[str]] = mapped_column(String(255))
+    mode: Mapped[str] = mapped_column(String(32), default="ask")
+    provider: Mapped[str] = mapped_column(String(32), default="local")
+    owner: Mapped[str] = mapped_column(String(100), default="anonymous", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+    turns: Mapped[List[dict]] = mapped_column(JSON, default=list)

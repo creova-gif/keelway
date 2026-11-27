@@ -50,7 +50,7 @@ from core.orchestration.workflows import (
     SandboxExecutionError,
 )
 from core.storage.database import get_db, check_db_health
-from core.storage.models import TaskRecord
+from core.storage.models import ConversationRecord, TaskRecord
 
 router = APIRouter()
 
@@ -311,12 +311,19 @@ async def send_chat_message(payload: dict, principal: Principal = Depends(curren
         mode=mode,
         workspace_fs=_workspace_fs,
     )
+    conversation_id = payload.get("conversation_id")
+    if conversation_id:
+        if not await session.load_conversation(str(conversation_id), owner=principal.actor):
+            raise HTTPException(status_code=404, detail="Conversation not found.")
+    else:
+        await session.new_conversation(owner=principal.actor)
     result = await session.step(
         user_message=message,
         use_memory=use_memory,
         mode=mode,
         target_file=target_file,
     )
+    result["conversation_id"] = session.conversation_id
     # If chat created an active agent task, register it for Studio tracking & approval workflows
     last_agent = getattr(session, "_last_agent", None)
     if result.get("agent_task", {}).get("task_id") and last_agent is not None:
@@ -325,6 +332,57 @@ async def send_chat_message(payload: dict, principal: Principal = Depends(curren
         await _publish_agent(last_agent)
     await record_audit(principal, f"chat_message_{mode.value}", message[:100], True)
     return result
+
+
+@router.get("/v1/conversations", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["AI Assistant"])
+async def list_conversations(
+    db: AsyncSession = Depends(get_db),
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """List persisted AI workspace conversations owned by the current actor."""
+    stmt = (
+        select(ConversationRecord)
+        .where(ConversationRecord.owner == principal.actor)
+        .order_by(ConversationRecord.updated_at.desc())
+        .limit(100)
+    )
+    records = (await db.execute(stmt)).scalars().all()
+    return {
+        "conversations": [
+            {
+                "id": r.id,
+                "title": r.title,
+                "mode": r.mode,
+                "provider": r.provider,
+                "turn_count": len(r.turns or []),
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+            }
+            for r in records
+        ]
+    }
+
+
+@router.get("/v1/conversations/{conversation_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["AI Assistant"])
+async def get_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    principal: Principal = Depends(current_principal),
+) -> Dict[str, Any]:
+    """Retrieve a persisted conversation with its full turn history."""
+    rec = await db.get(ConversationRecord, conversation_id)
+    if rec is None or rec.owner != principal.actor:
+        raise HTTPException(status_code=404, detail="Conversation not found.")
+    return {
+        "id": rec.id,
+        "title": rec.title,
+        "mode": rec.mode,
+        "provider": rec.provider,
+        "owner": rec.owner,
+        "created_at": rec.created_at.isoformat() if rec.created_at else None,
+        "updated_at": rec.updated_at.isoformat() if rec.updated_at else None,
+        "turns": rec.turns or [],
+    }
 
 
 @router.post("/v1/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, tags=["Tasks"])
