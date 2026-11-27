@@ -10,6 +10,7 @@ from sqlalchemy.engine import make_url
 
 from core.config import settings
 from core.storage.models import Base
+from core.storage.migrations import run_pending_migrations
 
 # Dynamic engine configuration (SQLite for local/test, PostgreSQL for production)
 is_sqlite = settings.database_url.startswith("sqlite")
@@ -93,21 +94,7 @@ async def init_db() -> None:
                 if new_name not in existing:
                     await conn.execute(text(f'ALTER TABLE "{old_name}" RENAME TO "{new_name}"'))
         await conn.run_sync(Base.metadata.create_all)
-        if is_sqlite:
-            try:
-                res = await conn.execute(text("PRAGMA table_info(keelway_memories)"))
-                columns = [row[1] for row in res.fetchall()]
-                if "vector_embedding" not in columns:
-                    await conn.execute(text("ALTER TABLE keelway_memories ADD COLUMN vector_embedding JSON"))
-                if "metadata_json" not in columns:
-                    await conn.execute(text("ALTER TABLE keelway_memories ADD COLUMN metadata_json JSON DEFAULT '{}'"))
-            except Exception:
-                pass
-            res = await conn.execute(text("PRAGMA table_info(keelway_api_tokens)"))
-            if "expires_at" not in [row[1] for row in res.fetchall()]:
-                await conn.execute(text("ALTER TABLE keelway_api_tokens ADD COLUMN expires_at DATETIME"))
-        else:
-            await conn.execute(text("ALTER TABLE keelway_api_tokens ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE"))
+        await run_pending_migrations(conn, is_sqlite)
 
 
 async def close_db() -> None:
