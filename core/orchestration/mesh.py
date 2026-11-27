@@ -30,7 +30,7 @@ class AgentMessage:
 class AgentMeshDispatcher:
     """Orchestrates asynchronous collaboration between multiple specialized agents."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.message_bus: List[AgentMessage] = []
         self.agent_registry: Dict[AgentRole, Dict[str, Any]] = {
             AgentRole.ARCHITECT: {"status": "READY", "tasks_completed": 0},

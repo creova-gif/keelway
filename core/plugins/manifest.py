@@ -35,7 +35,7 @@ class PluginManifest:
     permissions: PluginPermissions = field(default_factory=PluginPermissions)
     digest_sha256: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.digest_sha256:
             self.digest_sha256 = self.calculate_digest()
 

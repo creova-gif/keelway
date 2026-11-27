@@ -40,7 +40,7 @@ Produce directly and concisely:
 
 class MockEvaluationAdapter(ModelAdapter):
     """Synthetic adapter for deterministic offline evaluation tests."""
-    def __init__(self, provider: Provider, latency_ms: float, cost_usd: float, content: str):
+    def __init__(self, provider: Provider, latency_ms: float, cost_usd: float, content: str) -> None:
         self.provider = provider
         self.latency_ms = latency_ms
         self.cost_usd = cost_usd
@@ -170,7 +170,7 @@ async def run_eval_comparison(gw: ModelGateway, providers_to_test: List[Provider
     return results
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Keelway Model Comparison Benchmark")
     parser.add_argument("--mock", action="store_true", help="Run with simulated mock providers for offline testing")
     parser.add_argument("--providers", nargs="+", default=None, help="List of providers to evaluate (e.g. google openai)")

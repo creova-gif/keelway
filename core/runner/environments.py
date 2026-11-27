@@ -375,7 +375,7 @@ class DockerRunnerBackend:
         return envs
 
 
-def runner_environment_backend(name: Optional[str] = None):
+def runner_environment_backend(name: Optional[str] = None) -> "DockerRunnerBackend":
     """Select an isolation backend for runner environments.
 
     `None` → docker when usable; raises EnvironmentUnavailable otherwise.

@@ -264,7 +264,7 @@ class KStackRegistry:
 
         return (len(errors) == 0, errors)
 
-    def _resolve_for_execution(self, name: str):
+    def _resolve_for_execution(self, name: str) -> SkillDefinition:
         skill = self.get_skill(name)
         if not skill:
             raise KeyError(f"Skill '{name}' not found")
@@ -274,7 +274,7 @@ class KStackRegistry:
 
     def _seal_execution(
         self,
-        skill,
+        skill: SkillDefinition,
         actor: str,
         inputs: Dict[str, Any],
         t0: float,

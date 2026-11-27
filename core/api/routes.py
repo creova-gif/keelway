@@ -9,7 +9,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Set, Tuple, Never, Union
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, WebSocket, WebSocketDisconnect, WebSocketException
 from fastapi.responses import StreamingResponse
@@ -188,8 +188,8 @@ async def list_models(
     }
 
 
-@router.post("/v1/chat/completions", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Inference"])
-async def chat_completions(request_raw: Request):
+@router.post("/v1/chat/completions", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], response_model=None, tags=["Inference"])
+async def chat_completions(request_raw: Request) -> Union[StreamingResponse, Dict[str, Any]]:
     """OpenAI-compatible chat completions endpoint supporting non-streaming and Server-Sent Events (SSE) streaming."""
     from core.models.provider import ChatCompletionRequest
     from core.security.error_disclosure import public_inference_detail
@@ -203,7 +203,7 @@ async def chat_completions(request_raw: Request):
         raise HTTPException(status_code=400, detail=f"Invalid chat completion payload: {parse_err}") from parse_err
 
     if request.stream:
-        async def event_generator():
+        async def event_generator() -> AsyncGenerator[str, None]:
             try:
                 async for chunk in gateway.stream_chat(request):
                     yield chunk.to_sse()
@@ -248,7 +248,7 @@ async def get_model_usage() -> Dict[str, Any]:
 
 
 @router.get("/v1/chat/modes", dependencies=[Depends(current_principal)], tags=["AI Assistant"])
-async def list_chat_modes():
+async def list_chat_modes() -> Dict[str, Any]:
     """List available conversation modes and their governance constraints (Section 6.1)."""
     return {
         "modes": [
@@ -285,7 +285,7 @@ async def list_chat_modes():
 
 
 @router.post("/v1/chat/message", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["AI Assistant"])
-async def send_chat_message(payload: dict, principal: Principal = Depends(current_principal)):
+async def send_chat_message(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Send a message to the AI Assistant in one of the 4 conversation modes."""
     message = payload.get("message", "").strip()
     if not message:
@@ -679,15 +679,15 @@ def map_to_proof_stage(event_type: str, status: Optional[str] = None, data: Opti
 
 class ConnectionManager:
     """Manages active WebSocket connections and SSE stream subscriptions for Keelway Studio."""
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_connections: Set[WebSocket] = set()
         self.sse_subscribers: Set[asyncio.Queue[Dict[str, Any]]] = set()
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket) -> None:
         await websocket.accept()
         self.active_connections.add(websocket)
 
-    def disconnect(self, websocket: WebSocket):
+    def disconnect(self, websocket: WebSocket) -> None:
         self.active_connections.discard(websocket)
 
     def register_sse(self) -> asyncio.Queue:
@@ -695,10 +695,10 @@ class ConnectionManager:
         self.sse_subscribers.add(q)
         return q
 
-    def unregister_sse(self, q: asyncio.Queue[Dict[str, Any]]):
+    def unregister_sse(self, q: asyncio.Queue[Dict[str, Any]]) -> None:
         self.sse_subscribers.discard(q)
 
-    async def broadcast(self, message: dict):
+    async def broadcast(self, message: dict) -> None:
         if "timestamp" not in message:
             message["timestamp"] = datetime.now(timezone.utc).isoformat()
         if "stage" not in message:
@@ -724,7 +724,7 @@ class ConnectionManager:
 ws_manager = ConnectionManager()
 
 
-async def _broadcast_task_state(task: TaskResponse, previous_state) -> None:
+async def _broadcast_task_state(task: TaskResponse, previous_state: Optional[TaskState]) -> None:
     await ws_manager.broadcast({
         "type": "agent_state_changed",
         "task_id": task.id,
@@ -736,7 +736,7 @@ async def _broadcast_task_state(task: TaskResponse, previous_state) -> None:
 
 
 @router.websocket("/v1/ws/studio")
-async def websocket_studio_endpoint(websocket: WebSocket):
+async def websocket_studio_endpoint(websocket: WebSocket) -> None:
     """Real-time bidirectional channel for Keelway Studio events, diffs, and thought streaming."""
     if not origin_allowed(websocket.headers.get("origin"), websocket.headers.get("host")):
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Origin not allowed.")
@@ -834,7 +834,7 @@ async def websocket_studio_endpoint(websocket: WebSocket):
 async def stream_events(
     request: Request,
     task_id: Optional[str] = None,
-):
+) -> StreamingResponse:
     """Server-Sent Events (SSE) streaming endpoint for live studio task events and Proof Strip lifecycle frames."""
     if not origin_allowed(request.headers.get("origin"), request.headers.get("host")):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origin not allowed.")
@@ -848,7 +848,7 @@ async def stream_events(
     else:
         principal = LOCAL_OWNER
 
-    async def event_generator():
+    async def event_generator() -> AsyncGenerator[str, None]:
         q = ws_manager.register_sse()
         try:
             # Yield initial connection handshake frame matching INSPECT stage
@@ -907,7 +907,7 @@ async def stream_events(
 async def stream_flight_events(
     request: Request,
     task_id: Optional[str] = None,
-):
+) -> StreamingResponse:
     """Real-time streaming endpoint for deterministic flight tape execution frames matching Proof Strip lifecycle."""
     if not origin_allowed(request.headers.get("origin"), request.headers.get("host")):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origin not allowed.")
@@ -921,7 +921,7 @@ async def stream_flight_events(
     else:
         principal = LOCAL_OWNER
 
-    async def flight_generator():
+    async def flight_generator() -> AsyncGenerator[str, None]:
         q = ws_manager.register_sse()
         try:
             sent_indices = set()
@@ -996,7 +996,7 @@ async def stream_flight_events(
 
 
 @router.post("/v1/healing/repair", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Self-Healing"])
-async def trigger_self_healing(payload: dict):
+async def trigger_self_healing(payload: dict) -> Dict[str, Any]:
     """Trigger autonomous AST fault localization and closed-loop test repair."""
     from core.orchestration.self_healing import SelfHealingLoop
     test_cmd = payload.get("test_command")
@@ -1014,7 +1014,7 @@ async def trigger_self_healing(payload: dict):
 
 
 @router.post("/v1/payments/intent", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Global Sovereign Settlement"])
-async def create_payment_intent(payload: dict):
+async def create_payment_intent(payload: dict) -> Dict[str, Any]:
     """Simulated multi-rail payment intent (M-Pesa, PIX, UPI, L402, Offline Voucher). No provider is connected; no money moves."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
     try:
@@ -1060,7 +1060,7 @@ def _tape_path(task_id: str) -> Path:
 
 
 @router.get("/v1/flight/tapes", dependencies=[Depends(current_principal)], tags=["Deterministic Flight Recorder"])
-async def list_flight_tapes():
+async def list_flight_tapes() -> Dict[str, Any]:
     """List all recorded deterministic agent execution tapes."""
     recordings_dir = FLIGHT_RECORDINGS_DIR
     if not recordings_dir.exists():
@@ -1072,7 +1072,7 @@ async def list_flight_tapes():
 
 
 @router.get("/v1/flight/tape/{task_id}", dependencies=[Depends(current_principal)], tags=["Deterministic Flight Recorder"])
-async def get_flight_tape(task_id: str):
+async def get_flight_tape(task_id: str) -> Dict[str, Any]:
     """Retrieve full execution tape with all chronological step frames."""
     tape_file = _tape_path(task_id)
     if not tape_file.exists():
@@ -1096,7 +1096,7 @@ async def fork_flight_tape_endpoint(task_id: str, payload: dict) -> Dict[str, An
 async def fork_flight_tape(
     payload: dict,
     principal: Principal = Depends(require(Permission.EXECUTE_AGENT)),
-):
+) -> Dict[str, Any]:
     """Fork an execution timeline at a specific step index to explore alternative solutions."""
     from core.orchestration.flight_recorder import FlightPlayer
     task_id = str(payload.get("task_id") or "")
@@ -1137,7 +1137,7 @@ from core.orchestration.p2p_mesh import get_shared_mesh
 
 
 @router.get("/v1/mesh/status", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
-async def mesh_status():
+async def mesh_status() -> Dict[str, Any]:
     """Returns local node advertisement, active peers count, and total pooled compute VRAM."""
     mesh = get_shared_mesh()
     active = mesh.active_peers()
@@ -1150,7 +1150,7 @@ async def mesh_status():
 
 
 @router.get("/v1/mesh/peers", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
-async def list_mesh_peers():
+async def list_mesh_peers() -> Dict[str, Any]:
     """List peer developer workstations discovered on local Wi-Fi / Tailscale."""
     mesh = get_shared_mesh()
     return {
@@ -1162,7 +1162,7 @@ async def list_mesh_peers():
 
 
 @router.post("/v1/mesh/heartbeat", dependencies=[Depends(current_principal)], tags=["Local Team Mesh"])
-async def mesh_heartbeat(payload: dict):
+async def mesh_heartbeat(payload: dict) -> Dict[str, Any]:
     """Registers or refreshes heartbeat from a peer node on the local mesh."""
     mesh = get_shared_mesh()
     required = ["node_id", "hostname", "lan_ip", "port", "available_vram_mb"]
@@ -1182,7 +1182,7 @@ async def mesh_heartbeat(payload: dict):
 
 
 @router.post("/v1/mesh/delegate", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Local Team Mesh"])
-async def mesh_delegate(payload: dict):
+async def mesh_delegate(payload: dict) -> Dict[str, Any]:
     """Delegates a heavy compute/agent task across the local Wi-Fi / Tailscale team mesh."""
     mesh = get_shared_mesh()
     task_intent = payload.get("intent", "Heavy agent task")
@@ -1201,7 +1201,7 @@ async def mesh_delegate(payload: dict):
 
 
 @router.post("/v1/mesh/prune", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Local Team Mesh"])
-async def mesh_prune(payload: Optional[dict] = None):
+async def mesh_prune(payload: Optional[dict] = None) -> Dict[str, Any]:
     """Prunes expired peer workstations from the mesh registry."""
     mesh = get_shared_mesh()
     timeout = float((payload or {}).get("timeout_sec", 30.0))
@@ -1229,7 +1229,7 @@ def set_workspace_fs(fs: WorkspaceFilesystem) -> None:
 
 
 @router.get("/v1/workspaces", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
-async def list_workspaces():
+async def list_workspaces() -> Dict[str, Any]:
     """List all registered enterprise repositories and development workspaces."""
     reg = get_shared_workspace_registry()
     active = reg.get_active()
@@ -1240,7 +1240,7 @@ async def list_workspaces():
 
 
 @router.post("/v1/workspaces", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
-async def register_workspace(payload: dict, principal: Principal = Depends(current_principal)):
+async def register_workspace(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Register a new repository or workspace in the enterprise registry."""
     path_str = payload.get("path")
     if not path_str:
@@ -1264,7 +1264,7 @@ async def register_workspace(payload: dict, principal: Principal = Depends(curre
 
 
 @router.post("/v1/workspaces/{workspace_id}/activate", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
-async def activate_workspace(workspace_id: str, principal: Principal = Depends(current_principal)):
+async def activate_workspace(workspace_id: str, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Switch active workspace across all Keelway agent and analysis subsystems."""
     reg = get_shared_workspace_registry()
     try:
@@ -1282,7 +1282,7 @@ async def activate_workspace(workspace_id: str, principal: Principal = Depends(c
 
 
 @router.delete("/v1/workspaces/{workspace_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Workspace Filesystem"])
-async def unregister_workspace(workspace_id: str, principal: Principal = Depends(current_principal)):
+async def unregister_workspace(workspace_id: str, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Unregister a workspace from the enterprise registry."""
     reg = get_shared_workspace_registry()
     ok = reg.unregister(workspace_id)
@@ -1293,7 +1293,7 @@ async def unregister_workspace(workspace_id: str, principal: Principal = Depends
 
 
 @router.get("/v1/workspace", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
-async def get_workspace_info():
+async def get_workspace_info() -> Dict[str, Any]:
     """Retrieve active workspace directory path, git repository status, and metadata."""
     is_git = (_workspace_fs.root / ".git").exists()
     tree = _workspace_fs.get_file_tree()
@@ -1308,14 +1308,14 @@ async def get_workspace_info():
 
 
 @router.get("/v1/project/info", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
-async def get_project_info():
+async def get_project_info() -> Dict[str, Any]:
     """Deterministically inspect the active workspace to detect project runtime, frameworks, and test runners."""
     meta = ProjectAdapter.inspect(_workspace_fs.root)
     return meta.to_dict()
 
 
 @router.post("/v1/workspace/open", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
-async def open_workspace(payload: dict, principal: Principal = Depends(current_principal)):
+async def open_workspace(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Open an existing local source repository or workspace directory in Keelway."""
     path_str = payload.get("path")
     if not path_str:
@@ -1346,7 +1346,7 @@ async def open_workspace(payload: dict, principal: Principal = Depends(current_p
 
 
 @router.get("/v1/files/tree", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
-async def get_workspace_file_tree(subpath: str = ".", max_depth: int = 4):
+async def get_workspace_file_tree(subpath: str = ".", max_depth: int = 4) -> Dict[str, Any]:
     """Retrieve recursive workspace file tree honoring .gitignore rules."""
     try:
         return _workspace_fs.get_file_tree(subpath=subpath, max_depth=max_depth)
@@ -1357,7 +1357,7 @@ async def get_workspace_file_tree(subpath: str = ".", max_depth: int = 4):
 
 
 @router.get("/v1/files/content", dependencies=[Depends(current_principal)], tags=["Workspace Filesystem"])
-async def read_workspace_file(path: str):
+async def read_workspace_file(path: str) -> Dict[str, Any]:
     """Safely read text content of a workspace file."""
     try:
         return _workspace_fs.read_file(path)
@@ -1370,7 +1370,7 @@ async def read_workspace_file(path: str):
 
 
 @router.post("/v1/files/save", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
-async def save_workspace_file(payload: dict):
+async def save_workspace_file(payload: dict) -> Dict[str, Any]:
     """Atomically write content to a workspace file."""
     path = payload.get("path")
     content = payload.get("content")
@@ -1385,7 +1385,7 @@ async def save_workspace_file(payload: dict):
 
 
 @router.post("/v1/files/upload", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
-async def upload_workspace_file(request: Request):
+async def upload_workspace_file(request: Request) -> Dict[str, Any]:
     """Upload a file or a .zip project archive directly into the active workspace.
 
     Supports JSON body with base64/text or raw binary with X-Filename header.
@@ -1463,13 +1463,13 @@ async def upload_workspace_file(request: Request):
 
 
 @router.get("/v1/git/status", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def get_workspace_git_status():
+async def get_workspace_git_status() -> Dict[str, Any]:
     """Retrieve live Git repository status, branch, and modified files."""
     return _workspace_fs.get_git_status()
 
 
 @router.get("/v1/git/diff", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def get_workspace_git_diff(path: Optional[str] = None):
+async def get_workspace_git_diff(path: Optional[str] = None) -> Dict[str, Any]:
     """Retrieve live unified Git diff for workspace or specific file."""
     try:
         return _workspace_fs.get_git_diff(path=path)
@@ -1478,7 +1478,7 @@ async def get_workspace_git_diff(path: Optional[str] = None):
 
 
 @router.get("/v1/git/proposal", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def get_git_commit_proposal():
+async def get_git_commit_proposal() -> Dict[str, Any]:
     """Generates a structured semantic commit message and diff metrics from uncommitted workspace changes."""
     try:
         return _workspace_fs.prepare_commit_proposal()
@@ -1487,7 +1487,7 @@ async def get_git_commit_proposal():
 
 
 @router.post("/v1/git/commit", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
-async def create_local_git_commit(payload: dict, principal: Principal = Depends(current_principal)):
+async def create_local_git_commit(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Creates a verified local Git commit. Pushing to remote is never performed automatically."""
     message = payload.get("message", "")
     author_name = payload.get("author_name", principal.actor)
@@ -1511,7 +1511,7 @@ async def create_local_git_commit(payload: dict, principal: Principal = Depends(
 
 
 @router.get("/v1/git/pr/proposal", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def get_git_pr_proposal(base_branch: str = "main"):
+async def get_git_pr_proposal(base_branch: str = "main") -> Dict[str, Any]:
     """Generates a structured Pull Request proposal with change summary and test evidence."""
     try:
         return _workspace_fs.prepare_pr_proposal(base_branch=base_branch)
@@ -1529,7 +1529,7 @@ _semantic_index = CodebaseSemanticIndex(workspace_fs=_workspace_fs)
 
 
 @router.get("/v1/index/repomap", dependencies=[Depends(current_principal)], tags=["Codebase Index"])
-async def get_repository_map(max_tokens: int = 1500):
+async def get_repository_map(max_tokens: int = 1500) -> Dict[str, Any]:
     """Retrieve condensed repository map for prompt context augmentation."""
     if not _semantic_index.symbols:
         _semantic_index.index_workspace(max_files=150)
@@ -1540,7 +1540,7 @@ async def get_repository_map(max_tokens: int = 1500):
 
 
 @router.get("/v1/index/search", dependencies=[Depends(current_principal)], tags=["Codebase Index"])
-async def search_codebase_symbols(q: str, top_k: int = 10):
+async def search_codebase_symbols(q: str, top_k: int = 10) -> Dict[str, Any]:
     """Perform hybrid semantic and lexical search across indexed codebase symbols."""
     if not _semantic_index.symbols:
         _semantic_index.index_workspace(max_files=150)
@@ -1551,14 +1551,14 @@ async def search_codebase_symbols(q: str, top_k: int = 10):
 
 
 @router.post("/v1/index/refresh", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Codebase Index"])
-async def refresh_codebase_index(max_files: int = 200):
+async def refresh_codebase_index(max_files: int = 200) -> Dict[str, Any]:
     """Re-index workspace files and refresh symbol embeddings."""
     res = _semantic_index.index_workspace(max_files=max_files)
     return {"status": "indexed", "stats": res}
 
 
 @router.get("/v1/codebase/symbols", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
-async def codebase_symbols(q: str = "", top_k: int = 15):
+async def codebase_symbols(q: str = "", top_k: int = 15) -> Dict[str, Any]:
     """Search codebase symbols with hybrid vector and lexical ranking."""
     if not _semantic_index.symbols:
         _semantic_index.index_workspace(max_files=150)
@@ -1567,7 +1567,7 @@ async def codebase_symbols(q: str = "", top_k: int = 15):
 
 
 @router.get("/v1/codebase/repomap", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
-async def codebase_repomap(max_tokens: int = 1500):
+async def codebase_repomap(max_tokens: int = 1500) -> Dict[str, Any]:
     """Retrieve condensed repository map for prompt context augmentation."""
     if not _semantic_index.symbols:
         _semantic_index.index_workspace(max_files=150)
@@ -1578,7 +1578,7 @@ async def codebase_repomap(max_tokens: int = 1500):
 
 
 @router.get("/v1/codebase/references", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
-async def codebase_references(symbol: str):
+async def codebase_references(symbol: str) -> Dict[str, Any]:
     """Find all usages, call sites, imports, and definitions of a symbol across the workspace."""
     if not symbol:
         raise HTTPException(status_code=400, detail="Query parameter 'symbol' is required.")
@@ -1589,7 +1589,7 @@ async def codebase_references(symbol: str):
 
 
 @router.get("/v1/codebase/hierarchy", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
-async def codebase_call_hierarchy(symbol: str):
+async def codebase_call_hierarchy(symbol: str) -> Dict[str, Any]:
     """Inspect callers and callees for a specific function or method."""
     if not symbol:
         raise HTTPException(status_code=400, detail="Query parameter 'symbol' is required.")
@@ -1600,7 +1600,7 @@ async def codebase_call_hierarchy(symbol: str):
 
 
 @router.get("/v1/codebase/graph", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
-async def codebase_dependency_graph():
+async def codebase_dependency_graph() -> Dict[str, Any]:
     """Retrieve module-level import dependency DAG with cycle detection."""
     if not _semantic_index.symbols:
         _semantic_index.index_workspace(max_files=150)
@@ -1609,7 +1609,7 @@ async def codebase_dependency_graph():
 
 
 @router.get("/v1/codebase/definition", dependencies=[Depends(current_principal)], tags=["Codebase Intelligence"])
-async def codebase_definition(symbol: str):
+async def codebase_definition(symbol: str) -> Dict[str, Any]:
     """Locate the exact definition, signature, and file location for a symbol."""
     if not symbol:
         raise HTTPException(status_code=400, detail="Query parameter 'symbol' is required.")
@@ -1684,7 +1684,7 @@ async def _checked_manifest(raw: Any, principal: Principal, task_id: str) -> Tup
 
 
 @router.post("/v1/agent/run", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
-async def run_agent_task(payload: dict, principal: Principal = Depends(current_principal)):
+async def run_agent_task(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Initialize and run an autonomous agent engineering task."""
     task_id = payload.get("task_id") or f"task_{time.time_ns()}"
     _tape_path(task_id)
@@ -1724,6 +1724,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
         except ManifestNotRunnable as exc:
             await record_audit(principal, "agent_run_manifest", f"{task_id} {manifest.name}@{manifest.version} not runnable: {exc}", False)
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        assert agent.guard is not None
         agent.guard.signed = manifest_signed
 
     # No await between this check and registration, so concurrent runs can't both claim the id.
@@ -1776,7 +1777,7 @@ async def run_agent_task(payload: dict, principal: Principal = Depends(current_p
 
 
 @router.get("/v1/agent/runs", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
-async def list_agent_runs():
+async def list_agent_runs() -> Dict[str, Any]:
     """Agent runs in this server process, newest first, summarised for the Studio task list."""
     runs = []
     for agent in reversed(list(_active_agent_loops.values())):
@@ -1794,7 +1795,7 @@ async def list_agent_runs():
 
 
 @router.get("/v1/agent/status/{task_id}", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
-async def get_agent_status(task_id: str):
+async def get_agent_status(task_id: str) -> Dict[str, Any]:
     """Retrieve current state, plan steps, and pending approvals for an agent."""
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
@@ -1802,7 +1803,7 @@ async def get_agent_status(task_id: str):
 
 
 @router.post("/v1/agent/step/{task_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
-async def step_agent_tool(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
+async def step_agent_tool(task_id: str, payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Execute a single tool call within the agent loop."""
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
@@ -1840,7 +1841,7 @@ async def step_agent_tool(task_id: str, payload: dict, principal: Principal = De
 
 
 @router.post("/v1/agent/approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_AGENT_STEPS))], tags=["Autonomous Agent Loop"])
-async def approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
+async def approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Human-in-the-loop: grant or deny a pending mutating tool, optionally remembering a scoped standing approval."""
     # P-10: missing/non-boolean approved must not default to True (fail closed).
     # Validate before task lookup so omission never looks like an approval.
@@ -1889,7 +1890,7 @@ async def approve_agent_action(task_id: str, payload: dict, principal: Principal
 
 
 @router.post("/v1/agent/cancel/{task_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Autonomous Agent Loop"])
-async def cancel_agent_task(task_id: str, principal: Principal = Depends(current_principal)):
+async def cancel_agent_task(task_id: str, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Cancel an active agent task and terminate any running child subprocesses."""
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
@@ -1905,7 +1906,7 @@ async def cancel_agent_task(task_id: str, principal: Principal = Depends(current
 
 
 @router.post("/v1/agent/quorum-approve/{task_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
-async def quorum_approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)):
+async def quorum_approve_agent_action(task_id: str, payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Enterprise two-human quorum approval: submit role signature (Security Lead or Platform Owner)."""
     if task_id not in _active_agent_loops:
         raise HTTPException(status_code=404, detail=f"Agent loop for task '{task_id}' not found.")
@@ -1925,8 +1926,8 @@ async def quorum_approve_agent_action(task_id: str, payload: dict, principal: Pr
     }
 
 
-@router.post("/v1/terminal/exec", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Filesystem"])
-async def execute_terminal_command(payload: dict, principal: Principal = Depends(current_principal)):
+@router.post("/v1/terminal/exec", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], response_model=None, tags=["Workspace Filesystem"])
+async def execute_terminal_command(payload: dict, principal: Principal = Depends(current_principal)) -> Never:
     """Execute an interactive command inside the workspace with security gating and environment scrubbing."""
     cmd = payload.get("command", "").strip()
     if not cmd:
@@ -1940,7 +1941,7 @@ async def execute_terminal_command(payload: dict, principal: Principal = Depends
 
 
 @router.post("/v1/agents/validate", dependencies=[Depends(current_principal)], tags=["Agent Manifests"])
-async def validate_agent_manifest(payload: dict):
+async def validate_agent_manifest(payload: dict) -> Dict[str, Any]:
     """Dry run: is this manifest valid, signed correctly, and runnable on this machine? Starts nothing."""
     report = agent_manifest.validate(payload.get("manifest", payload))
     out: Dict[str, Any] = {"valid": report.ok, "errors": report.errors, "warnings": report.warnings}
@@ -1963,7 +1964,7 @@ async def validate_agent_manifest(payload: dict):
 
 
 @router.get("/v1/agents/registry", dependencies=[Depends(current_principal)], tags=["Agent Manifest Registry"])
-async def list_registry_manifests(enabled_only: bool = False, db: AsyncSession = Depends(get_db)):
+async def list_registry_manifests(enabled_only: bool = False, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     """List all registered agent manifests."""
     from core.agents.registry import list_registered_manifests
     records = await list_registered_manifests(db, enabled_only=enabled_only)
@@ -1986,7 +1987,7 @@ async def list_registry_manifests(enabled_only: bool = False, db: AsyncSession =
 
 
 @router.post("/v1/agents/registry", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Manifest Registry"])
-async def register_agent_manifest(payload: dict, principal: Principal = Depends(current_principal), db: AsyncSession = Depends(get_db)):
+async def register_agent_manifest(payload: dict, principal: Principal = Depends(current_principal), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     """Publish and register an agent manifest in the workspace registry."""
     from core.agents.registry import register_manifest, ManifestRegistryError
     manifest_data = payload.get("manifest", payload)
@@ -2005,7 +2006,7 @@ async def register_agent_manifest(payload: dict, principal: Principal = Depends(
 
 
 @router.get("/v1/agents/registry/{name}/{version}", dependencies=[Depends(current_principal)], tags=["Agent Manifest Registry"])
-async def get_registry_manifest(name: str, version: str, db: AsyncSession = Depends(get_db)):
+async def get_registry_manifest(name: str, version: str, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     """Get the full manifest definition by name and version."""
     from core.agents.registry import get_registered_manifest
     record = await get_registered_manifest(db, name, version)
@@ -2023,7 +2024,7 @@ async def get_registry_manifest(name: str, version: str, db: AsyncSession = Depe
 
 
 @router.post("/v1/agents/registry/{name}/{version}/toggle", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Agent Manifest Registry"])
-async def toggle_registry_manifest(name: str, version: str, payload: dict, principal: Principal = Depends(current_principal), db: AsyncSession = Depends(get_db)):
+async def toggle_registry_manifest(name: str, version: str, payload: dict, principal: Principal = Depends(current_principal), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     """Kill-switch: enable or disable an agent manifest version immediately."""
     from core.agents.registry import toggle_manifest_status, ManifestRegistryError
     enabled = payload.get("enabled", True)
@@ -2046,14 +2047,14 @@ async def toggle_registry_manifest(name: str, version: str, payload: dict, princ
 # =====================================================================
 
 @router.get("/v1/agent/builder/templates", dependencies=[Depends(current_principal)], tags=["Agent Builder"])
-async def list_agent_templates():
+async def list_agent_templates() -> Dict[str, Any]:
     """List built-in agent templates for scaffolding AI agents."""
     from core.agents.builder import AgentBuilder
     return {"templates": AgentBuilder.list_templates()}
 
 
 @router.post("/v1/agent/builder/scaffold", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
-async def scaffold_agent(payload: dict, principal: Principal = Depends(current_principal)):
+async def scaffold_agent(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Scaffold a new agent from template or spec, compile manifest, and run initial test harness."""
     from core.agents.builder import AgentBuilder
     from core.agents.spec import AgentSpec
@@ -2096,7 +2097,7 @@ async def scaffold_agent(payload: dict, principal: Principal = Depends(current_p
 
 
 @router.post("/v1/agent/builder/pack", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
-async def pack_agent_bundle(payload: dict, principal: Principal = Depends(current_principal)):
+async def pack_agent_bundle(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Pack an agent directory into a distributable .tar.gz bundle with SHA-256 digests."""
     from core.agents.builder import AgentBundlePacker
 
@@ -2136,7 +2137,7 @@ async def pack_agent_bundle(payload: dict, principal: Principal = Depends(curren
 
 
 @router.post("/v1/agent/builder/unpack", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Agent Builder"])
-async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(current_principal)):
+async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Unpack and cryptographically verify an agent bundle archive."""
     from core.agents.builder import AgentBundlePacker
 
@@ -2190,7 +2191,7 @@ async def unpack_agent_bundle(payload: dict, principal: Principal = Depends(curr
 RUNNER_JOBS_QUEUE: List[Dict[str, Any]] = []
 
 @router.post("/v1/runner/jobs/enqueue", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Customer Runner"])
-async def enqueue_customer_runner_job(payload: dict, principal: Principal = Depends(current_principal)):
+async def enqueue_customer_runner_job(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Enqueues an asynchronous task execution job for pickup by an outbound customer VPC runner daemon."""
     import uuid
     job_id = f"job_{uuid.uuid4().hex[:12]}"
@@ -2212,7 +2213,7 @@ async def enqueue_customer_runner_job(payload: dict, principal: Principal = Depe
 
 
 @router.post("/v1/runner/jobs/poll", tags=["Customer Runner"])
-async def poll_customer_runner_jobs(payload: dict):
+async def poll_customer_runner_jobs(payload: dict) -> Dict[str, Any]:
     """Long-poll endpoint for outbound customer runner daemons. Verifies auth token and returns available jobs."""
     runner_id = payload.get("runner_id")
     org_id = payload.get("org_id")
@@ -2230,7 +2231,7 @@ async def poll_customer_runner_jobs(payload: dict):
 
 
 @router.post("/v1/runner/jobs/ack", tags=["Customer Runner"])
-async def acknowledge_customer_runner_job(payload: dict):
+async def acknowledge_customer_runner_job(payload: dict) -> Dict[str, Any]:
     """Receives completion receipt, run status, and patch hash from customer runner."""
     run_id = payload.get("run_id", "unknown")
     status = payload.get("status", "COMPLETED")
@@ -2243,13 +2244,13 @@ async def acknowledge_customer_runner_job(payload: dict):
 
 
 @router.get("/v1/runner/jobs/pending", dependencies=[Depends(current_principal)], tags=["Customer Runner"])
-async def get_pending_runner_jobs():
+async def get_pending_runner_jobs() -> Dict[str, Any]:
     """List queued runner jobs waiting for runner node pickup."""
     return {"pending_jobs": RUNNER_JOBS_QUEUE, "count": len(RUNNER_JOBS_QUEUE)}
 
 
 @router.get("/v1/runner/environment/status", dependencies=[Depends(current_principal)], tags=["Customer Runner"])
-async def get_runner_environment_status():
+async def get_runner_environment_status() -> Dict[str, Any]:
     """Honest status of the isolated runner environment backend (D-004).
 
     Reports `available: false` with a diagnostic when no Docker daemon can
@@ -2265,7 +2266,7 @@ async def get_runner_environment_status():
 
 
 @router.post("/v1/runner/spool/sync", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Customer Runner"])
-async def sync_customer_runner_spool(payload: dict, principal: Principal = Depends(current_principal)):
+async def sync_customer_runner_spool(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Processes an offline batch synchronization submission from a customer runner."""
     del principal
     from core.runner.spool import RunnerSpoolManager
@@ -2284,7 +2285,7 @@ async def sync_customer_runner_spool(payload: dict, principal: Principal = Depen
 
 
 @router.get("/v1/runner/spool/status/{runner_id}", tags=["Customer Runner"])
-async def get_customer_runner_spool_status(runner_id: str):
+async def get_customer_runner_spool_status(runner_id: str) -> Dict[str, Any]:
     """Retrieves pending item count and total spooled items for an outbound runner node."""
     from core.runner.spool import RunnerSpoolManager
 
@@ -2294,7 +2295,7 @@ async def get_customer_runner_spool_status(runner_id: str):
 
 
 @router.get("/v1/approval-rules", dependencies=[Depends(current_principal)], tags=["Autonomous Agent Loop"])
-async def list_approval_rules():
+async def list_approval_rules() -> Dict[str, Any]:
     """Standing approvals for the open workspace."""
     rules = ApprovalRuleStore(_workspace_fs.root).list()
     now = time.time()
@@ -2305,7 +2306,7 @@ async def list_approval_rules():
 
 
 @router.delete("/v1/approval-rules/{rule_id}", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
-async def revoke_approval_rule(rule_id: str, principal: Principal = Depends(current_principal)):
+async def revoke_approval_rule(rule_id: str, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Revoke a standing approval; matching requests ask again."""
     gone = ApprovalRuleStore(_workspace_fs.root).remove(rule_id)
     if not gone:
@@ -2315,7 +2316,7 @@ async def revoke_approval_rule(rule_id: str, principal: Principal = Depends(curr
 
 
 @router.post("/v1/approval-rules", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
-async def create_approval_rule(request: Request, principal: Principal = Depends(current_principal)):
+async def create_approval_rule(request: Request, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Create a standing approval for the open workspace (Studio 'Allow always' grant path)."""
     try:
         payload = await request.json()
@@ -2341,7 +2342,7 @@ async def create_approval_rule(request: Request, principal: Principal = Depends(
 
 
 @router.post("/v1/approval-rules/{rule_id}/reconfirm", dependencies=[Depends(require(Permission.APPROVE_TIER3))], tags=["Autonomous Agent Loop"])
-async def reconfirm_approval_rule(rule_id: str, request: Request, principal: Principal = Depends(current_principal)):
+async def reconfirm_approval_rule(rule_id: str, request: Request, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Re-bind a standing approval to the current model/prompt version after drift."""
     try:
         payload = await request.json()
@@ -2362,7 +2363,7 @@ async def reconfirm_approval_rule(rule_id: str, request: Request, principal: Pri
 
 
 @router.get("/v1/tier2/status", tags=["Tier 2 Hardware Verification"])
-async def get_tier2_status(principal: Principal = Depends(current_principal)):
+async def get_tier2_status(principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Active status of Tier 2 hardware security verification layers."""
     return {
         "tier": 2,
@@ -2402,7 +2403,7 @@ async def get_tier2_status(principal: Principal = Depends(current_principal)):
 
 
 @router.post("/v1/tier2/verify", tags=["Tier 2 Hardware Verification"])
-async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal = Depends(current_principal)):
+async def verify_tier2_subsystem(payload: Dict[str, Any], principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Cryptographically verify Tier 2 hardware claims (Dual-WORM, TPM quote, PIV, or Recovery)."""
     subsystem = payload.get("subsystem", "worm")
     
@@ -2694,9 +2695,12 @@ async def generate_app(
 # Plugin Extension & External MCP Bridge Endpoints
 # ==============================================================================
 
+if TYPE_CHECKING:
+    from core.plugins.manager import PluginManager
+
 _plugin_manager: Optional[Any] = None
 
-def get_plugin_manager():
+def get_plugin_manager() -> "PluginManager":
     global _plugin_manager
     if _plugin_manager is None:
         from core.plugins.manager import PluginManager
@@ -3770,7 +3774,7 @@ async def delete_schedule(
 # =====================================================================
 
 @router.post("/v1/worktrees", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
-async def create_agent_worktree(payload: dict, principal: Principal = Depends(current_principal)):
+async def create_agent_worktree(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Creates an isolated git worktree + branch for agent edits."""
     task_id = payload.get("task_id", "")
     base_ref = payload.get("base_ref", "HEAD")
@@ -3783,13 +3787,13 @@ async def create_agent_worktree(payload: dict, principal: Principal = Depends(cu
 
 
 @router.get("/v1/worktrees", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def list_agent_worktrees():
+async def list_agent_worktrees() -> Dict[str, Any]:
     """Lists git worktrees; marks agent-isolated entries."""
     return _workspace_fs.list_worktrees()
 
 
 @router.delete("/v1/worktrees/{task_id}", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
-async def remove_agent_worktree(task_id: str, force: bool = False, principal: Principal = Depends(current_principal)):
+async def remove_agent_worktree(task_id: str, force: bool = False, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Removes an agent worktree. Only .keelway/worktrees paths are removable."""
     try:
         res = _workspace_fs.remove_worktree(task_id=task_id, force=force)
@@ -3800,7 +3804,7 @@ async def remove_agent_worktree(task_id: str, force: bool = False, principal: Pr
 
 
 @router.post("/v1/checkpoints", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
-async def create_checkpoint(payload: dict, principal: Principal = Depends(current_principal)):
+async def create_checkpoint(payload: dict, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Snapshots working-tree state without modifying it."""
     try:
         res = _workspace_fs.create_checkpoint(label=payload.get("label", ""))
@@ -3811,12 +3815,12 @@ async def create_checkpoint(payload: dict, principal: Principal = Depends(curren
 
 
 @router.get("/v1/checkpoints", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def list_checkpoints():
+async def list_checkpoints() -> Dict[str, Any]:
     return _workspace_fs.list_checkpoints()
 
 
 @router.post("/v1/checkpoints/{checkpoint_id}/restore", dependencies=[Depends(require(Permission.EXECUTE_AGENT))], tags=["Workspace Git"])
-async def restore_checkpoint(checkpoint_id: str, principal: Principal = Depends(current_principal)):
+async def restore_checkpoint(checkpoint_id: str, principal: Principal = Depends(current_principal)) -> Dict[str, Any]:
     """Restores a checkpoint's working-tree snapshot via git stash apply."""
     try:
         res = _workspace_fs.restore_checkpoint(checkpoint_id)
@@ -3827,6 +3831,6 @@ async def restore_checkpoint(checkpoint_id: str, principal: Principal = Depends(
 
 
 @router.get("/v1/git/ci/status", dependencies=[Depends(current_principal)], tags=["Workspace Git"])
-async def get_ci_status(branch: Optional[str] = None, limit: int = 10):
+async def get_ci_status(branch: Optional[str] = None, limit: int = 10) -> Dict[str, Any]:
     """CI check status via gh CLI; honest available:false when unavailable."""
     return _workspace_fs.get_ci_status(branch=branch, limit=limit)

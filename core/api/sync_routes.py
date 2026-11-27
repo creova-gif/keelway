@@ -3,7 +3,7 @@ Keelway Dual-Mode Sovereign IDE: External Editor Sync API Endpoints
 Exposes controls for launching VS Code / Cursor and resolving concurrent edit conflicts.
 """
 
-from typing import Optional
+from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -39,7 +39,7 @@ class ResolveConflictRequest(BaseModel):
 
 
 @router.get("/status", tags=["External Editor Sync"])
-async def get_sync_status(bridge: ExternalEditorSyncBridge = Depends(get_sync_bridge)):
+async def get_sync_status(bridge: ExternalEditorSyncBridge = Depends(get_sync_bridge)) -> Dict[str, Any]:
     """Returns the external editor sync watcher status, detected editors, and pending conflicts."""
     return bridge.get_status()
 
@@ -48,8 +48,8 @@ async def get_sync_status(bridge: ExternalEditorSyncBridge = Depends(get_sync_br
 async def open_in_external_editor(
     req: OpenInEditorRequest,
     bridge: ExternalEditorSyncBridge = Depends(get_sync_bridge),
-    _=Depends(require(Permission.EXECUTE_AGENT)),
-):
+    _: Any = Depends(require(Permission.EXECUTE_AGENT)),
+) -> Dict[str, Any]:
     """
     Launches the workspace or active file in an external editor (VS Code, Cursor, etc.).
     Returns HTTP 422 if the external editor binary is not installed on the system.
@@ -69,8 +69,8 @@ async def open_in_external_editor(
 async def resolve_concurrent_conflict(
     req: ResolveConflictRequest,
     bridge: ExternalEditorSyncBridge = Depends(get_sync_bridge),
-    _=Depends(require(Permission.EXECUTE_AGENT)),
-):
+    _: Any = Depends(require(Permission.EXECUTE_AGENT)),
+) -> Dict[str, Any]:
     """Resolves a concurrent edit conflict between an agent and an external editor."""
     try:
         return bridge.resolve_conflict(file_path=req.file_path, resolution=req.resolution)

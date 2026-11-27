@@ -34,7 +34,7 @@ class FlightEvent:
 class FlightRecorder:
     """Records every step of an agent run into an immutable, cryptographic execution tape."""
 
-    def __init__(self, task_id: str, recordings_dir: Optional[Path] = None, db_path: Optional[Any] = None, **kwargs):
+    def __init__(self, task_id: str, recordings_dir: Optional[Path] = None, db_path: Optional[Any] = None, **kwargs: Any) -> None:
         self.task_id = task_id
         self.db_path = db_path
         self.recordings_dir = recordings_dir or legacy_aware(Path(".keelway/recordings"), Path(".kora/recordings"))
@@ -48,7 +48,7 @@ class FlightRecorder:
         event_type: str,
         payload: Dict[str, Any],
         event_index: Optional[int] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> FlightEvent:
         # An agent can read .env or print secrets; the tape is exported, forked and shared, so it never stores them.
         payload, removed = redact_payload(payload)
@@ -157,7 +157,7 @@ class FlightRecorder:
 class FlightPlayer:
     """Replays recorded tapes deterministically without calling external models or tools."""
 
-    def __init__(self, tape_path: Path):
+    def __init__(self, tape_path: Path) -> None:
         if not tape_path.exists():
             raise FileNotFoundError(f"Flight tape not found: {tape_path}")
         self.tape_data = json.loads(tape_path.read_text(encoding="utf-8"))

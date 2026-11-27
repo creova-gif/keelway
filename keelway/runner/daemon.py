@@ -31,7 +31,7 @@ class CustomerRunnerDaemon:
         control_plane_url: str = "http://127.0.0.1:8000",
         allowed_repos: Optional[List[str]] = None,
         repo_dir: str = ".",
-    ):
+    ) -> None:
         self.runner_id = runner_id
         self.org_id = org_id
         self.secret_key = secret_key or hashlib.sha256(f"{org_id}:{runner_id}".encode()).digest()
@@ -173,7 +173,7 @@ class CustomerRunnerDaemon:
 
         return summary
 
-    def start(self, poll_interval: float = 5.0, max_iterations: Optional[int] = None):
+    def start(self, poll_interval: float = 5.0, max_iterations: Optional[int] = None) -> None:
         """Runs the continuous outbound polling loop until interrupted or max_iterations reached."""
         import time
         print(f"[+] Outbound Runner Daemon active for org '{self.org_id}' on node '{self.runner_id}'")

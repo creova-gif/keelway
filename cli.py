@@ -22,7 +22,7 @@ import sys
 import time
 import urllib.request
 from pathlib import Path
-from typing import Optional
+from typing import Any, List, Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
@@ -213,7 +213,7 @@ def cmd_init(
     return 0
 
 
-async def cmd_heal(test_cmd: str, max_attempts: int = 3):
+async def cmd_heal(test_cmd: str, max_attempts: int = 3) -> None:
     """Run closed-loop autonomous repair on a failing test command."""
     from core.orchestration.self_healing import SelfHealingLoop
     print("\n" + "=" * 65)
@@ -326,7 +326,7 @@ async def cmd_mesh(
     return 0
 
 
-async def cmd_spec():
+async def cmd_spec() -> None:
     """Run speculative decoding benchmark comparison."""
     from core.models.speculative import SpeculativeDecoder
     print("\n" + "=" * 65)
@@ -344,7 +344,7 @@ async def cmd_spec():
     print(f"  • Latency:            {res.latency_ms:.2f} ms\n")
 
 
-async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, description: str):
+async def cmd_pay(rail: str, amount: float, currency: str, recipient: str, description: str) -> None:
     """Create and display a sovereign multi-rail payment intent."""
     from core.storage.payment_broker import GlobalPaymentBroker, GlobalRail
     from keelway.security.source_defaults import InsecureDefaultConfiguration
@@ -380,7 +380,7 @@ def _lan_ip() -> str | None:
         return None
 
 
-def _launch_desktop_window(url: str):
+def _launch_desktop_window(url: str) -> None:
     """Launches Keelway in a dedicated borderless application window (Chromium/Edge app mode)."""
     import shutil
     import subprocess
@@ -423,7 +423,7 @@ async def cmd_dev(
     host: str = "127.0.0.1",
     desktop: bool = False,
     legacy_studio: bool = False,
-):
+) -> None:
     """Launch Keelway Studio — Local Web & Desktop UI."""
     import webbrowser
     import threading
@@ -449,7 +449,7 @@ async def cmd_dev(
     print("  Air-Gap: off (cloud providers allowed; use `keelway chat --air-gapped` for local-only)")
     print("=" * 65 + "\n")
 
-    def auto_open_target():
+    def auto_open_target() -> None:
         target_url = (
             f"http://{host}:{port}{launch_path}?token={launch_token()}"
             if settings.auth_required
@@ -483,7 +483,7 @@ async def cmd_dev(
         serve_static_fallback(host, port)
 
 
-async def cmd_notify(channel: str = "telegram", target: str = "", action: str = "deploy_hotfix", task_id: str = "task_01"):
+async def cmd_notify(channel: str = "telegram", target: str = "", action: str = "deploy_hotfix", task_id: str = "task_01") -> None:
     """Dispatch an omnichannel agent approval notification across Telegram, WhatsApp, Mobile App, or SMS."""
     from core.api.messaging import OmnichannelDispatcher, MessagingChannel, AgentApprovalRequest, ChannelPreference
     import json
@@ -531,7 +531,7 @@ async def cmd_notify(channel: str = "telegram", target: str = "", action: str = 
     print("\n" + "=" * 65 + "\n")
 
 
-async def cmd_repomap(max_tokens: int = 1500):
+async def cmd_repomap(max_tokens: int = 1500) -> None:
     """Generate condensed codebase repository map for prompt augmentation."""
     from core.storage.ast_index import CodebaseSemanticIndex
     idx = CodebaseSemanticIndex()
@@ -544,7 +544,7 @@ async def cmd_repomap(max_tokens: int = 1500):
     print()
 
 
-async def cmd_search(query: str, top_k: int = 10):
+async def cmd_search(query: str, top_k: int = 10) -> None:
     """Search workspace symbols using hybrid semantic vector and lexical matching."""
     from core.storage.ast_index import CodebaseSemanticIndex
     idx = CodebaseSemanticIndex()
@@ -673,7 +673,7 @@ def cmd_code(
 
 
 
-async def cmd_pull(model: str = "qwen2.5-coder:7b"):
+async def cmd_pull(model: str = "qwen2.5-coder:7b") -> None:
     """Pull and stream a local LLM into Ollama with live progress visualization."""
     import urllib.request
     import json
@@ -734,7 +734,7 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
         return 0
 
     if action == "init":
-        async def _init():
+        async def _init() -> int:
             from core.agents.builder import AgentBuilder
             tpl_id = str(path) if path else "test-fixer"
             agent_name = by or tpl_id
@@ -754,7 +754,7 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
         return asyncio.run(_init())
 
     if action == "list":
-        async def _list():
+        async def _list() -> int:
             from core.agents.registry import list_registered_manifests
             from core.storage.database import init_db, AsyncSessionLocal
             await init_db()
@@ -841,7 +841,7 @@ def cmd_agent(action: str, path: Optional[Path] = None, by: str = "", out: Optio
         return 0
 
     if action == "register":
-        async def _register():
+        async def _register() -> int:
             from core.agents.registry import register_manifest
             from core.storage.database import init_db, AsyncSessionLocal
             await init_db()
@@ -1147,7 +1147,7 @@ def cmd_sbom(action: str = "generate", out: Optional[Path] = None, target: Optio
     return 1
 
 
-def cmd_licence_tools(args) -> int:
+def cmd_licence_tools(args: argparse.Namespace) -> int:
     """Licence keys and files: keygen (issuer only), issue (issuer only), install (customer)."""
     import json
     import os
@@ -1475,13 +1475,13 @@ async def cmd_record(
     action: str,
     path: Optional[Path] = None,
     anchor: Optional[Path] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> int:
     """Export or verify audit records in portable Record JSONL format."""
     return await cmd_audit(action=action, path=path, anchor=anchor, is_record=True, **kwargs)
 
 
-async def cmd_token(action: str, name: str = "", role: str = "engineer", token_id: str = ""):
+async def cmd_token(action: str, name: str = "", role: str = "engineer", token_id: str = "") -> None:
     """Mint, list, or revoke API tokens directly in the local database."""
     from sqlalchemy import select
     from core.security.auth import create_api_token
@@ -1743,7 +1743,7 @@ async def cmd_tier2(action: str, subsystem: str = "all") -> int:
     return 0
 
 
-async def cmd_doctor(json_output: bool = False):
+async def cmd_doctor(json_output: bool = False) -> int:
     """Check health across sovereign enterprise dimensions."""
     from core.system.doctor import SystemDoctor
     report = await SystemDoctor.run_diagnostics()
@@ -2105,7 +2105,7 @@ async def cmd_pilot(
     return 1
 
 
-async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_gapped: bool = False, voice_style: str = "human-engineer", conversation: Optional[str] = None):
+async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_gapped: bool = False, voice_style: str = "human-engineer", conversation: Optional[str] = None) -> None:
     """Run interactive multi-turn agent chat with dynamic memory recall, air-gap enforcement, and style de-slopping."""
     prov = Provider(provider_name) if provider_name else Provider.LOCAL
     if air_gapped:
@@ -2184,7 +2184,7 @@ async def cmd_chat(provider_name: str, system_prompt: Optional[str] = None, air_
             print(f"\n[!] Error during agent execution: {e}\n")
 
 
-async def cmd_brief(title: str, description: str, files: list, failing_tests: list, provider_name: str):
+async def cmd_brief(title: str, description: str, files: list, failing_tests: list, provider_name: str) -> None:
     """Run Workflow 1: Engineering Brief Generator."""
     print(f"\n[+] Generating Engineering Brief for: '{title}'...")
     prov = Provider(provider_name) if provider_name else None
@@ -2210,7 +2210,7 @@ async def cmd_brief(title: str, description: str, files: list, failing_tests: li
     print(f"    Latency:        {result['latency_ms']:.1f}ms | Cost: ${result['cost_usd']:.5f}\n")
 
 
-async def cmd_summarize(doc_path: Path, store_memory: bool, provider_name: str):
+async def cmd_summarize(doc_path: Path, store_memory: bool, provider_name: str) -> None:
     """Run Workflow 2: Research Summary."""
     if not doc_path.exists():
         print(f"[!] Error: File '{doc_path}' not found.")
@@ -2242,7 +2242,7 @@ async def cmd_summarize(doc_path: Path, store_memory: bool, provider_name: str):
     print(f"    Latency:        {result['latency_ms']:.1f}ms | Cost: ${result['cost_usd']:.5f}\n")
 
 
-async def cmd_test_sandbox(command: str, approve: bool, provider_name: str):
+async def cmd_test_sandbox(command: str, approve: bool, provider_name: str) -> None:
     """Run Workflow 3: Ephemeral Sandboxed Test Execution."""
     if not approve:
         print("[!] Execution Aborted: Sandbox execution requires explicit human approval (Tier 3 Gate).")
@@ -3875,7 +3875,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv=None):
+def main(argv: Optional[List[str]] = None) -> int:
     try:
         return _main(argv)
     except KeyboardInterrupt:
@@ -3889,7 +3889,7 @@ def main(argv=None):
         sys.exit(1)
 
 
-def _main(argv=None):
+def _main(argv: Optional[List[str]] = None) -> int:
     raw_args = list(sys.argv[1:] if argv is None else argv)
     if not raw_args:
         print_banner()
@@ -4258,7 +4258,7 @@ def _main(argv=None):
         run_eval_main()
     elif args.command == "memory":
         from core.storage.memory import MemoryService
-        async def run_memory():
+        async def run_memory() -> None:
             await init_db()
             async with AsyncSessionLocal() as db:
                 service = MemoryService(db)
@@ -4298,7 +4298,7 @@ def _main(argv=None):
         asyncio.run(run_memory())
     elif args.command == "dataset":
         from research.datasets.pipeline import TraceDatasetExtractor, ExportFormat
-        async def run_dataset():
+        async def run_dataset() -> None:
             await init_db()
             async with AsyncSessionLocal() as db:
                 extractor = TraceDatasetExtractor(db)
@@ -4413,6 +4413,7 @@ def _main(argv=None):
                 format_type=getattr(args, "format_type", "text"),
             )
         )
+    return 0
 
 
 

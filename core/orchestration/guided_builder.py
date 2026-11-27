@@ -319,7 +319,7 @@ class GuidedAppBuilder:
 
         created_files: List[str] = []
 
-        def _write(rel_path: str, content: str):
+        def _write(rel_path: str, content: str) -> None:
             p = target_dir / rel_path
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(content.strip() + "\n", encoding="utf-8")

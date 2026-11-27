@@ -138,7 +138,7 @@ class ExternalEditorSyncBridge:
         agent_id: str,
         base_content: str = "",
         agent_content: str = "",
-    ):
+    ) -> None:
         """Registers that an autonomous agent is actively reading or formulating edits for a file."""
         norm_path = str(Path(file_path)).lstrip("/")
         self._active_leases[norm_path] = {
@@ -148,7 +148,7 @@ class ExternalEditorSyncBridge:
             "acquired_at": time.time(),
         }
 
-    def release_file_lease(self, file_path: str, agent_id: str):
+    def release_file_lease(self, file_path: str, agent_id: str) -> None:
         """Releases the agent's file lease once task completes or is cancelled."""
         norm_path = str(Path(file_path)).lstrip("/")
         if norm_path in self._active_leases and self._active_leases[norm_path]["agent_id"] == agent_id:

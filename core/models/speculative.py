@@ -81,7 +81,7 @@ class SpeculativeResult:
     latency_ms: float = 0.0
     token_stream: List[Dict[str, Any]] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.text and self.generated_text:
             self.text = self.generated_text
         elif not self.generated_text and self.text:
@@ -108,7 +108,7 @@ class SpeculativeDecodingEngine:
         draft_adapter: BaseModelProvider,
         target_adapter: BaseModelProvider,
         cost_ledger_instance: Optional[CostLedger] = None,
-    ):
+    ) -> None:
         self.draft_adapter = draft_adapter
         self.target_adapter = target_adapter
         self.cost_ledger = cost_ledger_instance or cost_ledger
@@ -421,7 +421,7 @@ class SpeculativeDecoder:
         draft_model_tag: str = "qwen2.5-coder:0.5b",
         target_model_tag: str = "qwen2.5-coder:7b",
         lookahead_k: int = 4,
-    ):
+    ) -> None:
         self.draft_model_tag = draft_model_tag
         self.target_model_tag = target_model_tag
         self.lookahead_k = lookahead_k
