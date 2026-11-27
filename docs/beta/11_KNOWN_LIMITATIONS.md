@@ -34,8 +34,9 @@ These are real product truths for beta onboarding and support.
   request timeout bounded at 30s with a 5s connect split and honest 503.
   Residual: generations slower than 30s on CPU-only hosts need
   `timeout_s=` override.
-- **`keelway swarm` offline benchmark** can hang (harness event-loop
-  deadlock) — do not demo; P1-1.
+- **`keelway swarm` offline mode is deterministic** as of P1-1 —
+  citizen/draft calls use a zero-network mock; live inference requires
+  `swarm run --live`.
 - **Desktop app** opens Chromium app-mode, not a signed bundle.
 - **Mobile companion** pairing works; on-device fold on live stack
   pending device re-verify.
