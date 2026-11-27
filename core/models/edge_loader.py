@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from core.config import legacy_aware
+from core.config import legacy_aware, settings
 from typing import Dict, Any, Optional
 
 
@@ -40,8 +40,8 @@ class EdgeRuntimeManager:
         "workstation": "qwen2.5-coder-14b-instruct-q4_k_m.gguf",
     }
 
-    def __init__(self, ollama_url: str = "http://localhost:11434", cache_dir: Optional[Path] = None):
-        self.ollama_url = ollama_url
+    def __init__(self, ollama_url: Optional[str] = None, cache_dir: Optional[Path] = None):
+        self.ollama_url = ollama_url or settings.ollama_base_url
         self.cache_dir = cache_dir or legacy_aware(Path.home() / ".keelway" / "models", Path.home() / ".kora" / "models")
         self.hardware = self.detect_hardware()
 

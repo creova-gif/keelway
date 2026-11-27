@@ -4,6 +4,7 @@ Implements FR-04 (model routing, local Ollama/vLLM adapters) and FR-10 (budget h
 from __future__ import annotations
 
 import enum
+import os
 from typing import Any, Dict, List, Optional
 import httpx
 from pydantic import BaseModel
@@ -49,7 +50,7 @@ class ModelGateway:
 
     def _default_endpoint(self, provider: ProviderKind) -> str:
         if provider == ProviderKind.LOCAL_OLLAMA:
-            return "http://localhost:11434"
+            return os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         elif provider == ProviderKind.LOCAL_VLLM:
             return "http://localhost:8000"
         return "https://api.openai.com"

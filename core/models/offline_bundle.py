@@ -18,6 +18,8 @@ from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import httpx
 
+from core.config import settings
+
 BUNDLE_MANIFEST = "keelway-model.json"
 BUNDLE_FORMAT = "keelway-model-bundle/v1"
 MODEL_FILE = "model.gguf"
@@ -160,11 +162,12 @@ def _stream(path: Path, progress: Progress) -> Iterator[bytes]:
 def import_bundle(
     path: Path,
     name: Optional[str] = None,
-    ollama_url: str = "http://localhost:11434",
+    ollama_url: Optional[str] = None,
     progress: Progress = None,
     client: Optional[httpx.Client] = None,
 ) -> ImportResult:
     """Verify a bundle (or .gguf) and install it into the running Ollama under `name`."""
+    ollama_url = ollama_url or settings.ollama_base_url
     gguf, info = read_bundle(path)
     model = name or info.get("model") or gguf.stem
     split_model_name(model)
