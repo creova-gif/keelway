@@ -6,9 +6,6 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "keelway",
-    "splash": {
-      "backgroundColor": "#0B0F14"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dev.keelway.mobile",
@@ -39,6 +36,13 @@
           "android": {
             "usesCleartextTraffic": true
           }
+        }
+      ],
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B0F14"
         }
       ]
     ],
