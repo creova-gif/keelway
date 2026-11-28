@@ -34,6 +34,7 @@ export interface CommandPaletteProps {
 export const PLATFORM_VIEW_COMMANDS: CommandPaletteActionItem[] = [
   { id: "view-ide", label: "Open IDE Workspace", category: "workspace", description: "Jump to Tasks, Files, Diff Review & Sandbox shell", platformView: "ide" },
   { id: "view-agents", label: "Open Agents View", category: "workspace", description: "12 specialized lifecycle agents & multi-agent squads", platformView: "agents" },
+  { id: "view-chat", label: "Open Chat View", category: "workspace", description: "Agent thread, session switcher & P-10 approvals", platformView: "chat" },
   { id: "view-pm", label: "Open Project Manager View", category: "workspace", description: "Linear-style sprint issues, Kanban board & delegation", platformView: "pm" },
   { id: "view-product", label: "Open Product PRDs View", category: "workspace", description: "Product discovery, PRDs, RICE calculator & feedback", platformView: "product" },
   { id: "view-automation", label: "Open Automation DAG View", category: "workspace", description: "KFlow DAG pipelines, cron/webhook triggers & logs", platformView: "automation" },

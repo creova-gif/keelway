@@ -1,11 +1,11 @@
 ---
 name: verify-keelway
-description: "Drive and verify the real Keelway Unified 10-View Dev App (/app), REST/SSE API (/v1/*), Sovereign CLI (cli.py), and SQLite WAL runtime in an isolated local stack. Use whenever proving UI, P-10 human gate, RBAC, AES-256-GCM vault, webhook, pricing simulator, or CLI behavior in keelway/."
+description: "Drive and verify the real Keelway Unified 11-View Dev App (/app), REST/SSE API (/v1/*), Sovereign CLI (cli.py), and SQLite WAL runtime in an isolated local stack. Use whenever proving UI, P-10 human gate, RBAC, AES-256-GCM vault, webhook, pricing simulator, or CLI behavior in keelway/."
 ---
 
 # Verify Keelway (`verify-keelway`)
 
-Keelway's primary interactive surface is the Unified 10-View Sovereign Dev App served by FastAPI (`core.main:app`) at `http://127.0.0.1:<PORT>/app?token=<KEELWAY_API_TOKEN>`, backed by the REST + SSE API (`/v1/*`), the Sovereign CLI (`python cli.py ...`), and SQLite WAL (`platform_runtime.db`).
+Keelway's primary interactive surface is the Unified 11-View Sovereign Dev App served by FastAPI (`core.main:app`) at `http://127.0.0.1:<PORT>/app?token=<KEELWAY_API_TOKEN>`, backed by the REST + SSE API (`/v1/*`), the Sovereign CLI (`python cli.py ...`), and SQLite WAL (`platform_runtime.db`).
 
 Check [`features/README.md`](features/README.md) first to locate the user journey and observable end-state assertions for the feature under test.
 

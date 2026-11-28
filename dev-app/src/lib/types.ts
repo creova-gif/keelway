@@ -9,6 +9,7 @@ export type RailSection = "tasks" | "files" | "record" | "settings";
 export type PlatformViewId =
   | "ide"
   | "agents"
+  | "chat"
   | "pm"
   | "product"
   | "automation"

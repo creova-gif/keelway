@@ -41,6 +41,9 @@ import type {
 const TasksWorkspace = lazy(() =>
   import("@/components/screens/TasksWorkspace").then((m) => ({ default: m.TasksWorkspace })),
 );
+const ChatWorkspaceView = lazy(() =>
+  import("@/components/screens/ChatWorkspaceView").then((m) => ({ default: m.ChatWorkspaceView })),
+);
 const FilesWorkspace = lazy(() =>
   import("@/components/screens/FilesWorkspace").then((m) => ({ default: m.FilesWorkspace })),
 );
@@ -577,6 +580,34 @@ export function App({
 
   const mainAriaLabel = resolveMainAriaLabel(platformView, activeSection);
 
+  const tasksWorkspaceEl = (
+    <TasksWorkspace
+      taskId={activeTask.id}
+      taskTitle={activeTask.title}
+      workspaceBranch={workspaceBranch}
+      activeModelLabel={activeModelLabel}
+
+      proposals={activeTaskProposals}
+      receipts={receiptsByProposalId}
+      diffHunks={diffHunks}
+      reviewOpen={reviewOpen}
+      onToggleReview={setReviewOpen}
+      renderReviewInShell={!effectiveMobileCompanion}
+      isCompanion={effectiveMobileCompanion}
+      onSelectActiveModel={handleSelectActiveModel}
+      logsOpen={logsOpen}
+      onToggleLogs={setLogsOpen}
+      renderLogsInShell={true}
+      composerValue={composerValue}
+      onComposerValueChange={setComposerValue}
+      composerTextareaRef={composerTextareaRef}
+      approvalHeadingRef={approvalHeadingRef}
+      onPoliteAnnouncement={setPoliteAnnouncement}
+      onSubmitDecision={handleProposalDecision}
+      onCreateScopedRule={handleCreateScopedRule}
+    />
+  );
+
   return (
     <>
       <DevAppShell
@@ -703,39 +734,23 @@ export function App({
         onSelectCompanionTab={setCompanionTab}
       >
         <Suspense fallback={lazyScreenFallback}>
-        {platformView !== "ide" ? (
+        {platformView !== "ide" && platformView !== "chat" ? (
           renderPlatformCanvas({
             selectedSeq: recordSelectedSeq,
             onSelectSeq: setRecordSelectedSeq,
             verifyRequestNonce: recordVerifyNonce,
             onOpenDiffInReview: handleOpenDiffInReview,
           })
+        ) : platformView === "chat" ? (
+          <ChatWorkspaceView
+            tasks={tasks}
+            activeTaskId={activeTask.id}
+            onSelectTask={setActiveTaskId}
+          >
+            {tasksWorkspaceEl}
+          </ChatWorkspaceView>
         ) : activeSection === "tasks" ? (
-          <TasksWorkspace
-            taskId={activeTask.id}
-            taskTitle={activeTask.title}
-            workspaceBranch={workspaceBranch}
-            activeModelLabel={activeModelLabel}
-
-            proposals={activeTaskProposals}
-            receipts={receiptsByProposalId}
-            diffHunks={diffHunks}
-            reviewOpen={reviewOpen}
-            onToggleReview={setReviewOpen}
-            renderReviewInShell={!effectiveMobileCompanion}
-            isCompanion={effectiveMobileCompanion}
-            onSelectActiveModel={handleSelectActiveModel}
-            logsOpen={logsOpen}
-            onToggleLogs={setLogsOpen}
-            renderLogsInShell={true}
-            composerValue={composerValue}
-            onComposerValueChange={setComposerValue}
-            composerTextareaRef={composerTextareaRef}
-            approvalHeadingRef={approvalHeadingRef}
-            onPoliteAnnouncement={setPoliteAnnouncement}
-            onSubmitDecision={handleProposalDecision}
-            onCreateScopedRule={handleCreateScopedRule}
-          />
+          tasksWorkspaceEl
         ) : activeSection === "files" ? (
           <div
             className={ideGateActive ? "h-full opacity-60" : "h-full"}

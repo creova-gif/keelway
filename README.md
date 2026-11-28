@@ -49,7 +49,7 @@ To maintain strict claim-to-code parity for engineering and security reviewers, 
 flowchart TD
     subgraph TB1["Trust Boundary 1: Operator & Client Surfaces"]
         CLI["Sovereign CLI (cli.py / keelway-ops)"]
-        DevApp["Unified 10-View Dev Tool (127.0.0.1:7420/app)"]
+        DevApp["Unified 11-View Dev Tool (127.0.0.1:7420/app)"]
         Studio["Keelway Studio IDE (/studio)"]
         SDKs["Zero-Dep Tri-SDKs (Python / @keelway/sdk / keelway-go)"]
     end
@@ -105,7 +105,7 @@ flowchart TD
 
 | Surface | Default Bind | Entrypoint / Source | Launch Command |
 |---|---|---|---|
-| **Unified 10-View Sovereign Dev Tool** | `127.0.0.1:7420/app` | `dev-app/` → `core/dev_app_dist/` (`core.main:app`) | `keelway dev` |
+| **Unified 11-View Sovereign Dev Tool** | `127.0.0.1:7420/app` | `dev-app/` → `core/dev_app_dist/` (`core.main:app`) | `keelway dev` |
 | **Keelway Studio IDE** | `127.0.0.1:7420/studio` | `core/studio/` (`core.main:app`) | `keelway dev` or `keelway desktop` |
 | **Governance Control Plane** | `127.0.0.1:8000/` | `keelway/api/app.py` (`keelway-ops`) | `keelway-ops serve` or `make serve` |
 | **Next.js 15 Product & Docs Site** | `:3000` (dev/prod) | `web-next/` | `npm --prefix web-next run dev` |
@@ -114,7 +114,7 @@ flowchart TD
 
 ## Core v1.1.0 Capabilities
 
-- **Unified 10-View Sovereign Dev Tool (`/app`)**: Overview, Coding Workspace (AST symbol index + safe patcher), Agent Teams, PM Issues & Sprints, Product PRDs & Feedback, Diataxis Docs, KFlow Automation & KSpaces CRDT, No-Code Blueprint Studio, Security/Vault/MCP/SBOM, and Subscriptions/Golden Evals — verified against **WCAG 2.2 AA (`axe-core`)**.
+- **Unified 11-View Sovereign Dev Tool (`/app`)**: Overview, Agent Chat, Coding Workspace (AST symbol index + safe patcher), Agent Teams, PM Issues & Sprints, Product PRDs & Feedback, Diataxis Docs, KFlow Automation & KSpaces CRDT, No-Code Blueprint Studio, Security/Vault/MCP/SBOM, and Subscriptions/Golden Evals — verified against **WCAG 2.2 AA (`axe-core`)**.
 - **Hybrid OpenCore + Frontier 4D Gateway**: Drop-in `/v1/chat/completions`, stateful `/v1/responses`, `/v1/routing/explain` (weight license, hosting, inference operator, data residency boundary), `/v1/opencore/*` hardware/LoRA/Modelfile control, HTTP-level speculative draft/prefix routing (`core/models/speculative.py`), and `/v1/eval/swarm` MiroFish multi-agent simulation.
 - **Canonical 4-Tier Pricing & BYOM 0% Markup**: Community (`$0`), BYOM Seat (`$15/seat/mo` annual — **0% token markup** on customer API keys or local GPUs), Pro (`$29/seat/mo`), and Enterprise (contact).
 - **P-10 Human Approval Gate & Supply Chain Security**: Separation-of-duty P-10 human approval gate (`core/security/approval_rules.py`, `keelway/approvals/quorum.py`), workspace RBAC (`owner`, `admin`, `developer`, `operator`, `viewer`), AES-256-GCM local secret vault, SSRF-hardened HMAC-SHA256 webhooks, OS sandboxing (macOS Seatbelt & Linux Bubblewrap), and CycloneDX 1.5 SBOM provenance (`/v1/platform/security/sbom`).
@@ -230,7 +230,7 @@ python -m tests.release_live_gate
 ├── cli.py                    # Sovereign developer CLI (`keelway`)
 ├── core/                     # Unified Platform API (:7420), OpenCore, MCP, KFlow, KSpaces, Vault, SDK
 ├── keelway/                  # Governance Control Plane (:8000), Policy Engine, Quorum, Audit Ledger
-├── dev-app/                  # React 19 + TypeScript Unified 10-View Sovereign Dev Tool -> core/dev_app_dist/
+├── dev-app/                  # React 19 + TypeScript Unified 11-View Sovereign Dev Tool -> core/dev_app_dist/
 ├── web-next/                 # Next.js 15 App Router marketing, product, docs & early-access intake
 ├── api/early-access.js       # Fail-closed early-access intake reference (canonical port: web-next/src/app/api/early-access)
 ├── sdk/

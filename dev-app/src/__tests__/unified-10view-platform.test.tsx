@@ -14,8 +14,8 @@ afterEach(() => {
   window.history.replaceState({}, "", "/app/");
 });
 
-describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Experience", () => {
-  it("switches cleanly across all 10 views while preserving shared project context, composer draft, and pending P-10 state", async () => {
+describe("Unified 11-View Keelway Platform & Dual Builder / Guided Non-Coder Experience", () => {
+  it("switches cleanly across all 11 views while preserving shared project context, composer draft, and pending P-10 state", async () => {
     const user = userEvent.setup();
     render(
       <React.StrictMode>
@@ -35,8 +35,8 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     expect(within(contextBar).getByText(/1 P-10 pending/i)).toBeInTheDocument();
 
     const composer = screen.getByRole("textbox", { name: /Ask agent|Instruction|Composer/i });
-    await user.type(composer, "Preserve this draft across all 10 platform views");
-    expect(composer).toHaveValue("Preserve this draft across all 10 platform views");
+    await user.type(composer, "Preserve this draft across all 11 platform views");
+    expect(composer).toHaveValue("Preserve this draft across all 11 platform views");
 
     const platformNav = screen.getByRole("navigation", { name: "Unified platform views" });
     expect(within(platformNav).getByRole("button", { name: /^IDE$/i })).toHaveAttribute("aria-current", "page");
@@ -52,6 +52,13 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     await user.click(within(platformNav).getByRole("button", { name: /^Project Manager$/i }));
     expect(await screen.findByRole("heading", { name: /Project Manager · Linear-Style Issues & Sprints/i })).toBeInTheDocument();
     expect(screen.getByText("KEEL-101")).toBeInTheDocument();
+
+    // Visit Chat — first-class rail view (KEEL-APP-081): session switcher + thread + composer
+    await user.click(within(platformNav).getByRole("button", { name: /^Chat$/i }));
+    expect(await screen.findByRole("main", { name: "Chat agent thread" })).toBeInTheDocument();
+    const sessionRail = await screen.findByRole("navigation", { name: "Chat sessions" });
+    expect(within(sessionRail).getByRole("option", { name: /Harden loopback CSP/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("textbox", { name: /Ask agent|Instruction|Composer/i })).toBeInTheDocument();
 
     // 4. Visit Product
     await user.click(within(platformNav).getByRole("button", { name: /^Product$/i }));
@@ -87,7 +94,7 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     // Return to IDE -> verify composer draft, project context, and pending P-10 approval are 100% intact
     await user.click(within(platformNav).getByRole("button", { name: /^IDE$/i }));
     const restoredComposer = (await screen.findByRole("textbox", { name: /Ask agent|Instruction|Composer/i }));
-    expect(restoredComposer).toHaveValue("Preserve this draft across all 10 platform views");
+    expect(restoredComposer).toHaveValue("Preserve this draft across all 11 platform views");
     expect(screen.getByRole("heading", { name: /Run pytest Studio CSP suite/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Jump to pending approval \(1\)/i })).toBeInTheDocument();
     expect(within(contextBar).getByText("/workspace/keelway")).toBeInTheDocument();
@@ -247,8 +254,8 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     expect(screen.getByText(/Rolled back with P-10 receipt/i)).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
 
-    // 3. Axe-core verification across No-Code Builder, Project Manager, Marketplace, and Light theme
-    for (const viewLabel of ["No-Code Builder", "Project Manager", "Marketplace"] as const) {
+    // 3. Axe-core verification across No-Code Builder, Project Manager, Marketplace, Chat, and Light theme
+    for (const viewLabel of ["No-Code Builder", "Project Manager", "Marketplace", "Chat"] as const) {
       await user.click(within(platformNav).getByRole("button", { name: new RegExp(`^${viewLabel}$`, "i") }));
       expect(await axe(container)).toHaveNoViolations();
     }
@@ -607,12 +614,12 @@ describe("Unified 10-View Keelway Platform & Dual Builder / Guided Non-Coder Exp
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("supports Cmd+K CommandPalette 10-view navigation, Agent Session Supervisor dry-runs, Automation DAG step authoring, Cluster Workload Placement, and No-Code Live App Preview", async () => {
+  it("supports Cmd+K CommandPalette 11-view navigation, Agent Session Supervisor dry-runs, Automation DAG step authoring, Cluster Workload Placement, and No-Code Live App Preview", async () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
     await screen.findByRole("heading", { name: /Run pytest Studio CSP suite/i });
 
-    // 1. Open CommandPalette and jump directly to Documentation Knowledge Base via 10-view command
+    // 1. Open CommandPalette and jump directly to Documentation Knowledge Base via 11-view command
     await user.click(screen.getByRole("button", { name: /Open command palette/i }));
     const paletteSearch = await screen.findByRole("combobox", { name: /Search commands, tasks, files/i });
     await user.type(paletteSearch, "Open Documentation Knowledge Base");

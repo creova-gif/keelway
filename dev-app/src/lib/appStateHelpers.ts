@@ -216,7 +216,9 @@ export function resolveMainAriaLabel(
   activeSection: RailSection,
 ): string {
   if (platformView !== "ide") {
-    return platformView === "security" ? "Record audit ledger" : "Agent workspace";
+    if (platformView === "security") return "Record audit ledger";
+    if (platformView === "chat") return "Chat agent thread";
+    return "Agent workspace";
   }
   if (activeSection === "files") return "Files codebase workspace";
   if (activeSection === "record") return "Record audit ledger";

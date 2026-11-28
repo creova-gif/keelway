@@ -290,7 +290,7 @@ export const INITIAL_MULTI_AGENT_TEAMS: MultiAgentTeamItem[] = [
 export const INITIAL_PM_ISSUES: PmIssueItem[] = [
   { id: "KEEL-101", title: "Enforce Marketplace pre-publish prompt-injection & shell scanner", description: "Reject guardrail-bypass directives, dynamic eval/shell=True hooks, wildcard root writes, and embedded credentials prior to registry publication.", status: "in_progress", priority: "urgent", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: [], assignedAgentId: "security-auditor", linkedPrdId: "PRD-01" },
   { id: "KEEL-102", title: "Verify BYOM consumer-subscription fail-closed compliance notice", description: "Block ChatGPT Plus/Pro and Claude Pro/Max session cookies while routing authorized API keys and self-hosted vLLM/Ollama endpoints with $0.00 markup.", status: "in_review", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "pr-reviewer", linkedPrdId: "PRD-01" },
-  { id: "KEEL-103", title: "Wire Unified 10-View context bar with zero context loss", description: "Keep workspace path, git branch, active OpenCore model, composer draft, and pending P-10 approvals synchronized across all 10 views.", status: "todo", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "feature-coder", linkedPrdId: "PRD-02" },
+  { id: "KEEL-103", title: "Wire Unified 11-View context bar with zero context loss", description: "Keep workspace path, git branch, active OpenCore model, composer draft, and pending P-10 approvals synchronized across all 11 views.", status: "todo", priority: "high", sprint: "Sprint 14 · Sovereign Platform", milestone: "v1.1 Unified GA", dependencies: ["KEEL-101"], assignedAgentId: "feature-coder", linkedPrdId: "PRD-02" },
   { id: "KEEL-104", title: "Publish Diataxis onboarding guide for Guided Non-Coder studio", description: "Author step-by-step plain-English blueprint synthesis and P-10 release approval walkthrough synchronized with PRD-02.", status: "backlog", priority: "medium", sprint: "Sprint 15 · Ecosystem", milestone: "v1.1 Unified GA", dependencies: ["KEEL-103"], assignedAgentId: "tech-writer", linkedPrdId: "PRD-02" },
 ];
 
@@ -316,7 +316,7 @@ export const INITIAL_PRODUCT_PRDS: ProductPrdItem[] = [
     releaseStage: "beta",
     linkedIssueIds: ["KEEL-103", "KEEL-104"],
     acceptanceCriteria: [
-      { id: "ac-4", text: "Preserve active workspace, git branch, model, and P-10 queue across all 10 views", met: true },
+      { id: "ac-4", text: "Preserve active workspace, git branch, model, and P-10 queue across all 11 views", met: true },
       { id: "ac-5", text: "Compile plain-language ideas into linked PRDs, KEEL sprint issues, and KFlow DAGs", met: true },
     ],
   },

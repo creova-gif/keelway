@@ -104,8 +104,8 @@ expect.extend({
 });
 
 declare module "vitest" {
-  interface Assertion<R, T> {
-    toHaveNoViolations(): R;
+  interface Assertion<T> {
+    toHaveNoViolations(): T;
   }
   interface AsymmetricMatchersContaining {
     toHaveNoViolations(): void;
