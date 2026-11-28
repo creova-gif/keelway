@@ -19,11 +19,11 @@
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.14.0",
+    "@axe-core/playwright": "^4.14.1",
     "@playwright/test": "^1.65.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@types/node": "^22.10.2",
-    "@types/react": "^19.0.4",
+    "@types/react": "^19.3.1",
     "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",
     "playwright-core": "^1.65.1",

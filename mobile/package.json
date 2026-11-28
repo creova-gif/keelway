@@ -23,15 +23,15 @@
     "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-native": "0.88.1",
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/bun": "^1.4.4",
-    "@types/react": "~19.1.10",
+    "@types/bun": "^1.4.5",
+    "@types/react": "~19.3.1",
     "typescript": "~5.9.2"
   },
   "private": true
