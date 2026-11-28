@@ -40,8 +40,8 @@ const GOLDEN_STAGES: ReadonlyArray<GoldenStageSpec> = [
     stepNumber: "03",
     shortLabel: "Scrub & Blast-Radius",
     fullLabel: "03 Scrub & Blast-Radius",
-    subtitle: "Flight-Tape · Seatbelt",
-    views: ["agents"],
+    subtitle: "Flight-Tape · Chat · Seatbelt",
+    views: ["agents", "chat"],
   },
   {
     id: "govern_ship",
@@ -63,6 +63,7 @@ export function resolveGoldenStageId(view: PlatformViewId): GoldenStageId {
     case "automation":
       return "build_sync";
     case "agents":
+    case "chat":
       return "scrub_blast";
     case "security":
     case "marketplace":

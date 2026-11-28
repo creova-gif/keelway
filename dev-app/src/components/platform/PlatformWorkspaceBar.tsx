@@ -37,6 +37,7 @@ export interface PlatformWorkspaceBarProps {
 export const PLATFORM_VIEWS: Array<{ id: PlatformViewId; label: string; capability: string }> = [
   { id: "ide", label: "IDE", capability: "Tasks, Diff Review & Sandbox" },
   { id: "agents", label: "Agents", capability: "12 Lifecycle Agents & Squads" },
+  { id: "chat", label: "Chat", capability: "Agent Thread, Sessions & Approvals" },
   { id: "pm", label: "Project Manager", capability: "Kanban, Sprints & Delegation" },
   { id: "product", label: "Product", capability: "PRDs, RICE & Feedback" },
   { id: "automation", label: "Automation", capability: "KFlow DAGs & Triggers" },
