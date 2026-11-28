@@ -36,12 +36,16 @@ deploy freshness**, not visual design.
 
 ## 2. Findings register
 
-### F-01 · Production deploy lags main (HIGH — conversion blocker)
-`kora-sable.vercel.app` serves an older web-next build: `/blog` and `/signup` return
-**404** in production though both merged in WEB-048 (PR #230). `/signup` is the primary
-conversion CTA target. The `deploy.yml` workflow only covers infra paths — website prod
-deploys depend on the Vercel GitHub integration, which has not shipped `main` recently.
-**Owner action needed:** verify the Vercel project's production branch/deploy hooks.
+### F-01 · Production deploy lags main (HIGH — resolved KEEL-WEB-055)
+`kora-sable.vercel.app` served an older web-next build: `/blog` and `/signup` returned
+**404** in production though both merged in WEB-048 (PR #230). Root cause found during
+the `website/` removal: the `kora` Vercel project's **Root Directory setting pointed at
+`website/`** — the project had never been repointed to `web-next`, and every build failed
+once the directory was deleted ("specified Root Directory does not exist").
+**Resolved:** `rootDirectory` flipped to `web-next` (`vercel api PATCH /v9/projects/kora`)
+plus `.vercelignore` `!/website` → `!/web-next`; merging to `main` (the project's
+production branch) then auto-deployed the canonical site. Verified in prod:
+`/signup` 200, `/blog` 200, `/api/early-access` live (405 on GET).
 
 ### F-02 · Sign-up/sign-in form collects then discards email (HIGH — fixed KEEL-WEB-053)
 `magic-link-form.tsx` accepted an email, prevented submit, and rendered "request access
@@ -116,7 +120,7 @@ beta per "publish only what's real"; schedule Docs 2.0 post-beta.
 
 | # | Item | Sev | Effort |
 |---|---|---|---|
-| 1 | F-01: restore prod deploy currency (Vercel project config) | HIGH | User-side |
+| 1 | F-01: Vercel root dir `website` → `web-next`; prod now serves canonical site | — | **DONE (WEB-055)** |
 | 2 | F-02: provision `EARLY_ACCESS_WEBHOOK_URL` (+ `..._SECRET`) in Vercel | HIGH | User-side |
 | 3 | F-05: drift gates migrated to `web-next/` + `website/` removed | — | **DONE (WEB-055)** |
 | 4 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
