@@ -79,7 +79,7 @@ export function BrandMark({
       className={`inline-flex items-center gap-1.5 ${className}`.trim()}
     >
       {renderSvg()}
-      <span className={`font-sans font-bold tracking-tight text-fg ${wordmarkClassName}`.trim()}>
+      <span className={`font-sans font-[640] tracking-tight text-fg ${wordmarkClassName}`.trim()}>
         Keelway
       </span>
     </span>

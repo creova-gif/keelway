@@ -394,7 +394,7 @@ export function FlightTapeScrubberAndRadar({
             <div className="space-y-1.5 rounded-xs border border-border bg-canvas p-2.5 font-mono text-[11px]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-xs border px-2 py-0.5 text-xs font-bold ${resolveVerdictStyle(latestGate.verdict)}`}>
+                  <span className={`rounded-xs border px-2 py-0.5 text-xs font-[640] ${resolveVerdictStyle(latestGate.verdict)}`}>
                     {latestGate.verdict}
                   </span>
                   <span className="font-semibold text-fg">

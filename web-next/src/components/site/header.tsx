@@ -30,7 +30,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:px-8">
         <Link href="/" className="flex items-center gap-2.5 text-fg" aria-label="K′ Keelway home">
           <Mark />
-          <span className="text-[15px] font-bold tracking-tight">Keelway</span>
+          <span className="text-[15px] font-[640] tracking-tight">Keelway</span>
         </Link>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
           {NAV.map((item) => (

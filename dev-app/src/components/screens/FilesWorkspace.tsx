@@ -702,7 +702,7 @@ export function FilesWorkspace({
                 return (
                   <div key={ln} className="flex items-center justify-between gap-1">
                     <span className="truncate text-[10px] text-accent">{showAi ? `AI #${activeAiSeq}` : ""}</span>
-                    <span className={`tabular-nums ${ln === activeLine ? "font-bold text-fg" : ""}`}>{ln}</span>
+                    <span className={`tabular-nums ${ln === activeLine ? "font-[640] text-fg" : ""}`}>{ln}</span>
                   </div>
                 );
               })}

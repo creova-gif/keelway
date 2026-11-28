@@ -486,7 +486,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
                     {showBadge ? (
                       <span
                         aria-hidden="true"
-                        className="absolute -end-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-ochre px-1 font-mono text-[10px] font-bold leading-none text-ochre-ink"
+                        className="absolute -end-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-ochre px-1 font-mono text-[10px] font-[640] leading-none text-ochre-ink"
                       >
                         {effectivePendingCount}
                       </span>
@@ -636,7 +636,7 @@ export function DevAppShell(props: DevAppShellProps): React.JSX.Element {
               >
                 <span>{item.label}</span>
                 {item.tab === "approvals" && effectivePendingCount > 0 ? (
-                  <span aria-hidden="true" className="rounded-full bg-ochre px-1.5 py-0.5 font-mono text-[10px] font-bold leading-none text-ochre-ink">
+                  <span aria-hidden="true" className="rounded-full bg-ochre px-1.5 py-0.5 font-mono text-[10px] font-[640] leading-none text-ochre-ink">
                     {effectivePendingCount}
                   </span>
                 ) : null}

@@ -143,7 +143,7 @@ export function FilesDiffView({
                       </span>
                       <span
                         data-diff-sign={sign.trim() || undefined}
-                        className={`w-4 shrink-0 select-none text-center font-bold ${
+                        className={`w-4 shrink-0 select-none text-center font-[640] ${
                           isAdd ? "text-ok" : isDel ? "text-danger" : "text-fg-dim"
                         }`}
                       >
@@ -198,7 +198,7 @@ export function FilesDiffView({
                             {row.before?.oldLine ?? ""}
                           </span>
                           <span
-                            className={`w-3.5 shrink-0 select-none text-center font-bold ${
+                            className={`w-3.5 shrink-0 select-none text-center font-[640] ${
                               beforeIsDel ? "text-danger" : "text-fg-dim"
                             }`}
                           >
@@ -229,7 +229,7 @@ export function FilesDiffView({
                               : ""}
                           </span>
                           <span
-                            className={`w-3.5 shrink-0 select-none text-center font-bold ${
+                            className={`w-3.5 shrink-0 select-none text-center font-[640] ${
                               afterIsAdd ? "text-ok" : "text-fg-dim"
                             }`}
                           >
