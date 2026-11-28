@@ -89,3 +89,8 @@ PITCH_AND_JUDGE_QA.md
 node_modules/
 dev-app/.vite/
 dev-app/coverage/
+
+# Next.js build/test artifacts (any app dir — website/ leftovers proved the trap)
+.next/
+*.tsbuildinfo
+test-results/
