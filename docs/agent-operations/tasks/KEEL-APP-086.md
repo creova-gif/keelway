@@ -1,4 +1,6 @@
-# KEEL-APP-081 — Chat first-class rail view (artboard 12.11)
+# KEEL-APP-086 — Chat first-class rail view (artboard 12.11)
+
+> Renumbered from KEEL-APP-081: that ID was already assigned to the onboarding-skip task (PR #210).
 
 ## Status: COMPLETED
 
