@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Chip } from "@/components/ui/chip";
 import { ReceiptTable, type ReceiptRow } from "@/components/site/receipt-table";
 import { PolicyDemo } from "@/components/site/policy-demo";
 import { FigureTabs } from "@/components/site/figure-tabs";
+
+export const metadata: Metadata = {
+  title: "Product — Keelway",
+  description:
+    "The sovereign agent platform — one gateway for every model, policy evaluated before egress, and a signed receipt for every action.",
+  alternates: { canonical: "/product" },
+};
 
 const INSTRUMENTS = [
   {

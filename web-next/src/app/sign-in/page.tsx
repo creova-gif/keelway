@@ -3,6 +3,7 @@ import { Mark } from "@/components/site/mark";
 import { MagicLinkForm } from "@/components/site/magic-link-form";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/sign-in" },
   title: "Sign in — Keelway",
   description: "Sign in to Keelway Cloud. SAML/OIDC on Pro and Enterprise — magic link only, no passwords stored.",
 };

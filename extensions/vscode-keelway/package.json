@@ -1,7 +1,7 @@
 {
   "name": "vscode-keelway",
   "publisher": "keelway",
-  "displayName": "Keelway Dev — Sovereign Agent Debugger & 4D Studio Bridge",
+  "displayName": "Keelway Dev \u2014 Sovereign Agent Debugger & 4D Studio Bridge",
   "description": "Official zero-dependency VS Code and Cursor extension for Keelway 4D Agent CodeLens, Conditional Step Debugging, and Sovereign Loopback Studio Bridge.",
   "version": "1.1.0",
   "license": "Apache-2.0",
@@ -99,7 +99,11 @@
     }
   },
   "scripts": {
-    "build": "../../website/node_modules/.bin/tsc -p tsconfig.json",
-    "test": "node --test test/extension.test.mjs"
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test test/extension.test.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
   }
 }

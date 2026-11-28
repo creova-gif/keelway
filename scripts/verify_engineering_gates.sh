@@ -71,9 +71,11 @@ echo "  ✓ Python SDK v1 + Platform/Cluster/Runtime/MCP/KFlow/Enterprise/KBrain
 echo "[7/8] Verifying Official Zero-Dependency TypeScript (@keelway/sdk), VS Code/Cursor Extension (vscode-keelway), Go (keelway-go) SDKs & Studio JS Syntax..."
 if command -v node >/dev/null 2>&1; then
     node --check core/studio/assets/studio.js
-    if [ -f "website/node_modules/.bin/tsc" ]; then
-        ./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
-        ./website/node_modules/.bin/tsc -p extensions/vscode-keelway/tsconfig.json
+    if [ -f "sdk/typescript/node_modules/.bin/tsc" ]; then
+        ./sdk/typescript/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
+    fi
+    if [ -f "extensions/vscode-keelway/node_modules/.bin/tsc" ]; then
+        ./extensions/vscode-keelway/node_modules/.bin/tsc -p extensions/vscode-keelway/tsconfig.json
     fi
     (cd sdk/typescript && npm test)
     (cd extensions/vscode-keelway && npm test)

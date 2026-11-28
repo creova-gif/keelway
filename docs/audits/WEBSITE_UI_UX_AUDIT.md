@@ -70,20 +70,24 @@ public routes return 200, crawls header/footer internal links for dead targets, 
 checks per-page meta descriptions (14 tests alongside the 16 a11y/perf tests). A stale
 prod deploy now fails the route-smoke gate rather than shipping silently.
 
-### F-05 · Legacy `website/` app is a divergent second surface (MED — mitigated KEEL-WEB-053)
-`website/` (v3 Maritime build) still compiles in CI alongside web-next, and its README
-documented routes (`/models`, `/governance`, `/api-reference`) that return 404 or no
-longer exist in source. **Mitigated:** the README now carries an explicit deprecation
-banner naming `web-next/` as canonical and labeling the route table as historical —
-no feature work should land there. Full removal remains a follow-up because CI's
-`website-devapp-and-sdks` job still compiles `sdk/typescript` and
-`extensions/vscode-keelway` against `website/node_modules` and runs its e2e suite;
-repointing that toolchain is a separate task.
+### F-05 · Legacy `website/` app is a divergent second surface (MED — CI decoupled KEEL-WEB-054)
+`website/` (v3 Maritime build) used to compile and e2e-test in CI alongside web-next,
+and its README documented routes that return 404 or no longer exist in source.
+**Progress:** deprecation banner landed (WEB-053); CI no longer builds or e2e-tests
+the app (WEB-054) — `sdk/typescript` and `extensions/vscode-keelway` now compile with
+their own `typescript` devDependencies instead of borrowing `website/node_modules`.
+**Residual:** directory removal still blocked on the pytest drift gates
+(`test_website_facts.py`, phase 15–17 website sync tests) that pin `website/` files —
+they must be migrated to web-next or retired first.
 
-### F-06 · Homepage has no explicit page metadata (LOW)
-9 routes export `metadata`; the homepage relies on `layout.tsx` defaults. Verify OG
-title/description for `/` specifically — risk of generic social previews on the most
-shared URL.
+### F-06 · Homepage has no explicit page metadata (LOW — fixed KEEL-WEB-054, scope expanded)
+9 routes exported `metadata`; the homepage relied on `layout.tsx` defaults. Inspection
+found the real defect was broader: the layout set `alternates.canonical: "/"`, so
+**every route served `<link rel="canonical" href="/">`** — subpages could be
+de-indexed in favor of the homepage — and `/product` exported no metadata at all.
+**Fixed:** layout canonical removed; all 12 routes now self-canonicalize; `/product`
+and `/offline` gained title/description; `routes.spec.ts` asserts per-page canonical
++ meta description so a layout-level regression fails e2e.
 
 ### F-07 · Content depth (LOW — post-beta appropriate)
 /docs is an external-link index (honest, not fake depth); /blog has an index but thin
@@ -112,13 +116,13 @@ beta per "publish only what's real"; schedule Docs 2.0 post-beta.
 |---|---|---|---|
 | 1 | F-01: restore prod deploy currency (Vercel project config) | HIGH | User-side |
 | 2 | F-02: provision `EARLY_ACCESS_WEBHOOK_URL` (+ `..._SECRET`) in Vercel | HIGH | User-side |
-| 3 | F-05 residual: repoint `website-devapp-and-sdks` CI toolchain, then remove `website/` | MED | M |
-| 4 | F-06: explicit `/` OG metadata | LOW | XS |
-| 5 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
-| 6 | F-03: ambiguous Tailwind classes | — | **DONE (WEB-052)** |
-| 7 | F-04: route-smoke e2e spec | — | **DONE (WEB-053)** |
-| 8 | F-02: real `/api/early-access` + wired form | — | **DONE (WEB-053)** |
-| 9 | F-05: `website/` deprecation banner | — | **DONE (WEB-053)** |
+| 3 | F-05 residual: migrate/retire pytest drift gates (`test_website_facts`, phase 15–17 sync tests), then remove `website/` | MED | M |
+| 4 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
+| 5 | F-03: ambiguous Tailwind classes | — | **DONE (WEB-052)** |
+| 6 | F-04: route-smoke e2e spec | — | **DONE (WEB-053)** |
+| 7 | F-02: real `/api/early-access` + wired form | — | **DONE (WEB-053)** |
+| 8 | F-05: `website/` deprecation banner + CI decoupling | — | **DONE (WEB-053/054)** |
+| 9 | F-06: per-page canonical + `/product`/`/offline` metadata | — | **DONE (WEB-054)** |
 
 ## 5. Honest limitations of this audit
 

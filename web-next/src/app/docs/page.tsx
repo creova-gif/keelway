@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/docs" },
   title: "Documentation — Keelway",
   description:
     "Keelway documentation — quickstart, architecture, security standards, and the engineering contract. Everything is on the record.",

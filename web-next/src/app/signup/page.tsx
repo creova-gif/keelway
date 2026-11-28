@@ -4,6 +4,7 @@ import { MagicLinkForm } from "@/components/site/magic-link-form";
 import { InstallCommand } from "@/components/site/install-command";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/signup" },
   title: "Get started — Keelway",
   description:
     "Start with the free Apache-2.0 core, or request Keelway Cloud access — private preview, magic link only.",

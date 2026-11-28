@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CostCompare } from "@/components/site/cost-compare";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/pricing" },
   title: "Pricing — Keelway",
   description:
     "Community free, BYOM from $15/seat/mo, Pro from $29/seat/mo — 0% token markup. Enterprise Sovereign VPC on request. Marketplace runs a separate 85/15 revenue share.",

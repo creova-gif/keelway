@@ -3,6 +3,7 @@ import { RELEASES } from "@/data/releases";
 import { Reveal } from "@/components/motion/reveal";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/changelog" },
   title: "Changelog — Keelway",
   description: "The logbook, public. Every Keelway release, sealed and dated.",
 };

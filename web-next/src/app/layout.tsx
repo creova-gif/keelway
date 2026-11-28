@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   description:
     "Agents that answer to you. Local inference, governed cloud routing, and a signed receipt for every action. Apache-2.0 open core from Sorvex Labs.",
-  alternates: { canonical: "/", types: { "application/rss+xml": "/feed.xml" } },
+  alternates: { types: { "application/rss+xml": "/feed.xml" } },
   manifest: "/manifest.webmanifest",
   icons: { icon: "/favicon.svg" },
   openGraph: {
