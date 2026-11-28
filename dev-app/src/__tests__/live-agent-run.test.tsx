@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TasksWorkspace } from "@/components/screens/TasksWorkspace";
 import "@/styles/tokens.css";
+import { axe } from "@/test/setup";
 
 const BASE_STATE = {
   task_id: "task-live-1",
@@ -65,7 +66,7 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
+    const { container } = render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
     await submitPrompt("Audit CSP headers");
 
     await waitFor(() => {
@@ -76,6 +77,7 @@ describe("TasksWorkspace live agent run lane", () => {
     expect(screen.getByText(/Inspect loopback CSP/)).toBeInTheDocument();
     expect(screen.getByText(/Patch header/)).toBeInTheDocument();
     expect(screen.getByText(/1 events · policy confirm_mutation/)).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("Run step calls POST /v1/agent/step and renders live tool events as receipts", async () => {
@@ -94,7 +96,7 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
+    const { container } = render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
     await submitPrompt("Audit CSP headers");
     await waitFor(() => expect(screen.getByTestId("live-agent-run")).toBeInTheDocument());
 
@@ -114,6 +116,7 @@ describe("TasksWorkspace live agent run lane", () => {
       expect(screen.getByText("Live execution events")).toBeInTheDocument();
       expect(screen.getByText(/read_file succeeded/)).toBeInTheDocument();
     });
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("pending_approval maps to a P-10 card and Allow once posts approved:true", async () => {
@@ -135,7 +138,7 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
+    const { container } = render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
     await submitPrompt("Audit CSP headers");
 
     await waitFor(() => {
@@ -149,6 +152,7 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     const approveCall = calls.find((c) => c.url.includes("/v1/agent/approve/"));
     expect((approveCall!.body as Record<string, unknown>).approved).toBe(true);
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("Deny posts approved:false to the approve endpoint", async () => {
@@ -169,7 +173,7 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
+    const { container } = render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
     await submitPrompt("Audit CSP headers");
     await waitFor(() => expect(screen.getByRole("button", { name: /^Deny$/i })).toBeInTheDocument());
     const user = userEvent.setup();
@@ -180,6 +184,7 @@ describe("TasksWorkspace live agent run lane", () => {
       expect(approveCall).toBeDefined();
       expect((approveCall!.body as Record<string, unknown>).approved).toBe(false);
     });
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("Cancel run calls POST /v1/agent/cancel and reflects cancelled status", async () => {
@@ -190,7 +195,7 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
+    const { container } = render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
     await submitPrompt("Audit CSP headers");
     await waitFor(() => expect(screen.getByTestId("live-agent-run")).toBeInTheDocument());
 
@@ -200,6 +205,7 @@ describe("TasksWorkspace live agent run lane", () => {
       expect(calls.some((c) => c.url.includes("/v1/agent/cancel/task-live-1") && c.method === "POST")).toBe(true);
       expect(screen.getByText("cancelled")).toBeInTheDocument();
     });
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("failed run POST logs an honest error and never shows fabricated state", async () => {
@@ -208,10 +214,11 @@ describe("TasksWorkspace live agent run lane", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
+    const { container } = render(<TasksWorkspace taskId="task-ui" taskTitle="UI task" />);
     await submitPrompt("Audit CSP headers");
     // Live lane must NOT appear on rejection — no fake success.
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByTestId("live-agent-run")).not.toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
   });
 });
