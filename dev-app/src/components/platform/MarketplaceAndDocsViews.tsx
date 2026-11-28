@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { KHubAirgapMirrorPanel } from "@/components/platform/KHubAirgapMirrorPanel";
 import { McpLockfileAndBenchPanel } from "@/components/platform/McpLockfileAndBenchPanel";
 import { Button } from "@/components/ui/Button";
+import { FilterBar, FilterChips, SearchField } from "@/components/ui/FilterBar";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type { MarketplacePublishPayload } from "@/lib/platformApi";
 import {
@@ -193,60 +194,32 @@ export function MarketplaceWorkspaceView({
 
       <KHubAirgapMirrorPanel workspaceId={workspaceId} activeRbacRole={activeRbacRole} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="min-w-[240px] flex-1">
-          <span className="sr-only">Search marketplace packages</span>
-          <input
-            type="search"
-            aria-label="Search marketplace packages"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search agents, skills, publishers, or capabilities…"
-            className="min-h-ctrl-sm w-full rounded-sm border border-border-control bg-surface px-2.5 py-1 text-xs text-fg placeholder:text-fg-dim"
-          />
-        </label>
-        <div role="group" aria-label="Filter by publisher tier" className="flex flex-wrap items-center gap-1.5">
-          {PUBLISHER_TIER_FILTERS.map((tier) => (
-            <button
-              key={tier.id}
-              type="button"
-              aria-pressed={publisherFilter === tier.id}
-              onClick={() => setPublisherFilter(tier.id)}
-              className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-                publisherFilter === tier.id ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
-              }`}
-            >
-              {tier.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <FilterBar aria-label="Marketplace filters" className="justify-between">
+        <SearchField
+          className="min-w-[240px] flex-1"
+          label="Search marketplace packages"
+          aria-label="Search marketplace packages"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search agents, skills, publishers, or capabilities…"
+        />
+        <FilterChips
+          label="Filter by publisher tier"
+          options={PUBLISHER_TIER_FILTERS.map((t) => ({ value: t.id, label: t.label }))}
+          value={publisherFilter}
+          onChange={setPublisherFilter}
+        />
+      </FilterBar>
 
-      <div role="group" aria-label="Marketplace categories" className="flex flex-wrap items-center gap-1.5">
-        <button
-          type="button"
-          aria-pressed={selectedCategory === "all"}
-          onClick={() => setSelectedCategory("all")}
-          className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-            selectedCategory === "all" ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
-          }`}
-        >
-          All Categories
-        </button>
-        {MARKETPLACE_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            aria-pressed={selectedCategory === cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${
-              selectedCategory === cat.id ? "border-accent/50 bg-accent-subtle text-accent" : "border-border bg-surface text-fg-muted hover:text-fg"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+      <FilterChips
+        label="Marketplace categories"
+        options={[
+          { value: "all" as const, label: "All Categories" },
+          ...MARKETPLACE_CATEGORIES.map((cat) => ({ value: cat.id, label: cat.label })),
+        ]}
+        value={selectedCategory}
+        onChange={setSelectedCategory}
+      />
 
       <section aria-label="Marketplace catalog listings" className="grid gap-3 md:grid-cols-2">
         <h2 className="sr-only">Verified Packages</h2>

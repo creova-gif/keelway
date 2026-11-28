@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useMemo, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
+import { SearchField } from "@/components/ui/FilterBar";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type { CodeSymbolItem, GitFileStatus, WorkspaceFileNode } from "@/lib/types";
 
@@ -256,16 +257,12 @@ export function FilesExplorerSidebar({
 
       <Tabs.Content value="symbols" className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
         <div className="mb-2 shrink-0">
-          <label htmlFor={symbolFilterId} className="sr-only">
-            Filter symbols
-          </label>
-          <input
+          <SearchField
             id={symbolFilterId}
-            type="search"
+            label="Filter symbols"
             value={symbolQuery}
             onChange={(e) => setSymbolQuery(e.target.value)}
             placeholder="Filter symbols..."
-            className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-canvas px-2 py-1 text-xs text-fg"
           />
         </div>
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">

@@ -5,6 +5,7 @@ import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticB
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
 import { StatCard } from "@/components/ui/StatCard";
+import { FilterBar, FilterChips, FilterSelect, SearchField } from "@/components/ui/FilterBar";
 import {
   connectStudioWebSocket,
   createGitCommit,
@@ -799,5 +800,68 @@ describe("KDS StatCard primitive", () => {
     const results = await runAxe(container);
     expect(results).toHaveNoViolations();
     unmount();
+  });
+});
+
+describe("KDS FilterBar primitives", () => {
+  it("renders a labelled search field, chip group, and enum select", async () => {
+    const onSearch = vi.fn();
+    const onTier = vi.fn();
+    const onOutcome = vi.fn();
+    const { container, unmount } = render(
+      <FilterBar aria-label="Filter entries">
+        <SearchField label="Search entries" value="" onChange={onSearch} placeholder="Search…" />
+        <FilterChips
+          label="Publisher tier"
+          options={[
+            { value: "all", label: "All" },
+            { value: "verified", label: "Verified" },
+          ]}
+          value="verified"
+          onChange={onTier}
+        />
+        <FilterSelect
+          label="Outcome"
+          value="all"
+          options={[
+            { value: "all" as const, label: "All outcomes" },
+            { value: "denied" as const, label: "Denied" },
+          ]}
+          onChange={onOutcome}
+        />
+      </FilterBar>,
+    );
+
+    const search = screen.getByLabelText("Search entries");
+    expect(search).toHaveAttribute("type", "search");
+    fireEvent.change(search, { target: { value: "hash" } });
+    expect(onSearch).toHaveBeenCalled();
+
+    const active = screen.getByRole("button", { name: "Verified" });
+    expect(active).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "All" }));
+    expect(onTier).toHaveBeenCalledWith("all");
+
+    const select = screen.getByLabelText("Outcome");
+    fireEvent.change(select, { target: { value: "denied" } });
+    expect(onOutcome).toHaveBeenCalledWith("denied");
+
+    const results = await runAxe(container);
+    expect(results).toHaveNoViolations();
+    unmount();
+  });
+
+  it("supports a visible label variant on SearchField", () => {
+    render(
+      <SearchField
+        label={<>Search <span className="sr-only">Record entries</span></>}
+        labelClassName="mb-1 block text-[11px] font-medium text-fg-muted"
+        value=""
+        onChange={() => {}}
+      />,
+    );
+    const input = screen.getByLabelText(/search record entries/i);
+    expect(input).toHaveAttribute("type", "search");
+    expect(screen.getByText(/record entries/i)).toHaveClass("sr-only");
   });
 });
