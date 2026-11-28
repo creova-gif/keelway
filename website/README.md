@@ -1,4 +1,13 @@
-# Keelway Company Website & Interactive API Reference
+# Keelway Company Website & Interactive API Reference (LEGACY)
+
+> **Deprecated — superseded by `web-next/`.** The canonical public site is
+> `web-next/` (Paper V3 "Keel Black & Brass", canonical dev-app tokens, deployed
+> at `https://kora-sable.vercel.app/`). This directory is retained only because
+> CI still compiles `sdk/typescript` and `extensions/vscode-keelway` against its
+> `node_modules/.bin/tsc` and runs its e2e suite. Do not add features here;
+> removal is tracked as a follow-up once CI repoints the shared toolchain.
+> Route claims below describe this app's historical surface and are not the
+> deployed site.
 
 Built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS**, **Radix UI**, **Framer Motion**, and **Vercel Analytics**, implementing the canonical interface specification in [`../DESIGN.md`](../DESIGN.md).
 

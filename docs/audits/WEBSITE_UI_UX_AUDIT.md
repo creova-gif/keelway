@@ -43,17 +43,17 @@ conversion CTA target. The `deploy.yml` workflow only covers infra paths — web
 deploys depend on the Vercel GitHub integration, which has not shipped `main` recently.
 **Owner action needed:** verify the Vercel project's production branch/deploy hooks.
 
-### F-02 · Sign-up/sign-in form collects then discards email (HIGH)
-`magic-link-form.tsx` accepts an email, prevents submit, and renders "request access on
-GitHub" — the address is never transmitted or stored. The copy is honest about private
-preview, but a form that implies delivery and silently drops the input is a conversion
-dead-end and a subtle trust cost. Old `website/` advertised `/api/early-access` in its
-README but the route file no longer exists — there is **no working intake endpoint in
-either app**.
-**Fix options:** (a) port a fail-closed `/api/early-access` route (private webhook, no
-public-Issue routing per AGENTS.md PII rule); (b) replace the form with a direct GitHub
-link and no fake input. Recommend (a) when a private webhook destination exists;
-(b) until then.
+### F-02 · Sign-up/sign-in form collects then discards email (HIGH — fixed KEEL-WEB-053)
+`magic-link-form.tsx` accepted an email, prevented submit, and rendered "request access
+on GitHub" — the address was never transmitted or stored. **Fixed:** the form now POSTs
+to a real fail-closed `/api/early-access` route handler ported from the canonical
+`api/early-access.js` semantics (origin allowlist, per-IP rate limit, 4KB body cap,
+work-email validation, `503` without `EARLY_ACCESS_WEBHOOK_URL`, optional HMAC
+`X-Keelway-Signature-256`, `KW-XXXXXXXX` reference IDs). The form gains honest
+loading/error/success states and surfaces the 503 as "temporarily unavailable" rather
+than silently dropping input. **Remaining owner action:** provision
+`EARLY_ACCESS_WEBHOOK_URL` (+ optional `EARLY_ACCESS_WEBHOOK_SECRET`) in the Vercel
+project so intake actually delivers; until then the endpoint fails closed by design.
 
 ### F-03 · Tailwind ambiguous-class warnings — real styling risk (MED — fixed this task)
 Dev build warned `duration-[var(--dur-base)]` and `ease-[var(--ease-settle)]` are
@@ -63,18 +63,22 @@ transition. **Fixed:** switched to `transition-[opacity,transform]` +
 `[transition-duration:var(--dur-base)] [transition-timing-function:var(--ease-settle)]`
 arbitrary properties; fresh compile emits zero warnings.
 
-### F-04 · e2e coverage is accessibility-only (MED)
-`e2e/` contains a single `a11y.spec.ts`. The master audit calls for nav, mobile menu,
-all internal links, signup/contact flows, redirects, metadata, and error-page coverage.
-No test asserts `/blog` or `/signup` render — which is exactly why F-01 can regress
-invisibly. **Backlog item:** route-smoke spec iterating the route table.
+### F-04 · e2e coverage is accessibility-only (MED — fixed KEEL-WEB-053)
+`e2e/` contained a single `a11y.spec.ts`; nothing asserted `/blog` or `/signup` render —
+exactly why F-01 regressed invisibly. **Fixed:** new `e2e/routes.spec.ts` asserts all 12
+public routes return 200, crawls header/footer internal links for dead targets, and
+checks per-page meta descriptions (14 tests alongside the 16 a11y/perf tests). A stale
+prod deploy now fails the route-smoke gate rather than shipping silently.
 
-### F-05 · Legacy `website/` app is a divergent second surface (MED)
+### F-05 · Legacy `website/` app is a divergent second surface (MED — mitigated KEEL-WEB-053)
 `website/` (v3 Maritime build) still compiles in CI alongside web-next, and its README
-documents routes (`/models`, `/governance`, `/api-reference`, `/api/early-access`) that
-return 404 or no longer exist in source. Two public-site codebases invite drift and
-confuse deploy mapping. **Backlog item:** mark `website/` deprecated in its README or
-remove once web-next is confirmed as the prod project root.
+documented routes (`/models`, `/governance`, `/api-reference`) that return 404 or no
+longer exist in source. **Mitigated:** the README now carries an explicit deprecation
+banner naming `web-next/` as canonical and labeling the route table as historical —
+no feature work should land there. Full removal remains a follow-up because CI's
+`website-devapp-and-sdks` job still compiles `sdk/typescript` and
+`extensions/vscode-keelway` against `website/node_modules` and runs its e2e suite;
+repointing that toolchain is a separate task.
 
 ### F-06 · Homepage has no explicit page metadata (LOW)
 9 routes export `metadata`; the homepage relies on `layout.tsx` defaults. Verify OG
@@ -107,12 +111,14 @@ beta per "publish only what's real"; schedule Docs 2.0 post-beta.
 | # | Item | Sev | Effort |
 |---|---|---|---|
 | 1 | F-01: restore prod deploy currency (Vercel project config) | HIGH | User-side |
-| 2 | F-02: real early-access intake or honest link (product call) | HIGH | S–M |
-| 3 | F-04: route-smoke e2e spec (all routes render + no 404 nav targets) | MED | S |
-| 4 | F-05: deprecate or remove legacy `website/` app | MED | S |
-| 5 | F-06: explicit `/` OG metadata | LOW | XS |
-| 6 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
-| 7 | F-03: ambiguous Tailwind classes | — | **DONE this task** |
+| 2 | F-02: provision `EARLY_ACCESS_WEBHOOK_URL` (+ `..._SECRET`) in Vercel | HIGH | User-side |
+| 3 | F-05 residual: repoint `website-devapp-and-sdks` CI toolchain, then remove `website/` | MED | M |
+| 4 | F-06: explicit `/` OG metadata | LOW | XS |
+| 5 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
+| 6 | F-03: ambiguous Tailwind classes | — | **DONE (WEB-052)** |
+| 7 | F-04: route-smoke e2e spec | — | **DONE (WEB-053)** |
+| 8 | F-02: real `/api/early-access` + wired form | — | **DONE (WEB-053)** |
+| 9 | F-05: `website/` deprecation banner | — | **DONE (WEB-053)** |
 
 ## 5. Honest limitations of this audit
 
