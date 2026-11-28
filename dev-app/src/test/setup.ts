@@ -104,9 +104,8 @@ expect.extend({
 });
 
 declare module "vitest" {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  interface Assertion<T = any> {
-    toHaveNoViolations(): T;
+  interface Assertion<R, T> {
+    toHaveNoViolations(): R;
   }
   interface AsymmetricMatchersContaining {
     toHaveNoViolations(): void;
