@@ -1,4 +1,4 @@
-# Vercel serves the Next.js 15 application in website/ (Root Directory: website).
+# Vercel serves the Next.js 15 application in web-next/ (Root Directory: web-next).
 # Keelway runtime and Python services run on dedicated OpenCore / cloud hosts.
 /*
-!/website
+!/web-next

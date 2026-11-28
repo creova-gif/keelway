@@ -35,7 +35,8 @@ PHASE11_PYTHON_METHODS = (
 )
 
 FORBIDDEN_PRIVATE_TOKENS = (
-    "creova-gif",
+    # NOTE: "creova-gif" removed in KEEL-WEB-055 — the public open-core org
+    # is deliberately linked from the shipped site; "creovas-projects" stays forbidden.
     "creovas-projects",
     "keelway.git",
     "KEEL-",
@@ -438,7 +439,7 @@ async def test_python_async_sdk_and_optional_live_asgi_plus_tri_sdk_symbols() ->
 def test_docs_hub_phase11_line_caps_and_customer_privacy() -> None:
     # KEEL-WEB-038: DocsHub.tsx was retired with the v3 route prune; the same
     # disclosure + privacy contract now binds to product-facts.json.
-    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
+    facts_src = (REPO_ROOT / "web-next" / "product-facts.json").read_text(encoding="utf-8")
 
     for required_token in (
         "OpenTelemetry GenAI Flight-Tape Time-Travel Debugging",

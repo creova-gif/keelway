@@ -2,7 +2,7 @@
 
 This guide matches the commands in a clone of [creova-gif/keelway](https://github.com/creova-gif/keelway). The clone directory is `keelway`. It does not use a PyPI package named `keelway`, and it does not use a `keelway.dev` or `get.keelway.dev` installer.
 
-Studio, the governance server, and the static site in `website/` are three different surfaces. See `README.md` for the same split. This guide does not print a test pass count.
+Studio, the governance server, and the Next.js 15 site in `web-next/` are three different surfaces. See `README.md` for the same split. This guide does not print a test pass count.
 
 Package B (runtime labels) and package C (fail-closed authentication, isolation, and default-config behavior) were not verified checkpoints when this page was written. Do not read those intended behaviors into the commands below.
 
@@ -27,7 +27,7 @@ change.
 
 After that install, `keelway` is `cli.py` and `keelway-ops` is `keelway.cli.main` (`keelway-core` remains as a deprecated alias that prints a warning). `./bin/keelway` is a wrapper around `cli.py`.
 
-`website/install.sh` creates `~/.keelway/runtime/.venv` and installs Keelway. Until the package is published, it requires `KEELWAY_SOURCE_DIR=/path/to/checkout` (editable install) or an explicit `KEELWAY_PACKAGE=<dist>`; it fails closed otherwise. `scripts/verify_install.sh` reproduces the clean-env check (venv → editable install → `keelway doctor` HEALTHY → `harness agents detect`).
+`scripts/install.sh` creates `~/.keelway/venv` and installs Keelway (supports `--dry-run`, `--json`, `--uninstall`, `--purge`). `scripts/verify_install.sh` reproduces the clean-env check (venv → editable install → `keelway doctor` HEALTHY → `harness agents detect`).
 
 ## Local Studio
 
@@ -54,7 +54,7 @@ The container entrypoint starts `keelway.cli.main serve`. That image does not in
 
 ## Static site
 
-`website/` is HTML, CSS, and JSON. `vercel.json` publishes that directory. Opening those files does not start Studio or the governance server.
+`web-next/` is the Next.js 15 App Router site deployed to Vercel. Opening those files does not start Studio or the governance server.
 
 ## Template list
 

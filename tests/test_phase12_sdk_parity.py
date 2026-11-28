@@ -37,7 +37,8 @@ PHASE12_PYTHON_METHODS = (
 )
 
 FORBIDDEN_PRIVATE_TOKENS = (
-    "creova-gif",
+    # NOTE: "creova-gif" removed in KEEL-WEB-055 — the public open-core org
+    # is deliberately linked from the shipped site; "creovas-projects" stays forbidden.
     "creovas-projects",
     "keelway.git",
     "KEEL-",
@@ -413,8 +414,9 @@ async def test_python_async_sdk_and_optional_live_asgi_plus_tri_sdk_symbols() ->
 def test_website_phase12_docs_hub_pricing_calibration_and_line_caps() -> None:
     # KEEL-WEB-038: DocsHub.tsx and CustomerJourneyGrid.tsx were retired with
     # the v3 route prune; the same disclosure + privacy contract now binds to
-    # product-facts.json, and the pricing contract binds to src/data/pricing.ts.
-    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
+    # product-facts.json, and the pricing contract binds to the canonical
+    # web-next pricing surface (tiers are declared inline in page.tsx).
+    facts_src = (REPO_ROOT / "web-next" / "product-facts.json").read_text(encoding="utf-8")
 
     for required_token in (
         "Golden-Thread Bidirectional KFlow Studio",
@@ -429,14 +431,19 @@ def test_website_phase12_docs_hub_pricing_calibration_and_line_caps() -> None:
     for token in FORBIDDEN_PRIVATE_TOKENS:
         assert token not in facts_src, f"Forbidden private token '{token}' leaked in product-facts.json"
 
-    pricing_src = (REPO_ROOT / "website" / "src" / "data" / "pricing.ts").read_text(
-        encoding="utf-8"
-    ) + (REPO_ROOT / "website" / "src" / "app" / "pricing" / "page.tsx").read_text(
+    pricing_src = (REPO_ROOT / "web-next" / "src" / "app" / "pricing" / "page.tsx").read_text(
         encoding="utf-8"
     )
     assert "$29/seat" in pricing_src, "Pro $29/seat pricing must be disclosed on /pricing"
-    assert "spend cap" in pricing_src.lower(), "spend caps must be disclosed on /pricing"
+    assert "0% token markup" in pricing_src, "0% token markup must be disclosed on /pricing"
+    assert "Sovereign VPC" in pricing_src, "Enterprise Sovereign VPC must be disclosed on /pricing"
     assert "$39/seat" not in pricing_src, "$39/seat pricing must not appear on /pricing"
+
+    # Spend-cap disclosure lives on the /product policy demo in web-next.
+    policy_src = (
+        REPO_ROOT / "web-next" / "src" / "components" / "site" / "policy-demo.tsx"
+    ).read_text(encoding="utf-8")
+    assert "spend cap" in policy_src.lower(), "spend caps must be disclosed on the public surface"
 
     phase12b_files = (
         REPO_ROOT / "core" / "sdk" / "platform_studio_client.py",

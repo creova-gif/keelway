@@ -28,7 +28,7 @@ from core.sdk import (
 from core.security.auth import launch_token
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WEBSITE_DIR = REPO_ROOT / "website"
+SITE_DIR = REPO_ROOT / "web-next"
 
 PHASE17_PYTHON_METHODS = (
     "verify_workflow_safety",
@@ -58,7 +58,8 @@ PHASE17_GO_METHODS = (
 )
 
 FORBIDDEN_PRIVATE_TOKENS = (
-    "creova-gif",
+    # NOTE: "creova-gif" removed in KEEL-WEB-055 — the public open-core org
+    # is deliberately linked from the shipped site; "creovas-projects" stays forbidden.
     "creovas-projects",
     "keelway.git",
     "KEEL-",
@@ -299,8 +300,8 @@ def test_tri_sdk_caps_298_routes_and_yc_minimal_website_curation() -> None:
     for go_m in PHASE17_GO_METHODS:
         assert f"func (p *PlatformService) {go_m}(" in go_src, f"Missing Go SDK method {go_m}"
 
-    openapi_raw = (WEBSITE_DIR / "openapi.json").read_text(encoding="utf-8")
-    pub_openapi_raw = (WEBSITE_DIR / "public" / "openapi.json").read_text(encoding="utf-8")
+    openapi_raw = (SITE_DIR / "openapi.json").read_text(encoding="utf-8")
+    pub_openapi_raw = (SITE_DIR / "public" / "openapi.json").read_text(encoding="utf-8")
     assert openapi_raw == pub_openapi_raw
     openapi_doc = json.loads(openapi_raw)
     assert len(openapi_doc["paths"]) >= 298
@@ -320,24 +321,24 @@ def test_tri_sdk_caps_298_routes_and_yc_minimal_website_curation() -> None:
     # /sign-in. Retired pages (DocsHub, /governance, /models, /api-reference,
     # /marketplace, /brand, /playground, /search) must stay absent; the
     # no-internal-jargon / no-private-token scan binds to the live v3 surface.
-    home_src = (WEBSITE_DIR / "src" / "app" / "page.tsx").read_text(encoding="utf-8")
+    home_src = (SITE_DIR / "src" / "app" / "page.tsx").read_text(encoding="utf-8")
     v3_surface_files = (
-        WEBSITE_DIR / "src" / "app" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "about" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "product" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "pricing" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "changelog" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "contact" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "docs" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "sign-in" / "page.tsx",
+        SITE_DIR / "src" / "app" / "page.tsx",
+        SITE_DIR / "src" / "app" / "about" / "page.tsx",
+        SITE_DIR / "src" / "app" / "product" / "page.tsx",
+        SITE_DIR / "src" / "app" / "pricing" / "page.tsx",
+        SITE_DIR / "src" / "app" / "changelog" / "page.tsx",
+        SITE_DIR / "src" / "app" / "contact" / "page.tsx",
+        SITE_DIR / "src" / "app" / "docs" / "page.tsx",
+        SITE_DIR / "src" / "app" / "sign-in" / "page.tsx",
     )
 
     assert len(home_src.splitlines()) < 220, "Homepage should remain concise and YC-focused (< 220 lines)"
     assert "RecordedDemosShowcase" not in home_src, "Redundant RecordedDemosShowcase should be removed from homepage"
-    for yc_signal in ("ControlPlaneFigure", "#install", '"/product"'):
+    for yc_signal in ("InstallCommand", "TerminalDemo", "P-10", '"/docs"'):
         assert yc_signal in home_src, f"Missing investor signal {yc_signal} on homepage"
 
-    docs_src = (WEBSITE_DIR / "src" / "app" / "docs" / "page.tsx").read_text(encoding="utf-8")
+    docs_src = (SITE_DIR / "src" / "app" / "docs" / "page.tsx").read_text(encoding="utf-8")
     assert len(docs_src.splitlines()) < 350, "docs index must stay concise (< 350 lines)"
 
     for retired in (
@@ -350,7 +351,7 @@ def test_tri_sdk_caps_298_routes_and_yc_minimal_website_curation() -> None:
         "src/app/brand/page.tsx",
         "src/app/playground/page.tsx",
     ):
-        assert not (WEBSITE_DIR / retired).exists(), f"Retired v1 surface still present: {retired}"
+        assert not (SITE_DIR / retired).exists(), f"Retired v1 surface still present: {retired}"
 
     # The /api-reference page is gone; the OpenAPI contract must still expose
     # the public chat + governance route families it documented.

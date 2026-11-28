@@ -8,7 +8,7 @@
 | Desktop | `keelway desktop` — Chromium app-mode window | WORKING_COMPONENT (not packaged/signed) |
 | Self-hosted | `docker compose up` — control-plane :8000 + platform :7420, `/data` volume, non-root | SMOKE-TESTED 2026-11-27 (P0-3): image builds clean; `GET /health` → `{"status":"ok","database_connected":true}` (200); `GET /app/` → 200 HTML; `--no-access-log` confirmed (no `?token=` in container logs). Requires `KEELWAY_POLICY_SIGNING_KEY` in `.env` (see `env.example`). Health route is `/health`, not `/v1/health`. |
 | Enterprise | `deploy/helm`, `deploy/k8s`, `deploy/terraform` | UNVERIFIED E2E |
-| Marketing site | `website/` → Vercel `kora-sable.vercel.app` | DEPLOYED |
+| Marketing site | `web-next/` → Vercel `kora-sable.vercel.app` | DEPLOYED |
 
 ## Beta onboarding (happy path — cold-run verified 2026-11-27)
 
@@ -53,4 +53,4 @@ signed authorization; `private` payloads never egress regardless.
 
 - `KEELWAY_POLICY_SIGNING_KEY` required for compose (`env.example`)
 - `OLLAMA_BASE_URL` honored after P0-6 for non-default runtimes
-- Vercel env for `website/` unchanged this release
+- Vercel env for `web-next/` unchanged this release

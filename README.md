@@ -97,7 +97,7 @@ flowchart TD
 | **Unified 10-View Sovereign Dev Tool** | `127.0.0.1:7420/app` | `dev-app/` → `core/dev_app_dist/` (`core.main:app`) | `keelway dev` |
 | **Keelway Studio IDE** | `127.0.0.1:7420/studio` | `core/studio/` (`core.main:app`) | `keelway dev` or `keelway desktop` |
 | **Governance Control Plane** | `127.0.0.1:8000/` | `keelway/api/app.py` (`keelway-ops`) | `keelway-ops serve` or `make serve` |
-| **Next.js 15 Product & Docs Site** | `:3000` (dev/prod) | `website/` | `npm --prefix website run dev` |
+| **Next.js 15 Product & Docs Site** | `:3000` (dev/prod) | `web-next/` | `npm --prefix web-next run dev` |
 
 ---
 
@@ -149,7 +149,7 @@ Installed console scripts:
 ```bash
 # Inspect zero-write installation plan first
 ./scripts/install.sh --dry-run --json
-sh website/public/install.sh --dry-run
+sh web-next/public/install.sh --dry-run
 
 # Homebrew formula (macOS / Linuxbrew)
 ruby -c Formula/keelway.rb
@@ -203,7 +203,7 @@ All three SDKs expose full parity across Inference, 4D Routing, OpenCore, Govern
 keelway eval-suite --category all --json
 
 # 3. Official TypeScript & Go SDK suites + Unified Dev Tool WCAG 2.2 AA suite
-./website/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json && npm --prefix sdk/typescript test
+./sdk/typescript/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json && npm --prefix sdk/typescript test
 (cd sdk/go && go vet ./... && go test ./... -race)
 npm --prefix dev-app test
 
@@ -220,8 +220,8 @@ python -m tests.release_live_gate
 ├── core/                     # Unified Platform API (:7420), OpenCore, MCP, KFlow, KSpaces, Vault, SDK
 ├── keelway/                  # Governance Control Plane (:8000), Policy Engine, Quorum, Audit Ledger
 ├── dev-app/                  # React 19 + TypeScript Unified 10-View Sovereign Dev Tool -> core/dev_app_dist/
-├── website/                  # Next.js 15 App Router marketing, interactive pricing, docs & marketplace
-├── api/early-access.js       # Fail-closed early-access serverless intake (private HTTPS webhook only)
+├── web-next/                 # Next.js 15 App Router marketing, product, docs & early-access intake
+├── api/early-access.js       # Fail-closed early-access intake reference (canonical port: web-next/src/app/api/early-access)
 ├── sdk/
 │   ├── typescript/           # @keelway/sdk v1.1.0 (zero runtime dependencies)
 │   └── go/                   # keelway-go (pure Go stdlib)

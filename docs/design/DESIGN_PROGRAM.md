@@ -2,7 +2,7 @@
 
 > **Status**: Ratified Phase 0/1 (2026-11-22, KEEL-DSN-001)
 > **Canonical design workspace**: [Keelway — Brand Kit & Homepage](https://app.paper.design/file/01M7T488WTKN3AQNQ2K9DB40TN)
-> **Engineering source of truth**: this repository (`DESIGN.md`, `dev-app/src/styles/tokens.css`, `website/src/app/globals.css`)
+> **Engineering source of truth**: this repository (`DESIGN.md`, `dev-app/src/styles/tokens.css`, `web-next/src/styles/tokens.css`)
 
 ---
 
@@ -41,7 +41,7 @@ for review checkpoints only, per the Paper operating guide.
    may not be weakened to match a design.
 2. **Billing / tier management screens**: in scope, designed now (Phase 2).
    The app implements a 4-tier model (`community | pro | byom | enterprise`,
-   `dev-app/src/lib/types.ts`); the website advertises 5 tiers (adds `team`).
+   `dev-app/src/lib/types.ts`); the retired `website/` app advertised 5 tiers (adds `team`).
    The Paper design must resolve this discrepancy — canonical tier set is a
    Phase 2 design decision that engineering then aligns to.
 3. **Phase 2 order**: Settings first (biggest artboard gap, most-used surface),

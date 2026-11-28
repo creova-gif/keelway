@@ -11,7 +11,7 @@
 
 | Step | Command / action | Expected result | If it fails |
 |---|---|---|---|
-| 1. Install | `KEELWAY_SOURCE_DIR=<checkout> bash website/install.sh` (until a published package exists) | `~/.keelway/runtime/.venv` created, editable install | Run `scripts/verify_install.sh` to reproduce clean-env check |
+| 1. Install | `bash scripts/install.sh` | `~/.keelway/venv` created, editable install | Run `scripts/verify_install.sh` to reproduce clean-env check |
 | 2. Health | `keelway doctor --json` | `overall_status: HEALTHY` | Doctor output names the failing check; fix env (Python ≥3.11, deps) |
 | 3. Detect agents | `keelway harness agents detect` | Lists `claude`, `codex`, `cursor-agent` with versions | Missing binary → install that agent CLI first |
 | 4. Wire governance | `keelway harness agents setup --agent <host> --mode audit_only` | Writes `.claude/settings.local.json` / `.codex/hooks.toml` / `.cursor/hooks.json` with PreToolUse+PostToolUse+SessionStart hooks | `agent_not_installed` → step 3; rerun after installing the CLI |
@@ -21,7 +21,7 @@
 Mode guidance: ship `audit_only` first (records verdicts, never blocks),
 then flip to `--mode enforce` once the team trusts the verdict stream.
 
-## 2. Early-access intake (website → fulfillment)
+## 2. Early-access intake (web-next → fulfillment)
 
 ### 2.1 Submission path
 

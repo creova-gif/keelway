@@ -431,7 +431,7 @@ def test_release_artifacts_workflow_and_docs_hub_v1_sync() -> None:
     # KEEL-WEB-038: the pre-v3 DocsHub.tsx component was retired with the
     # pruned route surface; product-facts.json is the canonical disclosure
     # registry the same tokens must appear in.
-    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
+    facts_src = (REPO_ROOT / "web-next" / "product-facts.json").read_text(encoding="utf-8")
     for required_doc_token in (
         "Model Context Protocol",
         "2025-06-18",
