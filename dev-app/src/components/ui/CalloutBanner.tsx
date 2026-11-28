@@ -88,7 +88,7 @@ export function CalloutBanner({
       <div className="flex min-w-0 flex-1 items-start gap-2.5">
         <span
           aria-hidden="true"
-          className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-xs border font-mono text-xs font-bold ${spec.iconClasses}`}
+          className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-xs border font-mono text-xs font-[640] ${spec.iconClasses}`}
         >
           {spec.glyph}
         </span>

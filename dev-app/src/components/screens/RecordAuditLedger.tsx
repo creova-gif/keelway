@@ -616,7 +616,7 @@ export function RecordAuditLedger({
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5 text-fg">
                           {entry.approvedByHuman ? (
-                            <span aria-hidden="true" className="font-mono text-[11px] font-bold text-accent">
+                            <span aria-hidden="true" className="font-mono text-[11px] font-[640] text-accent">
                               ✓
                             </span>
                           ) : null}

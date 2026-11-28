@@ -329,7 +329,7 @@ export function BidirectionalKflowStudioPanel({
                     className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
                   >
                     <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
-                      <span className="rounded-xs border border-accent/40 bg-canvas px-1 py-0.2 text-[10px] font-bold text-accent">{`W${node.wave}`}</span>
+                      <span className="rounded-xs border border-accent/40 bg-canvas px-1 py-0.2 text-[10px] font-[640] text-accent">{`W${node.wave}`}</span>
                       <span className="font-semibold text-fg">{node.id}</span>
                       <span className="rounded-xs border border-border bg-canvas px-1 py-0.2 text-[10px] text-fg-muted">{`L${node.line_start}–L${node.line_end}`}</span>
                     </div>

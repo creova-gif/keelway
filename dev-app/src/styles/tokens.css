@@ -89,6 +89,14 @@
   --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.62);
 
+  /* Spacing scale — Paper canonical (KEEL-DSN-004); theme-invariant */
+  --space-xs: 8px;
+  --space-sm: 14px;
+  --space-md: 24px;
+  --space-lg: 40px;
+  --space-xl: 56px;
+  --space-2xl: 80px;
+
   /* Motion — Maritime Instrument choreography (kit 07)
      Durations: snap=press/hover, fast=chips/toggles, base=panels/tabs, slow=modals/drawers */
   --dur-snap: 80ms;

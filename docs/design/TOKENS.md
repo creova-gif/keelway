@@ -54,9 +54,10 @@ unrelated views combined onto single boards.
 | `--space-xl` | `56px` | artboard-level breathing room |
 | `--space-2xl` | `80px` | hero/landing sections |
 
-These are **Paper-only** — no `dev-app/tokens.css` or `web-next` globals
-equivalent exists yet. Record the sync task when adopted; do not treat the
-absence as a drift bug.
+~~These are **Paper-only** — no `dev-app/tokens.css` or `web-next` globals
+equivalent exists yet.~~ **SYNCED 2026-11-28 (KEEL-DSN-005)**: added
+`--space-xs`..`--space-2xl` to `dev-app/src/styles/tokens.css` (root block,
+theme-invariant). `web-next` has no token layer — Tailwind default spacing.
 
 New Paper token hash: `f8e761be` (was `3cc7b891`). Paper now carries 33
 shared tokens (27 color/type/radius + 6 spacing).
@@ -87,9 +88,11 @@ fixed separately in PR #218.
 `font-weight: 700`, which violates this file's own documented type system
 (`--font-sans` is Inter, weights 400–640 only — "precision, not force," per
 DESIGN.md §8/§9 and the `--fs-display` token note). All 52 corrected to
-`640` via a batched `update_styles` call. No code-side audit was run; if
-`dev-app` or `website` use `font-weight: 700` on Inter anywhere, flag it the
-same way.
+`640` via a batched `update_styles` call. **Code-side audit run 2026-11-28
+(KEEL-DSN-005)**: 13 `font-bold` (Tailwind weight 700) sites found and
+converted to `font-[640]` — 11 in `dev-app` (wordmark, badges, verdict/wave
+chips, diff markers, callout icon) + 2 in `web-next` (site `Mark`, header
+wordmark). Zero remaining.
 
 ## Naming debt (tracked, not yet renamed)
 
