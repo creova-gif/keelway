@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   fetchGovernancePolicy,
   fetchSettlementSummary,
@@ -277,12 +278,7 @@ export function SettingsBillingPanel({
               { label: "Creator payout", value: settlement.creatorPayoutUsd },
               { label: "Platform fee", value: settlement.platformFeeUsd },
             ].map((row) => (
-              <div key={row.label} className="rounded-sm border border-border bg-canvas p-3">
-                <dt className="text-[11px] text-fg-muted">{row.label}</dt>
-                <dd className="mt-1 font-mono text-sm font-semibold tabular-nums text-fg">
-                  ${row.value.toFixed(2)}
-                </dd>
-              </div>
+              <StatCard key={row.label} label={row.label} value={`$${row.value.toFixed(2)}`} />
             ))}
             <p className="col-span-3 text-[11px] leading-4 text-fg-dim">
               {settlement.count} settlement{settlement.count === 1 ? "" : "s"} — SHA-256

@@ -15,7 +15,7 @@
 | Token impl | `dev-app/src/styles/tokens.css` (379 lines): primitive→semantic→component layers, `[data-theme="dark"]` + `[data-theme="light"]` |
 | Visual source of truth | Paper.design board (DESIGN.md §10: Paper wins styling, code wins honesty/behavior contracts) |
 | Bundle | 484 KB eager post-KEEL-ENG-073; ~720 KB deferred across 15 view chunks; Monaco self-hosted lazy |
-| Test suite | 130 tests / 25 files green; 22 files touch axe, **9 assert `toHaveNoViolations`** |
+| Test suite | 133 tests / 25 files green; 23 files touch axe |
 | Component layer | `components/ui/` — 4 primitives (BrandMark, Button, CalloutBanner, SemanticBadge) + Radix + 30 platform panels + 4 screen workspaces + shell (DevAppShell, CommandPalette, InboxPopover) |
 
 ## 2. KDS foundation decision — KEEP Radix + Tailwind, reject migration
@@ -42,7 +42,7 @@ The directive proposes shadcn/ui + Base UI. Audit verdict: **do not migrate**.
 |---|---|---|---|
 | UX-001 | P2 | SVG diagrams in `FlightTapeScrubberAndRadar.tsx` and `BidirectionalKflowStudioPanel.tsx` used superseded teal/zinc literals (`#2dd4bf`, `#e4e4e7`, `#121215`…) — off-brand vs maritime v3 **and** broken under `[data-theme="light"]` | **FIXED this PR** — 16 sites → `var(--accent)`, `var(--fg-*)`, `var(--bg-*)`, `var(--accent-subtle)`; now theme-reactive |
 | UX-002 | P3 | Monaco `defineTheme` uses literal hex (`#09090b`, `#f8fafc`) — Monaco API requires literals, cannot take CSS vars | ACCEPTED — documented exception; values mirror tokens |
-| UX-003 | P2 | `components/ui/` has 4 primitives; no shared composite layer (empty state, filter bar, stat card re-implemented per view) | **IN PROGRESS** — `EmptyState` shared primitive shipped (KEEL-ENG-078, RecordAuditLedger); StatCard/FilterBar remain, opportunistic |
+| UX-003 | P2 | `components/ui/` has 4 primitives; no shared composite layer (empty state, filter bar, stat card re-implemented per view) | **IN PROGRESS** — `EmptyState` (KEEL-ENG-078, RecordAuditLedger) + `StatCard` (KEEL-ENG-079, QuotaSim/ModelsPanel/BillingPanel) shipped; FilterBar remains, opportunistic |
 | UX-004 | P1 | No onboarding funnel exists to measure: product is single-operator sovereign (token auth, no account creation, no repo-hosting OAuth). Directive's signup/repo-connect/org-admin journey does not map to current product shape | SCOPE — documented mismatch; measurable proxy is `keelway doctor` + first-run path (verified HEALTHY 10/10 in beta audit) |
 | UX-005 | P3 | Corrected count: axe already covered 22 of 23 UI test files (9 `toHaveNoViolations`, 13 equivalent `.violations` assertions); only `live-agent-run.test.tsx` lacked it | **FIXED** — 6 real `toHaveNoViolations` assertions added, 0 violations on the live agent run lane |
 | UX-006 | P2 | No visual-regression or Core-Web-Vitals harness; performance evidence is bundle-size only | BACKLOG — bundle budget already enforced by code-split; CWV needs a browser harness (jsdom cannot measure LCP/INP/CLS) |
@@ -84,7 +84,7 @@ treated as directional, not verified behavior.
 | Pri | Item | Effort |
 |---|---|---|
 | P1 | Decide SSO/multi-tenancy direction (product call — gates enterprise UX scope) | decision |
-| P2 | Extend `toHaveNoViolations` to remaining 16 view test files | S |
+| P2 | ~~Extend `toHaveNoViolations` to remaining 16 view test files~~ — DONE via KEEL-ENG-075/078/079; only `api-fallback-provenance` + `early-access-security` lack axe (logic tests, no DOM) | — |
 | P2 | Consolidate composite primitives (empty state, filter bar, stat card) into `components/ui/` opportunistically | M, rolling |
 | P2 | Browser-harness CWV + visual regression (Playwright or equivalent) post-beta | M |
 | P3 | Parallel agent-session workspace UX (Conductor-style) — needs backend session model first | L |

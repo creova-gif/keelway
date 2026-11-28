@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   postSimulatePricing,
   type PricingSimulationResult,
@@ -163,20 +164,26 @@ export function QuotaAndPricingSimulatorPanel({
 
       {simResult ? (
         <div className="space-y-3 border-t border-border pt-3">
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs text-fg">
-              {`${supportiveCount}/${simResult.personas.length} Personas Supportive (${toPct(simResult.supportiveRate)}% vs ${toPct(simResult.legacySupportiveRate)}% Legacy)`}
-            </div>
-            <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs text-fg">
-              {`Hidden-Fee Distrust: ${simResult.hiddenFeeDistrustScore.toFixed(2)}`}
-            </div>
-            <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs text-fg">
-              {`Pro P50/P95 Gross Margin: ${simResult.proGrossMarginP50Pct.toFixed(1)}% / ${simResult.proGrossMarginP95Pct.toFixed(1)}%`}
-            </div>
-            <div className="rounded-sm border border-border bg-chrome p-2.5 font-mono text-xs font-semibold text-accent">
-              {`Saved vs 20% Proxy Tax: +$${simResult.proxyTaxSavingsMonthlyUsd}/mo`}
-            </div>
-          </div>
+          <dl className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="Personas supportive"
+              value={`${supportiveCount}/${simResult.personas.length}`}
+              delta={`${toPct(simResult.supportiveRate)}% vs ${toPct(simResult.legacySupportiveRate)}% legacy`}
+            />
+            <StatCard
+              label="Hidden-fee distrust"
+              value={simResult.hiddenFeeDistrustScore.toFixed(2)}
+            />
+            <StatCard
+              label="Pro gross margin P50/P95"
+              value={`${simResult.proGrossMarginP50Pct.toFixed(1)}% / ${simResult.proGrossMarginP95Pct.toFixed(1)}%`}
+            />
+            <StatCard
+              emphasis
+              label="Saved vs 20% proxy tax"
+              value={`+$${simResult.proxyTaxSavingsMonthlyUsd}/mo`}
+            />
+          </dl>
 
           <ul aria-label="Simulated buyer persona verdicts" className="grid gap-2 md:grid-cols-2">
             {simResult.personas.map((persona) => (

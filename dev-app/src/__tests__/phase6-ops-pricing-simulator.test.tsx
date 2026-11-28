@@ -49,10 +49,15 @@ describe("Phase 6D — Operations Quota, Calibrated Pricing & MiroFish 5-Persona
     );
 
     // Verify KPI strip & proxy tax savings (+$1000/mo)
-    expect(await within(simSection).findByText(/5\/5 Personas Supportive \(100% vs 40% Legacy\)/i)).toBeInTheDocument();
-    expect(within(simSection).getByText(/Hidden-Fee Distrust: 0\.00/i)).toBeInTheDocument();
-    expect(within(simSection).getByText(/Pro P50\/P95 Gross Margin: 93\.2% \/ 83\.2%/i)).toBeInTheDocument();
-    expect(within(simSection).getByText(/Saved vs 20% Proxy Tax: \+\$1,?000\/mo/i)).toBeInTheDocument();
+    expect(within(simSection).getByText("Personas supportive")).toBeInTheDocument();
+    expect(within(simSection).getByText("5/5")).toBeInTheDocument();
+    expect(within(simSection).getByText("100% vs 40% legacy")).toBeInTheDocument();
+    expect(within(simSection).getByText("Hidden-fee distrust")).toBeInTheDocument();
+    expect(within(simSection).getByText("0.00")).toBeInTheDocument();
+    expect(within(simSection).getByText("Pro gross margin P50/P95")).toBeInTheDocument();
+    expect(within(simSection).getByText("93.2% / 83.2%")).toBeInTheDocument();
+    expect(within(simSection).getByText("Saved vs 20% proxy tax")).toBeInTheDocument();
+    expect(within(simSection).getByText("+$1000/mo")).toBeInTheDocument();
 
     // Verify all 5 OASIS buyer/creator personas & MiroFish ReportAgent summary
     const verdictList = within(simSection).getByRole("list", { name: /Simulated buyer persona verdicts/i });
@@ -111,7 +116,8 @@ describe("Phase 6D — Operations Quota, Calibrated Pricing & MiroFish 5-Persona
     await user.selectOptions(within(simSection).getByLabelText("Simulation monthly API spend"), "15000");
     await user.click(within(simSection).getByRole("button", { name: /Run 5-Persona MiroFish Pricing Check/i }));
 
-    expect(await within(simSection).findByText(/Saved vs 20% Proxy Tax: \+\$3000\/mo/i)).toBeInTheDocument();
+    expect(within(simSection).getByText("Saved vs 20% proxy tax")).toBeInTheDocument();
+    expect(await within(simSection).findByText("+$3000/mo")).toBeInTheDocument();
     expect(within(simSection).getByText(/verified live backend pricing simulation/i)).toBeInTheDocument();
     expect(simRequests).toHaveLength(1);
     expect(simRequests[0]!.url).toContain("/v1/platform/pricing/simulate?token=sim-tok-6d");
