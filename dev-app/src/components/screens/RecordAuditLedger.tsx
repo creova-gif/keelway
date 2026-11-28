@@ -7,6 +7,7 @@ import {
   type RecordEntryInspectorProps,
 } from "@/components/screens/RecordEntryInspector";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   exportAuditBundle,
   fetchAuditEntries,
@@ -572,19 +573,20 @@ export function RecordAuditLedger({
               ))}
             </div>
           ) : entries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-              <p className="text-sm font-medium text-fg">No entries recorded yet</p>
-              <p className="max-w-md text-xs text-fg-muted">
-                Approved P-10 actions, sandbox test runs, and 4D routing decisions are appended here with SHA-256 chain links.
-              </p>
-            </div>
+            <EmptyState
+              title="No entries recorded yet"
+              body="Approved P-10 actions, sandbox test runs, and 4D routing decisions are appended here with SHA-256 chain links."
+            />
           ) : filteredEntries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2.5 py-12 text-center">
-              <p className="text-sm font-medium text-fg">No Record entries match the current filters</p>
-              <Button size="sm" variant="secondary" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            </div>
+            <EmptyState
+              className="gap-2.5"
+              title="No Record entries match the current filters"
+              action={
+                <Button size="sm" variant="secondary" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
           ) : (
             <table
               aria-label="Record SHA-256 audit ledger"
