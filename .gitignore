@@ -86,6 +86,6 @@ PITCH_AND_JUDGE_QA.md
 .vercel
 
 # Unified Dev App frontend dependencies & cache
-dev-app/node_modules/
+node_modules/
 dev-app/.vite/
 dev-app/coverage/

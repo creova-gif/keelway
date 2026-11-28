@@ -2,12 +2,13 @@
 
 > **Deprecated — superseded by `web-next/`.** The canonical public site is
 > `web-next/` (Paper V3 "Keel Black & Brass", canonical dev-app tokens, deployed
-> at `https://kora-sable.vercel.app/`). This directory is retained only because
-> CI still compiles `sdk/typescript` and `extensions/vscode-keelway` against its
-> `node_modules/.bin/tsc` and runs its e2e suite. Do not add features here;
-> removal is tracked as a follow-up once CI repoints the shared toolchain.
-> Route claims below describe this app's historical surface and are not the
-> deployed site.
+> at `https://kora-sable.vercel.app/`). This app is **no longer built or e2e-tested
+> in CI** (KEEL-WEB-054); `sdk/typescript` and `extensions/vscode-keelway` compile
+> with their own `typescript` devDependencies. The directory is retained only
+> because the pytest drift gates (`test_website_facts.py`, phase 15–17 website
+> sync tests) still pin its files — removal is tracked as a follow-up once those
+> tests migrate or retire. Do not add features here. Route claims below describe
+> this app's historical surface and are not the deployed site.
 
 Built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS**, **Radix UI**, **Framer Motion**, and **Vercel Analytics**, implementing the canonical interface specification in [`../DESIGN.md`](../DESIGN.md).
 

@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Offline — Keelway",
+  description: "Keelway offline fallback — cached routes remain readable when the network drops.",
+  alternates: { canonical: "/offline" },
+};
 
 export default function OfflinePage() {
   return (

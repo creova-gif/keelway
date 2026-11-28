@@ -37,3 +37,14 @@ test("every public route has a meta description", async ({ page }) => {
   }
   expect(missing, `routes missing meta description: ${missing.join(", ")}`).toEqual([]);
 });
+
+test("every public route self-canonicalizes", async ({ page }) => {
+  const wrong: string[] = [];
+  for (const route of ROUTES) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+    const pathname = canonical ? new URL(canonical).pathname : null;
+    if (pathname !== route) wrong.push(`${route} → ${canonical ?? "none"}`);
+  }
+  expect(wrong, `routes with wrong canonical:\n${wrong.join("\n")}`).toEqual([]);
+});

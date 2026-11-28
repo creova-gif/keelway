@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about" },
   title: "About — Keelway",
   description: "Keelway is built by Sorvex Labs — a sovereign agent platform, Apache-2.0 open core.",
 };

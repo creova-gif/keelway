@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TerminalDemo } from "@/components/site/terminal-demo";
 import { InstallCommand } from "@/components/site/install-command";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const TASKS = [
   "Harden loopback CSP",

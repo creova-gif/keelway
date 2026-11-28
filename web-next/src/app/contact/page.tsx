@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/components/site/contact-form";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: "Contact — Keelway",
   description: "Talk to a human — Enterprise Sovereign VPC, BYOM rollouts, or a hard question about the tape.",
 };

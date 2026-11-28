@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/blog" },
   title: "Blog — Keelway",
   description: "Field notes on sovereign agent infrastructure — governance, receipts, and honest economics.",
 };

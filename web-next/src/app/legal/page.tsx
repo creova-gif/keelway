@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/legal" },
   title: "Legal — Keelway",
   description: "Terms of service, privacy, and licensing for Keelway — in plain language.",
 };
