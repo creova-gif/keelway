@@ -23,7 +23,7 @@
 | CalloutBanner | `components/ui/CalloutBanner.tsx` | SHARED |
 | SemanticBadge | `components/ui/SemanticBadge.tsx` | SHARED |
 | Dialog / Popover / Tabs / Tooltip | `@radix-ui/*` (behaviors; styled per call site) | SHARED lib |
-| EmptyState | inline markup per view | **GAP** — extract to `components/ui/` (UX-003) |
+| EmptyState | `components/ui/EmptyState.tsx` (title + body + optional action; `role="status"`) | SHARED — debuted KEEL-ENG-078, wired in RecordAuditLedger |
 | Skeleton block | `.kw-skeleton` CSS only | SHARED (CSS) |
 | Stat/metric card | per-panel inline | **GAP** — candidate for `components/ui/` |
 | FilterBar / sortable table | per-view | **GAP** |
