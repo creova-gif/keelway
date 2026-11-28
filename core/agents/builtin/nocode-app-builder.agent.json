@@ -24,7 +24,7 @@
     "network": "none",
     "write_paths": [
       "dev-app/src/**",
-      "website/**",
+      "web-next/**",
       "docs/**"
     ]
   },

@@ -21,12 +21,6 @@
       "code_path": "core/platform/step_debugger.py, core/api/platform_debugger_routes.py, core/cli_debugger.py, extensions/vscode-keelway/src/extension.ts, extensions/vscode-keelway/src/bridgeClient.ts, extensions/vscode-keelway/src/codeLensProvider.ts, extensions/vscode-keelway/src/studioWebview.ts, dev-app/src/components/platform/StepDebuggerAndBridgePanel.tsx",
       "evidence_test": "tests/test_phase14_step_debugger_and_cli.py, tests/test_phase14_sdk_and_vscode_bridge.py, extensions/vscode-keelway/test/extension.test.mjs, dev-app/src/__tests__/phase14-step-debugger-bridge.test.tsx"
     },
-    "zero_install_homepage_golden_thread_studio_showcase": {
-      "status": "AVAILABLE",
-      "claim": "Zero-install Golden-Thread Studio showcase engine enabling LangGraph-to-KFlow SVG topology conversion, bidirectional Python and TypeScript SDK AST line sync, counterfactual Flight-Tape scrubbing, sandbox blast-radius inspection, and prompt regression gating — shipped as a self-contained embeddable component",
-      "code_path": "website/src/components/home/GoldenThreadStudioShowcase.tsx, website/src/lib/goldenThreadShowcaseEngine.ts",
-      "evidence_test": "tests/test_phase13_homepage_studio_and_release.py"
-    },
     "dual_mode_agent_builder_and_cross_repo_runtime": {
       "status": "AVAILABLE",
       "claim": "Cross-repository Agent Builder export/import with SHA-256 integrity validation and shared runtime policy containment",
@@ -65,7 +59,7 @@
     },
     "golden_thread_bidirectional_studio_and_blast_radius": {
       "status": "AVAILABLE",
-      "claim": "Golden-Thread Bidirectional KFlow Studio — 4-Stage Golden-Thread Lifecycle Journey Bar, RCE-safe static Bidirectional AST <-> Visual SVG KFlow Split Studio across Python and TypeScript with exact line-span synchronization via the kflow-sync CLI and P-10 lock round-trips, interactive Flight-Tape Waterfall Timeline Scrubber, SQLite WAL Seatbelt Sandbox Blast-Radius Radar, and 1-click Inline Prompt & Schema Regression Gates (prompt-gate)",
+      "claim": "Golden-Thread Bidirectional KFlow Studio — 4-Stage Golden-Thread Lifecycle Journey Bar, RCE-safe static Bidirectional AST <-> Visual SVG KFlow Split Studio across Python and TypeScript with exact line-span synchronization via the kflow-sync CLI and P-10 lock round-trips, interactive Flight-Tape Waterfall Timeline Scrubber, SQLite WAL Seatbelt Sandbox Blast-Radius Radar (blast-radius sandbox inspection), and 1-click Inline Prompt & Schema Regression Gates (prompt-gate)",
       "code_path": "core/platform/kflow_bidirectional_sync.py, core/platform/sandbox_blast_radius.py, core/api/platform_studio_routes.py, core/cli_studio.py, dev-app/src/components/platform/GoldenThreadJourneyBar.tsx, dev-app/src/components/platform/BidirectionalKflowStudioPanel.tsx, dev-app/src/components/platform/FlightTapeScrubberAndRadar.tsx",
       "evidence_test": "tests/test_phase12_bidirectional_studio_and_blast_radius.py, tests/test_phase12_sdk_parity.py, dev-app/src/__tests__/phase12-golden-thread-studio.test.tsx"
     },
@@ -127,7 +121,7 @@
       "status": "AVAILABLE",
       "claim": "Keelway Marketplace supporting 1st-party and verified 3rd-party agents, multi-agent systems, skills, plugins, templates, dev tools, and enterprise solutions with mandatory pre-publication prompt-injection, shell/AST exfil, and secret scanning plus 85/15 creator revenue sharing",
       "code_path": "core/platform/marketplace.py, core/cli_tui.py",
-      "evidence_test": "tests/test_unified_platform.py, tests/test_cli_init_and_banner.py, tests/test_website_facts.py"
+      "evidence_test": "tests/test_unified_platform.py, tests/test_cli_init_and_banner.py, tests/test_webnext_facts.py"
     },
     "ed25519_manifest_signing_and_sqlite_platform_store": {
       "status": "AVAILABLE",
@@ -138,8 +132,8 @@
     "seat_tiers_and_marketplace_subscription_governance": {
       "status": "AVAILABLE",
       "claim": "Calibrated four-seat-tier subscription and BYOM policy engine (Community $0, BYOM $15/$19, Pro $29/$35, Enterprise custom, all at 0% token proxy markup) plus a Marketplace 85/15 revenue-share stream validated by a 5-persona MiroFish OASIS market & P50/P95 unit-economics swarm simulator, enforcing open-weight quotas, SPDX/commercial license checks, and fail-closed rejection of consumer web subscriptions as third-party API credentials",
-      "code_path": "core/platform/subscription.py, core/eval/pricing_mirofish.py, core/cli_runtime.py, website/src/app/pricing/page.tsx, dev-app/src/components/platform/QuotaAndPricingSimulatorPanel.tsx",
-      "evidence_test": "tests/test_unified_platform.py, tests/test_pricing_mirofish.py, tests/test_cli_runtime_phase6.py, tests/test_website_facts.py, dev-app/src/__tests__/phase6-ops-pricing-simulator.test.tsx"
+      "code_path": "core/platform/subscription.py, core/eval/pricing_mirofish.py, core/cli_runtime.py, web-next/src/app/pricing/page.tsx, dev-app/src/components/platform/QuotaAndPricingSimulatorPanel.tsx",
+      "evidence_test": "tests/test_unified_platform.py, tests/test_pricing_mirofish.py, tests/test_cli_runtime_phase6.py, tests/test_webnext_facts.py, dev-app/src/__tests__/phase6-ops-pricing-simulator.test.tsx"
     },
     "tier2_hardware_security_hal": {
       "status": "EXPERIMENTAL",
@@ -147,6 +141,12 @@
       "code_path": "keelway/hal/tpm.py",
       "evidence_test": "tests/test_tier2_api_and_cli.py, tests/test_tier2_tpm.py",
       "qualification_note": "Model specification verified via software simulation; requires target hardware certification for field deployment."
+    },
+    "early_access_intake_api_and_signup_surface": {
+      "status": "AVAILABLE",
+      "claim": "Early-access intake API (/api/early-access) with origin allowlist, per-IP rate limiting (5/10min), 4KB body cap, field validation, fail-closed 503 without a configured private webhook, optional HMAC-SHA256 delivery signature, and KW-* reference IDs — plus the public /signup magic-link form that posts to it with an honest GitHub fallback when intake is not yet provisioned",
+      "evidence_test": "web-next/e2e/routes.spec.ts",
+      "code_path": "web-next/src/app/api/early-access/route.ts, web-next/src/components/site/magic-link-form.tsx"
     }
   }
 }

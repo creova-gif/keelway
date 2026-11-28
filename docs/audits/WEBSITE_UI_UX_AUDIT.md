@@ -70,15 +70,17 @@ public routes return 200, crawls header/footer internal links for dead targets, 
 checks per-page meta descriptions (14 tests alongside the 16 a11y/perf tests). A stale
 prod deploy now fails the route-smoke gate rather than shipping silently.
 
-### F-05 · Legacy `website/` app is a divergent second surface (MED — CI decoupled KEEL-WEB-054)
+### F-05 · Legacy `website/` app is a divergent second surface (MED — resolved KEEL-WEB-055)
 `website/` (v3 Maritime build) used to compile and e2e-test in CI alongside web-next,
 and its README documented routes that return 404 or no longer exist in source.
-**Progress:** deprecation banner landed (WEB-053); CI no longer builds or e2e-tests
-the app (WEB-054) — `sdk/typescript` and `extensions/vscode-keelway` now compile with
-their own `typescript` devDependencies instead of borrowing `website/node_modules`.
-**Residual:** directory removal still blocked on the pytest drift gates
-(`test_website_facts.py`, phase 15–17 website sync tests) that pin `website/` files —
-they must be migrated to web-next or retired first.
+**Resolved:** deprecation banner landed (WEB-053); CI no longer builds or e2e-tests
+the app (WEB-054); directory removed entirely (WEB-055). The drift gates it hosted
+were migrated, not retired: `product-facts.json` + `openapi.json` + `public/` mirrors
+moved to `web-next/`; `test_website_facts.py` → `test_webnext_facts.py` repointed to
+the live surface (self-canonicalizing routes, sitemap/robots/manifest/feed, self-hosted
+fonts, zero-CDN scan, real pricing tokens); phases 12–17 + api_export + full_beta now
+read `web-next/`; agent write scopes `website/**` → `web-next/**`; legacy `.html`
+bookmarks get 308 redirects in `next.config.ts`.
 
 ### F-06 · Homepage has no explicit page metadata (LOW — fixed KEEL-WEB-054, scope expanded)
 9 routes exported `metadata`; the homepage relied on `layout.tsx` defaults. Inspection
@@ -116,7 +118,7 @@ beta per "publish only what's real"; schedule Docs 2.0 post-beta.
 |---|---|---|---|
 | 1 | F-01: restore prod deploy currency (Vercel project config) | HIGH | User-side |
 | 2 | F-02: provision `EARLY_ACCESS_WEBHOOK_URL` (+ `..._SECRET`) in Vercel | HIGH | User-side |
-| 3 | F-05 residual: migrate/retire pytest drift gates (`test_website_facts`, phase 15–17 sync tests), then remove `website/` | MED | M |
+| 3 | F-05: drift gates migrated to `web-next/` + `website/` removed | — | **DONE (WEB-055)** |
 | 4 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
 | 5 | F-03: ambiguous Tailwind classes | — | **DONE (WEB-052)** |
 | 6 | F-04: route-smoke e2e spec | — | **DONE (WEB-053)** |

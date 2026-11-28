@@ -2,17 +2,21 @@
 Product-Facts & Next.js 15 Sovereign Website Drift Verification Gate.
 
 Verifies that:
-1. Every feature claim in `website/public/product-facts.json` (and mirrored
-   `website/product-facts.json`) maps to real source files and executable test
+1. Every feature claim in `web-next/public/product-facts.json` (and mirrored
+   `web-next/product-facts.json`) maps to real source files and executable test
    suites on disk, preventing marketing drift.
-2. The Next.js 15 App Router website preserves permanent 308 redirects for all
-   legacy `.html` bookmarks, serves all 7 primary routes, exposes `/openapi.json`,
-   `sitemap.ts`, `robots.ts`, and bundles self-hosted `.woff2` variable fonts.
+2. The Next.js 15 App Router site (`web-next/`, the canonical public surface)
+   preserves permanent 308 redirects for all legacy `.html` bookmarks, serves
+   all primary routes, exposes `/openapi.json`, `sitemap.ts`, `robots.ts`, and
+   bundles self-hosted `.woff2` variable fonts.
 3. Zero third-party font or stylesheet CDNs (`fonts.googleapis.com`,
    `fonts.gstatic.com`, `cdn.tailwindcss.com`, `cdnjs.cloudflare.com`) appear
-   anywhere under `website/src/` or `website/public/`.
+   anywhere under `web-next/src/` or `web-next/public/`.
 4. Official TypeScript SDK (`@keelway/sdk`) maintains zero runtime npm
    dependencies and passes its Node test suite.
+
+History: this gate previously bound to the retired `website/` app
+(KEEL-WEB-055); `SITE_DIR` now points at `web-next/`.
 """
 
 from __future__ import annotations
@@ -24,7 +28,7 @@ import subprocess
 from pathlib import Path
 
 KEELWAY_ROOT = Path(__file__).resolve().parent.parent
-WEBSITE_DIR = KEELWAY_ROOT / "website"
+SITE_DIR = KEELWAY_ROOT / "web-next"
 
 FORBIDDEN_CDN_HOSTS = (
     "fonts.googleapis.com",
@@ -35,16 +39,16 @@ FORBIDDEN_CDN_HOSTS = (
 
 
 def test_product_facts_manifest_integrity() -> None:
-    public_facts_file = WEBSITE_DIR / "public" / "product-facts.json"
-    root_facts_file = WEBSITE_DIR / "product-facts.json"
+    public_facts_file = SITE_DIR / "public" / "product-facts.json"
+    root_facts_file = SITE_DIR / "product-facts.json"
 
-    assert public_facts_file.exists(), "website/public/product-facts.json must exist"
-    assert root_facts_file.exists(), "website/product-facts.json must exist"
+    assert public_facts_file.exists(), "web-next/public/product-facts.json must exist"
+    assert root_facts_file.exists(), "web-next/product-facts.json must exist"
 
     public_data = json.loads(public_facts_file.read_text(encoding="utf-8"))
     root_data = json.loads(root_facts_file.read_text(encoding="utf-8"))
     assert public_data == root_data, (
-        "website/product-facts.json and website/public/product-facts.json must stay in sync"
+        "web-next/product-facts.json and web-next/public/product-facts.json must stay in sync"
     )
 
     assert public_data["version"] == "1.1.0"
@@ -101,16 +105,16 @@ def test_product_facts_manifest_integrity() -> None:
 
 
 def test_nextjs_app_router_structure_and_legacy_redirects() -> None:
-    pkg_file = WEBSITE_DIR / "package.json"
-    assert pkg_file.exists(), "website/package.json must exist"
+    pkg_file = SITE_DIR / "package.json"
+    assert pkg_file.exists(), "web-next/package.json must exist"
     pkg = json.loads(pkg_file.read_text(encoding="utf-8"))
     deps = pkg.get("dependencies", {})
     assert "next" in deps and deps["next"].lstrip("^~").startswith("15."), (
-        f"Expected Next.js 15 in website/package.json, got {deps.get('next')}"
+        f"Expected Next.js 15 in web-next/package.json, got {deps.get('next')}"
     )
 
-    next_cfg_file = WEBSITE_DIR / "next.config.ts"
-    assert next_cfg_file.exists(), "website/next.config.ts must exist"
+    next_cfg_file = SITE_DIR / "next.config.ts"
+    assert next_cfg_file.exists(), "web-next/next.config.ts must exist"
     next_cfg_text = next_cfg_file.read_text(encoding="utf-8")
 
     expected_redirects = (
@@ -126,69 +130,76 @@ def test_nextjs_app_router_structure_and_legacy_redirects() -> None:
             r"permanent:\s*true"
         )
         assert re.search(pattern, next_cfg_text), (
-            f"Missing permanent (308) redirect {src} -> {dest} in website/next.config.ts"
+            f"Missing permanent (308) redirect {src} -> {dest} in web-next/next.config.ts"
         )
 
     expected_route_pages = (
-        WEBSITE_DIR / "src" / "app" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "product" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "pricing" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "docs" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "changelog" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "about" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "contact" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "sign-in" / "page.tsx",
-        WEBSITE_DIR / "src" / "app" / "not-found.tsx",
+        SITE_DIR / "src" / "app" / "page.tsx",
+        SITE_DIR / "src" / "app" / "product" / "page.tsx",
+        SITE_DIR / "src" / "app" / "pricing" / "page.tsx",
+        SITE_DIR / "src" / "app" / "docs" / "page.tsx",
+        SITE_DIR / "src" / "app" / "changelog" / "page.tsx",
+        SITE_DIR / "src" / "app" / "about" / "page.tsx",
+        SITE_DIR / "src" / "app" / "contact" / "page.tsx",
+        SITE_DIR / "src" / "app" / "legal" / "page.tsx",
+        SITE_DIR / "src" / "app" / "blog" / "page.tsx",
+        SITE_DIR / "src" / "app" / "sign-in" / "page.tsx",
+        SITE_DIR / "src" / "app" / "signup" / "page.tsx",
+        SITE_DIR / "src" / "app" / "offline" / "page.tsx",
+        SITE_DIR / "src" / "app" / "not-found.tsx",
     )
     for page_path in expected_route_pages:
         assert page_path.exists(), f"Missing Next.js route file: {page_path}"
         assert page_path.stat().st_size > 100, f"Next.js route file appears empty: {page_path}"
 
-    utils_text = (WEBSITE_DIR / "src" / "lib" / "utils.ts").read_text(encoding="utf-8")
+    utils_text = (SITE_DIR / "src" / "lib" / "utils.ts").read_text(encoding="utf-8")
     assert "https://kora-sable.vercel.app" in utils_text
 
-    sitemap_file = WEBSITE_DIR / "src" / "app" / "sitemap.ts"
-    assert sitemap_file.exists(), "website/src/app/sitemap.ts must exist"
+    sitemap_file = SITE_DIR / "src" / "app" / "sitemap.ts"
+    assert sitemap_file.exists(), "web-next/src/app/sitemap.ts must exist"
     sitemap_text = sitemap_file.read_text(encoding="utf-8")
     assert "SITE_URL" in sitemap_text
-    for route in ("", "/product", "/pricing", "/docs", "/changelog", "/about", "/contact", "/sign-in"):
+    for route in (
+        "", "/product", "/pricing", "/docs", "/changelog", "/about",
+        "/blog", "/contact", "/legal", "/sign-in", "/signup",
+    ):
         assert f'"{route}"' in sitemap_text, f"Route {route} missing from sitemap.ts"
 
-    robots_file = WEBSITE_DIR / "src" / "app" / "robots.ts"
-    assert robots_file.exists(), "website/src/app/robots.ts must exist"
+    robots_file = SITE_DIR / "src" / "app" / "robots.ts"
+    assert robots_file.exists(), "web-next/src/app/robots.ts must exist"
     robots_text = robots_file.read_text(encoding="utf-8")
     assert "SITE_URL" in robots_text and "sitemap.xml" in robots_text
 
-    manifest_file = WEBSITE_DIR / "src" / "app" / "manifest.ts"
-    assert manifest_file.exists(), "website/src/app/manifest.ts must exist"
+    manifest_file = SITE_DIR / "src" / "app" / "manifest.ts"
+    assert manifest_file.exists(), "web-next/src/app/manifest.ts must exist"
     manifest_text = manifest_file.read_text(encoding="utf-8")
-    assert "#09090B" in manifest_text and "/favicon.svg" in manifest_text
+    assert "#08090A" in manifest_text and "/favicon.svg" in manifest_text
 
-    feed_route_file = WEBSITE_DIR / "src" / "app" / "feed.xml" / "route.ts"
-    assert feed_route_file.exists(), "website/src/app/feed.xml/route.ts must exist"
+    feed_route_file = SITE_DIR / "src" / "app" / "feed.xml" / "route.ts"
+    assert feed_route_file.exists(), "web-next/src/app/feed.xml/route.ts must exist"
     feed_text = feed_route_file.read_text(encoding="utf-8")
     assert "application/rss+xml" in feed_text and "SITE_URL" in feed_text
 
-    openapi_file = WEBSITE_DIR / "public" / "openapi.json"
-    assert openapi_file.exists(), "website/public/openapi.json must exist"
+    openapi_file = SITE_DIR / "public" / "openapi.json"
+    assert openapi_file.exists(), "web-next/public/openapi.json must exist"
     openapi_doc = json.loads(openapi_file.read_text(encoding="utf-8"))
     assert str(openapi_doc.get("openapi", "")).startswith("3.")
     for required_api_path in ("/health", "/v1/models", "/v1/chat/completions", "/v1/usage"):
         assert required_api_path in openapi_doc.get("paths", {}), (
-            f"Missing {required_api_path} in website/public/openapi.json"
+            f"Missing {required_api_path} in web-next/public/openapi.json"
         )
 
-    fonts_dir = WEBSITE_DIR / "src" / "fonts"
-    assert fonts_dir.exists(), "website/src/fonts directory must exist"
+    fonts_dir = SITE_DIR / "src" / "fonts"
+    assert fonts_dir.exists(), "web-next/src/fonts directory must exist"
     woff2_files = sorted(fonts_dir.glob("*.woff2"))
-    assert len(woff2_files) >= 2, "Expected self-hosted Inter & JetBrains Mono .woff2 fonts in website/src/fonts/"
+    assert len(woff2_files) >= 2, "Expected self-hosted Inter & JetBrains Mono .woff2 fonts in web-next/src/fonts/"
     for font_file in woff2_files:
         assert font_file.stat().st_size > 1024, f"Font file {font_file} is unexpectedly small"
 
 
 def test_website_sovereign_zero_third_party_cdn_invariant() -> None:
     scanned_files = []
-    for root_dir in (WEBSITE_DIR / "src", WEBSITE_DIR / "public"):
+    for root_dir in (SITE_DIR / "src", SITE_DIR / "public"):
         assert root_dir.exists(), f"Expected directory {root_dir} to exist"
         for ext in ("*.ts", "*.tsx", "*.css", "*.html"):
             scanned_files.extend(root_dir.rglob(ext))
@@ -225,22 +236,23 @@ def test_official_typescript_sdk_zero_deps_and_node_suite() -> None:
         assert proc.returncode == 0, f"@keelway/sdk Node test suite failed:\n{proc.stdout}\n{proc.stderr}"
 
 
-def test_maritime_instrument_v3_surface_facts() -> None:
-    """v3 Maritime Instrument rebuild — the marketing surface must carry
-    accurate commercial and platform claims only (KEEL-WEB-038)."""
-    app = WEBSITE_DIR / "src" / "app"
+def test_web_next_public_surface_facts() -> None:
+    """web-next public surface — the marketing copy must carry accurate
+    commercial and platform claims only (canonical 4-tier pricing, honest
+    labels). Successor to the retired v3 Maritime Instrument surface test."""
+    app = SITE_DIR / "src" / "app"
 
     home = (app / "page.tsx").read_text(encoding="utf-8")
     assert "Agents that answer to you" in home
-    assert "Apache-2.0 open core" in home
-    for token in ("YOUR HARDWARE", "YOUR POLICY", "YOUR RECORDS"):
-        assert token in home
+    assert "signed receipt" in home
+    assert "P-10" in home
 
     pricing = (app / "pricing" / "page.tsx").read_text(encoding="utf-8")
-    for token in ("$15", "$19", "$29", "$35", "0% token markup", "Sovereign VPC"):
+    for token in ("$15", "$29", "0% token markup", "Sovereign VPC", "85 / 15"):
         assert token in pricing, f"pricing page missing canonical fact: {token}"
+    assert "$39/seat" not in pricing, "stale $39/seat pricing must not appear on /pricing"
 
-    footer = (WEBSITE_DIR / "src" / "components" / "layout" / "Footer.tsx").read_text(
+    footer = (SITE_DIR / "src" / "components" / "site" / "footer.tsx").read_text(
         encoding="utf-8"
     )
     assert "Apache-2.0 open core" in footer

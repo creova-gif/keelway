@@ -1,7 +1,7 @@
 # Keelway Studio — Design System Notes
 
 Scope: the local Studio web IDE served at `/studio` (`core/studio`). The
-governance console (`/console`, `web-console/`) and `website/` are separate
+governance console (`/console`, `web-console/`) and `web-next/` are separate
 surfaces and are not covered here.
 
 ## Build

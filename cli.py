@@ -3208,7 +3208,7 @@ def cmd_package(
     return 0
 
 
-def cmd_openapi(out_path: Path = Path("website/openapi.json"), to_stdout: bool = False) -> int:
+def cmd_openapi(out_path: Path = Path("web-next/openapi.json"), to_stdout: bool = False) -> int:
     """Export the OpenAPI 3.1 schema of Keelway Core to JSON or stdout."""
     import json
     from core.main import app
@@ -3858,13 +3858,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     # openapi / api export
     openapi_parser = subparsers.add_parser("openapi", help="Export OpenAPI 3.1 JSON schema for Keelway Core")
-    openapi_parser.add_argument("--out", type=Path, default=Path("website/openapi.json"), help="Output path for openapi.json")
+    openapi_parser.add_argument("--out", type=Path, default=Path("web-next/openapi.json"), help="Output path for openapi.json")
     openapi_parser.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
 
     api_parser = subparsers.add_parser("api", help="Manage and export API specifications")
     api_sub = api_parser.add_subparsers(dest="api_command", required=True)
     api_export = api_sub.add_parser("export", help="Export OpenAPI 3.1 JSON schema")
-    api_export.add_argument("--out", type=Path, default=Path("website/openapi.json"), help="Output path for openapi.json")
+    api_export.add_argument("--out", type=Path, default=Path("web-next/openapi.json"), help="Output path for openapi.json")
     api_export.add_argument("--stdout", action="store_true", help="Print schema to stdout instead of saving to file")
 
     from core.cli_ai import register_ai_subparsers
@@ -3935,7 +3935,7 @@ def _main(argv: Optional[List[str]] = None) -> int:
     elif args.command == "openapi":
         sys.exit(
             cmd_openapi(
-                out_path=getattr(args, "out", Path("website/openapi.json")),
+                out_path=getattr(args, "out", Path("web-next/openapi.json")),
                 to_stdout=getattr(args, "stdout", False),
             )
         )
@@ -3943,7 +3943,7 @@ def _main(argv: Optional[List[str]] = None) -> int:
         if getattr(args, "api_command", None) == "export":
             sys.exit(
                 cmd_openapi(
-                    out_path=getattr(args, "out", Path("website/openapi.json")),
+                    out_path=getattr(args, "out", Path("web-next/openapi.json")),
                     to_stdout=getattr(args, "stdout", False),
                 )
             )

@@ -116,7 +116,7 @@ Keelway ships with six pre-configured, battle-tested agent templates (`core/agen
    * *Verification:* Validates all generated tests pass cleanly before returning.
 5. **`doc-writer`:**
    * *Role:* Inspects AST diffs and code symbols to automatically synchronize READMEs, OpenAPI 3.1 schemas, and developer documentation.
-   * *Permissions:* `confirm_mutation` autonomy, write access bounded to `docs/**`, `website/**`, `README.md`, `openapi.json`. Network: `none`.
+   * *Permissions:* `confirm_mutation` autonomy, write access bounded to `docs/**`, `web-next/**`, `README.md`, `openapi.json`. Network: `none`.
 6. **`dependency-modernizer`:**
    * *Role:* Evaluates outdated dependencies in `pyproject.toml` or `package.json`, runs upgrade test matrices in isolation, and refactors deprecated API call sites.
    * *Permissions:* `confirm_mutation` autonomy, command execution restricted to package managers and test runners. Network: `none`.

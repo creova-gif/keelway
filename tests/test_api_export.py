@@ -58,7 +58,7 @@ def test_cli_parser_openapi_subcommands() -> None:
     # 1. Test 'openapi' with default args
     args_default = parser.parse_args(["openapi"])
     assert args_default.command == "openapi"
-    assert args_default.out == Path("website/openapi.json")
+    assert args_default.out == Path("web-next/openapi.json")
     assert not args_default.stdout
 
     # 2. Test 'openapi' with custom args

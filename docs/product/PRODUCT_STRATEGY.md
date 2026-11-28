@@ -47,4 +47,4 @@ All Keelway interfaces (Web Studio, Website, Mobile App) must align strictly wit
   - Body & UI: **Instrument Sans**
   - Code & Monospace: **Martian Mono**
 - **Truth in Marketing**:
-  - Never advertise unsupported capabilities. All marketing claims on `website/` must map directly to passing test evidence in `docs/product-facts.yaml`.
+  - Never advertise unsupported capabilities. All marketing claims on `web-next/` must map directly to passing test evidence in `docs/product-facts.yaml`.

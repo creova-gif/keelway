@@ -107,7 +107,7 @@ BUILTIN_TEMPLATES: Dict[str, Dict[str, Any]] = {
         "permissions": {
             "autonomy": "confirm_mutation",
             "read_paths": ["**"],
-            "write_paths": ["docs/**", "website/**", "README.md", "openapi.json"],
+            "write_paths": ["docs/**", "web-next/**", "README.md", "openapi.json"],
             "commands": [],
             "network": "none",
         },

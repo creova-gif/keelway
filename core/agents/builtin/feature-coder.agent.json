@@ -27,7 +27,7 @@
       "core/**",
       "dev-app/src/**",
       "tests/**",
-      "website/**"
+      "web-next/**"
     ],
     "commands": [
       "pytest -q",

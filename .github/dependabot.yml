@@ -18,7 +18,7 @@ updates:
       - "/extensions/vscode-keelway"
       - "/mobile"
       - "/sdk/typescript"
-      - "/website"
+      - "/web-next"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5

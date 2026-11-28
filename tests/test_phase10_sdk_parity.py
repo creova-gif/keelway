@@ -32,7 +32,8 @@ PHASE10_PYTHON_METHODS = (
 )
 
 FORBIDDEN_PRIVATE_TOKENS = (
-    "creova-gif",
+    # NOTE: "creova-gif" removed in KEEL-WEB-055 — the public open-core org
+    # is deliberately linked from the shipped site; "creovas-projects" stays forbidden.
     "creovas-projects",
     "keelway.git",
     "KEEL-MANIFEST-",
@@ -410,7 +411,7 @@ async def test_python_async_sdk_live_asgi_kbrain_khub_and_tri_sdk_symbols(tmp_pa
 def test_docs_hub_phase10_4k_sovereign_architecture_and_privacy() -> None:
     # KEEL-WEB-038: DocsHub.tsx was retired with the v3 route prune; the same
     # disclosure + privacy contract now binds to product-facts.json.
-    facts_src = (REPO_ROOT / "website" / "product-facts.json").read_text(encoding="utf-8")
+    facts_src = (REPO_ROOT / "web-next" / "product-facts.json").read_text(encoding="utf-8")
 
     for required_token in (
         "4-K Sovereign Architecture",

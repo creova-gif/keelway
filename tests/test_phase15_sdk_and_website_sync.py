@@ -28,7 +28,7 @@ from core.sdk import (
 from core.security.auth import launch_token
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WEBSITE_DIR = REPO_ROOT / "website"
+SITE_DIR = REPO_ROOT / "web-next"
 
 PHASE15_PYTHON_METHODS = (
     "validate_cyclic_kflow",
@@ -58,7 +58,8 @@ PHASE15_GO_METHODS = (
 )
 
 FORBIDDEN_PRIVATE_TOKENS = (
-    "creova-gif",
+    # NOTE: "creova-gif" removed in KEEL-WEB-055 — the public open-core org
+    # is deliberately linked from the shipped site; "creovas-projects" stays forbidden.
     "creovas-projects",
     "keelway.git",
     "KEEL-",
@@ -295,8 +296,8 @@ def test_tri_sdk_module_caps_and_website_286_route_23_feature_parity() -> None:
     for go_m in PHASE15_GO_METHODS:
         assert f"func (p *PlatformService) {go_m}(" in go_src, f"Missing Go SDK method {go_m}"
 
-    openapi_raw = (WEBSITE_DIR / "openapi.json").read_text(encoding="utf-8")
-    pub_openapi_raw = (WEBSITE_DIR / "public" / "openapi.json").read_text(encoding="utf-8")
+    openapi_raw = (SITE_DIR / "openapi.json").read_text(encoding="utf-8")
+    pub_openapi_raw = (SITE_DIR / "public" / "openapi.json").read_text(encoding="utf-8")
     assert openapi_raw == pub_openapi_raw
     openapi_doc = json.loads(openapi_raw)
     assert len(openapi_doc["paths"]) >= 286
@@ -311,8 +312,8 @@ def test_tri_sdk_module_caps_and_website_286_route_23_feature_parity() -> None:
     ):
         assert route in openapi_doc["paths"], f"Missing OpenAPI route {route}"
 
-    facts_raw = (WEBSITE_DIR / "product-facts.json").read_text(encoding="utf-8")
-    pub_facts_raw = (WEBSITE_DIR / "public" / "product-facts.json").read_text(encoding="utf-8")
+    facts_raw = (SITE_DIR / "product-facts.json").read_text(encoding="utf-8")
+    pub_facts_raw = (SITE_DIR / "public" / "product-facts.json").read_text(encoding="utf-8")
     assert facts_raw == pub_facts_raw
     for tok in FORBIDDEN_PRIVATE_TOKENS:
         assert tok not in facts_raw, f"Private token '{tok}' leaked in product-facts.json"

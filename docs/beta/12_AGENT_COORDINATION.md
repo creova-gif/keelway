@@ -5,7 +5,7 @@
 | Lane | Owns (write) | Reads |
 | ---- | ------------ | ----- |
 | Backend (Devin) | `core/`, `cli.py`, `keelway/`, `api/`, `deploy/`, `pyproject.toml`, `requirements*` | everything |
-| Frontend (Antigravity) | `dev-app/`, `website/`, `web-next/`, `web-console/`, `DESIGN.md` | `core/api/` contracts |
+| Frontend (Antigravity) | `dev-app/`, `web-next/`, `web-console/`, `DESIGN.md` | `core/api/` contracts |
 | AI eng (Claude) | `core/models/`, `core/opencore/`, `core/eval/`, `evals/` | gateway call sites |
 | Security | `core/security/` + reviews anywhere | everything |
 | QA | `tests/`, `*/e2e/`, `docs/beta/` checklists | everything |

@@ -322,7 +322,7 @@ def test_dockerfile_compose_and_github_actions_release_hardening() -> None:
 
 
 def test_public_install_sh_dry_run_and_v1_docs_integrity(tmp_path: Path) -> None:
-    pub_install = REPO_ROOT / "website" / "public" / "install.sh"
+    pub_install = REPO_ROOT / "web-next" / "public" / "install.sh"
     assert subprocess.run(["sh", "-n", str(pub_install)], capture_output=True, text=True, check=False).returncode == 0
 
     help_res = subprocess.run(["sh", str(pub_install), "--help"], capture_output=True, text=True, check=False)

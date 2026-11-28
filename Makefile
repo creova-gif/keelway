@@ -4,7 +4,7 @@ PYTHON ?= python3
 
 help:
 	@echo "Keelway by Sorvex Labs — local tasks in a keelway clone"
-	@echo "  Studio, the governance server, and website/ are three different surfaces."
+	@echo "  Studio, the governance server, and web-next/ are three different surfaces."
 	@echo "  This help text does not print a test pass count."
 	@echo "  make test          Run pytest on tests/ (PYTHONPATH=. python3 -m pytest tests -q)"
 	@echo "  make test-verbose  Run pytest with verbose output"
