@@ -1,0 +1,17 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/feed.xml/route": "/feed.xml",
+  "/sitemap.xml/route": "/sitemap.xml",
+  "/manifest.webmanifest/route": "/manifest.webmanifest",
+  "/robots.txt/route": "/robots.txt",
+  "/.well-known/vercel/flags/route": "/.well-known/vercel/flags",
+  "/page": "/",
+  "/changelog/page": "/changelog",
+  "/contact/page": "/contact",
+  "/about/page": "/about",
+  "/product/page": "/product",
+  "/sign-in/page": "/sign-in",
+  "/legal/page": "/legal",
+  "/pricing/page": "/pricing",
+  "/docs/page": "/docs"
+}

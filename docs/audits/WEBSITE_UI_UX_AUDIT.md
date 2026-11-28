@@ -121,7 +121,7 @@ beta per "publish only what's real"; schedule Docs 2.0 post-beta.
 | # | Item | Sev | Effort |
 |---|---|---|---|
 | 1 | F-01: Vercel root dir `website` → `web-next`; prod now serves canonical site | — | **DONE (WEB-055)** |
-| 2 | F-02: provision `EARLY_ACCESS_WEBHOOK_URL` (+ `..._SECRET`) in Vercel | HIGH | User-side |
+| 2 | F-02: provision `EARLY_ACCESS_WEBHOOK_URL` (+ `..._SECRET`) in Vercel | HIGH | Partial — `SECRET` set + flipped to `sensitive` (Devin, 2026-11-28); `EARLY_ACCESS_WEBHOOK_URL` still needed from user |
 | 3 | F-05: drift gates migrated to `web-next/` + `website/` removed | — | **DONE (WEB-055)** |
 | 4 | F-07: Docs 2.0 — searchable docs surface, API reference | LOW | Post-beta |
 | 5 | F-03: ambiguous Tailwind classes | — | **DONE (WEB-052)** |
@@ -129,6 +129,12 @@ beta per "publish only what's real"; schedule Docs 2.0 post-beta.
 | 7 | F-02: real `/api/early-access` + wired form | — | **DONE (WEB-053)** |
 | 8 | F-05: `website/` deprecation banner + CI decoupling | — | **DONE (WEB-053/054)** |
 | 9 | F-06: per-page canonical + `/product`/`/offline` metadata | — | **DONE (WEB-054)** |
+
+### Post-audit production verification (2026-11-28, live probes)
+- `kora-sable.vercel.app` `/`, `/signup`, `/blog`, `/product` → **200** (canonical web-next serving).
+- `POST /api/early-access` foreign origin → `{"ok":false,"error":"forbidden origin"}` (allowlist enforced).
+- `POST /api/early-access` allowed origin → `{"ok":false,"error":"early access intake is temporarily unavailable"}` — **fail-closed 503 verified live** while `EARLY_ACCESS_WEBHOOK_URL` is absent.
+- `EARLY_ACCESS_WEBHOOK_SECRET` migrated `encrypted` → `sensitive` type (readable-secret flag cleared, value untouched).
 
 ## 5. Honest limitations of this audit
 
