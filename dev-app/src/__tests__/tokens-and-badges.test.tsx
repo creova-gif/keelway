@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { SemanticBadge, type SemanticBadgeKind } from "@/components/ui/SemanticBadge";
 import { Button } from "@/components/ui/Button";
 import { CalloutBanner } from "@/components/ui/CalloutBanner";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   connectStudioWebSocket,
   createGitCommit,
@@ -758,5 +759,45 @@ describe("Agents view — live manifest registry overlay (KEEL-APP-048)", () => 
     render(<AgentsWorkspaceView {...baseProps} agentRegistry={null} activeRbacRole="admin" />);
     expect(screen.getByText(/registry unverified/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /agent manifest/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("KDS StatCard primitive", () => {
+  it("renders label, mono value, and optional delta inside a dl", () => {
+    render(
+      <dl>
+        <StatCard label="Platform fee" value="$120.00" delta="15% of gross" />
+        <StatCard label="Saved vs proxy tax" value="+$900/mo" emphasis />
+      </dl>,
+    );
+    expect(screen.getByText("Platform fee")).toBeInTheDocument();
+    expect(screen.getByText("$120.00")).toBeInTheDocument();
+    expect(screen.getByText("15% of gross")).toBeInTheDocument();
+    const emphasized = screen.getByText("Saved vs proxy tax");
+    expect(emphasized.closest("div")).toHaveClass("border");
+    expect(screen.getByText("+$900/mo").closest("dd")).toHaveClass("text-accent");
+  });
+
+  it("supports unframed cells inside an already-framed dl", () => {
+    render(
+      <dl>
+        <StatCard framed={false} label="License" value="Apache-2.0" />
+      </dl>,
+    );
+    const cell = screen.getByText("Apache-2.0").closest("div");
+    expect(cell).not.toHaveClass("border");
+    expect(screen.getByText("License")).toBeInTheDocument();
+  });
+
+  it("emits axe-clean dt/dd structure inside a dl", async () => {
+    const { container, unmount } = render(
+      <dl>
+        <StatCard label="Personas supportive" value="5/5" delta="100% vs 40% legacy" />
+        <StatCard framed={false} label="Pro gross margin" value="93.2% / 83.2%" />
+      </dl>,
+    );
+    const results = await runAxe(container);
+    expect(results).toHaveNoViolations();
+    unmount();
   });
 });

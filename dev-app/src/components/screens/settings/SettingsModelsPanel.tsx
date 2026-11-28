@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
+import { StatCard } from "@/components/ui/StatCard";
 import { SettingsPanelHeader } from "@/components/screens/settings/SettingsPanelHeader";
 import { explainRouting, fetchOpenCoreWeights } from "@/lib/api";
 import type {
@@ -505,46 +506,26 @@ export function SettingsModelsPanel({
             </div>
 
             <dl className="grid gap-2 rounded-xs border border-border bg-surface p-2.5 sm:grid-cols-3 md:grid-cols-6">
-              <div>
-                <dt className="text-[11px] text-fg-muted">Selected Model</dt>
-                <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.selectedModel}</code>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-fg-muted">License</dt>
-                <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">
-                    {explainResult.license ?? (explainResult.dataBoundary === "local_loopback" ? "Apache-2.0" : "Proprietary")}
-                  </code>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-fg-muted">Hosting</dt>
-                <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">
-                    {explainResult.hosting ?? (explainResult.dataBoundary === "local_loopback" ? "Local Unified Memory" : "Managed Cloud")}
-                  </code>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-fg-muted">Operator</dt>
-                <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.provider}</code>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-fg-muted">Data Boundary</dt>
-                <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.dataBoundary}</code>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-fg-muted">Privacy</dt>
-                <dd className="font-mono font-semibold text-fg">
-                  <code dir="ltr" className="unicode-bidi-isolate">{explainResult.privacyClassification}</code>
-                </dd>
-              </div>
+              <StatCard framed={false} label="Selected Model" value={explainResult.selectedModel} />
+              <StatCard
+                framed={false}
+                label="License"
+                value={
+                  explainResult.license ??
+                  (explainResult.dataBoundary === "local_loopback" ? "Apache-2.0" : "Proprietary")
+                }
+              />
+              <StatCard
+                framed={false}
+                label="Hosting"
+                value={
+                  explainResult.hosting ??
+                  (explainResult.dataBoundary === "local_loopback" ? "Local Unified Memory" : "Managed Cloud")
+                }
+              />
+              <StatCard framed={false} label="Operator" value={explainResult.provider} />
+              <StatCard framed={false} label="Data Boundary" value={explainResult.dataBoundary} />
+              <StatCard framed={false} label="Privacy" value={explainResult.privacyClassification} />
             </dl>
 
             <p className="text-fg">{explainResult.rationale}</p>
