@@ -26,7 +26,7 @@
 | EmptyState | `components/ui/EmptyState.tsx` (title + body + optional action; `role="status"`) | SHARED — debuted KEEL-ENG-078, wired in RecordAuditLedger |
 | Skeleton block | `.kw-skeleton` CSS only | SHARED (CSS) |
 | StatCard | `components/ui/StatCard.tsx` (label + mono value + optional delta; `framed` knob for cells inside an already-framed `<dl>`) | SHARED — debuted KEEL-ENG-079, wired in QuotaAndPricingSimulator/SettingsModels/SettingsBilling |
-| FilterBar / sortable table | per-view | **GAP** |
+| FilterBar / SearchField / FilterChips / FilterSelect | `components/ui/FilterBar.tsx` (filter strip + labelled `type="search"` + `aria-pressed` chip group + enum `<select>`) | SHARED — debuted KEEL-ENG-080, wired in RecordAuditLedger/Marketplace/AgentsView/DocWorkspace/FilesSidebar |
 
 ## Composites
 | Component | Where | Status |
@@ -65,5 +65,5 @@
    honest copy per DESIGN.md §4. Highest recurrence.
 2. `StatCard` — label + mono value + optional delta; recurs in quota,
    governance, observability panels. **DONE** (KEEL-ENG-079).
-3. `FilterBar` — search input + filter chips + sort; recurs in list views.
+3. `FilterBar` — search input + filter chips + sort; recurs in list views. **DONE** (KEEL-ENG-080).
 Extract when next touching each consuming view; never a sweeping rewrite.

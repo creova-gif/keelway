@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type ExportBundleReceipt,
   RecordChainCallouts,
@@ -8,6 +8,7 @@ import {
 } from "@/components/screens/RecordEntryInspector";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FilterBar, FilterSelect, SearchField } from "@/components/ui/FilterBar";
 import {
   exportAuditBundle,
   fetchAuditEntries,
@@ -67,38 +68,6 @@ function buildDistinctOptions(
     { value: "all", label: allLabel },
     ...Array.from(new Set(values)).filter(Boolean).map((v) => ({ value: v, label: v })),
   ];
-}
-
-function FilterSelect<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: ReadonlyArray<{ value: T; label: string }>;
-  onChange: (next: T) => void;
-}): React.JSX.Element {
-  const id = useId();
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-[11px] font-medium text-fg-muted">{label}</label>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => {
-          const matched = options.find((opt) => opt.value === e.target.value);
-          if (matched) onChange(matched.value);
-        }}
-        className="min-h-ctrl-sm rounded-xs border border-border-control bg-surface px-2 py-1 text-xs text-fg"
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    </div>
-  );
 }
 
 function triggerSafeBrowserDownload(filename: string, content: string): void {
@@ -182,7 +151,6 @@ export function RecordAuditLedger({
   const [outcomeFilter, setOutcomeFilter] = useState<"all" | RecordOutcomeKind>("all");
   const [dateFilter, setDateFilter] = useState("all");
 
-  const searchId = useId();
   const inspectorRef = useRef<HTMLElement | null>(null);
   const rowButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const pendingFocusSeqRef = useRef<number | null>(null);
@@ -527,23 +495,18 @@ export function RecordAuditLedger({
           onDismissExportReceipt={() => setExportReceipt(null)}
         />
 
-        <section
+        <FilterBar
           aria-label="Filter Record entries"
-          className="flex flex-wrap items-end gap-2.5 border-b border-border bg-chrome px-4 py-2"
+          className="border-b border-border bg-chrome px-4 py-2"
         >
-          <div className="flex min-w-[180px] flex-1 flex-col gap-1">
-            <label htmlFor={searchId} className="text-[11px] font-medium text-fg-muted">
-              Search <span className="sr-only">Record entries</span>
-            </label>
-            <input
-              id={searchId}
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search #seq, action, target, hash, actor, model…"
-              className="min-h-ctrl-sm w-full rounded-xs border border-border-control bg-surface px-2.5 py-1 text-xs text-fg placeholder:text-fg-dim"
-            />
-          </div>
+          <SearchField
+            className="min-w-[180px] flex-1"
+            label={<>Search <span className="sr-only">Record entries</span></>}
+            labelClassName="mb-1 block text-[11px] font-medium text-fg-muted"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search #seq, action, target, hash, actor, model…"
+          />
 
           <FilterSelect label="Target" value={targetFilter} options={targetOptions} onChange={setTargetFilter} />
           <FilterSelect label="Who" value={actorFilter} options={ACTOR_OPTIONS} onChange={setActorFilter} />
@@ -562,7 +525,7 @@ export function RecordAuditLedger({
               {`Showing ${filteredEntries.length} of ${entries.length} entries`}
             </span>
           </div>
-        </section>
+        </FilterBar>
 
         <div className="min-h-0 flex-1 overflow-auto bg-canvas">
           {effectiveLoading ? (

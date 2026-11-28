@@ -6,6 +6,7 @@ import { ShadowCacheAndDistillationPanel } from "@/components/platform/ShadowCac
 import { StepDebuggerAndBridgePanel } from "@/components/platform/StepDebuggerAndBridgePanel";
 import { StructuredOutputAndSelfHealingPanel } from "@/components/platform/StructuredOutputAndSelfHealingPanel";
 import { Button } from "@/components/ui/Button";
+import { SearchField } from "@/components/ui/FilterBar";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import type {
   ExperienceMode,
@@ -223,17 +224,14 @@ export function AgentsWorkspaceView({
       <section aria-label="Lifecycle agents catalog" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-fg">{`Lifecycle Agents (${filteredAgents.length})`}</h2>
-          <label className="block">
-            <span className="sr-only">Filter lifecycle agents</span>
-            <input
-              type="search"
-              aria-label="Filter lifecycle agents"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder="Filter by agent, role, or SDLC stage…"
-              className="min-h-ctrl-sm w-64 rounded-sm border border-border-control bg-surface px-2.5 py-1 text-xs text-fg placeholder:text-fg-dim"
-            />
-          </label>
+          <SearchField
+            className="w-64"
+            label="Filter lifecycle agents"
+            aria-label="Filter lifecycle agents"
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            placeholder="Filter by agent, role, or SDLC stage…"
+          />
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { KBrainMemoryGraphPanel } from "@/components/platform/KBrainMemoryGraphPanel";
 import { Button } from "@/components/ui/Button";
+import { SearchField } from "@/components/ui/FilterBar";
 import { SemanticBadge } from "@/components/ui/SemanticBadge";
 import { SDLC_STAGES, type DocGuideItem, type ExperienceMode } from "@/lib/platformData";
 import { pushToast } from "@/lib/toasts";
@@ -265,17 +266,13 @@ export function DocumentationWorkspaceView({
           <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-dim">
             {`Knowledge Base (${filteredDocs.length})`}
           </h2>
-          <label className="block">
-            <span className="sr-only">Search documentation</span>
-            <input
-              type="search"
-              aria-label="Search documentation"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search titles, runbooks, or CLI snippets…"
-              className="min-h-ctrl-sm w-full rounded-sm border border-border-control bg-surface px-2.5 py-1 text-xs text-fg placeholder:text-fg-dim"
-            />
-          </label>
+          <SearchField
+            label="Search documentation"
+            aria-label="Search documentation"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search titles, runbooks, or CLI snippets…"
+          />
           <div className="space-y-2">
             {filteredDocs.map((doc) => {
               const isSelected = activeDoc?.id === doc.id;
