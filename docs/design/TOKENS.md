@@ -54,7 +54,7 @@ unrelated views combined onto single boards.
 | `--space-xl` | `56px` | artboard-level breathing room |
 | `--space-2xl` | `80px` | hero/landing sections |
 
-These are **Paper-only** — no `dev-app/tokens.css` or `website/globals.css`
+These are **Paper-only** — no `dev-app/tokens.css` or `web-next` globals
 equivalent exists yet. Record the sync task when adopted; do not treat the
 absence as a drift bug.
 
@@ -74,7 +74,8 @@ dense IDE-style row heights; only its outer artboard padding was widened.
 
 The pre-existing Billing board (`18.2`) showed 3 tiers ("Solo / Pro /
 Enterprise") with no BYOM tier — stale relative to the real 4-tier model in
-`website/src/data/pricing.ts` and `website/src/app/pricing/page.tsx`
+the marketing site (then `website/src/data/pricing.ts`; now inline in
+`web-next/src/app/pricing/page.tsx` post-WEB-055)
 (Community / BYOM / Pro / Enterprise). Fixed by renaming Solo → Community and
 cloning in a BYOM card. See the `COMPLETENESS_AUDIT.md` correction — the
 README (not the website) was the actual source of a false "5-tier" claim,

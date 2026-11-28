@@ -86,7 +86,9 @@ panels inherit the section template unless individually flagged.
 
 Website v3 routes (`/`, `/about`, `/product`, `/pricing`, `/changelog`,
 `/contact`, `/sign-in`, 404) shipped and artboarded on Paper pages 01/03/09.
-Phase 4 includes a parity sweep against the live deployment
+The marketing site has since been rebuilt as `web-next/` (Next.js, ~20
+routes; v3 directory removed in WEB-055) — the artboards remain the design
+record. Phase 4 includes a parity sweep against the live deployment
 (`kora-sable.vercel.app`), not a redesign.
 
 ## G. Sorvex Labs (parent/maker engineering lab — new pages, added 2026-11-23)
